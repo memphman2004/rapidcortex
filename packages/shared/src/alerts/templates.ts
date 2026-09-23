@@ -81,6 +81,27 @@ function campusSeeds(): AlertTemplateSeed[] {
       body: "TEST / DRILL at {{campusName}}. This is an exercise. Follow drill instructions from campus officials. If this were a real emergency and you were in danger, dial 9-1-1.",
       smsBody: "TEST/DRILL at {{campusName}}. This is an exercise. Follow official instructions.",
     },
+    {
+      type: "ENS_TEST_MONTHLY_SILENT",
+      title: "ENS monthly silent test",
+      severity: "INFO",
+      body: "SILENT ENS TEST at {{campusName}}. No audible sirens or PA tones. Verify you received this message. Document results per Clery / institutional policy. Dial 9-1-1 only for real emergencies.",
+      smsBody: "SILENT ENS TEST at {{campusName}}. No sirens. Confirm receipt. Dial 911 for emergencies.",
+    },
+    {
+      type: "ENS_TEST_SEMESTER_AUDIBLE",
+      title: "ENS semester audible test",
+      severity: "WARNING",
+      body: "AUDIBLE ENS TEST at {{campusName}}. Sirens and/or PA tones may sound. Follow campus officials. This is a scheduled semester test — not an active emergency. Dial 9-1-1 only for real emergencies.",
+      smsBody: "AUDIBLE ENS TEST at {{campusName}}. Sirens/PA may sound. Not an emergency.",
+    },
+    {
+      type: "ENS_TEST_ANNUAL_COMPREHENSIVE",
+      title: "ENS annual comprehensive test",
+      severity: "WARNING",
+      body: "ANNUAL COMPREHENSIVE ENS TEST at {{campusName}}. All channels (SMS, email, web, displays, PA/siren as configured) are exercised. Follow instructions from campus officials. Dial 9-1-1 only for real emergencies.",
+      smsBody: "ANNUAL ENS TEST at {{campusName}}. All channels tested. Not an emergency.",
+    },
   ];
 }
 

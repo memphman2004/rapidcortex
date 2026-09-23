@@ -1,4 +1,3 @@
-import { RING_INTEGRATION_ENABLED } from "rapid-cortex-shared";
 import { isPilotTestModeEnabled } from "./pilot-test-mode";
 
 const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
@@ -19,7 +18,6 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_RC_TRANSLATE_CAMPUS: process.env.NEXT_PUBLIC_ENABLE_RC_TRANSLATE_CAMPUS,
   NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL: process.env.NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL,
   NEXT_PUBLIC_ENABLE_RAPID_VISION: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION,
-  NEXT_PUBLIC_ENABLE_RAPID_VISION_RING: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_RING,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_WYZE: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_WYZE,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO,
@@ -32,6 +30,8 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_VISION_AI_WS: process.env.NEXT_PUBLIC_ENABLE_VISION_AI_WS,
   NEXT_PUBLIC_ENABLE_VISION_AI_ADMIN: process.env.NEXT_PUBLIC_ENABLE_VISION_AI_ADMIN,
   NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS,
+  NEXT_PUBLIC_ENABLE_ENS_TEST_PROGRAM: process.env.NEXT_PUBLIC_ENABLE_ENS_TEST_PROGRAM,
+  NEXT_PUBLIC_ENABLE_FOURWINDS: process.env.NEXT_PUBLIC_ENABLE_FOURWINDS,
   NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST: process.env.NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST,
   NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS: process.env.NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS,
   NEXT_PUBLIC_ENABLE_FIELD_COMMAND: process.env.NEXT_PUBLIC_ENABLE_FIELD_COMMAND,
@@ -91,6 +91,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_RCS: process.env.NEXT_PUBLIC_ENABLE_RCS,
   NEXT_PUBLIC_ENABLE_CONNECT_NEST: process.env.NEXT_PUBLIC_ENABLE_CONNECT_NEST,
   NEXT_PUBLIC_ENABLE_CONNECT_WYZE: process.env.NEXT_PUBLIC_ENABLE_CONNECT_WYZE,
+  NEXT_PUBLIC_ENABLE_MILESTONE_XPROTECT: process.env.NEXT_PUBLIC_ENABLE_MILESTONE_XPROTECT,
   NEXT_PUBLIC_ENABLE_RAPID_IQ: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ,
   NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE,
   NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL,
@@ -241,15 +242,6 @@ export function isRapidVisionEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION");
 }
 
-export function isRapidVisionRingEnabled(): boolean {
-  // RING_DISABLED — Rapid Vision Ring source follows the shared kill switch
-  return (
-    RING_INTEGRATION_ENABLED &&
-    isRapidVisionEnabled() &&
-    envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION_RING")
-  );
-}
-
 /**
  * Rapid Vision™ — Google Nest camera source.
  *
@@ -261,7 +253,7 @@ export function isRapidVisionRingEnabled(): boolean {
  * ever shows a Nest stream without a valid SDM token.
  *
  * Defaults **on** when unset, matching the pattern of all other Rapid Vision
- * sub-flags except the (dead) Ring source.
+ * sub-flags.
  *
  * Env: NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST
  */
@@ -329,6 +321,16 @@ export function isRapidVisionSceneAdminEnabled(): boolean {
  */
 export function isVerticalAlertsEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS");
+}
+
+/** Clery-aligned ENS test program (campus/venue). Default on when unset. */
+export function isEnsTestProgramEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_ENS_TEST_PROGRAM");
+}
+
+/** Four Winds display takeover channel (SOC-024/025). Default on when unset. */
+export function isFourwindsEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_FOURWINDS");
 }
 
 /** Fire/access event ingest. Default on when unset. */
@@ -570,7 +572,7 @@ export function isChannelMonitoringEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING");
 }
 
-/** RC Admin Leads CRM inbox (Contact Sales + Ring waitlist). Default on when unset. */
+/** RC Admin Leads CRM inbox (Contact Sales). Default on when unset. */
 export function isSalesLeadsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SALES_LEADS");
 }
@@ -682,6 +684,11 @@ export function isConnectWyzeEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CONNECT_WYZE");
 }
 
+/** Milestone XProtect via on-prem Bridge Protocol. Default on when unset. */
+export function isMilestoneXprotectEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_MILESTONE_XPROTECT");
+}
+
 /** RC Admin Rapid IQ sales intelligence (procurement signals). Default on when unset. */
 export function isRapidIqUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ");
@@ -722,7 +729,7 @@ export function isRmsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RMS");
 }
 
-/** Transit ONVIF/RTSP registry + Ring/Nest cameras (campus/venue parity). Default on when unset. */
+/** Transit ONVIF/RTSP registry + Nest cameras (campus/venue parity). Default on when unset. */
 export function isTransitCamerasUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_TRANSIT_CAMERAS");
 }

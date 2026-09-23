@@ -435,68 +435,6 @@ Parameters:
     Description: >-
       When true, Pinpoint (LiveLocation) dispatcher + public token routes are active. Requires the
       same AWS End User Messaging SMS configuration as Silent Text + incident media.
-  EnableConnectRing:
-    Type: String
-    Default: "false"
-    AllowedValues: ["true", "false"]
-    Description: When true, Ring Connect OAuth and device linking routes are active.
-  RingPartnershipEnabled:
-    Type: String
-    Default: "true"
-    AllowedValues: ["true", "false"]
-    Description: When true, Ring partnership credentials and Connect integration are active.
-  RingClientId:
-    Type: String
-    Default: ""
-    Description: Deprecated — Ring OAuth client id is loaded from RingCredentialsSecretArn at runtime.
-  RingClientSecret:
-    Type: String
-    Default: ""
-    NoEcho: true
-    Description: Deprecated — Ring OAuth client secret is loaded from RingCredentialsSecretArn at runtime.
-  RingCredentialsSecretArn:
-    Type: String
-    Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials-D3f1sN"
-    Description: Ring API credentials secret ARN (clientId, clientSecret, hmacKey JSON).
-  RingRedirectUri:
-    Type: String
-    Default: "https://api.rapidcortex.us/api/integrations/ring/callback"
-  RingAccountLinkUrl:
-    Type: String
-    Default: "https://www.rapidcortex.us/connect/ring/link"
-  RingSecretsPrefix:
-    Type: String
-    Default: "rapid-cortex/connect/ring"
-  RingAccountsTable:
-    Type: String
-    Default: ""
-    Description: Physical DynamoDB table for linked Ring accounts (RapidCortexRingAccounts-{stage}).
-  RingDevicesTable:
-    Type: String
-    Default: ""
-    Description: Physical DynamoDB table for Ring devices (RapidCortexRingDevices-{stage}).
-  RingRequestsTable:
-    Type: String
-    Default: ""
-    Description: Physical DynamoDB table for Ring emergency camera requests.
-  RingSessionsTable:
-    Type: String
-    Default: ""
-    Description: Physical DynamoDB table for Ring emergency camera sessions.
-  EnableConnectRingAvailableCameras:
-    Type: String
-    Default: "false"
-    AllowedValues: ["true", "false"]
-    Description: When true, Ring available-cameras metadata route is active (requires EnableConnectRing).
-  EnableConnectRingEmergencyRequests:
-    Type: String
-    Default: "false"
-    AllowedValues: ["true", "false"]
-    Description: When true, Ring emergency camera request/consent/revoke routes are active.
-  RingPublicApiBaseUrl:
-    Type: String
-    Default: "https://api.rapidcortex.us"
-    Description: Public API base URL for Ring owner consent links (no trailing slash).
   ConnectAccessSessionsTable:
     Type: String
     Default: ""
@@ -597,15 +535,11 @@ Parameters:
     Type: String
     Default: ""
     Description: Comma-separated security group IDs for bridge Fargate tasks.
-  RingApiBaseUrl:
-    Type: String
-    Default: ""
-    Description: Ring partner API base URL (empty when partnership inactive).
   InternalServiceKey:
     Type: String
     Default: ""
     NoEcho: true
-    Description: Shared secret for internal Ring refresh-token route (X-Internal-Service-Key).
+    Description: Shared secret for internal service-to-service routes (X-Internal-Service-Key).
   AppPublicBaseUrl:
     Type: String
     Default: "https://www.rapidcortex.us"
@@ -747,7 +681,7 @@ Parameters:
     AllowedValues: [auto, "true", "false"]
     Description: >-
       When auto, enables pilot-test API feature flags for DeploymentStage=dev (QA scoring, Surge, SOP AI,
-      Ring emergency cameras, incident media, etc.). Pass from root stack or set true/false explicitly.
+      emergency cameras, incident media, etc.). Pass from root stack or set true/false explicitly.
 
 Rules:
   PilotProdNoCorsWildcard:
@@ -798,10 +732,6 @@ Conditions:
           - !Ref DeploymentStage
           - pilot
   HasIncidentMediaTwilioSecretArn: !Not [!Equals [!Ref IncidentMediaTwilioSecretArn, ""]]
-  HasRingAccountsTable: !Not [!Equals [!Ref RingAccountsTable, ""]]
-  HasRingDevicesTable: !Not [!Equals [!Ref RingDevicesTable, ""]]
-  HasRingRequestsTable: !Not [!Equals [!Ref RingRequestsTable, ""]]
-  HasRingSessionsTable: !Not [!Equals [!Ref RingSessionsTable, ""]]
   HasVenueFacilitiesTable: !Not [!Equals [!Ref VenueFacilitiesTable, ""]]
   HasVenueCameraAccessLogTable: !Not [!Equals [!Ref VenueCameraAccessLogTable, ""]]
   HasVenueConfigTable: !Not [!Equals [!Ref VenueConfigTable, ""]]
@@ -824,7 +754,6 @@ Conditions:
       - !Not [!Equals [!Ref WebSocketApiId, ""]]
   HasQRLocationsTable: !Not [!Equals [!Ref QRLocationsTable, ""]]
   HasVenueBridgeCluster: !Not [!Equals [!Ref VenueBridgeClusterArn, ""]]
-  HasRingCredentialsSecretArn: !Not [!Equals [!Ref RingCredentialsSecretArn, ""]]
   HasExternalApiJwtSecretArn: !Not [!Equals [!Ref ExternalApiJwtSecretArn, ""]]
   HasExternalApiEncryptionKeyArn: !Not [!Equals [!Ref ExternalApiEncryptionKeyArn, ""]]
   HasDynamoTablePrefix: !Not [!Equals [!Ref DynamoTableNamePrefix, ""]]
@@ -1006,13 +935,6 @@ Globals:
       - !Ref NodeDepsLayer
     Environment:
       Variables:
-        RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
-        RING_PARTNER_TOKEN_SECRET_ARN: !Ref RingCredentialsSecretArn
-        RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
-        RING_API_BASE_URL: !Ref RingApiBaseUrl
-        ENABLE_CONNECT_RING: !Ref EnableConnectRing
-        ENABLE_CONNECT_RING_AVAILABLE_CAMERAS: !If [PilotTestFeaturesOn, "true", !Ref EnableConnectRingAvailableCameras]
-        ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !If [PilotTestFeaturesOn, "true", !Ref EnableConnectRingEmergencyRequests]
         CONNECT_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable
         VENUE_CAMERA_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable
         VENUE_FACILITIES_TABLE: !Ref VenueFacilitiesTable
@@ -1246,38 +1168,6 @@ Resources:
             Resource:
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PremiseNotesTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PremiseNotesTable}/index/*
-                - !If
-                  - HasRingAccountsTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingAccountsTable}
-                  - !Ref AWS::NoValue
-                - !If
-                  - HasRingAccountsTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingAccountsTable}/index/*
-                  - !Ref AWS::NoValue
-                - !If
-                  - HasRingDevicesTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingDevicesTable}
-                  - !Ref AWS::NoValue
-                - !If
-                  - HasRingDevicesTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingDevicesTable}/index/*
-                  - !Ref AWS::NoValue
-                - !If
-                  - HasRingRequestsTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}
-                  - !Ref AWS::NoValue
-                - !If
-                  - HasRingRequestsTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}/index/*
-                  - !Ref AWS::NoValue
-                - !If
-                  - HasRingSessionsTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingSessionsTable}
-                  - !Ref AWS::NoValue
-                - !If
-                  - HasRingSessionsTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingSessionsTable}/index/*
-                  - !Ref AWS::NoValue
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QASessionsTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QASessionsTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QATemplatesTable}

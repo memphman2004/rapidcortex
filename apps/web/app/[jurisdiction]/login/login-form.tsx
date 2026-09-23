@@ -13,10 +13,8 @@ import {
   marketingDemoRequestPath,
   marketingHomePath,
   marketingPricingPath,
-  marketingRingCustomersPath,
   marketingSignupPath,
 } from "@/lib/marketing-links";
-import { RING_TM } from "@/lib/brand-marks";
 import { postAuthRedirect, hardNavigateTo } from "@/lib/auth/postAuthRedirect";
 import {
   resolvePostLoginNavigationHref,
@@ -78,7 +76,7 @@ export function LoginForm({
   const jurisdictionSlug = useJurisdictionSlug();
   const { user, isLoading, refresh } = useSession();
   const signupEnabled = isPublicSignupUiEnabled();
-  const requestAccessHref = marketingDemoRequestPath("ring_connect");
+  const requestAccessHref = marketingDemoRequestPath("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -967,12 +965,6 @@ export function LoginForm({
                 ·
               </span>
               <Link href={marketingHomePath()}>Home</Link>
-              <span className="rc-login-card__links-sep" aria-hidden>
-                ·
-              </span>
-              <a href={marketingRingCustomersPath()} target="_blank" rel="noopener noreferrer">
-                {RING_TM} customers
-              </a>
             </div>
           </div>
         ) : null}

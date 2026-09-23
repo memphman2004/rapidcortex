@@ -83,7 +83,6 @@ export ENABLE_MAP_HOSPITALS="${ENABLE_MAP_HOSPITALS:-true}"
 export ENABLE_MAP_EDUCATION="${ENABLE_MAP_EDUCATION:-true}"
 
 # Shared account secrets (same ARNs as live). Isolation is Dynamo/S3/Cognito, not these keys.
-export RING_CREDENTIALS_SECRET_ARN_OVERRIDE="${RING_CREDENTIALS_SECRET_ARN_OVERRIDE:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials-D3f1sN}"
 export OPENAI_API_KEY_SECRET_ARN="${OPENAI_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/openai-kqZQ3D}"
 export ANTHROPIC_API_KEY_SECRET_ARN="${ANTHROPIC_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/ai/anthropic-fHk4y2}"
 # Guest Assist staff WebSocket HMAC — must match web ECS GUEST_ASSIST_SESSION_SECRET
@@ -93,17 +92,11 @@ export AZURE_TRANSLATION_KEY_SECRET_ARN="${AZURE_TRANSLATION_KEY_SECRET_ARN:-arn
 export GOOGLE_CLOUD_PROJECT_ID="${GOOGLE_CLOUD_PROJECT_ID:-rapidcortex-prod}"
 export GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN="${GOOGLE_APPLICATION_CREDENTIALS_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/multilingual/google-service-account-xgBdWL}"
 
-export ENABLE_CONNECT_RING=true
 export ENABLE_CONNECT_NEST=true
 export ENABLE_CONNECT_WYZE=false
 export ENABLE_RAPID_VISION_WYZE=true
 export WYZE_ENABLED=false
 export WYZE_API_KEYS_SECRET_ARN="${WYZE_API_KEYS_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/wyze-api-keys-YIoY3S}"
-export RING_PARTNERSHIP_ENABLED=true
-# Staging Ring/Nest callbacks — web host until AppSam4 execute-api URLs exist. Never use live stack 4.
-export RING_REDIRECT_URI="${RING_REDIRECT_URI:-https://app-staging.rapidcortex.us/api/integrations/ring/callback}"
-export RING_ACCOUNT_LINK_URL="${RING_ACCOUNT_LINK_URL:-https://app-staging.rapidcortex.us/connect/ring/link}"
-# Marketing Connect enroll (Ring / Nest / Wyze) — renamed from NEXT_PUBLIC_RING_PUBLIC_OAUTH_BASE
 export NEXT_PUBLIC_CONNECT_PUBLIC_BASE="${NEXT_PUBLIC_CONNECT_PUBLIC_BASE:-https://app-staging.rapidcortex.us}"
 export NEST_REDIRECT_URI="${NEST_REDIRECT_URI:-https://app-staging.rapidcortex.us/api/cameras/providers/nest/callback}"
 # Citizen enrollment at /connect/nest needs RC's own Device Access project secret:
@@ -125,7 +118,6 @@ export ENABLE_CALL_ASSIST_GREETING_CONFIG=true
 export ENABLE_RC_TRANSLATE=true
 export TRANSLATE_MOCK=true
 export ENABLE_RAPID_VISION=true
-export ENABLE_RAPID_VISION_RING=true
 export ENABLE_RAPID_VISION_NEST=true
 export ENABLE_RAPID_VISION_CALLER_VIDEO=true
 export ENABLE_RAPID_VISION_DEMO=true
@@ -152,7 +144,6 @@ export NEXT_PUBLIC_ENABLE_RC_TRANSLATE_VENUE="${NEXT_PUBLIC_ENABLE_RC_TRANSLATE_
 export NEXT_PUBLIC_ENABLE_RC_TRANSLATE_CAMPUS="${NEXT_PUBLIC_ENABLE_RC_TRANSLATE_CAMPUS:-1}"
 export NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL="${NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL:-1}"
 export NEXT_PUBLIC_ENABLE_RAPID_VISION="${NEXT_PUBLIC_ENABLE_RAPID_VISION:-1}"
-export NEXT_PUBLIC_ENABLE_RAPID_VISION_RING="${NEXT_PUBLIC_ENABLE_RAPID_VISION_RING:-1}"
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST="${NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST:-1}"
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO="${NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO:-1}"
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_DEMO="${NEXT_PUBLIC_ENABLE_RAPID_VISION_DEMO:-1}"
@@ -183,6 +174,15 @@ export NEXT_PUBLIC_ENABLE_C2C_HUB="${NEXT_PUBLIC_ENABLE_C2C_HUB:-1}"
 # CAD_BRIDGE_VPC_SECURITY_GROUP_ID. Lambdas need NAT or VPC endpoints for SQS and Secrets Manager.
 export ENABLE_VERTICAL_ALERTS=true
 export NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS="${NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS:-1}"
+export ENABLE_ENS_TEST_PROGRAM=true
+export NEXT_PUBLIC_ENABLE_ENS_TEST_PROGRAM="${NEXT_PUBLIC_ENABLE_ENS_TEST_PROGRAM:-1}"
+export ENABLE_FOURWINDS=true
+export NEXT_PUBLIC_ENABLE_FOURWINDS="${NEXT_PUBLIC_ENABLE_FOURWINDS:-1}"
+# Keep mock until: bash scripts/put-fourwinds-secret.sh --api-key '…' && FOURWINDS_MOCK=false
+export FOURWINDS_MOCK="${FOURWINDS_MOCK:-true}"
+# After first vertical-alerts deploy creates the secret, export EXISTING_FOURWINDS_SECRET_ARN=…
+# staging placeholder ARN (created 2026-09-21):
+# export EXISTING_FOURWINDS_SECRET_ARN=arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/staging/integrations/fourwinds-Ic3s9X
 export ENABLE_PHYSICAL_SECURITY_INGEST=true
 export NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST="${NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST:-1}"
 export PHYSICAL_SECURITY_COMMANDS_ENABLED=false
@@ -190,7 +190,6 @@ export ENABLE_PHYSICAL_SECURITY_COMMANDS=false
 export ENABLE_FIELD_COMMAND=true
 export NEXT_PUBLIC_ENABLE_FIELD_COMMAND="${NEXT_PUBLIC_ENABLE_FIELD_COMMAND:-1}"
 export ENABLE_FIELD_CONFIDENCE=true
-export CONFIDENCE_SCORING_MOCK=true
 export ENABLE_CAD_CONFIDENCE_GATE=true
 export ENABLE_DISPATCHER_WELLNESS=true
 export ENABLE_CALLER_CARD=true

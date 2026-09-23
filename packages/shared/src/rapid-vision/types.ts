@@ -7,7 +7,6 @@ export const RAPID_VISION_PRODUCT_NAME = "Rapid Vision™";
 export const RAPID_VISION_PRODUCT_NAME_ASCII = "Rapid Vision";
 
 export type VisionProvider =
-  | "ring"
   | "rtsp"
   | "onvif"
   | "caller_video"

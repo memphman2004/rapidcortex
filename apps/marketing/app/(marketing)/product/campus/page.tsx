@@ -126,7 +126,6 @@ export default function ProductCampusPage() {
             { href: "/campus-safety-software", label: "Campus safety software" },
             { href: "/campus-safety-integrations", label: "Campus safety integrations" },
             { href: "/integrations", label: "Integrations overview" },
-            { href: "/connect/ring/start", label: "Ring Connect" },
             { href: "/free-60-day-pilot", label: "Free 60-Day Pilot" },
             { href: "/blog/rapid-cortex-campus", label: "Campus blog" },
           ].map((item) => (

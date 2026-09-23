@@ -1,5 +1,5 @@
 import type { SmsProviderMode } from "rapid-cortex-shared";
-import { RING_INTEGRATION_ENABLED, smsProviderModeSchema } from "rapid-cortex-shared";
+import { smsProviderModeSchema } from "rapid-cortex-shared";
 import { hydrateLambdaEnvFromJson } from "./hydrateLambdaEnv";
 
 hydrateLambdaEnvFromJson();
@@ -213,10 +213,13 @@ export const env = {
   /** Surge — duplicate-call clusters; empty table disables handlers. */
   surgeClustersTable: process.env.SURGE_CLUSTERS_TABLE?.trim() ?? "",
   enableSurge: featureEnabled("ENABLE_SURGE"),
-  /** Rapid Vision™ — Ring Source (ENABLE_CONNECT_RING preserved for Stack 4 Ring Lambdas). */
-  enableConnectRing: RING_INTEGRATION_ENABLED && featureEnabled("ENABLE_CONNECT_RING"),
   enableConnectNest: featureEnabled("ENABLE_CONNECT_NEST"),
   enableConnectWyze: featureEnabled("ENABLE_CONNECT_WYZE"),
+  /** Milestone XProtect — on-prem Bridge Protocol (default on when unset). */
+  enableMilestoneXprotect: featureEnabled("ENABLE_MILESTONE_XPROTECT"),
+  milestoneConnectionsTableName: process.env.MILESTONE_CONNECTIONS_TABLE?.trim() ?? "",
+  milestoneBridgeCredentialsSecretArn:
+    process.env.MILESTONE_BRIDGE_CREDENTIALS_SECRET_ARN?.trim() ?? "",
   nestTokensTableName: process.env.NEST_TOKENS_TABLE?.trim() ?? "",
   nestOauthStateTableName: process.env.NEST_OAUTH_STATE_TABLE?.trim() ?? "",
   nestConsentTableName: process.env.NEST_CONSENT_TABLE?.trim() ?? "",
@@ -228,21 +231,9 @@ export const env = {
   wyzeConsentTableName: process.env.WYZE_CONSENT_TABLE?.trim() ?? "",
   wyzeKmsKeyArn: process.env.WYZE_KMS_KEY_ARN?.trim() ?? "",
   wyzeApiKeysSecretArn: process.env.WYZE_API_KEYS_SECRET_ARN?.trim() ?? "",
-  ringAccountsTable: process.env.RING_TABLE_ACCOUNTS?.trim() ?? "",
-  ringDevicesTable: process.env.RING_TABLE_DEVICES?.trim() ?? "",
-  ringRequestsTable:
-    process.env.RING_TABLE_REQUESTS?.trim() || process.env.RING_CAMERA_REQUESTS_TABLE?.trim() || "",
-  ringSessionsTable: process.env.RING_TABLE_SESSIONS?.trim() ?? "",
-  ringCitizenOwnersTable: process.env.RING_TABLE_CITIZEN_OWNERS?.trim() ?? "",
-  ringHomeownerParticipantsTable:
-    process.env.RING_TABLE_HOMEOWNER_PARTICIPANTS?.trim() || process.env.HOMEOWNER_TABLE?.trim() || "",
-  ringUnclaimedTokensTable: process.env.RING_TABLE_UNCLAIMED_TOKENS?.trim() ?? "",
-  ringCredentialsSecretArn:
-    process.env.RING_CREDENTIALS_SECRET_ARN?.trim() ||
-    process.env.RING_PARTNER_TOKEN_SECRET_ARN?.trim() ||
-    "",
-  ringPublicApiBaseUrl:
-    process.env.RING_PUBLIC_API_BASE_URL?.trim() || "https://api.rapidcortex.us",
+  /** Public execute-api origin for citizen consent landing links (Nest / Wyze). */
+  connectPublicApiBaseUrl:
+    process.env.CONNECT_PUBLIC_API_BASE_URL?.trim() || "https://api.rapidcortex.us",
   internalServiceKey: process.env.INTERNAL_SERVICE_KEY?.trim() ?? "",
   /** Automated QA scoring (F1) — empty table names disable QA HTTP handlers at runtime. */
   qaSessionsTable: process.env.QA_SESSIONS_TABLE?.trim() ?? "",
@@ -360,6 +351,10 @@ export const env = {
   enableCallAssistGreetingConfig: featureEnabled("ENABLE_CALL_ASSIST_GREETING_CONFIG"),
   callAssistTable: process.env.CALL_ASSIST_TABLE?.trim() ?? "",
   enableVerticalAlerts: featureEnabled("ENABLE_VERTICAL_ALERTS"),
+  enableEnsTestProgram: featureEnabled("ENABLE_ENS_TEST_PROGRAM"),
+  enableFourwinds: featureEnabled("ENABLE_FOURWINDS"),
+  fourwindsApiBaseUrl: process.env.FOURWINDS_API_BASE_URL?.trim() ?? "",
+  fourwindsSecretArn: process.env.FOURWINDS_SECRET_ARN?.trim() ?? "",
   verticalAlertsTable: process.env.VERTICAL_ALERTS_TABLE?.trim() ?? "",
   alertShortCodeSsmPrefix: process.env.ALERT_SHORT_CODE_SSM_PREFIX?.trim() || "/rc/alerts/short-code/",
   alertEmailSender: process.env.ALERT_EMAIL_SENDER?.trim() || "alerts@alerts.rapidcortex.us",
@@ -401,7 +396,6 @@ export const env = {
   enableRcTranslate: featureEnabled("ENABLE_RC_TRANSLATE"),
   /** Rapid Vision™ — AI visual intelligence. Default on when unset. */
   enableRapidVision: featureEnabled("ENABLE_RAPID_VISION"),
-  enableRapidVisionRing: featureEnabled("ENABLE_RAPID_VISION_RING"),
   enableRapidVisionNest: featureEnabled("ENABLE_RAPID_VISION_NEST"),
   enableRapidVisionCallerVideo: featureEnabled("ENABLE_RAPID_VISION_CALLER_VIDEO"),
   enableRapidVisionDemo: featureEnabled("ENABLE_RAPID_VISION_DEMO"),

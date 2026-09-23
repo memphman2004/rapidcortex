@@ -53,10 +53,6 @@ describe("dashboardRouteFromRole", () => {
     expect(dashboardRouteFromRole("supervisor", "test-agency")).toBe("/test-agency/supervisor");
   });
 
-  it("routes Ring homeowners to the media console for in-app account deletion", () => {
-    expect(dashboardRouteFromRole("homeowner", "test-agency")).toBe("/test-agency/media");
-  });
-
   it("routes transit security to transit console", () => {
     expect(dashboardRouteFromRole("transit_security", "test-transit-hvt")).toBe(
       "/app/transit/security",

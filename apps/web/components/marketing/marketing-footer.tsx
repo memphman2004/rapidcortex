@@ -23,7 +23,6 @@ import {
   marketingDesktopPath,
   marketingHomePath,
   marketingLoginPath,
-  marketingRingCustomersPath,
   marketingNestConnectPath,
   marketingPricingPath,
   marketingPrivacyPath,
@@ -78,7 +77,6 @@ export function MarketingFooter() {
   const smsConsentHref = marketingSmsConsentPath();
   const statusHref = marketingOperationsStatusPath();
   const pressHref = marketingPressPath();
-  const ringConnectHref = marketingRingCustomersPath();
   const nestConnectHref = marketingNestConnectPath();
 
   return (
@@ -268,11 +266,6 @@ export function MarketingFooter() {
                       </span>
                     </summary>
                     <ul className="mt-1 space-y-0.5 border-l border-slate-800/90 pl-2.5" aria-label="Integration partners">
-                      <li>
-                        <a href={ringConnectHref} className={FOOTER_FOCUS_LINK_CLASS}>
-                          Ring™
-                        </a>
-                      </li>
                       <li>
                         <a href={nestConnectHref} className={FOOTER_FOCUS_LINK_CLASS}>
                           Nest™

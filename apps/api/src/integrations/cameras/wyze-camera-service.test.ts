@@ -6,7 +6,7 @@ vi.mock("../../lib/env.js", () => ({
     wyzeKmsKeyArn: "arn:aws:kms:us-east-1:1:key/test",
     wyzeRegistrationsTableName: "wyze-reg",
     wyzeConsentTableName: "wyze-consent",
-    ringPublicApiBaseUrl: "https://api.example.com",
+    connectPublicApiBaseUrl: "https://api.example.com",
     auditTable: "audit",
   },
 }));

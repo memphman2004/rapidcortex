@@ -220,6 +220,8 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-cad.yaml
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-4.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-5.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-milestone.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-physical-security.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-location.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-cad-bridge.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-c2c.yaml"
@@ -591,9 +593,6 @@ elif [[ "${OUTLOOK_GRAPH_MOCK:-}" == "1" ]]; then
 elif [[ "${OUTLOOK_GRAPH_MOCK:-}" == "0" ]]; then
   PARAMS="${PARAMS} OutlookGraphMock=false"
 fi
-if [[ -n "${RING_CREDENTIALS_SECRET_ARN_OVERRIDE:-}" ]]; then
-  PARAMS="${PARAMS} RingCredentialsSecretArnOverride=${RING_CREDENTIALS_SECRET_ARN_OVERRIDE}"
-fi
 if [[ -n "${EXISTING_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} ExistingBillingPaymentInstructionsSecretArn=${EXISTING_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN}"
 fi
@@ -630,6 +629,10 @@ fi
 if [[ -n "${EXISTING_VERTICAL_ALERTS_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingVerticalAlertsTableName=${EXISTING_VERTICAL_ALERTS_TABLE_NAME}"
 fi
+if [[ -n "${EXISTING_FOURWINDS_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} ExistingFourWindsSecretArn=${EXISTING_FOURWINDS_SECRET_ARN}"
+fi
+PARAMS="${PARAMS} FourWindsMock=${FOURWINDS_MOCK:-true}"
 if [[ -n "${EXISTING_CLERY_ACT_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingCleryActTableName=${EXISTING_CLERY_ACT_TABLE_NAME}"
 fi
@@ -699,17 +702,9 @@ fi
 if [[ -n "${CAD_BRIDGE_VPC_SECURITY_GROUP_ID:-}" ]]; then
   PARAMS="${PARAMS} CadBridgeVpcSecurityGroupId=${CAD_BRIDGE_VPC_SECURITY_GROUP_ID}"
 fi
-if [[ -n "${ENABLE_CONNECT_RING:-}" ]]; then
-  PARAMS="${PARAMS} EnableConnectRing=${ENABLE_CONNECT_RING}"
-fi
 if [[ -n "${ENABLE_RAPID_VISION_NEST:-}" ]]; then
   PARAMS="${PARAMS} EnableRapidVisionNest=${ENABLE_RAPID_VISION_NEST}"
 fi
-if [[ -n "${RING_PARTNERSHIP_ENABLED:-}" ]]; then
-  PARAMS="${PARAMS} RingPartnershipEnabled=${RING_PARTNERSHIP_ENABLED}"
-fi
-# RING_DISABLED — 2026-09-11. Default false; set RING_ENABLED=true to recreate Ring Lambdas.
-PARAMS="${PARAMS} RingEnabled=${RING_ENABLED:-false}"
 if [[ -n "${FFMPEG_LAYER_ARN:-}" ]]; then
   PARAMS="${PARAMS} FfmpegLayerArn=${FFMPEG_LAYER_ARN}"
 fi
@@ -739,12 +734,6 @@ if [[ -n "${EXISTING_NEST_CITIZEN_ACCOUNTS_TABLE_NAME:-}" ]]; then
 fi
 if [[ -n "${NEST_RC_OAUTH_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} NestRcOauthSecretArn=${NEST_RC_OAUTH_SECRET_ARN}"
-fi
-if [[ -n "${RING_REDIRECT_URI:-}" ]]; then
-  PARAMS="${PARAMS} RingRedirectUri=${RING_REDIRECT_URI}"
-fi
-if [[ -n "${RING_ACCOUNT_LINK_URL:-}" ]]; then
-  PARAMS="${PARAMS} RingAccountLinkUrl=${RING_ACCOUNT_LINK_URL}"
 fi
 if [[ -n "${PilotTestFeaturesEnabled:-}" ]]; then
   PARAMS="${PARAMS} PilotTestFeaturesEnabled=${PilotTestFeaturesEnabled}"

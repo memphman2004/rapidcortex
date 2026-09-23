@@ -37,25 +37,7 @@ export type SalesLeadRecord = ContactSalesLeadBody & {
   activities?: LeadActivity[];
 };
 
-export type RingWaitlistLeadRecord = {
-  leadId: string;
-  email: string;
-  source: string;
-  requestedState?: string | null;
-  requestedCity?: string | null;
-  createdAt: string;
-  status?: SalesLeadStatus;
-  packageSold?: SalesLeadPackageSold;
-  notes?: string | LeadNote[];
-  assignee?: string;
-  updatedAt?: string;
-  updatedBy?: string;
-  pipelineStage?: PipelineStage;
-  attribution?: LeadAttribution;
-  activities?: LeadActivity[];
-};
-
-export type AnySalesLeadRecord = SalesLeadRecord | RingWaitlistLeadRecord;
+export type AnySalesLeadRecord = SalesLeadRecord;
 
 function table(): string {
   const t = env.salesLeadsTable?.trim();
@@ -96,30 +78,6 @@ export class SalesLeadRepository {
     );
   }
 
-  async putRingWaitlistLead(lead: RingWaitlistLeadRecord): Promise<void> {
-    const now = lead.createdAt || new Date().toISOString();
-    await ddb.send(
-      new PutCommand({
-        TableName: table(),
-        Item: {
-          ...lead,
-          status: lead.status ?? "new",
-          pipelineStage: lead.pipelineStage ?? "NEW",
-          notes: Array.isArray(lead.notes) ? lead.notes : [],
-          activities: lead.activities ?? [
-            {
-              activityId: randomUUID(),
-              type: "created",
-              description: "Lead created · Source: Ring Waitlist",
-              createdAt: now,
-            },
-          ],
-        },
-      }),
-    );
-  }
-
-  /** Deterministic Cortex dual-write — fails quietly if leadId already exists [CR-5]. */
   async putCortexLeadIfAbsent(item: Record<string, unknown>): Promise<"created" | "exists" | "error"> {
     try {
       await ddb.send(

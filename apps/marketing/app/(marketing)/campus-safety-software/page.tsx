@@ -60,7 +60,6 @@ export default function CampusSafetySoftwarePage() {
         { href: "/product/campus", label: "Rapid Cortex Campus product" },
         { href: "/campus-safety-integrations", label: "Campus safety integrations" },
         { href: "/integrations", label: "Integrations overview" },
-        { href: "/connect/ring/start", label: "Ring Connect for campus" },
         { href: "/connect/nest", label: "Nest Connect" },
         { href: "/free-60-day-pilot", label: "Free 60-Day Pilot Program" },
         { href: "/blog/rapid-cortex-campus", label: "Blog: Rapid Cortex Campus" },
@@ -76,7 +75,7 @@ export default function CampusSafetySoftwarePage() {
         {
           question: "What integrations does Rapid Cortex Campus support?",
           answer:
-            "Campus deployments can include QR/NFC reporting, SMS intake, consent-based Ring and Nest camera flows, and optional handoff to dispatch. See campus safety integrations for the current adapter set.",
+            "Campus deployments can include QR/NFC reporting, SMS intake, consent-based Nest and Wyze camera flows, and optional handoff to dispatch. See campus safety integrations for the current adapter set.",
         },
         {
           question: "Can we evaluate campus safety software in a pilot?",

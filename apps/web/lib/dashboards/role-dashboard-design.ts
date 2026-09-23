@@ -255,12 +255,6 @@ export const ROLE_DASHBOARD_PALETTE_BY_ROLE: Record<UserRole, RoleDashboardIdent
     "Non-emergency monitor",
     "#0D9488",
   ),
-  homeowner: verticalRolePalette(
-    "homeowner",
-    "Ring™ Device Owner",
-    "Connect enrollment only",
-    roleBandColor("homeowner"),
-  ),
 };
 
 /** Vertical product palettes (venue / campus) when surfaced in agency contexts. */

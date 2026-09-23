@@ -60,7 +60,7 @@ Account `158961537080` also hosts **non–Rapid Cortex** workloads historically 
 
 **SOC 2 treatment (chosen control):** Rapid Cortex production remains in this account for the October 2026 observation window. Other products are **out of Rapid Cortex system scope** under all of the following compensating controls:
 
-1. **Naming:** Rapid Cortex resources use `rapid-cortex-*` / `RapidCortex*` / `Ring*` (Ring Connect module) names. PITR, S3 encryption/BPA, and CloudTrail data-event selectors are applied to those names.
+1. **Naming:** Rapid Cortex resources use `rapid-cortex-*` / `RapidCortex*` names. PITR, S3 encryption/BPA, and CloudTrail data-event selectors are applied to those names.
 2. **IAM:** Production deploy principal `rapid-cortex-deploy` and auditor role `rapid-cortex-soc2-auditor` are Rapid Cortex–named. Human access to Rapid Cortex data is reviewed quarterly ([processes/access-review.md](./processes/access-review.md)).
 3. **Data:** Customer incident/transcript data lives in Rapid Cortex DynamoDB tables and Rapid Cortex S3 buckets only.
 4. **Logging:** In-scope CloudTrail is `rapid-cortex-cloudtrail-prod` with S3 data events on `rapid-cortex-*` buckets.

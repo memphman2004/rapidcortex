@@ -219,26 +219,12 @@ export default function MarketingHomePage() {
           active incidents — with owner consent for residential devices.
         </p>
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <li className="rounded-lg border border-blue-500/25 bg-slate-900/40 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-300">Partner</p>
-            <h3 className="mt-2 text-lg font-semibold text-white">Ring™</h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-400">
-              Consent-based emergency video from Ring™ doorbells and cameras near the incident —
-              available to authorized dispatch and campus teams.
-            </p>
-            <a
-              href="/connect/ring/start"
-              className="mt-4 inline-flex text-sm font-medium text-sky-400 hover:text-sky-300"
-            >
-              Ring™ Connect for device owners →
-            </a>
-          </li>
           <li className="rounded-lg border border-emerald-500/25 bg-slate-900/40 p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Partner</p>
             <h3 className="mt-2 text-lg font-semibold text-white">Google Nest™</h3>
             <p className="mt-2 text-sm leading-relaxed text-slate-400">
-              Agency-linked Nest™ cameras plus nearby citizen Nest™ devices with the same
-              consent-first request pattern used for Ring™.
+              Agency-linked Nest™ cameras plus nearby citizen Nest™ devices with a
+              consent-first request pattern.
             </p>
             <a
               href={marketingNestConnectPath()}
@@ -252,7 +238,7 @@ export default function MarketingHomePage() {
             <h3 className="mt-2 text-lg font-semibold text-white">Wyze™</h3>
             <p className="mt-2 text-sm leading-relaxed text-slate-400">
               Homeowner Wyze™ cameras with encrypted API keys and SMS consent for each emergency
-              live-share request — the same opt-in model used for Ring™ and Nest™.
+              live-share request — the same opt-in model used for Nest™.
             </p>
             <a
               href={marketingWyzeConnectPath()}

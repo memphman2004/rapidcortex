@@ -15,5 +15,7 @@ export function verticalAlertAccess(role: string, agencyId = "ui") {
     canManageRecipients: authz.canPerform(user, "alerts.recipients.manage"),
     canManageTemplates: authz.canPerform(user, "alerts.templates.manage"),
     canViewHistory: authz.canPerform(user, "alerts.history.view"),
+    canManageEns: authz.canPerform(user, "alerts.ens.manage"),
+    canRunEns: authz.canPerform(user, "alerts.ens.run"),
   };
 }

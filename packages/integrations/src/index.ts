@@ -34,3 +34,10 @@ export {
   type TranscriptConnectorMode,
   type TranscriptConnectorResolution,
 } from "./connector-rollout.js";
+
+export { FourwindsClient, fourwindsMockEnabled } from "./fourwinds/client.js";
+export type {
+  FourwindsDisplayScope,
+  FourwindsDispatchResult,
+  FourwindsEmergencyPayload,
+} from "./fourwinds/types.js";

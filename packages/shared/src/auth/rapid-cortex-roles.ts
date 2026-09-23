@@ -38,8 +38,6 @@ export const RAPID_CORTEX_ROLES = [
   "call_assist_admin",
   "call_assist_supervisor",
   "call_assist_operator",
-  /** Ring Connect device-owner (Appstore account-link). Cognito JWT role; not agency-assignable. */
-  "homeowner",
 ] as const;
 
 export type RapidCortexRole = (typeof RAPID_CORTEX_ROLES)[number];
@@ -138,7 +136,6 @@ export const ROLE_LABELS: Record<string, string> = {
   call_assist_admin: "Call Assist Admin",
   call_assist_supervisor: "Call Assist Supervisor",
   call_assist_operator: "Call Assist Operator",
-  homeowner: "Ring Device Owner",
   platform_superadmin: "Platform Owner",
   rc_admin: "RC Operations",
   admin: "Agency Admin",
@@ -213,8 +210,6 @@ export const ROLE_DESCRIPTIONS: Record<string, string> = {
     "Call Assist supervisor. Live non-emergency sessions, QA, analytics, and human takeover — no CAD queue or dispatcher dashboard.",
   call_assist_operator:
     "Call Assist operator. Live non-emergency monitor, session intake, and transfer — not a 911 telecommunicator console.",
-  homeowner:
-    "Ring device owner. Lightweight account for Rapid Vision™ Appstore linking and camera consent — no dispatch workspace.",
 };
 
 export const ROLE_DISPLAY_LABELS: Record<RapidCortexRole, string> = {
@@ -243,7 +238,6 @@ export const ROLE_DISPLAY_LABELS: Record<RapidCortexRole, string> = {
   hospital_supervisor: ROLE_LABELS.hospital_supervisor,
   hospital_staff: ROLE_LABELS.hospital_staff,
   hospital_coord: ROLE_LABELS.hospital_coord,
-  homeowner: ROLE_LABELS.homeowner,
   transit_admin: ROLE_LABELS.transit_admin,
   transit_supervisor: ROLE_LABELS.transit_supervisor,
   transit_security: ROLE_LABELS.transit_security,

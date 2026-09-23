@@ -85,8 +85,6 @@ export function dashboardRouteFromRole(role: UserRole | string, agencyId: string
       return `/${jurisdiction}/supervisor`;
     case "dispatcher":
       return `/${jurisdiction}/dashboard`;
-    case "homeowner":
-      return `/${jurisdiction}/media`;
     case "analyst":
       return `/${jurisdiction}/analytics`;
     case "auditor":

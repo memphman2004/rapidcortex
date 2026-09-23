@@ -29,8 +29,7 @@ import {
   resolveNestConsentToken,
 } from "../integrations/cameras/nest-camera-service.js";
 import { wyzePublicCorsHeaders, wyzePublicJson } from "../integrations/cameras/wyze-public-cors.js";
-// RING_REMOVED — incident validation is now provider-agnostic.
-// Do NOT re-import from ../integrations/ring/ring-incident here.
+// Incident validation is provider-agnostic.
 import {
   incidentCoordinates,
   requireActiveIncident,

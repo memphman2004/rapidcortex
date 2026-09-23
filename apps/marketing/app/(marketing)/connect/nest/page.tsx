@@ -3,7 +3,7 @@ import Link from "next/link";
 import { NestConnectEnrollment } from "@/components/connect/nest-connect-enrollment";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
 import { absoluteUrl } from "@/lib/seo";
-import { GOOGLE_NEST_TM, NEST_TM, RING_TM } from "@/lib/brand-marks";
+import { GOOGLE_NEST_TM, NEST_TM } from "@/lib/brand-marks";
 
 export const metadata: Metadata = {
   title: `${GOOGLE_NEST_TM} cameras | Rapid Vision™`,
@@ -20,9 +20,9 @@ export default function NestConnectPage() {
     >
       <p className="leading-relaxed text-slate-200">
         Rapid Vision™ supports{" "}
-        <strong className="text-white">{GOOGLE_NEST_TM}</strong> alongside {RING_TM}: agency-owned
+        <strong className="text-white">{GOOGLE_NEST_TM}</strong>: agency-owned
         cameras via Google SDM OAuth, and nearby citizen {NEST_TM} devices with the same
-        consent-first request pattern used for {RING_TM} doorbells.
+        consent-first request pattern used across Rapid Vision™ camera sources.
       </p>
 
       <section className="mt-8 space-y-4 rounded-2xl border border-emerald-500/25 bg-emerald-950/20 p-6 text-sm leading-relaxed text-slate-300">
@@ -36,7 +36,7 @@ export default function NestConnectPage() {
           </li>
           <li>
             <strong className="text-slate-100">Agency cameras on Media.</strong> Dispatchers and
-            campus/venue operators can view linked {NEST_TM} streams next to {RING_TM} and facility
+            campus/venue operators can view linked {NEST_TM} streams next to facility
             video during an active incident.
           </li>
           <li>
@@ -85,12 +85,6 @@ export default function NestConnectPage() {
           className="inline-flex rounded-md bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500"
         >
           Talk to us about {NEST_TM}
-        </Link>
-        <Link
-          href="/connect/ring/start"
-          className="inline-flex rounded-md border border-slate-600 px-4 py-2 font-medium text-slate-200 hover:border-slate-500 hover:text-white"
-        >
-          {RING_TM} Connect for device owners →
         </Link>
         <a
           href="/integrations"

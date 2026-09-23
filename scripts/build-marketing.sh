@@ -6,8 +6,8 @@ cd "$ROOT"
 echo "Building marketing static export..."
 export NEXT_PUBLIC_APP_ORIGIN="${NEXT_PUBLIC_APP_ORIGIN:-https://app.rapidcortex.us}"
 export NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-https://www.rapidcortex.us}"
-# Stack-4 public API for /connect/{ring,nest,wyze} enroll. Renamed from NEXT_PUBLIC_RING_PUBLIC_OAUTH_BASE.
-export NEXT_PUBLIC_CONNECT_PUBLIC_BASE="${NEXT_PUBLIC_CONNECT_PUBLIC_BASE:-${NEXT_PUBLIC_RING_PUBLIC_OAUTH_BASE:-https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com}}"
+# Stack-4 public API for /connect/{nest,wyze} enroll.
+export NEXT_PUBLIC_CONNECT_PUBLIC_BASE="${NEXT_PUBLIC_CONNECT_PUBLIC_BASE:-https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com}"
 # Keep static generation from thrashing the host (pairs with experimental.cpus in next.config).
 export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=8192}"
 

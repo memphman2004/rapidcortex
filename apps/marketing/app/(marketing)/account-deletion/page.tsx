@@ -38,9 +38,7 @@ export default function AccountDeletionPage() {
         <h2 className="text-base font-semibold text-white">Who this is for</h2>
         <p>
           Venue, campus, and other Rapid Cortex staff who sign in with a work email on the Android
-          app (<code className="text-slate-300">us.rapidcortex.app</code>). Ring™ Device Owners who
-          enrolled Rapid Vision™ use the Ring unlink /{" "}
-          <Link href="/connect/ring/link#delete-account">Ring account deletion</Link> flow instead.
+          app (<code className="text-slate-300">us.rapidcortex.app</code>).
         </p>
       </section>
 

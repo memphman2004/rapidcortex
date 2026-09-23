@@ -98,9 +98,6 @@ describe("resolveUpstreamApiBase", () => {
 describe("isCommsPlatformApiPath", () => {
   it("matches billing prefix (stack 4)", () => {
     expect(isSam4ApiPath("/api/billing/plans")).toBe(true);
-    expect(isSam4ApiPath("/api/public/ring/oauth/start")).toBe(true);
-    expect(isSam4ApiPath("/api/public/ring/homeowner/delete-account")).toBe(true);
-    expect(isSam4ApiPath("/api/user/account")).toBe(true);
     expect(isSam4ApiPath("/api/cameras/providers/wyze/register")).toBe(true);
     expect(isSam4ApiPath("/api/cameras/providers/wyze/available-cameras")).toBe(true);
     expect(isStack2ApiPath("/api/billing/plans")).toBe(false);
@@ -120,6 +117,8 @@ describe("isCommsPlatformApiPath", () => {
     expect(isSam3ApiPath("/api/campus/analytics")).toBe(false);
     expect(isSam5ApiPath("/api/public/crime-log/uga")).toBe(true);
     expect(isSam5ApiPath("/api/physical-security/events")).toBe(true);
+    expect(isSam5ApiPath("/api/milestone/status")).toBe(true);
+    expect(isSam5ApiPath("/api/milestone/cameras/sync")).toBe(true);
     expect(isSam5ApiPath("/api/video/agency-1/wall/config")).toBe(true);
     expect(isSam5ApiPath("/api/video/agency-1/cameras/cam-1/ptz/move")).toBe(true);
     expect(isSam5ApiPath("/api/support/tickets")).toBe(true);

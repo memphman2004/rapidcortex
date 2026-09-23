@@ -12,6 +12,7 @@ import { campusAutomationRuleMatches, isCampusCounselorQueueType } from "rapid-c
 import { makeId } from "../lib/ids.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import { getCamerasForBuildingFloor } from "../handlers/campus/cameras/campus-camera-registry-service.js";
+import { notifyMilestoneOfCampusIncident } from "../integrations/milestone/milestone-service.js";
 import { broadcastVenueIncidentCreated } from "../venue/venue-incident-realtime.js";
 import type {
   CampusIncident,
@@ -102,6 +103,21 @@ export async function createCampusIncident(
     suggestedActions: assignee.assignedTo
       ? { assignRole: assignee.assignedTo }
       : undefined,
+    locationData:
+      input.latitude != null && input.longitude != null
+        ? [
+            {
+              source: "MANUAL" as const,
+              accuracyMeters: 25,
+              receivedAt: now,
+              coordinates: {
+                latitude: input.latitude,
+                longitude: input.longitude,
+                accuracy: 25,
+              },
+            },
+          ]
+        : undefined,
   };
 
   try {
@@ -154,17 +170,30 @@ export async function finalizeCampusIntakeIncident(
   agencyId: string,
   incident: CampusIncident,
 ): Promise<CreateCampusIntakeIncidentResult> {
+  const lastLoc = incident.locationData?.[incident.locationData.length - 1];
+  const origin =
+    lastLoc?.coordinates &&
+    Number.isFinite(lastLoc.coordinates.latitude) &&
+    Number.isFinite(lastLoc.coordinates.longitude)
+      ? {
+          latitude: lastLoc.coordinates.latitude,
+          longitude: lastLoc.coordinates.longitude,
+        }
+      : null;
+
   let cameras: VenueIncidentCameraSummary[] = [];
   try {
     cameras = await getCamerasForBuildingFloor(
       agencyId,
       incident.buildingCode,
       incident.floor != null ? String(incident.floor) : undefined,
-      2,
+      origin ? 4 : 2,
       {
         zoneCode: incident.zoneCode,
         qrRcli: incident.qrRcli,
         assignedCameraIds: incident.cameraRefs,
+        latitude: origin?.latitude,
+        longitude: origin?.longitude,
       },
     );
   } catch (err) {
@@ -226,6 +255,18 @@ export async function finalizeCampusIntakeIncident(
       qrRcli: incident.qrRcli,
     },
     cameras,
+  });
+
+  void notifyMilestoneOfCampusIncident({
+    agencyId,
+    incidentId: incident.id,
+    title: `${incident.type} · ${incident.buildingCode}`,
+    description: incident.description,
+    severity: incident.type === "active_threat" ? "critical" : "high",
+    latitude: origin?.latitude,
+    longitude: origin?.longitude,
+    cameraIds: cameras.map((c) => c.cameraId),
+    raiseAlarm: true,
   });
 
   return { incident, cameras };

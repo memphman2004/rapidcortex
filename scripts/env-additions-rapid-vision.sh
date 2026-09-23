@@ -6,8 +6,6 @@
 #
 # NAMING NOTE:
 #   Product name is Rapid Vision™ (formerly Rapid Cortex Connect).
-#   Existing NEXT_PUBLIC_ENABLE_CONNECT_RING is preserved for backward compatibility
-#   with Stack 4 Ring Lambdas. New Vision features use NEXT_PUBLIC_ENABLE_RAPID_VISION.
 #   HTTP routes attach to stack 2 (API_UPSTREAM_BASE_2), not a separate API Gateway.
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -15,8 +13,6 @@
 export NEXT_PUBLIC_ENABLE_RAPID_VISION=1
 
 # ── Vision Sub-Feature Flags ──────────────────────────────────────────────────
-# Enable Ring as a Rapid Vision source (wraps existing Stack 4 Ring integration)
-export NEXT_PUBLIC_ENABLE_RAPID_VISION_RING=1
 # Enable Google Nest as a Rapid Vision source (SDM WebRTC)
 export NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST=1
 # Enable caller video as a Rapid Vision source
@@ -36,15 +32,8 @@ export NEXT_PUBLIC_ENABLE_VISION_AI_THUMBNAILS=1
 export NEXT_PUBLIC_ENABLE_VISION_AI_WS=1
 export NEXT_PUBLIC_ENABLE_VISION_AI_ADMIN=1
 
-# ── Marketing Connect enroll (Ring / Nest / Wyze) ────────────────────────────
-# Canonical name; NEXT_PUBLIC_RING_PUBLIC_OAUTH_BASE is still read as a fallback.
+# ── Marketing Connect enroll (Nest / Wyze) ───────────────────────────────────
 export NEXT_PUBLIC_CONNECT_PUBLIC_BASE="${NEXT_PUBLIC_CONNECT_PUBLIC_BASE:-https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com}"
-
-# ── Kept for backward compat with Stack 4 Ring Lambdas ───────────────────────
-# These control existing Ring OAuth / consent / stream flow — do NOT remove.
-export NEXT_PUBLIC_ENABLE_CONNECT_RING=1
-export NEXT_PUBLIC_ENABLE_CONNECT_RING_AVAILABLE_CAMERAS=1
-export NEXT_PUBLIC_ENABLE_CONNECT_RING_EMERGENCY_REQUESTS=1
 
 # ── Lambda Environment (set via SAM template, documented here for reference) ──
 # VISION_CAMERAS_TABLE=rc-rapid-vision-cameras-{env}

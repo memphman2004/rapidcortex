@@ -59,15 +59,11 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/incidents\/[^/]+\/additional-data/,
 ];
 
-/** Billing, payments, Ring Connect, network policy — stack-app-sam-4 (AppSam4Stack). */
+/** Billing, payments, network policy — stack-app-sam-4 (AppSam4Stack). */
 const STACK4_PATH_TESTS: RegExp[] = [
   /^\/api\/billing\//,
   /^\/api\/agencies\/[^/]+\/billing/,
   /^\/api\/rc-admin\/invoices\/bulk-draft$/,
-  // RING_DISABLED — 2026-09-11. Keep path mapping so BFF can return 503; SAM omits the Lambdas.
-  /^\/api\/integrations\/ring\//,
-  /^\/api\/public\/ring\//,
-  /^\/api\/user\/account$/,
   /^\/api\/cameras\/providers/,
   /^\/api\/admin\/invoices/,
   /^\/api\/admin\/pricing/,
@@ -98,6 +94,7 @@ const STACK5_PATH_TESTS: RegExp[] = [
   /^\/api\/public\/campus\//,
   /^\/api\/public\/crime-log\//,
   /^\/api\/physical-security\//,
+  /^\/api\/milestone(\/|$)/,
   /^\/api\/public\/locate\//,
   /^\/api\/sms-routing/,
   /^\/api\/video\//,

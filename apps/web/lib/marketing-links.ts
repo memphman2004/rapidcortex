@@ -54,11 +54,6 @@ export function marketingSiteOrigin(): string {
   return "https://www.rapidcortex.us";
 }
 
-/** Ring Device Owners — public Connect enrollment (not agency login). */
-export function marketingRingCustomersPath(): string {
-  return `${marketingSiteOrigin()}/connect/ring/start`;
-}
-
 /** Google Nest™ Connect — agency + citizen consent camera overview.
  * Extensionless URL (no trailing slash) — CloudFront maps 404 → homepage.
  */

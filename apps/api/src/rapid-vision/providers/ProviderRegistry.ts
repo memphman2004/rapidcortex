@@ -6,7 +6,7 @@ const demo = new DemoVisionProvider();
 
 /**
  * Runtime lookup for Rapid Vision™ camera sources.
- * Ring and caller-video adapters are constructed when their repositories are injected.
+ * The caller-video adapter is constructed when its repositories are injected.
  */
 export function getVisionProvider(provider: VisionProvider): CameraProvider | null {
   if (provider === "demo") return demo;
@@ -14,6 +14,5 @@ export function getVisionProvider(provider: VisionProvider): CameraProvider | nu
 }
 
 export { DemoVisionProvider } from "./DemoVisionProvider.js";
-export { RingVisionProvider } from "./RingVisionProvider.js";
 export { CallerVideoProvider } from "./CallerVideoProvider.js";
 export type { CameraProvider } from "./CameraProvider.js";

@@ -3,7 +3,16 @@ import { z } from "zod";
 export const alertVerticalSchema = z.enum(["campus", "venue", "transit"]);
 export type AlertVertical = z.infer<typeof alertVerticalSchema>;
 
-export const alertChannelSchema = z.enum(["SMS", "EMAIL", "WEB_DASHBOARD", "WEB_PUSH"]);
+export const alertChannelSchema = z.enum([
+  "SMS",
+  "EMAIL",
+  "WEB_DASHBOARD",
+  "WEB_PUSH",
+  /** Four Winds digital display emergency takeover (SOC-024 / SOC-025). */
+  "DISPLAY_TAKEOVER",
+  /** Public-address / siren bridge (audible ENS tests). */
+  "PA_SIREN",
+]);
 export type AlertChannel = z.infer<typeof alertChannelSchema>;
 
 export const alertSeveritySchema = z.enum(["INFO", "WARNING", "CRITICAL"]);
@@ -20,6 +29,9 @@ export const alertTemplateTypeSchema = z.enum([
   "ALL_CLEAR",
   "TIMELY_WARNING",
   "CUSTOM",
+  "ENS_TEST_MONTHLY_SILENT",
+  "ENS_TEST_SEMESTER_AUDIBLE",
+  "ENS_TEST_ANNUAL_COMPREHENSIVE",
 ]);
 export type AlertTemplateType = z.infer<typeof alertTemplateTypeSchema>;
 
@@ -134,13 +146,15 @@ export const alertDispatchJobSchema = z.object({
   body: z.string().min(1).max(2000),
   severity: alertSeveritySchema,
   groupIds: z.array(z.string().min(1).max(128)).min(1).max(32),
-  channels: z.array(alertChannelSchema).min(1).max(4),
+  channels: z.array(alertChannelSchema).min(1).max(6),
   status: alertJobStatusSchema,
   initiatedAt: z.string(),
   completedAt: z.string().optional(),
   actorId: z.string().min(1).max(128),
   estimatedRecipients: z.number().int().nonnegative(),
   channelSummary: z.array(alertChannelSummarySchema),
+  ensTestKind: z.enum(["monthly_silent", "semester_audible", "annual_comprehensive"]).optional(),
+  ensTestRunId: z.string().min(1).max(128).optional(),
 });
 export type AlertDispatchJob = z.infer<typeof alertDispatchJobSchema>;
 
@@ -187,9 +201,21 @@ export const alertDispatchBodySchema = z
     templateId: z.string().min(1).max(128),
     bodyOverride: z.string().trim().min(1).max(2000).optional(),
     groupIds: z.array(z.string().min(1).max(128)).min(1).max(32),
-    channels: z.array(alertChannelSchema).min(1).max(4),
+    channels: z.array(alertChannelSchema).min(1).max(6),
     confirmation: z.string().min(1).max(32).optional(),
     confirmationToken: z.string().min(1).max(32).optional(),
+    ensTestKind: z.enum(["monthly_silent", "semester_audible", "annual_comprehensive"]).optional(),
+    fourwindsScopes: z
+      .array(
+        z.object({
+          scopeType: z.enum(["campus", "building", "zone"]),
+          scopeId: z.string().trim().min(1).max(128),
+          label: z.string().trim().max(200).optional(),
+        }),
+      )
+      .max(64)
+      .optional(),
+    html5FallbackUrl: z.string().url().max(2000).optional(),
   })
   .strict()
   .refine((v) => isConfirmDispatchToken(v.confirmation ?? v.confirmationToken), {

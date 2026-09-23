@@ -5,7 +5,8 @@ import type {
 } from "rapid-cortex-shared";
 import {
   isRtspProducerVendor,
-  selectCamerasForAreaScan,
+  MILESTONE_CAMERA_ASSOCIATION_LIMIT,
+  selectCamerasForAreaScanWithGeo,
   toCampusCameraSummary,
   venueKvsChannelName,
 } from "rapid-cortex-shared";
@@ -43,10 +44,25 @@ export async function getCamerasForBuildingFloor(
   buildingId: string,
   floor: string | null | undefined,
   limit = 2,
-  place?: { zoneCode?: string | null; qrRcli?: string | null; assignedCameraIds?: string[] | null },
+  place?: {
+    zoneCode?: string | null;
+    qrRcli?: string | null;
+    assignedCameraIds?: string[] | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    radiusMeters?: number;
+  },
 ): Promise<VenueIncidentCameraSummary[]> {
   const cameras = await repo.listByAgency(agencyId);
-  const selected = selectCamerasForAreaScan(cameras, {
+  const hasGeo =
+    place?.latitude != null &&
+    place?.longitude != null &&
+    Number.isFinite(place.latitude) &&
+    Number.isFinite(place.longitude);
+  const effectiveLimit = hasGeo
+    ? Math.max(limit, MILESTONE_CAMERA_ASSOCIATION_LIMIT)
+    : limit;
+  const selected = selectCamerasForAreaScanWithGeo(cameras, {
     assignedCameraIds: place?.assignedCameraIds,
     place: {
       buildingId,
@@ -54,7 +70,11 @@ export async function getCamerasForBuildingFloor(
       zoneCode: place?.zoneCode,
       qrRcli: place?.qrRcli,
     },
-    limit,
+    limit: effectiveLimit,
+    origin: hasGeo
+      ? { latitude: place!.latitude!, longitude: place!.longitude! }
+      : null,
+    radiusMeters: place?.radiusMeters,
     isEligibleFallback: (camera) => isCameraProducerOnline(camera),
   });
   return selected.map(toSummary);

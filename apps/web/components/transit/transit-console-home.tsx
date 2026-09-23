@@ -224,7 +224,6 @@ export function TransitConsoleHome(props: {
               <TransitSettingsCamerasPanel
                 agencyId={props.agencyId}
                 transitCode={props.transitCode}
-                userId={props.userId}
                 userRole={props.userRole}
                 vehicles={data.vehicles}
               />

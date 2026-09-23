@@ -1441,17 +1441,6 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     planAvailability: enterpriseOnly,
   }),
   withLegacyIncludedInPlans({
-    key: "feature_addons.ring_connect",
-    name: "Rapid Vision™ — Ring Source",
-    category: "Feature Add-Ons",
-    description:
-      "Request Ring doorbell and camera footage in proximity to active incidents. Access is granted only through prior homeowner enrollment and consent, with a full audit log of every access event.",
-    billingType: "monthly",
-    monthlyPrice: 500,
-    oneTimePrice: 0,
-    planAvailability: professionalPlus,
-  }),
-  withLegacyIncludedInPlans({
     key: "feature_addons.grant_success_package",
     name: "Grant Success Package",
     category: "Feature Add-Ons",

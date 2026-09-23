@@ -5,14 +5,13 @@ import { buildPublicPageMetadata } from "@/lib/seo";
 const PATH = "/campus-safety-integrations";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Campus Safety Integrations | Ring, Nest, QR/NFC | Rapid Cortex",
+  title: "Campus Safety Integrations | Nest, Wyze, QR/NFC | Rapid Cortex",
   description:
-    "Campus safety integrations for universities: consent-based Ring and Nest cameras, QR/NFC and SMS reporting, and optional dispatch handoff — contract-validated adapters, not a rip-and-replace.",
+    "Campus safety integrations for universities: consent-based Nest and Wyze cameras, QR/NFC and SMS reporting, and optional dispatch handoff — contract-validated adapters, not a rip-and-replace.",
   path: PATH,
   keywords: [
     "campus safety integrations",
     "university camera integrations",
-    "Ring campus safety",
     "Nest campus cameras",
     "QR NFC campus reporting",
   ],
@@ -21,8 +20,8 @@ export const metadata: Metadata = buildPublicPageMetadata({
 export default function CampusSafetyIntegrationsPage() {
   return (
     <KeywordLandingPage
-      title="Campus Safety Integrations | Ring, Nest, QR/NFC | Rapid Cortex"
-      description="Campus safety integrations for universities: consent-based Ring and Nest cameras, QR/NFC and SMS reporting, and optional dispatch handoff — contract-validated adapters, not a rip-and-replace."
+      title="Campus Safety Integrations | Nest, Wyze, QR/NFC | Rapid Cortex"
+      description="Campus safety integrations for universities: consent-based Nest and Wyze cameras, QR/NFC and SMS reporting, and optional dispatch handoff — contract-validated adapters, not a rip-and-replace."
       path={PATH}
       h1="Campus Safety Integrations for Universities"
       eyebrow="Campus safety integrations"
@@ -38,7 +37,6 @@ export default function CampusSafetyIntegrationsPage() {
           bullets: [
             "QR and NFC location tags for buildings, lots, and event spaces",
             "SMS reporting into the campus safety dashboard",
-            "Ring Connect — consent-based emergency video from device owners",
             "Google Nest SDM — agency-linked cameras plus citizen consent requests",
             "Wyze Connect — homeowner API keys with SMS consent per request",
             "Optional handoff to municipal dispatch / CAD-friendly workflows",
@@ -61,7 +59,6 @@ export default function CampusSafetyIntegrationsPage() {
         { href: "/product/campus", label: "Rapid Cortex Campus product" },
         { href: "/campus-safety-software", label: "Campus safety software" },
         { href: "/integrations", label: "Integrations overview" },
-        { href: "/connect/ring/start", label: "Start Ring Connect" },
         { href: "/connect/nest", label: "Nest Connect" },
         { href: "/connect/wyze/start", label: "Wyze Connect" },
         { href: "/cad-integration", label: "CAD integration" },
@@ -78,7 +75,7 @@ export default function CampusSafetyIntegrationsPage() {
         {
           question: "Which cameras can we integrate?",
           answer:
-            "Consent-based Ring Connect, Google Nest SDM, and Wyze Connect are the public Connect paths. Campus-owned Nest devices can be agency-linked. Other CCTV stacks are scoped per contract.",
+            "Consent-based Google Nest SDM and Wyze Connect are the public Connect paths. Campus-owned Nest devices can be agency-linked. Other CCTV stacks are scoped per contract.",
         },
         {
           question: "Can we pilot integrations before a campus-wide rollout?",

@@ -1,9 +1,5 @@
 import { notFound } from "next/navigation";
 import { FeatureRoutePlaceholder } from "@/components/rapid-cortex/feature-route-placeholder";
-import {
-  ViewAvailableRingCamerasButton,
-  isRingAvailableCamerasEnabled,
-} from "@/src/features/connect/ring";
 
 const WORKSPACES: Record<string, { title: string; featureId: string; summary: string }> = {
   dashboard: {
@@ -44,14 +40,6 @@ export default async function CommandWorkspacePage({ params }: Ctx) {
 
   return (
     <div className="space-y-3">
-      {isRingAvailableCamerasEnabled() && (
-        <ViewAvailableRingCamerasButton
-          incidentId={null}
-          incidentLatitude={null}
-          incidentLongitude={null}
-          userRole="dispatcher"
-        />
-      )}
       <FeatureRoutePlaceholder
         title={config.title}
         featureId={config.featureId}

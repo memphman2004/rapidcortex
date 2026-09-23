@@ -19,6 +19,7 @@ import {
   isRapidVisionSceneIntelEnabled,
   isRcTranslateVenueEnabled,
   isVerticalAlertsEnabled,
+  isEnsTestProgramEnabled,
   isQaScoringEnabled,
   isRcsEnabled,
   isHiringUiEnabled,
@@ -78,6 +79,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isRapidVisionSceneIntelEnabled();
     case "verticalAlerts":
       return isVerticalAlertsEnabled();
+    case "ensTestProgram":
+      return isVerticalAlertsEnabled() && isEnsTestProgramEnabled();
     case "channelMonitoring":
       return isChannelMonitoringEnabled();
     case "verticalOnboarding":

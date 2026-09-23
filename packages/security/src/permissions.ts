@@ -248,6 +248,8 @@ export const ALL_PERMISSIONS = [
   "alerts.dispatch.critical",
   "alerts.history.view",
   "alerts.organization.manage",
+  "alerts.ens.manage",
+  "alerts.ens.run",
   "physical.event.view",
   "physical.command.propose",
   "physical.command.approve",
@@ -328,7 +330,6 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, Record<Permission, boole
   call_assist_admin: buildMatrixRolePermissions("call_assist_admin"),
   call_assist_supervisor: buildMatrixRolePermissions("call_assist_supervisor"),
   call_assist_operator: buildMatrixRolePermissions("call_assist_operator"),
-  homeowner: maskFromList([]),
 };
 
 export function defaultPermissionForRole(role: UserRole, permission: Permission): boolean {

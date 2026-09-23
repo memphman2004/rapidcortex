@@ -53,7 +53,6 @@ Call Assist knowledge answers are grounded on the **agency knowledge base in Dyn
 | **Amazon SNS** | Ops alerts, optional SMS | Phone/email for alerts | Operator-configured |
 | **Amazon Pinpoint** | SMS / messaging links (e.g. caller media intake) | Phone numbers, message metadata | When Pinpoint features enabled |
 | **Amazon End User Messaging** | Transactional SMS (incident links, consent, Silent Text) | Phone numbers, message metadata | When SMS features enabled |
-| **Ring** (partner API) | Camera / doorbell integrations | Device metadata, media | Ring Connect module only |
 | **Twilio** | Incident-media SMS / voice links | Phone numbers, message metadata, media URLs | When incident-media secret is used |
 | **Wyze** | Camera API | Device credentials / media | Only if `WyzeEnabled` / Rapid Vision Wyze |
 | **Google Nest SDM** | Agency/citizen camera linking | OAuth tokens, device metadata | Agency OAuth may be live; citizen path needs Device Access + RC OAuth secret |

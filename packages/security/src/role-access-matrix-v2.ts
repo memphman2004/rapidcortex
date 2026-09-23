@@ -106,6 +106,8 @@ export const CAMPUS_ROLE_PERMISSIONS: Record<CampusRole, string[]> = {
     "alerts.dispatch",
     "alerts.dispatch.critical",
     "alerts.history.view",
+    "alerts.ens.manage",
+    "alerts.ens.run",
     "physical.event.view",
     "physical.command.propose",
     "physical.command.approve",
@@ -148,6 +150,7 @@ export const CAMPUS_ROLE_PERMISSIONS: Record<CampusRole, string[]> = {
     "campus.eap.manage",
     "alerts.dispatch",
     "alerts.history.view",
+    "alerts.ens.run",
     "physical.event.view",
     "physical.command.propose",
     "physical.command.approve",
@@ -240,6 +243,8 @@ export const VENUE_ROLE_PERMISSIONS: Record<VenueRole, string[]> = {
     "alerts.dispatch",
     "alerts.dispatch.critical",
     "alerts.history.view",
+    "alerts.ens.manage",
+    "alerts.ens.run",
     "physical.event.view",
     "physical.command.propose",
     "physical.command.approve",
@@ -266,6 +271,7 @@ export const VENUE_ROLE_PERMISSIONS: Record<VenueRole, string[]> = {
     "locations.qrcodes.manage",
     "alerts.dispatch",
     "alerts.history.view",
+    "alerts.ens.run",
     "physical.event.view",
     "physical.command.propose",
     "physical.command.approve",
@@ -376,6 +382,8 @@ export const TRANSIT_ROLE_PERMISSIONS: Record<TransitRole, string[]> = {
     "alerts.dispatch",
     "alerts.dispatch.critical",
     "alerts.history.view",
+    "alerts.ens.manage",
+    "alerts.ens.run",
     "physical.event.view",
     "physical.command.propose",
     "physical.command.approve",
@@ -978,8 +986,6 @@ const VERTICAL_ROLE_MATRIX_BASE: Record<Exclude<MatrixRole, CoreMatrixRole>, Cor
   call_assist_admin: "agencyadmin",
   call_assist_supervisor: "supervisor",
   call_assist_operator: "dispatcher",
-  /** Ring Connect device owner — no PSAP grants; overridden to empty below. */
-  homeowner: "auditor",
 };
 
 function inheritVerticalMatrix(
@@ -1009,8 +1015,6 @@ export const ROLE_ACCESS_MATRIX_V2: Record<MatrixRole, readonly Permission[]> = 
   call_assist_admin: CALL_ASSIST_ADMIN,
   call_assist_supervisor: CALL_ASSIST_SUPERVISOR,
   call_assist_operator: CALL_ASSIST_OPERATOR,
-  /** Appstore homeowner: Cognito identity only — no dispatcher/admin permissions. */
-  homeowner: [],
 };
 
 /** rcsuperadmin-only immutable permissions (matrix `o` column). */

@@ -99,12 +99,6 @@ const ACCOUNTS: TestRow[] = [
     cognitoGroup: "agencyit",
   },
   {
-    email: "ring-reviewer@rapidcortex.us",
-    customRole: "dispatcher",
-    agencyId: TEST_AGENCY,
-    cognitoGroup: "dispatcher",
-  },
-  {
     email: "apple-review@rapidcortex.us",
     customRole: "campus_admin",
     agencyId: "test-campus-uga",

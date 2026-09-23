@@ -132,11 +132,7 @@ async function hashToken(plainToken: string): Promise<string> {
 }
 
 function consentLandingUrl(plainToken: string): string {
-  const base =
-    process.env.CONNECT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ||
-    process.env.RING_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ||
-    env.ringPublicApiBaseUrl.replace(/\/$/, "") ||
-    "https://api.rapidcortex.us";
+  const base = env.connectPublicApiBaseUrl.replace(/\/$/, "") || "https://api.rapidcortex.us";
   return `${base}/api/cameras/providers/wyze/c/${plainToken}`;
 }
 

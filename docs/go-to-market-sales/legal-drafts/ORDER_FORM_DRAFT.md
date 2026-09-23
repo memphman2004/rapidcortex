@@ -44,7 +44,6 @@ Align with [SALES_SCOPE_MATRIX.md](../SALES_SCOPE_MATRIX.md) — do not check mo
 | CAD read-only adapter | [ ] | Vendor: ______ |
 | CAD assisted write-back | [ ] | **Separate legal addendum required** |
 | Media / caller link intake | [ ] | |
-| Ring Connect | [ ] | |
 | Desktop apps (macOS / Windows) | [ ] | |
 | RC Lite API | [ ] | Use RC Lite Agreement instead if API-only |
 

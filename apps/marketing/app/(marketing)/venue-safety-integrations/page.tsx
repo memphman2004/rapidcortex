@@ -38,7 +38,7 @@ export default function VenueSafetyIntegrationsPage() {
           bullets: [
             "QR and NFC signs mapped to gates, sections, and concourses",
             "SMS reporting with venue code and location parsing",
-            "Consent-based Ring Connect and Nest SDM camera flows",
+            "Consent-based Nest SDM and Wyze Connect camera flows",
             "Nearby camera references on the SOC incident card",
             "Optional escalation into Rapid Cortex Core for emergency communications",
           ],
@@ -62,7 +62,6 @@ export default function VenueSafetyIntegrationsPage() {
         { href: "/venue-safety-software", label: "Venue safety software" },
         { href: "/stadium-security-software", label: "Stadium security software" },
         { href: "/integrations", label: "Integrations overview" },
-        { href: "/connect/ring/start", label: "Start Ring Connect" },
         { href: "/connect/nest", label: "Nest Connect" },
         { href: "/connect/wyze/start", label: "Wyze Connect" },
         { href: "/free-60-day-pilot", label: "Free 60-Day Pilot Program" },
@@ -78,7 +77,7 @@ export default function VenueSafetyIntegrationsPage() {
         {
           question: "What reporting channels can we integrate?",
           answer:
-            "QR/NFC signs, SMS with a venue code, and optional Ring, Nest, or Wyze Connect consent flows. Other camera stacks are scoped per contract.",
+            "QR/NFC signs, SMS with a venue code, and optional Nest or Wyze Connect consent flows. Other camera stacks are scoped per contract.",
         },
         {
           question: "Can we pilot venue integrations on a subset of zones?",

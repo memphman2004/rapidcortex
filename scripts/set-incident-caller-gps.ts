@@ -1,11 +1,11 @@
 #!/usr/bin/env npx tsx
 /**
- * Set callerLocationLat/Lng on an existing incident so Ring nearby search unlocks.
+ * Set callerLocationLat/Lng on an existing incident so nearby camera search unlocks.
  *
- * Defaults match Ring homeowner device fallback GPS (Columbus GA / Sonoma Pointe pilot):
+ * Defaults match the Columbus GA / Sonoma Pointe pilot area:
  *   LAT=32.5369 LNG=-84.9274
  *
- * Flow: incident address → map pin coordinates → proximity search → eligible Ring cameras.
+ * Flow: incident address → map pin coordinates → proximity search → eligible cameras.
  *
  * Usage:
  *   AWS_PROFILE=rapid-cortex STAGE=dev \

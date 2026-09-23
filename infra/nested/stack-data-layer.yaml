@@ -171,11 +171,6 @@
       "Default": "",
       "Description": "Optional S3 bucket for Google TTS objects; when empty, ASSETS_BUCKET is used."
     },
-    "ExistingRingCredentialsSecretArn": {
-      "Type": "String",
-      "Default": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials",
-      "Description": "When set, skip creating RingCredentialsSecret (secret already exists outside this stack) and emit this ARN from RingCredentialsSecretArn output."
-    },
     "ExistingBillingPaymentInstructionsSecretArn": {
       "Type": "String",
       "Default": "",
@@ -785,26 +780,6 @@
             "pilot"
           ]
         }
-      ]
-    },
-    "HasExistingRingCredentialsSecretArn": {
-      "Fn::Not": [
-        {
-          "Fn::Equals": [
-            {
-              "Ref": "ExistingRingCredentialsSecretArn"
-            },
-            ""
-          ]
-        }
-      ]
-    },
-    "CreateRingCredentialsSecret": {
-      "Fn::Equals": [
-        {
-          "Ref": "ExistingRingCredentialsSecretArn"
-        },
-        ""
       ]
     },
     "CreateBillingPaymentInstructionsSecret": {
@@ -6793,20 +6768,6 @@
           },
           {
             "Ref": "ExistingBillingPaymentInstructionsSecretArn"
-          }
-        ]
-      }
-    },
-    "RingCredentialsSecretArn": {
-      "Description": "Ring API credentials secret ARN for Connect",
-      "Value": {
-        "Fn::If": [
-          "HasExistingRingCredentialsSecretArn",
-          {
-            "Ref": "ExistingRingCredentialsSecretArn"
-          },
-          {
-            "Ref": "ExistingRingCredentialsSecretArn"
           }
         ]
       }

@@ -128,7 +128,6 @@ export const ADDON_KEYS = [
   "feature_addons.rc_connect_standard",
   "feature_addons.rc_connect_professional",
   "feature_addons.rc_connect_enterprise",
-  "feature_addons.ring_connect",
   "feature_addons.grant_success_package",
 ] as const;
 

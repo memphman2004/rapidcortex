@@ -3,11 +3,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import type { AIAnalysis, Incident, TranscriptSegment } from "rapid-cortex-shared";
-import type { RingRole } from "@/src/features/connect/ring/ring-types";
-import {
-  ViewAvailableRingCamerasButton,
-  isRingAvailableCamerasEnabled,
-} from "@/src/features/connect/ring";
 import { isApiConfigured, patchIncidentDispatch, postTranscriptSegment } from "@/lib/api";
 import { makeId } from "@/lib/ids";
 
@@ -182,14 +177,6 @@ export function DispatchActionPanel({
         </p>
       ) : null}
       <div className="mt-2 grid grid-cols-1 gap-1.5">
-        {isRingAvailableCamerasEnabled() && incidentId ? (
-          <ViewAvailableRingCamerasButton
-            incidentId={incidentId}
-            incidentLatitude={incident?.callerLocationLat ?? null}
-            incidentLongitude={incident?.callerLocationLng ?? null}
-            userRole={"dispatcher" as RingRole}
-          />
-        ) : null}
         <button
           type="button"
           disabled={disabled || reviewed || busy !== null}

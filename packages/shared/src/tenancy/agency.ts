@@ -120,16 +120,6 @@ export interface AgencyTenant {
   /** Per-agency IP allowlist + shift-hour access control (opt-in). */
   networkPolicy?: AgencyNetworkPolicy;
 
-  // Ring Connect public directory — all four fields must be set before an agency is listed.
-  /** When true, agency appears in GET /api/public/agencies/by-state. Default false. */
-  publicDirectoryOptIn?: boolean;
-  /** Display name shown to homeowners (may differ from internal `name`). */
-  publicDisplayName?: string;
-  /** City shown in the public directory. */
-  publicCity?: string;
-  /** 2-letter US state code for the public directory index. */
-  publicState?: string;
-
   /**
    * Headquarters / deployment map pin (WGS84).
    * Optional for legacy rows; required for RC Admin national deployments map markers.

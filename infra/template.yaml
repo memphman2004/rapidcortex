@@ -330,7 +330,7 @@ Parameters:
     AllowedValues: [auto, "true", "false"]
     Description: >-
       When auto, turns on pilot-test API feature flags for DeploymentStage=dev (Silent Text, Pinpoint,
-      Ring emergency cameras, QA scoring, Surge, SOP AI, etc.). Set false to force off; true to force on in any stage.
+      emergency cameras, QA scoring, Surge, SOP AI, etc.). Set false to force off; true to force on in any stage.
   AppPublicBaseUrl:
     Type: String
     Default: "https://app.rapidcortex.us"
@@ -602,6 +602,18 @@ Parameters:
     Description: >-
       When set, AppSamVerticalAlertsStack2 uses this existing DynamoDB table instead of creating
       rapid-cortex-vertical-alerts-${stage}.
+  ExistingFourWindsSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, AppSamVerticalAlertsStack2 reuses this Four Winds secret ARN instead of creating
+      rapid-cortex/{stage}/integrations/fourwinds.
+  FourWindsMock:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      Four Winds REST mock. Keep true until vendor apiKey is in Secrets Manager; then set false.
   ExistingCleryActTableName:
     Type: String
     Default: ""
@@ -614,6 +626,17 @@ Parameters:
     Description: >-
       When set, AppSamPhysicalSecurityStack5 uses this existing DynamoDB table instead of creating
       rapid-cortex-physical-security-${stage}.
+  ExistingMilestoneConnectionsTableName:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, AppSamMilestoneStack5 reuses this DynamoDB table instead of creating
+      rapid-cortex-milestone-connections-${stage}.
+  MilestoneBridgeCredentialsSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Secrets Manager ARN for on-prem Milestone Bridge HMAC credentials (optional; mock path when empty).
   PhysicalSecurityWebhookSecret:
     Type: String
     Default: ""
@@ -621,29 +644,6 @@ Parameters:
     Description: >-
       Shared secret for POST /api/physical-security/events (X-RC-Token or HMAC). Empty with mock off returns 503.
       Do not commit the value. Commands remain 501 regardless of this secret.
-  FlatDataLayerRingCredentialsSecretArn:
-    Type: String
-    Default: ""
-    Description: >-
-      When IncludeDataLayerNestedStack is false (dev legacy): full ARN of the existing Ring credentials secret
-      (rapid-cortex/connect/ring-credentials-*). Ignored when the nested data layer is enabled.
-  RingCredentialsSecretArnOverride:
-    Type: String
-    Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials-D3f1sN"
-    Description: >-
-      When set, passes this ARN to AppSamStackV2 instead of the data-layer RingCredentialsSecret output
-      (use for manually created rapid-cortex/connect/ring-credentials secrets).
-  RingRedirectUri:
-    Type: String
-    Default: "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback"
-    Description: Ring OAuth callback URL (must reach AppSam4Stack HTTP API).
-  RingEnabled:
-    Type: String
-    Default: "false"
-    AllowedValues: ["true", "false"]
-    Description: >-
-      RING_DISABLED 2026-09-11. When false, AppSam4Stack omits Ring Lambdas and HttpApi routes.
-      DynamoDB Ring tables are retained. To reactivate: true plus RING_INTEGRATION_ENABLED=true.
   WyzeEnabled:
     Type: String
     Default: "false"
@@ -683,20 +683,6 @@ Parameters:
     Type: String
     Default: ""
     Description: When set, AppSam4Stack reuses leftover rapid-cortex-nest-citizen-accounts-${stage} instead of creating it.
-  EnableConnectRing:
-    Type: String
-    Default: "false"
-    AllowedValues: ["true", "false"]
-    Description: RING_DISABLED 2026-09-11. Env flag passed to AppSam4Stack Ring Lambdas.
-  RingPartnershipEnabled:
-    Type: String
-    Default: "false"
-    AllowedValues: ["true", "false"]
-    Description: RING_DISABLED 2026-09-11. Partnership env flag for AppSam4Stack.
-  RingAccountLinkUrl:
-    Type: String
-    Default: "https://www.rapidcortex.us/connect/ring/link"
-    Description: Post-OAuth browser redirect for Ring account linking (public marketing page).
   IncludeAppSamAlarmsNestedStack:
     Type: String
     Default: "true"
@@ -712,7 +698,6 @@ Conditions:
   HasAppSamAlarmsNestedStack: !Equals [!Ref IncludeAppSamAlarmsNestedStack, "true"]
   HasAppSamTransitNestedStack: !Equals [!Ref IncludeAppSamTransitNestedStack, "true"]
   HasAppSamBillingNestedStack: !Equals [!Ref IncludeAppSamBillingNestedStack, "true"]
-  HasRingCredentialsSecretArnOverride: !Not [!Equals [!Ref RingCredentialsSecretArnOverride, ""]]
   PilotTestFeaturesOn:
     Fn::Or:
       - !Equals [!Ref PilotTestFeaturesEnabled, "true"]
@@ -801,7 +786,6 @@ Resources:
         EnableCloudTrailLambdaDataEvents: !Ref EnableCloudTrailLambdaDataEvents
         EnableCloudTrailS3DataEvents: !Ref EnableCloudTrailS3DataEvents
         EnableLiveVideoResources: !Ref EnableLiveVideoResources
-        ExistingRingCredentialsSecretArn: !Ref RingCredentialsSecretArnOverride
         ExistingBillingPaymentInstructionsSecretArn: !Ref ExistingBillingPaymentInstructionsSecretArn
         ExistingBillingSesCredentialsSecretArn: !Ref ExistingBillingSesCredentialsSecretArn
         ExistingQRLocationsTableName: !Sub "${DynamoTableNamePrefix}-qr-locations-${DeploymentStage}"
@@ -960,14 +944,6 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.BillingWebhookEventsTable
             - !Sub "${DynamoTableNamePrefix}-billing-webhook-events-${DeploymentStage}"
-        RingCredentialsSecretArn:
-          Fn::If:
-            - HasRingCredentialsSecretArnOverride
-            - !Ref RingCredentialsSecretArnOverride
-            - Fn::If:
-                - HasDataLayerNestedStack
-                - !GetAtt DataLayerStack.Outputs.RingCredentialsSecretArn
-                - !Ref FlatDataLayerRingCredentialsSecretArn
         ConnectAccessSessionsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -1019,7 +995,6 @@ Resources:
         VenueBridgeTaskDefinition: ""
         BridgeSubnetIds: ""
         BridgeSecurityGroupIds: ""
-        RingApiBaseUrl: ""
         PilotTestFeaturesEnabled: !Ref PilotTestFeaturesEnabled
         CadIncidentsRawTable:
           Fn::If:
@@ -2875,9 +2850,6 @@ Resources:
             - !GetAtt DataLayerStack.Outputs.WebhooksTable
             - !Sub "${DynamoTableNamePrefix}-webhooks-${DeploymentStage}"
         WwwCnameTarget: !Ref WwwCnameTarget
-        EnableConnectRing: !Ref EnableConnectRing
-        RingPartnershipEnabled: !Ref RingPartnershipEnabled
-        RingEnabled: !Ref RingEnabled
         WyzeEnabled: !Ref WyzeEnabled
         WyzeApiKeysSecretArn: !Ref WyzeApiKeysSecretArn
         NestRcOauthSecretArn: !Ref NestRcOauthSecretArn
@@ -2886,8 +2858,6 @@ Resources:
         ExistingNestTokensTableName: !Ref ExistingNestTokensTableName
         ExistingNestConsentTableName: !Ref ExistingNestConsentTableName
         ExistingNestCitizenAccountsTableName: !Ref ExistingNestCitizenAccountsTableName
-        RingRedirectUri: !Ref RingRedirectUri
-        RingAccountLinkUrl: !Ref RingAccountLinkUrl
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ImportedCognitoNativeClientId: !GetAtt AppSamStackV2.Outputs.NativeUserPoolClientId
@@ -3043,14 +3013,6 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.BillingWebhookEventsTable
             - !Sub "${DynamoTableNamePrefix}-billing-webhook-events-${DeploymentStage}"
-        RingCredentialsSecretArn:
-          Fn::If:
-            - HasRingCredentialsSecretArnOverride
-            - !Ref RingCredentialsSecretArnOverride
-            - Fn::If:
-                - HasDataLayerNestedStack
-                - !GetAtt DataLayerStack.Outputs.RingCredentialsSecretArn
-                - !Ref FlatDataLayerRingCredentialsSecretArn
         ConnectAccessSessionsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -3134,7 +3096,6 @@ Resources:
         VenueBridgeTaskDefinition: ""
         BridgeSubnetIds: ""
         BridgeSecurityGroupIds: ""
-        RingApiBaseUrl: ""
         PilotTestFeaturesEnabled: !Ref PilotTestFeaturesEnabled
         CadIncidentsRawTable:
           Fn::If:
@@ -3894,6 +3855,7 @@ Resources:
     DependsOn:
       - AppSam2Stack
       - AppSamRealtime2Stack
+      - AppSamLocationStack2
     Properties:
       TimeoutInMinutes: 60
       TemplateURL: nested/stack-app-sam-vertical-alerts.yaml
@@ -3950,6 +3912,9 @@ Resources:
           - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
           - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
         WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        AlsGeofenceCollectionName: !GetAtt AppSamLocationStack2.Outputs.GeofenceCollectionName
+        ExistingFourWindsSecretArn: !Ref ExistingFourWindsSecretArn
+        FourWindsMock: !Ref FourWindsMock
 
   AppSamCleryActStack5:
     Type: AWS::CloudFormation::Stack
@@ -4045,6 +4010,49 @@ Resources:
           - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
           - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
         WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+
+  AppSamMilestoneStack5:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - AppSam5Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-milestone.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam5Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: ""
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        CampusCameraRegistryTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CampusCameraRegistryTable
+            - !Sub "${DynamoTableNamePrefix}-campus-camera-registry-${DeploymentStage}"
+        CampusIncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CampusIncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-campus-incidents-${DeploymentStage}"
+        ExistingMilestoneConnectionsTableName: !Ref ExistingMilestoneConnectionsTableName
+        MilestoneBridgeCredentialsSecretArn: !Ref MilestoneBridgeCredentialsSecretArn
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
 
   AppSamRealtime2Stack:
     Type: AWS::CloudFormation::Stack
@@ -4194,6 +4202,9 @@ Outputs:
     Value: !GetAtt AppSamLocationStack2.Outputs.RouteCalculatorName
   AlsGeofenceCollectionName:
     Value: !GetAtt AppSamLocationStack2.Outputs.GeofenceCollectionName
+  FourWindsSecretArn:
+    Description: Four Winds REST API secret (SOC-024/025)
+    Value: !GetAtt AppSamVerticalAlertsStack2.Outputs.FourWindsSecretArn
   AlsTrackerName:
     Value: !GetAtt AppSamLocationStack2.Outputs.TrackerName
   NativeUserPoolClientId:

@@ -138,8 +138,7 @@ When you ship documentation to each jurisdiction, bundle **this file** as the co
 | [ADMIN_GUIDE.md](./ADMIN_GUIDE.md) · [ADMIN_SETUP_GUIDE.md](./ADMIN_SETUP_GUIDE.md) · [USER_PROVISIONING_GUIDE.md](./USER_PROVISIONING_GUIDE.md) | Admins. |
 | [AUTH_OPERATIONS.md](./AUTH_OPERATIONS.md) | IT identity integration. |
 | [RapidCortex-CAD-Integration-Guide-1.0.pdf](./RapidCortex-CAD-Integration-Guide-1.0.pdf) | **CAD inbound integration** — webhooks, vendor IT, agency firewall / URL checklist (v1.0). |
-| [COMMON_TASKS.md](../operations-runbooks/COMMON_TASKS.md) | Day-to-day dispatcher tasks (includes Ring Connect). |
-| [RING_CONNECT_CAMERA_ACCESS.md](../product-architecture/RING_CONNECT_CAMERA_ACCESS.md) | **Ring doorbell / camera emergency video** — owner consent, per-device workflow, limits. |
+| [COMMON_TASKS.md](../operations-runbooks/COMMON_TASKS.md) | Day-to-day dispatcher tasks. |
 | [TROUBLESHOOTING_GUIDE.md](../operations-runbooks/TROUBLESHOOTING_GUIDE.md) · [SUPPORT_MODEL.md](../operations-runbooks/SUPPORT_MODEL.md) · [ESCALATION_PATHS.md](../operations-runbooks/ESCALATION_PATHS.md) | Break/fix and routing. |
 | [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md) · [NON_GOALS.md](./NON_GOALS.md) | Truth in advertising for leadership. |
 | [TRAINING_QUICKSTART.md](./TRAINING_QUICKSTART.md) · [FIRST_DAY_CHECKLIST.md](./FIRST_DAY_CHECKLIST.md) | Training org. |

@@ -81,17 +81,17 @@ Scripted **demo scenarios** (`GET /api/demo/scenarios`, `POST /api/demo/start`) 
 
 ## Media workspace (`/<slug>/media`)
 
-When enabled for your agency, the **Media** page combines caller video, facility cameras, silent text, and **Ring Connect**:
+When enabled for your agency, the **Media** page combines caller video, facility cameras, silent text, and citizen camera Connect (Nest / Wyze):
 
 | Area | Behavior |
 | --- | --- |
 | **Incident Context** | Select the active incident used for camera search and requests. |
 | **Caller Video** | WebRTC caller video assist (separate consent path). |
-| **Live Camera — Ring** | Link Ring account, manage linked devices, view nearby Ring doorbells/cameras, send **owner-consented** emergency video requests, view approved live streams. |
+| **Live Camera — Nest / Wyze** | View nearby citizen cameras, send **owner-consented** emergency video requests, view approved live streams. |
 | **Live Camera — Facility** | Facility / KVS live video when live video is enabled. |
 | **Text to Caller** | Silent Text panel when enabled. |
 
-**Ring Connect** requires owner approval for every device request. Doorbells and cameras share the same workflow. Step-by-step: [RING_CONNECT_CAMERA_ACCESS.md](../product-architecture/RING_CONNECT_CAMERA_ACCESS.md) · [COMMON_TASKS.md](../operations-runbooks/COMMON_TASKS.md).
+Citizen camera Connect requires owner approval for every device request. Step-by-step: [COMMON_TASKS.md](../operations-runbooks/COMMON_TASKS.md).
 
 ## Supervisor review (`/<slug>/review`)
 

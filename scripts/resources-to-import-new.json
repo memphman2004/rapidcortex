@@ -13,6 +13,5 @@
   {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"PlatformNoticeAcksTable","ResourceIdentifier":{"TableName":"rapid-cortex-platform-notice-acks-dev"}},
   {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"VenueCameraAccessLogTable","ResourceIdentifier":{"TableName":"rapid-cortex-venue-camera-access-log-dev"}},
   {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"VenueIncidentOverlaysTable","ResourceIdentifier":{"TableName":"rapid-cortex-venue-incident-overlays-dev"}},
-  {"ResourceType":"AWS::S3::Bucket","LogicalResourceId":"VenueAssetsBucket","ResourceIdentifier":{"BucketName":"rapid-cortex-venue-assets-dev-158961537080"}},
-  {"ResourceType":"AWS::SecretsManager::Secret","LogicalResourceId":"RingCredentialsSecret","ResourceIdentifier":{"Id":"rapid-cortex/connect/ring-credentials"}}
+  {"ResourceType":"AWS::S3::Bucket","LogicalResourceId":"VenueAssetsBucket","ResourceIdentifier":{"BucketName":"rapid-cortex-venue-assets-dev-158961537080"}}
 ]

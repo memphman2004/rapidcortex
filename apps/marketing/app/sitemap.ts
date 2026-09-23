@@ -51,11 +51,9 @@ const PUBLIC_ROUTES: RouteEntry[] = [
   { path: "/solutions/agencies", changeFrequency: "weekly", priority: 0.75 },
   { path: "/solutions/vendors", changeFrequency: "weekly", priority: 0.75 },
   { path: "/integrations", changeFrequency: "weekly", priority: 0.75 },
-  { path: "/integrations/ring-review", changeFrequency: "monthly", priority: 0.55 },
   { path: "/cad", changeFrequency: "weekly", priority: 0.7 },
   { path: "/cad-integration", changeFrequency: "weekly", priority: 0.7 },
   { path: "/supervisor-dashboard", changeFrequency: "monthly", priority: 0.55 },
-  { path: "/connect/ring/start", changeFrequency: "weekly", priority: 0.7 },
   { path: "/connect/nest", changeFrequency: "weekly", priority: 0.7 },
   { path: "/connect/wyze/start", changeFrequency: "weekly", priority: 0.7 },
 

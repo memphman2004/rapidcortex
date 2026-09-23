@@ -1,6 +1,6 @@
 import {
+  MILESTONE_AUDIT_EVENT_TYPES,
   NEST_AUDIT_EVENT_TYPES,
-  RING_AUDIT_EVENT_TYPES,
   WYZE_AUDIT_EVENT_TYPES,
 } from "rapid-cortex-shared/audit-schema";
 
@@ -483,6 +483,9 @@ export const AUDIT_EVENT_TYPES = {
   ALERT_ACKNOWLEDGED: "alerts.dispatch.acknowledged",
   ALERT_SMS_OPTED_OUT: "alerts.sms.opted_out",
   ALERT_ORGANIZATION_UPSERTED: "alerts.organization.upserted",
+  ALERT_ENS_PROGRAM_SAVED: "alerts.ens.program.saved",
+  ALERT_ENS_BOUNDARY_SAVED: "alerts.ens.boundary.saved",
+  ALERT_ENS_TEST_RUN: "alerts.ens.test.run",
 
   PHYSICAL_EVENT_INGESTED: "physical.event.ingested",
   PHYSICAL_COMMAND_PROPOSED: "physical.command.proposed",
@@ -520,9 +523,9 @@ export const AUDIT_EVENT_TYPES = {
   /** Supervisor loaded the live operator presence list. */
   SUPERVISOR_OPERATORS_VIEWED: "supervisor.operators.viewed",
 
-  ...RING_AUDIT_EVENT_TYPES,
   ...WYZE_AUDIT_EVENT_TYPES,
   ...NEST_AUDIT_EVENT_TYPES,
+  ...MILESTONE_AUDIT_EVENT_TYPES,
 
   VISION_CAMERA_DISCOVERED: "vision.camera.discovered",
   VISION_CONSENT_REQUESTED: "vision.consent.requested",
