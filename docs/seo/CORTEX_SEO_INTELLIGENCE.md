@@ -1,6 +1,6 @@
 # Cortex SEO Intelligence
 
-Internal admin tooling for Rapid Cortex / Apps on Demand to analyze public marketing pages, score SEO hygiene, surface actionable issues, generate metadata and JSON-LD snippets, and compare outlines — **without exposing private URLs or raw infrastructure**.
+Internal admin tooling for NexCort iQ / Apps on Demand to analyze public marketing pages, score SEO hygiene, surface actionable issues, generate metadata and JSON-LD snippets, and compare outlines — **without exposing private URLs or raw infrastructure**.
 
 ## Overview
 
@@ -17,7 +17,7 @@ Internal admin tooling for Rapid Cortex / Apps on Demand to analyze public marke
 4. **SEO Intelligence Suggestions** — Uses Bedrock when `SEO_AI_SUGGESTIONS_ENABLED=true` and `QA_BEDROCK_MODEL_ID` is set; otherwise deterministic templates. **UI never names a vendor/model** — copy refers to “SEO Intelligence Suggestions”.
 5. **Sitemap / robots check** — Fetches `/sitemap.xml` and `/robots.txt` for an allowed origin and summarizes counts plus snippets (public hosts only).
 6. **Schema generator** — JSON-LD builders for Organization, SoftwareApplication, Product, FAQPage, LocalBusiness, Article, BreadcrumbList.
-7. **Comparison page helper** — Structured outlines for predefined positioning topics (CAD legacy, NG911 media-only, RC Lite API, emergency intelligence, dispatcher decision-support).
+7. **Comparison page helper** — Structured outlines for predefined positioning topics (CAD legacy, NG911 media-only, NC Lite API, emergency intelligence, dispatcher decision-support).
 8. **Issue tracker** — Persisted `SEOIssue` rows with severity and workflow status (`OPEN` | `FIXED` | `IGNORED`).
 9. **Automation flags** — `SEO_AUTO_SCAN_ENABLED` gates non-manual schedules at the API (EventBridge wiring reserved).
 
@@ -89,4 +89,4 @@ Vitest coverage includes HTML extraction, scoring sanity, SSRF literals, finding
 - Scheduled re-scans via EventBridge (`SEO_AUTO_SCAN_ENABLED`) with idempotent dedupe.
 - Full-site crawl budgets and GSC integration (read-only).
 - Lighthouse/PageSpeed and mobile UX signals where permitted by CSP and runtime budgets.
-- Cross-agency RC Admin reporting for marketing domains (still tenant-scoped writes).
+- Cross-agency NC Admin reporting for marketing domains (still tenant-scoped writes).

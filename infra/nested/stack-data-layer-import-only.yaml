@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
-  Subset of Rapid Cortex DataLayer — 20 DynamoDB tables + BillingInvoicesBucket + BillingPosBucket only,
+  Subset of NexCort iQ DataLayer — 20 DynamoDB tables + BillingInvoicesBucket + BillingPosBucket only,
   with full Parameters/Rules/Conditions/Mappings parity for import / drift workflows against stack-data-layer.yaml.
 
 Metadata:

@@ -6,9 +6,9 @@ import styles from "./sms-consent.module.css";
 
 export const metadata: Metadata = {
   ...buildPublicPageMetadata({
-    title: "SMS Consent & Messaging Disclosure — Rapid Cortex",
+    title: "SMS Consent & Messaging Disclosure — NexCort iQ",
     description:
-      "How Rapid Cortex collects consent and sends SMS messages on behalf of public safety agencies.",
+      "How NexCort iQ collects consent and sends SMS messages on behalf of public safety agencies.",
     path: "/sms-consent",
   }),
   robots: { index: true, follow: true },
@@ -27,7 +27,7 @@ export default function SmsConsentPage() {
   return (
     <LegalDocShell
       eyebrow="SMS Consent & Messaging Disclosure"
-      title="How Rapid Cortex Sends Text Messages"
+      title="How NexCort iQ Sends Text Messages"
       description="This page covers two distinct SMS workflows: general platform communications, and dispatcher-initiated incident-specific messaging. Published as a public reference for carrier compliance and toll-free verification."
       lastReviewed="August 1, 2026"
       navItems={NAV}
@@ -39,7 +39,7 @@ export default function SmsConsentPage() {
         </div>
         <h2>General Platform SMS Consent</h2>
         <p>
-          SMS consent for Rapid Cortex platform users — demo scheduling, onboarding, account access,
+          SMS consent for NexCort iQ platform users — demo scheduling, onboarding, account access,
           and support communications.
         </p>
       </div>
@@ -47,9 +47,9 @@ export default function SmsConsentPage() {
       <section className={styles.section} aria-labelledby="platform-sms">
         <div className={styles.generalConsentBox}>
           <p>
-            By providing a mobile number through Rapid Cortex forms or approved agency workflows, you
+            By providing a mobile number through NexCort iQ forms or approved agency workflows, you
             consent to receive SMS messages related to demo scheduling, onboarding, account access,
-            support, or authorized Rapid Cortex communications.
+            support, or authorized NexCort iQ communications.
           </p>
           <p>
             Message and data rates may apply. Message frequency may vary. You may reply{" "}
@@ -57,7 +57,7 @@ export default function SmsConsentPage() {
             <span className={styles.keyword}>HELP</span> for assistance where supported.
           </p>
           <p>
-            SMS consent is not required to purchase Rapid Cortex services unless SMS-based
+            SMS consent is not required to purchase NexCort iQ services unless SMS-based
             communication is part of the approved agency workflow.
           </p>
         </div>
@@ -78,14 +78,14 @@ export default function SmsConsentPage() {
       <section className={styles.section}>
         <h3>Purpose of SMS</h3>
         <p>
-          Rapid Cortex SMS is used only for dispatcher-initiated, incident-specific outreach tied to
+          NexCort iQ SMS is used only for dispatcher-initiated, incident-specific outreach tied to
           an active public safety contact. Recipients are individuals who have contacted 911 or
           another public safety communications center and are engaged in that incident context.
           Messages are not sent for marketing, promotions, advertising, or unsolicited outreach.
         </p>
         <div className={styles.notice}>
           <strong>This is not a mass-notification or public emergency alerting service.</strong> Use
-          is limited to authorized agency workflows within Rapid Cortex for the incident at hand.
+          is limited to authorized agency workflows within NexCort iQ for the incident at hand.
         </div>
       </section>
 
@@ -103,13 +103,13 @@ export default function SmsConsentPage() {
         </div>
 
         <div className={styles.consentCard}>
-          <div className={styles.cardLabel}>Step 2 — Dispatcher confirmation in Rapid Cortex</div>
+          <div className={styles.cardLabel}>Step 2 — Dispatcher confirmation in NexCort iQ</div>
           <h4>Platform Attestation Before Send</h4>
           <p>
-            Dispatchers record consent by confirming within the Rapid Cortex application that the
+            Dispatchers record consent by confirming within the NexCort iQ application that the
             required verbal consent was obtained before the system sends the message.{" "}
             <strong>
-              No message is sent from Rapid Cortex for this workflow without that confirmation.
+              No message is sent from NexCort iQ for this workflow without that confirmation.
             </strong>
           </p>
         </div>
@@ -147,7 +147,7 @@ export default function SmsConsentPage() {
       <section className={styles.section} id="consent-records">
         <h3>Consent Records</h3>
         <p>
-          When an agency uses Rapid Cortex for this workflow, the platform is designed to support an
+          When an agency uses NexCort iQ for this workflow, the platform is designed to support an
           auditable record aligned to agency operations. Depending on configuration, consent-related
           records may include fields such as:
         </p>
@@ -230,18 +230,18 @@ export default function SmsConsentPage() {
           third parties or affiliates for marketing or promotional purposes. SMS consent obtained for
           this dispatcher-initiated, incident-specific workflow is used only to deliver
           incident-related messages and operate the service. Communications are limited to public
-          safety incident workflows and authorized agency use of Rapid Cortex.
+          safety incident workflows and authorized agency use of NexCort iQ.
         </p>
       </section>
 
       <section className={styles.section}>
         <h3>Operator</h3>
         <p>
-          Rapid Cortex is offered by {SITE_OPERATOR_NAME}. For questions about this disclosure,
+          NexCort iQ is offered by {SITE_OPERATOR_NAME}. For questions about this disclosure,
           contact your agency administrator or reach us via the contact page.
         </p>
         <div className={styles.operatorBox}>
-          Rapid Cortex by Apps On Demand — operated by{" "}
+          NexCort iQ by Apps On Demand — operated by{" "}
           <a href={SITE_OPERATOR_URL} target="_blank" rel="noopener noreferrer">
             Apps on Demand (www.appsondemand.net)
           </a>

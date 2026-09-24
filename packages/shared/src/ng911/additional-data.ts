@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * NG9-1-1 Additional Data packaging (NENA-STA-012 concepts) for Rapid Cortex.
+ * NG9-1-1 Additional Data packaging (NENA-STA-012 concepts) for NexCort iQ.
  * Packages call / caller / location / agency-side enrichments for CAD or EIDO attach.
  */
 export const additionalDataProviderSchema = z.enum([

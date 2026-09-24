@@ -20,6 +20,7 @@ import { CadIntegrationRepository, type CadIntegrationRecord } from "../../repos
 import { CadWebhookIdempotencyRepository } from "../../repositories/cadWebhookIdempotencyRepository.js";
 import { IncidentRepository } from "../../repositories/incidentRepository.js";
 import { tryConsumeCadWebhookRateSlot } from "./cadWebhookRateLimiter.js";
+import { maybeDepositAddressIntelOnCadClose } from "../../feature-suite/integrations.js";
 
 const sns = new SNSClient({ region: env.region });
 const agencyRepo = new AgencyRepository();
@@ -160,7 +161,7 @@ function buildSelfTestPayload(vendor: CadVendor): unknown {
         Location: "1 Test St",
         Priority: "P3",
         Units: [],
-        CallerInfo: { Name: "Rapid Cortex", Callback: "5550100" },
+        CallerInfo: { Name: "NexCort iQ", Callback: "5550100" },
       };
     case "tyler_new_world":
       return {
@@ -179,7 +180,7 @@ function buildSelfTestPayload(vendor: CadVendor): unknown {
         Address: "1 Test St",
         Priority: "P3",
         UnitList: [],
-        CallerName: "Rapid Cortex",
+        CallerName: "NexCort iQ",
         CallerPhone: "5550100",
       };
     default:
@@ -318,6 +319,22 @@ async function ingestNormalizedCadIncident(args: {
       action: "updated",
       normalized,
       mappedTypeId: intel.mappedTypeId,
+    });
+
+    maybeDepositAddressIntelOnCadClose({
+      incident: {
+        ...existing,
+        callerAddressLine,
+        cadLocation: normalized.location ?? existing.cadLocation,
+        cadCoordinates: normalized.coordinates ?? existing.cadCoordinates,
+        cadStatus: normalized.cadStatus ?? existing.cadStatus,
+        cadDisposition: extras.cadDisposition ?? existing.cadDisposition,
+        cadNatureCode: normalized.incidentType ?? existing.cadNatureCode,
+        category: intel.category ?? existing.category,
+        summary: mergedSummary,
+      },
+      cadStatus: normalized.cadStatus,
+      actorId: "system:cad-webhook",
     });
 
     await rawRepo.updateStatus(activeRawId, { status: "ok", linkedIncidentId: existing.incidentId });

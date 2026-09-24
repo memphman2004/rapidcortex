@@ -20,7 +20,7 @@ function user(role: string, agencyId = "kcpd"): UserContext {
   };
 }
 
-describe("RC Translate RBAC", () => {
+describe("Translate RBAC", () => {
   it("allows dispatcher to start LE sessions in-agency", () => {
     expect(canStartTranslateSession(user("dispatcher"), "kcpd")).toBe(true);
     expect(canStartTranslateSession(user("dispatcher"), "other")).toBe(false);
@@ -57,7 +57,7 @@ describe("RC Translate RBAC", () => {
   });
 });
 
-describe("RC Translate addon matching", () => {
+describe("Translate addon matching", () => {
   it("does not let venue SKU satisfy law enforcement", () => {
     expect(matchesTranslateAddon(["rc.translate.venue"], "law_enforcement")).toBe(false);
     expect(matchesTranslateAddon(["rc.translate.venue"], "venue")).toBe(true);

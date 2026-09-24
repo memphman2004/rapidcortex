@@ -1,6 +1,6 @@
 # Incident response (pilot)
 
-**Incident** here means an **operational or security event** affecting Rapid Cortex (outage, data leak suspicion, auth anomaly)—not a 911 **incident record** inside the product. **Internal support desk playbook:** [ADMIN_TEAM_TROUBLESHOOTING_GUIDE.md](./ADMIN_TEAM_TROUBLESHOOTING_GUIDE.md).
+**Incident** here means an **operational or security event** affecting NexCort iQ (outage, data leak suspicion, auth anomaly)—not a 911 **incident record** inside the product. **Internal support desk playbook:** [ADMIN_TEAM_TROUBLESHOOTING_GUIDE.md](./ADMIN_TEAM_TROUBLESHOOTING_GUIDE.md).
 
 ## Severity (suggested)
 
@@ -22,7 +22,7 @@
 
 1. **Contain** — Rotate suspected secrets (Cognito app config, webhook secrets, cloud keys); revoke sessions if compromise is credible.
 2. **Preserve** — CloudWatch Logs, API Gateway execution logs (if enabled), **Audit** table export under counsel direction.
-3. **Report** — Follow agency policy and contract; Rapid Cortex documentation does **not** assert compliance certification ([SECURITY_MODEL.md](./SECURITY_MODEL.md)).
+3. **Report** — Follow agency policy and contract; NexCort iQ documentation does **not** assert compliance certification ([SECURITY_MODEL.md](./SECURITY_MODEL.md)).
 
 ## Communication during incidents
 

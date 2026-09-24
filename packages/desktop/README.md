@@ -1,4 +1,4 @@
-# Rapid Cortex Desktop (Electron + MapKit JS)
+# NexCort iQ Desktop (Electron + MapKit JS)
 
 Experimental **Electron** shell for **Apple MapKit JS** on macOS with **MapLibre GL** fallback via `rapid-cortex-maps`.
 

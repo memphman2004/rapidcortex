@@ -45,6 +45,7 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/public\/vision\//,
   /^\/api\/incidents\/[^/]+\/vision/,
   /^\/api\/cad-bridge\//,
+  /^\/api\/agencies\/[^/]+\/network(\/|$)/,
   /^\/api\/public\/cad-bridge\//,
   /^\/api\/c2c\//,
   /^\/api\/public\/c2c\//,
@@ -57,6 +58,8 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/public\/diversion\//,
   /^\/api\/incidents\/[^/]+\/eido$/,
   /^\/api\/incidents\/[^/]+\/additional-data/,
+  /** 13-feature suite (AppSamFeaturesStack on AppSam2 HttpApi). Not the local Next entitlements GET /api/features. */
+  /^\/api\/features\//,
 ];
 
 /** Billing, payments, network policy — stack-app-sam-4 (AppSam4Stack). */

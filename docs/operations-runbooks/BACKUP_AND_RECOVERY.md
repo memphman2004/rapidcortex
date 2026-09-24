@@ -1,12 +1,12 @@
 # Backup and recovery
 
-Rapid Cortex production data lives primarily in **DynamoDB** (incidents, transcripts, analyses, audit, agencies, invites, billing, language sessions) and **S3** (assets bucket). This document describes **what the SAM template enables**, how to **restore**, and **rollback** expectations. It is not a substitute for agency records-retention policy or legal hold procedures.
+NexCort iQ production data lives primarily in **DynamoDB** (incidents, transcripts, analyses, audit, agencies, invites, billing, language sessions) and **S3** (assets bucket). This document describes **what the SAM template enables**, how to **restore**, and **rollback** expectations. It is not a substitute for agency records-retention policy or legal hold procedures.
 
 **Live production** is stack `rapid-cortex-dev` (`DeploymentStage=dev`, `https://app.rapidcortex.us`). That stage name is **not** a sandbox.
 
 ## DynamoDB point-in-time recovery (PITR)
 
-As of **2026-09-17**, PITR is **ENABLED** on **182/182** Rapid Cortex/Ring tables in account `158961537080` ([SOC 2 evidence](../evidence/soc2-evidence/2026-10/README.md)).
+As of **2026-09-17**, PITR is **ENABLED** on **182/182** NexCort iQ/Ring tables in account `158961537080` ([SOC 2 evidence](../evidence/soc2-evidence/2026-10/README.md)).
 
 SAM lock-in:
 

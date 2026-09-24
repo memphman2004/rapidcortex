@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — Response Continuity System (RCS): silent monitor queue, unit geofence
+  NexCort iQ — Response Continuity System (RCS): silent monitor queue, unit geofence
   arrival confirmation, audio sentinel, escalation engine, closure gate. Addon rcs.module.
   Routes attach to stack 2 HttpApi via ApiGatewayV2.
 

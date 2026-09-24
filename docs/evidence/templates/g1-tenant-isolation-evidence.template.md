@@ -14,7 +14,7 @@
 
 - [ ] Live `401` / `403` matrix against deployed API (missing JWT, invalid JWT, cross-agency ID).
 - [ ] Penetration or claim-validation notes for customer jurisdiction (if required).
-- [ ] RC Lite vs dashboard separation (where applicable).
+- [ ] NC Lite vs dashboard separation (where applicable).
 
 ## Sign-offs
 

@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
-  Rapid Cortex — CodeBuild runs the SAM backend deploy (scripts/deploy.sh) remotely.
+  NexCort iQ — CodeBuild runs the SAM backend deploy (scripts/deploy.sh) remotely.
   Source ships as an S3 zip (see scripts/package-api-source.sh / upload-api-source.sh),
   same pattern as infra/web-pipeline-codebuild.yaml. Exists because local `sam build`
   on the external-volume dev Mac is unreliable for this workload (rsync races on

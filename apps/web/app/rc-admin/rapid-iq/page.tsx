@@ -7,7 +7,7 @@ import { marketingLoginPath } from "@/lib/marketing-links";
 import { isConferencesUiEnabled, isRapidIqUiEnabled } from "@/lib/runtime-flags";
 
 export const metadata = {
-  title: "Rapid IQ",
+  title: "NexiQ IQ",
   robots: { index: false, follow: false },
 };
 
@@ -20,7 +20,7 @@ export default async function RcAdminRapidIqPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-semibold text-white">Rapid IQ</h1>
+        <h1 className="text-2xl font-semibold text-white">NexiQ IQ</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
           AI-powered sales intelligence for 911, campus, and venue. Incoming items land in a
           category first — dismiss or send to Pipeline, then push Pipeline to Leads CRM.

@@ -26,7 +26,7 @@ export function GET() {
         }}
       >
         <img
-          alt="Rapid Cortex"
+          alt="NexCort iQ"
           width={240}
           height={240}
           src={logoSrc}

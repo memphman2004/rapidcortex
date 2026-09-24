@@ -1,4 +1,4 @@
-# Rapid Cortex — Product one-pager (MVP)
+# NexCort iQ — Product one-pager (MVP)
 
 **Canonical pilot/MVP scope:** [../MVP_SCOPE.md](../MVP_SCOPE.md) · **Non-goals:** [../NON_GOALS.md](../NON_GOALS.md) · **Commercial packaging (no scope override):** [../PRODUCT_OVERVIEW.md](../PRODUCT_OVERVIEW.md), [../FEATURE_MATRIX.md](../FEATURE_MATRIX.md)
 
@@ -6,7 +6,7 @@
 
 **Real-time AI intelligence for emergency response.**
 
-## What Rapid Cortex is
+## What NexCort iQ is
 
 A **browser-based, AWS-native SaaS co-pilot** for emergency communications centers: live (or simulated) transcription, **human-in-the-loop** triage support, **protocol-backed** operational phrases, and structured decision support—presented in a **dispatcher-first dashboard** with **supervisor** and **admin** workflows.
 
@@ -18,7 +18,7 @@ A **browser-based, AWS-native SaaS co-pilot** for emergency communications cente
 
 ## Side-by-side deployment model
 
-Rapid Cortex is designed to run **alongside** existing systems (CAD, phone, radio, logging) as an **intelligence layer**: ingest or simulate audio/transcript, maintain agency-scoped incidents, surface AI + protocol guidance, and emit audit-friendly events. **No hard dependency** on a single vendor in core product code—integrations use **adapters** (`packages/integrations`).
+NexCort iQ is designed to run **alongside** existing systems (CAD, phone, radio, logging) as an **intelligence layer**: ingest or simulate audio/transcript, maintain agency-scoped incidents, surface AI + protocol guidance, and emit audit-friendly events. **No hard dependency** on a single vendor in core product code—integrations use **adapters** (`packages/integrations`).
 
 **Public web entry:** pilot and production UIs are served at **`https://www.rapidcortex.us/<city-town-or-county-name>/…`** (one path segment per jurisdiction site, e.g. Columbus vs. a county), with the API on a dedicated host such as **`https://api.rapidcortex.us`**.
 

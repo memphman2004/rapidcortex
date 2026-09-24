@@ -1,5 +1,5 @@
 /**
- * Booth / Rapid Cortex marketing signs open the public site — not a location report form.
+ * Booth / NexCort iQ marketing signs open the public site — not a location report form.
  * Canonical host is www.rapidcortex.us (rapidcortex.com is a stub).
  *
  * Printed QR / NFC payloads use a tracked `/go/site/{dest}` URL on the app host so
@@ -108,5 +108,5 @@ export function tradeShowQrFileName(id: TradeShowDestinationId): string {
 }
 
 export function tradeShowSiteDisplayName(id: TradeShowDestinationId): string {
-  return id === "demo" ? "Rapid Cortex site — Demo" : "Rapid Cortex site — Home";
+  return id === "demo" ? "NexCort iQ site — Demo" : "NexCort iQ site — Home";
 }

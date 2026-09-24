@@ -5,7 +5,7 @@
  *   1. Safe ?next= query param
  *   2. Vertical workspace URL for campus / venue / hospital / transit users
  *   3. /rc-admin for platform staff
- *   4. /dashboard for RC Core agency users
+ *   4. /dashboard for 911 Centers/PSAPs agency users
  */
 
 import { verticalFromRole } from "rapid-cortex-shared";

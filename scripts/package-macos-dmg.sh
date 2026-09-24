@@ -19,7 +19,7 @@ SCHEME="RapidCortexDesktop"
 CONFIG="${CONFIGURATION:-Release}"
 OUT_DIR="${OUTPUT_DIR:-$ROOT/dist}"
 DMG_NAME="${DMG_FILENAME:-RapidCortex.dmg}"
-VOLNAME="${DMG_VOLUME_NAME:-Rapid Cortex}"
+VOLNAME="${DMG_VOLUME_NAME:-NexCort iQ}"
 BUILD_ROOT="$PROJECT_DIR/build/package-macos-$$"
 
 cleanup() {

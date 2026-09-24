@@ -10,7 +10,7 @@
 #   vertical_transit   — Transit security users
 #   vertical_hospital  — Hospital users
 #   vertical_call_assist — Call Assist non-emergency intake
-#   vertical_platform  — Rapid Cortex platform/admin accounts
+#   vertical_platform  — NexCort iQ platform/admin accounts
 #
 # Mapping must stay in sync with packages/shared/src/auth/cognito-vertical-group.ts
 #
@@ -54,7 +54,7 @@ VERTICAL_GROUPS=(
 
 group_description() {
   case "$1" in
-    vertical_platform) echo "Platform — Rapid Cortex internal admin accounts" ;;
+    vertical_platform) echo "Platform — NexCort iQ internal admin accounts" ;;
     vertical_911) echo "911 PSAP — dispatchers, supervisors, agency admins, analysts" ;;
     vertical_campus) echo "Campus safety — campus admins, security, dispatch, faculty" ;;
     vertical_venue) echo "Venue security — venue admins, operators, supervisors" ;;

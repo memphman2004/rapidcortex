@@ -179,7 +179,7 @@ export function marketingSmsConsentPath(): string {
   return "/sms-consent";
 }
 
-/** RC Lite developer guides — app host, session required. */
+/** NexCort Lite developer guides — app host, session required. */
 export function marketingDevelopersDocsPath(suffix = ""): string {
   const path = suffix ? `/developers/docs/${suffix.replace(/^\//, "")}` : "/developers/docs";
   return withAppOrigin(path);

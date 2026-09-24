@@ -88,7 +88,7 @@
 
 | Question | Response |
 |----------|----------|
-| DynamoDB backup | **PITR ENABLED** on live production (`DeploymentStage=dev` / `rapid-cortex-dev`; 182/182 Rapid Cortex/Ring tables as of 2026-09-17). Next `deploy.sh dev` forces `DDB_ENABLE_PITR=true`. |
+| DynamoDB backup | **PITR ENABLED** on live production (`DeploymentStage=dev` / `rapid-cortex-dev`; 182/182 NexCort iQ/Ring tables as of 2026-09-17). Next `deploy.sh dev` forces `DDB_ENABLE_PITR=true`. |
 | Restore testing | Internal SOP — restore to a **new** table; do not claim contractual RTO until Exhibit C — [BACKUP_AND_RECOVERY.md](../operations-runbooks/BACKUP_AND_RECOVERY.md), [restore-drill](./soc2/processes/restore-drill.md). |
 | RTO / RPO | **Not guaranteed** in pilot unless Exhibit C SLA executed with numbers. |
 

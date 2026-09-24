@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   if (csrfError) return csrfError;
   if (!isPublicSignupServerEnabled()) {
     return NextResponse.json(
-      { error: "Self-service signup is disabled. Contact your Rapid Cortex administrator." },
+      { error: "Self-service signup is disabled. Contact your NexCort iQ administrator." },
       { status: 403 },
     );
   }

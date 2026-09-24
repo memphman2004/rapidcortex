@@ -4,7 +4,7 @@ import { RcLiteApiPlayground } from "@/components/developers/rc-lite-playground"
 import { marketingDevelopersDocsPath } from "@/lib/marketing-links";
 
 export const metadata = {
-  title: "RC Lite — Interactive API playground",
+  title: "NexCort Lite — Interactive API playground",
   description:
     "Browser-based sandbox playground for invoking `/api/v1` routes without external SDKs (uses same-origin fetch + sandbox keys only).",
 };

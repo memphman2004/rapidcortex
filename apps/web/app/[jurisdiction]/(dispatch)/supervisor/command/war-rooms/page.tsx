@@ -100,7 +100,7 @@ function SupervisorWarRoomsPageInner() {
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 pb-10">
         <h1 className="text-xl font-semibold text-white">War Rooms</h1>
         <p className="text-sm text-slate-400">
-          War rooms aren’t enabled for this agency. Contact Rapid Cortex support.
+          War rooms aren’t enabled for this agency. Contact NexCort iQ support.
         </p>
       </div>
     );

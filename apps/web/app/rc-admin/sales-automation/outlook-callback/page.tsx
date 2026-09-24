@@ -18,7 +18,7 @@ export default async function OutlookCallbackPage() {
   }
 
   return (
-    <Suspense fallback={<p className="text-sm text-slate-400">Connecting hello@rapidcortex.us…</p>}>
+    <Suspense fallback={<p className="text-sm text-slate-400">Connecting hello@nexcortiq.us…</p>}>
       <OutlookCallbackClient />
     </Suspense>
   );

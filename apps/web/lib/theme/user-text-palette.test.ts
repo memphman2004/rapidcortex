@@ -48,7 +48,7 @@ describe("user text palette", () => {
     expect(parsed.light.secondary).toBe("#0F172A");
   });
 
-  it("starts empty so factory Rapid Cortex tokens remain until the user picks", () => {
+  it("starts empty so factory NexCort iQ tokens remain until the user picks", () => {
     expect(emptyUserTextPrefs()).toEqual({ dark: {}, light: {} });
     expect(swatchMeetsContrast("#F8FAFC", "dark")).toBe(true);
     expect(swatchMeetsContrast("#0F172A", "light")).toBe(true);

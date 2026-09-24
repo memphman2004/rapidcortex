@@ -10,7 +10,7 @@ const CATEGORY_META: Record<string, { title: string; emoji: string }> = {
   addon: { title: "Add-On Services", emoji: "⚡" },
   professional: { title: "Professional Services", emoji: "🛠️" },
   support: { title: "Support Plans", emoji: "💬" },
-  rc_lite: { title: "RC Lite API", emoji: "🔌" },
+  rc_lite: { title: "NexCort Lite API", emoji: "🔌" },
   vertical: { title: "Vertical Packages", emoji: "🏢" },
 };
 
@@ -187,7 +187,7 @@ export function ServiceCatalogDashboard() {
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-slate-700 bg-gradient-to-r from-[#2E5090] to-[#1a3a6b] p-6">
-        <h1 className="text-2xl font-semibold text-white">Rapid Cortex Pricing Catalog</h1>
+        <h1 className="text-2xl font-semibold text-white">NexCort iQ Pricing Catalog</h1>
         <p className="mt-1 text-sm text-slate-200">
           Live pricing data — internal billing dashboard and invoice service selector.
         </p>
@@ -198,7 +198,7 @@ export function ServiceCatalogDashboard() {
         <StatCard label="Add-Ons" value={counts.addon} />
         <StatCard label="Prof. Services" value={counts.professional} />
         <StatCard label="Support" value={counts.support} />
-        <StatCard label="RC Lite" value={counts.rc_lite} />
+        <StatCard label="NexCort Lite" value={counts.rc_lite} />
         <StatCard label="Verticals" value={counts.vertical} />
       </div>
 

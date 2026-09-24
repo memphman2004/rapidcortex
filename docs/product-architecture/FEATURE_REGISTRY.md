@@ -23,7 +23,7 @@
 - Default CAD mode is **disabled**; then **read-only** where configured.
 - **Write-back** needs: `cadIntegrationMode` in assisted/automated as applicable, `writeBackEnabled`, `auditLoggingEnabled === true`, **`agencyApprovedCadWriteBack === true`**, and per-update dispatcher attestation in API routes (not only config).
 - **Automated write-back** is **blocked in product** until governance removes the hard block in `evaluateCadWriteBackGuards` for `cad_automated_writeback`.
-- **Rapid Cortex does not replace CAD**; it can complement workflows when the agency and vendor have integrated and approved scope.
+- **NexCort iQ does not replace CAD**; it can complement workflows when the agency and vendor have integrated and approved scope.
 
 ## Adding a new feature
 

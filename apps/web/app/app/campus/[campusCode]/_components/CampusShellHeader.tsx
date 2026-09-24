@@ -74,7 +74,7 @@ export function CampusShellHeader({
               className="text-[9px] font-bold tracking-[2.5px]"
               style={{ color: C.blue }}
             >
-              RAPID CORTEX · CAMPUS
+              NEXCORT IQ · CAMPUS
             </p>
             <div className="mt-0.5 flex flex-wrap items-center gap-2">
               <h1 className="text-lg font-bold" style={{ color: C.text }}>

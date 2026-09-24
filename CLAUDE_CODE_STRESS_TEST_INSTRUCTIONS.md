@@ -1,8 +1,8 @@
-# Rapid Cortex — Stress Test Execution Instructions for Claude Code
+# NexCort iQ — Stress Test Execution Instructions for Claude Code
 # Execute these steps exactly in order. Do not skip steps.
 
 ## CONTEXT
-You are executing a production stress test against the Rapid Cortex API.
+You are executing a production stress test against the NexCort iQ API.
 - Target: https://api.rapidcortex.us
 - Monitor: AWS CloudWatch via rc-stress-monitor.sh
 - SLA gates enforced by k6 scripts
@@ -49,7 +49,7 @@ sudo apt-get update && sudo apt-get install k6
 
 ```bash
 # Replace USERNAME and PASSWORD with the smoke-test service account credentials
-export SMOKE_TEST_USERNAME="<smoke-test-user@rapidcortex.us>"
+export SMOKE_TEST_USERNAME="<smoke-test-user@nexcortiq.us>"
 export SMOKE_TEST_PASSWORD="<password>"
 
 export BEARER_TOKEN=$(aws cognito-idp initiate-auth \

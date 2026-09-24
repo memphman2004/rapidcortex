@@ -1,4 +1,4 @@
-# Rapid Cortex performance probes
+# NexCort iQ performance probes
 
 Read-only concurrent HTTP stress. Complements `scripts/pilot-load-smoke.sh` (health-only curl) with percentiles, multi-stack coverage, and expected-404 handling for undeployed RMS/escalation routes.
 

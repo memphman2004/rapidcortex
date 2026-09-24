@@ -46,7 +46,7 @@ export function isRcItAdmin(role: UserRole | string): boolean {
   return effective(role) === "rcitadmin";
 }
 
-/** Any Rapid Cortex internal staff account. */
+/** Any NexCort iQ internal staff account. */
 export function isRcStaff(role: UserRole | string): boolean {
   const e = effective(role);
   return e === "rcsuperadmin" || e === "rcadmin" || e === "rcitadmin";

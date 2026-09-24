@@ -4,7 +4,7 @@
 
 **Also read:** [USER_GUIDE.md](./USER_GUIDE.md), [TRAINING_DISPATCHER.md](./TRAINING_DISPATCHER.md), [SUPPORT_MODEL.md](./SUPPORT_MODEL.md).
 
-## 1. What supervisors do in Rapid Cortex
+## 1. What supervisors do in NexCort iQ
 
 - **Same dispatcher surfaces** where your deployment exposes them, plus **audit** list access when the role allows ([ADMIN_GUIDE.md](./ADMIN_GUIDE.md)).
 - **Second-line review** of escalations and AI-assisted summaries—**policy and SOP** define when to intervene.

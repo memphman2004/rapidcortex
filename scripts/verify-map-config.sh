@@ -19,7 +19,7 @@ RETIRED_SSM="/rapidcortex/${STAGE}/map$(printf '%s' box)/public-token"
 
 echo ""
 echo "═══════════════════════════════════════════════════════════"
-echo "  Rapid Cortex — Amazon Location Service Verification"
+echo "  NexCort iQ — Amazon Location Service Verification"
 echo "  Region: $REGION  |  Stage: $STAGE"
 echo "═══════════════════════════════════════════════════════════"
 echo ""

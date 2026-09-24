@@ -307,7 +307,7 @@ export function buildCampusProducerConfigYaml(agencyId: string, cameras: VenueCa
   );
 
   const lines: string[] = [
-    `# Rapid Cortex KVS Producer Agent configuration (campus)`,
+    `# NexCort iQ KVS Producer Agent configuration (campus)`,
     `# Agency: ${agencyId}`,
     `# Generated: ${new Date().toISOString()}`,
     ``,

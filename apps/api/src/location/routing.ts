@@ -1,15 +1,14 @@
 import { CalculateRouteCommand } from "@aws-sdk/client-location";
 import type { AlsRouteResult } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
-import { alsLocationMockEnabled, getLocationClient } from "./client.js";
-import { mockCalculateRoute } from "./mock-data.js";
+import { getLocationClient, LocationNotConfiguredError } from "./client.js";
 
 export async function calculateRoute(
   origin: [number, number],
   destination: [number, number],
 ): Promise<AlsRouteResult> {
-  if (alsLocationMockEnabled() || !env.alsRouteCalculatorName) {
-    return mockCalculateRoute(origin, destination);
+  if (!env.alsRouteCalculatorName) {
+    throw new LocationNotConfiguredError("route calculator");
   }
   const resp = await getLocationClient().send(
     new CalculateRouteCommand({

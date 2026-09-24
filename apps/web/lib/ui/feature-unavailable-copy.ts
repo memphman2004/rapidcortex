@@ -4,20 +4,20 @@
  */
 
 export function featureNotEnabledMessage(featureLabel: string): string {
-  return `${featureLabel} isn’t enabled for this agency. Contact Rapid Cortex support.`;
+  return `${featureLabel} isn’t enabled for this agency. Contact NexCort iQ support.`;
 }
 
 export function featureNotAvailableMessage(featureLabel: string): string {
-  return `${featureLabel} isn’t available yet. Contact Rapid Cortex support.`;
+  return `${featureLabel} isn’t available yet. Contact NexCort iQ support.`;
 }
 
 export function apiNotConnectedMessage(context?: string): string {
   const suffix = context ? ` ${context}` : "";
-  return `Platform connection isn’t configured.${suffix} Contact Rapid Cortex support.`;
+  return `Platform connection isn’t configured.${suffix} Contact NexCort iQ support.`;
 }
 
 export function mapNotConfiguredMessage(): string {
-  return "Map isn’t configured for this environment. Contact Rapid Cortex support.";
+  return "Map isn’t configured for this environment. Contact NexCort iQ support.";
 }
 
 export function trainingSampleDataMessage(): string {

@@ -92,7 +92,7 @@ print(f'INFO: TEXT spend EnforcedLimit={enforced} MaxLimit={max_lim} Overridden=
 if enforced < want:
     print(f'FAIL: TEXT monthly spend cap is {enforced} (need >= {want}). AWS approved MaxLimit={max_lim} but EnforcedLimit is what actually sends. Set it with:')
     print('  aws pinpoint-sms-voice-v2 set-text-message-spend-limit-override --monthly-limit ' + str(max(want, max_lim)) + ' --region us-east-1')
-    print('Do not use classic Pinpoint update-sms-channel — Rapid Cortex uses End User Messaging (sms-voice v2).')
+    print('Do not use classic Pinpoint update-sms-channel — NexCort iQ uses End User Messaging (sms-voice v2).')
     sys.exit(2)
 print(f'PASS: TEXT monthly spend cap is {enforced} (max {max_lim})')
 " "$SPEND_JSON" "$MIN_TEXT_SPEND"

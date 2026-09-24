@@ -5,7 +5,7 @@ import { buildPublicPageMetadata } from "@/lib/seo";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Account deletion | Rapid Cortex",
+  title: "Account deletion | NexCort iQ",
   description: `How to request deletion of a ${SITE_NAME} user account from the Android app or by email.`,
   path: "/account-deletion",
 });
@@ -37,7 +37,7 @@ export default function AccountDeletionPage() {
       <section id="who" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Who this is for</h2>
         <p>
-          Venue, campus, and other Rapid Cortex staff who sign in with a work email on the Android
+          Venue, campus, and other NexCort iQ staff who sign in with a work email on the Android
           app (<code className="text-slate-300">us.rapidcortex.app</code>).
         </p>
       </section>
@@ -51,14 +51,14 @@ export default function AccountDeletionPage() {
           </li>
           <li>
             Email{" "}
-            <a href="mailto:privacy@rapidcortex.us?subject=Rapid%20Cortex%20Android%20account%20deletion">
-              privacy@rapidcortex.us
+            <a href="mailto:privacy@nexcortiq.us?subject=Rapid%20Cortex%20Android%20account%20deletion">
+              privacy@nexcortiq.us
             </a>{" "}
             from the same work address used to sign in. Include the agency name if you know it.
           </li>
           <li>
             You may also write{" "}
-            <a href="mailto:support@rapidcortex.us?subject=Account%20deletion">support@rapidcortex.us</a>{" "}
+            <a href="mailto:support@nexcortiq.us?subject=Account%20deletion">support@nexcortiq.us</a>{" "}
             or ask your agency administrator to disable the account.
           </li>
         </ol>

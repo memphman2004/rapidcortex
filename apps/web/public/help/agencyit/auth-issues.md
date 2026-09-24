@@ -5,4 +5,4 @@
 3. MFA — re-enrollment, not “turn it off.”
 4. Wrong dashboard — `custom:role` must be a PSAP role for 911, `CAMPUS_*` for campus, `VENUE_*` for venue.
 
-Capture `requestId` and time (UTC) for Rapid Cortex support.
+Capture `requestId` and time (UTC) for NexCort iQ support.

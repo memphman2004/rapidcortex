@@ -128,14 +128,14 @@ export function isMarketingPublicPath(pathname: string): boolean {
     first === "status" ||
     first === "crime-log" ||
     first === "rc-guest-assist.html" ||
-    // Authenticated campus/venue/RC Admin wizards — reserved so they are not a
+    // Authenticated campus/venue/NexCort Admin wizards — reserved so they are not a
     // jurisdiction slug, but they are not marketing pages.
     first === "onboarding"
   ) {
     return false;
   }
 
-  // RC Lite developer guides — app host only, session required (see middleware guardAuthenticatedDocs).
+  // NexCort Lite developer guides — app host only, session required (see middleware guardAuthenticatedDocs).
   if (first === "developers" && (segments[1] === "docs" || pathname.startsWith("/developers/docs/"))) {
     return false;
   }

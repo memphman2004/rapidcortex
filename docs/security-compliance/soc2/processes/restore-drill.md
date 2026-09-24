@@ -4,7 +4,7 @@
 **Policy:** [POL-08](../policies/08-business-continuity-policy.md)  
 **Cadence:** Once before 2026-10-01; at least annually
 
-Production PITR is **ENABLED** on Rapid Cortex/Ring tables. This SOP proves we can restore **without** overwriting live tables.
+Production PITR is **ENABLED** on NexCort iQ/Ring tables. This SOP proves we can restore **without** overwriting live tables.
 
 ## Rules
 

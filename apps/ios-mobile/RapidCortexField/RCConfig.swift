@@ -1,6 +1,6 @@
 import Foundation
 
-/// Runtime configuration for Rapid Cortex Mobile (iOS).
+/// Runtime configuration for NexCort iQ Mobile (iOS).
 /// Info.plist values are filled from `Config/Config.xcconfig` at build time.
 enum RCConfig {
     static var cognitoRegion: String {

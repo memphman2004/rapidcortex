@@ -34,7 +34,7 @@ function safeResize(map: maplibregl.Map | null) {
 }
 
 /**
- * Base Rapid Cortex map — LiveLocation, Surge View, Event Command, workstations.
+ * Base NexCort iQ map — LiveLocation, Surge View, Event Command, workstations.
  * Switching `theme` resets the base style; recreate overlay layers after `onMapLoad` if you depend on custom sources.
  */
 export function RapidCortexMap({

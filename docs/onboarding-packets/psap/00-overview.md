@@ -1,6 +1,6 @@
-# Rapid Cortex — PSAP / 911
+# NexCort iQ — PSAP / 911
 
-Rapid Cortex enhances emergency communications. It does **not** replace CAD, telephony, dispatchers, or medical direction.
+NexCort iQ enhances emergency communications. It does **not** replace CAD, telephony, dispatchers, or medical direction.
 
 CAD write-back is off by default and stays off until a signed addendum and an explicit production go/no-go.
 

@@ -18,7 +18,7 @@ const CONTENT: Record<string, { title: string; body: ReactNode }> = {
         <p className="mt-4">
           Scopes (e.g. <span className="font-mono text-slate-400">cad:write</span>) constrain each route in the{" "}
           <Link href="/openapi/rc-lite-v1.openapi.yaml" className="font-medium text-sky-400 hover:text-sky-300">
-            published RC Lite OpenAPI document
+            published NexCort Lite OpenAPI document
           </Link>
           .
         </p>
@@ -41,7 +41,7 @@ const CONTENT: Record<string, { title: string; body: ReactNode }> = {
       <p>
         POST requests require <span className="font-mono text-slate-300">Idempotency-Key</span> for export mutations. Hooks
         emit webhook events such as <span className="font-mono text-slate-400">cad.export.created</span>. This path never
-        enables Rapid Cortex dispatcher/supervisor UIs—it is API egress only for partner CAD stacks.
+        enables NexCort iQ dispatcher/supervisor UIs—it is API egress only for partner CAD stacks.
       </p>
     ),
   },

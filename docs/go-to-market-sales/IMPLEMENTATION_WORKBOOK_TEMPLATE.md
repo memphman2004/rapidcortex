@@ -21,8 +21,8 @@
 | Agency IT / security | | | | |
 | Floor supervisor / comms lead | | | | |
 | Training lead | | | | |
-| Rapid Cortex pilot lead | | | | |
-| Rapid Cortex on-call / escalation | | | | |
+| NexCort iQ pilot lead | | | | |
+| NexCort iQ on-call / escalation | | | | |
 
 ## 3. Technical references (no secrets in this table)
 

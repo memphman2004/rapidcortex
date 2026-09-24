@@ -59,7 +59,7 @@ export type VenueOnDutyStaff = {
   role: string;
   zone: string;
   status: "available" | "en_route" | "on_scene";
-  /** Optional E.164 for RC Translate SMS link. */
+  /** Optional E.164 for Translate SMS link. */
   phone?: string;
 };
 

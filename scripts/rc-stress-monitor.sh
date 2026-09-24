@@ -25,7 +25,7 @@ SERVICE="${SERVICE:-rapid-cortex-v2-web-prod}"
 # POLL_SECONDS is accepted as an alias used in some runbooks.
 WINDOW="${POLL_SECONDS:-${WINDOW:-300}}"
 
-echo "Rapid Cortex stress monitor  stage=${STAGE}  cluster=${CLUSTER}  window=${WINDOW}s"
+echo "NexCort iQ stress monitor  stage=${STAGE}  cluster=${CLUSTER}  window=${WINDOW}s"
 echo "Press Ctrl-C to stop."
 echo ""
 

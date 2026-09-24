@@ -68,7 +68,7 @@ export async function registerForPushNotifications(
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
-      name: 'Rapid Cortex Alerts',
+      name: 'NexCort iQ Alerts',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [500, 200, 500, 200],
       lightColor: '#1B4FD8',
@@ -158,7 +158,7 @@ export async function getInitialNotificationRoute(): Promise<string | null> {
 export async function scheduleLocalTestNotification(): Promise<void> {
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: 'Rapid Cortex',
+      title: 'NexCort iQ',
       body: 'Notifications are configured.',
       data: { type: 'DEVICE_ALERT' },
     },

@@ -186,7 +186,7 @@ export async function getNestRcOauthCredentials(): Promise<NestRcOauthCredential
   if (cachedRcOauth) return cachedRcOauth;
   if (cachedRcOauth === null) {
     throw new RCError(
-      "Citizen Nest enrollment is not configured. Rapid Cortex must complete Google Device Access project approval.",
+      "Citizen Nest enrollment is not configured. NexCort iQ must complete Google Device Access project approval.",
       503,
     );
   }
@@ -195,7 +195,7 @@ export async function getNestRcOauthCredentials(): Promise<NestRcOauthCredential
   if (!arn) {
     cachedRcOauth = null;
     throw new RCError(
-      "Citizen Nest enrollment is not configured. Rapid Cortex must complete Google Device Access project approval.",
+      "Citizen Nest enrollment is not configured. NexCort iQ must complete Google Device Access project approval.",
       503,
     );
   }

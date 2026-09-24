@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * KVS WebRTC viewer for Rapid Vision™ sessions.
+ * KVS WebRTC viewer for NexiQ Vision™ sessions.
  *
  * Venue KVSWebRTCPlayer hard-codes /api/{vertical}/{agencyId}/cameras/viewer-token.
  * Vision sessions fetch GET /api/vision/sessions/{sessionId}/viewer-token instead.

@@ -25,7 +25,7 @@ export function postingToOpenRole(p: JobPosting): OpenRole {
     positionCode: p.positionKey,
     title: p.title,
     subtitle: p.subtitle,
-    company: "Rapid Cortex",
+    company: "NexCort iQ",
     location: LOCATION_LABEL[p.workLocation] ?? p.workLocation,
     workplaceType: LOCATION_LABEL[p.workLocation] ?? "Remote",
     employmentType: ENGAGEMENT_LABEL[p.engagementType] ?? p.engagementType,

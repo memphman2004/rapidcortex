@@ -1,4 +1,4 @@
-# Rapid Cortex Customer Readiness Gate Sheet
+# NexCort iQ Customer Readiness Gate Sheet
 
 **Last reviewed:** 2026-09-19 (60-day refresh) · **Owner:** Jeff Coleman  
 **Related:** [PILOT_GOVERNANCE.md](../go-to-market-sales/PILOT_GOVERNANCE.md) · [AUTH_OPERATIONS.md](../product-architecture/AUTH_OPERATIONS.md) · [soc2/README.md](../security-compliance/soc2/README.md)
@@ -13,7 +13,7 @@
 
 ## 2) Pilot Positioning
 
-"Rapid Cortex will run as a read-only operational intelligence layer that augments the customer's existing CAD workflow without modifying CAD records."
+"NexCort iQ will run as a read-only operational intelligence layer that augments the customer's existing CAD workflow without modifying CAD records."
 
 ## 3) Gate Summary Table
 
@@ -82,7 +82,7 @@
 
 ## 8) Customer Meeting Script
 
-"Rapid Cortex is ready for a controlled read-only pilot. We are intentionally keeping CAD write-back disabled during the first phase to protect the customer's live CAD environment. This allows the agency to validate AI summaries, transcription, translation, operational visibility, audit logs, and workflow fit without changing CAD records. Write-back will only be considered after all technical, operational, and approval gates are met."
+"NexCort iQ is ready for a controlled read-only pilot. We are intentionally keeping CAD write-back disabled during the first phase to protect the customer's live CAD environment. This allows the agency to validate AI summaries, transcription, translation, operational visibility, audit logs, and workflow fit without changing CAD records. Write-back will only be considered after all technical, operational, and approval gates are met."
 
 ## 9) Final Recommendation
 

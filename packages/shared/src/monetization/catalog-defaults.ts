@@ -1,7 +1,7 @@
 import type { MonetizationPlanRecord } from "./entities.js";
 import type { MonetizationAddOnId } from "./plan-ids.js";
 
-/** Placeholder numeric fields — tune in Dynamo / RC Admin tooling; never shown on public marketing. */
+/** Placeholder numeric fields — tune in Dynamo / NexCort Admin tooling; never shown on public marketing. */
 export function defaultPlanSeed(now: string): Record<string, MonetizationPlanRecord> {
   const base = (
     partial: Pick<
@@ -47,7 +47,7 @@ export function defaultPlanSeed(now: string): Record<string, MonetizationPlanRec
       ...base({
         planId: "essential",
         planName: "rapid_essential_internal",
-        publicName: "Rapid Cortex Essential",
+        publicName: "NexiQ Essential",
         description:
           "Entry dashboard platform — dispatcher, supervisor, admin, summaries, transcription, baseline reporting.",
         billingType: "pilot",
@@ -63,7 +63,7 @@ export function defaultPlanSeed(now: string): Record<string, MonetizationPlanRec
       ...base({
         planId: "command",
         planName: "rapid_command_internal",
-        publicName: "Rapid Cortex Command",
+        publicName: "NexiQ Command",
         description:
           "Full operational platform — QA, executive, IT/security, translation, caller media, advanced reporting.",
         billingType: "monthly",
@@ -79,7 +79,7 @@ export function defaultPlanSeed(now: string): Record<string, MonetizationPlanRec
       ...base({
         planId: "enterprise_statewide",
         planName: "rapid_enterprise_internal",
-        publicName: "Rapid Cortex Enterprise / Statewide",
+        publicName: "NexiQ Enterprise / Statewide",
         description:
           "Multi-agency, advanced integrations, evidence support, GovCloud-ready options, negotiated SLAs.",
         billingType: "custom",
@@ -95,9 +95,9 @@ export function defaultPlanSeed(now: string): Record<string, MonetizationPlanRec
       ...base({
         planId: "rc_lite",
         planName: "rapid_rc_lite_internal",
-        publicName: "RC Lite",
+        publicName: "NexCort Lite",
         description:
-          "Standalone API-only product sold separately from Rapid Cortex dashboard plans (Essential / Command / Enterprise). Tenant-scoped REST/OAuth APIs for intelligence, media links, CAD export, metering, audit, and webhooks—no dispatcher, supervisor, or agency console entitlement.",
+          "Standalone API-only product sold separately from NexCort iQ dashboard plans (Essential / Command / Enterprise). Tenant-scoped REST/OAuth APIs for intelligence, media links, CAD export, metering, audit, and webhooks—no dispatcher, supervisor, or agency console entitlement.",
         billingType: "monthly",
         supportLevel: "standard",
       }),

@@ -116,7 +116,7 @@ export class VideoAssistService {
     const path = `/video-assist/${encodeURIComponent(token)}`;
     const publicUrl = `${base}${path}`;
 
-    const msg = `Rapid Cortex: help responders with a brief live video. Open: ${publicUrl} (one-time link, expires soon).`;
+    const msg = `NexCort iQ: help responders with a brief live video. Open: ${publicUrl} (one-time link, expires soon).`;
 
     const sms = await sendVideoAssistSms({
       phoneE164: body.callerPhoneE164,
@@ -273,7 +273,7 @@ export class VideoAssistService {
     if (!item.publicUrl) throw new Error("MISSING_PUBLIC_URL");
     const sms = await sendVideoAssistSms({
       phoneE164: item.callerPhoneE164,
-      message: `Rapid Cortex live video link (resend): ${item.publicUrl}`,
+      message: `NexCort iQ live video link (resend): ${item.publicUrl}`,
       agencyId: incident.agencyId,
       incidentId,
     });

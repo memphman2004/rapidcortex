@@ -32,7 +32,7 @@ export function PricingHeroCtas() {
         href="/rc-lite"
         className="inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-sky-500/35 bg-sky-950/40 px-6 py-3 text-base font-semibold text-sky-100 transition hover:border-sky-400/50 hover:bg-sky-950/70 sm:w-auto sm:text-sm"
       >
-        Get RC Lite
+        Get NexCort Lite
       </Link>
     </div>
   );

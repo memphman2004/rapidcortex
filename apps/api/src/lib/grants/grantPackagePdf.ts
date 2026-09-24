@@ -14,7 +14,7 @@ export function generateGrantPackagePdfBuffer(input: GrantPackagePdfInput): Prom
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "LETTER", margin: 54, info: {
       Title: `Grant package — ${input.profile.schoolName}`,
-      Author: "Rapid Cortex",
+      Author: "NexCort iQ",
       Subject: "Grant Success Program package",
     }});
     const chunks: Buffer[] = [];
@@ -58,7 +58,7 @@ export function generateGrantPackagePdfBuffer(input: GrantPackagePdfInput): Prom
       .fillColor("#FFFFFF")
       .font("Helvetica-Bold")
       .fontSize(16)
-      .text("RAPID CORTEX", 54, 22, { continued: true })
+      .text("NEXCORT IQ", 54, 22, { continued: true })
       .font("Helvetica")
       .fontSize(11)
       .text("  ·  Grant Success Program", { continued: false });
@@ -164,7 +164,7 @@ export function generateGrantPackagePdfBuffer(input: GrantPackagePdfInput): Prom
       .fontSize(8)
       .fillColor(T3)
       .text(
-        "Rapid Cortex Grant Success Program — this package is AI-assisted draft language for authorized agency grant writers. Verify all figures, citations, and compliance claims before submission.",
+        "NexCort iQ Grant Success Program — this package is AI-assisted draft language for authorized agency grant writers. Verify all figures, citations, and compliance claims before submission.",
         { width: pageWidth, align: "center" },
       );
 

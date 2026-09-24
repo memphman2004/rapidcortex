@@ -108,7 +108,7 @@ fi
 
 echo ""
 echo "# -----------------------------------------------------------------------------"
-echo "# Rapid Cortex — paste into apps/web/.env.local (or your host env UI)"
+echo "# NexCort iQ — paste into apps/web/.env.local (or your host env UI)"
 echo "# Stack: ${STACK_NAME}  Region: ${REGION}"
 echo "# Generated: $(date -u +%Y-%m-%dT%H:%MZ)"
 echo "# -----------------------------------------------------------------------------"

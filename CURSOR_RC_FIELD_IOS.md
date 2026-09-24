@@ -1,11 +1,11 @@
-# Rapid Cortex Field — iOS Native App
+# NexCort iQ Field — iOS Native App
 ## Complete Cursor Build Instructions
 
-**Product:** Rapid Cortex Field — NFC & QR Installer  
+**Product:** NexCort iQ Field — NFC & QR Installer  
 **Platform:** iOS 16+ · iPhone only · Swift 5.9 · SwiftUI  
 **Bundle ID:** `us.rapidcortex.field`  
 **Legal entity:** Apps on Demand  
-**Backend:** Rapid Cortex API — `https://api.rapidcortex.us`  
+**Backend:** NexCort iQ API — `https://api.rapidcortex.us`  
 **Auth:** AWS Cognito USER_SRP_AUTH  
 **Distribution:** App Store (Unlisted) → invite-only via direct link
 
@@ -46,7 +46,7 @@ This generates `RapidCortexField.entitlements`:
 ### 1.2 Info.plist Keys
 ```xml
 <key>NFCReaderUsageDescription</key>
-<string>Rapid Cortex Field uses NFC to program safety reporting tags at your agency's locations.</string>
+<string>NexCort iQ Field uses NFC to program safety reporting tags at your agency's locations.</string>
 
 <key>RC_COGNITO_USER_POOL_ID</key>
 <string>$(RC_COGNITO_USER_POOL_ID)</string>
@@ -140,10 +140,10 @@ RapidCortexField/
 ## 3. BRAND & DESIGN SYSTEM
 
 The app uses a dark command-center aesthetic matching
-the Rapid Cortex web dashboard. Always dark — no light mode.
+the NexCort iQ web dashboard. Always dark — no light mode.
 
 ### 3.1 Logo
-The Rapid Cortex logo (provided as `RapidCortex_Logo.PNG`) shows:
+The NexCort iQ logo (provided as `RapidCortex_Logo.PNG`) shows:
 - Left half: blue brain with circuit board — represents AI intelligence
 - Right half: red radar/signal rings — represents communications
 - Text: "RAPID" in navy, "CORTEX" in red, tagline below
@@ -465,7 +465,7 @@ Use `keyDecodingStrategy: .convertFromSnakeCase` so API's
 ### 7.1 Overview
 Uses `NFCNDEFReaderSession` (Core NFC). The session writes a
 URI NDEF record to NTAG213 stickers. NTAG213 has 137 bytes
-of user memory — a Rapid Cortex URL uses ~42 bytes.
+of user memory — a NexCort iQ URL uses ~42 bytes.
 
 ### 7.2 Write State Machine
 ```swift
@@ -560,7 +560,7 @@ Dark background `#0A0C12`. Vertically centered.
 
 Elements (top to bottom):
 - RC logo mark: 64×64 rounded rect `#1A3ACC`, "RC" white .black weight
-- "Rapid Cortex" 20pt .semibold `#E8EAFF`
+- "NexCort iQ" 20pt .semibold `#E8EAFF`
 - "Field Installer" 13pt `#4A5070`
 - 36px spacer
 - Email field with label "EMAIL", placeholder "admin@agency.us"
@@ -737,7 +737,7 @@ Sections:
 - Environment (Production)
 
 **Support:**
-- "Contact Support" → opens `mailto:support@rapidcortex.us`
+- "Contact Support" → opens `mailto:support@nexcortiq.us`
 - "Visit rapidcortex.us" → opens Safari
 
 **Session:**
@@ -969,7 +969,7 @@ List background: `.scrollContentBackground(.hidden)` + ZStack with `RCTheme.bg`
 - Build: `1` (increment on every upload)
 
 ### App Store Metadata
-- Name: `Rapid Cortex Mobile`
+- Name: `NexCort iQ Mobile`
 - Subtitle: `NFC & QR Code Installer`
 - Category: Business
 - Age Rating: 4+
@@ -983,7 +983,7 @@ Not used for tracking. Nothing else.
 
 ### App Review Account
 Seed with `npx tsx scripts/seed-role-test-users.ts` (production Cognito pool the iOS app uses):
-- Email: `apple-review@rapidcortex.us`
+- Email: `apple-review@nexcortiq.us`
 - Role: `campus_admin` (QR / NFC installer — not 911)
 - MFA: disabled for this account only
 - Agency: `test-campus-uga` with at least one seeded code (`bash scripts/seed-qr-nfc-test-campus.sh`)
@@ -1078,5 +1078,5 @@ Check with the RC backend team which auth flow is enabled.
 
 ---
 
-*Rapid Cortex — Intelligence at the speed of response*  
-*Apps on Demand | support@rapidcortex.us*
+*NexCort iQ — Intelligence at the speed of response*  
+*Apps on Demand | support@nexcortiq.us*

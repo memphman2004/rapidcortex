@@ -12,7 +12,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-ROOT = Path("/Volumes/Mac Mini/Coding Projects/Rapid Cortex/results")
+ROOT = Path("/Volumes/Mac Mini/Coding Projects/NexCort iQ/results")
 ROOT.mkdir(parents=True, exist_ok=True)
 
 API_URL = os.environ.get("API_URL", "https://k26yw4o3xk.execute-api.us-east-1.amazonaws.com").rstrip("/")

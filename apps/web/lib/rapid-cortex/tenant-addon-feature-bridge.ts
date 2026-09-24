@@ -5,7 +5,7 @@ import {
   type TenantEntitlements,
 } from "rapid-cortex-shared";
 
-/** Maps billing add-on keys to Rapid Cortex feature registry ids used by `withFeatureContract`. */
+/** Maps billing add-on keys to NexCort iQ feature registry ids used by `withFeatureContract`. */
 const ADDON_KEY_FEATURE_IDS: Partial<Record<AddonKey, string[]>> = {
   "translation.live.tier1": ["live_translation"],
   "translation.live.tier2": ["live_translation"],
@@ -43,7 +43,7 @@ function mapAddonKeyToFeatureIds(key: AddonKey): string[] {
 }
 
 /**
- * Derives Rapid Cortex `enabledAddOns` feature ids from tenant billing entitlements
+ * Derives NexCort iQ `enabledAddOns` feature ids from tenant billing entitlements
  * (explicit toggles + plan-included SKUs).
  */
 export function rapidCortexFeatureIdsFromTenantEntitlements(entitlements: TenantEntitlements): string[] {

@@ -5,7 +5,7 @@ Metadata:
       ignore_checks:
         - W3002
 Description: >-
-  Rapid Cortex nested root stack. Delegates DynamoDB/S3/multilingual billing secrets to stack-data-layer,
+  NexCort iQ nested root stack. Delegates DynamoDB/S3/multilingual billing secrets to stack-data-layer,
   primary SAM runtime to stack-app-sam, and secondary HttpApi (comms / RC Lite / language / live routes) to
   stack-app-sam-2 (same Cognito as stack 1; execute-api URL exposed as HttpApi2Url),
   and media/admin/platform routes to stack-app-sam-3 (HttpApi3Url).
@@ -582,6 +582,56 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: When true, AppSamCadBridgeStack2 skips creating retained CAD Bridge DynamoDB tables (config/sync/buffer/audit).
+  IncludeAppSamCadMeshNestedStack:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, deploy the CAD intelligence mesh (trust registry, share router, per-agency
+      delivery queues). Leave false until the first mesh deploy is intentional. Live CAD
+      write-back stays fail-closed.
+  IncludeAppSamFeaturesNestedStack:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true (default), deploy the 13-feature suite nested stack (citizens, address intel,
+      mutual aid, MCI, evidence Object Lock bucket, etc.) on AppSam2 HttpApi.
+  FeaturesActiveAgencyIds:
+    Type: String
+    Default: ""
+    Description: >-
+      Comma-separated agency IDs for Features scheduled workers (check-in expiry, Bluesky,
+      learning). Empty → those workers no-op. Override via FEATURES_ACTIVE_AGENCY_IDS / deploy.sh.
+  FeaturesSocialAgencyConfigs:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional JSON array for social jurisdiction filtering. Prefer Secrets Manager for large configs.
+  FeaturesRingNeighborsWebhookSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Secrets Manager ARN for Ring Neighbors webhook HMAC. Empty → Ring webhook returns 503.
+  AgencyKMSKeyArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional customer-managed KMS key ARN passed to AppSamFeaturesStack for Features
+      DynamoDB/S3 SSE. Empty → AES256. Override via AGENCY_KMS_KEY_ARN / deploy.sh.
+  SIEMEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true (with SIEMEndpointUrl), Features stack provisions Firehose HTTP + S3 backup
+      for SIEM export. Default off. Override via SIEM_ENABLED=true / deploy.sh.
+  SIEMEndpointUrl:
+    Type: String
+    Default: ""
+    Description: >-
+      HTTPS SIEM collector URL for Features Firehose HTTP destination. Required when
+      SIEMEnabled=true. Override via SIEM_ENDPOINT_URL / deploy.sh.
   CadBridgeVpcId:
     Type: String
     Default: ""
@@ -654,12 +704,12 @@ Parameters:
   WyzeApiKeysSecretArn:
     Type: String
     Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/wyze-api-keys-YIoY3S"
-    Description: Secrets Manager ARN for Rapid Cortex Wyze developer API credentials (RC-owned test devices).
+    Description: Secrets Manager ARN for NexCort iQ Wyze developer API credentials (RC-owned test devices).
   NestRcOauthSecretArn:
     Type: String
     Default: ""
     Description: >
-      Secrets Manager ARN for Rapid Cortex's own Google Device Access credentials
+      Secrets Manager ARN for NexCort iQ's own Google Device Access credentials
       (JSON clientId, clientSecret, projectId). Empty until Device Access approval;
       citizen enrollment at /connect/nest then returns 503. Agency Nest OAuth does not need this.
   NestConsentHmacSecretValue:
@@ -698,6 +748,8 @@ Conditions:
   HasAppSamAlarmsNestedStack: !Equals [!Ref IncludeAppSamAlarmsNestedStack, "true"]
   HasAppSamTransitNestedStack: !Equals [!Ref IncludeAppSamTransitNestedStack, "true"]
   HasAppSamBillingNestedStack: !Equals [!Ref IncludeAppSamBillingNestedStack, "true"]
+  HasAppSamCadMeshNestedStack: !Equals [!Ref IncludeAppSamCadMeshNestedStack, "true"]
+  HasAppSamFeaturesNestedStack: !Equals [!Ref IncludeAppSamFeaturesNestedStack, "true"]
   PilotTestFeaturesOn:
     Fn::Or:
       - !Equals [!Ref PilotTestFeaturesEnabled, "true"]
@@ -2906,7 +2958,7 @@ Resources:
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ManagedPolicyNamePrefix: !Ref AWS::StackName
-        FromEmail: billing@rapidcortex.us
+        FromEmail: billing@nexcortiq.us
         AutoSendInvoices: "false"
         EnableAutomatedInvoices: "true"
 
@@ -3812,6 +3864,103 @@ Resources:
         VpcSubnetIds: !Ref CadBridgeVpcSubnetIds
         VpcSecurityGroupId: !Ref CadBridgeVpcSecurityGroupId
         ReuseExistingCadBridgeRetainedTables: !Ref ReuseExistingCadBridgeRetainedTables
+
+  AppSamCadMeshStack:
+    Type: AWS::CloudFormation::Stack
+    Condition: HasAppSamCadMeshNestedStack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - AppSam2Stack
+      - AppSamRealtime2Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-cad-mesh.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: "3ui9q4"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        WebSocketApiEndpoint: !Sub
+          - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+          - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        WebSocketConnectionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+        OpsAlertsTopicArn: !GetAtt AppSam2Stack.Outputs.OpsAlertsTopicArn
+        NormalizedIncidentsStreamArn: ""
+        CadWritebackEnabled: "false"
+
+  AppSamFeaturesStack:
+    Type: AWS::CloudFormation::Stack
+    Condition: HasAppSamFeaturesNestedStack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - AppSam2Stack
+      - AppSamRealtime2Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-features.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        # Same HttpApi as CAD mesh / location (AppSam2), not AppSam5.
+        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: "3ui9q4"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+        WebUrl: ""
+        OpsAlertsTopicArn: !GetAtt AppSam2Stack.Outputs.OpsAlertsTopicArn
+        BedrockModelArn: ""
+        ActiveAgencyIds: !Ref FeaturesActiveAgencyIds
+        SocialAgencyConfigs: !Ref FeaturesSocialAgencyConfigs
+        RingNeighborsWebhookSecretArn: !Ref FeaturesRingNeighborsWebhookSecretArn
+        WebSocketConnectionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        WebSocketApiEndpoint: !Sub
+          - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+          - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        AgencyKMSKeyArn: !Ref AgencyKMSKeyArn
+        SIEMEnabled: !Ref SIEMEnabled
+        SIEMEndpointUrl: !Ref SIEMEndpointUrl
 
   AppSamLocationStack2:
     Type: AWS::CloudFormation::Stack

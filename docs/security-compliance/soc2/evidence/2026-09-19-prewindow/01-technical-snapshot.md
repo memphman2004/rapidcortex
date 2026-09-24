@@ -19,7 +19,7 @@ Hashes: [docs/evidence/soc2-evidence/2026-09-prewindow/hashes.sha256](../../../.
 | DynamoDB PITR | 182/182 `ENABLED` in `dynamodb-pitr-post-fix.tsv` | **PASS** (stale-dated) |
 | WAF logging | API edge + web CDN CloudFront ACLs have log destinations | **PASS** (stale-dated) |
 | ACM expiry alarm `rc-acm-cert-expiry-cc0f7fc4` | Alarm exists, actions → OpsAlerts SNS; **StateValue=`INSUFFICIENT_DATA`** at creation | **ACCEPT with follow-up** — metric may need a daily datapoint; treat missing as breaching |
-| Secrets rotation | 36 Rapid Cortex secrets; `RotationEnabled` null on all | **ACCEPT** — manual SOP |
+| Secrets rotation | 36 NexCort iQ secrets; `RotationEnabled` null on all | **ACCEPT** — manual SOP |
 | Auditor role | `rapid-cortex-soc2-auditor` + SecurityAudit + ReadOnlyAccess | **PASS** |
 | SAM CloudTrail on `rapid-cortex-dev` | Must stay **false** (Option B) | Design lock-in in `deploy.sh` |
 
@@ -27,7 +27,7 @@ Hashes: [docs/evidence/soc2-evidence/2026-09-prewindow/hashes.sha256](../../../.
 
 | ID | Item | Due |
 |----|------|-----|
-| SOC-107a | Re-run both snapshot scripts on a Rapid Cortex laptop with `AWS_PROFILE=rapid-cortex` | 2026-09-30 |
+| SOC-107a | Re-run both snapshot scripts on a NexCort iQ laptop with `AWS_PROFILE=rapid-cortex` | 2026-09-30 |
 | SOC-107b | Confirm ACM alarm leaves `INSUFFICIENT_DATA` | 2026-09-30 |
 | R-SOC-002 | Never set `ENABLE_CLOUD_TRAIL=true` on `deploy.sh dev` | standing |
 

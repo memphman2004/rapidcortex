@@ -1,6 +1,6 @@
 # Agency configuration guide
 
-**Audience:** agency IT + comms leadership + Rapid Cortex pilot lead. **What agencies “configure” in pilot** vs what **RC / DevOps** owns.
+**Audience:** agency IT + comms leadership + NexCort iQ pilot lead. **What agencies “configure” in pilot** vs what **RC / DevOps** owns.
 
 ## What agency stakeholders decide (policy / program)
 
@@ -21,7 +21,7 @@
 | Review audit | Admin → Audit | Agency-scoped list |
 | See web flags | Admin → Configuration | Read-only |
 
-## What stays internal (Rapid Cortex / DevOps)
+## What stays internal (NexCort iQ / DevOps)
 
 - AI provider credentials and model IDs per stage.
 - Multilingual vendor keys, ARNs, strict validation toggles.

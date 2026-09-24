@@ -13,7 +13,7 @@ export default function HospitalStaffTranslateSessionPage() {
       <TranslateSessionPageClient
         sessionId={params.sessionId}
         vertical="hospital"
-        heading="RC Translate — Clinical"
+        heading="Translate — Clinical"
         createRequest={{
           vertical: "hospital",
           hospitalContext: { hospitalId: user?.hospitalId || user?.agencyId || "hospital" },

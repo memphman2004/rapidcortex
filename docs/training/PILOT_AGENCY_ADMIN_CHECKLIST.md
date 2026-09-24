@@ -15,7 +15,7 @@ Use with [USER_GUIDE.md](../admin-user-management/USER_GUIDE.md), [PILOT_READINE
 
 - [ ] Review **new user** invites and deactivated accounts.
 - [ ] Spot-check **audit log** for unexpected `INTEGRATION` or admin events.
-- [ ] Escalate AI or voice failures to Rapid Cortex support with **approximate time** and **incident id** (no PII in email subject if policy requires).
+- [ ] Escalate AI or voice failures to NexCort iQ support with **approximate time** and **incident id** (no PII in email subject if policy requires).
 
 ## Ongoing
 

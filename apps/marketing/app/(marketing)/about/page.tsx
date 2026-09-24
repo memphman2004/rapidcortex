@@ -3,7 +3,7 @@ import Link from "next/link";
 import { absoluteUrl, buildOgShareImage } from "@/lib/seo";
 import { SITE_NAME, SITE_OPERATOR_NAME, SITE_OPERATOR_URL } from "@/lib/site";
 
-const PRESS_EMAIL = "info@rapidcortex.us";
+const PRESS_EMAIL = "info@nexcortiq.us";
 const FOUNDED_YEAR = 2025;
 
 export async function generateMetadata(): Promise<Metadata> {

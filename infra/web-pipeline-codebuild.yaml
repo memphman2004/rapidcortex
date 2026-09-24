@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Rapid Cortex — CodeBuild uploads source zip via S3, builds Dockerfile.web with privileged Docker (ECR push only).
+Description: NexCort iQ — CodeBuild uploads source zip via S3, builds Dockerfile.web with privileged Docker (ECR push only).
 
 Parameters:
   Environment:

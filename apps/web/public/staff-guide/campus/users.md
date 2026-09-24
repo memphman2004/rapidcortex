@@ -1,29 +1,31 @@
 # Invite and manage campus users (Campus Admin)
 
-Only **Campus Admin** (and Rapid Cortex internal operators) invite campus staff. Do not give anyone a PSAP role (`dispatcher`, `supervisor`, `agencyadmin`). That lands them on a 911 console.
+Only **Campus Admin** (and NexCort iQ internal operators) invite campus staff. Do not assign a PSAP role (`dispatcher`, `supervisor`, `agencyadmin`). That account lands on a 911 console, not this campus console.
 
 ## Roles you can assign
 
-- **Campus Admin** — tenant, users, QR/NFC, settings
-- **Campus Supervisor** — ops, QR/NFC manage, incidents
-- **Campus Security** — field incidents, view-only QR
-- **Campus Dispatch** — campus incident queue (not 911 CAD)
+- **Campus Admin** — tenant, users, QR/NFC, buildings, settings
+- **Campus Supervisor** — live ops, QR/NFC manage, incidents, cameras
+- **Campus Security** — field incidents, view-only QR, cameras
+- **Campus Dispatch** — campus incident queue and cameras, not 911 CAD and not QR management
 - **Campus Counselor** — wellness queue only
-- **Campus Faculty** — submit safety reports
+- **Campus Faculty** — submit and track safety reports
+
+Give the role that matches the job. A counselor account must not be a security account “so they can see cameras.”
 
 ## Invite a user
 
 1. Open **Users**.
 2. Invite with the person’s work email.
-3. Choose the campus role that matches their job — not a “higher” PSAP role.
-4. They complete sign-in and MFA on the campus URL you send them.
+3. Choose the campus role. Do not pick a PSAP role because it looks broader.
+4. Send the campus URL. They complete sign-in and MFA there.
 
 ## Change or remove access
 
-Promote or change role only when the job changed.
+Change the role when the job changes. Do not leave the old permissions in place “for convenience.”
 
-To remove access, **deactivate** the account. Do not reuse a departed employee’s login.
+To remove access, **deactivate** the account. Do not reuse a departed employee’s login. Audit needs to show who signed in.
 
-## First-week training
+## First week
 
-Point every new hire to **Staff Guide** (this knowledge base). Access is unlimited. They should read **Campus Safety overview**, **their position**, and **When to call 911**.
+Point every new hire to **Staff Guide**. Access is unlimited. They should read **Campus Safety overview**, **their position**, and **When to call 911** before they work a live report.

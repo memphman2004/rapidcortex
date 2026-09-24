@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >-
-  Rapid Cortex API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks
+  NexCort iQ API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks
   use least-privilege actions, ARNs for Bedrock foundation models (AiBedrockFoundationModelId + QaBedrockModelId),
   stack Secrets prefix rapidcortex/<stage>/*, and regional Conditions where AWS control-plane APIs require Resource=*.
   Verify with npm run validate:iam and sam validate --lint.
@@ -582,7 +582,7 @@ Parameters:
   WyzeApiKeysSecretArn:
     Type: String
     Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/wyze-api-keys-YIoY3S"
-    Description: ARN of the Rapid Cortex Wyze developer API credentials secret (RC-owned test devices).
+    Description: ARN of the NexCort iQ Wyze developer API credentials secret (RC-owned test devices).
   VenueFacilitiesTable:
     Type: String
     Default: ""
@@ -979,10 +979,11 @@ Mappings:
       Tr3: "off"
   SmsEnvironmentDefaults:
     dev:
-      SmsProvider: mock
+      # DeploymentStage=dev is live production (app.rapidcortex.us).
+      SmsProvider: aws
       SmsPrimaryProvider: aws
-      MockSmsProvider: "true"
-      AwsSmsUseSimulator: "true"
+      MockSmsProvider: "false"
+      AwsSmsUseSimulator: "false"
     staging:
       SmsProvider: aws
       SmsPrimaryProvider: aws
@@ -1009,7 +1010,7 @@ Globals:
     Environment:
       Variables:
         RC_RUNTIME_CONFIG_JSON: !Sub
-          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"${AgencyNetworkPolicySyncTopic}","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","cst":"${CustomersTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","bal":"${BillingAuditLogTable}","bib":"${BillingInvoicesBucket}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","sct":"${ServiceCatalogTable}","bse":"support@rapidcortex.us","cfe":"support@rapidcortex.us"}'
+          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"${AgencyNetworkPolicySyncTopic}","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v1","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","cst":"${CustomersTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","bal":"${BillingAuditLogTable}","bib":"${BillingInvoicesBucket}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","sct":"${ServiceCatalogTable}","bse":"support@nexcortiq.us","cfe":"support@nexcortiq.us"}'
           # NOTE: Do not put `bpi` / `scs` in Globals RC_RUNTIME_CONFIG_JSON — the secret ARN
           # pushes AppSam4 functions over Lambda's 4KB env limit (UPDATE_FAILED 2026-07-28).
           # Billing send/PDF paths set BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN (and SES config set)
@@ -1538,7 +1539,7 @@ Resources:
                 - ses:SendEmail
                 - ses:SendTemplatedEmail
               Resource:
-                - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+                - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@nexcortiq.us
                 - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
 
   AppManagedPolicyTranscribeIncidentAudioJobsReadWrite:
@@ -1581,8 +1582,9 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       DefaultRouteSettings:
-        ThrottlingBurstLimit: 1000
-        ThrottlingRateLimit: 500
+        # Major-incident floor: 150+ concurrent PSAP consoles.
+        ThrottlingBurstLimit: 5000
+        ThrottlingRateLimit: 2000
       CorsConfiguration:
         # Explicit marketing + app origins (parameter-driven Split has drifted to null on this API).
         AllowOrigins:
@@ -1634,7 +1636,7 @@ Resources:
     Condition: HasApiWaf
     Properties:
       Name: !Sub "${AppName}-httpapi4-waf-${DeploymentStage}"
-      Description: Rapid Cortex API WAF - agency allowlist, US/CA geo block, anonymous VPN monitor.
+      Description: NexCort iQ API WAF - agency allowlist, US/CA geo block, anonymous VPN monitor.
       Scope: REGIONAL
       DefaultAction:
         Allow: {}
@@ -2606,11 +2608,11 @@ Resources:
           BILLING_SES_SENDER_EMAIL: !If
             - HasBillingSesSenderEmail
             - !Ref BillingSesSenderEmail
-            - support@rapidcortex.us
+            - support@nexcortiq.us
           CONTACT_FROM_EMAIL: !If
             - HasBillingSesSenderEmail
             - !Ref BillingSesSenderEmail
-            - support@rapidcortex.us
+            - support@nexcortiq.us
           BILLING_INVOICES_BUCKET: !Ref BillingInvoicesBucket
           BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN: !Ref BillingPaymentInstructionsSecretArn
           SES_CONFIGURATION_SET_NAME: !Sub "rapid-cortex-transactional-${DeploymentStage}"
@@ -3252,7 +3254,7 @@ Resources:
           BILLING_SES_SENDER_EMAIL: !If
             - HasBillingSesSenderEmail
             - !Ref BillingSesSenderEmail
-            - support@rapidcortex.us
+            - support@nexcortiq.us
           BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN: !Ref BillingPaymentInstructionsSecretArn
           SES_CONFIGURATION_SET_NAME: !Sub "rapid-cortex-transactional-${DeploymentStage}"
           BILLING_INVOICES_BUCKET: !Ref BillingInvoicesBucket

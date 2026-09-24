@@ -5,10 +5,10 @@
 
 ## 1. Company
 
-- Legal name: Apps on Demand LLC d/b/a Rapid Cortex (confirm vs LEG-007 before sending)
-- System: Rapid Cortex cloud SaaS (assistive emergency-communications intelligence; does **not** replace CAD/911)
+- Legal name: Apps on Demand LLC d/b/a NexCort iQ (confirm vs LEG-007 before sending)
+- System: NexCort iQ cloud SaaS (assistive emergency-communications intelligence; does **not** replace CAD/911)
 - Production: `https://app.rapidcortex.us`, stack `rapid-cortex-dev`, AWS account `158961537080`, region `us-east-1`
-- Contact: Jeff Coleman · `privacy@rapidcortex.us`
+- Contact: Jeff Coleman · `privacy@nexcortiq.us`
 
 ## 2. Requested service
 
@@ -25,7 +25,7 @@ SOC 2 **Type II** examination under AICPA TSC **2017, Security category only** (
 - Technical baseline: `docs/evidence/soc2-evidence/2026-10/`
 - Policies POL-01–12 and SOPs under `docs/security-compliance/soc2/`
 
-## 4. What Rapid Cortex will provide (PBC)
+## 4. What NexCort iQ will provide (PBC)
 
 - Read-only IAM role `rapid-cortex-soc2-auditor` (SecurityAudit + ReadOnlyAccess)
 - Monthly observation packs (`scripts/soc2-observation-pack.sh`)

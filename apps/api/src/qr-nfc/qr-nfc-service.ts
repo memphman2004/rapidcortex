@@ -387,7 +387,7 @@ export class QrNfcService {
         active: true,
         qrId,
         agencyId: TRADE_SHOW_SITE_AGENCY_ID,
-        agencyName: "Rapid Cortex",
+        agencyName: "NexCort iQ",
         name: tradeShowSiteDisplayName(dest),
         vertical: "911",
         reportType: "anonymous",

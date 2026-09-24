@@ -268,10 +268,10 @@ export function DispatcherIncidentWorkstationBody({
           },
           {
             key: "pinpoint",
-            label: "Rapid Cortex Pinpoint",
+            label: "NexiQ Pinpoint",
             body: panel(
               "pinpoint",
-              "Rapid Cortex Pinpoint",
+              "NexiQ Pinpoint",
               isPinpointEnabled() ? (
                 <PinpointPanel incidentId={incidentId} ani={incident?.callerCallback} embedded />
               ) : (

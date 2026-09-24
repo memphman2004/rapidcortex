@@ -88,7 +88,7 @@ export function ContactSuccessCard({ referenceId, submittedAt }: ContactSuccessC
           <div className="relative rounded-2xl border border-sky-500/20 bg-slate-900/50 p-4 shadow-inner shadow-sky-950/50 ring-1 ring-sky-400/15">
             <Image
               src={SITE_LOGO_PATH}
-              alt="Rapid Cortex"
+              alt="NexCort iQ"
               width={SITE_LOGO_WIDTH}
               height={SITE_LOGO_HEIGHT}
               className="h-auto w-[min(220px,70vw)] object-contain"
@@ -130,14 +130,14 @@ export function ContactSuccessCard({ referenceId, submittedAt }: ContactSuccessC
         >
           Request received
         </p>
-        <p className="mt-3 text-center text-lg text-sky-100/90">Thank you for contacting Rapid Cortex.</p>
+        <p className="mt-3 text-center text-lg text-sky-100/90">Thank you for contacting NexCort iQ.</p>
 
         <p className="mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-slate-300">
           Our team will review your request and contact you soon to schedule a discovery call and discuss your
           operational, integration, or deployment needs.
         </p>
         <p className="mx-auto mt-4 max-w-2xl text-center text-sm leading-relaxed text-slate-400">
-          Rapid Cortex works alongside existing CAD, telephony, and emergency response workflows to help agencies
+          NexCort iQ works alongside existing CAD, telephony, and emergency response workflows to help agencies
           improve situational awareness and operational intelligence.
         </p>
 
@@ -164,7 +164,7 @@ export function ContactSuccessCard({ referenceId, submittedAt }: ContactSuccessC
             Next Step: Discovery Call
           </h3>
           <p className="mt-3 text-sm text-slate-300">
-            A Rapid Cortex specialist will discuss:
+            A NexCort iQ specialist will discuss:
           </p>
           <ul className="mt-4 list-inside list-disc space-y-2 text-sm text-slate-400 marker:text-sky-500">
             <li>Current CAD/RMS environment</li>
@@ -198,7 +198,7 @@ export function ContactSuccessCard({ referenceId, submittedAt }: ContactSuccessC
         <div className="mt-14 border-t border-slate-800/80 pt-10">
           <h3 className="text-center text-lg font-semibold text-white">Want to learn more while you wait?</h3>
           <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-slate-400">
-            You can view Rapid Cortex intelligence videos that explain platform capabilities, operational workflows, CAD
+            You can view NexCort iQ intelligence videos that explain platform capabilities, operational workflows, CAD
             integration concepts, and emergency response intelligence.
           </p>
           <div className="mt-6 flex justify-center">
@@ -212,7 +212,7 @@ export function ContactSuccessCard({ referenceId, submittedAt }: ContactSuccessC
                 className="h-6 w-6 shrink-0 text-red-400 transition group-hover:scale-105"
                 aria-hidden
               />
-              <span>Rapid Cortex Videos</span>
+              <span>NexiQ Videos</span>
               <span className="sr-only"> (opens in new tab)</span>
             </a>
           </div>

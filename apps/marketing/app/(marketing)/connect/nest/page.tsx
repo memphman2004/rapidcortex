@@ -6,23 +6,23 @@ import { absoluteUrl } from "@/lib/seo";
 import { GOOGLE_NEST_TM, NEST_TM } from "@/lib/brand-marks";
 
 export const metadata: Metadata = {
-  title: `${GOOGLE_NEST_TM} cameras | Rapid Vision™`,
-  description: `${GOOGLE_NEST_TM} SDM cameras in Rapid Cortex: agency-linked streams plus nearby citizen ${NEST_TM} devices with consent-gated emergency video for dispatch, campus, and venue teams.`,
+  title: `${GOOGLE_NEST_TM} cameras | NexiQ Vision™`,
+  description: `${GOOGLE_NEST_TM} SDM cameras in NexCort iQ: agency-linked streams plus nearby citizen ${NEST_TM} devices with consent-gated emergency video for dispatch, campus, and venue teams.`,
   alternates: { canonical: absoluteUrl("/connect/nest") },
 };
 
 export default function NestConnectPage() {
   return (
     <MarketingArticleShell
-      eyebrow="Rapid Vision™"
+      eyebrow="NexiQ Vision™"
       title={`${GOOGLE_NEST_TM} cameras`}
       sectionLabel="Connect"
     >
       <p className="leading-relaxed text-slate-200">
-        Rapid Vision™ supports{" "}
+        NexiQ Vision™ supports{" "}
         <strong className="text-white">{GOOGLE_NEST_TM}</strong>: agency-owned
         cameras via Google SDM OAuth, and nearby citizen {NEST_TM} devices with the same
-        consent-first request pattern used across Rapid Vision™ camera sources.
+        consent-first request pattern used across NexiQ Vision™ camera sources.
       </p>
 
       <section className="mt-8 space-y-4 rounded-2xl border border-emerald-500/25 bg-emerald-950/20 p-6 text-sm leading-relaxed text-slate-300">
@@ -30,7 +30,7 @@ export default function NestConnectPage() {
         <ul className="list-disc space-y-2 pl-5">
           <li>
             <strong className="text-slate-100">Link the agency {NEST_TM} account.</strong> An agency
-            admin completes Google SDM OAuth from Rapid Cortex Admin → Integrations (or Campus /
+            admin completes Google SDM OAuth from NexCort iQ Admin → Integrations (or Campus /
             Venue Cameras). The OAuth client secret is encrypted with KMS before storage — never in
             the browser.
           </li>
@@ -41,7 +41,7 @@ export default function NestConnectPage() {
           </li>
           <li>
             <strong className="text-slate-100">Nearby citizen {NEST_TM} devices.</strong> When
-            incident GPS is known, Rapid Cortex can list eligible nearby {NEST_TM} cameras and send a
+            incident GPS is known, NexCort iQ can list eligible nearby {NEST_TM} cameras and send a
             time-limited sharing request. The owner approves or declines — nothing is automatic.
           </li>
           <li>
@@ -57,7 +57,7 @@ export default function NestConnectPage() {
       <section className="mt-8 space-y-4 rounded-2xl border border-slate-700/80 bg-slate-950/40 p-6 text-sm leading-relaxed text-slate-300">
         <h2 className="text-base font-semibold text-white">Privacy &amp; consent</h2>
         <p>
-          Citizen {NEST_TM} access is request-based and time-bounded. Rapid Cortex is designed for
+          Citizen {NEST_TM} access is request-based and time-bounded. NexCort iQ is designed for
           live operational viewing with owner approval — not silent always-on surveillance of
           residential devices.
         </p>

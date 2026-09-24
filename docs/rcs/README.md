@@ -14,7 +14,7 @@ Registered in:
 - `packages/shared/src/billing/addon-types.ts` (`ADDON_KEYS`)
 - `packages/shared/src/billing/addon-catalog.ts` (`ADDON_CATALOG`)
 - `packages/shared/src/billing/pricing-defaults.ts` (`PRICING_DEFAULTS["rcs.module"]`)
-- `apps/web/lib/pricing/pricing-catalog.ts` (RC Admin Add-ons tab section)
+- `apps/web/lib/pricing/pricing-catalog.ts` (NC Admin Add-ons tab section)
 - `scripts/seed-pricing-store.ts` (`addon-rcs-module`, 150000 cents)
 
 API handlers gate with `requireAddon("rcs.module")`.

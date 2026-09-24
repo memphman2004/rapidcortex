@@ -1,4 +1,4 @@
-# Rapid Cortex Dev — 60-Minute Soak Test
+# NexCort iQ Dev — 60-Minute Soak Test
 
 **Date:** 2026-08-17  
 **Stack:** `rapid-cortex-dev`  

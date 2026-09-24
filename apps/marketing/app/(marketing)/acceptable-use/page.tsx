@@ -5,7 +5,7 @@ import { buildPublicPageMetadata } from "@/lib/seo";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Acceptable Use Policy | Rapid Cortex Platform",
+  title: "Acceptable Use Policy | NexCort iQ Platform",
   description: `Review permitted and prohibited uses of the ${SITE_NAME} platform, APIs, and public properties for emergency communications and public safety operations.`,
   path: "/acceptable-use",
 });
@@ -69,7 +69,7 @@ export default function AcceptableUsePage() {
         <p>
           Report abuse or questions to your agency’s {SITE_NAME} admin or, for security issues, the
           contact path defined in your security addendum. General inquiries:{" "}
-          <a href="mailto:security@rapidcortex.us?subject=Acceptable%20use%20inquiry">security@rapidcortex.us</a>{" "}
+          <a href="mailto:security@nexcortiq.us?subject=Acceptable%20use%20inquiry">security@nexcortiq.us</a>{" "}
           (or as listed in your order form).
         </p>
       </section>

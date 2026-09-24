@@ -1,12 +1,12 @@
-# Rapid Cortex C2C Hub
+# NexCort iQ C2C Hub
 
-NENA EIDO CAD-to-CAD hub for Rapid Cortex. This is **not** a CAD of record and **not** an ESInet / 5-nines C2C product.
+NENA EIDO CAD-to-CAD hub for NexCort iQ. This is **not** a CAD of record and **not** an ESInet / 5-nines C2C product.
 
 Live partner CAD writes stay **fail-closed** (`CAD_WRITEBACK_ENABLED=false`) until the CAD write-back addendum and vendor UAT.
 
 ## What is live
 
-Eight CAD slots (`CAD_A`–`CAD_H`) per Rapid Cortex agency:
+Eight CAD slots (`CAD_A`–`CAD_H`) per NexCort iQ agency:
 
 | Slot | Default vendor |
 |---|---|
@@ -19,7 +19,7 @@ Eight CAD slots (`CAD_A`–`CAD_H`) per Rapid Cortex agency:
 
 Each slot has independent **on**, **inbound**, and **outbound** toggles (`GET/PATCH /api/c2c/slots`). Inbound defaults on; outbound defaults off.
 
-## What you add later (outside Rapid Cortex)
+## What you add later (outside NexCort iQ)
 
 1. **Secrets Manager JSON** at `rapid-cortex/c2c/{agencyId}/cad-a` … `cad-h`:
 

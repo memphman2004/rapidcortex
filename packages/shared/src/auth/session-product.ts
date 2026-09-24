@@ -2,7 +2,7 @@ import { canonicalMonetizationPlanId, resolveFeatureEntitlements } from "../mone
 import type { UserContext } from "../types.js";
 import { isRcInternalOperator } from "../tenancy/principal.js";
 
-/** Parsed from Cognito `custom:customerType` — drives dashboard vs RC Lite portal routing when set. */
+/** Parsed from Cognito `custom:customerType` — drives dashboard vs NexCort Lite portal routing when set. */
 export type SessionCustomerType =
   | "rapid_cortex_platform"
   | "rc_lite_api"
@@ -77,7 +77,7 @@ function entitlementsFromUser(user: SessionProductExtras): Set<string> {
   return parseEntitlementsClaim(user.sessionEntitlements);
 }
 
-/** True when JWT subscription fields indicate billable/active relationship (dashboard or RC Lite). */
+/** True when JWT subscription fields indicate billable/active relationship (dashboard or NexCort Lite). */
 export function hasActivePaidRelationship(user: SessionProductExtras | null | undefined): boolean {
   if (!user) return false;
   /** Operator / pilot users without billing SKUs in the token — requires `custom:customerType=platform_internal`. */
@@ -125,7 +125,7 @@ function dashboardAccessViaLegacyField(dashboardAccess?: string): boolean {
 }
 
 /**
- * Operational Rapid Cortex dashboards (dispatcher, supervisor, agency admin, etc.).
+ * Operational NexCort iQ dashboards (dispatcher, supervisor, agency admin, etc.).
  */
 export function hasRapidCortexDashboardAccess(user: SessionProductExtras | null | undefined): boolean {
   if (!user) return false;
@@ -151,7 +151,7 @@ export function hasRapidCortexDashboardAccess(user: SessionProductExtras | null 
 }
 
 /**
- * Signed-in RC Lite console (oauth clients, usage, API billing) — not dispatcher UX.
+ * Signed-in NexCort Lite console (oauth clients, usage, API billing) — not dispatcher UX.
  */
 export function hasRcLitePortalAccess(user: SessionProductExtras | null | undefined): boolean {
   if (!user) return false;

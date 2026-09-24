@@ -30,7 +30,7 @@ describe("ScanIntentChooser", () => {
     const onPoliceSecurity = vi.fn();
     render(
       <ScanIntentChooser
-        productLabel="Rapid Cortex Transit"
+        productLabel="NexCort iQ Transit"
         contextLabel="Transit Safety Reporting"
         reportingPointName="Bus 2145"
         locationDetails="Platform 3"
@@ -63,7 +63,7 @@ describe("ScanIntentChooser", () => {
   it("hides Information when Guest Assist is disabled", () => {
     render(
       <ScanIntentChooser
-        productLabel="Rapid Cortex"
+        productLabel="NexCort iQ"
         contextLabel="Venue Security"
         reportingPointName="Gate A"
         locationDetails="Section 112"

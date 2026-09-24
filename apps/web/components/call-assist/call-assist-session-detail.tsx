@@ -527,7 +527,7 @@ function SessionBody({
             {isAi && session.nextQuestion ? (
               <div>
                 <p className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-wide text-sky-400">
-                  Rapid Cortex <CallAssistWave compact />
+                  NexCort iQ <CallAssistWave compact />
                 </p>
                 <p className="rc-transcript-text text-[12px] italic opacity-70">{session.nextQuestion}…</p>
               </div>
@@ -623,7 +623,7 @@ function SessionBody({
 }
 
 function utteranceSpeakerLabel(u: { speaker: string; speakerId?: string }): string {
-  if (u.speaker === "assistant" || u.speaker === "system") return "Rapid Cortex";
+  if (u.speaker === "assistant" || u.speaker === "system") return "NexCort iQ";
   if (u.speaker === "other") return u.speakerId ? `Speaker ${u.speakerId}` : "Other speaker";
   return u.speakerId && u.speakerId !== "spk_caller" ? `Caller (${u.speakerId})` : "Caller";
 }

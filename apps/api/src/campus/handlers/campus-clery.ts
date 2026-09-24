@@ -329,7 +329,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return withCorrelationHeaders(event, ok(result));
     }
 
-    // POST /api/campus/clery/sync — pull classified Rapid Cortex campus incidents
+    // POST /api/campus/clery/sync — pull classified NexCort iQ campus incidents
     if (method === "POST" && path.endsWith("/clery/sync")) {
       authz.assertCanPerform(user, "campus.clery.manage" as never);
       let body: unknown;

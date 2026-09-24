@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >-
-  Rapid Cortex API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks
+  NexCort iQ API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks
   use least-privilege actions, ARNs for Bedrock foundation models (AiBedrockFoundationModelId + QaBedrockModelId),
   stack Secrets prefix rapidcortex/<stage>/*, and regional Conditions where AWS control-plane APIs require Resource=*.
   Verify with npm run validate:iam and sam validate --lint.
@@ -922,10 +922,11 @@ Mappings:
       Tr3: "off"
   SmsEnvironmentDefaults:
     dev:
-      SmsProvider: mock
+      # DeploymentStage=dev is live production (app.rapidcortex.us).
+      SmsProvider: aws
       SmsPrimaryProvider: aws
-      MockSmsProvider: "true"
-      AwsSmsUseSimulator: "true"
+      MockSmsProvider: "false"
+      AwsSmsUseSimulator: "false"
     staging:
       SmsProvider: aws
       SmsPrimaryProvider: aws
@@ -950,7 +951,7 @@ Globals:
     Environment:
       Variables:
         RC_RUNTIME_CONFIG_JSON: !Sub
-          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v2","a1":"${PrimaryAi}","a2":"${SecondaryAi}","a3":"${TertiaryAi}","amp":"claude-haiku-4-5-20251001","omp":"gpt-4o-mini","bmp":"${BedrockModelPrimary}","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tdn":"${PilotTriageDetectEveryNSegments}","tmk":"${PilotTriageMock}","neq":"${NonEmergencyQueueTable}","efc":"${PilotEnableFieldConfidence}","csn":"${PilotConfidenceScoreEveryNSegments}","ccg":"true","csm":"${PilotConfidenceScoringMock}","eps":"${PilotEnablePredictiveStaffing}","psm":"${PilotPredictiveStaffingMock}","sft":"${StaffingForecastTable}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","cfe":"support@rapidcortex.us"}'
+          - '{"ds":"${DeploymentStage}","trp":"${TranscriptRetentionPolicyDays}","it":"${IncidentsTable}","tt":"${TranscriptsTable}","at":"${AnalysesTable}","aud":"${AuditTable}","dda":"${DataDeletionAuditTable}","drp":"cjis-default-v1","ag":"${AgenciesTable}","iv":"${InvitesTable}","ao":"${AccessOverridesTable}","neo":"${NetworkEmergencyOverridesTable}","ans":"","nae":"false","waf":"${WafArn}","wsc":"REGIONAL","ac":"${ApiClientsTable}","wh":"${WebhooksTable}","erl":"${ExternalApiRateLimitsTable}","rle":"true","rak":"${RcLiteApiKeysTable}","rrl":"${RcLiteRateLimitTable}","rlu":"${RcLiteUsageTable}","sit":"${SeoIntelligenceTable}","ste":"${SeoToolEnabled}","sae":"${SeoAutoScanEnabled}","sai":"${SeoAiSuggestionsEnabled}","det":"${DeceptionEventsTable}","dse":"${PilotDeceptionShield}","dae":"false","dal":"true","ops":"${OpsAlertsTopic}","ej":"${ExternalApiJwtSecretArn}","ek":"${ExternalApiEncryptionKeyArn}","pma":"60","peg":"0","pcf":"true","ab":"${AssetsBucket}","ls":"${LanguageSessionsTable}","aef":"true","asm":"true","apv":"dispatch-triage-v2","a1":"${PrimaryAi}","a2":"${SecondaryAi}","a3":"${TertiaryAi}","amp":"claude-haiku-4-5-20251001","omp":"gpt-4o-mini","bmp":"${BedrockModelPrimary}","art":"55000","amr":"1","adb":"0","amh":"120","asu":"true","ail":"90","oa":"${OpenAiApiKeySecretArn}","aa":"${AnthropicApiKeySecretArn}","aas":"0","aua":"false","aco":"${HttpApiCorsAllowedOrigins}","eqs":"${PilotEnableQaScoring}","eqa":"${PilotEnableQaAfterAnalysis}","qss":"${QASessionsTable}","qts":"${QATemplatesTable}","qsm":"${PilotQaScoringMock}","qbm":"${QaBedrockModelId}","br":"${AWSRegion}","eim":"${PilotEnableIncidentMedia}","imt":"${IncidentMediaTable}","imp":"","imn":"120","imu":"900","imx":"52428800","ent":"${PilotEnableNonEmergencyTriage}","tdn":"${PilotTriageDetectEveryNSegments}","tmk":"${PilotTriageMock}","neq":"${NonEmergencyQueueTable}","efc":"${PilotEnableFieldConfidence}","csn":"${PilotConfidenceScoreEveryNSegments}","ccg":"true","csm":"${PilotConfidenceScoringMock}","eps":"${PilotEnablePredictiveStaffing}","psm":"${PilotPredictiveStaffingMock}","sft":"${StaffingForecastTable}","tft":"${TraumaFlagsTable}","pn":"${PremiseNotesTable}","dcn":"${DispatcherCoachingNotesTable}","itl":"${IncidentTimelineTable}","ish":"${IncidentSharesTable}","asp":"${AgencySharePartnersTable}","lp":"${LanguageProvider}","cr":"${AWSRegion}","cwe":"${CadWritebackEnabled}","cwr":"${CadWritebackRequiresApproval}","cwa":"${CadWritebackAuditTable}","bp":"${BillingProfilesTable}","inv":"${InvoicesTable}","ii":"${InvoiceItemsTable}","bae":"${BillingAuditEventsTable}","mao":"${MonetizationAddOnsTable}","minv":"${MonetizationInvoicesTable}","slt":"${SalesLeadsTable}","cfe":"support@nexcortiq.us"}'
           -
             AWSRegion: !Ref AWS::Region
             AccessOverridesTable: !Ref AccessOverridesTable
@@ -1594,6 +1595,15 @@ Resources:
       ExplicitAuthFlows:
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
+      # Idle sign-out revokes the refresh token. Access/id tokens die in 30 minutes
+      # so a copied bearer cannot outlive a dispatcher session. Refresh covers one shift.
+      AccessTokenValidity: 30
+      IdTokenValidity: 30
+      RefreshTokenValidity: 12
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: hours
       PreventUserExistenceErrors: ENABLED
       SupportedIdentityProviders:
         - COGNITO
@@ -1619,6 +1629,13 @@ Resources:
         - ALLOW_USER_SRP_AUTH
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
+      AccessTokenValidity: 30
+      IdTokenValidity: 30
+      RefreshTokenValidity: 12
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: hours
       PreventUserExistenceErrors: ENABLED
       SupportedIdentityProviders:
         - COGNITO
@@ -1642,7 +1659,7 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       GroupName: rcsuperadmin
-      Description: Rapid Cortex platform super-administrator (full tenant access).
+      Description: NexCort iQ platform super-administrator (full tenant access).
       UserPoolId: !Ref CognitoUserPool
 
   CognitoGroupRcBusinessAdmin:
@@ -1651,7 +1668,7 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       GroupName: rcadmin
-      Description: Rapid Cortex business operations (billing, onboarding, notices).
+      Description: NexCort iQ business operations (billing, onboarding, notices).
       UserPoolId: !Ref CognitoUserPool
 
   CognitoGroupRcItAdmin:
@@ -1660,7 +1677,7 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       GroupName: rcitadmin
-      Description: Rapid Cortex technical support (users, integrations, diagnostics).
+      Description: NexCort iQ technical support (users, integrations, diagnostics).
       UserPoolId: !Ref CognitoUserPool
 
   CognitoGroupAgencyAdmin:
@@ -1731,8 +1748,10 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       DefaultRouteSettings:
-        ThrottlingBurstLimit: 1000
-        ThrottlingRateLimit: 500
+        # Major-incident floor: 150+ concurrent PSAP consoles.
+        # Live stage on 2026-08-17 was 100 rps / 200 burst and returned HTTP 429.
+        ThrottlingBurstLimit: 5000
+        ThrottlingRateLimit: 2000
       CorsConfiguration:
         AllowOrigins: !Split [",", !Ref HttpApiCorsAllowedOrigins]
         AllowHeaders:
@@ -1775,7 +1794,7 @@ Resources:
     Condition: HasApiWaf
     Properties:
       Name: !Sub "${AppName}-httpapi-waf-${DeploymentStage}"
-      Description: Rapid Cortex API WAF - agency allowlist, US/CA geo block, anonymous VPN monitor.
+      Description: NexCort iQ API WAF - agency allowlist, US/CA geo block, anonymous VPN monitor.
       Scope: REGIONAL
       DefaultAction:
         Allow: {}
@@ -4119,7 +4138,7 @@ Resources:
     Properties:
       Template:
         TemplateName: !Sub invoice-sent-${DeploymentStage}
-        SubjectPart: "Rapid Cortex invoice {{invoiceNumber}} is ready"
+        SubjectPart: "NexCort iQ invoice {{invoiceNumber}} is ready"
         HtmlPart: "<p>Hello {{customerName}},</p><p>Your invoice <strong>{{invoiceNumber}}</strong> is ready.</p><p>Total: {{currency}} {{total}}</p><p>Due date: {{dueDate}}</p><p><a href='{{invoiceUrl}}'>View invoice</a></p>"
         TextPart: "Hello {{customerName}}, your invoice {{invoiceNumber}} is ready. Total: {{currency}} {{total}}. Due: {{dueDate}}. View: {{invoiceUrl}}"
 
@@ -4534,7 +4553,7 @@ Outputs:
     Description: Logical environment (dev / staging / prod)
     Value: !Ref DeploymentStage
   RootDomainName:
-    Description: Primary public-facing domain for Rapid Cortex.
+    Description: Primary public-facing domain for NexCort iQ.
     Value: !Ref RootDomainName
   ApiWebAclArn:
     Description: Regional WAF web ACL ARN when WAF is enabled; otherwise empty (parent stack always reads this output).

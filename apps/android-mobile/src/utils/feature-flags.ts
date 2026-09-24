@@ -8,7 +8,7 @@ export function isSafeSoundPublicEnabled(): boolean {
 }
 
 /**
- * Marketing "Enter the Cortex" animation before Venue/Campus selection.
+ * Marketing "Enter NexCort" animation before Venue/Campus selection.
  * Off unless explicitly enabled — TestFlight must reach product selection
  * without a tap that can hang on AsyncStorage.
  */

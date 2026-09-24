@@ -1,4 +1,4 @@
-# Rapid Cortex Customer Readiness Gate Sheet
+# NexCort iQ Customer Readiness Gate Sheet
 
 ## 1. Document Control
 
@@ -22,7 +22,7 @@
 **Current Recommendation:** YELLOW — proceed only with scoped pilot.  
 **Hard Stop:** NO-GO for production CAD write-back.
 
-Rapid Cortex may proceed with a tightly scoped read-only/shadow pilot only when all P0 pilot gates pass. Full production rollout and CAD write-back require separate approval.
+NexCort iQ may proceed with a tightly scoped read-only/shadow pilot only when all P0 pilot gates pass. Full production rollout and CAD write-back require separate approval.
 
 ### Current Check Snapshot (2026-04-29)
 
@@ -52,7 +52,7 @@ Rapid Cortex may proceed with a tightly scoped read-only/shadow pilot only when 
 
 ### IaC deployment architecture (nested stacks — 2026-04)
 
-- **SAM / CloudFormation size limit unblock:** Production deploys previously failed when the SAM transform exceeded the roughly **1 MB** transformed-template limit. Rapid Cortex IaC now uses a **root stack** (`infra/template.yaml`) with **nested stacks** (`infra/nested/stack-data-layer.yaml` for DynamoDB/S3/multilingual billing secrets + `infra/nested/stack-app-sam.yaml` for the SAM application layer). Preflight sizing: `./scripts/infra-template-size-check.sh`.
+- **SAM / CloudFormation size limit unblock:** Production deploys previously failed when the SAM transform exceeded the roughly **1 MB** transformed-template limit. NexCort iQ IaC now uses a **root stack** (`infra/template.yaml`) with **nested stacks** (`infra/nested/stack-data-layer.yaml` for DynamoDB/S3/multilingual billing secrets + `infra/nested/stack-app-sam.yaml` for the SAM application layer). Preflight sizing: `./scripts/infra-template-size-check.sh`.
 - **This is a deployment architecture fix only.** It does **not** change the **YELLOW** customer gate, **YELLOW** G3 posture, CAD write-back **disabled-by-default** policy, or substitute for environment-specific evidence and sign-offs.
 
 ### Immediate Issues and Required Fixes
@@ -89,7 +89,7 @@ The identified `notConfigured` pilot-path routes (including language/CAD/media/c
 | P1 | `apps/web/app/api/reliability/[[...segments]]/route.ts` | Non-critical for initial read-only pilot | SRE/Platform | M | Fixed | Replaced `notConfigured` with authenticated upstream proxy for reliability routes. |
 | P2 | `apps/web/app/api/language/text-to-voice/route.ts` | Optional for initial read-only pilot | Language/Voice Team | S | Fixed | Replaced `notConfigured` with authenticated upstream proxy for text-to-voice route. |
 
-**Residual exploratory gaps:** unmatched CAD GET tails return `SERVICE_NOT_CONFIGURED`; CAD POST tails remain gated (see write-back Lambda). Optional RC Lite placeholders outside the pilot SPA still return HTTP **501**.
+**Residual exploratory gaps:** unmatched CAD GET tails return `SERVICE_NOT_CONFIGURED`; CAD POST tails remain gated (see write-back Lambda). Optional NC Lite placeholders outside the pilot SPA still return HTTP **501**.
 
 ### Production Readiness Remaining Work (Prioritized)
 
@@ -124,8 +124,8 @@ RED for full production CAD write integration.
 - [ ] Read-only / shadow pilot
 - [ ] Limited production pilot
 - [ ] Full production dashboard rollout
-- [ ] RC Lite API-only pilot
-- [ ] RC Lite production API access
+- [ ] NC Lite API-only pilot
+- [ ] NC Lite production API access
 - [ ] CAD read integration
 - [ ] CAD write-back integration
 - [ ] Desktop connector rollout
@@ -165,7 +165,7 @@ Gate status rules:
 
 | Gate ID | Gate | Plain-language definition | Recommended status | Owner | Target date | Evidence link | Pending signoff |
 |---|---|---|---|---|---|---|---|
-| **G1** | Tenant isolation & authentication | Ensures identities, JWT claims, RBAC/entitlements, and agency tenancy prevent cross-agency reads or writes—including dashboard shells, upstream API routes, RC Lite segregation, and superadmin tooling. Blocks anonymous access paths that should fail closed. | YELLOW — core exists; in-repo Vitest matrix + cross-tenant tests; live JWT/penetration evidence still pending | *Assign engineering + security owners* | *YYYY-MM-DD* | Repo: [`jwt-validation.test.ts`](../apps/api/src/__tests__/security/jwt-validation.test.ts), [`cross-tenant-isolation.test.ts`](../apps/api/src/__tests__/security/cross-tenant-isolation.test.ts) · Template: [`g1-tenant-isolation-evidence.template.md`](./evidence/templates/g1-tenant-isolation-evidence.template.md) | Pending |
+| **G1** | Tenant isolation & authentication | Ensures identities, JWT claims, RBAC/entitlements, and agency tenancy prevent cross-agency reads or writes—including dashboard shells, upstream API routes, NC Lite segregation, and superadmin tooling. Blocks anonymous access paths that should fail closed. | YELLOW — core exists; in-repo Vitest matrix + cross-tenant tests; live JWT/penetration evidence still pending | *Assign engineering + security owners* | *YYYY-MM-DD* | Repo: [`jwt-validation.test.ts`](../apps/api/src/__tests__/security/jwt-validation.test.ts), [`cross-tenant-isolation.test.ts`](../apps/api/src/__tests__/security/cross-tenant-isolation.test.ts) · Template: [`g1-tenant-isolation-evidence.template.md`](./evidence/templates/g1-tenant-isolation-evidence.template.md) | Pending |
 | **G2** | CAD integration safety — **read scope only** | Read-only adapters and Next/API routes behave safely—timeouts, outages, malformed data, credential errors. Only approved read previews are enabled for shadow pilot; dashboards tolerate upstream absence. Assisted/automated **write-back is out of scope** here—see **G6**. | YELLOW — staging adapter + integration tests in repo; vendor staging/pilot evidence still pending | *Assign integrations owner* | *YYYY-MM-DD* | Repo: [`adapter-integration.test.ts`](../apps/web/lib/rapid-cortex/cad/__tests__/adapter-integration.test.ts) · Template: [`g2-cad-integration-safety-evidence.template.md`](./evidence/templates/g2-cad-integration-safety-evidence.template.md) · Smoke: `npm run pilot:smoke` | Pending |
 | **G3** | Security controls (platform) | Secrets never ship in client bundles, logging avoids sensitive spill, infra uses approved secret stores; WAF / CORS / JWT hardening **proved per environment**; integrations validate signatures/webhooks/IAM scopes; encryption enforced in transit/at rest according to posture. | **YELLOW — code and IaC controls have advanced, but environment-specific proof and reviewer signoff are still required** | Security / DevOps Lead | Before external pilot access | **[`docs/security/g3-security-controls-platform.md`](./security/g3-security-controls-platform.md)** (rollup; not a GREEN claim) | Pending |
 | **G4** | Auditability & forensics | Every customer-impacting event is reconstructable—including auth failures, CAD previews, integrations, entitlement changes—with owner metadata and retention/export plan tested for incident review drills. | YELLOW — schema exists; widen scenario coverage | *Assign compliance liaison* | *YYYY-MM-DD* | *Paste audit sample exports redacted links* | Pending |
@@ -195,7 +195,7 @@ These artifacts **support** evidence collection; they **do not** replace environ
 **Provider:** Twilio  
 **Sending Number:** +1 (470) 748-2763 (E.164: `+14707482763`) — US local 10DLC  
 **Business:** Apps On Demand LLC  
-**Registered use:** SMS/MMS messaging through Twilio for **Rapid Cortex** dispatcher-initiated, incident-specific workflows to individuals who contacted 911/public safety and gave consent — see [`docs/product-architecture/INCIDENT_MEDIA_SMS.md`](./product-architecture/INCIDENT_MEDIA_SMS.md).  
+**Registered use:** SMS/MMS messaging through Twilio for **NexCort iQ** dispatcher-initiated, incident-specific workflows to individuals who contacted 911/public safety and gave consent — see [`docs/product-architecture/INCIDENT_MEDIA_SMS.md`](./product-architecture/INCIDENT_MEDIA_SMS.md).  
 **Evidence:** Twilio brand + campaign approval notices; attach PDFs beside this gate sheet when submitting a customer packet.  
 **Twilio Account SID:** must match **`accountSid`** in your **Secrets Manager** Twilio JSON and the owning Twilio project — **do not** paste `TWILIO_AUTH_TOKEN` or API secrets into Markdown or ticket bodies.  
 **Gate check:** confirm a live send reaches a real handset and that the delivery receipt reports `delivered` — Twilio returns HTTP 201 for messages carriers later drop, so an accepted send is **not** evidence of delivery. Watch for `errorCode` **30034** (unregistered campaign) and **30007** (carrier filtering) in the `outbound.sms` / `delivery_receipt` CloudWatch logs.  
@@ -210,7 +210,7 @@ These artifacts **support** evidence collection; they **do not** replace environ
 
 **Controlled test message (staging / own handset first):**
 
-> Rapid Cortex: A dispatcher requested a secure link for your active incident. Sharing is optional. Upload here: `https://<public-app-host>/media/upload/<token>` Reply STOP to opt out, HELP for help.
+> NexCort iQ: A dispatcher requested a secure link for your active incident. Sharing is optional. Upload here: `https://<public-app-host>/media/upload/<token>` Reply STOP to opt out, HELP for help.
 
 (use a real issuance token path in place of `<token>`; never paste live tokens into shared documents.)
 
@@ -221,7 +221,7 @@ These artifacts **support** evidence collection; they **do not** replace environ
 
 - [ ] `401` for missing JWT on protected routes; `403` for invalid entitlement.
 - [ ] Cross-tenant attempt yields `403` with no leakage; pilot JWT claims exercised on ≥2 tenants.
-- [ ] RC Lite vs Rapid Cortex separation enforced where applicable.
+- [ ] NC Lite vs NexCort iQ separation enforced where applicable.
 - [ ] In-repo: `npm run test:security` (includes JWT/anonymous matrix + cross-tenant + RBAC); `npm run test:g1` for the JWT matrix file alone.
 
 **G2 — CAD read scope**
@@ -297,7 +297,7 @@ These artifacts **support** evidence collection; they **do not** replace environ
 
 **Target Date:** Before external pilot access
 
-**Evidence Link:** **[`docs/security/g3-security-controls-platform.md`](./security/g3-security-controls-platform.md)** (rollup; not a GREEN claim). Language product/engineering context (911 tiered fallback, RC Lite vs Rapid Cortex): **[`docs/languages/911-language-fallback-reliability.md`](./languages/911-language-fallback-reliability.md)** — separate from G3 security closure.
+**Evidence Link:** **[`docs/security/g3-security-controls-platform.md`](./security/g3-security-controls-platform.md)** (rollup; not a GREEN claim). Language product/engineering context (911 tiered fallback, NC Lite vs NexCort iQ): **[`docs/languages/911-language-fallback-reliability.md`](./languages/911-language-fallback-reliability.md)** — separate from G3 security closure.
 
 **Signoff:** Pending
 
@@ -461,7 +461,7 @@ Only after **full CSP enforcement** and **confirmed** violating inline scripts (
 | Customer training completion | YELLOW | Safe operational use |  |  | Limit access to trained user cohorts |  |  |
 | Data retention and export policy confirmation | YELLOW | Compliance and legal readiness |  |  | Apply interim documented retention policy and manual export process |  |  |
 | Billing and entitlement verification | YELLOW | Commercial readiness |  |  | Manual entitlement review before pilot onboarding |  |  |
-| RC Lite API usage metering and overage reporting | YELLOW | RC Lite production API access |  |  | Restrict RC Lite access to controlled pilot plans |  |  |
+| NC Lite API usage metering and overage reporting | YELLOW | NC Lite production API access |  |  | Restrict NC Lite access to controlled pilot plans |  |  |
 
 ## 7. Decision Matrix
 
@@ -499,7 +499,7 @@ Any P0 failure exists, especially:
 - [ ] Support escalation process validated.
 - [ ] Monitoring and alarms validated.
 - [ ] Audit evidence package completed.
-- [ ] RC Lite API-only access confirmed separate from Rapid Cortex dashboard access.
+- [ ] NC Lite API-only access confirmed separate from NexCort iQ dashboard access.
 - [ ] CAD write-back remains off until separate write-readiness gate is passed.
 
 ## 9. CAD Write-Back Hard Gate
@@ -531,7 +531,7 @@ RED / NO-GO until every item is complete and signed off.
 
 ## 10. Customer Meeting Script
 
-"Rapid Cortex is ready for a controlled read-only pilot. We are intentionally keeping CAD write-back disabled during the first phase to protect the customer's live CAD environment. This allows the agency to validate AI summaries, transcription, translation, operational visibility, audit logs, and workflow fit without changing CAD records. Write-back will only be considered after all technical, operational, and approval gates are met."
+"NexCort iQ is ready for a controlled read-only pilot. We are intentionally keeping CAD write-back disabled during the first phase to protect the customer's live CAD environment. This allows the agency to validate AI summaries, transcription, translation, operational visibility, audit logs, and workflow fit without changing CAD records. Write-back will only be considered after all technical, operational, and approval gates are met."
 
 ## 11. Release Signoff
 

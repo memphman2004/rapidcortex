@@ -1,12 +1,12 @@
 # Training quickstart (~20 minutes)
 
-For **trainers** onboarding dispatchers and supervisors before pilot go-live. Pair with live agency SOPs; Rapid Cortex is **decision support**, not dispatch authority.
+For **trainers** onboarding dispatchers and supervisors before pilot go-live. Pair with live agency SOPs; NexCort iQ is **decision support**, not dispatch authority.
 
 **Role-specific deep dives (live UI, no screenshots):** [TRAINING_DISPATCHER.md](./TRAINING_DISPATCHER.md) · [TRAINING_SUPERVISOR.md](./TRAINING_SUPERVISOR.md) · [TRAINING_ADMIN.md](./TRAINING_ADMIN.md) · [COMMON_TASKS.md](./COMMON_TASKS.md) · [FIRST_DAY_CHECKLIST.md](./FIRST_DAY_CHECKLIST.md) · [QUICKSTART_CARD.md](./QUICKSTART_CARD.md).
 
 ## Before class (trainer)
 
-- [ ] Confirm **production or training** URL and that **Connections** shows Rapid Cortex API **live** for pilot (not offline mock).
+- [ ] Confirm **production or training** URL and that **Connections** shows NexCort iQ API **live** for pilot (not offline mock).
 - [ ] Create **training accounts** (dispatcher + supervisor) with correct `custom:agencyId`.
 - [ ] Prepare **one test incident** or use agency SOP for creating the first live incident.
 - [ ] Open [USER_GUIDE.md](./USER_GUIDE.md) and [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md) on a second screen.

@@ -1,4 +1,4 @@
-/** Rapid Cortex mobile domain types — Safe & Sound, Guardian, Venue/Campus codes. */
+/** NexCort iQ mobile domain types — Safe & Sound, Guardian, Venue/Campus codes. */
 
 export type ReportType = 'anonymous' | 'identified' | 'both';
 export type CodeVertical = 'venue' | 'campus' | 'transit';

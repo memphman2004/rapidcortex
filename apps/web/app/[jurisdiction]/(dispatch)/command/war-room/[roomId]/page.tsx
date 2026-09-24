@@ -33,7 +33,7 @@ export default function WarRoomPage() {
   if (!enabled) {
     return (
       <div className="p-6 text-sm text-slate-400">
-        War rooms aren’t enabled for this agency. Contact Rapid Cortex support.
+        War rooms aren’t enabled for this agency. Contact NexCort iQ support.
       </div>
     );
   }

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Rapid Cortex — Help Entry Points
+ * NexCort iQ — Help Entry Points
  *
  * <HelpButton /> — header control
  * <ContextualHelp topic="silent-text" /> — inline feature ?

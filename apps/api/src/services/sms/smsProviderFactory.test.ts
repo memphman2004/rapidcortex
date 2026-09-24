@@ -26,7 +26,7 @@ const baseEnv: SmsFactoryEnv = {
 
 const baseArgs = {
   toPhoneE164: "+15555550100",
-  messageBody: "Rapid Cortex: test",
+  messageBody: "NexCort iQ: test",
   agencyId: "agency-1",
   incidentId: "inc-1",
   messageType: "media_upload" as const,

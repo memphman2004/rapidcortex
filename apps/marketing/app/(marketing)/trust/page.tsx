@@ -4,7 +4,7 @@ import { marketingContactPath, marketingSecurityPath } from "@/lib/marketing-lin
 import { RC_LITE_TRUST_CENTER_SECTIONS } from "rapid-cortex-shared";
 
 export const metadata = {
-  title: "Trust & Compliance Disclosures | Rapid Cortex",
+  title: "Trust & Compliance Disclosures | NexCort iQ",
   description:
     "Alignment-based trust disclosures for agencies and CAD vendors — CJIS control mapping, encryption, audit logging, tenant isolation, and operational transparency.",
 };

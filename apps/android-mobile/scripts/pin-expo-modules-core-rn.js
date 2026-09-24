@@ -8,7 +8,7 @@
  * agree with the JS bundle.
  */
 
-const MARKER = 'Rapid Cortex: pin React Native from the mobile app';
+const MARKER = 'NexCort iQ: pin React Native from the mobile app';
 
 /** Expo SDK 53 ships React Native 0.79.x. */
 const PINNED_RN_MINOR = 79;

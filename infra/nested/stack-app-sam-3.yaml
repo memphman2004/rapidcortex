@@ -601,10 +601,11 @@ Mappings:
       Tr3: "off"
   SmsEnvironmentDefaults:
     dev:
-      SmsProvider: mock
+      # DeploymentStage=dev is live production (app.rapidcortex.us).
+      SmsProvider: aws
       SmsPrimaryProvider: aws
-      MockSmsProvider: "true"
-      AwsSmsUseSimulator: "true"
+      MockSmsProvider: "false"
+      AwsSmsUseSimulator: "false"
     staging:
       SmsProvider: aws
       SmsPrimaryProvider: aws
@@ -1054,8 +1055,9 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       DefaultRouteSettings:
-        ThrottlingBurstLimit: 1000
-        ThrottlingRateLimit: 500
+        # Major-incident floor: 150+ concurrent PSAP consoles.
+        ThrottlingBurstLimit: 5000
+        ThrottlingRateLimit: 2000
       CorsConfiguration:
         AllowOrigins: !Split [",", !Ref HttpApiCorsAllowedOrigins]
         AllowHeaders:
@@ -1096,7 +1098,7 @@ Resources:
     Condition: HasApiWaf
     Properties:
       Name: !Sub "${AppName}-httpapi3-waf-${DeploymentStage}"
-      Description: Rapid Cortex API WAF - agency allowlist, US/CA geo block, anonymous VPN monitor.
+      Description: NexCort iQ API WAF - agency allowlist, US/CA geo block, anonymous VPN monitor.
       Scope: REGIONAL
       DefaultAction:
         Allow: {}
@@ -1929,7 +1931,7 @@ Resources:
       Environment:
         Variables:
           SALES_LEADS_TABLE: !Ref SalesLeadsTable
-          CONTACT_FROM_EMAIL: support@rapidcortex.us
+          CONTACT_FROM_EMAIL: support@nexcortiq.us
           OPS_ALERTS_TOPIC_ARN:
             Fn::If:
               - HasImportedOpsAlertsTopicArn
@@ -1960,7 +1962,7 @@ Resources:
             Action:
               - ses:SendEmail
             Resource:
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@nexcortiq.us
 
       Events:
         ContactSales:
@@ -1984,8 +1986,8 @@ Resources:
         Variables:
           MARKETING_LEADS_TABLE: !Ref MarketingLeadsTable
           SALES_LEADS_TABLE: !Ref SalesLeadsTable
-          RC_TEAM_NOTIFY_EMAIL: team@rapidcortex.us
-          SES_FROM_EMAIL: noreply@rapidcortex.us
+          RC_TEAM_NOTIFY_EMAIL: team@nexcortiq.us
+          SES_FROM_EMAIL: noreply@nexcortiq.us
           ENABLE_INSIDE_THE_CORTEX: "true"
           SES_MOCK: "false"
       Policies:
@@ -2014,9 +2016,9 @@ Resources:
             Action:
               - ses:SendEmail
             Resource:
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/noreply@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/noreply@nexcortiq.us
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@nexcortiq.us
       Events:
         MarketingLeadPost:
           Type: HttpApi
@@ -2127,8 +2129,8 @@ Resources:
         Variables:
           JOB_APPLICATIONS_TABLE: !Ref JobApplicationsTable
           RESUMES_BUCKET: !Ref ResumesBucket
-          FROM_EMAIL: careers@rapidcortex.us
-          NOTIFY_EMAIL: jeff@rapidcortex.us
+          FROM_EMAIL: careers@nexcortiq.us
+          NOTIFY_EMAIL: jeff@nexcortiq.us
           ENABLE_HIRING: "true"
           SES_MOCK: "false"
       Policies:
@@ -2154,9 +2156,9 @@ Resources:
               - ses:SendEmail
               - ses:SendRawEmail
             Resource:
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/careers@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/careers@nexcortiq.us
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@nexcortiq.us
       Events:
         CareersApplyPost:
           Type: HttpApi
@@ -2188,8 +2190,8 @@ Resources:
         Variables:
           JOB_APPLICATIONS_TABLE: !Ref JobApplicationsTable
           RESUMES_BUCKET: !Ref ResumesBucket
-          FROM_EMAIL: careers@rapidcortex.us
-          NOTIFY_EMAIL: jeff@rapidcortex.us
+          FROM_EMAIL: careers@nexcortiq.us
+          NOTIFY_EMAIL: jeff@nexcortiq.us
           REVIEWER_NAME: Jeffrey Coleman
           ENABLE_HIRING: "true"
           SES_MOCK: "false"
@@ -2228,9 +2230,9 @@ Resources:
               - ses:SendEmail
               - ses:SendRawEmail
             Resource:
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/careers@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/careers@nexcortiq.us
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@nexcortiq.us
       Events:
         ApplicationsList:
           Type: HttpApi

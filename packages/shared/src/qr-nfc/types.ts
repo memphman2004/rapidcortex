@@ -38,7 +38,7 @@ export interface QRNFCRecord {
   nfcTagId?: string;
   active: boolean;
   /**
-   * `marketing_site` = Rapid Cortex homepage/demo booth codes (not a location report).
+   * `marketing_site` = NexCort iQ homepage/demo booth codes (not a location report).
    * Omitted on location report codes.
    */
   kind?: "location" | "marketing_site";

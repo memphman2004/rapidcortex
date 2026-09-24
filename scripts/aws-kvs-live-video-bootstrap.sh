@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Optional: create fixed Kinesis Video resources via AWS CLI (sandbox / ops checks).
 #
-# Rapid Cortex production still creates per-session channels (rc-live-*) and streams
+# NexCort iQ production still creates per-session channels (rc-live-*) and streams
 # (rc-lvsv-*) from the API when dispatchers request live video. This script does NOT
 # wire those names into the app—it only provisions named fixtures in your account.
 #
@@ -18,7 +18,7 @@ set -euo pipefail
 
 REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-}}"
 if [[ -z "${REGION}" ]]; then
-  echo "Set AWS_REGION (or AWS_DEFAULT_REGION) to the same region as Rapid Cortex, e.g. export AWS_REGION=us-east-2" >&2
+  echo "Set AWS_REGION (or AWS_DEFAULT_REGION) to the same region as NexCort iQ, e.g. export AWS_REGION=us-east-2" >&2
   exit 1
 fi
 

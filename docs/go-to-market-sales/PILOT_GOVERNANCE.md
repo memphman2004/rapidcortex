@@ -15,7 +15,7 @@ Cognito **`custom:role`** maps to product roles. Canonical list: `packages/share
 | **dispatcher** | Primary workspace: incidents, transcript, AI assist. |
 | **supervisor** | Review queues, second look at escalations. Legacy `commsupervisor` normalizes to `supervisor`. |
 | **agencyadmin** | Agency users, settings, audit views, invites (where APIs enabled). |
-| **rcsuperadmin** / **rcadmin** / **rcitadmin** | Rapid Cortex operators only; cross-agency capabilities guarded in API. Legacy `platform_superadmin` → `rcsuperadmin`. |
+| **rcsuperadmin** / **rcadmin** / **rcitadmin** | NexCort iQ operators only; cross-agency capabilities guarded in API. Legacy `platform_superadmin` → `rcsuperadmin`. |
 
 **Tenancy:** `custom:agencyId` must match agency-scoped data. Slug in the URL is **not** a security boundary.
 

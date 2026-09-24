@@ -1,4 +1,4 @@
-/** Absolute RC Admin shell paths for internal platform command (no jurisdiction prefix). */
+/** Absolute NexCort Admin shell paths for internal platform command (no jurisdiction prefix). */
 export const RC_PLATFORM_COMMAND_PATHS = {
   dashboard: "/rc-admin/dashboard",
   infrastructure: "/rc-admin/infrastructure",

@@ -3268,7 +3268,7 @@ Resources:
       Environment:
         Variables:
           SALES_LEADS_TABLE: !Ref SalesLeadsTable
-          CONTACT_FROM_EMAIL: support@rapidcortex.us
+          CONTACT_FROM_EMAIL: support@nexcortiq.us
           OPS_ALERTS_TOPIC_ARN:
             Fn::If:
               - HasImportedOpsAlertsTopicArn
@@ -3299,7 +3299,7 @@ Resources:
             Action:
               - ses:SendEmail
             Resource:
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@nexcortiq.us
 
       Events:
         ContactSales:

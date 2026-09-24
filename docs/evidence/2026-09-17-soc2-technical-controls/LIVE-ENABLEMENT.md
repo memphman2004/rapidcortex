@@ -6,7 +6,7 @@ Account `158961537080` / `us-east-1` / `rapid-cortex-deploy`
 
 | Control | Result |
 |---|---|
-| DynamoDB PITR | **141 newly ENABLED** + 41 already on = **182/182** Rapid Cortex/Ring tables. `agencies`, `incidents`, `audit` confirmed ENABLED. |
+| DynamoDB PITR | **141 newly ENABLED** + 41 already on = **182/182** NexCort iQ/Ring tables. `agencies`, `incidents`, `audit` confirmed ENABLED. |
 | Cognito MFA | Production pool `us-east-1_0z6tA6WBs` **`MfaConfiguration=ON`**, TOTP enabled. Next password login without TOTP is `MFA_SETUP` (web app already handles it). |
 | API WAF logging | `rapid-cortex-httpapi-cdn-waf-dev` → `aws-waf-logs-rapid-cortex-httpapi-cdn-dev` |
 | ACM expiry | Alarm `rapid-cortex-acm-expiry-api-rapidcortex-us` (DaysToExpiry < 30, state OK) |
@@ -30,7 +30,7 @@ Until that apply lands, `GetTrailStatus` / `ListKeys` / `ListSecrets` remain Acc
 
 ## Shared account
 
-Carve-out: `Business Documents/Compliance/Rapid Cortex Compliance/01 - Governance/SYSTEM-BOUNDARY.md`
+Carve-out: `Business Documents/Compliance/NexCort iQ Compliance/01 - Governance/SYSTEM-BOUNDARY.md`
 
 ## So the next SAM deploy does not revert live fixes
 

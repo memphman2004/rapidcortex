@@ -20,8 +20,8 @@ export default async function RcAdminAgreementsPage() {
       <div>
         <h1 className="text-2xl font-semibold text-white">Agreements</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Track MSA, pilot scope, and RC Lite API agreements. Adobe Sign completions auto-provision
-          RC Lite tenants; platform MSAs notify RC ops for manual onboarding.
+          Track MSA, pilot scope, and NexCort Lite API agreements. Adobe Sign completions auto-provision
+          NexCort Lite tenants; platform MSAs notify RC ops for manual onboarding.
         </p>
       </div>
       <RcAdminAgreementsClient />

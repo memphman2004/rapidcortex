@@ -15,7 +15,7 @@
 
 | Item | Internal target |
 |------|-----------------|
-| RPO (DynamoDB) | PITR (seconds) on in-scope Rapid Cortex/Ring tables |
+| RPO (DynamoDB) | PITR (seconds) on in-scope NexCort iQ/Ring tables |
 | RTO (regional AWS degradation) | Redeploy / failover per AWS status; no second-region active-active claimed |
 | RTO (bad application deploy) | Redeploy previous git tag / SAM artifact |
 | Data restore | Restore **to a new table**, validate, cut over only under change control |
@@ -24,8 +24,8 @@ Live production PITR: **182/182 ENABLED** as of 2026-09-17. `DeploymentStage=dev
 
 ## 2. Backups
 
-- **DynamoDB:** PITR required on Rapid Cortex and Ring tables. Next live SAM deploy must pass `DynamoPointInTimeRecovery=true` (forced by `soc2-live-production-overrides.sh`).
-- **S3:** default encryption + Block Public Access on Rapid Cortex buckets. Versioning is required on evidence and CloudTrail buckets; enable versioning on remaining asset buckets as a tracked improvement.
+- **DynamoDB:** PITR required on NexCort iQ and Ring tables. Next live SAM deploy must pass `DynamoPointInTimeRecovery=true` (forced by `soc2-live-production-overrides.sh`).
+- **S3:** default encryption + Block Public Access on NexCort iQ buckets. Versioning is required on evidence and CloudTrail buckets; enable versioning on remaining asset buckets as a tracked improvement.
 - **Secrets:** metadata in AWS; **values** recoverable from the operator’s primary secret store if deleted.
 - **Cognito:** no PITR on the user pool; export identifiers from stack outputs; plan federation/export.
 
@@ -35,4 +35,4 @@ Before the observation window and at least annually: [restore-drill.md](../proce
 
 ## 4. Dependencies
 
-Floor operations continue on CAD/radio if Rapid Cortex is down. Communicate “assistive layer unavailable — use CAD” — never imply 911 is down because Rapid Cortex is down.
+Floor operations continue on CAD/radio if NexCort iQ is down. Communicate “assistive layer unavailable — use CAD” — never imply 911 is down because NexCort iQ is down.

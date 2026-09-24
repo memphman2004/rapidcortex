@@ -29,7 +29,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Vendor Coordination",
     category: "CAD Integration",
     description:
-      "Rapid Cortex-led coordination with agency CAD vendor for API access and sandbox setup.",
+      "NexCort iQ-led coordination with agency CAD vendor for API access and sandbox setup.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 10000,
@@ -40,7 +40,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Read-Only Integration",
     category: "CAD Integration",
     description:
-      "One-way read integration from agency CAD into Rapid Cortex context panel. No write-back.",
+      "One-way read integration from agency CAD into NexCort iQ context panel. No write-back.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 22000,
@@ -63,7 +63,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Automated Write-Back",
     category: "CAD Integration",
     description:
-      "Full bidirectional sync between Rapid Cortex and CAD with automated field mapping.",
+      "Full bidirectional sync between NexCort iQ and CAD with automated field mapping.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 62000,
@@ -123,7 +123,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Automated Write-Back - T1 Micro",
     category: "CAD Integration",
     description:
-      "Tiered automated CAD write-back pricing for T1 Micro agencies (1-3 dispatchers, up to 500 calls/month). Full bidirectional sync between Rapid Cortex and CAD with automated field mapping.",
+      "Tiered automated CAD write-back pricing for T1 Micro agencies (1-3 dispatchers, up to 500 calls/month). Full bidirectional sync between NexCort iQ and CAD with automated field mapping.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 46000,
@@ -135,7 +135,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Automated Write-Back - T2 Small",
     category: "CAD Integration",
     description:
-      "Tiered automated CAD write-back pricing for T2 Small agencies (4-8 dispatchers, up to 1,500 calls/month). Full bidirectional sync between Rapid Cortex and CAD with automated field mapping.",
+      "Tiered automated CAD write-back pricing for T2 Small agencies (4-8 dispatchers, up to 1,500 calls/month). Full bidirectional sync between NexCort iQ and CAD with automated field mapping.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 58000,
@@ -147,7 +147,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Automated Write-Back - T3 Medium",
     category: "CAD Integration",
     description:
-      "Tiered automated CAD write-back pricing for T3 Medium agencies (9-15 dispatchers, up to 3,500 calls/month). Full bidirectional sync between Rapid Cortex and CAD with automated field mapping.",
+      "Tiered automated CAD write-back pricing for T3 Medium agencies (9-15 dispatchers, up to 3,500 calls/month). Full bidirectional sync between NexCort iQ and CAD with automated field mapping.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 67000,
@@ -170,7 +170,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Field Mapping Document",
     category: "CAD Integration",
     description:
-      "Formal field mapping specification between Rapid Cortex and agency CAD data model.",
+      "Formal field mapping specification between NexCort iQ and agency CAD data model.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 5500,
@@ -480,7 +480,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "rc.translate",
-    name: "RC Translate",
+    name: "Translate",
     category: "Transcription & Translation",
     description:
       "Bidirectional real-time AI voice translation for field officers. 40+ languages.",
@@ -492,7 +492,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "rc.translate.venue",
-    name: "RC Translate — Venue",
+    name: "Translate — Venue",
     category: "Transcription & Translation",
     description: "Real-time AI translation for venue staff and guest communications.",
     billingType: "monthly",
@@ -504,7 +504,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "rc.translate.campus",
-    name: "RC Translate — Campus",
+    name: "Translate — Campus",
     category: "Transcription & Translation",
     description: "Real-time AI translation for campus safety officers and counselors.",
     billingType: "monthly",
@@ -516,7 +516,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "rc.translate.hospital",
-    name: "RC Translate — Clinical",
+    name: "Translate — Clinical",
     category: "Transcription & Translation",
     description:
       "HIPAA-aware real-time translation for patient-provider communication. 40+ languages.",
@@ -1058,7 +1058,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "Monitoring Integrations",
     category: "Reliability / Technical Ops",
     description:
-      "Connect Rapid Cortex operational health to PagerDuty, OpsGenie, Datadog, or custom endpoints.",
+      "Connect NexCort iQ operational health to PagerDuty, OpsGenie, Datadog, or custom endpoints.",
     billingType: "monthly",
     monthlyPrice: 2500,
     oneTimePrice: 0,
@@ -1388,7 +1388,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "API Keys & Webhooks",
     category: "Platform Security & Administration",
     description:
-      "Scoped outbound integration credentials for connecting Rapid Cortex to external agency systems, plus webhook subscriptions for real-time event delivery.",
+      "Scoped outbound integration credentials for connecting NexCort iQ to external agency systems, plus webhook subscriptions for real-time event delivery.",
     billingType: "monthly",
     monthlyPrice: 500,
     oneTimePrice: 0,
@@ -1409,7 +1409,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.rc_connect_standard",
-    name: "Rapid Vision™ - Standard",
+    name: "NexiQ Vision™ - Standard",
     category: "Feature Add-Ons",
     description:
       "ONVIF/RTSP camera integration linking up to 10 existing facility cameras to active incidents in the dispatcher or venue console.",
@@ -1420,7 +1420,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.rc_connect_professional",
-    name: "Rapid Vision™ - Professional",
+    name: "NexiQ Vision™ - Professional",
     category: "Feature Add-Ons",
     description:
       "Multi-zone camera management for larger facilities, up to 50 cameras. Feeds are surfaced contextually when an incident is created in the associated zone.",
@@ -1431,7 +1431,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.rc_connect_enterprise",
-    name: "Rapid Vision™ - Enterprise",
+    name: "NexiQ Vision™ - Enterprise",
     category: "Feature Add-Ons",
     description:
       "Unlimited camera deployments with dedicated KVS streaming infrastructure and advanced camera routing for large multi-site deployments.",

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { verticalOnboardingContinueHref } from "@/lib/onboarding/continue-href";
 
 describe("verticalOnboardingContinueHref", () => {
-  it("prefixes /rc-admin when already in the RC Admin shell", () => {
+  it("prefixes /rc-admin when already in the NexCort Admin shell", () => {
     expect(
       verticalOnboardingContinueHref(
         "/rc-admin/onboarding/campus/intake",

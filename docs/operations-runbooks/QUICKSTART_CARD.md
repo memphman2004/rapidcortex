@@ -5,7 +5,7 @@
 ## Sign in
 
 - URL: `https://<your-host>/<slug>/login`
-- **Connections** (bottom): **Rapid Cortex API = live** before taking real work.
+- **Connections** (bottom): **NexCort iQ API = live** before taking real work.
 
 ## Dispatcher (60 seconds)
 

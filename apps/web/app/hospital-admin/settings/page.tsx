@@ -15,7 +15,7 @@ export default async function HospitalAdminSettingsPage() {
         <h1 className="text-lg font-semibold text-white">Facility settings</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
           Configure facility profile, notification contacts, and integration credentials.
-          Contact Rapid Cortex support to enable HL7 or API capacity feeds for your agency.
+          Contact NexCort iQ support to enable HL7 or API capacity feeds for your agency.
         </p>
       </div>
     </div>

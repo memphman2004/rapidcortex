@@ -1,4 +1,4 @@
-# Rapid Cortex — Transit Operations
+# NexCort iQ — Transit Operations
 
 Transit consoles cover fleet, routes, and on-system incidents. This does not replace transit CAD or the region’s 911 PSAP.
 

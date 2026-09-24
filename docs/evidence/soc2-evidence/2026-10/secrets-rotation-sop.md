@@ -1,8 +1,8 @@
-# Secrets Manager rotation — Rapid Cortex (manual SOP)
+# Secrets Manager rotation — NexCort iQ (manual SOP)
 
 **Control:** CC6.1 / CC6.6 complementary — credential lifecycle  
 **Date:** 2026-09-17  
-**Evidence:** `secrets-inventory.json` (36 Rapid Cortex secrets; `RotationEnabled` is null/false on all)
+**Evidence:** `secrets-inventory.json` (36 NexCort iQ secrets; `RotationEnabled` is null/false on all)
 
 Automatic rotation is **not** enabled. These secrets are third-party API keys, OAuth client secrets, and HMAC keys. AWS managed rotation Lambdas do not exist for Twilio, Ring, Anthropic, etc.
 

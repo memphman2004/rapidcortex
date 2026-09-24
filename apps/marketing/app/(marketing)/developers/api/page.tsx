@@ -5,7 +5,7 @@ import { marketingContactPath, marketingDevelopersDocsPath } from "@/lib/marketi
 export const metadata = {
   title: "API documentation",
   description:
-    "Rapid Cortex RC Lite programmatic API overview — OAuth client-credentials and HTTPS APIs for approved integration partners.",
+    "NexCort iQ NexCort Lite programmatic API overview — OAuth client-credentials and HTTPS APIs for approved integration partners.",
 };
 
 export default function ApiDocumentationLandingPage() {
@@ -17,7 +17,7 @@ export default function ApiDocumentationLandingPage() {
     <div className="min-h-full px-4 py-14 text-slate-100 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl">
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-400/90">
-          Rapid Cortex · RC Lite programmatic API
+          NexCort iQ · NexCort Lite programmatic API
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
           API documentation
@@ -28,7 +28,7 @@ export default function ApiDocumentationLandingPage() {
           <p className="mt-2 text-pretty leading-relaxed text-sky-100/90">
             Machine-readable API contracts are published for approved partners. View the{" "}
             <Link href="/openapi/rc-lite-v1.openapi.yaml" className="font-medium text-white underline hover:text-sky-100">
-              RC Lite OpenAPI document
+              NexCort Lite OpenAPI document
             </Link>{" "}
             on this site.
           </p>
@@ -66,7 +66,7 @@ export default function ApiDocumentationLandingPage() {
         <div className="mt-10 rounded-xl border border-slate-800 bg-slate-950/70 p-6">
           <h2 className="text-lg font-semibold text-white">Need access?</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Sandbox keys, scopes, and production promotion are coordinated with Rapid Cortex onboarding. Ask for connectivity
+            Sandbox keys, scopes, and production promotion are coordinated with NexCort iQ onboarding. Ask for connectivity
             details and conformance review through the channels below.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">

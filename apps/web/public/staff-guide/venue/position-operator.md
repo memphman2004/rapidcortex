@@ -1,18 +1,30 @@
 # Venue Operator
 
-Operators post and maintain QR/NFC and have **view-only** incidents. You are field/event support, not incident command and not 911.
+Operators post and maintain QR and NFC, and they can view incidents. You are event support, not incident command and not 911.
 
 ## You can
 
-- Create, download, and deactivate QR / NFC codes
-- View incidents
-- Use video wall when licensed
+- Create, download, assign cameras, and deactivate QR and NFC codes
+- View incidents so you know which sections are busy
+- Use the video wall when that feature is on for this venue
 
 ## You cannot
 
-- Run Guest Services as a dispatch floor
-- Submit CAD
+- Run the Guest Services inbox as a dispatch floor
+- Create or close incidents unless your account was explicitly granted that
+- Submit CAD or open dispatcher tools
 
-## Locations
+## Before doors
 
-You are a primary role for **Update QR codes and NFC tags**. After an event, deactivate leftover posts (**Delete locations from the dashboard**) and recover NFC stickers for reprogramming.
+1. Open **QR Codes** and print the posts for tonight’s open gates, clubs, and concourses.
+2. Program NFC from the Field app for each of those posts.
+3. Test one scan and one tap. The guest report must name the section on the sign.
+4. Assign cameras when Supervisor wants a scan to point at the right views.
+
+## During the event
+
+If a sign is damaged or a section closes, deactivate that code and post the replacement. Tell Security which name changed so they are not walking to the old gate.
+
+## After load-out
+
+Deactivate leftover posts and pick up NFC tags that should be reprogrammed next time. See **Delete locations from the dashboard**.

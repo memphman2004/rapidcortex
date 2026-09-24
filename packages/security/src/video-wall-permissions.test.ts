@@ -12,7 +12,7 @@ function makeUser(role: string): UserContext {
   };
 }
 
-describe("Rapid Cortex Video wall RBAC", () => {
+describe("NexCort iQ Video wall RBAC", () => {
   const auth = new AuthorizationService();
 
   it("grants view+configure to campus admin and view-only to campus security", () => {

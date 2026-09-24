@@ -10,7 +10,7 @@ export function PricingPaymentSection() {
           Ways to Pay
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-400 sm:text-base">
-          Rapid Cortex supports annual contracts, pilots, purchase orders, invoice billing, and custom enterprise agreements.
+          NexCort iQ supports annual contracts, pilots, purchase orders, invoice billing, and custom enterprise agreements.
           Government teams route procurement through contracting offices, PO references, and structured statements of work.
         </p>
       </div>
@@ -19,7 +19,7 @@ export function PricingPaymentSection() {
           <h3 className="text-sm font-semibold text-white">Pilots & renewals</h3>
           <p className="mt-2 text-sm text-slate-400">
             Phased pilots and term renewals align to agency budget cycles. Activation and true-ups are coordinated through
-            authorized procurement workflows—Rapid Cortex does not process public self-service card payments here.
+            authorized procurement workflows—NexCort iQ does not process public self-service card payments here.
           </p>
         </div>
         <div className="rounded-2xl border border-slate-800/90 bg-slate-900/40 p-5">
@@ -39,7 +39,7 @@ export function PricingPaymentSection() {
       </div>
       <p className="mt-8 max-w-3xl text-sm leading-relaxed text-slate-400">
         <Link href="/rc-lite" className="text-sky-400/90 hover:text-sky-300">
-          RC Lite
+          NexCort Lite
         </Link>{" "}
         is a separate API product from the dashboard tiers above: contract it standalone for integrations only, or add API
         capability on top of Command or Enterprise with the API Access add-on. See also{" "}

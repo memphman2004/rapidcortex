@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** Markets RapidIQ Opportunity Intelligence can score. */
+/** Markets NexiQ IQ Opportunity Intelligence can score. */
 export const RAPID_IQ_INTEL_MARKETS = ["TRANSIT", "PSAP", "CAMPUS", "VENUE", "PARTNER"] as const;
 export type RapidIqIntelMarket = (typeof RAPID_IQ_INTEL_MARKETS)[number];
 

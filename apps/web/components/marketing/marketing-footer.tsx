@@ -23,7 +23,7 @@ import {
   marketingDesktopPath,
   marketingHomePath,
   marketingLoginPath,
-  marketingNestConnectPath,
+  marketingWyzeConnectPath,
   marketingPricingPath,
   marketingPrivacyPath,
   marketingSecurityPath,
@@ -77,7 +77,7 @@ export function MarketingFooter() {
   const smsConsentHref = marketingSmsConsentPath();
   const statusHref = marketingOperationsStatusPath();
   const pressHref = marketingPressPath();
-  const nestConnectHref = marketingNestConnectPath();
+  const wyzeConnectHref = marketingWyzeConnectPath();
 
   return (
     <footer className="safe-bottom border-t border-slate-800/90 bg-[#030712] py-6 text-xs text-slate-400 sm:py-7">
@@ -86,7 +86,7 @@ export function MarketingFooter() {
           <div className="space-y-2 lg:col-span-3 xl:col-span-3">
             <SiteLogoLink
               href={home}
-              heightClass="h-7 md:h-8"
+              heightClass="h-12 md:h-14"
               linkClassName="inline-flex shrink-0 opacity-[0.98]"
             />
             <p className="text-xs font-semibold leading-snug text-slate-200">{SITE_SLOGAN}</p>
@@ -115,7 +115,7 @@ export function MarketingFooter() {
               <ul className="mt-1.5 space-y-0.5">
                 <li>
                   <Link href="/product/core" className={FOOTER_FOCUS_LINK_CLASS}>
-                    Core
+                    911 Centers/PSAPs
                   </Link>
                 </li>
                 <li>
@@ -136,7 +136,7 @@ export function MarketingFooter() {
                 {isRcLiteMarketingEnabled() ? (
                   <li>
                     <Link href={rcLiteHref} className={FOOTER_FOCUS_LINK_CLASS}>
-                      RC Lite
+                      NexCort Lite
                     </Link>
                   </li>
                 ) : null}
@@ -265,10 +265,10 @@ export function MarketingFooter() {
                         </span>
                       </span>
                     </summary>
-                    <ul className="mt-1 space-y-0.5 border-l border-slate-800/90 pl-2.5" aria-label="Integration partners">
+                    <ul className="mt-1 space-y-0.5 border-l border-slate-800/90 pl-2.5" aria-label="Camera integrations">
                       <li>
-                        <a href={nestConnectHref} className={FOOTER_FOCUS_LINK_CLASS}>
-                          Nest™
+                        <a href={wyzeConnectHref} className={FOOTER_FOCUS_LINK_CLASS}>
+                          Wyze™
                         </a>
                       </li>
                     </ul>

@@ -13,7 +13,7 @@ export type SafetyVerticalConfig = {
 };
 
 export const campusConfig: SafetyVerticalConfig = {
-  productLabel: "Rapid Cortex Campus",
+  productLabel: "NexCort iQ Campus",
   contextLabel: "Campus Safety Reporting",
   headline: "Report a Safety Concern",
   supporting:
@@ -33,7 +33,7 @@ export const campusConfig: SafetyVerticalConfig = {
 };
 
 export const venueConfig: SafetyVerticalConfig = {
-  productLabel: "Rapid Cortex Venue",
+  productLabel: "NexCort iQ Venue",
   contextLabel: "Venue Safety Reporting",
   headline: "Report a Venue Safety Concern",
   supporting:
@@ -54,7 +54,7 @@ export const venueConfig: SafetyVerticalConfig = {
 };
 
 const nineOneOneConfig: SafetyVerticalConfig = {
-  productLabel: "Rapid Cortex",
+  productLabel: "NexCort iQ",
   contextLabel: "Public Safety Reporting",
   headline: "Submit a Report",
   supporting:
@@ -67,7 +67,7 @@ const nineOneOneConfig: SafetyVerticalConfig = {
 };
 
 const hospitalConfig: SafetyVerticalConfig = {
-  productLabel: "Rapid Cortex Hospital",
+  productLabel: "NexCort iQ Hospital",
   contextLabel: "Hospital Safety Reporting",
   headline: "Report a Patient Concern",
   supporting: "Send a message directly to hospital staff for coordination and response.",
@@ -79,7 +79,7 @@ const hospitalConfig: SafetyVerticalConfig = {
 };
 
 const transitConfig: SafetyVerticalConfig = {
-  productLabel: "Rapid Cortex Transit",
+  productLabel: "NexCort iQ Transit",
   contextLabel: "Transit Safety Reporting",
   headline: "Report a Transit Issue",
   supporting: "Send a report directly to transit security for response coordination.",

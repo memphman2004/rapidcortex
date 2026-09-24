@@ -1,4 +1,4 @@
-# Rapid Cortex
+# NexCort iQ
 
 **Real-time AI intelligence for emergency response** — a browser-based AWS SaaS co-pilot for dispatchers, with supervisor and admin workflows, protocol-backed guidance, and CJIS-aligned patterns (not a compliance claim).
 

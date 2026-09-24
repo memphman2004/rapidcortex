@@ -4,7 +4,7 @@
 **Status:** **CURRENT** as of 2026-09-19 — review quarterly and before each major architecture change.  
 **Not exhaustive** of every AWS API call; lists **categories of third parties** that may process customer data when features are enabled.
 
-Rapid Cortex is primarily deployed on **Amazon Web Services (us-east-1** by default unless contract specifies otherwise). Customer data is scoped by **`agencyId`** tenant isolation.
+NexCort iQ is primarily deployed on **Amazon Web Services (us-east-1** by default unless contract specifies otherwise). Customer data is scoped by **`agencyId`** tenant isolation.
 
 This inventory is the AI / communications subprocessor documentation for Call Assist, mapping, STT, and analysis. It is **not** a CJIS certification.
 
@@ -80,7 +80,7 @@ These process **prospect and sales-automation** data when Rapid IQ is enabled. T
 | **Apollo.io** | Contact enrichment | Prospect contact metadata |
 | **Legiscan / OpenStates** | Bill / jurisdiction research | Public legislative text |
 | **RunSignUp** | Event / conference signals | Public event metadata |
-| **Microsoft** (Graph / Outlook) | Campaign mail (`hello@rapidcortex.us`) | Email content for RC sales |
+| **Microsoft** (Graph / Outlook) | Campaign mail (`hello@nexcortiq.us`) | Email content for RC sales |
 | **Microsoft Teams** (incoming webhook) | Internal Rapid IQ alerts | Alert text |
 
 ---
@@ -114,6 +114,6 @@ Agencies remain responsible for:
 | 0.2 | 2026-09-08 | Current AI/comms inventory: Connect, Lex, Polly, Location Service, Bedrock minimization, Call Assist KB grounding |
 | 0.1 | 2026-07-09 | Initial draft from `infra/template.yaml` and provider docs |
 
-**Contact:** security review requests — use agency contract channel or `privacy@rapidcortex.us` for privacy-specific questions.
+**Contact:** security review requests — use agency contract channel or `privacy@nexcortiq.us` for privacy-specific questions.
 
 **Related:** [SECURITY_QUESTIONNAIRE_RESPONSES.md](./SECURITY_QUESTIONNAIRE_RESPONSES.md), [PRIVACY_RETENTION_DECISIONS.md](./PRIVACY_RETENTION_DECISIONS.md)

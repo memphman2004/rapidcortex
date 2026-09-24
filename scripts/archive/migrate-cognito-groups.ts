@@ -24,20 +24,20 @@ import {
 type EnvName = "dev" | "staging" | "prod";
 
 const GROUP_RENAMES: { from: string; to: string; description: string }[] = [
-  { from: "rc_admin", to: "rcsuperadmin", description: "Rapid Cortex platform super-administrator" },
+  { from: "rc_admin", to: "rcsuperadmin", description: "NexCort iQ platform super-administrator" },
   { from: "admin", to: "agencyadmin", description: "Agency administrator" },
   { from: "supervisor", to: "commsupervisor", description: "Communications supervisor" },
   { from: "it_admin", to: "agencyit", description: "Agency IT administrator" },
   { from: "readonly_auditor", to: "auditor", description: "Read-only auditor" },
-  { from: "platform_superadmin", to: "rcsuperadmin", description: "Rapid Cortex platform super-administrator (legacy)" },
+  { from: "platform_superadmin", to: "rcsuperadmin", description: "NexCort iQ platform super-administrator (legacy)" },
 ];
 
 const NEW_GROUPS: { name: string; description: string }[] = [
-  { name: "rcadmin", description: "Rapid Cortex business operations (billing, onboarding, notices)" },
-  { name: "rcitadmin", description: "Rapid Cortex technical support (users, integrations, diagnostics)" },
+  { name: "rcadmin", description: "NexCort iQ business operations (billing, onboarding, notices)" },
+  { name: "rcitadmin", description: "NexCort iQ technical support (users, integrations, diagnostics)" },
 ];
 
-/** Legacy `custom:role` attribute values → canonical Rapid Cortex role tokens (pool attribute migration). */
+/** Legacy `custom:role` attribute values → canonical NexCort iQ role tokens (pool attribute migration). */
 const CUSTOM_ROLE_ATTR_LEGACY_TO_CANONICAL: Record<string, string> = {
   rc_admin: "rcadmin",
   platform_superadmin: "rcsuperadmin",

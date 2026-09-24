@@ -28,6 +28,7 @@ import { sendIncidentMediaLinkSms } from "./sms/smsProviderFactory.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import { AgencyRepository } from "../repositories/agencyRepository.js";
 import { IncidentMediaRepository } from "../repositories/incidentMediaRepository.js";
+import { maybeCreateEvidenceOnMediaUpload } from "../feature-suite/integrations.js";
 import { IncidentRepository } from "../repositories/incidentRepository.js";
 import { buildMediaDedupe, buildRetentionFields } from "../lib/retentionPolicy.js";
 
@@ -158,7 +159,7 @@ export class MediaService {
     const path = `/media/upload/${encodeURIComponent(token)}`;
     const publicUrl = `${base}${path}`;
     /** Short, consent-oriented, incident-scoped copy (toll-free / transactional SMS). No CAD or PII. */
-    const msg = `Rapid Cortex: A dispatcher requested a secure incident media upload link. Sharing is optional. Open: ${publicUrl}`;
+    const msg = `NexCort iQ: A dispatcher requested a secure incident media upload link. Sharing is optional. Open: ${publicUrl}`;
 
     const sms = await sendIncidentMediaLinkSms(
       await buildSmsFactoryEnvForAgency(incident.agencyId),
@@ -412,6 +413,17 @@ export class MediaService {
       ContentType: body.contentType,
     });
     const uploadUrl = await getSignedUrl(s3, put, { expiresIn: env.incidentMediaUploadUrlTtlSeconds });
+
+    maybeCreateEvidenceOnMediaUpload({
+      agencyId: row.agencyId,
+      incidentId: row.incidentId,
+      actorId: "public",
+      originalFilename: body.fileName,
+      mimeType: body.contentType,
+      fileSizeBytes: body.byteSize,
+      s3Key,
+      s3Bucket: env.assetsBucket,
+    });
 
     return {
       uploadUrl,

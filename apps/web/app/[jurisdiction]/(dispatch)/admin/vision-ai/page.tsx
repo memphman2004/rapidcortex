@@ -20,7 +20,7 @@ export default function VisionAiAdminPage() {
   return (
     <div className="space-y-4 p-4 md:p-6">
       <div>
-        <h1 className="text-lg font-semibold text-white">Rapid Vision AI monitoring</h1>
+        <h1 className="text-lg font-semibold text-white">NexiQ Vision AI monitoring</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">
           Configure which cameras generate Scene Intelligence alerts. AI never creates an incident or
           dispatches units.

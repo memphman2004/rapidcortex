@@ -5,18 +5,18 @@
   "main": "index.js",
   "scripts": {
     "dev": "expo start --android",
-    "dev:ios": "echo 'iOS is native Swift (Rapid Cortex Mobile). Open apps/ios-mobile/RapidCortexField.xcodeproj' && exit 1",
+    "dev:ios": "echo 'iOS is native Swift (NexCort iQ Mobile). Open apps/ios-mobile/RapidCortexField.xcodeproj' && exit 1",
     "dev:android": "expo start --android",
     "build:ios": "echo 'iOS is native Swift. See apps/ios-mobile/README.md' && exit 1",
     "build:android": "eas build --platform android --profile production",
     "build:preview": "eas build --platform android --profile preview",
-    "submit:ios": "echo 'Submit iOS Rapid Cortex Mobile from Xcode / Transporter. See apps/ios-mobile/README.md' && exit 1",
+    "submit:ios": "echo 'Submit iOS NexCort iQ Mobile from Xcode / Transporter. See apps/ios-mobile/README.md' && exit 1",
     "submit:android": "eas submit --platform android",
     "eas-build-post-install": "node ./scripts/eas-ensure-expo-pods.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/",
     "android": "expo run:android",
-    "ios": "echo 'iOS is native Swift (Rapid Cortex Mobile). Open apps/ios-mobile/RapidCortexField.xcodeproj' && exit 1"
+    "ios": "echo 'iOS is native Swift (NexCort iQ Mobile). Open apps/ios-mobile/RapidCortexField.xcodeproj' && exit 1"
   },
   "dependencies": {
     "@aws-amplify/auth": "6.6.0",

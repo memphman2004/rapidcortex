@@ -1,4 +1,4 @@
-# RC Admin overview
+# NC Admin overview
 
 Platform administration across tenants. You do not work 911 calls or campus/venue incidents from this dashboard.
 

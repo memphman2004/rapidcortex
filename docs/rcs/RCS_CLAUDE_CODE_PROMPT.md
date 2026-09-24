@@ -1,4 +1,4 @@
-# Rapid Cortex — Response Continuity System (RCS)
+# NexCort iQ — Response Continuity System (RCS)
 ## Claude Code Implementation Prompt
 
 > **Purpose:** Implement the Response Continuity System end-to-end.
@@ -1170,7 +1170,7 @@ full silent monitor queue.
 // Route: /<agencySlug>/rcs
 // Auth: redirect to login if no session
 // Render: <RcsMonitorPanel agencyId={...} userRole={...} userId={...} />
-// Title: "Response Continuity System | Rapid Cortex"
+// Title: "Response Continuity System | NexCort iQ"
 // Add this route to the existing agency nav (follow venue nav pattern in venue-nav.tsx)
 ```
 
@@ -1601,5 +1601,5 @@ A correct implementation satisfies ALL of the following:
 
 ---
 
-*Rapid Cortex — Intelligence at the speed of response.*
+*NexCort iQ — Intelligence at the speed of response.*
 *This feature exists to prevent the next Ryleigh Daigle.*

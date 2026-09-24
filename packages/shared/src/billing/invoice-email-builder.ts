@@ -8,12 +8,12 @@
 
 import type { AutomatedInvoice } from "./invoice-types.js";
 
-const SUPPORT_EMAIL = "billing@rapidcortex.us";
+const SUPPORT_EMAIL = "billing@nexcortiq.us";
 
 export function buildInvoiceEmailSubject(invoice: AutomatedInvoice): string {
   const period = formatPeriod(invoice.billingPeriod);
   const amount = formatDollars(invoice.totalCents);
-  return `Rapid Cortex Invoice ${invoice.invoiceId} — ${period} — ${amount} due ${formatDate(invoice.dueDate)}`;
+  return `NexCort iQ Invoice ${invoice.invoiceId} — ${period} — ${amount} due ${formatDate(invoice.dueDate)}`;
 }
 
 export function buildInvoiceEmailHtml(invoice: AutomatedInvoice): string {
@@ -39,7 +39,7 @@ export function buildInvoiceEmailHtml(invoice: AutomatedInvoice): string {
 
   <div style="background:#0f172a;padding:28px 36px;display:flex;align-items:center;justify-content:space-between;">
     <div>
-      <div style="color:#94a3b8;font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">Rapid Cortex</div>
+      <div style="color:#94a3b8;font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">NexCort iQ</div>
       <div style="color:#fff;font-size:22px;font-weight:700;">Invoice</div>
     </div>
     ${isOverdue ? `<div style="background:#dc2626;color:#fff;padding:6px 16px;border-radius:6px;font-size:13px;font-weight:700;">OVERDUE</div>` : ""}
@@ -75,7 +75,7 @@ export function buildInvoiceEmailHtml(invoice: AutomatedInvoice): string {
     <div>
       <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">From</div>
       <div style="font-size:14px;font-weight:700;color:#0f172a;">Apps on Demand LLC</div>
-      <div style="font-size:13px;color:#475569;">d/b/a Rapid Cortex</div>
+      <div style="font-size:13px;color:#475569;">d/b/a NexCort iQ</div>
       <div style="font-size:13px;color:#475569;">${SUPPORT_EMAIL}</div>
     </div>
   </div>
@@ -144,7 +144,7 @@ export function buildInvoiceEmailHtml(invoice: AutomatedInvoice): string {
 
   <div style="padding:16px 36px;text-align:center;border-top:1px solid #e2e8f0;">
     <div style="font-size:12px;color:#94a3b8;">Questions? Contact ${SUPPORT_EMAIL}</div>
-    <div style="font-size:11px;color:#cbd5e1;margin-top:6px;">Rapid Cortex — Intelligence at the speed of response · Invoice ${escapeHtml(invoice.invoiceId)}</div>
+    <div style="font-size:11px;color:#cbd5e1;margin-top:6px;">NexCort iQ — Intelligence at the speed of response · Invoice ${escapeHtml(invoice.invoiceId)}</div>
   </div>
 
 </div>
@@ -158,7 +158,7 @@ export function buildInvoiceEmailText(invoice: AutomatedInvoice): string {
     .map((l) => `  ${l.description.padEnd(55)} ${formatDollars(l.amountCents).padStart(12)}`)
     .join("\n");
 
-  return `RAPID CORTEX — INVOICE ${invoice.invoiceId}
+  return `NEXCORT IQ — INVOICE ${invoice.invoiceId}
 ${"=".repeat(60)}
 Billing Period: ${period}
 Invoice Date:   ${formatDate(invoice.invoiceDate)}
@@ -191,7 +191,7 @@ Check payable to: Apps on Demand LLC
 Late payment: 1.5%/month (18% APR). Suspension after 60 days overdue.
 
 Questions: ${SUPPORT_EMAIL}
-Invoice ${invoice.invoiceId} · Rapid Cortex — Intelligence at the speed of response`;
+Invoice ${invoice.invoiceId} · NexCort iQ — Intelligence at the speed of response`;
 }
 
 export function formatInvoiceDollars(cents: number): string {

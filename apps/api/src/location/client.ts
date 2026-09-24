@@ -5,6 +5,13 @@ import { env } from "../lib/env.js";
 let cached: LocationClient | null = null;
 let cachedPlaces: GeoPlacesClient | null = null;
 
+export class LocationNotConfiguredError extends Error {
+  constructor(resource: string) {
+    super(`Amazon Location ${resource} is not configured`);
+    this.name = "LocationNotConfiguredError";
+  }
+}
+
 export function alsLocationMockEnabled(): boolean {
   return env.alsLocationMock;
 }

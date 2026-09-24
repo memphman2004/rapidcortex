@@ -92,7 +92,7 @@ export async function handleRcLiteV1Request(
 
   if (!route) {
     await baseMeterUnknown(404, false);
-    return rcLiteJsonError("NOT_FOUND", "No RC Lite endpoint matches this path and method.", requestId, 404);
+    return rcLiteJsonError("NOT_FOUND", "No NexCort Lite endpoint matches this path and method.", requestId, 404);
   }
 
   /**
@@ -258,7 +258,7 @@ export async function handleRcLiteV1Request(
     requestId,
     tenantId: auth.tenantId,
     stub: true,
-    message: "RC Lite route registered — connect upstream processing and adjust status from 501 when live.",
+    message: "NexCort Lite route registered — connect upstream processing and adjust status from 501 when live.",
     path: "/api/v1/" + endpoint,
     scope: route.scope,
     module: route.productModule,

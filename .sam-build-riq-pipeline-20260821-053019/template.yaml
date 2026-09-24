@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: "Rapid Cortex \u2014 Rapid IQ Signal Intelligence Pipeline (procurement\
+Description: "NexCort iQ \u2014 Rapid IQ Signal Intelligence Pipeline (procurement\
   \ signal ingest \u2192 SQS \u2192 NLP \u2192 DynamoDB \u2192 CRM push). Distinct\
   \ from stack-app-sam-rapid-iq.yaml (opportunity feed).\n"
 Parameters:

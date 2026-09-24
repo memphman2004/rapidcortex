@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Measures Rapid Cortex SAM templates and fails when any single template is nearing CloudFormation SAM
+# Measures NexCort iQ SAM templates and fails when any single template is nearing CloudFormation SAM
 # transformed-template limits (~1 MiB). Intended as a deploy preflight.
 #
 # Env:
@@ -48,7 +48,7 @@ count_top_level_resources() {
   ' "$f"
 }
 
-echo "=== Rapid Cortex template size check ==="
+echo "=== NexCort iQ template size check ==="
 
 raw_root="$(wc -c < "${RC_ROOT_TEMPLATE_FILE}" | tr -d ' ')"
 echo "Root template ${RC_ROOT_TEMPLATE_FILE} (bytes on disk): $raw_root"

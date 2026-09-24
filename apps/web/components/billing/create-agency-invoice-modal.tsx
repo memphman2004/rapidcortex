@@ -115,7 +115,7 @@ export function CreateAgencyInvoiceModal({
         ]);
 
         let summary: Pick<AgencyBillingSummary, "plan" | "currentMonthlyRate"> = {
-          plan: agency?.plan ?? "RC CORE",
+          plan: agency?.plan ?? "911 CENTERS/PSAPS",
           currentMonthlyRate: agency?.currentMonthlyRate ?? 0,
         };
         if (summaryRes && summaryRes.ok) {

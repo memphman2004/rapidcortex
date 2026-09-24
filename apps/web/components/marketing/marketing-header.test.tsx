@@ -60,7 +60,7 @@ describe("marketing mobile drawer link definitions", () => {
   it("does not expose technical marketing routes reserved for desktop", () => {
     const links = getMarketingMobileDrawerLinkDefs();
     const labels = links.map((l) => l.label);
-    expect(labels).not.toContain("RC Lite");
+    expect(labels).not.toContain("NexCort Lite");
     expect(labels).not.toContain("Downloads");
     expect(labels).not.toContain("Desktop");
     expect(labels).not.toContain("Book Demo");

@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 /**
- * Rapid Cortex — Cross-Agency Tenant Isolation Test Suite (P0 Go/No-Go gate)
+ * NexCort iQ — Cross-Agency Tenant Isolation Test Suite (P0 Go/No-Go gate)
  *
  * Probes cross-tenant read/write paths using two agency JWTs. Routes match the
  * split HttpApi stacks (1–4) deployed behind api.rapidcortex.us + execute-api bases.
@@ -404,7 +404,7 @@ async function testPlatformRouteBlocking() {
 
 async function main() {
   console.log("═══════════════════════════════════════════════════════════════");
-  console.log("  Rapid Cortex — Cross-Agency Tenant Isolation Test Suite");
+  console.log("  NexCort iQ — Cross-Agency Tenant Isolation Test Suite");
   console.log(`  API stack 1: ${API1}`);
   console.log(`  API stack 2: ${API2}`);
   console.log(`  API stack 3: ${API3}`);

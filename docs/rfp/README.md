@@ -13,7 +13,7 @@ Canonical product claims remain in [NON_GOALS.md](../go-to-market-sales/NON_GOAL
 | Included | Not included (cannot be shipped as software) |
 |----------|-----------------------------------------------|
 | Documented controls mapped to each RFP bullet | FBI / CSO **CJIS certification** or CJIS-ATP |
-| Operating procedures Rapid Cortex will follow | A **staffed 24/7 SOC** unless the 24/7 support add-on is purchased |
+| Operating procedures NexCort iQ will follow | A **staffed 24/7 SOC** unless the 24/7 support add-on is purchased |
 | AWS-native detection (WAF, CloudWatch, audit, optional GuardDuty) | Traditional on-prem IDS/IPS appliances on the agency LAN |
 | Tenant IAM, RBAC, encryption, logging | Segmentation of the **agency’s** PSAP network |
 | Implementation schedule, cutover, rollback, UAT, BCP, risk plan | Filled dates, names, and RTO/RPO **until a SOW is signed** |

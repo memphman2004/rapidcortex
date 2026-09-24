@@ -7,8 +7,7 @@ import {
   type AlsHospitalPlaceInput,
   type AlsHospitalSearchQuery,
 } from "rapid-cortex-shared";
-import { alsLocationMockEnabled, getGeoPlacesClient } from "./client.js";
-import { mockNearbyHospitals } from "./mock-data.js";
+import { getGeoPlacesClient } from "./client.js";
 
 function text(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -53,14 +52,6 @@ export async function searchNearbyHospitals(
   const categories = query.erOnly
     ? (["hospital_emergency_room"] as const)
     : HOSPITAL_POI_CATEGORIES;
-
-  if (alsLocationMockEnabled()) {
-    const mocked = mockNearbyHospitals(query.lng, query.lat, query.radius ?? 30_000);
-    const filtered = query.erOnly
-      ? mocked.filter((place) => (place.categories ?? []).some((value) => value.includes("emergency")))
-      : mocked;
-    return hospitalsToGeoJSON(filtered, origin);
-  }
 
   try {
     const resp = await getGeoPlacesClient().send(

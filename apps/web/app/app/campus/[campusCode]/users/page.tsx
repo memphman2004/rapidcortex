@@ -7,7 +7,7 @@ type Props = { params: Promise<{ campusCode: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { campusCode } = await params;
   const label = await resolveCampusDisplayName(campusCode);
-  return { title: `${label} — Users | Rapid Cortex` };
+  return { title: `${label} — Users | NexCort iQ` };
 }
 
 export default async function CampusUsersPage({ params }: Props) {

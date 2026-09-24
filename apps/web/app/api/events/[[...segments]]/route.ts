@@ -6,7 +6,7 @@ import { GET as getFeatureRegistry } from "@/app/api/features/route";
 /**
  * Live dispatcher polls `GET /api/events/features?mini=1`.
  * Canonical feature registry is `/api/features`. Other `/api/events/*`
- * aliases map to Rapid Vision `/api/vision/events/*`.
+ * aliases map to NexiQ Vision `/api/vision/events/*`.
  */
 
 type Ctx = { params: Promise<{ segments?: string[] }> };

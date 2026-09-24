@@ -10,7 +10,7 @@ import { reportVerticalForAgency } from "@/lib/qr-nfc/report-vertical";
 import { deriveVerticalFromAgencyId } from "@/lib/vertical";
 
 export const metadata = {
-  title: "QR Codes (RC Admin)",
+  title: "QR Codes (NexCort Admin)",
   robots: { index: false, follow: false },
 };
 

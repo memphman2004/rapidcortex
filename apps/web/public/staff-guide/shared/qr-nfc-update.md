@@ -36,10 +36,10 @@ There is no “rename in place” editor. To change the public name of a reporti
 
 ## Reprogram an NFC tag
 
-The Rapid Cortex Field app writes the NFC URL to the tag. You do not paste the URL on the phone.
+The NexiQ Field app writes the NFC URL to the tag. You do not paste the URL on the phone.
 
 1. Order **NTAG213** NFC stickers (typically sold in packs of 100).
-2. Open the Rapid Cortex Field app (Campus, Venue, or Transit).
+2. Open the NexiQ Field app (Campus, Venue, or Transit).
 3. Open this location code, then tap **Program NFC Tag**.
 4. Hold an NTAG213 to the back of the device until the write succeeds.
 5. Stick the programmed tag on the back of the posted sign.

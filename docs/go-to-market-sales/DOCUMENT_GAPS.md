@@ -12,7 +12,7 @@
 | LEG-004 | CJIS SLA rider | P1 | GAP | NEEDS OWNER | Referenced on trust page |
 | LEG-005 | Standalone order form | P1 | **DRAFT** | Legal | [ORDER_FORM_DRAFT.md](./legal-drafts/ORDER_FORM_DRAFT.md) |
 | LEG-006 | Change order template | P2 | **DRAFT** | Legal | [CHANGE_ORDER_DRAFT.md](./legal-drafts/CHANGE_ORDER_DRAFT.md) |
-| LEG-007 | Entity naming reconciliation | P0 | OPEN | NEEDS OWNER | AOD LLC vs Rapid Cortex LLC |
+| LEG-007 | Entity naming reconciliation | P0 | OPEN | NEEDS OWNER | AOD LLC vs NexCort iQ LLC |
 | LEG-008 | MSA Exhibit B pricing (filled) | P0 | TBD | Finance | `RC_Pricing_Master_Guide_v4.xlsx` |
 | LEG-009 | Per-vendor CAD SOW | P1 | GAP | NEEDS OWNER | GA-013 |
 | LEG-010 | Pen-test SOW / report | P2 | GAP | NEEDS OWNER | Acceptable-use references pen-test SOW |

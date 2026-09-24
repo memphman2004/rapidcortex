@@ -25,10 +25,10 @@ This document describes the **native desktop** sign-in flow alongside the existi
 2. If `WEB_APP_BASE_URL` is configured (e.g. `https://rapidcortex.us`), the app opens the **default browser** to  
    `{WEB_APP_BASE_URL}/auth/native-login?code_challenge=…&state=…&redirect_uri=https://{host}/auth/return-to-app`.
 3. That route **302** redirects to the **branded** Next.js **`/login?native=1&…`** (same PKCE `code_challenge`, `state`, `redirect_uri`, and `client_id` for the native Cognito app client).
-4. User enters **email + password** on Rapid Cortex (same as web `/login`) and completes **MFA** when Cognito challenges TOTP/SMS. After cookies/session are established, the browser is sent to Cognito **`/oauth2/authorize`** with the same PKCE parameters and **`prompt=none`** first (silent SSO when a Cognito Hosted UI cookie already exists).
+4. User enters **email + password** on NexCort iQ (same as web `/login`) and completes **MFA** when Cognito challenges TOTP/SMS. After cookies/session are established, the browser is sent to Cognito **`/oauth2/authorize`** with the same PKCE parameters and **`prompt=none`** first (silent SSO when a Cognito Hosted UI cookie already exists).
 5. If Cognito returns **`error=login_required`** (or similar) to `/auth/return-to-app`, the return page automatically retries **authorize without `prompt=none`** so the user can complete Hosted UI **once** if needed, then still land on the HTTPS callback.
 6. Cognito redirects to **`/auth/return-to-app?code=…&state=…`** (HTTPS callback must be registered on the **native** Cognito app client).
-7. The page shows **Open Rapid Cortex** and attempts `window.location = rapidcortex://oauth/callback?code=…&state=…`.
+7. The page shows **Open NexCort iQ** and attempts `window.location = rapidcortex://oauth/callback?code=…&state=…`.
 8. The OS opens the app via the **custom URL scheme**; the app verifies **state**, then **POST**s `{ code, codeVerifier, redirectUri }` to **`/api/auth/native/token`** (same `redirect_uri` string as step 2: the HTTPS return URL).
 9. The BFF exchanges the code at Cognito **`/oauth2/token`** (no client secret), returns tokens JSON; the app stores them in **Keychain** (macOS) or **DPAPI** (Windows).
 
@@ -111,7 +111,7 @@ For a packaged app, register the `rapidcortex` protocol (MSIX / installer). For 
 
 ## Manual test checklist
 
-1. Open Rapid Cortex native app.  
+1. Open NexCort iQ native app.  
 2. Click Login.  
 3. Browser opens **`/auth/native-login`**, then the **branded `/login`** page.  
 4. Log in with email + password **and MFA** (same as web production).  
@@ -131,7 +131,7 @@ For a packaged app, register the `rapidcortex` protocol (MSIX / installer). For 
 
 ## Mobile / tablet blocking (Hosted UI & BFF)
 
-Rapid Cortex **does not permit operational login from mobile browsers** for the console experience. Middleware and `/api/auth/native/token` honor `DISABLE_MOBILE_AUTH` / `NEXT_PUBLIC_DISABLE_MOBILE_AUTH` and `BLOCK_TABLET_AUTH` (see `docs/security/auth-device-restrictions.md`). Desktop native apps exchanging codes at **`/api/auth/native/token`** use non-mobile user agents and are unaffected; browser-based Hosted UI flows on phones are redirected before Cognito starts.
+NexCort iQ **does not permit operational login from mobile browsers** for the console experience. Middleware and `/api/auth/native/token` honor `DISABLE_MOBILE_AUTH` / `NEXT_PUBLIC_DISABLE_MOBILE_AUTH` and `BLOCK_TABLET_AUTH` (see `docs/security/auth-device-restrictions.md`). Desktop native apps exchanging codes at **`/api/auth/native/token`** use non-mobile user agents and are unaffected; browser-based Hosted UI flows on phones are redirected before Cognito starts.
 
 ## Test commands
 

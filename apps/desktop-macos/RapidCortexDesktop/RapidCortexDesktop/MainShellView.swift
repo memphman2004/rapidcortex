@@ -108,7 +108,7 @@ struct MainShellView: View {
 
         VStack(spacing: 0) {
             HStack(spacing: 10) {
-                Text("Rapid Cortex")
+                Text("NexCort iQ")
                     .font(.headline)
                 if let agencyId {
                     Text(agencyId)
@@ -214,7 +214,7 @@ struct MainShellView: View {
                     .foregroundStyle(.secondary)
                 Text("Web workspace required")
                     .font(.title2.weight(.semibold))
-                Text("Set **WEB_APP_BASE_URL** in Secrets.plist (e.g. `https://app.rapidcortex.us`) so this desktop app loads the same Rapid Cortex web workspace as the browser.")
+                Text("Set **WEB_APP_BASE_URL** in Secrets.plist (e.g. `https://app.rapidcortex.us`) so this desktop app loads the same NexCort iQ web workspace as the browser.")
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 420)
@@ -251,7 +251,7 @@ struct MainShellView: View {
             List(visibleLegacyTabs, selection: $tab) { t in
                 Label(t.title, systemImage: t.systemImage).tag(t)
             }
-            .navigationTitle("Rapid Cortex (dev)")
+            .navigationTitle("NexCort iQ (dev)")
         } detail: {
             NavigationStack {
                 Group {

@@ -4,9 +4,9 @@ import { getPublicStatusPayload } from "@/lib/rapid-cortex/status/public-status-
 import { buildPublicPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Status | Rapid Cortex Service Health",
+  title: "Status | NexCort iQ Service Health",
   description:
-    "View public Rapid Cortex service status, uptime updates, and operational incident history for emergency communications platform services.",
+    "View public NexCort iQ service status, uptime updates, and operational incident history for emergency communications platform services.",
   path: "/status",
 });
 

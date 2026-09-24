@@ -98,10 +98,25 @@ export function C2cHubAdminPage() {
     return <p className="text-sm text-slate-400">Loading C2C Hub…</p>;
   }
   if (slotsQuery.isError) {
+    const status = (slotsQuery.error as { status?: number } | null)?.status;
+    const forbidden = status === 403;
     return (
-      <p className="text-sm text-rose-300">
-        Could not load C2C Hub. {(slotsQuery.error as Error).message}
-      </p>
+      <div className="space-y-3 text-sm">
+        <p className="text-rose-300">
+          Could not load C2C Hub.{" "}
+          {forbidden
+            ? "This configuration page is limited to agency admins and IT."
+            : (slotsQuery.error as Error).message}
+        </p>
+        {forbidden ? (
+          <Link
+            href={to("/dashboard")}
+            className="inline-flex text-sky-400 hover:text-sky-300"
+          >
+            Return to dashboard
+          </Link>
+        ) : null}
+      </div>
     );
   }
 
@@ -111,9 +126,9 @@ export function C2cHubAdminPage() {
         <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-400/90">Admin</p>
         <h1 className="text-2xl font-semibold text-white">C2C Hub</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Rapid Cortex brokers NENA EIDO between up to eight CAD systems. Each slot is independent:
+          NexCort iQ brokers NENA EIDO between up to eight CAD systems. Each slot is independent:
           turn it on, accept inbound webhooks, and enable outbound only when that CAD should receive
-          incidents. Vendor HTTP waits for the secret JSON at the listed ARN. Rapid Cortex is not the
+          incidents. Vendor HTTP waits for the secret JSON at the listed ARN. NexCort iQ is not the
           CAD of record.
         </p>
         <p className="mt-2 text-xs text-slate-500">

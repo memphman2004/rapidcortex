@@ -18,7 +18,7 @@ import { MonetizationInvoiceRepository } from "../repositories/monetizationInvoi
 import { UsageMeterService } from "../services/monetization/usageMeterService.js";
 import { z } from "zod";
 
-/** Tenant billing facade (subscription snapshot + internal invoicing reads). Procurement is handled outside Rapid Cortex checkout flows. */
+/** Tenant billing facade (subscription snapshot + internal invoicing reads). Procurement is handled outside NexCort iQ checkout flows. */
 const auth = new AuthorizationService();
 const agencies = new AgencyRepository();
 const invoices = new MonetizationInvoiceRepository();

@@ -13,7 +13,7 @@
 
 ## 1. Purpose
 
-Protect the confidentiality, integrity, and availability of Rapid Cortex production systems and customer operational data (incident metadata, transcripts, AI output, audit events, media). Rapid Cortex is an **assistive** platform; it does not replace CAD, 911, dispatchers, or medical direction.
+Protect the confidentiality, integrity, and availability of NexCort iQ production systems and customer operational data (incident metadata, transcripts, AI output, audit events, media). NexCort iQ is an **assistive** platform; it does not replace CAD, 911, dispatchers, or medical direction.
 
 ## 2. Scope
 

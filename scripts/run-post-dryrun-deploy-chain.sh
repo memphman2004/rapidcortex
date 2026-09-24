@@ -15,7 +15,7 @@ DRY_PID="${1:-}"
 exec > >(tee -a "${CHAIN_LOG}") 2>&1
 
 echo "════════════════════════════════════════════════════════"
-echo " Rapid Cortex post-dry-run deploy chain"
+echo " NexCort iQ post-dry-run deploy chain"
 echo " $(date -u +%Y-%m-%dT%H:%MZ) UTC"
 echo " AWS_PROFILE=${AWS_PROFILE}"
 echo " Log: ${CHAIN_LOG}"

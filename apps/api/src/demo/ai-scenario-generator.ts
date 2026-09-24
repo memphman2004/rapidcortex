@@ -12,7 +12,7 @@ import type { ScenarioDefinition, ScenarioVertical } from "rapid-cortex-shared";
 import { finish, runStandardWalkthrough } from "./scenarios/helpers.js";
 
 const SCENARIO_GENERATION_SYSTEM_PROMPT = `You are an emergency dispatch scenario generator for
-Rapid Cortex, a public safety platform.
+NexCort iQ, a public safety platform.
 
 Convert a natural-language situation description into a structured JSON scenario definition.
 

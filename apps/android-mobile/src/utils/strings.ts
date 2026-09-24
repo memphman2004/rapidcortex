@@ -1,18 +1,18 @@
 export const Strings = {
   app: {
-    name: 'Rapid Cortex',
-    tagline: 'Real-Time AI Intelligence for Emergency Response',
+    name: 'NexCort iQ',
+    tagline: 'Intelligence at the speed of response',
   },
 
   enterSplash: {
-    eyebrow: 'Rapid Cortex',
-    titleLine1: 'Enter the',
-    titleLine2: 'Cortex',
+    eyebrow: 'NexCort iQ',
+    titleLine1: 'Enter',
+    titleLine2: 'NexCort',
     tagline: 'Intelligence at the speed of response',
     initialize: 'Initialize',
     accessing: 'Accessing...',
     statusNeural: 'NEURAL LINK ESTABLISHED',
-    statusOnline: 'CORTEX ONLINE',
+    statusOnline: 'NEXCORT ONLINE',
     statusRouting: 'ROUTING...',
   },
 
@@ -45,16 +45,16 @@ export const Strings = {
   },
 
   productSelection: {
-    safeSoundTitle: 'RC Safe & Sound',
+    safeSoundTitle: 'NC Safe & Sound',
     safeSoundSubtitle: 'Protect your family, pets, and valuables',
-    venueTitle: 'RC Venue',
+    venueTitle: 'NC Venue',
     venueSubtitle: 'Zone signs, QR codes, and NFC tag programming',
-    campusTitle: 'RC Campus',
+    campusTitle: 'NC Campus',
     campusSubtitle: 'Campus safety reporting codes and NFC deployment',
     /** @deprecated Prefer venueTitle / campusTitle */
-    venueCampusTitle: 'RC Venue / Campus',
+    venueCampusTitle: 'NC Venue / Campus',
     venueCampusSubtitle: 'Sign management and field deployment tools',
-    commandTitle: 'RC Command',
+    commandTitle: 'NC Command',
     commandSubtitle: 'View, communicate, and coach. Not a CAD dispatch console.',
   },
 
@@ -75,9 +75,9 @@ export const Strings = {
     campusTools: 'Campus Tools',
     commandTools: 'Field Command',
     venueCampusTools: 'Venue & Campus Tools',
-    noAccountContactAdmin: "Don't have an account? Contact your Rapid Cortex administrator.",
-    faceIdPrompt: 'Allow Rapid Cortex to use Face ID for secure login.',
-    biometricReason: 'Authenticate to access Rapid Cortex',
+    noAccountContactAdmin: "Don't have an account? Contact your NexCort iQ administrator.",
+    faceIdPrompt: 'Allow NexCort iQ to use Face ID for secure login.',
+    biometricReason: 'Authenticate to access NexCort iQ',
     usePasscode: 'Use Passcode',
 
     errors: {
@@ -192,9 +192,9 @@ export const Strings = {
       language: 'Language',
       myLanguage: 'My Language',
       languageSubtitle:
-        'Intelligent translations powered by Rapid Cortex · 150+ languages',
+        'Intelligent translations powered by NexCort iQ · 150+ languages',
       languagePreferenceHelp:
-        'Your language preference helps emergency responders communicate with you. Rapid Cortex intelligent translation supports 150+ languages.',
+        'Your language preference helps emergency responders communicate with you. NexCort iQ intelligent translation supports 150+ languages.',
       emergencyContactsShortcut: 'Emergency contacts',
     },
   },
@@ -282,12 +282,12 @@ export const Strings = {
       cta: 'Trade show signs',
       program: 'Program NFC tag',
       blurb:
-        'Print the QR and program an NTAG213 so a booth tap or scan opens the Rapid Cortex site — not a location report form. Each tap is counted.',
+        'Print the QR and program an NTAG213 so a booth tap or scan opens the NexCort iQ site — not a location report form. Each tap is counted.',
       homeLabel: 'Home',
       demoLabel: 'Demo',
       ready: 'Hold an NTAG213 tag to the back of your phone',
       writing: 'Writing marketing URL…',
-      success: 'Tag opens the Rapid Cortex website',
+      success: 'Tag opens the NexCort iQ website',
     },
     accountDetails: {
       role: 'Role',
@@ -299,7 +299,7 @@ export const Strings = {
       termsOfUse: 'Terms of use',
       requestDeletion: 'Request account deletion',
       requestDeletionBody:
-        'Opens the Rapid Cortex account deletion page. Agency operational records may be retained when required by law. We process requests within 30 days.',
+        'Opens the NexCort iQ account deletion page. Agency operational records may be retained when required by law. We process requests within 30 days.',
       continueToRequest: 'Continue',
     },
     vertical: {
@@ -367,7 +367,7 @@ export const Strings = {
     canCancelAlerts: 'Can cancel alerts',
     preferredLanguage: 'Notification language',
     preferredLanguageHelp:
-      "Emergency alerts will be sent to this contact in their language using Rapid Cortex's 150+ language translation service.",
+      "Emergency alerts will be sent to this contact in their language using NexCort iQ's 150+ language translation service.",
     relationships: {
       parent: 'Parent',
       spouse: 'Spouse',
@@ -385,7 +385,7 @@ export const Strings = {
     searchPlaceholder: 'Search languages',
     noResults: (query: string) => `No languages matching '${query}'`,
     rtlBadge: 'RTL',
-    poweredBy: 'Intelligent translations powered by Rapid Cortex',
+    poweredBy: 'Intelligent translations powered by NexCort iQ',
     unavailable: 'Language list unavailable. Check your connection.',
     detected: 'Detected',
   },

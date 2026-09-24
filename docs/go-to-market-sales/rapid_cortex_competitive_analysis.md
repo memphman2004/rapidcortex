@@ -1,4 +1,4 @@
-# Rapid Cortex Competitive Pricing Analysis
+# NexCort iQ Competitive Pricing Analysis
 **Comparison Against AI-Powered 911/Public Safety Market**
 
 Generated: April 25, 2026
@@ -9,7 +9,7 @@ Generated: April 25, 2026
 
 **Your Pricing Position: COMPETITIVE TO PREMIUM**
 
-Rapid Cortex's pricing aligns well with the current market for AI-enhanced public safety platforms. You're positioned between traditional CAD systems and next-gen AI platforms, with pricing that reflects the value of AI-assisted intake, translation, and dispatch intelligence.
+NexCort iQ's pricing aligns well with the current market for AI-enhanced public safety platforms. You're positioned between traditional CAD systems and next-gen AI platforms, with pricing that reflects the value of AI-assisted intake, translation, and dispatch intelligence.
 
 ### Key Findings:
 
@@ -164,7 +164,7 @@ Rapid Cortex's pricing aligns well with the current market for AI-enhanced publi
 
 ## Feature Comparison: What You Offer vs Competitors
 
-| Feature | Rapid Cortex | Carbyne | Prepared | RapidSOS | Traditional CAD |
+| Feature | NexCort iQ | Carbyne | Prepared | RapidSOS | Traditional CAD |
 |---------|-------------|---------|----------|----------|-----------------|
 | **AI Call Transcription** | ✅ Standard | ✅ Yes | ✅ Paid | ❌ No | ❌ No |
 | **AI Translation** | ✅ Standard | ✅ Yes | ✅ Paid (40 langs) | ❌ No | ❌ No |

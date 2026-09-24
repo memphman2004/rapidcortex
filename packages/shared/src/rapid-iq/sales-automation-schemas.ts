@@ -1,5 +1,5 @@
 /**
- * Rapid IQ sales automation — 3-touch sequences, content drafts, campaign jobs.
+ * NexiQ IQ sales automation — 3-touch sequences, content drafts, campaign jobs.
  * Stored on RAPID_IQ_PIPELINE_SIGNALS_TABLE (SEQ# / DRAFT# prefixes). Never auto-send cold outreach.
  */
 

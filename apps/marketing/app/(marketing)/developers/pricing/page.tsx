@@ -7,7 +7,7 @@ import {
 import { showPublicRcLitePricing } from "@/lib/rc-lite/public-rc-lite-pricing-flag";
 
 export const metadata = {
-  title: "RC Lite — Internal API plans reference",
+  title: "NexCort Lite — Internal API plans reference",
 };
 
 export default function DevelopersRcLitePricingPage() {
@@ -17,7 +17,7 @@ export default function DevelopersRcLitePricingPage() {
     <MarketingArticleShell eyebrow="Monetization" title="API plans reference" sectionLabel="Developers · Pricing">
       {!show ? (
         <p className="leading-relaxed text-slate-300">
-          Rapid Cortex RC Lite tiers are negotiated per procurement. Public marketing retains quote-only stance unless{" "}
+          NexCort iQ NexCort Lite tiers are negotiated per procurement. Public marketing retains quote-only stance unless{" "}
           <span className="font-mono text-slate-400">NEXT_PUBLIC_SHOW_RC_LITE_PUBLIC_PRICING=true</span> is toggled alongside
           legal approval.
         </p>

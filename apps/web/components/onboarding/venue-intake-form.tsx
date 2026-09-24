@@ -243,7 +243,7 @@ export function VenueIntakeForm({ orgCode, agencyId }: Props) {
                 options={[
                   { value: "venue_ops", label: "Venue ops" },
                   { value: "vendor", label: "Vendor" },
-                  { value: "rc", label: "Rapid Cortex" },
+                  { value: "rc", label: "NexCort iQ" },
                 ]}
               />
             </Field>

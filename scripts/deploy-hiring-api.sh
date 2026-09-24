@@ -193,8 +193,8 @@ sam deploy \
     ImportedCognitoUserPoolId=us-east-1_0z6tA6WBs \
     ImportedCognitoWebClientId=7moi6sgc2uf4o31omgvo77h3v5 \
     ManagedPolicyNamePrefix=rapid-cortex-dev \
-    CareersFromEmail=careers@rapidcortex.us \
-    CareersNotifyEmail=jeff@rapidcortex.us \
+    CareersFromEmail=careers@nexcortiq.us \
+    CareersNotifyEmail=jeff@nexcortiq.us \
     ReviewerName="Jeffrey Coleman" \
     SesMock=false
 
@@ -208,8 +208,8 @@ aws apigatewayv2 get-routes --api-id "${HTTP_API_ID}" \
   --output table
 
 # Seed Microsoft Bookings URLs if not already set
-PHONE_URL="${HIRING_PHONE_SCREEN_URL:-https://outlook.office.com/book/Phoneinterview@rapidcortex.us/?ismsaljsauthenabled}"
-INTERVIEW_URL="${HIRING_INTERVIEW_URL:-https://outlook.office.com/book/VideoInterview@rapidcortex.us/?ismsaljsauthenabled}"
+PHONE_URL="${HIRING_PHONE_SCREEN_URL:-https://outlook.office.com/book/Phoneinterview@nexcortiq.us/?ismsaljsauthenabled}"
+INTERVIEW_URL="${HIRING_INTERVIEW_URL:-https://outlook.office.com/book/VideoInterview@nexcortiq.us/?ismsaljsauthenabled}"
 EXISTING_BOOKINGS="$(aws dynamodb get-item \
   --table-name "${PLATFORM_SETTINGS_TABLE}" \
   --key '{"settingKey":{"S":"hiring_bookings"}}' \
@@ -270,8 +270,8 @@ print(json.dumps({
   "workLocation": {"S": "REMOTE_US"},
   "compensationMax": {"N": "22"},
   "compensationUnit": {"S": "HOUR"},
-  "summary": {"S": "Sharp, organized EA to support Rapid Cortex founders on calendars, CRM, outreach, and pilot logistics — remote 1099, 5–15 hrs/week."},
-  "description": {"S": "Rapid Cortex builds AI-powered intelligence for 911 centers, campuses, and venues.\\n\\nWork directly with the Founder & CEO, CRO, and Marketing Director on calendars, CRM hygiene, outreach, marketing support, and customer pilot logistics."},
+  "summary": {"S": "Sharp, organized EA to support NexCort iQ founders on calendars, CRM, outreach, and pilot logistics — remote 1099, 5–15 hrs/week."},
+  "description": {"S": "NexCort iQ builds AI-powered intelligence for 911 centers, campuses, and venues.\\n\\nWork directly with the Founder & CEO, CRO, and Marketing Director on calendars, CRM hygiene, outreach, marketing support, and customer pilot logistics."},
   "requirements": {"L": [
     {"S": "Strong written and verbal communication"},
     {"S": "Proven organization skills with Google Workspace / Notion or similar"},

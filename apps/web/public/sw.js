@@ -1,7 +1,7 @@
 self.addEventListener("push", (event) => {
-  const data = event.data ? event.data.json() : { title: "Rapid Cortex", body: "New venue alert" };
+  const data = event.data ? event.data.json() : { title: "NexCort iQ", body: "New venue alert" };
   event.waitUntil(
-    self.registration.showNotification(data.title || "Rapid Cortex", {
+    self.registration.showNotification(data.title || "NexCort iQ", {
       body: data.body || "",
       icon: "/favicon.ico",
     }),

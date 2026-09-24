@@ -11,7 +11,7 @@ export default function VenueConsoleTranslateSessionPage() {
       <TranslateSessionPageClient
         sessionId={params.sessionId}
         vertical="venue"
-        heading="RC Translate"
+        heading="Translate"
         createRequest={{ vertical: "venue", venueContext: { venueCode: params.venueCode } }}
       />
     </Suspense>

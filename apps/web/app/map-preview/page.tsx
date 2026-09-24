@@ -36,7 +36,7 @@ function MapPreviewContent() {
       <header className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-800 px-4 py-2.5">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-400/90">
-            Rapid Cortex · Map
+            NexCort iQ · Map
           </p>
           <h1 className="truncate text-sm font-semibold text-white">
             {label ?? "Incident location"}

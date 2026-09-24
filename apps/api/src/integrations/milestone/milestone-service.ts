@@ -89,17 +89,17 @@ export async function getMilestoneStatus(agencyId: string): Promise<MilestoneSta
   assertMilestoneEnabled();
   const conn = await getMilestoneConnection(agencyId);
   if (!conn || !conn.enabled) {
-    return { connected: false, agencyId, mock: milestoneMockEnabled() };
+    return { connected: false, agencyId, mock: false };
   }
   return {
-    connected: true,
+    connected: Boolean(conn.bridgeBaseUrl?.trim()),
     agencyId,
     bridgeBaseUrl: conn.bridgeBaseUrl,
     siteLabel: conn.siteLabel,
     outboundEnabled: conn.outboundEnabled,
     lastSyncAt: conn.lastSyncAt,
     cameraCount: conn.lastCameraCount,
-    mock: milestoneMockEnabled() || !conn.bridgeBaseUrl,
+    mock: false,
   };
 }
 

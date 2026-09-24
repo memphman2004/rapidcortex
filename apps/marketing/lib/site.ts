@@ -1,14 +1,14 @@
-export const SITE_NAME = "Rapid Cortex";
+export const SITE_NAME = "NexCort iQ";
 
 /** Brand slogan — use in hero, footer, and high-visibility marketing surfaces. */
-export const SITE_SLOGAN = "Intelligence When Every Second Matters";
+export const SITE_SLOGAN = "Intelligence at the speed of response";
 
 /**
  * Full mission — homepage and footer; not necessarily every meta tag (see {@link SITE_DESCRIPTION}).
- * Rapid Cortex enhances existing systems of record; it does not replace CAD, telephony, or policy.
+ * NexCort iQ enhances existing systems of record; it does not replace CAD, telephony, or policy.
  */
 export const SITE_MISSION =
-  "Rapid Cortex's mission is to help public safety agencies respond faster, communicate clearer, and make better decisions with real-time intelligent software that supports dispatchers, supervisors, and emergency response teams without replacing the systems they already trust.";
+  "NexCort iQ's mission is to help public safety agencies respond faster, communicate clearer, and make better decisions with real-time intelligent software that supports dispatchers, supervisors, and emergency response teams without replacing the systems they already trust.";
 
 /**
  * Default `<meta name="description">` / OG description — short, scannable, SEO-friendly.
@@ -19,13 +19,13 @@ export const SITE_DESCRIPTION = `${SITE_SLOGAN} — Real-time decision support f
 export const SITE_BRAND_ASSETS_BASE = "/Logo";
 
 /**
- * Primary Rapid Cortex web mark used on marketing/header surfaces.
- * File: `public/Logo/rapid-cortex-logo-2.webp` (624×165 wordmark + tagline, ~3× display size).
- * PNG original remains at `rapid-cortex-logo-2.png` for PDF/print.
+ * Primary NexCort iQ web mark used on marketing/header surfaces.
+ * File: `public/Logo/nexcort-iq-logo-transparent.png` (1024×857 wordmark + mark).
+ * Opaque square mark: `nexcort-iq-logo.png` (1254×1254).
  */
-export const SITE_BRAND_MARK_PATH = `${SITE_BRAND_ASSETS_BASE}/rapid-cortex-logo-2.webp`;
-export const SITE_BRAND_MARK_WIDTH = 624;
-export const SITE_BRAND_MARK_HEIGHT = 165;
+export const SITE_BRAND_MARK_PATH = `${SITE_BRAND_ASSETS_BASE}/nexcort-iq-logo-transparent.png`;
+export const SITE_BRAND_MARK_WIDTH = 1024;
+export const SITE_BRAND_MARK_HEIGHT = 857;
 
 /** Primary web mark (same as brand mark). */
 export const SITE_LOGO_PATH = SITE_BRAND_MARK_PATH;
@@ -50,7 +50,7 @@ export const SITE_PWA_THEME_COLOR = "#0f172a";
 export const SITE_PWA_BACKGROUND_COLOR = "#020617";
 
 /**
- * Hosted paths for supplementary icons (`public/Logo/`). Source artwork: Rapid Cortex square marks.
+ * Hosted paths for supplementary icons (`public/Logo/`). Source artwork: NexCort iQ square marks.
  * See `app/icon.png`, `app/apple-icon.png`, and root layout `metadata.icons`.
  */
 export const SITE_PUBLIC_ICON_PATHS = {

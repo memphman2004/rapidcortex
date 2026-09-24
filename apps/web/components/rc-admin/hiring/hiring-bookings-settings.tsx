@@ -68,7 +68,7 @@ export function HiringBookingsSettings() {
             className={inp}
             value={form.phoneScreenUrl ?? ""}
             onChange={(e) => setForm((p) => ({ ...p, phoneScreenUrl: e.target.value }))}
-            placeholder="https://outlook.office.com/book/Phoneinterview@rapidcortex.us/…"
+            placeholder="https://outlook.office.com/book/Phoneinterview@nexcortiq.us/…"
           />
         </div>
 
@@ -87,7 +87,7 @@ export function HiringBookingsSettings() {
             className={inp}
             value={form.interviewUrl ?? ""}
             onChange={(e) => setForm((p) => ({ ...p, interviewUrl: e.target.value }))}
-            placeholder="https://outlook.office.com/book/VideoInterview@rapidcortex.us/…"
+            placeholder="https://outlook.office.com/book/VideoInterview@nexcortiq.us/…"
           />
         </div>
 

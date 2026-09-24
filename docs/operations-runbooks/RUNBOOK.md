@@ -1,6 +1,6 @@
-# Rapid Cortex — Operations runbook
+# NexCort iQ — Operations runbook
 
-Internal reference for **on-call engineers**, **DevOps**, and **platform operators** supporting Rapid Cortex in AWS. Pair this with [INSTALLATION.md](./INSTALLATION.md), [AWS_SETUP.md](./AWS_SETUP.md), [`infra/README.md`](../infra/README.md), [MONITORING_AND_OPS.md](./MONITORING_AND_OPS.md), [BACKUP_AND_RECOVERY.md](./BACKUP_AND_RECOVERY.md), [TEST_STRATEGY.md](./TEST_STRATEGY.md), and [PILOT_VALIDATION_CHECKLIST.md](./PILOT_VALIDATION_CHECKLIST.md). **Agency-facing symptom routing:** [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md) and [ESCALATION_PATHS.md](./ESCALATION_PATHS.md).
+Internal reference for **on-call engineers**, **DevOps**, and **platform operators** supporting NexCort iQ in AWS. Pair this with [INSTALLATION.md](./INSTALLATION.md), [AWS_SETUP.md](./AWS_SETUP.md), [`infra/README.md`](../infra/README.md), [MONITORING_AND_OPS.md](./MONITORING_AND_OPS.md), [BACKUP_AND_RECOVERY.md](./BACKUP_AND_RECOVERY.md), [TEST_STRATEGY.md](./TEST_STRATEGY.md), and [PILOT_VALIDATION_CHECKLIST.md](./PILOT_VALIDATION_CHECKLIST.md). **Agency-facing symptom routing:** [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md) and [ESCALATION_PATHS.md](./ESCALATION_PATHS.md).
 
 ## Service map (typical pilot)
 
@@ -110,7 +110,7 @@ Document your team’s **time-to-rollback** target (for example: API ≤ 30 minu
 
 - **Credential rotation**: rotate Cognito app secrets (if any), Square keys, and shared webhook secrets on the schedule in your security policy.
 - **Audit**: ensure new sensitive handlers write to `AUDIT_TABLE` with types from `packages/security` audit vocabulary.
-- **CJIS**: follow your agency’s CJIS policy; Rapid Cortex documentation describes **alignment**, not certification—see pilot docs under `docs/phase-0`.
+- **CJIS**: follow your agency’s CJIS policy; NexCort iQ documentation describes **alignment**, not certification—see pilot docs under `docs/phase-0`.
 
 ## Escalation
 

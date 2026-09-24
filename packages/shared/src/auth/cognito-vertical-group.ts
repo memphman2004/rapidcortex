@@ -14,7 +14,7 @@ export const COGNITO_VERTICAL_GROUPS = [
 export type CognitoVerticalGroup = (typeof COGNITO_VERTICAL_GROUPS)[number];
 
 export const COGNITO_VERTICAL_GROUP_DESCRIPTIONS: Record<CognitoVerticalGroup, string> = {
-  vertical_platform: "Platform — Rapid Cortex internal admin accounts",
+  vertical_platform: "Platform — NexCort iQ internal admin accounts",
   vertical_911: "911 PSAP — dispatchers, supervisors, agency admins, analysts",
   vertical_campus: "Campus safety — campus admins, security, dispatch, faculty",
   vertical_venue: "Venue security — venue admins, operators, supervisors",

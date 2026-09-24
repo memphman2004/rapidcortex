@@ -37,7 +37,7 @@ export const STAFF_GUIDE_ACCESS = {
   quota: null,
   headline: "Unlimited training access",
   message:
-    "Every signed-in campus, venue, and transit staff account can open every article in this guide as often as needed. There is no seat cap, session limit, or view quota.",
+    "Every signed-in staff account can open every article in this guide as often as needed. There is no seat cap, session limit, or view quota.",
 } as const;
 
 const SHARED_FIELD_TOOLS: StaffGuideSection = {
@@ -64,7 +64,7 @@ const CAMPUS_CONSOLE: StaffGuideSection = {
     {
       topic: "when-to-call-911",
       title: "When to call 911",
-      description: "What Rapid Cortex Campus handles versus a public-safety emergency.",
+      description: "What NexCort iQ Campus handles versus a public-safety emergency.",
     },
     {
       topic: "incidents",
@@ -99,7 +99,7 @@ const CAMPUS_CONSOLE: StaffGuideSection = {
     {
       topic: "reports",
       title: "Reports and Clery tools",
-      description: "Campus analytics, Clery review queues, and what Rapid Cortex does not file.",
+      description: "Campus analytics, Clery review queues, and what NexCort iQ does not file.",
     },
   ],
 };

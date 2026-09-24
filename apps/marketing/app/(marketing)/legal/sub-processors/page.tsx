@@ -5,7 +5,7 @@ import { buildPublicPageMetadata } from "@/lib/seo";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Sub-processors | Rapid Cortex",
+  title: "Sub-processors | NexCort iQ",
   description: `Third-party sub-processors ${SITE_NAME} uses to deliver contracted public-safety services.`,
   path: "/legal/sub-processors",
 });
@@ -38,7 +38,7 @@ export default function SubProcessorsPage() {
           Data sharing with third parties and sub-processors
         </h2>
         <p>
-          Rapid Cortex shares data with the following categories of sub-processors to deliver the
+          NexCort iQ shares data with the following categories of sub-processors to deliver the
           service:
         </p>
         <ul className="ml-4 list-disc space-y-2 text-slate-400">
@@ -61,16 +61,16 @@ export default function SubProcessorsPage() {
         </ul>
         <p>
           Participating public-safety agencies (our customers) may view live Ring™ video only after the
-          device owner taps Allow on that request. Ring™ video is not stored by Rapid Cortex.
+          device owner taps Allow on that request. Ring™ video is not stored by NexCort iQ.
         </p>
       </section>
 
       <section id="ai" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Use of customer data for AI model training</h2>
         <p>
-          Rapid Cortex does not use customer data, incident data, call recordings, transcripts, or any
+          NexCort iQ does not use customer data, incident data, call recordings, transcripts, or any
           personally identifiable information to train, fine-tune, or develop AI or machine learning
-          models. AI functionality within Rapid Cortex is provided by third-party AI providers operating
+          models. AI functionality within NexCort iQ is provided by third-party AI providers operating
           under data processing agreements that explicitly prohibit the use of customer data for model
           training purposes.
         </p>
@@ -80,7 +80,7 @@ export default function SubProcessorsPage() {
         <h2 className="text-base font-semibold text-white">Questions</h2>
         <p>
           Privacy inquiries and deletion requests:{" "}
-          <a href="mailto:privacy@rapidcortex.us">privacy@rapidcortex.us</a>.
+          <a href="mailto:privacy@nexcortiq.us">privacy@nexcortiq.us</a>.
         </p>
       </section>
     </LegalDocShell>

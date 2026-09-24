@@ -34,7 +34,7 @@ export default async function RcAdminSecurityPage() {
       <div>
         <h1 className="text-xl font-semibold text-white">Security</h1>
         <p className="mt-1 text-sm text-slate-400">
-          MFA policy, authentication posture, and platform perimeter controls for RC Internal IT.
+          MFA policy, authentication posture, and platform perimeter controls for NexCort Internal IT.
         </p>
       </div>
 

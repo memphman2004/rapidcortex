@@ -27,7 +27,7 @@ const STRINGS: Record<
   en: {
     title: "Caller Video Assist",
     lead:
-      "Rapid Cortex has requested temporary live video to help emergency personnel assess the situation. This link works once and expires automatically.",
+      "NexCort iQ has requested temporary live video to help emergency personnel assess the situation. This link works once and expires automatically.",
     bullets: [
       "No app install — your mobile browser only.",
       "You can stop sharing at any time.",
@@ -48,7 +48,7 @@ const STRINGS: Record<
   es: {
     title: "Asistencia de video para quien llama",
     lead:
-      "Rapid Cortex solicita video en vivo temporal para ayudar al personal de emergencia a evaluar la situación. Este enlace es de un solo uso y caduca automáticamente.",
+      "NexCort iQ solicita video en vivo temporal para ayudar al personal de emergencia a evaluar la situación. Este enlace es de un solo uso y caduca automáticamente.",
     bullets: [
       "Sin instalar aplicaciones: solo el navegador del teléfono.",
       "Puede dejar de compartir en cualquier momento.",

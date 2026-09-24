@@ -149,7 +149,7 @@ export async function runRapidIqResearch(
           body: JSON.stringify({
             model: process.env.ANTHROPIC_MODEL_PRIMARY?.trim() || "claude-sonnet-4-6",
             max_tokens: 1000,
-            system: `You are a public-sector sales intelligence analyst for Rapid Cortex,
+            system: `You are a public-sector sales intelligence analyst for NexCort iQ,
 an AI-powered 911 and public safety technology platform.
 Answer the user's question using ONLY the signal data provided below.
 Cite specific agencies and source documents in your answer.

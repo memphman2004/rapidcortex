@@ -26,7 +26,7 @@ const STEPS = [
   },
   {
     title: "Project details",
-    desc: "Describe your need — staffing shortages, aging technology, call volume. Select the Rapid Cortex capabilities you're requesting funding for. Take two minutes.",
+    desc: "Describe your need — staffing shortages, aging technology, call volume. Select the NexCort iQ capabilities you're requesting funding for. Take two minutes.",
     previewLabel: "Step 3 of 4 — Project details",
     fields: [
       {
@@ -111,7 +111,7 @@ export function GrantsHowItWorks() {
           {"chips" in step && step.chips ? (
             <div>
               <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                RC modules requested
+                product modules requested
               </dt>
               <dd className="mt-2 flex flex-wrap gap-1.5">
                 {step.chips.map((chip) => (

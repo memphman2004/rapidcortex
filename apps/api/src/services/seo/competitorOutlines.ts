@@ -17,11 +17,11 @@ export type CompetitorOutlineResult = {
 const outlines = {
   "rapid-cortex-vs-legacy-cad": {
     topicId: "rapid-cortex-vs-legacy-cad",
-    pageTitle: "Rapid Cortex vs legacy CAD workflows | Ops-ready intelligence",
+    pageTitle: "NexCort iQ vs legacy CAD workflows | Ops-ready intelligence",
     urlSlug: "/compare/rapid-cortex-vs-legacy-cad-workflows",
     metaDescription:
-      "Compare Rapid Cortex with legacy CAD-centric workflows: transcription quality, structured intelligence, QA, and measurable dispatcher outcomes.",
-    h1: "Rapid Cortex vs legacy CAD workflows",
+      "Compare NexCort iQ with legacy CAD-centric workflows: transcription quality, structured intelligence, QA, and measurable dispatcher outcomes.",
+    h1: "NexCort iQ vs legacy CAD workflows",
     sectionHeadings: [
       "Where legacy CAD workflows break down operationally",
       "Structured intelligence vs note-taking",
@@ -44,11 +44,11 @@ const outlines = {
   },
   "rapid-cortex-vs-ng911-media-only": {
     topicId: "rapid-cortex-vs-ng911-media-only",
-    pageTitle: "Rapid Cortex vs NG911 media-only tools | Decision support beyond video",
+    pageTitle: "NexCort iQ vs NG911 media-only tools | Decision support beyond video",
     urlSlug: "/compare/rapid-cortex-vs-ng911-media-only-tools",
     metaDescription:
-      "Contrast Rapid Cortex decision-support intelligence with media-only NG911 tooling—coverage across voice, text, QA, and operational workflows.",
-    h1: "Rapid Cortex vs NG911 media-only tools",
+      "Contrast NexCort iQ decision-support intelligence with media-only NG911 tooling—coverage across voice, text, QA, and operational workflows.",
+    h1: "NexCort iQ vs NG911 media-only tools",
     sectionHeadings: [
       "Media capture vs operational intelligence",
       "Voice + chat + attachments in one timeline",
@@ -58,7 +58,7 @@ const outlines = {
     faq: [
       {
         q: "Is this only about video?",
-        a: "No—Rapid Cortex emphasizes unified incident intelligence across modalities, not only media playback.",
+        a: "No—NexCort iQ emphasizes unified incident intelligence across modalities, not only media playback.",
       },
     ],
     cta: "See a unified incident intelligence demo",
@@ -66,7 +66,7 @@ const outlines = {
   },
   "rc-lite-api-cad-vendors": {
     topicId: "rc-lite-api-cad-vendors",
-    pageTitle: "RC Lite API for CAD vendors | Secure hooks into Rapid Cortex intelligence",
+    pageTitle: "RC Lite API for CAD vendors | Secure hooks into NexCort iQ intelligence",
     urlSlug: "/platform/rc-lite-api-for-cad-vendors",
     metaDescription:
       "Technical overview for CAD vendors: RC Lite API patterns, tenancy boundaries, operational safeguards, and integration milestones.",
@@ -80,7 +80,7 @@ const outlines = {
     faq: [
       {
         q: "What is RC Lite?",
-        a: "RC Lite is a vendor-facing API surface for integrating external systems with Rapid Cortex capabilities using scoped credentials.",
+        a: "RC Lite is a vendor-facing API surface for integrating external systems with NexCort iQ capabilities using scoped credentials.",
       },
     ],
     cta: "Request vendor integration documentation",

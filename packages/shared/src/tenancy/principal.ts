@@ -12,7 +12,7 @@ export function isPlatformAdmin(role: UserRole | string): boolean {
 }
 
 /**
- * True for Rapid Cortex full platform operators (`rcsuperadmin`) or sentinel platform tenant JWTs
+ * True for NexCort iQ full platform operators (`rcsuperadmin`) or sentinel platform tenant JWTs
  * on `__platform__` (legacy pools).
  */
 export function isRcsuperadmin(user: Pick<UserContext, "role" | "agencyId">): boolean {

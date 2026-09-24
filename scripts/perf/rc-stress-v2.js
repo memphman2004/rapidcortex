@@ -1,5 +1,5 @@
 /**
- * Rapid Cortex — k6 Stress Test v2  (2026-08-27 — 403 fix applied)
+ * NexCort iQ — k6 Stress Test v2  (2026-08-27 — 403 fix applied)
  *
  * FIX: /api/agencies and /api/integration/status return HTTP 403 for
  * dispatcher-role test accounts. This is correct RBAC behavior, not an
@@ -218,7 +218,7 @@ export function handleSummary(data) {
   const lines = [
     "",
     "╔══════════════════════════════════════════════════════╗",
-    "║  Rapid Cortex Stress Test v2 — k6 Summary           ║",
+    "║  NexCort iQ Stress Test v2 — k6 Summary           ║",
     "║  500 RPS stage throttle / 1000 burst                ║",
     "╚══════════════════════════════════════════════════════╝",
     `  Verdict          : ${verdict}`,

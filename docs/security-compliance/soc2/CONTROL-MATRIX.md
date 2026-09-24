@@ -1,6 +1,6 @@
 # TSC control matrix (CC1–CC9)
 
-**Not a Type II report.** Maps AICPA Trust Services Criteria (2017, security category) to Rapid Cortex policies, technical evidence, and operating evidence. Confidentiality/privacy/availability/processing-integrity categories are **not** in the first Type II scope unless management expands the engagement letter.
+**Not a Type II report.** Maps AICPA Trust Services Criteria (2017, security category) to NexCort iQ policies, technical evidence, and operating evidence. Confidentiality/privacy/availability/processing-integrity categories are **not** in the first Type II scope unless management expands the engagement letter.
 
 **Technical snapshots:** [2026-10 evidence pack](../../evidence/soc2-evidence/2026-10/README.md).  
 **System:** [SYSTEM-BOUNDARY.md](./SYSTEM-BOUNDARY.md).
@@ -68,7 +68,7 @@ Legend for **Type II readiness**:
 | CC6.3 Removal | Offboarding within 1 business day for involuntary; same day for compromise | [12](./policies/12-hr-security-awareness.md) | Access review exceptions | OPS |
 | CC6.6 Credentials | Secrets Manager; manual rotation SOP; no secrets in git | [secrets-rotation-sop](../../evidence/soc2-evidence/2026-10/secrets-rotation-sop.md) | Inventory + tickets | TECH + OPS |
 | CC6.7 Transmission | TLS 1.2+; CORS allowlist | [SECURITY_MODEL](../SECURITY_MODEL.md) | ACM + CloudFront | TECH |
-| CC6.8 Physical | AWS data centers (inherited); Rapid Cortex has no production colo | [SYSTEM-BOUNDARY](./SYSTEM-BOUNDARY.md) | AWS SOC reports (request from AWS) | FIRM (inherited) |
+| CC6.8 Physical | AWS data centers (inherited); NexCort iQ has no production colo | [SYSTEM-BOUNDARY](./SYSTEM-BOUNDARY.md) | AWS SOC reports (request from AWS) | FIRM (inherited) |
 
 ## CC7 — System operations
 

@@ -141,7 +141,7 @@ export async function scanForHomeDevices(
 
         const entry: DiscoveredBleDevice = {
           id: device.id,
-          name: device.name ?? device.localName ?? 'RC Safe & Sound Home',
+          name: device.name ?? device.localName ?? 'NC Safe & Sound Home',
           rssi: device.rssi,
           serviceUuids: device.serviceUUIDs,
         };

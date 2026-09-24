@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Rapid Cortex — Help Panel Context
+ * NexCort iQ — Help Panel Context
  *
  * Provides open/close state and active article to the entire app shell.
  * Wrap each dashboard shell with <HelpPanelProvider role={userRole}>.

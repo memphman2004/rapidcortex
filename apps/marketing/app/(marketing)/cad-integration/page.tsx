@@ -5,25 +5,25 @@ import { buildPublicPageMetadata } from "@/lib/seo";
 const PATH = "/cad-integration";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "CAD Integration for 911 Centers | Rapid Cortex",
+  title: "CAD Integration for 911 Centers | NexCort iQ",
   description:
-    "Rapid Cortex works alongside existing CAD and NG911 systems to support emergency communications teams with operational intelligence, real-time assistance, and incident visibility.",
+    "NexCort iQ works alongside existing CAD and NG911 systems to support emergency communications teams with operational intelligence, real-time assistance, and incident visibility.",
   path: PATH,
 });
 
 export default function CadIntegrationPage() {
   return (
     <KeywordLandingPage
-      title="CAD Integration for 911 Centers | Rapid Cortex"
-      description="Rapid Cortex works alongside existing CAD and NG911 systems to support emergency communications teams with operational intelligence, real-time assistance, and incident visibility."
+      title="CAD Integration for 911 Centers | NexCort iQ"
+      description="NexCort iQ works alongside existing CAD and NG911 systems to support emergency communications teams with operational intelligence, real-time assistance, and incident visibility."
       path={PATH}
       h1="CAD-Friendly Integration for 911 Centers"
       eyebrow="CAD integration for 911 centers"
-      intro="Rapid Cortex is not a CAD replacement. It provides an intelligence and decision-support layer that fits existing CAD, NG911, telephony, and emergency management environments."
+      intro="NexCort iQ is not a CAD replacement. It provides an intelligence and decision-support layer that fits existing CAD, NG911, telephony, and emergency management environments."
       sections={[
         {
           title: "Protect your current systems of record",
-          body: "Rapid Cortex is designed to complement, not replace, established dispatch infrastructure and workflows.",
+          body: "NexCort iQ is designed to complement, not replace, established dispatch infrastructure and workflows.",
         },
         {
           title: "Operational support during incidents",

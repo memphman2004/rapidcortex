@@ -37,7 +37,7 @@ function SelectAgencyEmpty() {
       <h1 className="text-lg font-semibold text-white">Call Assist</h1>
       <p className="max-w-xl text-sm text-slate-400">
         Select an agency in the list to scope sessions, stats, and configuration. This switcher is
-        only available to Rapid Cortex operators.
+        only available to NexCort iQ operators.
       </p>
     </div>
   );

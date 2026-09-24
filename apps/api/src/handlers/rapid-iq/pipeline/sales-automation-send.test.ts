@@ -97,7 +97,7 @@ describe("sales automation campaign send", () => {
     listSalesSequences.mockResolvedValue([seq]);
     getOutlookConnection.mockResolvedValue({
       agencyId: "platform",
-      mailbox: "hello@rapidcortex.us",
+      mailbox: "hello@nexcortiq.us",
       mock: false,
       refreshTokenEnc: "enc",
       connectedBy: "u-admin",
@@ -121,7 +121,7 @@ describe("sales automation campaign send", () => {
     listSalesSequences.mockResolvedValue([dueSequence()]);
     getOutlookConnection.mockResolvedValue({
       agencyId: "platform",
-      mailbox: "hello@rapidcortex.us",
+      mailbox: "hello@nexcortiq.us",
       mock: true,
       connectedBy: "u-admin",
       connectedAt: new Date().toISOString(),

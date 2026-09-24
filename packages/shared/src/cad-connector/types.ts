@@ -1,5 +1,5 @@
 /**
- * Rapid Cortex — Multi-CAD Connector System: canonical shared types.
+ * NexCort iQ — Multi-CAD Connector System: canonical shared types.
  * All vendor adapters normalize to/from these types.
  * Addon: `cad.connector` — requireAddon("cad.connector") at every API handler.
  */

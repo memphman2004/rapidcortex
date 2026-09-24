@@ -5,7 +5,7 @@ Use a **language session** when the caller is not working in English (or your pr
 ## During the call
 
 1. Select the incident.
-2. Start translation from the language / RC Translate control in the workspace.
+2. Start translation from the language / Translate control in the workspace.
 3. Watch **Original:** lines under English text.
 4. If **Interpreter review** or **Low confidence** appears, follow agency interpreter SOP. Do not rely on the model alone.
 

@@ -43,7 +43,7 @@ require_json_health() {
   ok "${label} GET ${base}/api/health"
 }
 
-echo "════════ Rapid Cortex operational probe ════════"
+echo "════════ NexCort iQ operational probe ════════"
 
 if [[ -n "$API_BASE_URL" ]]; then
   require_json_health "$API_BASE_URL" "Primary API (stack 1)"

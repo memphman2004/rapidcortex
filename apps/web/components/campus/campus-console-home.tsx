@@ -816,7 +816,7 @@ function CampusConsoleHomeInner({
                     lineHeight: 1,
                   }}
                 >
-                  RAPID <span style={{ color: C.blue }}>CORTEX</span>
+                  NexCort <span style={{ color: C.blue }}>iQ</span>
                 </div>
                 <div
                   style={{
@@ -1083,7 +1083,7 @@ function CampusConsoleHomeInner({
                   />
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>
-                      Rapid Cortex Network
+                      NexCort iQ Network
                     </div>
                     <div style={{ fontSize: 10, color: C.green }}>All Systems Operational</div>
                   </div>
@@ -1767,7 +1767,7 @@ function CampusConsoleHomeInner({
                         link: "Get Support",
                         color: C.blue,
                         rgb: "100,116,139",
-                        href: "mailto:support@rapidcortex.us",
+                        href: "mailto:support@nexcortiq.us",
                       },
                       {
                         key: "training",
@@ -1777,7 +1777,7 @@ function CampusConsoleHomeInner({
                         link: "View Training",
                         color: "#8b5cf6",
                         rgb: "139,92,246",
-                        href: "mailto:support@rapidcortex.us?subject=RC%20Campus%20training",
+                        href: "mailto:support@nexcortiq.us?subject=RC%20Campus%20training",
                       },
                     ] as const
                   ).map((u) => {

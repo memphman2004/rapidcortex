@@ -1,12 +1,12 @@
 # AWS-native deployment (split lanes)
 
-Rapid Cortex intentionally separates **slow Next.js builds** from **SAM API packaging** so backend deploys are not blocked by the web workspace.
+NexCort iQ intentionally separates **slow Next.js builds** from **SAM API packaging** so backend deploys are not blocked by the web workspace.
 
 ## Lanes
 
 | Lane | What runs | How |
 |------|-----------|-----|
-| Backend + data + Cognito + RC Lite (`/api/v1`) | SAM nested stack | `./scripts/deploy.sh <dev\|staging\|prod\|pilot>` |
+| Backend + data + Cognito + NC Lite (`/api/v1`) | SAM nested stack | `./scripts/deploy.sh <dev\|staging\|prod\|pilot>` |
 | Next.js web (ECS) | CodeBuild builds `Dockerfile.web` in AWS — no Docker Desktop | `./scripts/deploy-web-ecs.sh <dev\|staging\|prod>` after pipeline stacks exist |
 | Static marketing (optional split) | S3 + CloudFront | `npm run deploy:marketing` (build → verify → S3 sync → post-verify). Infra stack only: `./scripts/deploy-marketing.sh --hosting` |
 | Desktop installers | S3 + CloudFront (`infra/downloads-hosting.yaml`) | `./scripts/upload-desktop-downloads.sh …` — publishes **`https://downloads.rapidcortex.us/latest.json`** plus `mac/latest/…`, `windows/latest/…` (see `docs/desktop-downloads.md`) |
@@ -39,6 +39,6 @@ aws ecs update-service \
   --region "${AWS_REGION:-us-east-1}"
 ```
 
-## RC Lite routing
+## NC Lite routing
 
-`/api/v1/*` stays on the primary HttpApi with the rest of Rapid Cortex Lambdas until a future split warrants a dedicated custom domain stack.
+`/api/v1/*` stays on the primary HttpApi with the rest of NexCort iQ Lambdas until a future split warrants a dedicated custom domain stack.

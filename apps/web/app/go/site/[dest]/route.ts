@@ -7,7 +7,7 @@ type Ctx = { params: Promise<{ dest: string }> };
 export const dynamic = "force-dynamic";
 
 /**
- * Public tracked click-through for Rapid Cortex site QR / NFC.
+ * Public tracked click-through for NexCort iQ site QR / NFC.
  * Counts the scan or tap, then 302s to www.rapidcortex.us (Home or Demo).
  */
 export async function GET(request: Request, ctx: Ctx) {

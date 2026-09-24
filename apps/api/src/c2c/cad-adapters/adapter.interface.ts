@@ -1,7 +1,7 @@
 /**
- * ICadAdapter — The Rapid Cortex C2C CAD Adapter Interface
+ * ICadAdapter — The NexCort iQ C2C CAD Adapter Interface
  *
- * This interface defines exactly what the Rapid Cortex hub needs from any
+ * This interface defines exactly what the NexCort iQ hub needs from any
  * CAD system to participate in bidirectional CAD-to-CAD data exchange.
  *
  * VENDOR IMPLEMENTATION GUIDE:
@@ -9,11 +9,11 @@
  * Southern Software: implement SouthernSoftwareAdapter (see southern-software.adapter.ts)
  * CentralSquare Enterprise: implement CentralSquareAdapter (see centralsquare.adapter.ts)
  *
- * To connect your CAD to the Rapid Cortex C2C hub, implement every method
+ * To connect your CAD to the NexCort iQ C2C hub, implement every method
  * in this interface. Methods marked REQUIRED must be implemented for basic
  * operation. Methods marked OPTIONAL enhance functionality.
  *
- * Contact: api@rapidcortex.com for integration support.
+ * Contact: api@nexcortiq.us for integration support.
  */
 
 import type {

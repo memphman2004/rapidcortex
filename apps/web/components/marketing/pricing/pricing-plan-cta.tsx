@@ -27,7 +27,7 @@ export function PricingPlanCta({ plan }: { plan: PricingPlanCardContent }) {
         href="https://www.rapidcortex.us/contact-sales?interest=api_access"
         className={`${baseOutline} border border-sky-500/40 bg-sky-950/40 text-white hover:bg-sky-950/70`}
       >
-        Request RC Lite Access
+        Request NexCort Lite Access
       </Link>
     );
   }

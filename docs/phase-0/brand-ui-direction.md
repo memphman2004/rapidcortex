@@ -2,7 +2,7 @@
 
 ## Brand
 
-- **Name:** Rapid Cortex  
+- **Name:** NexCort iQ  
 - **Positioning:** Real-time AI intelligence for **emergency response**—fast, calm, trustworthy.
 - **Voice (external):** Confident, precise, respectful of public safety professionals; never hype “autonomous AI.”
 

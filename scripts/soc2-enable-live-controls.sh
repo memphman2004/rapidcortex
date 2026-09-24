@@ -25,9 +25,9 @@ log "Caller:"
 aws sts get-caller-identity
 
 # ---------------------------------------------------------------------------
-# 1. DynamoDB PITR on Rapid Cortex / Ring tables
+# 1. DynamoDB PITR on NexCort iQ / Ring tables
 # ---------------------------------------------------------------------------
-log "Enabling DynamoDB PITR on Rapid Cortex and Ring tables…"
+log "Enabling DynamoDB PITR on NexCort iQ and Ring tables…"
 python3 - <<'PY'
 import json, subprocess, sys
 def run(cmd):
@@ -166,7 +166,7 @@ print(f"KMS CMK rotation enabled={rotated} aws_managed_or_other={aws_managed}")
 PY
 
 # ---------------------------------------------------------------------------
-# 6. ACM expiry alarms (Rapid Cortex certs)
+# 6. ACM expiry alarms (NexCort iQ certs)
 # ---------------------------------------------------------------------------
 log "ACM DaysToExpiry alarms…"
 python3 - <<PY
@@ -190,7 +190,7 @@ for c in certs:
     domain = (c.get("DomainName") or "cert").replace("*", "star")
     if ACCOUNT not in arn:
         continue
-    # Only Rapid Cortex hostnames + the known API cert
+    # Only NexCort iQ hostnames + the known API cert
     interesting = any(x in domain for x in ("rapidcortex", "rapid-cortex")) or arn == API_CERT
     if not interesting:
         continue

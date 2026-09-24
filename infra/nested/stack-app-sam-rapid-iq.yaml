@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — surgical Rapid IQ sales intelligence on AppSam3 HttpApi.
+  NexCort iQ — surgical Rapid IQ sales intelligence on AppSam3 HttpApi.
   Priority jurisdiction scheduler + opportunity CRM APIs.
 
 Parameters:
@@ -147,7 +147,7 @@ Globals:
         CONTACT_PERSONS_TABLE: !Ref ContactPersonsTable
         APP_BASE_URL: !Sub "https://app.rapidcortex.us"
         APP_PUBLIC_BASE_URL: !Sub "https://app.rapidcortex.us"
-        SES_FROM_EMAIL: noreply@rapidcortex.us
+        SES_FROM_EMAIL: noreply@nexcortiq.us
         CONFERENCE_ALERT_TO_EMAIL: rcsuperadmin@appsondemand.net
         ADMIN_EMAIL: rcsuperadmin@appsondemand.net
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
@@ -643,7 +643,7 @@ Resources:
               Action:
                 - ses:SendEmail
               Resource:
-                - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/noreply@rapidcortex.us
+                - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/noreply@nexcortiq.us
                 - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
                 - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/appsondemand.net
                 - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rcsuperadmin@appsondemand.net

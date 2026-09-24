@@ -13,7 +13,7 @@
 
 ## 1. Objectives
 
-Keep Rapid Cortex available as an assistive layer, prevent cross-tenant disclosure, prevent unauthorized CAD write-back, and avoid overstated compliance claims.
+Keep NexCort iQ available as an assistive layer, prevent cross-tenant disclosure, prevent unauthorized CAD write-back, and avoid overstated compliance claims.
 
 ## 2. Registers
 

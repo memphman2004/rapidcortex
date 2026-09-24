@@ -1,7 +1,7 @@
 # Desktop connection audit (Option B: native macOS + native Windows)
 
 **Audit date:** 2026-04-25  
-**Repository:** Rapid Cortex monorepo (`apps/web`, `apps/api`, `packages/*`, `infra/`)
+**Repository:** NexCort iQ monorepo (`apps/web`, `apps/api`, `packages/*`, `infra/`)
 
 ## Executive summary
 
@@ -157,7 +157,7 @@ Native apps now live in **`apps/desktop-macos/`** and **`apps/desktop-windows/`*
 ## Test commands
 
 ```bash
-cd "/path/to/Rapid Cortex"
+cd "/path/to/NexCort iQ"
 npm run build -w rapid-cortex-shared
 rsync -a --delete packages/shared/dist/ apps/api/node_modules/rapid-cortex-shared/dist/
 npx vitest run apps/api/src/handlers/admin/getDesktopMacosRelease.handler.integration.test.ts

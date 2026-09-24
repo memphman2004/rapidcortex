@@ -520,7 +520,7 @@ export async function fetchIntegrationStatus(): Promise<IntegrationStatusPayload
   return request("/api/integration/status");
 }
 
-/** RC Admin — cross-tenant command center (GET /api/platform/summary). */
+/** NexCort Admin — cross-tenant command center (GET /api/platform/summary). */
 export type PlatformSummaryPayload = {
   generatedAt: string;
   totals: {
@@ -541,7 +541,7 @@ export async function fetchPlatformSummary(): Promise<PlatformSummaryPayload> {
   return request<PlatformSummaryPayload>("/api/platform/summary");
 }
 
-/** RC Admin — national HQ pins for cross-agency deployments map. */
+/** NexCort Admin — national HQ pins for cross-agency deployments map. */
 export type AgencyDeploymentsMapPayload = {
   markers: Array<{
     agencyId: string;
@@ -572,7 +572,7 @@ export type FetchPlatformAuditParams = {
   to?: string;
 };
 
-/** RC Admin — merged audit across tenants. */
+/** NexCort Admin — merged audit across tenants. */
 export async function fetchPlatformAuditEvents(
   params: FetchPlatformAuditParams = {},
 ): Promise<AuditEvent[]> {
@@ -1723,7 +1723,7 @@ export async function postAgencyAdminWebhook(body: Record<string, unknown>): Pro
   return request(`/api/agency-admin/webhooks`, { method: "POST", body: JSON.stringify(body) });
 }
 
-/** RC Admin — cross-tenant API client oversight (GET /api/rc-admin/api-clients). */
+/** NexCort Admin — cross-tenant API client oversight (GET /api/rc-admin/api-clients). */
 export async function fetchRcAdminApiClients(qs?: { agencyId?: string; status?: string }): Promise<unknown[]> {
   const sp = new URLSearchParams();
   if (qs?.agencyId) sp.set("agencyId", qs.agencyId);

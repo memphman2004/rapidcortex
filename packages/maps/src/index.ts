@@ -1,4 +1,4 @@
-/** Shared MapLibre GL building blocks for Rapid Cortex (web / future desktop shell). */
+/** Shared MapLibre GL building blocks for NexCort iQ (web / future desktop shell). */
 
 export type {
   LocationConfidence,

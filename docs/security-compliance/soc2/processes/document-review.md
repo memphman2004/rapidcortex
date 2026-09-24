@@ -19,7 +19,7 @@
 | Artifact | Rule |
 |----------|------|
 | Executed equity offer letters, wet-ink NDAs, signed MSAs | **Records.** Do not edit. Store in the private compliance / legal share. |
-| `COMPLETE_MSA_MASTER_DOCUMENT.docx`, Platform Agreement, RC Lite Agreement | Counsel + entity reconciliation ([DOCUMENT_GAPS.md](../../../go-to-market-sales/DOCUMENT_GAPS.md) LEG-007). Markdown index points at them; this SOP does not regenerate Word. |
+| `COMPLETE_MSA_MASTER_DOCUMENT.docx`, Platform Agreement, NC Lite Agreement | Counsel + entity reconciliation ([DOCUMENT_GAPS.md](../../../go-to-market-sales/DOCUMENT_GAPS.md) LEG-007). Markdown index points at them; this SOP does not regenerate Word. |
 | May 2026 Internal Product PDFs (pilot scope, CJIS/SOC2 alignment, data-flow, go/no-go) | Treat as **archive copies**. Canonical language lives in markdown. Counsel regenerates PDFs when LEG-001 closes. |
 | Cognito / IAM JSON under `docs/evidence/` | Re-collect with scripts. Do not hand-edit snapshots. |
 

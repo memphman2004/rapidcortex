@@ -36,7 +36,7 @@ describe("hiring email templates", () => {
   it("interview email mentions Teams and booking confirmation", () => {
     const email = buildEmail("INTERVIEW", {
       ...base,
-      schedulingLink: "https://outlook.office.com/book/VideoInterview@rapidcortex.us/",
+      schedulingLink: "https://outlook.office.com/book/VideoInterview@nexcortiq.us/",
     });
     expect(email).not.toBeNull();
     expect(email!.html).toContain("Microsoft Teams video call");

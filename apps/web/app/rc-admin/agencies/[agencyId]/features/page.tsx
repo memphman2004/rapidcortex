@@ -10,7 +10,7 @@ import { EscalationSettingsPanel } from "../escalation-settings";
 import { deriveVerticalFromAgencyId, normalizeVertical } from "@/lib/vertical";
 
 export const metadata = {
-  title: "Feature add-ons (RC Admin)",
+  title: "Feature add-ons (NexCort Admin)",
   robots: { index: false, follow: false },
 };
 

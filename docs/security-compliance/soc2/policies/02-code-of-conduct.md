@@ -13,7 +13,7 @@
 
 ## 1. Required conduct
 
-Personnel with access to Rapid Cortex production or customer data must:
+Personnel with access to NexCort iQ production or customer data must:
 
 - Use production access only for assigned duties.
 - Never exfiltrate transcripts, CAD payloads, or caller media to personal devices, public AI chat tools, or unsanctioned SaaS.

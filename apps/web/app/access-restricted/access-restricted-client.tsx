@@ -175,7 +175,7 @@ export function AccessRestrictedClient() {
 
       {isIp ? (
         <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-400">
-          Your network is not authorized for Rapid Cortex. Contact your agency IT administrator to add
+          Your network is not authorized for NexCort iQ. Contact your agency IT administrator to add
           your network.
         </p>
       ) : (

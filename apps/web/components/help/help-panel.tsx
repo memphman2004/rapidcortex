@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Rapid Cortex — Help Panel (slide-out drawer)
+ * NexCort iQ — Help Panel (slide-out drawer)
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -112,10 +112,10 @@ function ArticleView({
             <div style={{ fontSize: 12, color: V.muted, lineHeight: 1.6 }}>
               This guide is being written. In the meantime, contact support at{" "}
               <a
-                href="mailto:support@rapidcortex.com"
+                href="mailto:support@nexcortiq.us"
                 style={{ color: V.purple, textDecoration: "none" }}
               >
-                support@rapidcortex.com
+                support@nexcortiq.us
               </a>{" "}
               or check the release notes for details.
             </div>
@@ -160,7 +160,7 @@ function ArticleView({
               </>
             )}
               <a
-                href="mailto:support@rapidcortex.com"
+                href="mailto:support@nexcortiq.us"
                 style={{ fontSize: 11, color: V.dim, textDecoration: "none" }}
               >
                 Send feedback
@@ -232,7 +232,7 @@ function ArticleIndex({
       <div style={{ padding: "16px 20px", borderTop: `1px solid ${V.border}`, marginTop: 8 }}>
         <div style={{ fontSize: 11, color: V.dim, marginBottom: 6 }}>Need more help?</div>
         <a
-          href="mailto:support@rapidcortex.com"
+          href="mailto:support@nexcortiq.us"
           style={{
             fontSize: 12,
             color: V.purple,

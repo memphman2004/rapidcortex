@@ -31,9 +31,9 @@ vi.mock("../lib/env.js", () => ({
   env: {
     enableInsideTheCortex: true,
     marketingLeadsTable: "rapid-cortex-marketing-leads-test",
-    sesFromEmail: "noreply@rapidcortex.us",
+    sesFromEmail: "noreply@nexcortiq.us",
     contactFromEmail: "",
-    rcTeamNotifyEmail: "team@rapidcortex.us",
+    rcTeamNotifyEmail: "team@nexcortiq.us",
     sesMock: true,
   },
 }));

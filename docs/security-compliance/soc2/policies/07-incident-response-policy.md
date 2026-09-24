@@ -9,7 +9,7 @@
 | Effective | DRAFT 2026-09-19 |
 | Review | Annual + after every SEV-1 |
 
-**Not a Type II report.** “Incident” here is an operational or security event affecting Rapid Cortex — not a 911 incident record in the product.
+**Not a Type II report.** “Incident” here is an operational or security event affecting NexCort iQ — not a 911 incident record in the product.
 
 ## 1. Severity
 

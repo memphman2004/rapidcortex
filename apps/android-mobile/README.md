@@ -1,8 +1,8 @@
-# Rapid Cortex Android mobile (`apps/android-mobile`)
+# NexCort iQ Android mobile (`apps/android-mobile`)
 
-Expo SDK 53 React Native app for **RC Venue**, **RC Campus**, and (later) **RC Safe & Sound**.
+Expo SDK 53 React Native app for **NC Venue**, **NC Campus**, and (later) **NC Safe & Sound**.
 
-This is the **Android** product (Play package `us.rapidcortex.app`). Native **iOS** is Xcode in [`apps/ios-mobile`](../ios-mobile) (Rapid Cortex Mobile) — do not ship Expo iOS builds.
+This is the **Android** product (Play package `us.rapidcortex.app`). Native **iOS** is Xcode in [`apps/ios-mobile`](../ios-mobile) (NexCort iQ Mobile) — do not ship Expo iOS builds.
 
 ## Setup
 
@@ -56,11 +56,11 @@ eas build --platform android --profile development
 
 ## Splash
 
-Native splash + in-app gate match marketing `/enter` (“Enter the Cortex”): background `#00040e`, neural field animation, Initialize CTA. Shown once every 24 hours (same TTL as the marketing `cortex_entered` cookie).
+Native splash + in-app gate match marketing `/enter` (“Enter NexCort”): background `#00040e`, neural field animation, Initialize CTA. Shown once every 24 hours (same TTL as the marketing `cortex_entered` cookie).
 
 ## Play Store (v1 — QR/NFC Venue + Campus)
 
-First submission is the **field codes tool only** (QR share + NFC). Guardian / Safe & Sound BLE stays flag-gated and is stripped from the Play permission set. iOS Rapid Cortex Mobile ships from Xcode / TestFlight (`apps/ios-mobile`), not EAS.
+First submission is the **field codes tool only** (QR share + NFC). Guardian / Safe & Sound BLE stays flag-gated and is stripped from the Play permission set. iOS NexCort iQ Mobile ships from Xcode / TestFlight (`apps/ios-mobile`), not EAS.
 
 Listing copy, Data safety answers, and Console steps: [`store/PLAY_STORE.md`](./store/PLAY_STORE.md).
 
@@ -79,8 +79,8 @@ EAS project id is already set (`extra.eas.projectId`). Confirm `owner: 'rapid-co
 
 | Store | ID | Notes |
 |-------|-----|--------|
-| Google Play Console | Developer account `7807903929046926180` | Org **Rapid Cortex**; finish identity / website / phone verification before API access + publish |
-| Apple (iOS) | Team `6D7D94PU3M` | Rapid Cortex Mobile in `apps/ios-mobile`, unlisted TestFlight |
+| Google Play Console | Developer account `7807903929046926180` | Org **NexCort iQ**; finish identity / website / phone verification before API access + publish |
+| Apple (iOS) | Team `6D7D94PU3M` | NexCort iQ Mobile in `apps/ios-mobile`, unlisted TestFlight |
 
 Android EAS submit expects a Play API service-account JSON at `apps/android-mobile/google-play-key.json` (do not commit). Create it under Play Console → **Users and permissions → API access** after account verification is complete.
 

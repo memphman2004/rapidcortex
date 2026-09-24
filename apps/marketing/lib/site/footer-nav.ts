@@ -20,9 +20,9 @@ export const footerNav: FooterNavItem[] = [
   {
     label: "Solutions",
     links: [
-      { label: "Rapid Cortex Core", href: "/product/core" },
-      { label: "Rapid Cortex Venue", href: "/product/venue" },
-      { label: "Rapid Cortex Campus", href: "/product/campus" },
+      { label: "911 Centers/PSAPs", href: "/product/core" },
+      { label: "NexCort iQ Venue", href: "/product/venue" },
+      { label: "NexCort iQ Campus", href: "/product/campus" },
       { label: "Grant Success Program", href: "/grants" },
       { label: "Campus safety software", href: "/campus-safety-software" },
       { label: "Venue safety software", href: "/venue-safety-software" },

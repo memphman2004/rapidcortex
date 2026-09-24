@@ -8,7 +8,7 @@ export function generateJsonLd(type: string, payload: Record<string, unknown>): 
       return {
         ...base,
         "@type": "Organization",
-        name: payload.name ?? "Rapid Cortex",
+        name: payload.name ?? "NexCort iQ",
         url: payload.url ?? "https://www.rapidcortex.us",
         logo: payload.logo,
         sameAs: payload.sameAs,
@@ -17,7 +17,7 @@ export function generateJsonLd(type: string, payload: Record<string, unknown>): 
       return {
         ...base,
         "@type": "SoftwareApplication",
-        name: payload.name ?? "Rapid Cortex",
+        name: payload.name ?? "NexCort iQ",
         applicationCategory: payload.applicationCategory ?? "BusinessApplication",
         operatingSystem: payload.operatingSystem ?? "Web",
         offers: payload.offers,
@@ -28,7 +28,7 @@ export function generateJsonLd(type: string, payload: Record<string, unknown>): 
         "@type": "Product",
         name: payload.name,
         description: payload.description,
-        brand: payload.brand ?? { "@type": "Brand", name: "Rapid Cortex" },
+        brand: payload.brand ?? { "@type": "Brand", name: "NexCort iQ" },
       };
     case "FAQPage":
       return {

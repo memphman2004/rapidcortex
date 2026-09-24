@@ -234,14 +234,14 @@ export function RoleNavSidebar({
         <div className="mb-5 hidden px-1 md:flex md:items-center md:gap-2.5">
           <Image
             src={SITE_SQUARE_ICON_PATH}
-            alt="Rapid Cortex"
+            alt="NexCort iQ"
             width={SITE_SQUARE_ICON_WIDTH}
             height={SITE_SQUARE_ICON_HEIGHT}
             className="h-8 w-8 shrink-0 rounded-md ring-1 ring-white/10"
             priority
           />
           <div className="min-w-0">
-            <span className="block text-sm font-semibold tracking-tight text-white">Rapid Cortex</span>
+            <span className="block text-sm font-semibold tracking-tight text-white">NexCort iQ</span>
             <span className="text-[10px] font-medium uppercase tracking-wide text-slate-500">
               {nav.roleBadge}
             </span>

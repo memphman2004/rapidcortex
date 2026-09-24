@@ -2,7 +2,7 @@ import type { SeoPostContent } from "./build-seo-post";
 
 export const seoPostContent: Record<string, SeoPostContent> = {
   "modernize-emergency-communications-without-replacing-cad": {
-    intro: "How to Modernize Emergency Communications Without Replacing CAD is a practical question for public safety directors and agency executives modernizing how incident information moves. CAD modernization only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [CAD integration](/cad-integration), and [Rapid Cortex Offerings](/blog/rapid-cortex-offerings) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How to Modernize Emergency Communications Without Replacing CAD is a practical question for public safety directors and agency executives modernizing how incident information moves. CAD modernization only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [CAD integration](/cad-integration), and [NexCort iQ Offerings](/blog/rapid-cortex-offerings) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The board-level case for CAD modernization",
@@ -51,16 +51,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let public safety directors and agency executives validate CAD modernization alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Measure ROI in reduced rework: fewer repeated caller questions, cleaner shift logs, faster supervisor review.",
-          "Rapid Cortex enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "NexCort iQ enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Executives should revisit CAD modernization metrics quarterly — adoption curves flatten if supervisors do not model the workflow.",
           "Scale CAD modernization only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page CAD modernization requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong CAD modernization programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong CAD modernization programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "campus-safety-no-app-reporting": {
-    intro: "Why Campus Safety Reporting Should Not Require Downloading Another App is a practical question for campus safety and university police teams modernizing how incident information moves. campus safety reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why Campus Safety Reporting Should Not Require Downloading Another App is a practical question for campus safety and university police teams modernizing how incident information moves. campus safety reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Where campus safety reporting breaks down on a real campus",
@@ -83,7 +83,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, campus safety reporting must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-          "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+          "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
           "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
           "Workflow design for campus safety reporting should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Clery documentation may benefit from structured intake, but compliance remains the institution's responsibility. Publish a one-page campus safety reporting requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -115,10 +115,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong campus safety reporting programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong campus safety reporting programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "stadium-safety-text-reporting": {
-    intro: "Why Stadium Safety Reporting Should Be as Easy as Sending a Text is a practical question for venue security and event operations leaders modernizing how incident information moves. stadium safety texting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why Stadium Safety Reporting Should Be as Easy as Sending a Text is a practical question for venue security and event operations leaders modernizing how incident information moves. stadium safety texting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for stadium safety texting",
@@ -141,7 +141,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, stadium safety texting must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Zone-based routing sends a parking-lot report to the right team without every alert hitting the command post.",
-          "[Rapid Cortex Venue](/venue) ties intake to floor plans and escalation playbooks.",
+          "[NexCort iQ Venue](/venue) ties intake to floor plans and escalation playbooks.",
           "Signage at section, row, and gate level gives fans language they understand when they need help fast.",
           "Workflow design for stadium safety texting should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page stadium safety texting requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -173,10 +173,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong stadium safety texting programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong stadium safety texting programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "911-real-time-call-transcription": {
-    intro: "Why 911 Call Takers Need Real-Time Transcription During High-Stress Calls is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. 911 call transcription only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why 911 Call Takers Need Real-Time Transcription During High-Stress Calls is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. 911 call transcription only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The operational gap behind 911 call transcription",
@@ -226,16 +226,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let 911 directors, PSAP supervisors, and call takers validate 911 call transcription alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend. Pair pilots with QA review so transcripts augment — not replace — call-taker notes.",
           "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-          "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "911 Centers/PSAPs enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Start with one shift or one supervisor desk, measure time-to-context for 911 call transcription, then expand with union and IT buy-in.",
           "Scale 911 call transcription only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page 911 call transcription requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong 911 call transcription programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong 911 call transcription programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "airport-safety-reporting-platform": {
-    intro: "Why Airports Need Faster Ways for Travelers to Report Safety Concerns is a practical question for airport operations and terminal security teams modernizing how incident information moves. airport safety reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [airport and venue reporting](/blog/rapid-cortex-venue), and [contact sales](/contact-sales) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why Airports Need Faster Ways for Travelers to Report Safety Concerns is a practical question for airport operations and terminal security teams modernizing how incident information moves. airport safety reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [airport and venue reporting](/blog/rapid-cortex-venue), and [contact sales](/contact-sales) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for airport safety reporting",
@@ -258,7 +258,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, airport safety reporting must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "QR signage at gates, baggage claim, and parking decks gives travelers a consistent path to report concerns.",
-          "[Rapid Cortex Venue](/venue) supports airport layouts with the same zone routing used in stadiums and arenas.",
+          "[NexCort iQ Venue](/venue) supports airport layouts with the same zone routing used in stadiums and arenas.",
           "Wayfinding for airport safety reporting should mirror how passengers already navigate — not require staff acronyms or desk extensions.",
           "Workflow design for airport safety reporting should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page airport safety reporting requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -290,10 +290,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong airport safety reporting programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong airport safety reporting programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "what-is-incident-intelligence-platform": {
-    intro: "What Is an Incident Intelligence Platform for Public Safety? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. incident intelligence platform only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [Rapid Cortex Core](/product/core), and [contact sales](/contact-sales) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "What Is an Incident Intelligence Platform for Public Safety? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. incident intelligence platform only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [911 Centers/PSAPs](/product/core), and [contact sales](/contact-sales) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Defining incident intelligence platform for evaluators",
@@ -348,10 +348,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong incident intelligence platform evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to Rapid Cortex Core, Campus, or Venue.",
+    closing: "Strong incident intelligence platform evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to 911 Centers/PSAPs, Campus, or Venue.",
   },
   "silent-911-text-chat": {
-    intro: "What Happens When a 911 Caller Cannot Safely Speak? is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. silent 911 communication only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "What Happens When a 911 Caller Cannot Safely Speak? is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. silent 911 communication only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The operational gap behind silent 911 communication",
@@ -401,16 +401,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let 911 directors, PSAP supervisors, and call takers validate silent 911 communication alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend. Train call takers on when to keep the caller in text versus voice.",
           "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-          "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "911 Centers/PSAPs enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Start with one shift or one supervisor desk, measure time-to-context for silent 911 communication, then expand with union and IT buy-in.",
           "Scale silent 911 communication only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page silent 911 communication requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong silent 911 communication programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong silent 911 communication programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "beyond-blue-light-campus-safety": {
-    intro: "Campus Safety Beyond Blue Light Phones: What Universities Need Next is a practical question for campus safety and university police teams modernizing how incident information moves. blue light phone alternatives only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Campus Safety Beyond Blue Light Phones: What Universities Need Next is a practical question for campus safety and university police teams modernizing how incident information moves. blue light phone alternatives only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Where blue light phone alternatives breaks down on a real campus",
@@ -433,7 +433,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, blue light phone alternatives must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-          "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+          "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
           "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
           "Workflow design for blue light phone alternatives should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Clery documentation may benefit from structured intake, but compliance remains the institution's responsibility. Publish a one-page blue light phone alternatives requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -465,10 +465,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong blue light phone alternatives programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong blue light phone alternatives programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "fan-to-security-communication": {
-    intro: "What Happens When a Fan Needs Security but Does Not Know Who to Call? is a practical question for venue security and event operations leaders modernizing how incident information moves. fan security communication only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "What Happens When a Fan Needs Security but Does Not Know Who to Call? is a practical question for venue security and event operations leaders modernizing how incident information moves. fan security communication only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for fan security communication",
@@ -491,7 +491,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, fan security communication must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Zone-based routing sends a parking-lot report to the right team without every alert hitting the command post.",
-          "[Rapid Cortex Venue](/venue) ties intake to floor plans and escalation playbooks.",
+          "[NexCort iQ Venue](/venue) ties intake to floor plans and escalation playbooks.",
           "Signage at section, row, and gate level gives fans language they understand when they need help fast.",
           "Workflow design for fan security communication should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page fan security communication requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -523,10 +523,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong fan security communication programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong fan security communication programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "cjis-aligned-public-safety-software": {
-    intro: "What \"CJIS-Aligned\" Should Mean When Evaluating Public Safety Software is a practical question for public safety directors and agency executives modernizing how incident information moves. CJIS aligned software only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [CAD integration](/cad-integration), and [Rapid Cortex Offerings](/blog/rapid-cortex-offerings) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "What \"CJIS-Aligned\" Should Mean When Evaluating Public Safety Software is a practical question for public safety directors and agency executives modernizing how incident information moves. CJIS aligned software only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [CAD integration](/cad-integration), and [NexCort iQ Offerings](/blog/rapid-cortex-offerings) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The board-level case for CJIS aligned software",
@@ -578,18 +578,18 @@ export const seoPostContent: Record<string, SeoPostContent> = {
       {
         heading: "Measuring ROI on CJIS aligned software",
         paragraphs: [
-          "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let public safety directors and agency executives validate CJIS aligned software alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend. Rapid Cortex uses CJIS-aware design principles across deployments.",
+          "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let public safety directors and agency executives validate CJIS aligned software alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend. NexCort iQ uses CJIS-aware design principles across deployments.",
           "Measure ROI in reduced rework: fewer repeated caller questions, cleaner shift logs, faster supervisor review.",
-          "Rapid Cortex enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "NexCort iQ enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Executives should revisit CJIS aligned software metrics quarterly — adoption curves flatten if supervisors do not model the workflow.",
           "Scale CJIS aligned software only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page CJIS aligned software requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong CJIS aligned software programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong CJIS aligned software programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "live-translation-911-centers": {
-    intro: "The Role of Live Translation in Modern Emergency Communications Centers is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. 911 translation services only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "The Role of Live Translation in Modern Emergency Communications Centers is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. 911 translation services only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The operational gap behind 911 translation services",
@@ -639,16 +639,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let 911 directors, PSAP supervisors, and call takers validate 911 translation services alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-          "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "911 Centers/PSAPs enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Start with one shift or one supervisor desk, measure time-to-context for 911 translation services, then expand with union and IT buy-in.",
           "Scale 911 translation services only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page 911 translation services requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong 911 translation services programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong 911 translation services programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "campus-safety-qr-code-reporting": {
-    intro: "How QR Codes Can Create Faster Safety Reporting Across Campus is a practical question for campus safety and university police teams modernizing how incident information moves. campus safety QR code only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How QR Codes Can Create Faster Safety Reporting Across Campus is a practical question for campus safety and university police teams modernizing how incident information moves. campus safety QR code only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Where campus safety QR code breaks down on a real campus",
@@ -671,7 +671,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, campus safety QR code must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-          "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+          "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
           "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
           "Workflow design for campus safety QR code should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Clery documentation may benefit from structured intake, but compliance remains the institution's responsibility. Publish a one-page campus safety QR code requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -703,10 +703,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong campus safety QR code programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong campus safety QR code programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "arena-safety-without-more-staff": {
-    intro: "How Arenas Can Improve Fan Safety Without Hiring More Security Staff is a practical question for venue security and event operations leaders modernizing how incident information moves. arena security technology only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Arenas Can Improve Fan Safety Without Hiring More Security Staff is a practical question for venue security and event operations leaders modernizing how incident information moves. arena security technology only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for arena security technology",
@@ -729,7 +729,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, arena security technology must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Zone-based routing sends a parking-lot report to the right team without every alert hitting the command post.",
-          "[Rapid Cortex Venue](/venue) ties intake to floor plans and escalation playbooks.",
+          "[NexCort iQ Venue](/venue) ties intake to floor plans and escalation playbooks.",
           "Signage at section, row, and gate level gives fans language they understand when they need help fast.",
           "Workflow design for arena security technology should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page arena security technology requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -761,10 +761,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong arena security technology programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong arena security technology programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "airport-passenger-incident-reporting": {
-    intro: "How Airport Operations Teams Can Receive Passenger Reports in Real Time is a practical question for airport operations and terminal security teams modernizing how incident information moves. airport incident reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [airport and venue reporting](/blog/rapid-cortex-venue), and [contact sales](/contact-sales) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Airport Operations Teams Can Receive Passenger Reports in Real Time is a practical question for airport operations and terminal security teams modernizing how incident information moves. airport incident reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [airport and venue reporting](/blog/rapid-cortex-venue), and [contact sales](/contact-sales) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for airport incident reporting",
@@ -787,7 +787,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, airport incident reporting must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "QR signage at gates, baggage claim, and parking decks gives travelers a consistent path to report concerns.",
-          "[Rapid Cortex Venue](/venue) supports airport layouts with the same zone routing used in stadiums and arenas.",
+          "[NexCort iQ Venue](/venue) supports airport layouts with the same zone routing used in stadiums and arenas.",
           "Wayfinding for airport incident reporting should mirror how passengers already navigate — not require staff acronyms or desk extensions.",
           "Workflow design for airport incident reporting should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page airport incident reporting requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -819,10 +819,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong airport incident reporting programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong airport incident reporting programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "receive-caller-photos-videos-emergency": {
-    intro: "What Is the Best Way to Receive Photos and Videos From Emergency Callers? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. emergency caller media intake only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [Rapid Cortex Core](/product/core), and [contact sales](/contact-sales) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "What Is the Best Way to Receive Photos and Videos From Emergency Callers? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. emergency caller media intake only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [911 Centers/PSAPs](/product/core), and [contact sales](/contact-sales) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Defining emergency caller media intake for evaluators",
@@ -877,10 +877,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong emergency caller media intake evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to Rapid Cortex Core, Campus, or Venue.",
+    closing: "Strong emergency caller media intake evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to 911 Centers/PSAPs, Campus, or Venue.",
   },
   "clery-act-incident-reporting-workflows": {
-    intro: "Improving Clery Act Documentation With Better Incident Reporting Workflows is a practical question for campus safety and university police teams modernizing how incident information moves. Clery Act reporting software only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Improving Clery Act Documentation With Better Incident Reporting Workflows is a practical question for campus safety and university police teams modernizing how incident information moves. Clery Act reporting software only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Where Clery Act reporting software breaks down on a real campus",
@@ -903,7 +903,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, Clery Act reporting software must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop. Workflows should route Clery-eligible incidents to compliance staff with audit trails.",
           "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-          "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+          "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
           "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
           "Workflow design for Clery Act reporting software should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Clery documentation may benefit from structured intake, but compliance remains the institution's responsibility. Publish a one-page Clery Act reporting software requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -940,10 +940,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong Clery Act reporting software programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong Clery Act reporting software programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "venue-safety-qr-nfc-text": {
-    intro: "QR Codes, NFC Tags, and Text Messages: The Future of Venue Safety Reporting is a practical question for venue security and event operations leaders modernizing how incident information moves. venue safety QR code only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "QR Codes, NFC Tags, and Text Messages: The Future of Venue Safety Reporting is a practical question for venue security and event operations leaders modernizing how incident information moves. venue safety QR code only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for venue safety QR code",
@@ -966,7 +966,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, venue safety QR code must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Zone-based routing sends a parking-lot report to the right team without every alert hitting the command post.",
-          "[Rapid Cortex Venue](/venue) ties intake to floor plans and escalation playbooks.",
+          "[NexCort iQ Venue](/venue) ties intake to floor plans and escalation playbooks.",
           "Signage at section, row, and gate level gives fans language they understand when they need help fast.",
           "Workflow design for venue safety QR code should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page venue safety QR code requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -998,10 +998,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong venue safety QR code programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong venue safety QR code programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "public-safety-technology-pilot-program": {
-    intro: "How Agencies Can Pilot New Technology Without Disrupting Daily Operations is a practical question for public safety directors and agency executives modernizing how incident information moves. public safety pilot program only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [CAD integration](/cad-integration), and [Rapid Cortex Offerings](/blog/rapid-cortex-offerings) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Agencies Can Pilot New Technology Without Disrupting Daily Operations is a practical question for public safety directors and agency executives modernizing how incident information moves. public safety pilot program only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [CAD integration](/cad-integration), and [NexCort iQ Offerings](/blog/rapid-cortex-offerings) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The board-level case for public safety pilot program",
@@ -1050,16 +1050,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let public safety directors and agency executives validate public safety pilot program alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Measure ROI in reduced rework: fewer repeated caller questions, cleaner shift logs, faster supervisor review.",
-          "Rapid Cortex enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "NexCort iQ enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Executives should revisit public safety pilot program metrics quarterly — adoption curves flatten if supervisors do not model the workflow.",
           "Scale public safety pilot program only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page public safety pilot program requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong public safety pilot program programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong public safety pilot program programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "real-time-call-summaries-dispatchers": {
-    intro: "How Real-Time Call Summaries Can Reduce Dispatcher Workload is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. dispatcher workload reduction only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Real-Time Call Summaries Can Reduce Dispatcher Workload is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. dispatcher workload reduction only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The operational gap behind dispatcher workload reduction",
@@ -1109,16 +1109,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let 911 directors, PSAP supervisors, and call takers validate dispatcher workload reduction alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-          "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "911 Centers/PSAPs enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Start with one shift or one supervisor desk, measure time-to-context for dispatcher workload reduction, then expand with union and IT buy-in.",
           "Scale dispatcher workload reduction only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page dispatcher workload reduction requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong dispatcher workload reduction programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong dispatcher workload reduction programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "residence-hall-emergency-reporting": {
-    intro: "Why Residence Halls Need Better Emergency Communication Options is a practical question for campus safety and university police teams modernizing how incident information moves. dorm safety technology only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why Residence Halls Need Better Emergency Communication Options is a practical question for campus safety and university police teams modernizing how incident information moves. dorm safety technology only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Where dorm safety technology breaks down on a real campus",
@@ -1141,7 +1141,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, dorm safety technology must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-          "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+          "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
           "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
           "Workflow design for dorm safety technology should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Clery documentation may benefit from structured intake, but compliance remains the institution's responsibility. Publish a one-page dorm safety technology requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -1173,10 +1173,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong dorm safety technology programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong dorm safety technology programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "stadium-security-photo-location-reporting": {
-    intro: "How Stadium Security Teams Can Receive Incident Photos and Location Details Faster is a practical question for venue security and event operations leaders modernizing how incident information moves. stadium incident reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Stadium Security Teams Can Receive Incident Photos and Location Details Faster is a practical question for venue security and event operations leaders modernizing how incident information moves. stadium incident reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for stadium incident reporting",
@@ -1199,7 +1199,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, stadium incident reporting must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Zone-based routing sends a parking-lot report to the right team without every alert hitting the command post.",
-          "[Rapid Cortex Venue](/venue) ties intake to floor plans and escalation playbooks.",
+          "[NexCort iQ Venue](/venue) ties intake to floor plans and escalation playbooks.",
           "Signage at section, row, and gate level gives fans language they understand when they need help fast.",
           "Workflow design for stadium incident reporting should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page stadium incident reporting requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -1231,10 +1231,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong stadium incident reporting programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong stadium incident reporting programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "airport-terminal-security-communication": {
-    intro: "Improving Security Communication Across Airport Terminals is a practical question for airport operations and terminal security teams modernizing how incident information moves. airport security communications only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [airport and venue reporting](/blog/rapid-cortex-venue), and [contact sales](/contact-sales) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Improving Security Communication Across Airport Terminals is a practical question for airport operations and terminal security teams modernizing how incident information moves. airport security communications only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [airport and venue reporting](/blog/rapid-cortex-venue), and [contact sales](/contact-sales) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for airport security communications",
@@ -1257,7 +1257,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, airport security communications must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "QR signage at gates, baggage claim, and parking decks gives travelers a consistent path to report concerns.",
-          "[Rapid Cortex Venue](/venue) supports airport layouts with the same zone routing used in stadiums and arenas.",
+          "[NexCort iQ Venue](/venue) supports airport layouts with the same zone routing used in stadiums and arenas.",
           "Wayfinding for airport security communications should mirror how passengers already navigate — not require staff acronyms or desk extensions.",
           "Workflow design for airport security communications should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page airport security communications requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -1289,10 +1289,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong airport security communications programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong airport security communications programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "psap-supervisor-visibility": {
-    intro: "How PSAP Supervisors Can Improve Visibility Without Adding More Screens is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. PSAP supervisor dashboard only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How PSAP Supervisors Can Improve Visibility Without Adding More Screens is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. PSAP supervisor dashboard only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The operational gap behind PSAP supervisor dashboard",
@@ -1342,74 +1342,74 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let 911 directors, PSAP supervisors, and call takers validate PSAP supervisor dashboard alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-          "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "911 Centers/PSAPs enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Start with one shift or one supervisor desk, measure time-to-context for PSAP supervisor dashboard, then expand with union and IT buy-in.",
           "Scale PSAP supervisor dashboard only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page PSAP supervisor dashboard requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong PSAP supervisor dashboard programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong PSAP supervisor dashboard programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "rapid-cortex-vs-traditional-cad": {
-    intro: "Rapid Cortex vs. Traditional CAD: What Is the Difference? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. Rapid Cortex vs CAD only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [Rapid Cortex Core](/product/core), and [contact sales](/contact-sales) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "NexCort iQ vs. Traditional CAD: What Is the Difference? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. NexCort iQ vs CAD only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [911 Centers/PSAPs](/product/core), and [contact sales](/contact-sales) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
-        heading: "Defining Rapid Cortex vs CAD for evaluators",
+        heading: "Defining NexCort iQ vs CAD for evaluators",
         paragraphs: [
-          "Rapid Cortex vs. Traditional CAD: What Is the Difference? starts with an honest workflow audit. Teams map where information arrives, who sees it first, and how long it takes to reach someone who can act. In most environments, Rapid Cortex vs CAD fails at handoffs — not because staff are unprepared, but because tools were built for single-channel incidents. Leaders who treat Rapid Cortex vs CAD as a overlay — not a CAD replacement — move faster through procurement and union review because the operational model stays familiar. CAD remains the dispatch system of record for unit assignment.",
+          "NexCort iQ vs. Traditional CAD: What Is the Difference? starts with an honest workflow audit. Teams map where information arrives, who sees it first, and how long it takes to reach someone who can act. In most environments, NexCort iQ vs CAD fails at handoffs — not because staff are unprepared, but because tools were built for single-channel incidents. Leaders who treat NexCort iQ vs CAD as a overlay — not a CAD replacement — move faster through procurement and union review because the operational model stays familiar. CAD remains the dispatch system of record for unit assignment.",
           "Evaluators should define the incident types they miss today — silent callers, campus reports, venue photos — before comparing vendors.",
           "A useful RFP lists integration points with CAD, telephony, SSO, and audit — not just feature counts.",
-          "Search traffic for Rapid Cortex vs CAD spikes when agencies realize CAD alone will not close their awareness gap.",
-          "Before buying, document baseline metrics for Rapid Cortex vs CAD: time to confirm location, number of systems a supervisor checks during a single incident, and how often notes are retyped between telephony, CAD, and radio. Those numbers become your pilot scorecard. Publish a one-page Rapid Cortex vs CAD requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
+          "Search traffic for NexCort iQ vs CAD spikes when agencies realize CAD alone will not close their awareness gap.",
+          "Before buying, document baseline metrics for NexCort iQ vs CAD: time to confirm location, number of systems a supervisor checks during a single incident, and how often notes are retyped between telephony, CAD, and radio. Those numbers become your pilot scorecard. Publish a one-page NexCort iQ vs CAD requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
         list: [
-          "Clear definition of Rapid Cortex vs CAD versus CAD-only workflows",
+          "Clear definition of NexCort iQ vs CAD versus CAD-only workflows",
           "Integration requirements with existing telephony",
           "Pilot success criteria and rollback plans",
           "Vendor references from similar agency types",
         ],
       },
       {
-        heading: "How Rapid Cortex vs CAD differs from CAD alone",
+        heading: "How NexCort iQ vs CAD differs from CAD alone",
         paragraphs: [
-          "During peak load, Rapid Cortex vs CAD must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop. Rapid Cortex captures multimedia and structured intake CAD was not built to originate.",
+          "During peak load, NexCort iQ vs CAD must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop. NexCort iQ captures multimedia and structured intake CAD was not built to originate.",
           "Require live scenarios in demos: multimedia intake, translation, QR reporting, and supervisor visibility.",
           "[Contact sales](/contact-sales) for scoped walkthroughs across Core, Campus, and Venue.",
-          "Score vendors on how Rapid Cortex vs CAD behaves under load — not on slide decks with static screenshots.",
-          "Workflow design for Rapid Cortex vs CAD should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Publish a one-page Rapid Cortex vs CAD requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
+          "Score vendors on how NexCort iQ vs CAD behaves under load — not on slide decks with static screenshots.",
+          "Workflow design for NexCort iQ vs CAD should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Publish a one-page NexCort iQ vs CAD requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
       {
-        heading: "Rapid Cortex vs. Traditional CAD",
+        heading: "NexCort iQ vs. Traditional CAD",
         paragraphs: [
-          "Security and compliance reviews often ask whether new software creates another silo. The right answer for Rapid Cortex vs CAD is interoperability: APIs and exports that respect existing records of truth, role-based access so each role sees only what it needs, and append-only audit trails for sensitive actions. CJIS-aware design language belongs in the evaluation — never confuse alignment with vendor-side certification. Compare [Rapid Cortex Core](/product/core) alongside your CAD vendor roadmap.",
+          "Security and compliance reviews often ask whether new software creates another silo. The right answer for NexCort iQ vs CAD is interoperability: APIs and exports that respect existing records of truth, role-based access so each role sees only what it needs, and append-only audit trails for sensitive actions. CJIS-aware design language belongs in the evaluation — never confuse alignment with vendor-side certification. Compare [911 Centers/PSAPs](/product/core) alongside your CAD vendor roadmap.",
           "Pricing models differ by vertical; compare pilot cost, activation per zone, and support tiers in writing.",
           "See [pricing](/pricing) for starting points and schedule a scoped quote for your environment.",
-          "Hidden costs in Rapid Cortex vs CAD projects often come from signage, training, and integration hours — budget them explicitly.",
-          "Governance for Rapid Cortex vs CAD includes retention, export, and role reviews — especially where CJIS-aware agencies share data with prosecutors or campus partners. Legal, IT, and operations should sign the same data-flow diagram. Publish a one-page Rapid Cortex vs CAD requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
+          "Hidden costs in NexCort iQ vs CAD projects often come from signage, training, and integration hours — budget them explicitly.",
+          "Governance for NexCort iQ vs CAD includes retention, export, and role reviews — especially where CJIS-aware agencies share data with prosecutors or campus partners. Legal, IT, and operations should sign the same data-flow diagram. Publish a one-page NexCort iQ vs CAD requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
         list: [
-          "Clear definition of Rapid Cortex vs CAD versus CAD-only workflows",
+          "Clear definition of NexCort iQ vs CAD versus CAD-only workflows",
           "Integration requirements with existing telephony",
           "Pilot success criteria and rollback plans",
           "Vendor references from similar agency types",
         ],
       },
       {
-        heading: "Next steps for Rapid Cortex vs CAD pilots",
+        heading: "Next steps for NexCort iQ vs CAD pilots",
         paragraphs: [
-          "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let procurement teams and technology evaluators validate Rapid Cortex vs CAD alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend. Integration beats replacement for most agencies.",
+          "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let procurement teams and technology evaluators validate NexCort iQ vs CAD alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend. Integration beats replacement for most agencies.",
           "Deployment timelines hinge on integrations and signage — not slide-deck promises.",
           "Integration beats replacement: confirm [CAD integration](/cad-integration) paths before you sign.",
-          "Ask for reference deployments where Rapid Cortex vs CAD ran parallel to production for at least one major event or shift cycle.",
-          "Scale Rapid Cortex vs CAD only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page Rapid Cortex vs CAD requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
+          "Ask for reference deployments where NexCort iQ vs CAD ran parallel to production for at least one major event or shift cycle.",
+          "Scale NexCort iQ vs CAD only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page NexCort iQ vs CAD requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong Rapid Cortex vs CAD evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to Rapid Cortex Core, Campus, or Venue.",
+    closing: "Strong NexCort iQ vs CAD evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to 911 Centers/PSAPs, Campus, or Venue.",
   },
   "silent-campus-emergency-reporting": {
-    intro: "How Universities Can Improve Student Safety Communication During Silent Emergencies is a practical question for campus safety and university police teams modernizing how incident information moves. campus emergency reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Universities Can Improve Student Safety Communication During Silent Emergencies is a practical question for campus safety and university police teams modernizing how incident information moves. campus emergency reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Where campus emergency reporting breaks down on a real campus",
@@ -1432,7 +1432,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, campus emergency reporting must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-          "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+          "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
           "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
           "Workflow design for campus emergency reporting should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Clery documentation may benefit from structured intake, but compliance remains the institution's responsibility. Publish a one-page campus emergency reporting requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -1464,10 +1464,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong campus emergency reporting programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong campus emergency reporting programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "venue-safety-beyond-cameras": {
-    intro: "Why Venue Safety Is More Than Cameras and Metal Detectors is a practical question for venue security and event operations leaders modernizing how incident information moves. venue security technology only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why Venue Safety Is More Than Cameras and Metal Detectors is a practical question for venue security and event operations leaders modernizing how incident information moves. venue security technology only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for venue security technology",
@@ -1490,7 +1490,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, venue security technology must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Zone-based routing sends a parking-lot report to the right team without every alert hitting the command post.",
-          "[Rapid Cortex Venue](/venue) ties intake to floor plans and escalation playbooks.",
+          "[NexCort iQ Venue](/venue) ties intake to floor plans and escalation playbooks.",
           "Signage at section, row, and gate level gives fans language they understand when they need help fast.",
           "Workflow design for venue security technology should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page venue security technology requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -1522,10 +1522,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong venue security technology programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong venue security technology programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "public-safety-intelligence-platform-guide": {
-    intro: "A Public Safety Leader's Guide to Evaluating Real-Time Intelligence Platforms is a practical question for public safety directors and agency executives modernizing how incident information moves. public safety intelligence platform only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [CAD integration](/cad-integration), and [Rapid Cortex Offerings](/blog/rapid-cortex-offerings) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "A Public Safety Leader's Guide to Evaluating Real-Time Intelligence Platforms is a practical question for public safety directors and agency executives modernizing how incident information moves. public safety intelligence platform only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [CAD integration](/cad-integration), and [NexCort iQ Offerings](/blog/rapid-cortex-offerings) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The board-level case for public safety intelligence platform",
@@ -1574,16 +1574,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let public safety directors and agency executives validate public safety intelligence platform alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Measure ROI in reduced rework: fewer repeated caller questions, cleaner shift logs, faster supervisor review.",
-          "Rapid Cortex enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "NexCort iQ enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Executives should revisit public safety intelligence platform metrics quarterly — adoption curves flatten if supervisors do not model the workflow.",
           "Scale public safety intelligence platform only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page public safety intelligence platform requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong public safety intelligence platform programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong public safety intelligence platform programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "psap-caller-photo-video-intake": {
-    intro: "Why Every PSAP Should Have a Secure Way to Receive Caller Photos and Videos is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. 911 photo video intake only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why Every PSAP Should Have a Secure Way to Receive Caller Photos and Videos is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. 911 photo video intake only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The operational gap behind 911 photo video intake",
@@ -1633,16 +1633,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let 911 directors, PSAP supervisors, and call takers validate 911 photo video intake alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-          "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "911 Centers/PSAPs enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Start with one shift or one supervisor desk, measure time-to-context for 911 photo video intake, then expand with union and IT buy-in.",
           "Scale 911 photo video intake only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page 911 photo video intake requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong 911 photo video intake programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong 911 photo video intake programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "campus-police-media-intake": {
-    intro: "How Campus Police Can Receive Photos, Videos, and Location Information Faster is a practical question for campus safety and university police teams modernizing how incident information moves. campus police technology only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Campus Police Can Receive Photos, Videos, and Location Information Faster is a practical question for campus safety and university police teams modernizing how incident information moves. campus police technology only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Where campus police technology breaks down on a real campus",
@@ -1665,7 +1665,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, campus police technology must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-          "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+          "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
           "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
           "Workflow design for campus police technology should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Clery documentation may benefit from structured intake, but compliance remains the institution's responsibility. Publish a one-page campus police technology requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -1697,10 +1697,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong campus police technology programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong campus police technology programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "event-security-response-time": {
-    intro: "How Event Security Teams Can Reduce the Time Between Report and Response is a practical question for venue security and event operations leaders modernizing how incident information moves. event security response time only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Event Security Teams Can Reduce the Time Between Report and Response is a practical question for venue security and event operations leaders modernizing how incident information moves. event security response time only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for event security response time",
@@ -1723,7 +1723,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, event security response time must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Zone-based routing sends a parking-lot report to the right team without every alert hitting the command post.",
-          "[Rapid Cortex Venue](/venue) ties intake to floor plans and escalation playbooks.",
+          "[NexCort iQ Venue](/venue) ties intake to floor plans and escalation playbooks.",
           "Signage at section, row, and gate level gives fans language they understand when they need help fast.",
           "Workflow design for event security response time should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page event security response time requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -1755,10 +1755,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong event security response time programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong event security response time programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "airport-qr-code-safety-reporting": {
-    intro: "QR Code Safety Reporting for Airports: Benefits, Risks, and Best Practices is a practical question for airport operations and terminal security teams modernizing how incident information moves. airport QR safety only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [airport and venue reporting](/blog/rapid-cortex-venue), and [contact sales](/contact-sales) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "QR Code Safety Reporting for Airports: Benefits, Risks, and Best Practices is a practical question for airport operations and terminal security teams modernizing how incident information moves. airport QR safety only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [airport and venue reporting](/blog/rapid-cortex-venue), and [contact sales](/contact-sales) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for airport QR safety",
@@ -1781,7 +1781,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, airport QR safety must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "QR signage at gates, baggage claim, and parking decks gives travelers a consistent path to report concerns.",
-          "[Rapid Cortex Venue](/venue) supports airport layouts with the same zone routing used in stadiums and arenas.",
+          "[NexCort iQ Venue](/venue) supports airport layouts with the same zone routing used in stadiums and arenas.",
           "Wayfinding for airport QR safety should mirror how passengers already navigate — not require staff acronyms or desk extensions.",
           "Workflow design for airport QR safety should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page airport QR safety requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -1813,10 +1813,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong airport QR safety programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong airport QR safety programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "campus-safety-reporting-software-cost": {
-    intro: "How Much Does Campus Safety Reporting Software Cost? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. campus safety reporting software cost only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [Rapid Cortex Core](/product/core), and [contact sales](/contact-sales) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Much Does Campus Safety Reporting Software Cost? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. campus safety reporting software cost only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [911 Centers/PSAPs](/product/core), and [contact sales](/contact-sales) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Why campus safety reporting software cost decisions stall without clear requirements",
@@ -1871,10 +1871,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong campus safety reporting software cost evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to Rapid Cortex Core, Campus, or Venue.",
+    closing: "Strong campus safety reporting software cost evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to 911 Centers/PSAPs, Campus, or Venue.",
   },
   "cad-vs-incident-awareness-platform": {
-    intro: "Why CAD Alone Is Not Enough for Modern Incident Awareness is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. CAD integration public safety only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why CAD Alone Is Not Enough for Modern Incident Awareness is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. CAD integration public safety only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The operational gap behind CAD integration public safety",
@@ -1924,16 +1924,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let 911 directors, PSAP supervisors, and call takers validate CAD integration public safety alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend. NG911 increases multimedia volume CAD screens were not designed to intake alone.",
           "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-          "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "911 Centers/PSAPs enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Start with one shift or one supervisor desk, measure time-to-context for CAD integration public safety, then expand with union and IT buy-in.",
           "Scale CAD integration public safety only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page CAD integration public safety requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong CAD integration public safety programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong CAD integration public safety programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "university-safety-communication-layer": {
-    intro: "What a Modern University Safety Communication Layer Looks Like is a practical question for campus safety and university police teams modernizing how incident information moves. university safety communications only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "What a Modern University Safety Communication Layer Looks Like is a practical question for campus safety and university police teams modernizing how incident information moves. university safety communications only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Where university safety communications breaks down on a real campus",
@@ -1956,7 +1956,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, university safety communications must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-          "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+          "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
           "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
           "Workflow design for university safety communications should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Clery documentation may benefit from structured intake, but compliance remains the institution's responsibility. Publish a one-page university safety communications requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -1988,10 +1988,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong university safety communications programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong university safety communications programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "fan-safety-signage-stadiums": {
-    intro: "What Every Sports Venue Should Include in Its Fan Safety Signage is a practical question for venue security and event operations leaders modernizing how incident information moves. stadium safety signage only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "What Every Sports Venue Should Include in Its Fan Safety Signage is a practical question for venue security and event operations leaders modernizing how incident information moves. stadium safety signage only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for stadium safety signage",
@@ -2014,7 +2014,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, stadium safety signage must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Zone-based routing sends a parking-lot report to the right team without every alert hitting the command post.",
-          "[Rapid Cortex Venue](/venue) ties intake to floor plans and escalation playbooks.",
+          "[NexCort iQ Venue](/venue) ties intake to floor plans and escalation playbooks.",
           "Signage at section, row, and gate level gives fans language they understand when they need help fast.",
           "Workflow design for stadium safety signage should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page stadium safety signage requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -2046,10 +2046,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong stadium safety signage programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong stadium safety signage programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "public-safety-interoperability": {
-    intro: "Why Interoperability Matters More Than Another Standalone Public Safety Tool is a practical question for public safety directors and agency executives modernizing how incident information moves. public safety interoperability only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [CAD integration](/cad-integration), and [Rapid Cortex Offerings](/blog/rapid-cortex-offerings) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why Interoperability Matters More Than Another Standalone Public Safety Tool is a practical question for public safety directors and agency executives modernizing how incident information moves. public safety interoperability only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [CAD integration](/cad-integration), and [NexCort iQ Offerings](/blog/rapid-cortex-offerings) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The board-level case for public safety interoperability",
@@ -2098,16 +2098,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let public safety directors and agency executives validate public safety interoperability alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Measure ROI in reduced rework: fewer repeated caller questions, cleaner shift logs, faster supervisor review.",
-          "Rapid Cortex enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "NexCort iQ enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Executives should revisit public safety interoperability metrics quarterly — adoption curves flatten if supervisors do not model the workflow.",
           "Scale public safety interoperability only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page public safety interoperability requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong public safety interoperability programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong public safety interoperability programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "multimedia-911-call-preparedness": {
-    intro: "How 911 Centers Can Prepare for Multimedia Emergency Calls is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. multimedia 911 only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How 911 Centers Can Prepare for Multimedia Emergency Calls is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. multimedia 911 only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The operational gap behind multimedia 911",
@@ -2157,16 +2157,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let 911 directors, PSAP supervisors, and call takers validate multimedia 911 alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-          "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "911 Centers/PSAPs enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Start with one shift or one supervisor desk, measure time-to-context for multimedia 911, then expand with union and IT buy-in.",
           "Scale multimedia 911 only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page multimedia 911 requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong multimedia 911 programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong multimedia 911 programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "campus-event-safety-technology": {
-    intro: "How Universities Can Improve Safety During Large Campus Events is a practical question for campus safety and university police teams modernizing how incident information moves. university event safety only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Universities Can Improve Safety During Large Campus Events is a practical question for campus safety and university police teams modernizing how incident information moves. university event safety only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Where university event safety breaks down on a real campus",
@@ -2189,7 +2189,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, university event safety must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-          "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+          "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
           "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
           "Workflow design for university event safety should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Clery documentation may benefit from structured intake, but compliance remains the institution's responsibility. Publish a one-page university event safety requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -2221,10 +2221,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong university event safety programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong university event safety programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "live-event-security-situational-awareness": {
-    intro: "How Live Event Security Teams Can Improve Situational Awareness is a practical question for venue security and event operations leaders modernizing how incident information moves. event security situational awareness only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Live Event Security Teams Can Improve Situational Awareness is a practical question for venue security and event operations leaders modernizing how incident information moves. event security situational awareness only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for event security situational awareness",
@@ -2247,7 +2247,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, event security situational awareness must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Zone-based routing sends a parking-lot report to the right team without every alert hitting the command post.",
-          "[Rapid Cortex Venue](/venue) ties intake to floor plans and escalation playbooks.",
+          "[NexCort iQ Venue](/venue) ties intake to floor plans and escalation playbooks.",
           "Signage at section, row, and gate level gives fans language they understand when they need help fast.",
           "Workflow design for event security situational awareness should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page event security situational awareness requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -2279,10 +2279,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong event security situational awareness programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong event security situational awareness programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "airport-incident-visibility": {
-    intro: "How Airports Can Improve Incident Visibility Without Replacing Existing Systems is a practical question for airport operations and terminal security teams modernizing how incident information moves. airport security technology only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [airport and venue reporting](/blog/rapid-cortex-venue), and [contact sales](/contact-sales) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Airports Can Improve Incident Visibility Without Replacing Existing Systems is a practical question for airport operations and terminal security teams modernizing how incident information moves. airport security technology only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [airport and venue reporting](/blog/rapid-cortex-venue), and [contact sales](/contact-sales) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for airport security technology",
@@ -2305,7 +2305,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, airport security technology must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "QR signage at gates, baggage claim, and parking decks gives travelers a consistent path to report concerns.",
-          "[Rapid Cortex Venue](/venue) supports airport layouts with the same zone routing used in stadiums and arenas.",
+          "[NexCort iQ Venue](/venue) supports airport layouts with the same zone routing used in stadiums and arenas.",
           "Wayfinding for airport security technology should mirror how passengers already navigate — not require staff acronyms or desk extensions.",
           "Workflow design for airport security technology should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page airport security technology requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -2337,10 +2337,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong airport security technology programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong airport security technology programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "stadium-incident-reporting-software-cost": {
-    intro: "How Much Does Stadium Incident Reporting Technology Cost? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. stadium incident reporting cost only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [Rapid Cortex Core](/product/core), and [contact sales](/contact-sales) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Much Does Stadium Incident Reporting Technology Cost? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. stadium incident reporting cost only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [911 Centers/PSAPs](/product/core), and [contact sales](/contact-sales) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Why stadium incident reporting cost decisions stall without clear requirements",
@@ -2395,10 +2395,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong stadium incident reporting cost evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to Rapid Cortex Core, Campus, or Venue.",
+    closing: "Strong stadium incident reporting cost evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to 911 Centers/PSAPs, Campus, or Venue.",
   },
   "ng911-for-small-psaps": {
-    intro: "What NG911 Means for Smaller 911 Centers is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. NG911 small PSAP only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "What NG911 Means for Smaller 911 Centers is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. NG911 small PSAP only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The operational gap behind NG911 small PSAP",
@@ -2448,16 +2448,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let 911 directors, PSAP supervisors, and call takers validate NG911 small PSAP alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend. [NG911 software](/ng911-software) planning should include dispatcher UX.",
           "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-          "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "911 Centers/PSAPs enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Start with one shift or one supervisor desk, measure time-to-context for NG911 small PSAP, then expand with union and IT buy-in.",
           "Scale NG911 small PSAP only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page NG911 small PSAP requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong NG911 small PSAP programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong NG911 small PSAP programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "silent-emergency-reporting-colleges": {
-    intro: "How Colleges Can Support Students Who Cannot Safely Make a Phone Call is a practical question for campus safety and university police teams modernizing how incident information moves. silent emergency reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Colleges Can Support Students Who Cannot Safely Make a Phone Call is a practical question for campus safety and university police teams modernizing how incident information moves. silent emergency reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Where silent emergency reporting breaks down on a real campus",
@@ -2480,7 +2480,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, silent emergency reporting must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-          "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+          "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
           "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
           "Workflow design for silent emergency reporting should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Clery documentation may benefit from structured intake, but compliance remains the institution's responsibility. Publish a one-page silent emergency reporting requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -2512,10 +2512,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong silent emergency reporting programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong silent emergency reporting programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "venue-security-incident-routing": {
-    intro: "How Venue Security Can Route Fan Reports to the Right Team Faster is a practical question for venue security and event operations leaders modernizing how incident information moves. venue security dispatch only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Venue Security Can Route Fan Reports to the Right Team Faster is a practical question for venue security and event operations leaders modernizing how incident information moves. venue security dispatch only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for venue security dispatch",
@@ -2538,7 +2538,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, venue security dispatch must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Zone-based routing sends a parking-lot report to the right team without every alert hitting the command post.",
-          "[Rapid Cortex Venue](/venue) ties intake to floor plans and escalation playbooks.",
+          "[NexCort iQ Venue](/venue) ties intake to floor plans and escalation playbooks.",
           "Signage at section, row, and gate level gives fans language they understand when they need help fast.",
           "Workflow design for venue security dispatch should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page venue security dispatch requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -2570,10 +2570,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong venue security dispatch programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong venue security dispatch programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "fragmented-emergency-communication-tools": {
-    intro: "The Hidden Cost of Fragmented Emergency Communication Tools is a practical question for public safety directors and agency executives modernizing how incident information moves. emergency communications software only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [CAD integration](/cad-integration), and [Rapid Cortex Offerings](/blog/rapid-cortex-offerings) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "The Hidden Cost of Fragmented Emergency Communication Tools is a practical question for public safety directors and agency executives modernizing how incident information moves. emergency communications software only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [CAD integration](/cad-integration), and [NexCort iQ Offerings](/blog/rapid-cortex-offerings) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The board-level case for emergency communications software",
@@ -2622,16 +2622,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let public safety directors and agency executives validate emergency communications software alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Measure ROI in reduced rework: fewer repeated caller questions, cleaner shift logs, faster supervisor review.",
-          "Rapid Cortex enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "NexCort iQ enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Executives should revisit emergency communications software metrics quarterly — adoption curves flatten if supervisors do not model the workflow.",
           "Scale emergency communications software only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page emergency communications software requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong emergency communications software programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong emergency communications software programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "911-shift-handoff-continuity-log": {
-    intro: "Why Incident Notes Get Lost Between Shifts — and How Continuity Logs Help is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. 911 shift handoff only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why Incident Notes Get Lost Between Shifts — and How Continuity Logs Help is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. 911 shift handoff only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The operational gap behind 911 shift handoff",
@@ -2681,16 +2681,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let 911 directors, PSAP supervisors, and call takers validate 911 shift handoff alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-          "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "911 Centers/PSAPs enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Start with one shift or one supervisor desk, measure time-to-context for 911 shift handoff, then expand with union and IT buy-in.",
           "Scale 911 shift handoff only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page 911 shift handoff requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong 911 shift handoff programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong 911 shift handoff programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "campus-safety-incident-visibility": {
-    intro: "How Campus Safety Teams Can Improve Incident Visibility Across Departments is a practical question for campus safety and university police teams modernizing how incident information moves. campus incident management only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Campus Safety Teams Can Improve Incident Visibility Across Departments is a practical question for campus safety and university police teams modernizing how incident information moves. campus incident management only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Where campus incident management breaks down on a real campus",
@@ -2713,7 +2713,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, campus incident management must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-          "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+          "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
           "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
           "Workflow design for campus incident management should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Clery documentation may benefit from structured intake, but compliance remains the institution's responsibility. Publish a one-page campus incident management requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -2745,10 +2745,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong campus incident management programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong campus incident management programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "nfc-venue-safety-signage": {
-    intro: "How NFC Safety Signs Can Improve Reporting Inside Large Venues is a practical question for venue security and event operations leaders modernizing how incident information moves. NFC venue safety only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How NFC Safety Signs Can Improve Reporting Inside Large Venues is a practical question for venue security and event operations leaders modernizing how incident information moves. NFC venue safety only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for NFC venue safety",
@@ -2771,7 +2771,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, NFC venue safety must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Zone-based routing sends a parking-lot report to the right team without every alert hitting the command post.",
-          "[Rapid Cortex Venue](/venue) ties intake to floor plans and escalation playbooks.",
+          "[NexCort iQ Venue](/venue) ties intake to floor plans and escalation playbooks.",
           "Signage at section, row, and gate level gives fans language they understand when they need help fast.",
           "Workflow design for NFC venue safety should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page NFC venue safety requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -2803,10 +2803,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong NFC venue safety programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong NFC venue safety programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "airport-safety-reporting-gate-parking": {
-    intro: "From Gate to Parking Deck: Modernizing Airport Safety Reporting is a practical question for airport operations and terminal security teams modernizing how incident information moves. airport safety reporting system only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [airport and venue reporting](/blog/rapid-cortex-venue), and [contact sales](/contact-sales) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "From Gate to Parking Deck: Modernizing Airport Safety Reporting is a practical question for airport operations and terminal security teams modernizing how incident information moves. airport safety reporting system only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [airport and venue reporting](/blog/rapid-cortex-venue), and [contact sales](/contact-sales) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for airport safety reporting system",
@@ -2829,7 +2829,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, airport safety reporting system must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "QR signage at gates, baggage claim, and parking decks gives travelers a consistent path to report concerns.",
-          "[Rapid Cortex Venue](/venue) supports airport layouts with the same zone routing used in stadiums and arenas.",
+          "[NexCort iQ Venue](/venue) supports airport layouts with the same zone routing used in stadiums and arenas.",
           "Wayfinding for airport safety reporting system should mirror how passengers already navigate — not require staff acronyms or desk extensions.",
           "Workflow design for airport safety reporting system should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page airport safety reporting system requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -2861,10 +2861,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong airport safety reporting system programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong airport safety reporting system programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "campus-safety-reporting-platform-buyers-guide": {
-    intro: "What Should a University Look for in a Campus Safety Reporting Platform? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. campus safety reporting platform only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [Rapid Cortex Core](/product/core), and [contact sales](/contact-sales) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "What Should a University Look for in a Campus Safety Reporting Platform? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. campus safety reporting platform only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [911 Centers/PSAPs](/product/core), and [contact sales](/contact-sales) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Why campus safety reporting platform decisions stall without clear requirements",
@@ -2919,10 +2919,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong campus safety reporting platform evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to Rapid Cortex Core, Campus, or Venue.",
+    closing: "Strong campus safety reporting platform evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to 911 Centers/PSAPs, Campus, or Venue.",
   },
   "dispatcher-supervisor-shadow-mode": {
-    intro: "How Supervisor Shadow Mode Can Support New Dispatchers is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. dispatcher training technology only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Supervisor Shadow Mode Can Support New Dispatchers is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. dispatcher training technology only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The operational gap behind dispatcher training technology",
@@ -2972,16 +2972,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let 911 directors, PSAP supervisors, and call takers validate dispatcher training technology alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-          "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "911 Centers/PSAPs enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Start with one shift or one supervisor desk, measure time-to-context for dispatcher training technology, then expand with union and IT buy-in.",
           "Scale dispatcher training technology only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page dispatcher training technology requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong dispatcher training technology programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong dispatcher training technology programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "anonymous-reporting-campus-safety": {
-    intro: "Why Anonymous Reporting Alone Is Not Enough for Campus Safety is a practical question for campus safety and university police teams modernizing how incident information moves. anonymous campus reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why Anonymous Reporting Alone Is Not Enough for Campus Safety is a practical question for campus safety and university police teams modernizing how incident information moves. anonymous campus reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Where anonymous campus reporting breaks down on a real campus",
@@ -3004,7 +3004,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, anonymous campus reporting must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop. Pair anonymous web forms with QR and SMS reporting tied to buildings.",
           "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-          "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+          "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
           "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
           "Workflow design for anonymous campus reporting should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Clery documentation may benefit from structured intake, but compliance remains the institution's responsibility. Publish a one-page anonymous campus reporting requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -3041,10 +3041,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong anonymous campus reporting programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong anonymous campus reporting programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "venue-parking-lot-safety-reporting": {
-    intro: "Improving Safety Communication in Parking Lots, Entrances, and Concourse Areas is a practical question for venue security and event operations leaders modernizing how incident information moves. parking lot incident reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Improving Safety Communication in Parking Lots, Entrances, and Concourse Areas is a practical question for venue security and event operations leaders modernizing how incident information moves. parking lot incident reporting only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for parking lot incident reporting",
@@ -3067,7 +3067,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, parking lot incident reporting must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Zone-based routing sends a parking-lot report to the right team without every alert hitting the command post.",
-          "[Rapid Cortex Venue](/venue) ties intake to floor plans and escalation playbooks.",
+          "[NexCort iQ Venue](/venue) ties intake to floor plans and escalation playbooks.",
           "Signage at section, row, and gate level gives fans language they understand when they need help fast.",
           "Workflow design for parking lot incident reporting should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page parking lot incident reporting requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -3099,10 +3099,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong parking lot incident reporting programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong parking lot incident reporting programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "incident-intelligence-software-features": {
-    intro: "10 Features Public Safety Agencies Should Look for in Incident Intelligence Software is a practical question for public safety directors and agency executives modernizing how incident information moves. incident intelligence software only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [CAD integration](/cad-integration), and [Rapid Cortex Offerings](/blog/rapid-cortex-offerings) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "10 Features Public Safety Agencies Should Look for in Incident Intelligence Software is a practical question for public safety directors and agency executives modernizing how incident information moves. incident intelligence software only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [CAD integration](/cad-integration), and [NexCort iQ Offerings](/blog/rapid-cortex-offerings) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Why incident intelligence software decisions stall without clear requirements",
@@ -3151,16 +3151,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let public safety directors and agency executives validate incident intelligence software alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Measure ROI in reduced rework: fewer repeated caller questions, cleaner shift logs, faster supervisor review.",
-          "Rapid Cortex enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "NexCort iQ enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Executives should revisit incident intelligence software metrics quarterly — adoption curves flatten if supervisors do not model the workflow.",
           "Scale incident intelligence software only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page incident intelligence software requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong incident intelligence software programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong incident intelligence software programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "911-documentation-automation": {
-    intro: "How Emergency Communications Centers Can Improve Documentation Without More Manual Typing is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. 911 incident documentation only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Emergency Communications Centers Can Improve Documentation Without More Manual Typing is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. 911 incident documentation only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The operational gap behind 911 incident documentation",
@@ -3210,16 +3210,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let 911 directors, PSAP supervisors, and call takers validate 911 incident documentation alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-          "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "911 Centers/PSAPs enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Start with one shift or one supervisor desk, measure time-to-context for 911 incident documentation, then expand with union and IT buy-in.",
           "Scale 911 incident documentation only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page 911 incident documentation requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong 911 incident documentation programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong 911 incident documentation programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "college-parent-campus-safety-expectations": {
-    intro: "The Parent Perspective: What Families Expect From Campus Safety Programs is a practical question for campus safety and university police teams modernizing how incident information moves. college campus safety only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "The Parent Perspective: What Families Expect From Campus Safety Programs is a practical question for campus safety and university police teams modernizing how incident information moves. college campus safety only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Where college campus safety breaks down on a real campus",
@@ -3242,7 +3242,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, college campus safety must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-          "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+          "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
           "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
           "Workflow design for college campus safety should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Clery documentation may benefit from structured intake, but compliance remains the institution's responsibility. Publish a one-page college campus safety requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -3274,10 +3274,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong college campus safety programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong college campus safety programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "venue-911-escalation-workflow": {
-    intro: "Why Every Venue Needs a Clear 911 Escalation Workflow is a practical question for venue security and event operations leaders modernizing how incident information moves. venue 911 escalation only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why Every Venue Needs a Clear 911 Escalation Workflow is a practical question for venue security and event operations leaders modernizing how incident information moves. venue 911 escalation only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for venue 911 escalation",
@@ -3300,7 +3300,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, venue 911 escalation must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Zone-based routing sends a parking-lot report to the right team without every alert hitting the command post.",
-          "[Rapid Cortex Venue](/venue) ties intake to floor plans and escalation playbooks.",
+          "[NexCort iQ Venue](/venue) ties intake to floor plans and escalation playbooks.",
           "Signage at section, row, and gate level gives fans language they understand when they need help fast.",
           "Workflow design for venue 911 escalation should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page venue 911 escalation requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -3332,10 +3332,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong venue 911 escalation programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong venue 911 escalation programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "fan-safety-platform-buyers-guide": {
-    intro: "What Should a Stadium Look for in a Fan Safety Communication Platform? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. fan safety platform only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [Rapid Cortex Core](/product/core), and [contact sales](/contact-sales) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "What Should a Stadium Look for in a Fan Safety Communication Platform? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. fan safety platform only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [911 Centers/PSAPs](/product/core), and [contact sales](/contact-sales) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Why fan safety platform decisions stall without clear requirements",
@@ -3390,10 +3390,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong fan safety platform evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to Rapid Cortex Core, Campus, or Venue.",
+    closing: "Strong fan safety platform evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to 911 Centers/PSAPs, Campus, or Venue.",
   },
   "language-access-public-safety": {
-    intro: "Why Language Access Is Now a Public Safety Priority is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. public safety language access only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why Language Access Is Now a Public Safety Priority is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. public safety language access only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The operational gap behind public safety language access",
@@ -3443,16 +3443,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let 911 directors, PSAP supervisors, and call takers validate public safety language access alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-          "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "911 Centers/PSAPs enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Start with one shift or one supervisor desk, measure time-to-context for public safety language access, then expand with union and IT buy-in.",
           "Scale public safety language access only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page public safety language access requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong public safety language access programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong public safety language access programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "campus-safety-system-integration": {
-    intro: "Why Campus Safety Technology Must Work Alongside Existing Systems is a practical question for campus safety and university police teams modernizing how incident information moves. campus safety integrations only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why Campus Safety Technology Must Work Alongside Existing Systems is a practical question for campus safety and university police teams modernizing how incident information moves. campus safety integrations only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Where campus safety integrations breaks down on a real campus",
@@ -3475,7 +3475,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, campus safety integrations must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-          "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+          "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
           "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
           "Workflow design for campus safety integrations should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Clery documentation may benefit from structured intake, but compliance remains the institution's responsibility. Publish a one-page campus safety integrations requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -3507,10 +3507,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong campus safety integrations programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong campus safety integrations programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "airport-arena-stadium-reporting": {
-    intro: "Why Airports, Arenas, and Stadiums Need a Better Incident Reporting Layer is a practical question for venue security and event operations leaders modernizing how incident information moves. venue incident reporting platform only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why Airports, Arenas, and Stadiums Need a Better Incident Reporting Layer is a practical question for venue security and event operations leaders modernizing how incident information moves. venue incident reporting platform only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Venue](/venue), [venue safety overview](/blog/rapid-cortex-venue), and [schedule a demo](/demo) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Fan and passenger expectations for venue incident reporting platform",
@@ -3533,7 +3533,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, venue incident reporting platform must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Zone-based routing sends a parking-lot report to the right team without every alert hitting the command post.",
-          "[Rapid Cortex Venue](/venue) ties intake to floor plans and escalation playbooks.",
+          "[NexCort iQ Venue](/venue) ties intake to floor plans and escalation playbooks.",
           "Signage at section, row, and gate level gives fans language they understand when they need help fast.",
           "Workflow design for venue incident reporting platform should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Venue and airport teams should rehearse game-day or irregular-ops load before declaring the workflow production-ready. Publish a one-page venue incident reporting platform requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -3565,10 +3565,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong venue incident reporting platform programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong venue incident reporting platform programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "real-time-operational-awareness-public-safety": {
-    intro: "Why Real-Time Operational Awareness Is Becoming a Public Safety Standard is a practical question for public safety directors and agency executives modernizing how incident information moves. operational awareness platform only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [CAD integration](/cad-integration), and [Rapid Cortex Offerings](/blog/rapid-cortex-offerings) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Why Real-Time Operational Awareness Is Becoming a Public Safety Standard is a practical question for public safety directors and agency executives modernizing how incident information moves. operational awareness platform only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [CAD integration](/cad-integration), and [NexCort iQ Offerings](/blog/rapid-cortex-offerings) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The board-level case for operational awareness platform",
@@ -3617,16 +3617,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let public safety directors and agency executives validate operational awareness platform alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Measure ROI in reduced rework: fewer repeated caller questions, cleaner shift logs, faster supervisor review.",
-          "Rapid Cortex enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "NexCort iQ enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Executives should revisit operational awareness platform metrics quarterly — adoption curves flatten if supervisors do not model the workflow.",
           "Scale operational awareness platform only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page operational awareness platform requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong operational awareness platform programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong operational awareness platform programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "911-technology-buying-guide": {
-    intro: "7 Questions Every 911 Director Should Ask Before Buying New Technology is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. 911 technology purchasing only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "7 Questions Every 911 Director Should Ask Before Buying New Technology is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. 911 technology purchasing only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Why 911 technology purchasing decisions stall without clear requirements",
@@ -3676,16 +3676,16 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let 911 directors, PSAP supervisors, and call takers validate 911 technology purchasing alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-          "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "911 Centers/PSAPs enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Start with one shift or one supervisor desk, measure time-to-context for 911 technology purchasing, then expand with union and IT buy-in.",
           "Scale 911 technology purchasing only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page 911 technology purchasing requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong 911 technology purchasing programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong 911 technology purchasing programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "public-safety-software-deployment-time": {
-    intro: "How Long Does It Take to Deploy Public Safety Communication Software? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. public safety software deployment only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [Rapid Cortex Core](/product/core), and [contact sales](/contact-sales) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "How Long Does It Take to Deploy Public Safety Communication Software? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. public safety software deployment only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [911 Centers/PSAPs](/product/core), and [contact sales](/contact-sales) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Defining public safety software deployment for evaluators",
@@ -3740,10 +3740,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong public safety software deployment evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to Rapid Cortex Core, Campus, or Venue.",
+    closing: "Strong public safety software deployment evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to 911 Centers/PSAPs, Campus, or Venue.",
   },
   "modern-campus-safety-technology": {
-    intro: "What Students Expect From Modern Campus Safety Technology is a practical question for campus safety and university police teams modernizing how incident information moves. campus safety technology only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "What Students Expect From Modern Campus Safety Technology is a practical question for campus safety and university police teams modernizing how incident information moves. campus safety technology only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [NexCort iQ Campus](/product/campus), [campus safety overview](/blog/rapid-cortex-campus), and [pricing](/pricing) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Where campus safety technology breaks down on a real campus",
@@ -3766,7 +3766,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "During peak load, campus safety technology must reduce repetitive questions without removing human judgment. Structured intake — text, photos, location pins, or QR scans — gives operators context before they open a radio channel or CAD screen. That context should flow into notes supervisors can review without standing over a shoulder. The goal is fewer back-and-forth exchanges with callers and field units, not fewer humans in the loop.",
           "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-          "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+          "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
           "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
           "Workflow design for campus safety technology should be written with the people who work high-volume shifts — not only IT or vendor solutions engineers. Short feedback loops during pilot week two prevent expensive rework after go-live. Clery documentation may benefit from structured intake, but compliance remains the institution's responsibility. Publish a one-page campus safety technology requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
@@ -3798,10 +3798,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong campus safety technology programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong campus safety technology programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
   "public-safety-cad-telephony-integration": {
-    intro: "Can Public Safety Technology Integrate With Existing CAD and Telephony Systems? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. CAD telephony integration only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [Rapid Cortex Core](/product/core), and [contact sales](/contact-sales) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "Can Public Safety Technology Integrate With Existing CAD and Telephony Systems? is a practical question for procurement teams and technology evaluators modernizing how incident information moves. CAD telephony integration only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [incident intelligence platform overview](/blog/what-is-incident-intelligence-platform), [911 Centers/PSAPs](/product/core), and [contact sales](/contact-sales) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "Defining CAD telephony integration for evaluators",
@@ -3848,7 +3848,7 @@ export const seoPostContent: Record<string, SeoPostContent> = {
       {
         heading: "Next steps for CAD telephony integration pilots",
         paragraphs: [
-          "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let procurement teams and technology evaluators validate CAD telephony integration alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend. [CAD integration](/cad-integration) documents coexistence patterns Rapid Cortex uses.",
+          "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let procurement teams and technology evaluators validate CAD telephony integration alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend. [CAD integration](/cad-integration) documents coexistence patterns NexCort iQ uses.",
           "Deployment timelines hinge on integrations and signage — not slide-deck promises.",
           "Integration beats replacement: confirm [CAD integration](/cad-integration) paths before you sign.",
           "Ask for reference deployments where CAD telephony integration ran parallel to production for at least one major event or shift cycle.",
@@ -3856,10 +3856,10 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         ],
       },
     ],
-    closing: "Strong CAD telephony integration evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to Rapid Cortex Core, Campus, or Venue.",
+    closing: "Strong CAD telephony integration evaluations end with written integration requirements and a pilot scorecard — [contact sales](/contact-sales) when you want those mapped to 911 Centers/PSAPs, Campus, or Venue.",
   },
   "voice-to-video-emergency-communications": {
-    intro: "From Voice Call to Video: The Future of Emergency Communications is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. emergency video intake only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [Rapid Cortex Core](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how Rapid Cortex approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
+    intro: "From Voice Call to Video: The Future of Emergency Communications is a practical question for 911 directors, PSAP supervisors, and call takers modernizing how incident information moves. emergency video intake only matters when it shortens the path from report to trained responder — without replacing CAD, telephony, dispatchers, or medical direction. Explore [911 Centers/PSAPs](/product/core), [911 call transcription](/911-call-transcription), and [NG911 software](/ng911-software) to see how NexCort iQ approaches the workflow, and scope a pilot when you are ready to measure time-to-context on your own floor.",
     sections: [
       {
         heading: "The operational gap behind emergency video intake",
@@ -3909,12 +3909,12 @@ export const seoPostContent: Record<string, SeoPostContent> = {
         paragraphs: [
           "Deployment should start with a bounded pilot — one terminal, one residence hall, or one supervisor desk — with success criteria tied to time-to-context, not vanity metrics. [Free 60-day pilots](/free-60-day-pilot) let 911 directors, PSAP supervisors, and call takers validate emergency video intake alongside live operations before a broader rollout. Publish pilot results internally so stakeholders see evidence before scaling spend.",
           "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-          "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+          "911 Centers/PSAPs enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
           "Start with one shift or one supervisor desk, measure time-to-context for emergency video intake, then expand with union and IT buy-in.",
           "Scale emergency video intake only after the pilot proves stable integrations and training completion rates. Communicate wins internally with real incident examples (sanitized) so frontline staff see the tool as help — not surveillance or CAD replacement. Publish a one-page emergency video intake requirements memo before vendor demos so every stakeholder scores the same workflows and integration assumptions.",
         ],
       },
     ],
-    closing: "Strong emergency video intake programs measure time-to-context, not tool count — and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
+    closing: "Strong emergency video intake programs measure time-to-context, not tool count — and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot).",
   },
 };

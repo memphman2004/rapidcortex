@@ -117,7 +117,7 @@ export async function ensureHospitalOverlayLayers(map: maplibregl.Map): Promise<
       filter: ["has", "point_count"],
       paint: {
         "circle-color": "#2563eb",
-        "circle-radius": ["step", ["get", "point_count"], 16, 10, 20, 50, 25],
+        "circle-radius": ["step", ["get", "point_count"], 11, 10, 14, 50, 18],
         "circle-stroke-width": 2,
         "circle-stroke-color": "#1e3a8a",
         "circle-opacity": 0.92,
@@ -158,7 +158,7 @@ export async function ensureHospitalOverlayLayers(map: maplibregl.Map): Promise<
         filter: ["!", ["has", "point_count"]],
         layout: {
           "icon-image": HOSPITAL_ICON_ID,
-          "icon-size": ["interpolate", ["linear"], ["zoom"], 8, 0.35, 12, 0.55, 16, 0.72],
+          "icon-size": ["interpolate", ["linear"], ["zoom"], 8, 0.18, 12, 0.28, 16, 0.38],
           "icon-allow-overlap": true,
           "icon-ignore-placement": true,
         },

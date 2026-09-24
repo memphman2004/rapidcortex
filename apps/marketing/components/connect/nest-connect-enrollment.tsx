@@ -113,7 +113,7 @@ export function NestConnectEnrollment() {
           Consent-based emergency camera sharing
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-slate-400">
-          Rapid Cortex never accesses your {NEST_TM} camera without your permission. Every request
+          NexCort iQ never accesses your {NEST_TM} camera without your permission. Every request
           requires an explicit approval — by you, for each incident.
         </p>
       </div>
@@ -202,7 +202,7 @@ export function NestConnectEnrollment() {
               onChange={field("agencyId")}
             />
             <span className="mt-1 block text-[11px] text-slate-600">
-              Enrollment is by invitation. Use the agency ID in your Rapid Cortex invite link.
+              Enrollment is by invitation. Use the agency ID in your NexCort iQ invite link.
             </span>
           </label>
           <label className="block text-xs text-slate-400">
@@ -262,8 +262,8 @@ export function NestConnectEnrollment() {
             Use my current location
           </button>
           <p className="rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-3 text-sm text-slate-400">
-            After submitting, you will be redirected to Google to authorize Rapid Cortex. Citizen
-            enrollment requires Rapid Cortex’s own Google Device Access project — if that is not
+            After submitting, you will be redirected to Google to authorize NexCort iQ. Citizen
+            enrollment requires NexCort iQ’s own Google Device Access project — if that is not
             approved yet, registration returns an error until it is.
           </p>
           <button
@@ -302,11 +302,11 @@ export function NestConnectEnrollment() {
               [
                 "2",
                 "Create an OAuth 2.0 client",
-                "In Google Cloud Console → APIs & Services → Credentials, create an OAuth client. Set the redirect URI to the Rapid Cortex API callback URL.",
+                "In Google Cloud Console → APIs & Services → Credentials, create an OAuth client. Set the redirect URI to the NexCort iQ API callback URL.",
               ],
               [
                 "3",
-                "Link in Rapid Cortex Settings",
+                "Link in NexCort iQ Settings",
                 "Go to Admin → Integrations → Google Nest, enter Project ID, Client ID, and Client Secret, then Connect.",
               ],
             ].map(([n, title, desc]) => (

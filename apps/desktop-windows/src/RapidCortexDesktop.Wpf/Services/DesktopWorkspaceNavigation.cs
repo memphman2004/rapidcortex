@@ -38,8 +38,8 @@ public static class DesktopWorkspaceNavigation
             "supervisor" => "SUPERVISOR",
             "agencyadmin" => "AGENCY ADMIN",
             "agencyit" => "IT ADMIN",
-            "rcsuperadmin" or "rcadmin" => "RC ADMIN",
-            "rcitadmin" => "RC IT",
+            "rcsuperadmin" or "rcadmin" => "NC ADMIN",
+            "rcitadmin" => "NC IT",
             _ => effective.ToUpperInvariant(),
         };
     }
@@ -89,7 +89,7 @@ public static class DesktopWorkspaceNavigation
                 new("call-assist", "Call Assist", $"/{j}/call-assist"),
                 new("incidents", "Incidents", $"/{j}/incidents"),
                 new("media", "Media", $"/{j}/media"),
-                new("rapid-vision", "Rapid Vision", $"/{j}/media?vision=1"),
+                new("rapid-vision", "NexiQ Vision", $"/{j}/media?vision=1"),
             ],
             "supervisor" =>
             [
@@ -98,7 +98,7 @@ public static class DesktopWorkspaceNavigation
                 new("call-assist", "Call Assist", $"/{j}/call-assist"),
                 new("incidents", "Incidents", $"/{j}/incidents"),
                 new("media", "Media", $"/{j}/media"),
-                new("rapid-vision", "Rapid Vision", $"/{j}/media?vision=1"),
+                new("rapid-vision", "NexiQ Vision", $"/{j}/media?vision=1"),
             ],
             "agencyadmin" or "agencyit" =>
             [
@@ -109,7 +109,7 @@ public static class DesktopWorkspaceNavigation
             ],
             "rcsuperadmin" or "rcadmin" or "rcitadmin" =>
             [
-                new("rc-admin", "RC Admin", "/rc-admin/dashboard"),
+                new("rc-admin", "NC Admin", "/rc-admin/dashboard"),
             ],
             _ => Array.Empty<QuickLink>(),
         };

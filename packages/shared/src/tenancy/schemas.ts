@@ -76,7 +76,7 @@ export const createAgencyBodySchema = z.object({
   planTier: z.enum(["starter", "professional", "command", "enterprise"]).default("starter"),
   pilotMode: z.boolean().default(false),
   addons: z.array(z.string().min(1).max(120)).max(200).default([]),
-  /** Optional HQ pin for RC Admin national deployments map. */
+  /** Optional HQ pin for NexCort Admin national deployments map. */
   latitude: z.number().min(-90).max(90).optional(),
   longitude: z.number().min(-180).max(180).optional(),
 });

@@ -29,7 +29,7 @@ type Props = {
   namePlaceholder?: string;
   zonePlaceholder?: string;
   globalView?: boolean;
-  /** Rapid Cortex site QR/NFC (www.rapidcortex.us). RC internal logins only. */
+  /** NexCort iQ site QR/NFC (www.rapidcortex.us). RC internal logins only. */
   showSiteQr?: boolean;
   /** Hide the manager H2 when the page already has a campus/venue heading. */
   hideHeading?: boolean;
@@ -414,7 +414,7 @@ export function QRNFCManager({
             href="#rc-marketing-qr"
             className="rounded-md border border-amber-700/70 px-3 py-1.5 text-sm font-medium text-amber-200 hover:border-amber-500/80 hover:text-amber-100"
           >
-            + Rapid Cortex site QR
+            + NexCort iQ site QR
           </a>
           ) : null}
         {canCreate ? (
@@ -486,7 +486,7 @@ export function QRNFCManager({
         </h3>
         <p className="mt-1 text-xs text-slate-500">
           {mediumView === "nfc"
-            ? "Open each location code in the Rapid Cortex mobile app, tap Program NFC Tag, hold an NTAG213 to your phone, then stick the tag behind the sign. Browser for QR PNGs; RC app for NFC write and QR verify — no other apps."
+            ? "Open each location code in the NexCort iQ mobile app, tap Program NFC Tag, hold an NTAG213 to your phone, then stick the tag behind the sign. Browser for QR PNGs; RC app for NFC write and QR verify — no other apps."
             : "Signs only need the QR code and NFC tag. When someone scans, they can tap to call or submit a report."}
         </p>
         {mediumView !== "nfc" ? (
@@ -885,7 +885,7 @@ export function QRNFCManager({
                   <a href="#rc-marketing-qr" className="text-amber-300 hover:text-amber-200" onClick={() => setModalOpen(false)}>
                     www.rapidcortex.us
                   </a>{" "}
-                  booth signs, close this and use <span className="text-slate-200">Rapid Cortex site QR</span>.
+                  booth signs, close this and use <span className="text-slate-200">NexCort iQ site QR</span>.
                 </>
               ) : null}
             </p>

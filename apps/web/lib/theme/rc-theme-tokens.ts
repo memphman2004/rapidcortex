@@ -1,5 +1,5 @@
 /**
- * Rapid Cortex — theme token constants for inline styles.
+ * NexCort iQ — theme token constants for inline styles.
  *
  * Values are CSS variable references. Hex lives in `app/globals.css` and swaps
  * when the shell sets `data-theme="light" | "dark"`.
@@ -94,7 +94,7 @@ export const V = {
 
 export type VTokenKey = keyof typeof V;
 
-/** Console palette alias used by PSAP / Campus / Venue / RC Admin homes. */
+/** Console palette alias used by PSAP / Campus / Venue / NexCort Admin homes. */
 export const C = {
   bg: V.bg,
   surface: V.surface,

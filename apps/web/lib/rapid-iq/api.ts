@@ -273,21 +273,21 @@ export async function fetchOutreach(
 ): Promise<{ subject: string; body: string }> {
   if (demo) {
     return {
-      subject: `Rapid Cortex — opportunity ${opportunityId}`,
+      subject: `NexCort iQ — opportunity ${opportunityId}`,
       body: [
         "Hi Director,",
         "",
-        "Demo outreach draft grounded in this Rapid IQ signal.",
+        "Demo outreach draft grounded in this NexiQ IQ signal.",
         "",
         "Talking points for our conversation:",
         "1. Reference the signal in your opener.",
         "2. Ask about evaluation timeline.",
         "3. Ask which budget cycle funds the modernization.",
         "4. Ask which CAD/NG911 stack they run today.",
-        "5. Offer a Rapid Cortex Core demo.",
+        "5. Offer a 911 Centers/PSAPs demo.",
         "",
         "Best,",
-        "Rapid Cortex",
+        "NexCort iQ",
       ].join("\n"),
     };
   }

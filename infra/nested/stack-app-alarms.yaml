@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
-  Rapid Cortex CloudWatch alarms for the SAM app stack. Deploy together with AppSamStack (references
+  NexCort iQ CloudWatch alarms for the SAM app stack. Deploy together with AppSamStack (references
   its outputs only). Lambda error alarms that target conditionally-deployed functions (live video)
   remain in stack-app-sam.yaml where Ref/CreationPolicy stays valid.
 

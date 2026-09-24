@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
-  Rapid Cortex primary API edge — CloudFront distribution + CLOUDFRONT-scope WAFv2 in front of
+  NexCort iQ primary API edge — CloudFront distribution + CLOUDFRONT-scope WAFv2 in front of
   the AppSamStackV2 HTTP API (execute-api origin). Use this because WAFv2 cannot associate with
   API Gateway HTTP API stages. DNS for api.<root> can be cut over here after AppSam stops managing
   ApiDomainDnsRecordA/AAAA (ManageApiDomainDns=false).

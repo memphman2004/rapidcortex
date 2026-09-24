@@ -113,7 +113,7 @@ run_endpoint() {
   fi
 }
 
-echo "Rapid Cortex endpoint stress  concurrency=${CONCURRENCY} requests=${REQUESTS}"
+echo "NexCort iQ endpoint stress  concurrency=${CONCURRENCY} requests=${REQUESTS}"
 
 if [[ -n "$LAMBDA_BASE" ]]; then
   echo ""

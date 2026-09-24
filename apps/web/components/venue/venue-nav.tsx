@@ -40,7 +40,7 @@ function navItems(base: string): NavItem[] {
     { id: "staff", label: "Staff", href: `${base}/staff`, icon: Users },
     {
       id: "translate",
-      label: "RC Translate",
+      label: "Translate",
       href: `${base}/translate`,
       icon: Languages,
       hideForGuest: true,

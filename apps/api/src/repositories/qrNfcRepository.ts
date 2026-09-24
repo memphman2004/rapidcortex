@@ -174,7 +174,7 @@ export class QrNfcRepository {
   }
 
   /**
-   * Upsert + increment a Rapid Cortex site (booth) click.
+   * Upsert + increment a NexCort iQ site (booth) click.
    * `name` is a Dynamo reserved word — use an expression attribute name.
    */
   async incrementSiteEngagement(

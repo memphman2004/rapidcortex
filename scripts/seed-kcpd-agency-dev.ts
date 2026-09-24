@@ -42,7 +42,7 @@ async function main() {
     centerName: "KCPD",
     region: "Midwest",
     primaryContactName: "KCPD Demo",
-    primaryContactEmail: "rcadmin@rapidcortex.us",
+    primaryContactEmail: "rcadmin@nexcortiq.us",
     deploymentMode: "side_by_side" as const,
     protocolPackId: "default",
     retentionPolicyId: "mo-sunshine-default",

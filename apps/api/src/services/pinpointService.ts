@@ -74,7 +74,7 @@ export class PinpointService {
     if (!base) throw new Error("MISSING_PUBLIC_BASE_URL");
 
     const publicUrl = `${base}/pinpoint/t/${encodeURIComponent(token)}`;
-    const msg = `Rapid Cortex: help responders find you. Optional — tap to share your phone location once: ${publicUrl}`;
+    const msg = `NexCort iQ: help responders find you. Optional — tap to share your phone location once: ${publicUrl}`;
 
     const sms = await sendIncidentMediaLinkSms(
       await buildSmsFactoryEnvForAgency(incident.agencyId, { extraMock: env.pinpointSmsMock }),

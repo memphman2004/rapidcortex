@@ -2,7 +2,7 @@
 
 **Audience:** sales, solutions architects, implementation consultants, agency IT/ops, training leads, and support managers preparing a **real agency pilot** — not only engineering.
 
-This file is the **operational entry point** for how Rapid Cortex is introduced, configured, trained, and supported. Technical depth defers to linked documents; scope and exclusions remain canonical in [MVP_SCOPE.md](./MVP_SCOPE.md) and [NON_GOALS.md](./NON_GOALS.md).
+This file is the **operational entry point** for how NexCort iQ is introduced, configured, trained, and supported. Technical depth defers to linked documents; scope and exclusions remain canonical in [MVP_SCOPE.md](./MVP_SCOPE.md) and [NON_GOALS.md](./NON_GOALS.md).
 
 ---
 
@@ -23,7 +23,7 @@ This file is the **operational entry point** for how Rapid Cortex is introduced,
 
 Use this sequence in customer-facing project plans. Checkboxes for working sessions can be tracked in the product at **Admin → Pilot hub** (browser-local); keep contractual sign-off in your SOW / playbook.
 
-1. **Introduce** — Position Rapid Cortex as **assistive**, human-in-the-loop co-pilot; align on [PILOT_GOVERNANCE.md](./PILOT_GOVERNANCE.md) and [SALES_SCOPE_MATRIX.md](./SALES_SCOPE_MATRIX.md).
+1. **Introduce** — Position NexCort iQ as **assistive**, human-in-the-loop co-pilot; align on [PILOT_GOVERNANCE.md](./PILOT_GOVERNANCE.md) and [SALES_SCOPE_MATRIX.md](./SALES_SCOPE_MATRIX.md).
 2. **Explain does / does not** — Walk [MVP_SCOPE.md](./MVP_SCOPE.md), [NON_GOALS.md](./NON_GOALS.md), [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md).
 3. **Configure pilot tenant** — Agency row, Cognito claims, stack per [INSTALLATION.md](./INSTALLATION.md) / [AWS_SETUP.md](./AWS_SETUP.md).
 4. **Onboard pilot admins** — **Admin → Pilot hub**, [ADMIN_GUIDE.md](./ADMIN_GUIDE.md), integrations status.
@@ -43,10 +43,10 @@ Ship **[JURISDICTION_OPERATIONS_GUIDE.md](./JURISDICTION_OPERATIONS_GUIDE.md)** 
 
 ## 2b. Sales vocabulary, CAD positioning, and packaging tiers
 
-**CAD vs Rapid Cortex (use in every pilot kickoff):**
+**CAD vs NexCort iQ (use in every pilot kickoff):**
 
 - **CAD / 911 CPE / radio / RMS** — system of record for call handling, units, and official records.
-- **Rapid Cortex** — **assistive** layer: AI + human-in-the-loop for **transcription**, **multilingual** speech-to-text (10+ languages when configured), **real-time translation**, **AI-assisted triage and summaries**, **dispatcher guidance**, **supervisor QA**, **live video / media intake** (when enabled), **silent text / text-style session** patterns, and **audit** trails. It **does not replace CAD**; it **enhances** workflows alongside it. Unsupervised CAD write-back is **out of scope** for typical pilots unless reopened with legal and vendor review ([NON_GOALS.md](./NON_GOALS.md)).
+- **NexCort iQ** — **assistive** layer: AI + human-in-the-loop for **transcription**, **multilingual** speech-to-text (10+ languages when configured), **real-time translation**, **AI-assisted triage and summaries**, **dispatcher guidance**, **supervisor QA**, **live video / media intake** (when enabled), **silent text / text-style session** patterns, and **audit** trails. It **does not replace CAD**; it **enhances** workflows alongside it. Unsupervised CAD write-back is **out of scope** for typical pilots unless reopened with legal and vendor review ([NON_GOALS.md](./NON_GOALS.md)).
 
 **Plan names (product UI vs sales shorthand):**
 

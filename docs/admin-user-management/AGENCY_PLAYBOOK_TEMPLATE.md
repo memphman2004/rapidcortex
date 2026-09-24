@@ -31,7 +31,7 @@ Password / MFA policy owner (IT contact):
 | IT / identity (Cognito) | | | |
 | ECC supervision lead | | | |
 | Medical director / protocol authority (if applicable) | | | |
-| Rapid Cortex support (contract) | | | |
+| NexCort iQ support (contract) | | | |
 
 ## D. Assistive AI and escalation (SOP alignment)
 
@@ -58,13 +58,13 @@ Password / MFA policy owner (IT contact):
 
 - Agency retention period / disposition for pilot data:  
 
-- Named person for **export** or **deletion** requests to Rapid Cortex:  
+- Named person for **export** or **deletion** requests to NexCort iQ:  
 
 - Legal hold point of contact (if different):  
 
 ## H. Incidents and outages
 
-- Internal severity definitions for “Rapid Cortex unavailable during live ops”:  
+- Internal severity definitions for “NexCort iQ unavailable during live ops”:  
 
 - Link to agency runbook or addendum to [RUNBOOK.md](./RUNBOOK.md):  
 

@@ -1034,7 +1034,7 @@ export function SalesAutomationClient() {
       invalidate();
       showToast(
         body.mock
-          ? `Outlook mock connected as ${body.mailbox ?? "hello@rapidcortex.us"} — live Graph send is off`
+          ? `Outlook mock connected as ${body.mailbox ?? "hello@nexcortiq.us"} — live Graph send is off`
           : `Outlook connected as ${body.mailbox ?? "sales mailbox"}`,
       );
     },
@@ -1140,7 +1140,7 @@ export function SalesAutomationClient() {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-6 py-4">
         <div className="min-w-0">
           <p className="text-[11px] text-slate-500">
-            Campaigns send from <span className="text-slate-300">hello@rapidcortex.us</span>. Queue up
+            Campaigns send from <span className="text-slate-300">hello@nexcortiq.us</span>. Queue up
             to 100 addresses, edit copy, and pick a send time for each email. Approval sends due mail
             immediately (100 at a time).
           </p>
@@ -1151,7 +1151,7 @@ export function SalesAutomationClient() {
             </p>
           ) : (
             <p className="mt-1 text-[11px] text-amber-400">
-              Connect Outlook as hello@rapidcortex.us. Until then, approved mail is logged only or
+              Connect Outlook as hello@nexcortiq.us. Until then, approved mail is logged only or
               sent via SES fallback.
             </p>
           )}
@@ -1173,7 +1173,7 @@ export function SalesAutomationClient() {
               onClick={() => connectOutlook.mutate()}
               className="rounded border border-sky-700 px-3 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-900/40 disabled:opacity-50"
             >
-              {connectOutlook.isPending ? "Connecting…" : "Connect hello@rapidcortex.us"}
+              {connectOutlook.isPending ? "Connecting…" : "Connect hello@nexcortiq.us"}
             </button>
           )}
           <button

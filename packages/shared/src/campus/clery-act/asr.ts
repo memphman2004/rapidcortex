@@ -15,7 +15,7 @@ import {
  * Part 6.3 — required on every generated ASR PDF and ED survey export.
  * Do not remove or paraphrase in generated artifacts.
  */
-export const ASR_DISCLAIMER_TEMPLATE = `This Annual Security Report was prepared using data from the Rapid Cortex campus safety platform and reviewed by {{institutionName}}'s designated Clery Coordinator. Rapid Cortex provides data collection, classification workflow, and report generation tools. Final responsibility for Clery Act compliance, including the accuracy of all statistics and policy statements, rests with {{institutionName}}. This report does not constitute legal advice. For questions about Clery Act compliance, contact the U.S. Department of Education, Office of Postsecondary Education, at ope.ed.gov.`;
+export const ASR_DISCLAIMER_TEMPLATE = `This Annual Security Report was prepared using data from the NexCort iQ campus safety platform and reviewed by {{institutionName}}'s designated Clery Coordinator. NexCort iQ provides data collection, classification workflow, and report generation tools. Final responsibility for Clery Act compliance, including the accuracy of all statistics and policy statements, rests with {{institutionName}}. This report does not constitute legal advice. For questions about Clery Act compliance, contact the U.S. Department of Education, Office of Postsecondary Education, at ope.ed.gov.`;
 
 export function formatAsrDisclaimer(institutionName: string): string {
   const name = institutionName.trim() || "the institution";

@@ -15,7 +15,7 @@ This pack finishes **in-repo** design of CC1–CC9. The items below still need p
 | SOC-109 | Pen-test SOW / report | Security | Often requested | Open (LEG-010) |
 | SOC-110 | Executed DPA / MSA | Legal | Customer + CC9 | Open |
 | SOC-111 | AWS Artifact SOC reports | Security | CC6.8 inherited | Open |
-| SOC-112 | Entity naming (AOD vs Rapid Cortex LLC) | Legal | LEG-007 | Open |
+| SOC-112 | Entity naming (AOD vs NexCort iQ LLC) | Legal | LEG-007 | Open |
 | SOC-113 | PagerDuty/SNS paging proven (PLT-025) | Ops | CC7 detection | Open |
 | SOC-114 | Dedicated AWS account migration | Eng | Residual R-SOC-001 | Post-window |
 | SOC-115 | Break-glass during in-flight SAM deploy | Eng | No | Opened from tabletop |

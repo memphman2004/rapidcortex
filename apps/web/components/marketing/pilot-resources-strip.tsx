@@ -15,13 +15,13 @@ export function MarketingPilotResourcesStrip() {
           Agency Pilot & Evaluation
         </h2>
         <p className="mt-4 text-sm leading-relaxed text-slate-400">
-          Evaluate Rapid Cortex in a guided pilot built for public safety teams. Each pilot includes a defined technical
+          Evaluate NexCort iQ in a guided pilot built for public safety teams. Each pilot includes a defined technical
           scope, onboarding support, success criteria, and clear operational boundaries so your agency can assess impact
           with confidence.
         </p>
         <p className="mt-4 text-sm leading-relaxed text-slate-400">
           After secure access is provisioned, authorized agency administrators can manage the pilot workspace, track
-          onboarding progress, and coordinate evaluation activities inside the Rapid Cortex console.
+          onboarding progress, and coordinate evaluation activities inside the NexCort iQ console.
         </p>
         <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
           <Link

@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title,
       description,
       url: absoluteUrl("/security"),
-      siteName: "Rapid Cortex",
+      siteName: "NexCort iQ",
       images: [shareImage],
       type: "website",
     },
@@ -53,7 +53,7 @@ export default function MarketingSecurityPage() {
     >
       <p className="text-base text-slate-200">
         This page is for <strong>IT directors, CJIS coordinators, procurement, and vendor security reviewers</strong>{" "}
-        evaluating Rapid Cortex before or during a pilot. It summarizes how we protect agency data and operate the
+        evaluating NexCort iQ before or during a pilot. It summarizes how we protect agency data and operate the
         platform — without asking you to read the entire product first.
       </p>
 
@@ -113,7 +113,7 @@ export default function MarketingSecurityPage() {
             <Link href={trust} className="font-medium text-sky-300 hover:text-sky-200">
               Trust &amp; compliance disclosures
             </Link>{" "}
-            — RC Lite assurance topics and artifact intent (explanatory, not certification claims).
+            — NexCort Lite assurance topics and artifact intent (explanatory, not certification claims).
           </li>
           <li>
             <Link href={status} className="font-medium text-sky-300 hover:text-sky-200">

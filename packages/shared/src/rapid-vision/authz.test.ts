@@ -6,7 +6,7 @@ function user(role: string, agencyId = "a1"): UserContext {
   return { userId: "u1", agencyId, role } as UserContext;
 }
 
-describe("Rapid Vision™ authz", () => {
+describe("NexiQ Vision™ authz", () => {
   it("lets dispatchers view and verify in the same agency", () => {
     expect(canViewVision(user("dispatcher"), "a1")).toBe(true);
     expect(canVerifyVisionObservation(user("dispatcher"), "a1")).toBe(true);

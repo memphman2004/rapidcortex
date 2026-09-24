@@ -17,9 +17,9 @@ export default async function RcAdminQrNfcPage() {
           Usage
         </a>{" "}
         tracks every QR-initiated website click — location report codes, Location QR (RCLI), and
-        Rapid Cortex site signs — plus NFC taps. Use{" "}
+        NexCort iQ site signs — plus NFC taps. Use{" "}
         <a href="#rc-marketing-qr" className="text-amber-300 hover:text-amber-200">
-          Rapid Cortex site QR
+          NexCort iQ site QR
         </a>{" "}
         for booth signs that open www.rapidcortex.us. Location codes are for campus, venue, and
         agency report signs. Use the QR / NFC toggle to focus each medium, or open a tenant from{" "}

@@ -1,4 +1,4 @@
-# Rapid Cortex DynamoDB Model (MVP)
+# NexCort iQ DynamoDB Model (MVP)
 
 ## Incidents table
 

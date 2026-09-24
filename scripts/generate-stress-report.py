@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Rapid Cortex — Stress Test PDF Report Generator
+NexCort iQ — Stress Test PDF Report Generator
 Usage:
   python3 generate-stress-report.py \
     --results-dir results \
@@ -70,7 +70,7 @@ def make_later_pages(stage):
         canvas.rect(0, PAGE_H - 38, PAGE_W, 2, fill=1, stroke=0)
         canvas.setFont("Helvetica-Bold", 8)
         canvas.setFillColor(RC_BLUE)
-        canvas.drawString(0.5 * inch, PAGE_H - 22, "RAPID CORTEX")
+        canvas.drawString(0.5 * inch, PAGE_H - 22, "NEXCORT IQ")
         canvas.setFont("Helvetica", 8)
         canvas.setFillColor(RC_SILVER)
         canvas.drawString(1.36 * inch, PAGE_H - 22,
@@ -81,7 +81,7 @@ def make_later_pages(stage):
         canvas.setFont("Helvetica", 7)
         canvas.setFillColor(RC_SILVER)
         canvas.drawString(0.5 * inch, 10,
-                          "Rapid Cortex — Intelligence at the speed of response  |  CONFIDENTIAL — Internal Use Only")
+                          "NexCort iQ — Intelligence at the speed of response  |  CONFIDENTIAL — Internal Use Only")
         canvas.drawRightString(PAGE_W - 0.5 * inch, 10, f"Page {doc.page}")
         canvas.restoreState()
     return later_pages
@@ -217,7 +217,7 @@ def build(args):
 
     # ── COVER ─────────────────────────────────────────────────────────────────
     story.append(Spacer(1, 1.8*inch))
-    story.append(Paragraph("RAPID CORTEX", S["brand_label"]))
+    story.append(Paragraph("NEXCORT IQ", S["brand_label"]))
     story.append(Spacer(1, 0.1*inch))
     story.append(HRFlowable(width="40%", thickness=1, color=RC_BLUE, spaceAfter=16, hAlign="CENTER"))
     story.append(Paragraph("Stress Test Report", S["cover_title"]))
@@ -479,7 +479,7 @@ def build(args):
     story.append(Paragraph("Next Steps", S["sub_head"]))
     for step in [
         "1. Apply mobile PageSpeed fixes and re-run on /product/venue. Target: ≥ 85.",
-        "2. If stress PASS: proceed to pilot traffic onboarding per Rapid Cortex Pilot Offer.",
+        "2. If stress PASS: proceed to pilot traffic onboarding per NexCort iQ Pilot Offer.",
         "3. If stress FAIL: address each breached SLA gate before any pilot traffic increase.",
         "4. Schedule monthly stress test runs (smoke + load) as part of production ops cadence.",
         "5. Add rc-stress-monitor.sh metrics to a persistent CloudWatch dashboard.",
@@ -489,7 +489,7 @@ def build(args):
     story.append(Spacer(1, 0.3*inch))
     story.append(HRFlowable(width="100%", thickness=0.5, color=RC_MID, spaceAfter=10))
     story.append(Paragraph(
-        f"Report generated {ts}  |  Rapid Cortex Platform Engineering  |  CONFIDENTIAL",
+        f"Report generated {ts}  |  NexCort iQ Platform Engineering  |  CONFIDENTIAL",
         ParagraphStyle("Close", fontName="Helvetica", fontSize=7,
                        textColor=RC_SILVER, alignment=TA_CENTER),
     ))

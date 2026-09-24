@@ -54,7 +54,7 @@ function verticalRolePalette(
   });
 }
 
-/** Canonical palettes aligned to Rapid Cortex role dashboard color spec. */
+/** Canonical palettes aligned to NexCort iQ role dashboard color spec. */
 export const ROLE_DASHBOARD_PALETTE_BY_ROLE: Record<UserRole, RoleDashboardIdentity> = {
   rcsuperadmin: withAccents({
     identityTitle: "Platform Command",

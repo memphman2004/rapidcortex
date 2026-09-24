@@ -35,7 +35,7 @@ ENTRIES: list[dict[str, str]] = [
     {"slug": "stadium-security-photo-location-reporting", "title": "How Stadium Security Teams Can Receive Incident Photos and Location Details Faster", "hub": "Venue Safety", "seoFocus": "stadium incident reporting"},
     {"slug": "airport-terminal-security-communication", "title": "Improving Security Communication Across Airport Terminals", "hub": "Airport Safety", "seoFocus": "airport security communications"},
     {"slug": "psap-supervisor-visibility", "title": "How PSAP Supervisors Can Improve Visibility Without Adding More Screens", "hub": "911, PSAP & NG911", "seoFocus": "PSAP supervisor dashboard"},
-    {"slug": "rapid-cortex-vs-traditional-cad", "title": "Rapid Cortex vs. Traditional CAD: What Is the Difference?", "hub": "Buyer Intent", "seoFocus": "Rapid Cortex vs CAD"},
+    {"slug": "rapid-cortex-vs-traditional-cad", "title": "NexCort iQ vs. Traditional CAD: What Is the Difference?", "hub": "Buyer Intent", "seoFocus": "NexCort iQ vs CAD"},
     {"slug": "silent-campus-emergency-reporting", "title": "How Universities Can Improve Student Safety Communication During Silent Emergencies", "hub": "Campus Safety", "seoFocus": "campus emergency reporting"},
     {"slug": "venue-safety-beyond-cameras", "title": "Why Venue Safety Is More Than Cameras and Metal Detectors", "hub": "Venue Safety", "seoFocus": "venue security technology"},
     {"slug": "public-safety-intelligence-platform-guide", "title": "A Public Safety Leader's Guide to Evaluating Real-Time Intelligence Platforms", "hub": "Leadership & Buying", "seoFocus": "public safety intelligence platform"},
@@ -115,33 +115,33 @@ COMPLIANCE_CALLOUT_SLUGS = {
 
 HUB_INTRO_LINKS: dict[str, list[str]] = {
     "Leadership & Buying": [
-        "[Rapid Cortex Core](/product/core)",
+        "[NexCort iQ Core](/product/core)",
         "[CAD integration](/cad-integration)",
-        "[Rapid Cortex Offerings](/blog/rapid-cortex-offerings)",
+        "[NexCort iQ Offerings](/blog/rapid-cortex-offerings)",
     ],
     "Campus Safety": [
-        "[Rapid Cortex Campus](/product/campus)",
+        "[NexCort iQ Campus](/product/campus)",
         "[campus safety overview](/blog/rapid-cortex-campus)",
         "[pricing](/pricing)",
     ],
     "Venue Safety": [
-        "[Rapid Cortex Venue](/venue)",
+        "[NexCort iQ Venue](/venue)",
         "[venue safety overview](/blog/rapid-cortex-venue)",
         "[schedule a demo](/demo)",
     ],
     "Airport Safety": [
-        "[Rapid Cortex Venue](/venue)",
+        "[NexCort iQ Venue](/venue)",
         "[airport and venue reporting](/blog/rapid-cortex-venue)",
         "[contact sales](/contact-sales)",
     ],
     "911, PSAP & NG911": [
-        "[Rapid Cortex Core](/product/core)",
+        "[NexCort iQ Core](/product/core)",
         "[911 call transcription](/911-call-transcription)",
         "[NG911 software](/ng911-software)",
     ],
     "Buyer Intent": [
         "[incident intelligence platform overview](/blog/what-is-incident-intelligence-platform)",
-        "[Rapid Cortex Core](/product/core)",
+        "[NexCort iQ Core](/product/core)",
         "[contact sales](/contact-sales)",
     ],
 }
@@ -167,7 +167,7 @@ def word_count(text: str) -> int:
 def cad_disclaimer(hub: str) -> str:
     if hub in ("911, PSAP & NG911", "Leadership & Buying", "Buyer Intent"):
         return (
-            " Rapid Cortex enhances operations alongside CAD, telephony, dispatchers, "
+            " NexCort iQ enhances operations alongside CAD, telephony, dispatchers, "
             "and medical direction — it does not replace them."
         )
     if hub in ("Campus Safety",):
@@ -208,7 +208,7 @@ HUB_SECTION_ADDENDA: dict[str, list[list[str]]] = {
         ],
         [
             "Integrate with [CAD integration](/cad-integration) patterns rather than rip-and-replace projects.",
-            "Rapid Cortex Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+            "NexCort iQ Core enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
             "Start with one shift or one supervisor desk, measure time-to-context for {focus}, then expand with union and IT buy-in.",
         ],
     ],
@@ -220,7 +220,7 @@ HUB_SECTION_ADDENDA: dict[str, list[list[str]]] = {
         ],
         [
             "Silent emergencies require text-first paths that still give campus police enough location context to respond.",
-            "[Rapid Cortex Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
+            "[NexCort iQ Campus](/product/campus) maps intake to buildings and routes to the right campus team.",
             "Training resident advisors and front-desk staff on QR signage turns passive posters into active reporting channels.",
         ],
         [
@@ -242,7 +242,7 @@ HUB_SECTION_ADDENDA: dict[str, list[list[str]]] = {
         ],
         [
             "Zone-based routing sends a parking-lot report to the right team without every alert hitting the command post.",
-            "[Rapid Cortex Venue](/venue) ties intake to floor plans and escalation playbooks.",
+            "[NexCort iQ Venue](/venue) ties intake to floor plans and escalation playbooks.",
             "Signage at section, row, and gate level gives fans language they understand when they need help fast.",
         ],
         [
@@ -264,7 +264,7 @@ HUB_SECTION_ADDENDA: dict[str, list[list[str]]] = {
         ],
         [
             "QR signage at gates, baggage claim, and parking decks gives travelers a consistent path to report concerns.",
-            "[Rapid Cortex Venue](/venue) supports airport layouts with the same zone routing used in stadiums and arenas.",
+            "[NexCort iQ Venue](/venue) supports airport layouts with the same zone routing used in stadiums and arenas.",
             "Wayfinding for {focus} should mirror how passengers already navigate — not require staff acronyms or desk extensions.",
         ],
         [
@@ -296,7 +296,7 @@ HUB_SECTION_ADDENDA: dict[str, list[list[str]]] = {
         ],
         [
             "Measure ROI in reduced rework: fewer repeated caller questions, cleaner shift logs, faster supervisor review.",
-            "Rapid Cortex enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
+            "NexCort iQ enhances operations alongside CAD, telephony, dispatchers, and medical direction — it does not replace them.",
             "Executives should revisit {focus} metrics quarterly — adoption curves flatten if supervisors do not model the workflow.",
         ],
     ],
@@ -473,7 +473,7 @@ def section_paragraphs(entry: dict[str, str], heading: str, section_idx: int) ->
             " Vendors should document encryption, access control, and logging — not claim certification for you.",
             " CJIS-aligned design supports policy; your CJIS Systems Officer still owns compliance.",
             " Ask for audit samples and role matrices during procurement.",
-            " Rapid Cortex uses CJIS-aware design principles across deployments.",
+            " NexCort iQ uses CJIS-aware design principles across deployments.",
         ],
         "clery-act-incident-reporting-workflows": [
             " Timestamped intake helps Clery recordkeeping and timely warning decisions.",
@@ -489,8 +489,8 @@ def section_paragraphs(entry: dict[str, str], heading: str, section_idx: int) ->
         ],
         "rapid-cortex-vs-traditional-cad": [
             " CAD remains the dispatch system of record for unit assignment.",
-            " Rapid Cortex captures multimedia and structured intake CAD was not built to originate.",
-            " Compare [Rapid Cortex Core](/product/core) alongside your CAD vendor roadmap.",
+            " NexCort iQ captures multimedia and structured intake CAD was not built to originate.",
+            " Compare [NexCort iQ Core](/product/core) alongside your CAD vendor roadmap.",
             " Integration beats replacement for most agencies.",
         ],
         "cad-vs-incident-awareness-platform": [
@@ -527,7 +527,7 @@ def section_paragraphs(entry: dict[str, str], heading: str, section_idx: int) ->
             " Integration questions should be answered before RFP scoring.",
             " Telephony remains authoritative for call control and recording.",
             " CAD exports and incident IDs should link to intelligence-layer events.",
-            " [CAD integration](/cad-integration) documents coexistence patterns Rapid Cortex uses.",
+            " [CAD integration](/cad-integration) documents coexistence patterns NexCort iQ uses.",
         ],
     }
 
@@ -606,7 +606,7 @@ def generate_intro(entry: dict[str, str]) -> str:
         f"{title} is a practical question for {audience} modernizing how incident information moves. "
         f"{focus} only matters when it shortens the path from report to trained responder — "
         f"without replacing CAD, telephony, dispatchers, or medical direction. "
-        f"Explore {link_phrase} to see how Rapid Cortex approaches the workflow, "
+        f"Explore {link_phrase} to see how NexCort iQ approaches the workflow, "
         f"and scope a pilot when you are ready to measure time-to-context on your own floor."
     )
 
@@ -617,11 +617,11 @@ def generate_closing(entry: dict[str, str]) -> str:
     if hub == "Buyer Intent":
         return (
             f"Strong {focus} evaluations end with written integration requirements and a pilot scorecard — "
-            f"[contact sales](/contact-sales) when you want those mapped to Rapid Cortex Core, Campus, or Venue."
+            f"[contact sales](/contact-sales) when you want those mapped to NexCort iQ Core, Campus, or Venue."
         )
     return (
         f"Strong {focus} programs measure time-to-context, not tool count — "
-        f"and Rapid Cortex is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot)."
+        f"and NexCort iQ is built to prove that difference in a [free 60-day pilot](/free-60-day-pilot)."
     )
 
 

@@ -2,7 +2,7 @@ import type { UserRole } from "rapid-cortex-shared/types";
 import type { Permission } from "./permissions.js";
 
 /**
- * Canonical grants from Rapid Cortex Role Access Matrix v2.0 (PDF).
+ * Canonical grants from NexCort iQ Role Access Matrix v2.0 (PDF).
  * `o` (immutable) rows resolve to rcsuperadmin-only at enforcement time.
  * Hospital roles are maintained separately — not defined in the PDF matrix.
  */
@@ -41,7 +41,7 @@ export function isCampusRole(role: string): role is CampusRole {
   return (CAMPUS_ROLES as readonly string[]).includes(role);
 }
 
-/** Rapid Cortex Video DVR — playback/export vs recording cost-gate. */
+/** NexCort iQ Video DVR — playback/export vs recording cost-gate. */
 const VIDEO_PLAYBACK: readonly Permission[] = ["video.playback.view", "video.clips.create"];
 const VIDEO_CLIPS_MANAGE: readonly Permission[] = [
   "video.clips.export",
@@ -636,6 +636,71 @@ const VISION_ADMIN: readonly Permission[] = [
 const FIELD_COMMAND_VIEW: readonly Permission[] = ["field.command.view"];
 const FIELD_COMMAND_ACT: readonly Permission[] = ["field.command.view", "field.command.act"];
 
+/** Features suite — read-only across all 13 modules. */
+const FEATURES_VIEW: readonly Permission[] = [
+  "features.citizens.view",
+  "features.address_intel.view",
+  "features.alt_response.view",
+  "features.mutual_aid.view",
+  "features.mci.view",
+  "features.infra.view",
+  "features.interpreter.view",
+  "features.evidence.view",
+  "features.assessment.view",
+  "features.learning.view",
+  "features.surge.view",
+  "features.checkin.view",
+  "features.social.view",
+] as const;
+
+/** Dispatcher: views + operational manage for alt response, check-in, interpreter, evidence. */
+const FEATURES_DISPATCHER: readonly Permission[] = [
+  ...FEATURES_VIEW,
+  "features.alt_response.decide",
+  "features.checkin.manage",
+  "features.interpreter.manage",
+  "features.evidence.manage",
+] as const;
+
+/** Supervisor: all views + decide + mutual aid / MCI / check-in / social manage. */
+const FEATURES_SUPERVISOR: readonly Permission[] = [
+  ...FEATURES_VIEW,
+  "features.alt_response.decide",
+  "features.mutual_aid.manage",
+  "features.mci.manage",
+  "features.checkin.manage",
+  "features.social.manage",
+] as const;
+
+/** Agency admin: full manage including assessment. */
+const FEATURES_ADMIN: readonly Permission[] = [
+  ...FEATURES_VIEW,
+  "features.citizens.manage",
+  "features.address_intel.manage",
+  "features.alt_response.decide",
+  "features.mutual_aid.manage",
+  "features.mci.manage",
+  "features.infra.manage",
+  "features.interpreter.manage",
+  "features.evidence.manage",
+  "features.assessment.manage",
+  "features.learning.manage",
+  "features.surge.manage",
+  "features.checkin.manage",
+  "features.social.manage",
+] as const;
+
+/** Agency IT: citizens + infra + evidence manage (plus views). */
+const FEATURES_IT: readonly Permission[] = [
+  ...FEATURES_VIEW,
+  "features.citizens.manage",
+  "features.infra.manage",
+  "features.evidence.manage",
+] as const;
+
+/** Analyst / auditor: view-only on features suite. */
+const FEATURES_AUDIT: readonly Permission[] = [...FEATURES_VIEW] as const;
+
 /** RMS — analyst/auditor read + export (+ nibrs for analyst). */
 const RMS_ANALYST: readonly Permission[] = [
   "rms.view_report",
@@ -784,6 +849,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...VIDEO_CLIPS_MANAGE,
     ...VIDEO_RECORDING,
     ...FIELD_COMMAND_ACT,
+    ...FEATURES_ADMIN,
   ],
   agencyit: [
     "users.view",
@@ -808,6 +874,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...VISION_ADMIN,
     ...VIDEO_RECORDING,
     ...FIELD_COMMAND_VIEW,
+    ...FEATURES_IT,
   ],
   supervisor: [
     "users.view",
@@ -874,6 +941,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...VIDEO_PTZ,
     ...VIDEO_CLIPS_MANAGE,
     ...FIELD_COMMAND_ACT,
+    ...FEATURES_SUPERVISOR,
   ],
   dispatcher: [
     "incidents.view",
@@ -909,6 +977,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...VIDEO_PLAYBACK,
     ...VIDEO_PTZ,
     ...FIELD_COMMAND_VIEW,
+    ...FEATURES_DISPATCHER,
   ],
   analyst: [
     "incidents.view",
@@ -933,6 +1002,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...CALL_ASSIST_ANALYST,
     ...VISION_VIEW,
     ...FIELD_COMMAND_VIEW,
+    ...FEATURES_AUDIT,
   ],
   auditor: [
     "users.view",
@@ -955,6 +1025,7 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     ...CALL_ASSIST_AUDITOR,
     ...VISION_VIEW,
     ...FIELD_COMMAND_VIEW,
+    ...FEATURES_AUDIT,
   ],
 } as const satisfies Record<
   "rcadmin" | "rcitadmin" | "agencyadmin" | "agencyit" | "supervisor" | "dispatcher" | "analyst" | "auditor",

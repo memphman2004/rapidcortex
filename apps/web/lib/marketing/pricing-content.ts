@@ -10,20 +10,20 @@ import { SITE_NAME } from "@/lib/site";
 export { PRICING_COMPARISON_ROW_FEATURE_IDS } from "./pricing-comparison-feature-ids";
 
 export const PRICING_DEMO_MAILTO =
-  "mailto:support@rapidcortex.us?subject=Rapid%20Cortex%20%E2%80%94%20Demo%20Request";
+  "mailto:support@nexcortiq.us?subject=Rapid%20Cortex%20%E2%80%94%20Demo%20Request";
 
 export const PRICING_SALES_MAILTO =
-  "mailto:support@rapidcortex.us?subject=Rapid%20Cortex%20%E2%80%94%20Sales%20Conversation";
+  "mailto:support@nexcortiq.us?subject=Rapid%20Cortex%20%E2%80%94%20Sales%20Conversation";
 
 export const PRICING_EXEC_DEMO_MAILTO =
-  "mailto:support@rapidcortex.us?subject=Rapid%20Cortex%20%E2%80%94%20Executive%20Demo";
+  "mailto:support@nexcortiq.us?subject=Rapid%20Cortex%20%E2%80%94%20Executive%20Demo";
 
 export type PricingPlanId = "essential" | "command" | "enterprise" | "rc_lite";
 
 export type PricingPlanCardContent = {
   id: PricingPlanId;
   name: string;
-  /** Short supporting line under the title (e.g. RC Lite positioning). */
+  /** Short supporting line under the title (e.g. NexCort Lite positioning). */
   tagline?: string;
   descriptor: string;
   bestForTitle: string;
@@ -44,7 +44,7 @@ export const PRICING_PLANS: PricingPlanCardContent[] = [
       "Small cities",
       "Small counties",
       "Pilot programs",
-      "Agencies testing Rapid Cortex before a wider rollout",
+      "Agencies testing NexCort iQ before a wider rollout",
     ],
     capabilities: [
       "Agency Admin, Dispatcher, and Supervisor dashboards",
@@ -99,10 +99,10 @@ export const PRICING_PLANS: PricingPlanCardContent[] = [
   },
   {
     id: "rc_lite",
-    name: "RC Lite",
-    tagline: "Rapid Cortex intelligence without another dashboard",
+    name: "NexCort Lite",
+    tagline: "NexCort iQ intelligence without another dashboard",
     descriptor:
-      "Standalone API product sold separately from Rapid Cortex Essential / Command / Enterprise. RC Lite is not a smaller dashboard—it is secure intelligence APIs (incident analysis, CAD export, STT/TTS, multilingual, caller media, QA automation) plus metering, webhooks, hashed API keys, and the developer portal—without dispatcher, supervisor, QA, or agency admin consoles.",
+      "Standalone API product sold separately from NexCort iQ Essential / Command / Enterprise. NexCort Lite is not a smaller dashboard—it is secure intelligence APIs (incident analysis, CAD export, STT/TTS, multilingual, caller media, QA automation) plus metering, webhooks, hashed API keys, and the developer portal—without dispatcher, supervisor, QA, or agency admin consoles.",
     bestForTitle: "Best for",
     bestForBullets: [
       "API-only or API add-on access for agencies and approved vendors",
@@ -120,7 +120,7 @@ export const PRICING_PLANS: PricingPlanCardContent[] = [
   },
 ];
 
-/** Dashboard / full-platform SKUs only (Rapid Cortex Essential, Command, Enterprise). */
+/** Dashboard / full-platform SKUs only (NexCort iQ Essential, Command, Enterprise). */
 export const PRICING_PLATFORM_PLANS: PricingPlanCardContent[] = PRICING_PLANS.filter((p) => p.id !== "rc_lite");
 
 export const PRICING_RC_LITE_PLAN: PricingPlanCardContent | undefined = PRICING_PLANS.find((p) => p.id === "rc_lite");
@@ -376,7 +376,7 @@ export const PRICING_ADDONS: PricingAddonItem[] = [
     id: "api_access",
     title: "API Access add-on",
     description:
-      "Adds secure external REST access on top of Rapid Cortex Command or Enterprise when you already run the operational web dashboards—OAuth clients, webhooks, sandbox vs production tiers, metering, audit artifacts. For integrations that never adopt those dashboards, use the RC Lite standalone product instead.",
+      "Adds secure external REST access on top of NexiQ Command or Enterprise when you already run the operational web dashboards—OAuth clients, webhooks, sandbox vs production tiers, metering, audit artifacts. For integrations that never adopt those dashboards, use the NexCort Lite standalone product instead.",
   },
   {
     id: "premium_support",
@@ -403,7 +403,7 @@ export const PRICING_FAQ: PricingFaqItem[] = [
   },
   {
     id: "how-scoped",
-    question: "How is Rapid Cortex scoped for our agency?",
+    question: "How is NexCort iQ scoped for our agency?",
     answer:
       "We run a structured discovery with IT, comms leadership, and operations. That yields a deployment plan: which modules go live first, which integrations are phased, and how training and cutover are sequenced. The goal is operational fit—not a generic SKU checkout.",
   },
@@ -415,7 +415,7 @@ export const PRICING_FAQ: PricingFaqItem[] = [
   },
   {
     id: "multi-center",
-    question: "Can Rapid Cortex support multiple centers or agencies?",
+    question: "Can NexCort iQ support multiple centers or agencies?",
     answer:
       "Command tiers are built for heavier multi-team operational load. Enterprise / Statewide adds multi-site and multi-agency architecture, coordinated procurement, and rollout governance across jurisdictions.",
   },
@@ -423,7 +423,7 @@ export const PRICING_FAQ: PricingFaqItem[] = [
     id: "ways-to-pay",
     question: "What payment options exist for agencies and vendors?",
     answer:
-      "Rapid Cortex supports monthly subscriptions where appropriate through secure card billing, alongside annual contracts, purchase orders, Net-30/45 invoice workflows, pilot programs, and custom enterprise agreements. RC Lite is invoiced separately as its own integration product (API-only). If you already run Command or Enterprise dashboards, API Access can be added onto that subscription instead.",
+      "NexCort iQ supports monthly subscriptions where appropriate through secure card billing, alongside annual contracts, purchase orders, Net-30/45 invoice workflows, pilot programs, and custom enterprise agreements. NexCort Lite is invoiced separately as its own integration product (API-only). If you already run Command or Enterprise dashboards, API Access can be added onto that subscription instead.",
   },
   {
     id: "integrations",

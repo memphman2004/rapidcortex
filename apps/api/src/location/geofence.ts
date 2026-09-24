@@ -9,20 +9,7 @@ import {
   type AlsGeofenceListItem,
 } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
-import { alsLocationMockEnabled, getLocationClient } from "./client.js";
-
-/** Atlanta metro box used when ALS_LOCATION_MOCK is on (local / CI). */
-export const MOCK_AGENCY_SERVICE_AREA: AlsGeofenceListItem = {
-  zoneId: "agency-service-area",
-  geofenceId: "mock--agency-service-area",
-  polygon: [
-    [-84.62, 33.62],
-    [-84.22, 33.62],
-    [-84.22, 33.92],
-    [-84.62, 33.92],
-    [-84.62, 33.62],
-  ],
-};
+import { getLocationClient, LocationNotConfiguredError } from "./client.js";
 
 export function geofencesForAgency(
   agencyId: string,
@@ -71,8 +58,8 @@ export async function upsertZoneGeofence(
   ) {
     closedPolygon.push(first);
   }
-  if (alsLocationMockEnabled() || !env.alsGeofenceCollectionName) {
-    return { geofenceId, mocked: true };
+  if (!env.alsGeofenceCollectionName) {
+    throw new LocationNotConfiguredError("geofence collection");
   }
   await getLocationClient().send(
     new BatchPutGeofenceCommand({
@@ -93,8 +80,8 @@ export async function deleteZoneGeofence(
   zoneId: string,
 ): Promise<{ geofenceId: string; mocked: boolean }> {
   const geofenceId = alsScopedId(agencyId, zoneId);
-  if (alsLocationMockEnabled() || !env.alsGeofenceCollectionName) {
-    return { geofenceId, mocked: true };
+  if (!env.alsGeofenceCollectionName) {
+    throw new LocationNotConfiguredError("geofence collection");
   }
   await getLocationClient().send(
     new BatchDeleteGeofenceCommand({
@@ -106,9 +93,7 @@ export async function deleteZoneGeofence(
 }
 
 export async function listAgencyGeofences(agencyId: string): Promise<AlsGeofenceListItem[]> {
-  if (alsLocationMockEnabled() || !env.alsGeofenceCollectionName) {
-    return [{ ...MOCK_AGENCY_SERVICE_AREA, geofenceId: alsScopedId(agencyId, "agency-service-area") }];
-  }
+  if (!env.alsGeofenceCollectionName) return [];
   const entries: Array<{
     GeofenceId?: string;
     Geometry?: { Polygon?: number[][][] };

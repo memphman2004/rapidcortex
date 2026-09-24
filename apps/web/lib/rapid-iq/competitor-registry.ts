@@ -1,4 +1,4 @@
-/** Client-side competitor helpers for Rapid IQ feed filtering. */
+/** Client-side competitor helpers for NexiQ IQ feed filtering. */
 
 export const KNOWN_COMPETITORS = [
   "Axon",

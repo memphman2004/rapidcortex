@@ -1,23 +1,25 @@
 # Occupant alerts (Campus)
 
-**Occupant Alerts** sends notifications to people on campus when that module is enabled. It is not a wireless emergency alert (WEA) replacement and not a 911 call.
+**Occupant Alerts** notifies people on campus when that module is enabled. It is not a wireless emergency alert, not a fire alarm, and not a 911 call.
 
-If you do not see **Occupant Alerts**, the feature is off or your role does not include it.
+If you do not see **Occupant Alerts**, the feature is off for this tenant or your role does not include it.
 
-## Before you send
+## Use it for
 
-1. Confirm the event is a campus occupant notice per SOP (weather hold, building closure, all-clear).
-2. If the event is an in-progress emergency, **call 911** as well. An occupant alert does not notify the PSAP.
+A campus occupant notice your SOP already allows in this channel: weather hold, building closure, all-clear.
 
-## Send or manage alerts
+## Do not use it instead of
 
-1. Open **Occupant Alerts**.
-2. Choose the template or compose per your campus policy.
-3. Target the correct campus site if you operate more than one campus.
-4. Send. Record that you sent it in the related incident notes.
+- Calling 911 or campus PD
+- Your contracted emergency-notification vendor, when SOP names that vendor
+- A Clery Timely Warning filing. This is one channel, not the statutory notice.
 
-Templates and recipient lists are managed by roles that can **manage recipients**. If you cannot edit lists, ask Campus Admin.
+## Send
 
-## After hours
+1. Confirm the message is an occupant notice, not a substitute for the emergency call.
+2. Open **Occupant Alerts**.
+3. Choose the approved template or compose only what policy allows.
+4. Target the correct campus site if you operate more than one.
+5. Send, then write that you sent it on the related incident so the next shift knows.
 
-Do not use occupant alerts as a substitute for your emergency notification vendor if SOP says otherwise. Rapid Cortex is one channel, not the statutory Clery Timely Warning filing.
+Templates and recipient lists belong to roles that can manage recipients. If you can send but cannot edit the list, ask Campus Admin.

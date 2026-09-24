@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — Amazon Location Service (maps, places, routing, geofences, tracker)
+  NexCort iQ — Amazon Location Service (maps, places, routing, geofences, tracker)
   and Cognito Identity Pool for MapLibre tile auth. Routes attach to stack 2 HttpApi.
 
 Parameters:

@@ -1,4 +1,4 @@
-# Rapid Cortex marketing (static export)
+# NexCort iQ marketing (static export)
 
 Separate Next.js app for apex/www (`rapidcortex.us`, `www.rapidcortex.us`) on S3 + CloudFront.
 

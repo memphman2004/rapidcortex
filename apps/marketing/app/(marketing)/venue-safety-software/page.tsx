@@ -5,7 +5,7 @@ import { buildPublicPageMetadata } from "@/lib/seo";
 const PATH = "/venue-safety-software";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Venue Safety Software for Stadiums & Events | Rapid Cortex",
+  title: "Venue Safety Software for Stadiums & Events | NexCort iQ",
   description:
     "Venue safety software for stadiums, arenas, and large events. Guests report by QR or SMS; security teams run a live operations dashboard — without replacing radios, cameras, or 911.",
   path: PATH,
@@ -21,12 +21,12 @@ export const metadata: Metadata = buildPublicPageMetadata({
 export default function VenueSafetySoftwarePage() {
   return (
     <KeywordLandingPage
-      title="Venue Safety Software for Stadiums & Events | Rapid Cortex"
+      title="Venue Safety Software for Stadiums & Events | NexCort iQ"
       description="Venue safety software for stadiums, arenas, and large events. Guests report by QR or SMS; security teams run a live operations dashboard — without replacing radios, cameras, or 911."
       path={PATH}
       h1="Venue Safety Software for Stadiums, Arenas, and Events"
       eyebrow="Venue safety software"
-      intro="Rapid Cortex Venue is an event security platform that lets guests report from any zone and gives security a single operations view. It enhances venue operations. It does not replace venue security, radios, camera systems, or 911."
+      intro="NexCort iQ Venue is an event security platform that lets guests report from any zone and gives security a single operations view. It enhances venue operations. It does not replace venue security, radios, camera systems, or 911."
       sections={[
         {
           title: "The event-day information gap",
@@ -34,7 +34,7 @@ export default function VenueSafetySoftwarePage() {
         },
         {
           title: "Capabilities for venue and event security",
-          body: "Rapid Cortex Venue adds QR/SMS intake and a zone-based dashboard on top of the command structure you already run.",
+          body: "NexCort iQ Venue adds QR/SMS intake and a zone-based dashboard on top of the command structure you already run.",
           bullets: [
             "QR and NFC signs at gates, sections, and concourses — no guest app required",
             "SMS reporting with venue code and location parsed into a tracked incident",
@@ -49,21 +49,21 @@ export default function VenueSafetySoftwarePage() {
         },
         {
           title: "Operations notes",
-          body: "Deployments are scoped by zones, concurrent users, and event calendar. Retention and role access are configured by the venue. Rapid Cortex is not a substitute for your security contractor, medical vendor, or public-safety mutual-aid agreements.",
+          body: "Deployments are scoped by zones, concurrent users, and event calendar. Retention and role access are configured by the venue. NexCort iQ is not a substitute for your security contractor, medical vendor, or public-safety mutual-aid agreements.",
         },
         {
-          title: "What Rapid Cortex does not replace",
-          body: "Venue security teams, radio systems, existing CCTV, and 911 remain the systems of record for response. Rapid Cortex is incident intake and operational awareness — not a 911 emergency dispatch system.",
+          title: "What NexCort iQ does not replace",
+          body: "Venue security teams, radio systems, existing CCTV, and 911 remain the systems of record for response. NexCort iQ is incident intake and operational awareness — not a 911 emergency dispatch system.",
         },
       ]}
       relatedLinks={[
-        { href: "/product/venue", label: "Rapid Cortex Venue product" },
+        { href: "/product/venue", label: "NexCort iQ Venue product" },
         { href: "/venue", label: "Venue safety intelligence" },
         { href: "/venue-safety-integrations", label: "Venue safety integrations" },
         { href: "/stadium-security-software", label: "Stadium security software" },
         { href: "/integrations", label: "Integrations overview" },
         { href: "/free-60-day-pilot", label: "Free 60-Day Pilot Program" },
-        { href: "/blog/rapid-cortex-venue", label: "Blog: Rapid Cortex Venue" },
+        { href: "/blog/rapid-cortex-venue", label: "Blog: NexCort iQ Venue" },
         { href: "/blog/stadium-fan-safety-without-adding-staff", label: "Blog: Stadium fan safety without adding staff" },
         { href: "/blog/airport-incident-reporting-platform", label: "Blog: Airport incident reporting" },
       ]}
@@ -71,17 +71,17 @@ export default function VenueSafetySoftwarePage() {
         {
           question: "Does venue safety software replace 911 or venue security?",
           answer:
-            "No. Rapid Cortex Venue is not a 911 emergency dispatch system. It does not replace venue security, radios, cameras, or medical direction.",
+            "No. NexCort iQ Venue is not a 911 emergency dispatch system. It does not replace venue security, radios, cameras, or medical direction.",
         },
         {
           question: "How do guests report without downloading an app?",
           answer:
-            "Guests scan a posted QR/NFC sign or text a venue code and location to the Rapid Cortex safety number. Reports land on the security dashboard with zone and media.",
+            "Guests scan a posted QR/NFC sign or text a venue code and location to the NexCort iQ safety number. Reports land on the security dashboard with zone and media.",
         },
         {
           question: "Can we pilot venue safety software before a full season?",
           answer:
-            "Yes. Qualified venues can evaluate Rapid Cortex through a Free 60-Day Pilot with QR reporting, SMS reporting, and a guided operations dashboard.",
+            "Yes. Qualified venues can evaluate NexCort iQ through a Free 60-Day Pilot with QR reporting, SMS reporting, and a guided operations dashboard.",
         },
       ]}
     />

@@ -351,7 +351,7 @@ export class ScenarioRunner implements ScenarioRunnerPort {
       )
       .join("\n\n");
 
-    return `You are validating a Rapid Cortex demo scenario.
+    return `You are validating a NexCort iQ demo scenario.
 
 IMPORTANT SAFETY RULES:
 - Do NOT click "Dispatch", "Send SMS", "Submit to CAD", or "Call 911"

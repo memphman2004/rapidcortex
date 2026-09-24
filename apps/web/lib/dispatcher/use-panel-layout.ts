@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Rapid Cortex — Dispatcher Panel Layout
+ * NexCort iQ — Dispatcher Panel Layout
  *
  * Manages per-user panel order, width, and collapsed state.
  * Persists to localStorage keyed by userId so each dispatcher

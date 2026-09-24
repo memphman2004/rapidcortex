@@ -1,6 +1,6 @@
 # Desktop app API contract (Phase 1)
 
-This document describes how **native Rapid Cortex desktop clients** (macOS Swift, Windows WPF) are expected to talk to the **HTTP API** exposed behind **API Gateway**. It is **not** a guarantee of production readiness; Phase 1 covers shells, storage foundations, and manual smoke testing.
+This document describes how **native NexCort iQ desktop clients** (macOS Swift, Windows WPF) are expected to talk to the **HTTP API** exposed behind **API Gateway**. It is **not** a guarantee of production readiness; Phase 1 covers shells, storage foundations, and manual smoke testing.
 
 **Canonical web reference:** `apps/web/lib/api.ts` (route paths and response shapes). The browser may use `NEXT_PUBLIC_AUTH_PROXY=1` and cookies; **desktop apps do not** — they call the API Gateway base URL directly.
 

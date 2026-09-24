@@ -61,7 +61,7 @@ export function OperationalMapPopoutClient({
       >
         <div>
           <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-orange-300">
-            Rapid Cortex Venue
+            NexCort iQ Venue
           </div>
           <div className="text-sm font-semibold text-slate-100">
             {kind === "area" ? "Area Map" : "Facility Map"} · {venueName}

@@ -308,10 +308,10 @@ function formatTimeAgo(iso: string): string {
 
 function roleLabel(role: string): string {
   const r = role.trim().toLowerCase();
-  if (r === "rcsuperadmin") return "RC Super Admin";
-  if (r === "rcitadmin") return "RC IT Admin";
-  if (r === "rcadmin") return "RC Admin";
-  return role || "RC Admin";
+  if (r === "rcsuperadmin") return "NexCort Super Admin";
+  if (r === "rcitadmin") return "NexCort IT Admin";
+  if (r === "rcadmin") return "NexCort Admin";
+  return role || "NexCort Admin";
 }
 
 function mapVertical(agency: AgencyTenant): VerticalKey {
@@ -912,7 +912,7 @@ function RcAdminConsoleHomeInner({
                     lineHeight: 1,
                   }}
                 >
-                  RAPID <span style={{ color: C.purple }}>CORTEX</span>
+                  NexCort <span style={{ color: C.purple }}>iQ</span>
                 </div>
                 <div
                   style={{
@@ -929,7 +929,7 @@ function RcAdminConsoleHomeInner({
             </div>
           </div>
 
-          <nav style={{ flex: 1, padding: 7, overflowY: "auto" }} aria-label="RC Admin navigation">
+          <nav style={{ flex: 1, padding: 7, overflowY: "auto" }} aria-label="NexCort Admin navigation">
             {nav.sections.map((section, sectionIndex) => (
               <div key={section.id}>
                 {section.label ? (
@@ -1278,10 +1278,10 @@ function RcAdminConsoleHomeInner({
                 </div>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>
-                    Rapid Cortex Platform
+                    NexCort iQ Platform
                   </div>
                   <div style={{ fontSize: 10.5, color: C.textSub }}>
-                    RC Admin Console · {env.name}
+                    NexCort Admin Console · {env.name}
                   </div>
                 </div>
                 <div
@@ -1346,7 +1346,7 @@ function RcAdminConsoleHomeInner({
                   />
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>
-                      Rapid Cortex Network
+                      NexCort iQ Network
                     </div>
                     <div
                       style={{
@@ -1428,7 +1428,7 @@ function RcAdminConsoleHomeInner({
                         textShadow: "0 1px 4px rgba(0,0,0,0.5)",
                       }}
                     >
-                      Rapid Cortex Platform — {env.name} overview.
+                      NexCort iQ Platform — {env.name} overview.
                       {!usingLiveKpis && !loadingAgencies ? (
                         <span style={{ color: "rgba(255,255,255,0.45)" }}>
                           {" "}

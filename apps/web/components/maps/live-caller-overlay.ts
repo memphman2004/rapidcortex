@@ -265,7 +265,7 @@ export function ensureLiveCallerOverlayLayers(map: maplibregl.Map): void {
           LIVE_CALLER_PULSE_STALE_ID,
           LIVE_CALLER_PULSE_LOST_ID,
         ],
-        "icon-size": 0.55,
+        "icon-size": 0.4,
         "icon-allow-overlap": true,
         "icon-ignore-placement": true,
       },
@@ -280,12 +280,12 @@ export function ensureLiveCallerOverlayLayers(map: maplibregl.Map): void {
       filter: [">=", ["to-number", ["get", "headingDeg"]], 0],
       layout: {
         "icon-image": LIVE_CALLER_HEADING_ID,
-        "icon-size": 0.55,
+        "icon-size": 0.4,
         "icon-rotate": ["to-number", ["get", "headingDeg"]],
         "icon-rotation-alignment": "map",
         "icon-allow-overlap": true,
         "icon-ignore-placement": true,
-        "icon-offset": [0, -18],
+        "icon-offset": [0, -12],
       },
     });
   }

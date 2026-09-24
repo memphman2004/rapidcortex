@@ -1,6 +1,6 @@
 # Transit Operations overview
 
-Rapid Cortex Transit covers **fleet, routes, stations, and on-system incidents**. It does **not** replace transit CAD or the region’s 911 PSAP.
+NexCort iQ Transit covers **fleet, routes, stations, and on-system incidents**. It does **not** replace transit CAD or the region’s 911 PSAP.
 
 Staff Guide is transit training and reference. The 911 Help tab on PSAP consoles is a different product.
 

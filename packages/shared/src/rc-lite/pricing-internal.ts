@@ -1,5 +1,5 @@
 /**
- * Internal RC Lite SKU metadata for quotes / RC Admin tooling.
+ * Internal NexCort Lite SKU metadata for quotes / NexCort Admin tooling.
  * Public marketing uses Contact Support unless `showPublicRcLitePricing()` is true in web layer.
  */
 

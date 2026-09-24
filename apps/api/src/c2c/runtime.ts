@@ -141,7 +141,7 @@ export function resetC2cRuntime(agencyId?: string): void {
   else cache.clear();
 }
 
-/** System poller directory: C2C agencies table holds one item per Rapid Cortex tenant. */
+/** System poller directory: C2C agencies table holds one item per NexCort iQ tenant. */
 export async function listC2cTenantAgencyIds(): Promise<string[]> {
   const table = env.c2cAgenciesTable;
   if (!table) return [];

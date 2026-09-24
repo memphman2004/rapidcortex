@@ -44,7 +44,7 @@ export function AgencyEntitlementsPanel() {
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold text-white">Features & add-ons</h1>
         <p className="max-w-2xl text-sm text-slate-400">
-          Read-only view of your agency plan and enabled capabilities. To change add-ons, contact your Rapid Cortex
+          Read-only view of your agency plan and enabled capabilities. To change add-ons, contact your NexCort iQ
           representative.
         </p>
         <p className="text-sm text-slate-300">
@@ -112,7 +112,7 @@ export function AgencyEntitlementsPanel() {
                       <span className="text-xs text-sky-300">{formatPrice(def)}</span>
                     ) : (
                       <span className="max-w-xs text-right text-xs italic text-slate-500">
-                        Contact your Rapid Cortex representative to enable
+                        Contact your NexCort iQ representative to enable
                       </span>
                     )}
                   </li>

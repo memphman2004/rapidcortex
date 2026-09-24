@@ -1,10 +1,10 @@
-# Rapid Cortex admin team troubleshooting guide
+# NexCort iQ admin team troubleshooting guide
 
 ## Purpose
 
-This guide is the **internal** operational playbook for the Rapid Cortex admin team to diagnose, troubleshoot, document, resolve, and escalate customer issues. It is written for administrators, support managers, trainers, implementation teams, and technical leads supporting customer agencies using Rapid Cortex.
+This guide is the **internal** operational playbook for the NexCort iQ admin team to diagnose, troubleshoot, document, resolve, and escalate customer issues. It is written for administrators, support managers, trainers, implementation teams, and technical leads supporting customer agencies using NexCort iQ.
 
-Rapid Cortex supports mission-critical emergency communications workflows. Because customers may be public-safety agencies, municipalities, counties, cities, and other emergency response organizations, every issue should be handled with urgency, clarity, consistency, and complete documentation.
+NexCort iQ supports mission-critical emergency communications workflows. Because customers may be public-safety agencies, municipalities, counties, cities, and other emergency response organizations, every issue should be handled with urgency, clarity, consistency, and complete documentation.
 
 **Related (canonical product docs):** [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md) (evidence checklist, pilot-specific symptoms) · [SUPPORT_MODEL.md](./SUPPORT_MODEL.md) · [ESCALATION_PATHS.md](./ESCALATION_PATHS.md) · [RUNBOOK.md](./RUNBOOK.md) · [INCIDENT_RESPONSE.md](./INCIDENT_RESPONSE.md) · [FAQ_INTERNAL.md](./FAQ_INTERNAL.md).
 
@@ -12,7 +12,7 @@ Rapid Cortex supports mission-critical emergency communications workflows. Becau
 
 ## Product alignment (this repository)
 
-The **standard pilot** ships the **web application** (`apps/web`, Next.js) and **API** (`apps/api`). This monorepo does **not** include a separate Rapid Cortex **desktop executable**. Default intake and triage to **supported browser + OS** (Chrome or Edge, permissions, extensions, VPN, proxy, workstation audio).
+The **standard pilot** ships the **web application** (`apps/web`, Next.js) and **API** (`apps/api`). This monorepo does **not** include a separate NexCort iQ **desktop executable**. Default intake and triage to **supported browser + OS** (Chrome or Edge, permissions, extensions, VPN, proxy, workstation audio).
 
 Where this guide refers to a **desktop app** or **web vs desktop sync**, treat that as **(optional program delivery)** only if your contract or release train includes a packaged desktop client. Otherwise interpret “desktop” symptoms as **another browser profile**, **VDI session**, **second workstation**, or **PWA-style install** of the same web app—and use the same isolation steps.
 
@@ -24,7 +24,7 @@ There is **no** in-product remote control of customer machines; use approved ext
 
 ### 1.1 Mission-critical mindset
 
-Rapid Cortex is not a casual consumer app. Classify impact as one of:
+NexCort iQ is not a casual consumer app. Classify impact as one of:
 
 - **Critical operational impact**
 - **High business impact**
@@ -72,7 +72,7 @@ Align severity vocabulary with pilot docs: **SEV-1 / SEV-2 / SEV-3** in [ESCALAT
 
 Use when:
 
-- An agency cannot use Rapid Cortex for live operations.
+- An agency cannot use NexCort iQ for live operations.
 - Core workflow (e.g. queue, incident handling, critical admin path) is blocked for many users or the whole center.
 - Audio capture or transcription is completely unavailable during active use (when voice is in scope).
 - Authentication is broken for a broad population (not one mistyped password).
@@ -290,7 +290,7 @@ Include: ticket id; opened (UTC); agency; contact; severity; affected users/loca
 
 ## 10. Troubleshooting scripts for admin staff
 
-1. **Opening:** “Thank you for contacting Rapid Cortex support. I’m going to document the issue and work through this with you. First, is this affecting live operations right now, how many users, and what exact error or behavior do you see?”
+1. **Opening:** “Thank you for contacting NexCort iQ support. I’m going to document the issue and work through this with you. First, is this affecting live operations right now, how many users, and what exact error or behavior do you see?”
 2. **Clarification:** “Walk me through the exact steps right before the problem and the exact time it occurred (your local time is fine—we’ll convert to UTC for logs).”
 3. **Scope:** “Is this just you, this workstation, multiple users in your center, or everyone at your site?”
 4. **Testing:** “We’ll change one thing at a time; after each step, try the same action again and tell me if anything changes.”
@@ -364,7 +364,7 @@ Operate like a mission-critical support center: identify impact quickly; collect
 
 1. One-page quick triage cheat sheet (link to this doc + [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md)).
 2. Customer-facing intake form (align fields with §4).
-3. Ticket template for Rapid Cortex cases.
+3. Ticket template for NexCort iQ cases.
 4. Major incident communication template (align with §7).
 5. Named escalation matrix (contacts rotate outside git).
 6. Workstation validation checklist for agencies ([JURISDICTION_OPERATIONS_GUIDE.md](./JURISDICTION_OPERATIONS_GUIDE.md) complements this).

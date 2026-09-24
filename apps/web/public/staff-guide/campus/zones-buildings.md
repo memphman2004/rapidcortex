@@ -1,25 +1,25 @@
 # Zones and buildings (Campus)
 
-**Zones** and **Buildings** are the campus map Rapid Cortex uses on incidents, cameras, and posted codes.
+**Zones** and **Buildings** are the campus map used on incidents, cameras, and posted codes. A report is only as locatable as the place name on the code.
 
 ## Why they matter
 
-A QR code without a building or zone still works, but reports are harder to dispatch. Put every posted code on a real place.
+A QR code with no building or zone still accepts a report, but security and dispatch cannot tell which door to use. Put every posted code on a real place, and use the same names as wayfinding signs.
 
 ## Zones
 
 1. Open **Zones**.
-2. Confirm the zone list matches how campus safety talks about the grounds (quad, residence halls, stadium, parking).
+2. Match the list to how campus safety talks about the grounds: quad, residence halls, stadium, parking.
 3. Use zones when you filter incidents or assign cameras.
 
 ## Buildings
 
-1. Open **Buildings** (Campus Admin).
-2. Keep names matching wayfinding signs so QR titles and incident locations agree.
-3. After construction or a building rename, update the building, then reprint QR art and reprogram NFC if the public name changed.
+1. Open **Buildings**. Campus Admin maintains this list.
+2. Keep names identical to the signs students read.
+3. After construction or a rename, update the building, then reprint QR and reprogram NFC if the public name changed.
 
-## Who can edit
+## Who edits
 
-Campus Admin configures buildings and zones. Supervisor and Security use them on incidents. Faculty and counselors do not manage geography.
+Campus Admin configures buildings and zones. Supervisor and Security use them on incidents. Supervisor can also deactivate a code that still shows an old name. Faculty and counselors do not manage geography. Dispatch uses the names on incidents but does not edit the map.
 
-If a posted code still shows an old building name, deactivate the old code and post a new one. See **Delete locations from the dashboard**.
+If a posted code still shows a demolished wing or an old hall name, deactivate that code and post a new one. See **Delete locations from the dashboard**.

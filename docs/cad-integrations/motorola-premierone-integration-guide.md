@@ -1,18 +1,18 @@
-# Motorola PremierOne + Rapid Cortex Integration Guide
+# Motorola PremierOne + NexCort iQ Integration Guide
 
-**Version 1.0** | Rapid Cortex Public Safety AI Platform
+**Version 1.0** | NexCort iQ Public Safety AI Platform
 
 ---
 
 ## Overview
 
-This guide describes how to connect **Motorola PremierOne CAD** to **Rapid Cortex** so incident updates can be delivered securely to Rapid Cortex for AI-assisted triage, transcript alignment, and dispatcher workspace features.
+This guide describes how to connect **Motorola PremierOne CAD** to **NexCort iQ** so incident updates can be delivered securely to NexCort iQ for AI-assisted triage, transcript alignment, and dispatcher workspace features.
 
 **What this integration does**
 
-- Sends selected CAD events (incident create/update/close, unit status) to Rapid Cortex over **HTTPS**.
-- Rapid Cortex **normalizes** vendor fields into its incident model; dispatchers see CAD-linked context in the Rapid Cortex workspace.
-- Rapid Cortex does **not** replace PremierOne; it is **supplemental intelligence** only.
+- Sends selected CAD events (incident create/update/close, unit status) to NexCort iQ over **HTTPS**.
+- NexCort iQ **normalizes** vendor fields into its incident model; dispatchers see CAD-linked context in the NexCort iQ workspace.
+- NexCort iQ does **not** replace PremierOne; it is **supplemental intelligence** only.
 
 **Data flow (ASCII)**
 
@@ -33,8 +33,8 @@ This guide describes how to connect **Motorola PremierOne CAD** to **Rapid Corte
 
 - PremierOne CAD **5.0 or newer** (confirm exact build with Motorola).
 - CAD **administrator** credentials (or vendor-assisted change window).
-- **Rapid Cortex** agency admin can create integrations and copy the webhook URL and token.
-- **Outbound HTTPS** from the CAD environment (or integration broker) to Rapid Cortex API endpoints.
+- **NexCort iQ** agency admin can create integrations and copy the webhook URL and token.
+- **Outbound HTTPS** from the CAD environment (or integration broker) to NexCort iQ API endpoints.
 
 **Estimated setup time:** 2–4 hours (excluding change-control approvals).
 
@@ -44,14 +44,14 @@ This guide describes how to connect **Motorola PremierOne CAD** to **Rapid Corte
 | --- | --- |
 | Agency IT / security | Firewall, TLS inspection, proxy exceptions |
 | CAD admin / Motorola PS | PremierOne notification configuration |
-| Rapid Cortex admin | Create integration, tokens, testing, go-live |
+| NexCort iQ admin | Create integration, tokens, testing, go-live |
 | CAD vendor support | Version-specific UI paths, SSL pinning, troubleshooting |
 
 ---
 
 ## Prerequisites checklist
 
-- [ ] Rapid Cortex account with **Admin** (or delegated integration role per your tenant policy).
+- [ ] NexCort iQ account with **Admin** (or delegated integration role per your tenant policy).
 - [ ] PremierOne CAD **5.0+** (document exact version in your change ticket).
 - [ ] CAD admin credentials (or Motorola PS engagement).
 - [ ] Network path allows **outbound TCP 443** to `api.rapidcortex.us` (and any required update hosts).
@@ -60,14 +60,14 @@ This guide describes how to connect **Motorola PremierOne CAD** to **Rapid Corte
 
 ---
 
-## Step 1: Generate integration credentials in Rapid Cortex
+## Step 1: Generate integration credentials in NexCort iQ
 
 1. Sign in at **https://www.rapidcortex.us** (or your agency’s hosted URL, if applicable).
 2. Open **Admin → CAD Integrations** (jurisdiction workspace).
 3. Click **Add integration** (or equivalent).
 4. Select **Motorola PremierOne** (or **Motorola PremierOne** vendor type).
 5. Enter a clear **name** (e.g. `Primary CAD — PremierOne Prod`).
-6. Create / save the integration so Rapid Cortex generates:
+6. Create / save the integration so NexCort iQ generates:
    - **Webhook URL**  
      `https://api.rapidcortex.us/api/cad/webhook/{agencyId}/{integrationId}`
    - **Security token** (copy from the UI immediately after creation).
@@ -85,11 +85,11 @@ Paths vary slightly by version; the following matches **PremierOne “External n
 1. Sign in to **PremierOne CAD Administration** (separate from dispatcher consoles if split).
 2. Navigate: **System Administration → Integrations → External Notifications** (or **System → Integrations → External Notifications** on some builds).
 3. **Add notification** (or **Add outbound integration**).
-4. Set **URL** to the Rapid Cortex webhook from Step 1 (exact string, no trailing slash unless your IT standard requires it).
+4. Set **URL** to the NexCort iQ webhook from Step 1 (exact string, no trailing slash unless your IT standard requires it).
 5. Set **Method** to **POST**.
-6. Set **Format** to **JSON** (preferred) or **XML** if your integration middleware translates to JSON before Rapid Cortex.
+6. Set **Format** to **JSON** (preferred) or **XML** if your integration middleware translates to JSON before NexCort iQ.
 7. **Authentication — custom HTTP header**
-   - Header name: `X-RC-Token` (unless your Rapid Cortex tenant documents a different header).
+   - Header name: `X-RC-Token` (unless your NexCort iQ tenant documents a different header).
    - Header value: the **security token** from Step 1.
 8. **Events to enable** (recommended minimum):
    - `IncidentCreate`
@@ -100,7 +100,7 @@ Paths vary slightly by version; the following matches **PremierOne “External n
 9. **SSL / TLS:** Use system trust store; if you use **SSL inspection**, see Step 3 and Troubleshooting.
 10. **Save** and **Activate** the notification profile.
 
-> 💡 **Tip:** Start in a **test** or **training** CAD partition if available; mirror the same Rapid Cortex integration in a **testing** status before production cutover.
+> 💡 **Tip:** Start in a **test** or **training** CAD partition if available; mirror the same NexCort iQ integration in a **testing** status before production cutover.
 
 ---
 
@@ -115,7 +115,7 @@ Paths vary slightly by version; the following matches **PremierOne “External n
 
 **IP ranges**
 
-Rapid Cortex production API is served via **AWS API Gateway**. Public IP ranges **change** over time. Do **not** hard-code a static list from an old PDF.
+NexCort iQ production API is served via **AWS API Gateway**. Public IP ranges **change** over time. Do **not** hard-code a static list from an old PDF.
 
 > 💡 **Recommended:** Use **AWS-managed prefix lists** or subscribe to AWS IP range notifications for **API Gateway** in `us-*` regions as documented in [AWS IP address ranges](https://docs.aws.amazon.com/general/latest/gr/aws-ip-ranges.html). Your security team can allowlist by **FQDN + egress proxy** where policy permits.
 
@@ -128,7 +128,7 @@ Rapid Cortex production API is served via **AWS API Gateway**. Public IP ranges 
 
 ## Step 4: Test the connection
 
-1. In Rapid Cortex: **Admin → CAD Integrations →** select your integration.
+1. In NexCort iQ: **Admin → CAD Integrations →** select your integration.
 2. Click **Send test incident** (or run a vendor test notification if available).
 3. Confirm the test appears in the **dispatcher workspace** (queue / incident detail as designed for your build).
 4. Open **Raw webhook log** (or equivalent diagnostics) and confirm HTTP **200** and a parsed payload record.
@@ -139,8 +139,8 @@ Rapid Cortex production API is served via **AWS API Gateway**. Public IP ranges 
 
 | Check | Pass criteria |
 | --- | --- |
-| [ ] Incident number | CAD incident / call number matches Rapid Cortex `cadIncidentId` / display |
-| [ ] Priority | CAD numeric/text priority maps to Rapid Cortex urgency / CAD priority display per your mapping table |
+| [ ] Incident number | CAD incident / call number matches NexCort iQ `cadIncidentId` / display |
+| [ ] Priority | CAD numeric/text priority maps to NexCort iQ urgency / CAD priority display per your mapping table |
 | [ ] Location / address | Street / common name appears in CAD location fields |
 | [ ] Caller callback | Present when CAD provides it; **never** log full numbers in shared tickets |
 | [ ] Unit assignments | Units list matches CAD assignment events |
@@ -153,7 +153,7 @@ Rapid Cortex production API is served via **AWS API Gateway**. Public IP ranges 
 ## Step 6: Go live
 
 - [ ] Pilot **3–5 real incidents** (or a full shift in **testing** status) before full cutover.
-- [ ] Brief dispatchers: Rapid Cortex is **supplemental**; **CAD remains system of record**.
+- [ ] Brief dispatchers: NexCort iQ is **supplemental**; **CAD remains system of record**.
 - [ ] Confirm **audit** and **retention** settings meet CJIS / local policy.
 - [ ] Record **go-live date/time** and owning contacts.
 
@@ -163,11 +163,11 @@ Rapid Cortex production API is served via **AWS API Gateway**. Public IP ranges 
 
 | Issue | Likely cause | Fix |
 | --- | --- | --- |
-| No incidents in Rapid Cortex | Firewall / proxy blocking 443 | Verify egress to `api.rapidcortex.us`; test `curl` from same subnet as CAD publisher |
-| HTTP 401 / auth errors | Wrong or rotated token | Regenerate token in Rapid Cortex; update PremierOne header value |
+| No incidents in NexCort iQ | Firewall / proxy blocking 443 | Verify egress to `api.rapidcortex.us`; test `curl` from same subnet as CAD publisher |
+| HTTP 401 / auth errors | Wrong or rotated token | Regenerate token in NexCort iQ; update PremierOne header value |
 | SSL / certificate errors | TLS inspection or missing trust chain | Import enterprise root on publisher, or bypass inspection for this egress path per policy |
 | Partial / missing fields | Event subset too narrow | Enable additional PremierOne events (updates, units) |
-| Duplicates | Retries without idempotency key | Confirm CAD retry policy; open ticket with Rapid Cortex support with **masked** samples |
+| Duplicates | Retries without idempotency key | Confirm CAD retry policy; open ticket with NexCort iQ support with **masked** samples |
 
 > ⚠️ **Security:** Do **not** paste live caller PII into email. Use agency ticketing with access controls.
 
@@ -175,12 +175,12 @@ Rapid Cortex production API is served via **AWS API Gateway**. Public IP ranges 
 
 ## Data security & compliance
 
-- **In transit:** TLS 1.2+ to Rapid Cortex API.
-- **At rest:** Rapid Cortex uses AWS-managed encryption (e.g. **AES-256**) for application data stores.
+- **In transit:** TLS 1.2+ to NexCort iQ API.
+- **At rest:** NexCort iQ uses AWS-managed encryption (e.g. **AES-256**) for application data stores.
 - **Access control:** CJIS-aligned RBAC; agency data is **tenant-scoped** (`agencyId` on all application data paths).
 - **Retention:** Default **90 days** for certain CAD troubleshooting artifacts where enabled; confirm your tenant configuration.
 - **Isolation:** No cross-agency sharing of CAD payloads unless explicitly configured by authorized workflows.
-- **Audit:** Security-relevant actions are audit-logged per Rapid Cortex policy.
+- **Audit:** Security-relevant actions are audit-logged per NexCort iQ policy.
 
 ---
 
@@ -188,8 +188,8 @@ Rapid Cortex production API is served via **AWS API Gateway**. Public IP ranges 
 
 | Channel | Detail |
 | --- | --- |
-| Rapid Cortex Support | [support@rapidcortex.us](mailto:support@rapidcortex.us) |
-| Emergency | Use your **agency security / SOC** path and Rapid Cortex **priority** channel if contracted. |
+| NexCort iQ Support | [support@nexcortiq.us](mailto:support@nexcortiq.us) |
+| Emergency | Use your **agency security / SOC** path and NexCort iQ **priority** channel if contracted. |
 | Motorola Solutions (example) | **1-800-367-2346** — confirm current numbers on [Motorola Solutions](https://www.motorolasolutions.com/) for your contract. |
 
 ---
@@ -217,9 +217,9 @@ Rapid Cortex production API is served via **AWS API Gateway**. Public IP ranges 
 
 ---
 
-## Appendix B: Field mapping reference (PremierOne → Rapid Cortex)
+## Appendix B: Field mapping reference (PremierOne → NexCort iQ)
 
-| PremierOne (example) | Rapid Cortex usage |
+| PremierOne (example) | NexCort iQ usage |
 | --- | --- |
 | `IncidentNumber` | CAD incident identifier / linkage |
 | `NatureCode` / `IncidentType` | Nature / type display; may inform category |
@@ -238,5 +238,5 @@ Rapid Cortex production API is served via **AWS API Gateway**. Public IP ranges 
 
 - Treat webhook payloads as **CJI** unless your agency classification says otherwise.
 - **CJIS Security Policy** controls apply to agencies under CJIS agreements; map this integration to your **CJIS IPA / connectivity** documentation.
-- **SOC 2** and similar attestations cover Rapid Cortex service operations; your agency maintains responsibility for **CAD** configuration and user access.
+- **SOC 2** and similar attestations cover NexCort iQ service operations; your agency maintains responsibility for **CAD** configuration and user access.
 - Document this path in your **System Security Plan (SSP)** or equivalent.

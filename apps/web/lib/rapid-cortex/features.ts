@@ -353,7 +353,7 @@ const RAPID_CORTEX_FEATURES_BASE: RapidCortexFeatureBase[] = [
     label: "Operational ALS workspaces",
     category: "cad_integration",
     description:
-      "Embedded Amazon Location Service maps that mirror Rapid Cortex’s dark command aesthetic for overlays such as caller-shared pins or incident markers.",
+      "Embedded Amazon Location Service maps that mirror NexCort iQ’s dark command aesthetic for overlays such as caller-shared pins or incident markers.",
     planAvailability: fromPricing("add_on", "included", "included", "included"),
     requiresBackend: true,
     requiresSecrets: false,
@@ -970,7 +970,7 @@ const RAPID_CORTEX_FEATURES_BASE: RapidCortexFeatureBase[] = [
     id: "cad_disabled_mode",
     label: "CAD disabled mode",
     category: "cad_integration",
-    description: "Rapid Cortex running without direct CAD integration.",
+    description: "NexCort iQ running without direct CAD integration.",
     planAvailability: allIncluded,
     requiresBackend: true,
     requiresSecrets: false,
@@ -1086,7 +1086,7 @@ const RAPID_CORTEX_FEATURES_BASE: RapidCortexFeatureBase[] = [
     label: "Map unit overlays (CAD / AVL–dependent)",
     category: "cad_integration",
     description:
-      "Renders apparatus/unit markers when downstream CAD or AVL feeds expose coordinates that Rapid Cortex ingests through approved adapters.",
+      "Renders apparatus/unit markers when downstream CAD or AVL feeds expose coordinates that NexCort iQ ingests through approved adapters.",
     planAvailability: fromPricing("unavailable", "add_on", "included", "included"),
     requiresBackend: true,
     requiresSecrets: true,

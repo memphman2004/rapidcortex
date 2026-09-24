@@ -1,6 +1,6 @@
-# Rapid Cortex AWS Production Architecture
+# NexCort iQ AWS Production Architecture
 
-This document defines the long-term AWS-native runtime for Rapid Cortex web + desktop clients.
+This document defines the long-term AWS-native runtime for NexCort iQ web + desktop clients.
 
 > CJIS note: this architecture is CJIS-aligned design guidance and implementation posture, not a CJIS certification claim.
 
@@ -13,7 +13,7 @@ Route 53 (rapidcortex.us, www.rapidcortex.us)
       -> Application Load Balancer (HTTPS listener)
         -> ECS Fargate service (Next.js SSR web runtime)
           -> API Gateway (regional)
-            -> Lambda services (Rapid Cortex API)
+            -> Lambda services (NexCort iQ API)
               -> Cognito + DynamoDB + S3 + KMS + CloudWatch + CloudTrail
 ```
 

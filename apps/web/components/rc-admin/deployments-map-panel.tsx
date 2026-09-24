@@ -190,7 +190,7 @@ function useFitBounds(
 }
 
 export type DeploymentsMapPanelProps = {
-  /** Compact preview for the RC Admin dashboard home. */
+  /** Compact preview for the NexCort Admin dashboard home. */
   compact?: boolean;
   className?: string;
   /** Show PSAP Prospects overlay toggle (finance-portal roles + feature flag). */

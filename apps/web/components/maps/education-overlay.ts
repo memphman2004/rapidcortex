@@ -240,7 +240,7 @@ export async function ensureEducationOverlayLayers(map: maplibregl.Map): Promise
       filter: ["has", "point_count"],
       paint: {
         "circle-color": "#1d4ed8",
-        "circle-radius": ["step", ["get", "point_count"], 16, 10, 20, 50, 25],
+        "circle-radius": ["step", ["get", "point_count"], 11, 10, 14, 50, 18],
         "circle-stroke-width": 2,
         "circle-stroke-color": "#1e3a8a",
         "circle-opacity": 0.92,
@@ -281,7 +281,7 @@ export async function ensureEducationOverlayLayers(map: maplibregl.Map): Promise
         filter: ["!", ["has", "point_count"]],
         layout: {
           "icon-image": EDUCATION_ICON_ID,
-          "icon-size": ["interpolate", ["linear"], ["zoom"], 8, 0.32, 11, 0.45, 14, 0.6, 16, 0.72],
+          "icon-size": ["interpolate", ["linear"], ["zoom"], 8, 0.16, 11, 0.24, 14, 0.32, 16, 0.38],
           "icon-allow-overlap": false,
           "icon-ignore-placement": false,
         },

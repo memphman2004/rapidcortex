@@ -87,7 +87,7 @@ export const motorolaPremierOneCadParser: CadParser = {
     return [
       `Motorola PremierOne — setup for “${integration.name}” (${integration.id}):`,
       "",
-      "Read-only ingest (no CAD write-back). Rapid Cortex accepts PremierOne-style JSON or XML;",
+      "Read-only ingest (no CAD write-back). NexCort iQ accepts PremierOne-style JSON or XML;",
       "it is not a Motorola-certified connector. Use the outbound URL and credentials your agency provides.",
       "",
       "Webhook (recommended)",
@@ -105,7 +105,7 @@ export const motorolaPremierOneCadParser: CadParser = {
       "Priority, Units, CallerName, CallerPhone, Narrative, Status. Batches: { \"incidents\": [ … ] }.",
       "",
       "API poll (optional): paste the full incidents-list HTTPS URL from your PremierOne API gateway,",
-      "auth type, and agency code. Rapid Cortex polls that URL with `since` and `pageSize` — it does not",
+      "auth type, and agency code. NexCort iQ polls that URL with `since` and `pageSize` — it does not",
       "invent a Motorola REST path.",
     ].join("\n");
   },

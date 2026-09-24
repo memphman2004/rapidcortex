@@ -21,7 +21,7 @@ Collect in [IMPLEMENTATION_WORKBOOK_TEMPLATE.md](./IMPLEMENTATION_WORKBOOK_TEMPL
 - **Multilingual** intent: languages in scope; whether voice pipeline is in pilot or deferred ([LANGUAGE_TRANSLATION_CONFIGURATION.md](./LANGUAGE_TRANSLATION_CONFIGURATION.md)).
 - **User-role mapping** at pilot start: counts per `dispatcher` / `supervisor` / `admin` ([ADMIN_GUIDE.md](./ADMIN_GUIDE.md)).
 
-## 2. Required setup from Rapid Cortex team
+## 2. Required setup from NexCort iQ team
 
 - [ ] Deploy or confirm **pilot stack** + web env per [INSTALLATION.md](./INSTALLATION.md), [ENVIRONMENT_MATRIX.md](./ENVIRONMENT_MATRIX.md).
 - [ ] **CORS** and **Cognito** app client aligned with web origin.

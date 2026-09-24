@@ -41,10 +41,10 @@ if grep -E '\$[0-9]+' apps/web/lib/marketing/pricing-content.ts >/dev/null 2>&1;
 fi
 pass "no public \\$<digits> pattern in pricing-content.ts"
 
-# Marketing pages: fail if we find a positive "Rapid Cortex replaces" CAD claim (negation uses "does not replace").
-if grep -RIn --include="*.tsx" --include="*.ts" "Rapid Cortex replaces" apps/web/app/\(marketing\) 2>/dev/null | grep -q .; then
-  fail "found 'Rapid Cortex replaces' in marketing app — verify CAD positioning copy"
+# Marketing pages: fail if we find a positive "NexCort iQ replaces" CAD claim (negation uses "does not replace").
+if grep -RIn --include="*.tsx" --include="*.ts" "NexCort iQ replaces" apps/web/app/\(marketing\) 2>/dev/null | grep -q .; then
+  fail "found 'NexCort iQ replaces' in marketing app — verify CAD positioning copy"
 fi
-pass "no bare 'Rapid Cortex replaces' string in marketing routes"
+pass "no bare 'NexCort iQ replaces' string in marketing routes"
 
 echo "validate-docs-deployment-readiness: all checks passed"

@@ -14,7 +14,7 @@ async function main() {
   const agencyId = "test-agency";
   const item = {
     agencyId,
-    name: "Rapid Cortex Test Agency",
+    name: "NexCort iQ Test Agency",
     type: "pilot" as const,
     status: "active" as const,
     state: "GA",

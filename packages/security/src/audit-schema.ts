@@ -1,8 +1,11 @@
 import {
+  FEATURES_AUDIT_EVENT_TYPES,
   MILESTONE_AUDIT_EVENT_TYPES,
   NEST_AUDIT_EVENT_TYPES,
   WYZE_AUDIT_EVENT_TYPES,
 } from "rapid-cortex-shared/audit-schema";
+
+export { FEATURES_AUDIT_EVENT_TYPES };
 
 /**
  * CJIS-aligned audit vocabulary — align API `AuditEvent.type` strings with these constants.
@@ -345,6 +348,14 @@ export const AUDIT_EVENT_TYPES = {
   CAD_INTEGRATION_TESTED: "cad.integration.tested",
   CAD_WEBHOOK_RECEIVED: "cad.webhook.received",
   CAD_INCIDENT_INGESTED: "cad.incident.ingested",
+  CAD_MESH_INVITE_SENT: "cad.mesh.invite_sent",
+  CAD_MESH_INVITE_ACCEPTED: "cad.mesh.invite_accepted",
+  CAD_MESH_RELATIONSHIP_REVOKED: "cad.mesh.relationship_revoked",
+  CAD_MESH_RELATIONSHIP_SUSPENDED: "cad.mesh.relationship_suspended",
+  CAD_MESH_RELATIONSHIP_RESUMED: "cad.mesh.relationship_resumed",
+  CAD_MESH_POLICY_UPDATED: "cad.mesh.policy_updated",
+  CAD_MESH_WRITEBACK_TOGGLED: "cad.mesh.writeback_toggled",
+  CAD_MESH_WRITEBACK_DECIDED: "cad.mesh.writeback_decided",
   CAD_WRITEBACK_SUBMITTED: "cad.writeback.submitted",
   CAD_WRITEBACK_APPROVED: "cad.writeback.approved",
   CAD_WRITEBACK_REJECTED: "cad.writeback.rejected",
@@ -526,6 +537,7 @@ export const AUDIT_EVENT_TYPES = {
   ...WYZE_AUDIT_EVENT_TYPES,
   ...NEST_AUDIT_EVENT_TYPES,
   ...MILESTONE_AUDIT_EVENT_TYPES,
+  ...FEATURES_AUDIT_EVENT_TYPES,
 
   VISION_CAMERA_DISCOVERED: "vision.camera.discovered",
   VISION_CONSENT_REQUESTED: "vision.consent.requested",

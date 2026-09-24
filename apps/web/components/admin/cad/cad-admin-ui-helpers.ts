@@ -156,11 +156,11 @@ export function priorityBadgeClass(p: "P1" | "P2" | "P3" | "P4" | "—"): string
 export function vendorTroubleshootingBullets(vendor: string): string[] {
   if (vendor === "motorola_premier_one") {
     return [
-      "Confirm PremierOne outbound HTTPS is allowed to your Rapid Cortex API host.",
+      "Confirm PremierOne outbound HTTPS is allowed to your NexCort iQ API host.",
       "JSON and XML bodies are accepted; match Content-Type when sending XML.",
       "Use header X-RC-Token with the issued secret; optional HMAC X-RC-Signature for integrity.",
       "Accepted ids: EventId, IncidentNumber, CallNumber. Batches may use { incidents: [...] }.",
-      "For API poll, paste the full incidents-list URL from your PremierOne gateway — Rapid Cortex does not invent a Motorola REST path.",
+      "For API poll, paste the full incidents-list URL from your PremierOne gateway — NexCort iQ does not invent a Motorola REST path.",
     ];
   }
   if (vendor === "tyler_new_world") {

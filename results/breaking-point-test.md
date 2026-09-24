@@ -1,4 +1,4 @@
-# Rapid Cortex Dev — Breaking Point Test
+# NexCort iQ Dev — Breaking Point Test
 
 **Date:** 2026-08-17  
 **Stack:** `rapid-cortex-dev` (`UPDATE_COMPLETE`)  

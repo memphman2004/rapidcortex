@@ -29,7 +29,7 @@ export default function AdminSlaSettingsPage() {
       <div className="space-y-4 p-4 md:p-6">
         <h1 className="text-lg font-semibold text-white">SLA thresholds</h1>
         <p className="max-w-xl text-sm text-slate-400">
-          SLA backlog tracking isn’t enabled for this agency. Contact Rapid Cortex support.
+          SLA backlog tracking isn’t enabled for this agency. Contact NexCort iQ support.
         </p>
         <Link href={to("/admin/settings")} className="text-sm text-sky-400 hover:underline">
           ← Back to settings

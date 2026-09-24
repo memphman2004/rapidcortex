@@ -88,7 +88,7 @@ export function StatusPageClient({ initial, enablePolling = true }: StatusPageCl
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-5 py-8 sm:px-6 lg:gap-8 lg:py-11">
       <header className="rounded-2xl border border-slate-800/90 bg-gradient-to-b from-slate-900/80 to-slate-950/70 p-5 shadow-lg shadow-black/20 sm:p-6 md:p-7">
         <p className="text-[11px] font-semibold tracking-[0.22em] text-sky-300/95">
-          RAPID CORTEX STATUS
+          NEXCORT IQ STATUS
         </p>
         <div className="mt-5 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
           <div className="min-w-0 max-w-xl">
@@ -96,7 +96,7 @@ export function StatusPageClient({ initial, enablePolling = true }: StatusPageCl
               System Status
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-slate-300 sm:text-[15px]">
-              Public operational status for Rapid Cortex services.
+              Public operational status for NexCort iQ services.
             </p>
           </div>
           <div className="flex w-full shrink-0 flex-col gap-2 rounded-xl border border-slate-800/80 bg-slate-950/50 p-4 sm:max-w-sm">
@@ -297,7 +297,7 @@ export function StatusPageClient({ initial, enablePolling = true }: StatusPageCl
       </section>
 
       <footer className="pb-[max(env(safe-area-inset-bottom,0px),0.75rem)] text-center text-xs text-slate-500">
-        Rapid Cortex by Apps On Demand
+        NexCort iQ by Apps On Demand
       </footer>
     </div>
   );

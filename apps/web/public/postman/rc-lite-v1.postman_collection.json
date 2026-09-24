@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "b4c4c4c8-73d3-4586-9325-rapid-cortex-lite",
-    "name": "Rapid Cortex RC Lite",
-    "description": "API-only SKU for Rapid Cortex intelligence primitives (see /developers).\nSandbox keys default to rk_test_* in local development.",
+    "name": "NexCort iQ NexCort Lite",
+    "description": "API-only SKU for NexCort iQ intelligence primitives (see /developers).\nSandbox keys default to rk_test_* in local development.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [

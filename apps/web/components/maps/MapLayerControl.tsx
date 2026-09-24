@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Rapid Cortex — Map Layer Control Panel
+ * NexCort iQ — Map Layer Control Panel
  *
  * Floating toggle UI for showing/hiding map overlay groups.
  * Positioned absolute inside the map container — always top-right.

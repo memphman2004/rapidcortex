@@ -13,7 +13,7 @@
 |-------|--------|
 | **Order Form ID** | RC-OF-[YYYY]-[NNNN] |
 | **Customer legal name** | [AGENCY LEGAL NAME] |
-| **Contracting entity** | [TBD — Apps on Demand LLC d/b/a Rapid Cortex **or** Rapid Cortex, LLC] |
+| **Contracting entity** | [TBD — Apps on Demand LLC d/b/a NexCort iQ **or** NexCort iQ, LLC] |
 | **Effective date** | [DATE] |
 | **MSA effective date** | [DATE] (or “MSA executed concurrently”) |
 | **Initial term** | [12] months from Service Commencement Date |
@@ -45,7 +45,7 @@ Align with [SALES_SCOPE_MATRIX.md](../SALES_SCOPE_MATRIX.md) — do not check mo
 | CAD assisted write-back | [ ] | **Separate legal addendum required** |
 | Media / caller link intake | [ ] | |
 | Desktop apps (macOS / Windows) | [ ] | |
-| RC Lite API | [ ] | Use RC Lite Agreement instead if API-only |
+| NC Lite API | [ ] | Use NC Lite Agreement instead if API-only |
 
 ---
 
@@ -130,7 +130,7 @@ Escalation contacts per [OPS_CONTACT_MATRIX.md](../../operations-runbooks/OPS_CO
 
 ## Signatures
 
-| **Customer** | **Rapid Cortex** |
+| **Customer** | **NexCort iQ** |
 |--------------|------------------|
 | Authorized signature | Authorized signature |
 | Print name / title | Print name / title |

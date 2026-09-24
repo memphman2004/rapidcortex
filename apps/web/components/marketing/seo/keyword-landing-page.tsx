@@ -50,12 +50,12 @@ export function KeywordLandingPage({
     inLanguage: "en-US",
     isPartOf: {
       "@type": "WebSite",
-      name: "Rapid Cortex",
+      name: "NexCort iQ",
       url: absoluteUrl("/"),
     },
     about: {
       "@type": "SoftwareApplication",
-      name: "Rapid Cortex",
+      name: "NexCort iQ",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web, Windows, macOS",
     },
@@ -109,7 +109,7 @@ export function KeywordLandingPage({
         <section className="rounded-lg border border-slate-800/80 bg-slate-900/40 p-4">
           <h2 className="text-base font-semibold text-white">Next step</h2>
           <p className="mt-2">
-            Qualified agencies can evaluate Rapid Cortex through a Free 60-Day Pilot Program with
+            Qualified agencies can evaluate NexCort iQ through a Free 60-Day Pilot Program with
             non-disruptive deployment.
           </p>
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">

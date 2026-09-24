@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-describe("RC Translate UI flags", () => {
+describe("Translate UI flags", () => {
   it("defaults on when unset and honors explicit disable", async () => {
     vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_ENABLE_RC_TRANSLATE", "");

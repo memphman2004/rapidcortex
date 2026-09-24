@@ -84,7 +84,7 @@ function DesktopCard({
           </button>
           <p className="mt-2 text-xs text-slate-500">
             Opens a short-lived signed download link. Platform super administrators may also use this
-            action. The installed app still requires Rapid Cortex sign-in before any incident data is
+            action. The installed app still requires NexCort iQ sign-in before any incident data is
             available.
           </p>
         </div>

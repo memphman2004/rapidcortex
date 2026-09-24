@@ -100,7 +100,7 @@ fi
 export SAM_BUILD_DIR
 
 echo "═══════════════════════════════════════════════════════"
-echo " Rapid Cortex LEAN nested-stack deploy"
+echo " NexCort iQ LEAN nested-stack deploy"
 echo "═══════════════════════════════════════════════════════"
 echo " Stage:               ${STAGE}"
 echo " Root stack:          ${STACK_NAME}"

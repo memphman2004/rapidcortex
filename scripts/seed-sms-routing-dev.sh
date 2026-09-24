@@ -3,7 +3,7 @@
 #
 # End User Messaging in us-east-1 is PRODUCTION (sandbox lifted 2026-09-14).
 # SMS_NUMBER must be a real origination identity already in AWS (10DLC / TFN).
-# The live Rapid Cortex 10DLC is +13198358230 (assigned to test-agency). Do not
+# The live NexCort iQ 10DLC is +13198358230 (assigned to test-agency). Do not
 # point a second agency at that number — SendTextMessage would impersonate it.
 #
 # Placeholder numbers (e.g. +17065551234) are not origination identities; AWS

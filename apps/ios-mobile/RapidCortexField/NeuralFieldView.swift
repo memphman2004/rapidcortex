@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Port of Android/marketing Enter the Cortex neural field (nodes, edges, traveling signals).
+/// Port of Android/marketing Enter NexCort neural field (nodes, edges, traveling signals).
 struct NeuralFieldView: View {
     @State private var engine = NeuralFieldBox()
 

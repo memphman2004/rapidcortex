@@ -140,7 +140,7 @@ const MOTOROLA_PREMIER_ONE: CadVendorDefinition = {
 8. Save and use "Send test" in Step 5
 
 API poll (optional): paste the full incidents-list HTTPS URL from your PremierOne gateway.
-Rapid Cortex adds since + pageSize + agencyId. It does not invent a Motorola REST path.
+NexCort iQ adds since + pageSize + agencyId. It does not invent a Motorola REST path.
 Write-back stays off.`,
   suggestedPollIntervalMinutes: 2,
   knownApiEndpointPattern: "https://{host}/PremierOneAPI/api/incidents",
@@ -192,7 +192,7 @@ const TYLER_NEW_WORLD: CadVendorDefinition = {
 1. Work with Tyler to enable API access (often 2–5 business days)
 2. Obtain API Base URL, API Key, Agency Code
 3. Paste the full incidents-list HTTPS URL in Admin → CAD
-4. Rapid Cortex polls with eventsSince, agencyCode, and limit
+4. NexCort iQ polls with eventsSince, agencyCode, and limit
 5. Optional webhook: POST JSON { eventNumber, callType, locationAddress, … } with X-RC-Token
 Write-back stays off.`,
   suggestedPollIntervalMinutes: 2,

@@ -112,7 +112,7 @@ export function ChangePasswordForm({ showFullPageCopy = true, redirectFrom = nul
             </Link>
           </div>
           <p className="mt-3 text-sm leading-relaxed text-slate-400">
-            For security, Rapid Cortex requires password updates every 60 days. Please create a new password to
+            For security, NexCort iQ requires password updates every 60 days. Please create a new password to
             continue to your secure console.
           </p>
         </div>
@@ -120,7 +120,7 @@ export function ChangePasswordForm({ showFullPageCopy = true, redirectFrom = nul
         <div className="mb-4">
           <h2 className="text-lg font-semibold text-white">Change Password</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Change your Rapid Cortex password. For security, passwords must be updated every 60 days.
+            Change your NexCort iQ password. For security, passwords must be updated every 60 days.
           </p>
         </div>
       )}

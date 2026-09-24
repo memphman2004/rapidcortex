@@ -90,8 +90,8 @@ sam deploy \
     ImportedCognitoUserPoolId=us-east-1_0z6tA6WBs \
     ImportedCognitoWebClientId=7moi6sgc2uf4o31omgvo77h3v5 \
     ManagedPolicyNamePrefix=rapid-cortex-dev \
-    SesFromEmail=noreply@rapidcortex.us \
-    RcTeamNotifyEmail=team@rapidcortex.us \
+    SesFromEmail=noreply@nexcortiq.us \
+    RcTeamNotifyEmail=team@nexcortiq.us \
     SesMock=false \
     MarketingSiteOrigin=https://www.rapidcortex.us
 

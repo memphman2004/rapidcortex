@@ -250,26 +250,39 @@ final class CognitoAuthManager: ObservableObject {
             try await startMFASetup()
             requiresMFASetup = true
         case "NEW_PASSWORD_REQUIRED":
-            throw AuthError.cognitoError("Password reset required. Use the Rapid Cortex web app, then sign in here.")
+            throw AuthError.cognitoError("Password reset required. Use the NexCort iQ web app, then sign in here.")
         default:
             throw AuthError.cognitoError("Unexpected auth challenge: \(challenge)")
         }
     }
 
-    /// Pool MFA is required. Rapid Cortex Mobile enrolls TOTP and submits the code so
-    /// field users (and App Review) sign in with email + password only.
+    /// App Review accounts only: silently enroll TOTP so ASC can sign in with email + password.
+    /// All other users must scan the QR (or enter a code from Google Authenticator) so the same
+    /// secret works on the web console — silent enroll used to lock campus/venue web MFA.
+    private func isAppReviewSilentMfaAccount(_ email: String) -> Bool {
+        let normalized = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return normalized == "apple-review@nexcortiq.us"
+            || normalized == "appreviewer@nexcortiq.us"
+            || normalized == "appreviewer@rapidcortex.us"
+    }
+
     private func completeSilentMFAIfNeeded(_ challenge: String) async throws -> Bool {
+        let email = (pendingEmail ?? pendingUsername ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
         switch challenge {
         case "MFA_SETUP":
+            guard isAppReviewSilentMfaAccount(email) else { return false }
             try await startMFASetup()
             let secret = totpSecret
             let code = try RCTotp.generateCode(secret: secret)
-            try await verifySoftwareTokenAndFinishSetup(code: code, deviceName: "Rapid Cortex Mobile")
+            try await verifySoftwareTokenAndFinishSetup(code: code, deviceName: "NexCort iQ Mobile")
             if let key = totpKeychainKey(), !secret.isEmpty {
                 KeychainManager.save(key: key, value: secret)
             }
             return true
         case "SOFTWARE_TOKEN_MFA":
+            // Reuse a secret this device already enrolled (App Review or prior scan on this phone).
             guard let secret = storedTotpSecret(), let session = pendingSession else { return false }
             let code = try RCTotp.generateCode(secret: secret)
             try await respondSoftwareTokenMFA(code: code, session: session)
@@ -480,7 +493,7 @@ final class CognitoAuthManager: ObservableObject {
 
 enum RCTotp {
     static func otpauthURL(account: String, secret: String) -> String {
-        let issuer = "Rapid Cortex"
+        let issuer = "NexCort iQ"
         let label = "\(encode(issuer)):\(encode(account))"
         let query = [
             "secret=\(encode(secret))",

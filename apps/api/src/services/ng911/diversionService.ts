@@ -141,7 +141,7 @@ function buildSmsMessage(workflow: DiversionWorkflow): string {
       .replaceAll("{portalUrl}", workflow.portalUrl)
       .replaceAll("{workflowName}", workflow.name);
   }
-  return `Rapid Cortex Non-Emergency: Report your ${workflow.name} online at ${workflow.portalUrl}. Reply STOP to opt out.`;
+  return `NexCort iQ Non-Emergency: Report your ${workflow.name} online at ${workflow.portalUrl}. Reply STOP to opt out.`;
 }
 
 // ─── Agency config (public key) ───────────────────────────────────────────

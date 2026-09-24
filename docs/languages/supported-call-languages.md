@@ -1,8 +1,8 @@
 # Supported call languages & text translation providers
 
-Rapid Cortex supports **configurable multilingual call workflows across 100+ language codes** for **text translation** where **Azure Translator** or **Google Translate** provider coverage exists. **Azure Translator** is used as the **primary** text translation provider; **Google Translate** is available as a **backup**. Voice transcription and text-to-speech capabilities are tracked **separately** and depend on whichever speech providers are enabled (`PRIMARY_STT_PROVIDER`, silent-text TTS gates, etc.) — **do not assume** every translation language has live voice, STT, or TTS.
+NexCort iQ supports **configurable multilingual call workflows across 100+ language codes** for **text translation** where **Azure Translator** or **Google Translate** provider coverage exists. **Azure Translator** is used as the **primary** text translation provider; **Google Translate** is available as a **backup**. Voice transcription and text-to-speech capabilities are tracked **separately** and depend on whichever speech providers are enabled (`PRIMARY_STT_PROVIDER`, silent-text TTS gates, etc.) — **do not assume** every translation language has live voice, STT, or TTS.
 
-**See also:** [`911-language-fallback-reliability.md`](./911-language-fallback-reliability.md) — tiered 911 language fallback (detection → confidence → override → Azure/Google → phrases → interpreter → audit) and **RC Lite vs Rapid Cortex** positioning.
+**See also:** [`911-language-fallback-reliability.md`](./911-language-fallback-reliability.md) — tiered 911 language fallback (detection → confidence → override → Azure/Google → phrases → interpreter → audit) and **NC Lite vs NexCort iQ** positioning.
 
 This document covers:
 
@@ -100,4 +100,4 @@ The script checks:
 
 ## Product wording (approved)
 
-> Rapid Cortex supports configurable multilingual call workflows across **100+ language codes** for **text translation** where **Azure Translator** or **Google Translate** provider support is available. **Azure Translator** is used as the primary provider, with **Google Translate** available as a backup. **Voice transcription** and **text-to-speech** capabilities are tracked separately and depend on the enabled speech providers.
+> NexCort iQ supports configurable multilingual call workflows across **100+ language codes** for **text translation** where **Azure Translator** or **Google Translate** provider support is available. **Azure Translator** is used as the primary provider, with **Google Translate** available as a backup. **Voice transcription** and **text-to-speech** capabilities are tracked separately and depend on the enabled speech providers.

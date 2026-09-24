@@ -1,10 +1,10 @@
 # MVP scope — product definition (pilot-aligned)
 
-**Canonical scope document** for what Rapid Cortex delivers in **MVP** and the **first controlled agency pilot**. Engineering build order and ticket-level detail remain in [phase-0/mvp-features.md](./phase-0/mvp-features.md). Boundaries and exclusions are in [NON_GOALS.md](./NON_GOALS.md).
+**Canonical scope document** for what NexCort iQ delivers in **MVP** and the **first controlled agency pilot**. Engineering build order and ticket-level detail remain in [phase-0/mvp-features.md](./phase-0/mvp-features.md). Boundaries and exclusions are in [NON_GOALS.md](./NON_GOALS.md).
 
 ## Pilot story (first agency)
 
-A single public-safety communications organization runs Rapid Cortex **in the browser** as an **assistive layer** next to existing CAD, telephony, and radio: authenticated staff open their agency URL, work **agency-scoped incidents**, see **transcripts** (simulated, demo, or production-sourced per deployment), receive **structured AI analysis** (classification, summary, suggested questions, escalation signals—never dispatch authority), and see **protocol-aligned coaching** where packs are configured. **Supervisors** review flagged work; **admins** manage users and operational visibility (audit, integration status). Success is measured by **safe assistive use**, **operational credibility**, and **governance**—not feature breadth (see [PILOT_READINESS_CHECKLIST.md](./PILOT_READINESS_CHECKLIST.md)).
+A single public-safety communications organization runs NexCort iQ **in the browser** as an **assistive layer** next to existing CAD, telephony, and radio: authenticated staff open their agency URL, work **agency-scoped incidents**, see **transcripts** (simulated, demo, or production-sourced per deployment), receive **structured AI analysis** (classification, summary, suggested questions, escalation signals—never dispatch authority), and see **protocol-aligned coaching** where packs are configured. **Supervisors** review flagged work; **admins** manage users and operational visibility (audit, integration status). Success is measured by **safe assistive use**, **operational credibility**, and **governance**—not feature breadth (see [PILOT_READINESS_CHECKLIST.md](./PILOT_READINESS_CHECKLIST.md)).
 
 Columbus / Erie-style **single-agency** assumptions from early framing remain valid: dedicated environment discipline, training-heavy rollout, and SOP variance handled via agency configuration and playbooks—not universal multi-agency GA (see [NON_GOALS.md](./NON_GOALS.md)).
 
@@ -26,7 +26,7 @@ Roles are enforced via Cognito **`custom:role`** (and **`custom:agencyId`** for 
 | **dispatcher** | Primary workspace: incidents, transcript, AI panel, protocol hints. |
 | **supervisor** | Review queues, second look at escalations and flagged AI output per agency SOP. |
 | **admin** | Agency users, settings surfaces, audit views, integration status; invites where APIs are enabled. |
-| **platform_superadmin** | Rapid Cortex operators only; cross-agency capabilities guarded in API—**not** a general agency role. |
+| **platform_superadmin** | NexCort iQ operators only; cross-agency capabilities guarded in API—**not** a general agency role. |
 
 The URL jurisdiction **slug** is for routing and branding; **authorization is JWT + API**, not slug guessing ([USER_GUIDE.md](./USER_GUIDE.md), [phase-4/AUTH_AND_TENANCY.md](./phase-4/AUTH_AND_TENANCY.md)).
 

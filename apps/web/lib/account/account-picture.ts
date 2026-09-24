@@ -7,7 +7,7 @@ export function accountAvatarStorageKey(userId: string): string {
   return `rc-account-avatar:${userId}`;
 }
 
-/** RC Admin console welcome background (per user + env). */
+/** NexCort Admin console welcome background (per user + env). */
 export function rcAdminBgStorageKey(userId: string, envId: string): string {
   return `rc-admin-bg:user:${userId}:${envId}`;
 }

@@ -33,8 +33,8 @@ const CONTACT_PATH = marketingContactPath();
 const RC_LITE_MARKETING = marketingRcLitePath();
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Downloads | Rapid Cortex Public Safety Platform",
-  description: `${SITE_NAME} desktop installers and RC Lite API resources — a product of ${SITE_OPERATOR_NAME}. Same role dashboards on desktop as in the browser.`,
+  title: "Downloads | NexCort iQ Public Safety Platform",
+  description: `${SITE_NAME} desktop installers and NexCort Lite API resources — a product of ${SITE_OPERATOR_NAME}. Same role dashboards on desktop as in the browser.`,
   path: "/downloads",
 });
 
@@ -52,7 +52,7 @@ export default function DownloadsPage() {
             {SITE_NAME} Downloads
           </h1>
           <p className="mx-auto mt-4 max-w-3xl text-pretty text-lg text-slate-300">
-            Desktop installers, RC Lite references, and customer sign-in shortcuts. Mac and Windows
+            Desktop installers, NexCort Lite references, and customer sign-in shortcuts. Mac and Windows
             desktop apps load the <strong className="font-medium text-slate-100">same role dashboards</strong>{" "}
             as the web app for a seamless workstation experience. Distribution for authorized seats is
             coordinated with your agency&apos;s {SITE_NAME} administrators.
@@ -71,7 +71,7 @@ export default function DownloadsPage() {
 
         <div className="mb-12 grid grid-cols-1 gap-6 md:grid-cols-2">
           <article className="rounded-xl border border-slate-700/80 bg-slate-900/40 p-8 shadow-xl shadow-black/40">
-            <h2 className="text-xl font-semibold text-white">Rapid Cortex Desktop — Mac</h2>
+            <h2 className="text-xl font-semibold text-white">NexCort iQ Desktop — Mac</h2>
             <p className="mt-4 text-sm leading-relaxed text-slate-400">
               macOS workstation shell with the same {SITE_NAME} web dashboards as the browser
               (WKWebView).
@@ -83,12 +83,12 @@ export default function DownloadsPage() {
               Download for Mac
             </a>
             <p className="mt-4 text-xs text-slate-500">
-              Requires Rapid Cortex authorization and secure agency sign-in.
+              Requires NexCort iQ authorization and secure agency sign-in.
             </p>
           </article>
 
           <article className="rounded-xl border border-slate-700/80 bg-slate-900/40 p-8 shadow-xl shadow-black/40">
-            <h2 className="text-xl font-semibold text-white">Rapid Cortex Desktop — Windows</h2>
+            <h2 className="text-xl font-semibold text-white">NexCort iQ Desktop — Windows</h2>
             <p className="mt-4 text-sm leading-relaxed text-slate-400">
               Windows workstation shell with the same {SITE_NAME} web dashboards as the browser
               (WebView2).
@@ -100,14 +100,14 @@ export default function DownloadsPage() {
               Download for Windows
             </a>
             <p className="mt-4 text-xs text-slate-500">
-              Requires Rapid Cortex authorization and secure agency sign-in.
+              Requires NexCort iQ authorization and secure agency sign-in.
             </p>
           </article>
 
           <article className="rounded-xl border border-slate-700/80 bg-slate-900/40 p-8 shadow-xl shadow-black/40">
-            <h2 className="text-xl font-semibold text-white">RC Lite</h2>
+            <h2 className="text-xl font-semibold text-white">NexCort Lite</h2>
             <p className="mt-4 text-sm leading-relaxed text-slate-400">
-              API-first access for approved partners and agencies that need lightweight integration with Rapid Cortex
+              API-first access for approved partners and agencies that need lightweight integration with NexCort iQ
               intelligence services.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
@@ -121,7 +121,7 @@ export default function DownloadsPage() {
                 href={RC_LITE_MARKETING}
                 className="inline-flex rounded-md border border-slate-600 px-6 py-3 text-sm font-semibold text-slate-100 hover:border-slate-500"
               >
-                RC Lite overview
+                NexCort Lite overview
               </Link>
             </div>
           </article>
@@ -129,7 +129,7 @@ export default function DownloadsPage() {
           <article className="rounded-xl border border-slate-700/80 bg-slate-900/40 p-8 shadow-xl shadow-black/40">
             <h2 className="text-xl font-semibold text-white">Agency Console Access</h2>
             <p className="mt-4 text-sm leading-relaxed text-slate-400">
-              Authorized agency users can access the secure Rapid Cortex console from approved desktop workstations.
+              Authorized agency users can access the secure NexCort iQ console from approved desktop workstations.
             </p>
             <Link
               href={marketingBookAppointmentUrl()}

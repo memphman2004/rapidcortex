@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
-  Rapid Cortex SSR web infrastructure (ECR + ECS cluster + task definition + ALB + CloudFront + WAF + Route53).
+  NexCort iQ SSR web infrastructure (ECR + ECS cluster + task definition + ALB + CloudFront + WAF + Route53).
   ECS service is created/updated by scripts/deploy-web-no-docker.sh after the stack completes (avoids CloudFormation
   stabilization wait on AWS::ECS::Service). Migrating an existing stack from the legacy template that owned WebService:
   expect CloudFormation to delete the old ECS service resource on update — run deploy-web-no-docker.sh right after

@@ -11,7 +11,7 @@ import { normalizeCallLanguageCode } from "rapid-cortex-shared";
  *
  * Source: https://platform.openai.com/docs/guides/speech-to-text/supported-languages
  *
- * The 10 Rapid Cortex call languages (`en, es, zh, tl, vi, ar, fr, ko, ru, pt`)
+ * The 10 NexCort iQ call languages (`en, es, zh, tl, vi, ar, fr, ko, ru, pt`)
  * are all in Whisper's supported list, including Tagalog (`tl`).
  */
 const WHISPER_SUPPORTED_ISO_639_1: ReadonlySet<string> = new Set([

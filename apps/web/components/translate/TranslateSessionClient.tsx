@@ -89,7 +89,7 @@ export function TranslateSessionClient(props: {
         }}
       >
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 600 }}>{props.heading ?? "RC Translate"}</div>
+          <div style={{ fontSize: 14, fontWeight: 600 }}>{props.heading ?? "Translate"}</div>
           <div style={{ fontSize: 11, color: theme.textMuted }}>
             {tx.session?.status ?? "Ready"} · {labels.primary} / {labels.secondary}
             {tx.connected ? " · live" : ""}

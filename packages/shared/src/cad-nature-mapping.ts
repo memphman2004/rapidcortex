@@ -18,7 +18,7 @@ function blankToUndefined(value: unknown): unknown {
   return t.length === 0 ? undefined : t;
 }
 
-/** Agency-owned CAD nature → Rapid Cortex type / protocol mapping (stored on integration `config`). */
+/** Agency-owned CAD nature → NexCort iQ type / protocol mapping (stored on integration `config`). */
 export const cadNatureCodeMappingRowSchema = z.object({
   mappingId: z.string().min(1).max(80).optional(),
   cadNatureCode: z.string().min(1).max(64),

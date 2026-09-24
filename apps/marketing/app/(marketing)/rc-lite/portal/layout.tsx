@@ -14,9 +14,9 @@ export default function RcLitePortalLayout({ children }: { children: React.React
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 text-slate-100 sm:px-6 lg:grid lg:grid-cols-[220px,minmax(0,1fr)] lg:gap-10">
       <aside className="mb-8 lg:mb-0">
-        <p className="text-xs font-semibold uppercase tracking-wide text-sky-400/90">RC Lite console</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-sky-400/90">NexCort Lite console</p>
         <p className="mt-1 text-sm text-slate-400">API credentials, usage, and webhooks only.</p>
-        <nav className="mt-6 flex flex-col gap-1 text-sm" aria-label="RC Lite portal">
+        <nav className="mt-6 flex flex-col gap-1 text-sm" aria-label="NexCort Lite portal">
           {NAV.map((item) => (
             <Link
               key={item.href}

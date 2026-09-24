@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — SOP Intelligence (supervisor discrepancy → pattern pipeline).
+  NexCort iQ — SOP Intelligence (supervisor discrepancy → pattern pipeline).
   Routes attach to stack 2 HttpApi. Reuses the existing WebSocket API.
 
 Parameters:

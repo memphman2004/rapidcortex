@@ -138,6 +138,8 @@ export const env = {
     Number.parseInt(process.env.AUTO_ANALYZE_EVERY_N_SEGMENTS ?? "0", 10) || 0,
   ),
   cognitoUserPoolId: process.env.COGNITO_USER_POOL_ID?.trim() ?? "",
+  /** Web app client id — used when attaching SAML IdPs to SupportedIdentityProviders. */
+  cognitoClientId: process.env.COGNITO_CLIENT_ID?.trim() ?? "",
   /** Caller Video Assist (SMS + WebRTC) — empty disables video-assist HTTP handlers at runtime. */
   videoAssistTable: process.env.VIDEO_ASSIST_TABLE?.trim() ?? "",
   videoAssistPublicBaseUrl: process.env.VIDEO_ASSIST_PUBLIC_BASE_URL?.trim() ?? "",
@@ -412,7 +414,7 @@ export const env = {
   enableVisionAiThumbnails: featureEnabled("ENABLE_VISION_AI_THUMBNAILS"),
   enableVisionAiWs: featureEnabled("ENABLE_VISION_AI_WS"),
   enableVisionAiAdmin: featureEnabled("ENABLE_VISION_AI_ADMIN"),
-  /** Rapid Cortex Video — agency-owned VMS wall / DVR. Default on when unset. */
+  /** NexCort iQ Video — agency-owned VMS wall / DVR. Default on when unset. */
   enableRcVideo: featureEnabled("ENABLE_RC_VIDEO"),
   enableRcVideoAnalytics: featureEnabled("ENABLE_RC_VIDEO_ANALYTICS", false),
   enableRcVmsFederation: featureEnabled("ENABLE_RC_VMS_FEDERATION"),
@@ -559,8 +561,8 @@ export const env = {
   /** Web-form + RC Admin ticket board (separate from phone-line rc-support-calls). */
   ticketsTable: process.env.TICKETS_TABLE?.trim() ?? "",
   enableSupportForm: featureEnabled("ENABLE_SUPPORT_FORM"),
-  supportEmail: process.env.SUPPORT_EMAIL?.trim() || "support@rapidcortex.us",
-  supportFromEmail: process.env.FROM_EMAIL?.trim() || "noreply@rapidcortex.us",
+  supportEmail: process.env.SUPPORT_EMAIL?.trim() || "support@nexcortiq.us",
+  supportFromEmail: process.env.FROM_EMAIL?.trim() || "noreply@nexcortiq.us",
   supportPhone: process.env.SUPPORT_PHONE?.trim() || "",
   /** RC Admin Contacts address book (companies + persons). */
   contactCompaniesTable: process.env.CONTACT_COMPANIES_TABLE?.trim() ?? "",
@@ -614,15 +616,15 @@ export const env = {
   /** Private resumes bucket for careers apply uploads. */
   resumesBucket: process.env.RESUMES_BUCKET?.trim() ?? "",
   /** SES From for careers confirmation + status emails. */
-  careersFromEmail: process.env.FROM_EMAIL?.trim() || process.env.CAREERS_FROM_EMAIL?.trim() || "careers@rapidcortex.us",
+  careersFromEmail: process.env.FROM_EMAIL?.trim() || process.env.CAREERS_FROM_EMAIL?.trim() || "careers@nexcortiq.us",
   /** Internal inbox for new job application notifications. */
-  careersNotifyEmail: process.env.NOTIFY_EMAIL?.trim() || process.env.CAREERS_NOTIFY_EMAIL?.trim() || "jeff@rapidcortex.us",
+  careersNotifyEmail: process.env.NOTIFY_EMAIL?.trim() || process.env.CAREERS_NOTIFY_EMAIL?.trim() || "jeff@nexcortiq.us",
   /** Fallback signature name when Cognito claims lack name/email. */
   careersReviewerName: process.env.REVIEWER_NAME?.trim() || "Jeffrey Coleman",
   /** Verified SES From for marketing welcome + team notify; empty skips SES. */
   sesFromEmail: process.env.SES_FROM_EMAIL?.trim() ?? "",
   /** Internal inbox for new Cortex signup notifications. */
-  rcTeamNotifyEmail: process.env.RC_TEAM_NOTIFY_EMAIL?.trim() ?? "team@rapidcortex.us",
+  rcTeamNotifyEmail: process.env.RC_TEAM_NOTIFY_EMAIL?.trim() ?? "team@nexcortiq.us",
   /** When true/1, SES send is skipped (local/CI). */
   sesMock: process.env.SES_MOCK === "true" || process.env.SES_MOCK === "1",
   /** Azure app (public) client id for RC Sales Automation Outlook Graph send. */
@@ -651,7 +653,7 @@ export const env = {
   },
   /** Campaign From / reply-to mailbox. Connect Outlook must sign in as this address. */
   get outlookSalesMailbox(): string {
-    return process.env.OUTLOOK_SALES_MAILBOX?.trim() || "hello@rapidcortex.us";
+    return process.env.OUTLOOK_SALES_MAILBOX?.trim() || "hello@nexcortiq.us";
   },
   /** Careers UI + public apply. Default ON when unset. */
   enableHiring: featureEnabled("ENABLE_HIRING"),
@@ -663,8 +665,7 @@ export const env = {
   cleryActTable: process.env.CLERY_ACT_TABLE?.trim() ?? "",
   cleryClassificationMock:
     process.env.CLERY_CLASSIFICATION_MOCK === "true" ||
-    process.env.CLERY_CLASSIFICATION_MOCK === "1" ||
-    !process.env.ANTHROPIC_API_KEY_SECRET_ARN,
+    process.env.CLERY_CLASSIFICATION_MOCK === "1",
   /** Campus EAP / building checklist library. Default on when unset. */
   enableCampusEap: featureEnabled("ENABLE_CAMPUS_EAP"),
   /** Signed inbound campus security-event webhook. Default on when unset. */
@@ -788,6 +789,28 @@ export const env = {
   cadPublicApiBaseUrl: process.env.CAD_PUBLIC_API_BASE_URL?.trim() ?? "",
   /** When true, CAD write-back HTTP routes accept submissions (otherwise 400). */
   cadWritebackEnabled: featureEnabled("CAD_WRITEBACK_ENABLED", false),
+  /** Agency CAD mesh console and share router. Default on. Live vendor writes stay fail-closed. */
+  cadMeshEnabled: featureEnabled("ENABLE_CAD_MESH", true),
+  /** 13-feature suite (citizens, address intel, mutual aid, MCI, evidence, etc.). Default on. */
+  enableFeaturesSuite: featureEnabled("ENABLE_FEATURES_SUITE"),
+  citizensTable: process.env.CITIZENS_TABLE?.trim() ?? "",
+  addressIntelTable: process.env.ADDRESS_INTEL_TABLE?.trim() ?? "",
+  altResponseTable: process.env.ALT_RESPONSE_TABLE?.trim() ?? "",
+  coRespondersTable: process.env.CO_RESPONDERS_TABLE?.trim() ?? "",
+  mutualAidTable: process.env.MUTUAL_AID_TABLE?.trim() ?? "",
+  mciTable: process.env.MCI_TABLE?.trim() ?? "",
+  infraTable: process.env.INFRA_TABLE?.trim() ?? "",
+  interpreterTable: process.env.INTERPRETER_TABLE?.trim() ?? "",
+  evidenceTable: process.env.EVIDENCE_TABLE?.trim() ?? "",
+  evidenceBucket: process.env.EVIDENCE_BUCKET?.trim() ?? "",
+  preplanBucket: process.env.PREPLAN_BUCKET?.trim() ?? "",
+  assessmentTable: process.env.ASSESSMENT_TABLE?.trim() ?? "",
+  learningTable: process.env.LEARNING_TABLE?.trim() ?? "",
+  publicEventsTable: process.env.PUBLIC_EVENTS_TABLE?.trim() ?? "",
+  checkinTable: process.env.CHECKIN_TABLE?.trim() ?? "",
+  socialSignalsTable: process.env.SOCIAL_SIGNALS_TABLE?.trim() ?? "",
+  panicAlertSnsTopic: process.env.PANIC_ALERT_SNS_TOPIC?.trim() ?? "",
+  socialAlertSnsTopic: process.env.SOCIAL_ALERT_SNS_TOPIC?.trim() ?? "",
   /**
    * Scenario Center HTTP (demo seed / QA suite). Fail-closed — must be exactly "true".
    * Never enable on live production (.env-api-dev / app.rapidcortex.us).
@@ -899,11 +922,23 @@ export const env = {
   ),
   enableMapHospitals: featureEnabled("ENABLE_MAP_HOSPITALS"),
   enableMapEducation: featureEnabled("ENABLE_MAP_EDUCATION"),
-  alsPlaceIndexName: process.env.ALS_PLACE_INDEX_NAME?.trim() ?? "",
-  alsRouteCalculatorName: process.env.ALS_ROUTE_CALCULATOR_NAME?.trim() ?? "",
-  alsGeofenceCollectionName: process.env.ALS_GEOFENCE_COLLECTION_NAME?.trim() ?? "",
-  alsTrackerName: process.env.ALS_TRACKER_NAME?.trim() ?? "",
-  /** Default ON (mock) when unset so local/CI never call ALS. Deployed stack sets false. */
-  alsLocationMock:
-    process.env.ALS_LOCATION_MOCK !== "false" && process.env.ALS_LOCATION_MOCK !== "0",
+  get alsPlaceIndexName(): string {
+    return process.env.ALS_PLACE_INDEX_NAME?.trim() ?? "";
+  },
+  get alsRouteCalculatorName(): string {
+    return process.env.ALS_ROUTE_CALCULATOR_NAME?.trim() ?? "";
+  },
+  get alsGeofenceCollectionName(): string {
+    return process.env.ALS_GEOFENCE_COLLECTION_NAME?.trim() ?? "";
+  },
+  get alsTrackerName(): string {
+    return process.env.ALS_TRACKER_NAME?.trim() ?? "";
+  },
+  /**
+   * Default ON (mock) when unset so local/CI never call ALS. Deployed stacks set false.
+   * Getter so tests and post-hydrate env updates are visible.
+   */
+  get alsLocationMock(): boolean {
+    return process.env.ALS_LOCATION_MOCK !== "false" && process.env.ALS_LOCATION_MOCK !== "0";
+  },
 };

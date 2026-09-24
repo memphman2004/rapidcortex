@@ -288,7 +288,7 @@ export function EnterTheCortexClient() {
             fontWeight: 500,
           }}
         >
-          Rapid Cortex
+          NexCort iQ
         </p>
 
         <h1

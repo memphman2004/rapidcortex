@@ -31,7 +31,7 @@ function installJsFatalGuard() {
   errorUtils.setGlobalHandler((error, isFatal) => {
     const message = error && error.message ? error.message : String(error);
     const stack = error && error.stack ? error.stack : '';
-    console.error('[RapidCortex] js-fatal', isFatal, message, stack);
+    console.error('[NexCortiQ] js-fatal', isFatal, message, stack);
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('./src/services/crash-reporting').captureException(error, { isFatal });
@@ -75,7 +75,7 @@ function Fallback({ error }) {
     createElement(
       Text,
       { style: { color: '#F8FAFC', fontSize: 18, fontWeight: '600' } },
-      'Rapid Cortex',
+      'NexCort iQ',
     ),
     createElement(
       Text,
@@ -96,7 +96,7 @@ class BootBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error('[RapidCortex] boot-boundary', error, info && info.componentStack);
+    console.error('[NexCortiQ] boot-boundary', error, info && info.componentStack);
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('./src/services/crash-reporting').captureException(error, {
@@ -128,7 +128,7 @@ function Root() {
 
 AppRegistry.registerComponent('main', () => Root);
 pinBatchedBridge(AppRegistry);
-console.log('[RapidCortex] registered component main');
+console.log('[NexCortiQ] registered component main');
 
 /**
  * Android preview APKs died after splash with:
@@ -162,9 +162,9 @@ function pinBatchedBridge(registry) {
       typeof BatchedBridge._lazyCallableModules === 'object'
         ? Object.keys(BatchedBridge._lazyCallableModules)
         : [];
-    console.log('[RapidCortex] batched-bridge modules', names.join(',') || '(none)');
+    console.log('[NexCortiQ] batched-bridge modules', names.join(',') || '(none)');
   } catch (err) {
-    console.warn('[RapidCortex] batched-bridge pin failed', err);
+    console.warn('[NexCortiQ] batched-bridge pin failed', err);
   }
 }
 

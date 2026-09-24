@@ -49,7 +49,7 @@ const SEEDS: SeedOpp[] = [
     estimatedDollarValue: 850000,
     aiHeadline: "DeSoto County ECC soliciting next-gen CAD/911 platform replacement",
     aiSummary:
-      "Commission minutes authorize $850K for DeSoto County ECC modernization including CAD replacement and NG911-ready recording. The ECC serves Arcadia and surrounding DeSoto County with a Hexagon incumbent stack under active displacement review. Rapid Cortex Core's real-time transcription, CAD integration, and AI coaching map directly to the next-gen CAD/911 platform replacement they are soliciting. Outreach should happen before RFP scoring closes — this is an active procurement window.",
+      "Commission minutes authorize $850K for DeSoto County ECC modernization including CAD replacement and NG911-ready recording. The ECC serves Arcadia and surrounding DeSoto County with a Hexagon incumbent stack under active displacement review. NexCort iQ Core's real-time transcription, CAD integration, and AI coaching map directly to the next-gen CAD/911 platform replacement they are soliciting. Outreach should happen before RFP scoring closes — this is an active procurement window.",
     tags: ["RFP LIVE", "NG911", "PSAP SOFTWARE"],
     isActNow: true,
     intentStage: "active_rfp",
@@ -68,7 +68,7 @@ const SEEDS: SeedOpp[] = [
     estimatedDollarValue: 420000,
     aiHeadline: "Upshur County evaluating NG911 recording and analytics stack",
     aiSummary:
-      "A budget workshop discusses $420K for NG911 readiness including recording analytics and QA tooling for Upshur County 911. The center currently runs a Motorola Solutions–centric stack and is assessing analytics that improve call QA and supervisor visibility. Rapid Cortex Core's AI coaching and real-time transcription complement NG911 recording modernization without requiring a full CAD rip-and-replace. Contact before the next commission budget vote — the evaluation window is open now.",
+      "A budget workshop discusses $420K for NG911 readiness including recording analytics and QA tooling for Upshur County 911. The center currently runs a Motorola Solutions–centric stack and is assessing analytics that improve call QA and supervisor visibility. NexCort iQ Core's AI coaching and real-time transcription complement NG911 recording modernization without requiring a full CAD rip-and-replace. Contact before the next commission budget vote — the evaluation window is open now.",
     tags: ["NG911", "OPPORTUNITY"],
     isActNow: true,
     intentStage: "evaluation",
@@ -87,7 +87,7 @@ const SEEDS: SeedOpp[] = [
     estimatedDollarValue: 1200000,
     aiHeadline: "Muscogee County reviewing AI-assisted dispatch tooling",
     aiSummary:
-      "The July Muscogee County Commission budget workshop discusses $1.2M in capital improvements for 911 technology modernization, specifically mentioning AI-assisted dispatch tools and supervisor coaching systems. Muscogee County 911 currently runs a legacy CAD environment and serves Columbus GA — population 206,922 — with high annual call volume. Rapid Cortex Core's real-time transcription, AI coaching, and CAD integration directly address the AI dispatch tooling they are evaluating; this is RC's home market. Outreach should happen before the next commission meeting — the budget approval window is open now.",
+      "The July Muscogee County Commission budget workshop discusses $1.2M in capital improvements for 911 technology modernization, specifically mentioning AI-assisted dispatch tools and supervisor coaching systems. Muscogee County 911 currently runs a legacy CAD environment and serves Columbus GA — population 206,922 — with high annual call volume. NexCort iQ Core's real-time transcription, AI coaching, and CAD integration directly address the AI dispatch tooling they are evaluating; this is RC's home market. Outreach should happen before the next commission meeting — the budget approval window is open now.",
     tags: ["PSAP SOFTWARE", "CAD INTEGRATION"],
     isActNow: false,
     intentStage: "evaluation",
@@ -106,7 +106,7 @@ const SEEDS: SeedOpp[] = [
     estimatedDollarValue: 2100000,
     aiHeadline: "Jefferson County EMA exploring multi-PSAP consolidation software",
     aiSummary:
-      "Jefferson County EMA materials reference a $2.1M emergency communications and multi-PSAP consolidation software initiative with CentralSquare cited as the incumbent environment. The county serves the Birmingham metro and is modernizing EMA/911 coordination tooling under a regional capital plan. Rapid Cortex Core can displace or complement CentralSquare workflows with AI-assisted dispatch intelligence and CAD-adjacent transcription. Competitor displacement outreach should land before the next EMA board or procurement milestone — within the current capital cycle.",
+      "Jefferson County EMA materials reference a $2.1M emergency communications and multi-PSAP consolidation software initiative with CentralSquare cited as the incumbent environment. The county serves the Birmingham metro and is modernizing EMA/911 coordination tooling under a regional capital plan. NexCort iQ Core can displace or complement CentralSquare workflows with AI-assisted dispatch intelligence and CAD-adjacent transcription. Competitor displacement outreach should land before the next EMA board or procurement milestone — within the current capital cycle.",
     tags: ["OPPORTUNITY", "COMPETITOR"],
     isActNow: false,
     intentStage: "awareness",
@@ -260,7 +260,7 @@ async function main() {
       s.incumbentVendor
         ? `Ask how ${s.incumbentVendor} fits their 12-month plan.`
         : "Ask which incumbent stack they run today.",
-      `Position Rapid Cortex ${s.rcProduct} for ${s.agencyName}.`,
+      `Position NexCort iQ ${s.rcProduct} for ${s.agencyName}.`,
       "Offer a 20-minute tailored demo this week.",
     ];
     await ddb.send(

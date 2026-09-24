@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Rapid Cortex — ECR repository for ECS web app container images.
+Description: NexCort iQ — ECR repository for ECS web app container images.
 
 Parameters:
   Environment:

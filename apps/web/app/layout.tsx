@@ -106,7 +106,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "RC Venue",
+    title: "Venue",
     statusBarStyle: "black-translucent",
   },
   title: {

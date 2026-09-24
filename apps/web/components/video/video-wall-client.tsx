@@ -167,7 +167,7 @@ export function VideoWallClient({
     cameras[0];
 
   if (!enabled) {
-    return <p className="p-6 text-sm text-slate-400">Rapid Cortex Video is disabled.</p>;
+    return <p className="p-6 text-sm text-slate-400">NexiQ Video is disabled.</p>;
   }
 
   return (

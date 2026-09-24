@@ -486,7 +486,7 @@ async function seed() {
   const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet);
 
   console.log("─────────────────────────────────────────────────────────────");
-  console.log("  Rapid Cortex — PSAP seed / upsert");
+  console.log("  NexCort iQ — PSAP seed / upsert");
   console.log(`  File:        ${FILE}`);
   console.log(`  Table:       ${TABLE}`);
   console.log(`  Rows:        ${rows.length}`);

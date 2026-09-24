@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — Milestone XProtect cloud adapter (Bridge Protocol).
+  NexCort iQ — Milestone XProtect cloud adapter (Bridge Protocol).
   On-prem MIP SDK / XProtect REST runs in the campus bridge; Lambdas never call XProtect directly.
 
 Parameters:

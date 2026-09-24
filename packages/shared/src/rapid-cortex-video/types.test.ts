@@ -12,7 +12,7 @@ import {
   videoWallConfigPutBodySchema,
 } from "./types.js";
 
-describe("Rapid Cortex Video wall types", () => {
+describe("NexiQ Video wall types", () => {
   it("counts layout cells", () => {
     expect(videoWallCellCount("1x1")).toBe(1);
     expect(videoWallCellCount("2x2")).toBe(4);

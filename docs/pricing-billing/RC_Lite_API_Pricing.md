@@ -1,6 +1,6 @@
-# RC Lite API Access - Pricing Structure
+# NC Lite API Access - Pricing Structure
 
-**Product:** RC Lite API Access  
+**Product:** NC Lite API Access  
 **Target Customers:** CAD vendors, RMS vendors, GIS systems, municipal IT teams, approved agencies, public safety technology partners  
 **Billing:** Monthly Subscription or Custom Invoice (Annual available)
 
@@ -223,7 +223,7 @@
 
 **Historical Data Migration**
 - **Price:** $0.10 per 1,000 records
-- **Use Case:** Migrating existing incident/transcript data into RC Lite
+- **Use Case:** Migrating existing incident/transcript data into NC Lite
 
 **Data Export Service**
 - **Price:** $1,000/month
@@ -302,7 +302,7 @@
 ## Volume Discounts (Multi-Agency/Multi-Customer)
 
 ### CAD/RMS Vendor Discounts
-If you're a CAD or RMS vendor deploying RC Lite API to multiple agencies:
+If you're a CAD or RMS vendor deploying NC Lite API to multiple agencies:
 
 **5-10 agencies:** 10% discount per agency  
 **11-25 agencies:** 20% discount per agency  
@@ -319,12 +319,12 @@ If you're a CAD or RMS vendor deploying RC Lite API to multiple agencies:
 
 ### API + Dashboard Hybrid
 
-**RC Lite API + Essential Dashboard Bundle**
+**NC Lite API + Essential Dashboard Bundle**
 - **Price:** Tier price + $500/month per dashboard seat
 - **Use Case:** API for CAD integration + limited dashboard access for supervisors
 - **Example:** Tier 2 ($2,500) + 3 dashboard seats ($1,500) = $4,000/month
 
-**RC Lite API + Professional Dashboard Bundle**
+**NC Lite API + Professional Dashboard Bundle**
 - **Price:** Tier price + $1,000/month per dashboard seat
 - **Use Case:** Full Professional features + API access
 - **Example:** Tier 3 ($8,500) + 5 dashboard seats ($5,000) = $13,500/month
@@ -354,17 +354,17 @@ If you're a CAD or RMS vendor deploying RC Lite API to multiple agencies:
 
 ## API Access Comparison
 
-### What's NOT Included in RC Lite API
-❌ Rapid Cortex web dashboard access  
+### What's NOT Included in NC Lite API
+❌ NexCort iQ web dashboard access  
 ❌ Desktop applications (macOS/Windows)  
 ❌ Mobile applications (iOS/Android)  
 ❌ Dispatcher training services  
 ❌ On-premise deployment options  
 
-**These require full Rapid Cortex subscription (Essential/Professional/Command)**
+**These require full NexCort iQ subscription (Essential/Professional/Command)**
 
 ### What IS Included
-✅ Complete API access to all Rapid Cortex intelligence  
+✅ Complete API access to all NexCort iQ intelligence  
 ✅ Real-time incident data  
 ✅ AI-generated summaries and recommendations  
 ✅ Full transcript access (speech-to-text)  
@@ -476,11 +476,11 @@ If you're a CAD or RMS vendor deploying RC Lite API to multiple agencies:
 
 ## Frequently Asked Questions
 
-### Q: Do I need RC Lite if I already have full Rapid Cortex?
-**A:** No. Full Rapid Cortex subscriptions (Essential/Professional/Command) include API access at no additional charge. RC Lite is for partners/vendors who need API-only access without the dashboard.
+### Q: Do I need NC Lite if I already have full NexCort iQ?
+**A:** No. Full NexCort iQ subscriptions (Essential/Professional/Command) include API access at no additional charge. NC Lite is for partners/vendors who need API-only access without the dashboard.
 
-### Q: Can I upgrade from RC Lite to full Rapid Cortex later?
-**A:** Yes. Your API integration remains the same. You add dashboard access by upgrading to Essential/Professional/Command. Any months paid for RC Lite can be credited toward first year of full subscription.
+### Q: Can I upgrade from NC Lite to full NexCort iQ later?
+**A:** Yes. Your API integration remains the same. You add dashboard access by upgrading to Essential/Professional/Command. Any months paid for NC Lite can be credited toward first year of full subscription.
 
 ### Q: What if I need more API calls than my tier includes?
 **A:** You'll be charged overage rates (see pricing above). If you consistently exceed limits, we recommend upgrading to next tier for better value.
@@ -514,7 +514,7 @@ If you're a CAD or RMS vendor deploying RC Lite API to multiple agencies:
 Review pricing tiers and select the one that matches your expected API usage and support needs.
 
 ### Step 2: Request Sandbox Access
-Contact support@rapidcortex.us or complete form at rapidcortex.us/api-access
+Contact support@nexcortiq.us or complete form at rapidcortex.us/api-access
 
 ### Step 3: Integration Development
 Use sandbox environment to build and test your integration with full API access.
@@ -526,12 +526,12 @@ Deploy to production, receive production credentials, start billing.
 
 ## Contact Sales
 
-**Email:** support@rapidcortex.us  
+**Email:** support@nexcortiq.us  
 **Phone:** 1-800-RAPID-911  
 **Web:** rapidcortex.us/api-pricing
 
 **For Technical Questions:**  
-**Email:** api-support@rapidcortex.us  
+**Email:** api-support@nexcortiq.us  
 **Documentation:** docs.rapidcortex.us/api
 
 ---

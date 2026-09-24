@@ -8,7 +8,7 @@ import { SITE_NAME } from "@/lib/site";
  * same body as /account-deletion so this URL is a real page.
  */
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Account deletion | Rapid Cortex",
+  title: "Account deletion | NexCort iQ",
   description: `How to request deletion of a ${SITE_NAME} user account from the Android app or by email.`,
   path: "/legal/account-deletion",
 });

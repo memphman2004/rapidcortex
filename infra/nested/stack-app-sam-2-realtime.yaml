@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Rapid Cortex — WebSocket API + call control HTTP routes (attach to stack 2 HttpApi)
+Description: NexCort iQ — WebSocket API + call control HTTP routes (attach to stack 2 HttpApi)
 
 Parameters:
   DeploymentStage:

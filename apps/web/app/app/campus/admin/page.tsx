@@ -8,8 +8,8 @@ import { dashboardDisplayName } from "@/lib/dashboards/dashboard-display-name";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 
 export const metadata: Metadata = {
-  title: "Campus Admin — Rapid Cortex",
-  description: "RC Campus safety intelligence administration",
+  title: "Campus Admin — NexCort iQ",
+  description: "Campus safety intelligence administration",
 };
 
 export default async function CampusAdminPage() {

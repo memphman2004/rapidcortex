@@ -22,7 +22,7 @@ export default function AdminCadPage() {
       <div className="mx-auto max-w-3xl px-4 py-10 text-slate-200">
         <h1 className="text-xl font-semibold text-white">CAD Integrations</h1>
         <p className="mt-3 text-sm text-slate-400">
-          CAD admin isn’t enabled for this agency. Contact Rapid Cortex support.
+          CAD admin isn’t enabled for this agency. Contact NexCort iQ support.
         </p>
       </div>
     );
@@ -33,7 +33,7 @@ export default function AdminCadPage() {
       <div className="mx-auto max-w-3xl px-4 py-10 text-slate-200">
         <h1 className="text-xl font-semibold text-white">CAD Integrations</h1>
         <p className="mt-3 text-sm text-slate-400">
-          Platform connection isn’t configured. Contact Rapid Cortex support.
+          Platform connection isn’t configured. Contact NexCort iQ support.
         </p>
       </div>
     );

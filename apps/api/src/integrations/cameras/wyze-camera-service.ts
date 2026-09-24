@@ -319,7 +319,7 @@ export async function createWyzeConsentRequest(
   await putConsentRequest(consentRequest);
   const consentUrl = consentLandingUrl(plainToken);
   const message = [
-    `Rapid Cortex: ${input.agencyName} requests ${input.requestedDurationMinutes}-min live camera view for an active emergency near you.`,
+    `NexCort iQ: ${input.agencyName} requests ${input.requestedDurationMinutes}-min live camera view for an active emergency near you.`,
     `Approve or decline: ${consentUrl}`,
     "Reply STOP to opt out.",
   ].join("\n");

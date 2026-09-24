@@ -1,4 +1,4 @@
-/** Standard JSON error envelope for `/api/v1/*` (RC Lite) — aligns with Stripe/Plaid quality bar. */
+/** Standard JSON error envelope for `/api/v1/*` (NexCort Lite) — aligns with Stripe/Plaid quality bar. */
 
 export type RcLiteApiErrorBody = {
   error: {
@@ -43,7 +43,7 @@ export const RC_LITE_ERROR_CATALOG: readonly RcLiteErrorCatalogEntry[] = [
     code: "UNAUTHORIZED",
     slug: "unauthorized",
     title: "Missing credentials",
-    description: "The request lacks an RC Lite credential header.",
+    description: "The request lacks an NexCort Lite credential header.",
     defaultRetryable: false,
   },
   {

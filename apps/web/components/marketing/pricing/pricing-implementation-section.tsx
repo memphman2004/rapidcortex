@@ -19,7 +19,7 @@ export function PricingImplementationSection() {
         Implementation, onboarding, and how scope drives investment
       </h2>
       <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-400 sm:text-base">
-        Rapid Cortex is priced as a mission-critical operations platform—not a flat per-seat SaaS
+        NexCort iQ is priced as a mission-critical operations platform—not a flat per-seat SaaS
         SKU. What you invest reflects the real surface area of your deployment: how many people rely
         on it under peak load, how many sites and integrations must stay in sync, and how stringent
         your compliance and retention rules are.

@@ -10,7 +10,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-ROOT = Path("/Volumes/Mac Mini/Coding Projects/Rapid Cortex/results/breaking-point")
+ROOT = Path("/Volumes/Mac Mini/Coding Projects/NexCort iQ/results/breaking-point")
 ROOT.mkdir(parents=True, exist_ok=True)
 
 API_URL = os.environ.get(

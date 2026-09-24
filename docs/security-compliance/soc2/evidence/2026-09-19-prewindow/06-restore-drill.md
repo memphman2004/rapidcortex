@@ -20,13 +20,13 @@ Integrity hash of that TSV is in [hashes.sha256](../../../../evidence/soc2-evide
 
 ## Validation performed (from TSV, not live describe)
 
-1. All Rapid Cortex/Ring tables in the inventory are `ENABLED` for PITR.
+1. All NexCort iQ/Ring tables in the inventory are `ENABLED` for PITR.
 2. Restore target is a **new** name; in-place restore is refused by `scripts/soc2-restore-drill.sh`.
 3. Production Lambda pointer would **not** change (drill rule).
 
 ## What did **not** run
 
-`restore-table-to-point-in-time` (requires `DRY_RUN=0`, `TICKET=…`, and AWS). Do this on a Rapid Cortex laptop before 2026-09-30:
+`restore-table-to-point-in-time` (requires `DRY_RUN=0`, `TICKET=…`, and AWS). Do this on a NexCort iQ laptop before 2026-09-30:
 
 ```bash
 DRY_RUN=0 TICKET=soc2-restore-20260930 AWS_PROFILE=rapid-cortex \

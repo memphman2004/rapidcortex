@@ -5,9 +5,9 @@ import { buildPublicPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = {
   ...buildPublicPageMetadata({
-    title: "Rapid Cortex Venue | Stadium & Venue Safety Intelligence Platform",
+    title: "NexCort iQ Venue | Stadium & Venue Safety Intelligence Platform",
     description:
-      "Rapid Cortex Venue helps stadiums, arenas, airports, and universities coordinate guest assistance and security incidents with QR code reporting, SMS reporting, real-time security dashboards, and optional escalation to emergency communications.",
+      "NexCort iQ Venue helps stadiums, arenas, airports, and universities coordinate guest assistance and security incidents with QR code reporting, SMS reporting, real-time security dashboards, and optional escalation to emergency communications.",
     path: "/venue",
   }),
   alternates: {
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 const venueSoftwareJsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "Rapid Cortex Venue",
+  name: "NexCort iQ Venue",
   applicationCategory: "BusinessApplication",
   url: "https://www.rapidcortex.us/venue",
   description:
@@ -31,7 +31,7 @@ const venueSoftwareJsonLd = {
   },
   provider: {
     "@type": "Organization",
-    name: "Rapid Cortex",
+    name: "NexCort iQ",
     url: "https://www.rapidcortex.us",
   },
 };
@@ -45,12 +45,12 @@ const featureCards = [
   {
     Icon: MessageSquare,
     title: "SMS Reporting",
-    body: "Guests text a venue code and their location to a shared Rapid Cortex safety number. Rapid Cortex parses the venue, location, and message and routes the incident to your team in seconds. Example: MBS Medical Emergency Section 124 → 723389",
+    body: "Guests text a venue code and their location to a shared NexCort iQ safety number. NexCort iQ parses the venue, location, and message and routes the incident to your team in seconds. Example: MBS Medical Emergency Section 124 → 723389",
   },
   {
     Icon: ShieldCheck,
     title: "Security Dashboard",
-    body: "Every report creates a tracked incident with location, media, nearby camera references, and a full audit trail. Security can assign personnel, chat on the incident, and escalate to Rapid Cortex Core for emergency communications coordination.",
+    body: "Every report creates a tracked incident with location, media, nearby camera references, and a full audit trail. Security can assign personnel, chat on the incident, and escalate to 911 Centers/PSAPs for emergency communications coordination.",
   },
 ] as const;
 
@@ -75,7 +75,7 @@ export default function MarketingVenuePage() {
         Venue Safety Intelligence at the Speed of Response
       </h1>
       <p className="mt-5 max-w-3xl text-pretty text-base leading-relaxed text-slate-300 sm:text-lg">
-        Rapid Cortex Venue helps security teams at stadiums, arenas, airports, universities, and large venues
+        NexCort iQ Venue helps security teams at stadiums, arenas, airports, universities, and large venues
         coordinate guest assistance and incident response — without replacing your security team, radios, or
         camera systems.
       </p>
@@ -116,7 +116,7 @@ export default function MarketingVenuePage() {
             { href: "/venue-safety-software", label: "Venue safety software" },
             { href: "/stadium-security-software", label: "Stadium security software" },
             { href: "/venue-safety-integrations", label: "Venue safety integrations" },
-            { href: "/product/venue", label: "RC Venue product" },
+            { href: "/product/venue", label: "Venue product" },
             { href: "/integrations", label: "Integrations overview" },
             { href: "/free-60-day-pilot", label: "Free 60-Day Pilot" },
           ].map((item) => (
@@ -135,7 +135,7 @@ export default function MarketingVenuePage() {
       <section className="mt-12 rounded-lg border border-slate-800 bg-slate-900/30 p-6">
         <h2 className="text-xl font-semibold text-white sm:text-2xl">Free 60-Day Pilot</h2>
         <p className="mt-4 text-sm leading-relaxed text-slate-300 sm:text-base">
-          Evaluate Rapid Cortex Venue in a guided 60-day pilot. Includes QR reporting, SMS reporting, venue
+          Evaluate NexCort iQ Venue in a guided 60-day pilot. Includes QR reporting, SMS reporting, venue
           dashboard, up to 10 zones, up to 10 users, analytics, training, and onboarding support.
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">

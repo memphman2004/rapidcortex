@@ -1,4 +1,4 @@
-# RC Lite Python SDK (scaffold)
+# NC Lite Python SDK (scaffold)
 
 Generate a Thin HTTP client via `openapi-python-generator` targeting `docs/openapi/rc-lite-v1.openapi.yaml`.
 

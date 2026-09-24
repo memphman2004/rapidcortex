@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Rapid Cortex — local validation + full monorepo build + Cognito trigger deps + SAM validate.
+# NexCort iQ — local validation + full monorepo build + Cognito trigger deps + SAM validate.
 # Optionally deploy the API stack and print suggested web env vars from CloudFormation.
 #
 # Usage:

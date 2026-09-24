@@ -19,12 +19,15 @@ export const PSAP_ICON_URL = "/map-icons/psap.png";
 
 export const OVERLAY_PSAPS_SOURCE = "rc-overlay-psaps";
 export const OVERLAY_PSAPS_POINTS = "rc-overlay-psaps-points";
+/** Always-on circle underlay so PSAPs stay visible if the custom icon fails to paint. */
+export const OVERLAY_PSAPS_POINT_CIRCLES = "rc-overlay-psaps-point-circles";
 export const OVERLAY_PSAPS_CLUSTERS = "rc-overlay-psaps-clusters";
 export const OVERLAY_PSAPS_CLUSTER_COUNT = "rc-overlay-psaps-cluster-count";
 
 export const PSAP_OVERLAY_LAYER_IDS = [
   OVERLAY_PSAPS_CLUSTERS,
   OVERLAY_PSAPS_CLUSTER_COUNT,
+  OVERLAY_PSAPS_POINT_CIRCLES,
   OVERLAY_PSAPS_POINTS,
 ] as const;
 
@@ -107,7 +110,7 @@ export async function ensurePsapOverlayLayers(map: maplibregl.Map): Promise<void
       filter: ["has", "point_count"],
       paint: {
         "circle-color": "#eab308",
-        "circle-radius": ["step", ["get", "point_count"], 16, 10, 20, 50, 25],
+        "circle-radius": ["step", ["get", "point_count"], 11, 10, 14, 50, 18],
         "circle-stroke-width": 2,
         "circle-stroke-color": "#422006",
         "circle-opacity": 0.92,
@@ -139,8 +142,24 @@ export async function ensurePsapOverlayLayers(map: maplibregl.Map): Promise<void
     }
   }
 
+  // Circle underlay first — yellow dots remain visible even when the shield icon does not paint.
+  if (!map.getLayer(OVERLAY_PSAPS_POINT_CIRCLES)) {
+    addOverlayLayer(map, {
+      id: OVERLAY_PSAPS_POINT_CIRCLES,
+      type: "circle",
+      source: OVERLAY_PSAPS_SOURCE,
+      filter: ["!", ["has", "point_count"]],
+      paint: {
+        "circle-color": "#eab308",
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 6, 4, 10, 6, 14, 8],
+        "circle-stroke-width": 1.5,
+        "circle-stroke-color": "#0f1117",
+        "circle-opacity": 0.95,
+      },
+    });
+  }
+
   if (!map.getLayer(OVERLAY_PSAPS_POINTS)) {
-    let added = false;
     if (hasIcon) {
       try {
         addOverlayLayer(map, {
@@ -150,29 +169,14 @@ export async function ensurePsapOverlayLayers(map: maplibregl.Map): Promise<void
           filter: ["!", ["has", "point_count"]],
           layout: {
             "icon-image": PSAP_ICON_ID,
-            "icon-size": ["interpolate", ["linear"], ["zoom"], 5, 0.45, 10, 0.7, 15, 0.95],
+            "icon-size": ["interpolate", ["linear"], ["zoom"], 5, 0.28, 10, 0.4, 15, 0.55],
             "icon-allow-overlap": true,
             "icon-ignore-placement": true,
           },
         });
-        added = true;
       } catch {
-        /* ALS style may reject mixed icon+glyph specs */
+        /* ALS style may reject custom icon specs — circle underlay still shows */
       }
-    }
-    if (!added) {
-      addOverlayLayer(map, {
-        id: OVERLAY_PSAPS_POINTS,
-        type: "circle",
-        source: OVERLAY_PSAPS_SOURCE,
-        filter: ["!", ["has", "point_count"]],
-        paint: {
-          "circle-color": "#eab308",
-          "circle-radius": 7,
-          "circle-stroke-width": 1.5,
-          "circle-stroke-color": "#0f1117",
-        },
-      });
     }
   }
 }
@@ -194,16 +198,43 @@ const overlayCache = new Map<string, PsapMapFeatureCollection>();
 
 export async function loadPsapOverlay(): Promise<PsapMapFeatureCollection> {
   const cached = overlayCache.get("psaps");
-  if (cached) return cached;
+  if (cached && cached.features.length > 0) return cached;
   const empty: PsapMapFeatureCollection = { type: "FeatureCollection", features: [] };
-  try {
+
+  const attempt = async (): Promise<PsapMapFeatureCollection> => {
     const res = await fetch("/api/map/psaps", { credentials: "include" });
-    if (!res.ok) return empty;
+    if (!res.ok) {
+      if (process.env.NODE_ENV === "development") {
+        console.warn("[psap-overlay] /api/map/psaps failed", res.status);
+      }
+      return empty;
+    }
     const body: unknown = await res.json();
-    if (!isPsapMapFeatureCollection(body)) return empty;
-    overlayCache.set("psaps", body);
+    if (!isPsapMapFeatureCollection(body)) {
+      if (process.env.NODE_ENV === "development") {
+        console.warn("[psap-overlay] unexpected payload shape");
+      }
+      return empty;
+    }
     return body;
-  } catch {
+  };
+
+  try {
+    let body = await attempt();
+    // Retry once — first paint can race auth cookie hydration and get 401/403.
+    if (body.features.length === 0) {
+      await new Promise((r) => setTimeout(r, 400));
+      body = await attempt();
+    }
+    // Never cache an empty directory — empty is usually a transient auth/upstream miss.
+    if (body.features.length > 0) {
+      overlayCache.set("psaps", body);
+    }
+    return body;
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[psap-overlay] load failed", err);
+    }
     return empty;
   }
 }
@@ -230,8 +261,14 @@ export function bindPsapOverlayInteractions(
   const prevClusterClick = clusterClickByMap.get(map);
   const prevClusterEnter = clusterEnterByMap.get(map);
   const prevClusterLeave = clusterLeaveByMap.get(map);
-  if (prevEnter) map.off("mouseenter", OVERLAY_PSAPS_POINTS, prevEnter);
-  if (prevLeave) map.off("mouseleave", OVERLAY_PSAPS_POINTS, prevLeave);
+  if (prevEnter) {
+    map.off("mouseenter", OVERLAY_PSAPS_POINTS, prevEnter);
+    map.off("mouseenter", OVERLAY_PSAPS_POINT_CIRCLES, prevEnter);
+  }
+  if (prevLeave) {
+    map.off("mouseleave", OVERLAY_PSAPS_POINTS, prevLeave);
+    map.off("mouseleave", OVERLAY_PSAPS_POINT_CIRCLES, prevLeave);
+  }
   if (prevClusterClick) map.off("click", OVERLAY_PSAPS_CLUSTERS, prevClusterClick);
   if (prevClusterEnter) map.off("mouseenter", OVERLAY_PSAPS_CLUSTERS, prevClusterEnter);
   if (prevClusterLeave) map.off("mouseleave", OVERLAY_PSAPS_CLUSTERS, prevClusterLeave);
@@ -290,6 +327,8 @@ export function bindPsapOverlayInteractions(
 
   map.on("mouseenter", OVERLAY_PSAPS_POINTS, onPointEnter);
   map.on("mouseleave", OVERLAY_PSAPS_POINTS, onPointLeave);
+  map.on("mouseenter", OVERLAY_PSAPS_POINT_CIRCLES, onPointEnter);
+  map.on("mouseleave", OVERLAY_PSAPS_POINT_CIRCLES, onPointLeave);
   map.on("click", OVERLAY_PSAPS_CLUSTERS, onClusterClick);
   map.on("mouseenter", OVERLAY_PSAPS_CLUSTERS, onClusterEnter);
   map.on("mouseleave", OVERLAY_PSAPS_CLUSTERS, onClusterLeave);

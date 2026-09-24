@@ -40,7 +40,7 @@ function WatchDemoYoutubeModal({ open, onClose }: { open: boolean; onClose: () =
         onClick={stopContentClick}
       >
         <h2 id={titleId} className="sr-only">
-          Rapid Cortex demo video
+          NexCort iQ demo video
         </h2>
         <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-white/15 bg-black">
           <button
@@ -52,7 +52,7 @@ function WatchDemoYoutubeModal({ open, onClose }: { open: boolean; onClose: () =
             <X className="h-5 w-5" aria-hidden />
           </button>
           <iframe
-            title="Rapid Cortex introductory video"
+            title="NexCort iQ introductory video"
             src={marketingIntroYoutubeEmbedUrl({ autoplay: true })}
             className="absolute inset-0 h-full w-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

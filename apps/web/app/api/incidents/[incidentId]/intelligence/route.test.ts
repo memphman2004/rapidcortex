@@ -12,7 +12,7 @@ describe("GET /api/incidents/:incidentId/intelligence", () => {
     proxyToAuthUpstream.mockClear();
   });
 
-  it("proxies to Rapid Vision /vision/intelligence", async () => {
+  it("proxies to NexiQ Vision /vision/intelligence", async () => {
     const { GET } = await import("./route");
     const request = new NextRequest(
       "http://localhost/api/incidents/inc_8d17220b/intelligence",

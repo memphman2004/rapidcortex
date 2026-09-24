@@ -1,5 +1,5 @@
 /**
- * Rapid Cortex — Help Article Fetcher
+ * NexCort iQ — Help Article Fetcher
  *
  * Fetches markdown from CloudFront/S3 or local `/public/help/` at runtime.
  * Articles: {NEXT_PUBLIC_HELP_CDN_BASE}/{role}/{topic}.md

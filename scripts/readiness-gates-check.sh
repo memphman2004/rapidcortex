@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 echo "=========================================="
-echo "Rapid Cortex — automated readiness helpers"
+echo "NexCort iQ — automated readiness helpers"
 echo "=========================================="
 echo ""
 echo "G1 — API security tests (Vitest, in-process)"

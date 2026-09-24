@@ -235,7 +235,7 @@ export function TransitConsoleHome(props: {
                 </Suspense>
               ) : (
                 <p style={{ color: T.textSecondary, fontSize: 13 }}>
-                  Rapid Cortex Video is disabled.
+                  NexiQ Video is disabled.
                 </p>
               )
             ) : null}

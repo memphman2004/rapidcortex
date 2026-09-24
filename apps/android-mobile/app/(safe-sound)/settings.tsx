@@ -36,7 +36,7 @@ export default function SafeSoundSettingsScreen() {
         <Card style={{ marginBottom: spacing['5'] }}>
           <Text
             style={[typography.bodyMedium, { color: palette.textPrimary }]}
-            onPress={() => Linking.openURL('mailto:support@rapidcortex.us')}
+            onPress={() => Linking.openURL('mailto:support@nexcortiq.us')}
           >
             Contact Support
           </Text>

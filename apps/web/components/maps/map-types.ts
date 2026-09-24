@@ -1,5 +1,5 @@
 /**
- * Rapid Cortex — Map Type Definitions
+ * NexCort iQ — Map Type Definitions
  *
  * Shared interfaces for the RapidCortexMap component system.
  * Used by: RapidCortexMapCore, MapLayerControl, supervisor/incident/venue dashboards.

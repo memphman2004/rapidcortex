@@ -1,12 +1,12 @@
-# Cursor Prompt: Tighten Rapid Cortex for Pilot Readiness and Production Hardening
+# Cursor Prompt: Tighten NexCort iQ for Pilot Readiness and Production Hardening
 
-You are working in the Rapid Cortex monorepo. Your job is to harden the platform for controlled agency pilots and production readiness without expanding risky functionality.
+You are working in the NexCort iQ monorepo. Your job is to harden the platform for controlled agency pilots and production readiness without expanding risky functionality.
 
 ## Primary Goal
-Prepare Rapid Cortex for safe pilots by locking down RBAC, tenant isolation, pilot feature flags, secure media handling, deployment health, audit logs, and agency-facing operational controls.
+Prepare NexCort iQ for safe pilots by locking down RBAC, tenant isolation, pilot feature flags, secure media handling, deployment health, audit logs, and agency-facing operational controls.
 
 ## Important Product Positioning
-Rapid Cortex is decision support for emergency communications. It is not a CAD replacement, telephony replacement, medical direction system, law enforcement command system, or NCIC/CJIS database access tool. Do not add features that imply automated dispatch decisions, CAD write-back, NCIC access, or replacement of dispatcher judgment.
+NexCort iQ is decision support for emergency communications. It is not a CAD replacement, telephony replacement, medical direction system, law enforcement command system, or NCIC/CJIS database access tool. Do not add features that imply automated dispatch decisions, CAD write-back, NCIC access, or replacement of dispatcher judgment.
 
 ## Current Role Model
 Replace/remove any public or active use of `platform_superadmin` or `superadmin` language unless needed for legacy migration only.
@@ -164,13 +164,13 @@ Requirements:
 - Remove backend/internal docs links from public navigation.
 - Keep public status page link in footer.
 - Keep decision-support disclaimer in footer.
-- Add Rapid Cortex logo/favicon to tab, email templates, mobile text link previews, and web links where applicable.
-- Add page or section for Desktop App and RC Lite downloads/API information without exposing private infrastructure URLs.
-- Remove Stripe/Square/payment processor mentions from Rapid Cortex core if still present.
+- Add NexCort iQ logo/favicon to tab, email templates, mobile text link previews, and web links where applicable.
+- Add page or section for Desktop App and NC Lite downloads/API information without exposing private infrastructure URLs.
+- Remove Stripe/Square/payment processor mentions from NexCort iQ core if still present.
 
 Acceptance Criteria:
 - No backend doc links are visible to public users.
-- No Stripe/Square references remain in Rapid Cortex unless isolated in unrelated legacy docs.
+- No Stripe/Square references remain in NexCort iQ unless isolated in unrelated legacy docs.
 - Site language says decision support, not replacement.
 
 ## Phase 8 - Tests and Evidence

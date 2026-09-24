@@ -1,6 +1,6 @@
-# Hexagon (HxGN OnCall / I/CAD) + Rapid Cortex Integration Guide
+# Hexagon (HxGN OnCall / I/CAD) + NexCort iQ Integration Guide
 
-**Version 1.0** | Rapid Cortex Public Safety AI Platform
+**Version 1.0** | NexCort iQ Public Safety AI Platform
 
 ---
 
@@ -10,8 +10,8 @@ This guide targets **Hexagon Safety & Infrastructure** dispatch products commonl
 
 **What this integration does**
 
-- Sends incident and related updates to Rapid Cortex for supplemental AI and workspace features.
-- Preserves **CAD as system of record**; Rapid Cortex does not replace dispatch functions in Hexagon.
+- Sends incident and related updates to NexCort iQ for supplemental AI and workspace features.
+- Preserves **CAD as system of record**; NexCort iQ does not replace dispatch functions in Hexagon.
 
 **Data flow (ASCII)**
 
@@ -28,7 +28,7 @@ This guide targets **Hexagon Safety & Infrastructure** dispatch products commonl
 
 - **HxGN OnCall Dispatch / I/CAD 9.0+** (confirm exact release with Hexagon).
 - Access to **Integration Manager** or equivalent **outbound interface** configuration.
-- Rapid Cortex **admin** credentials.
+- NexCort iQ **admin** credentials.
 - Outbound **HTTPS**.
 
 **Estimated setup time:** 2–6 hours (longer if XML transforms or ESB in path).
@@ -39,13 +39,13 @@ This guide targets **Hexagon Safety & Infrastructure** dispatch products commonl
 | --- | --- |
 | Hexagon PS / support | Interface enablement, schema |
 | Agency IT | TLS, proxies, certificates |
-| Rapid Cortex admin | Integration + testing |
+| NexCort iQ admin | Integration + testing |
 
 ---
 
 ## Prerequisites checklist
 
-- [ ] Rapid Cortex **Admin** access.
+- [ ] NexCort iQ **Admin** access.
 - [ ] Hexagon product **version** recorded.
 - [ ] **Integration Manager** (or equivalent) access.
 - [ ] Outbound **443** to `api.rapidcortex.us`.
@@ -53,7 +53,7 @@ This guide targets **Hexagon Safety & Infrastructure** dispatch products commonl
 
 ---
 
-## Step 1: Generate integration credentials in Rapid Cortex
+## Step 1: Generate integration credentials in NexCort iQ
 
 1. **Admin → CAD Integrations → Add integration**.
 2. Select **Hexagon** (or **Hexagon / Intergraph** if shown).
@@ -71,13 +71,13 @@ This guide targets **Hexagon Safety & Infrastructure** dispatch products commonl
 2. **New HTTP(S) outbound** interface:
    - **URL:** `https://api.rapidcortex.us/api/cad/webhook/{agencyId}/{integrationId}`
    - **Method:** `POST`
-   - **Payload:** JSON *or* XML per your agreement with Rapid Cortex (middleware may convert XML→JSON).
+   - **Payload:** JSON *or* XML per your agreement with NexCort iQ (middleware may convert XML→JSON).
 3. **Authentication**
-   - **API key** header, **Bearer**, or **WS-Security** per Hexagon module — **must match** what Rapid Cortex expects for your integration type.
+   - **API key** header, **Bearer**, or **WS-Security** per Hexagon module — **must match** what NexCort iQ expects for your integration type.
 4. Select **events:** incident create/update/close; unit status if available.
 5. **Save** and run Hexagon’s **connectivity test** if available.
 
-> 💡 **Tip:** If Rapid Cortex requires JSON but Hexagon emits XML only, deploy a small **agency-owned transformer** with change control and monitoring.
+> 💡 **Tip:** If NexCort iQ requires JSON but Hexagon emits XML only, deploy a small **agency-owned transformer** with change control and monitoring.
 
 ---
 
@@ -89,13 +89,13 @@ Allow **HTTPS** to `api.rapidcortex.us`. IP ranges are dynamic; use [AWS IP addr
 
 ## Step 4: Test the connection
 
-Use Rapid Cortex **Send test incident** and Hexagon’s test tools; reconcile timestamps and incident IDs in logs.
+Use NexCort iQ **Send test incident** and Hexagon’s test tools; reconcile timestamps and incident IDs in logs.
 
 ---
 
 ## Step 5: Validate data mapping
 
-| Hexagon / I/CAD (examples) | Rapid Cortex |
+| Hexagon / I/CAD (examples) | NexCort iQ |
 | --- | --- |
 | Incident / call identifier | `cadIncidentId` |
 | Nature / type text | Nature / type |
@@ -135,7 +135,7 @@ TLS 1.2+, encryption at rest, **tenant isolation**, **audit**. Treat as **CJI**.
 
 | Channel | Detail |
 | --- | --- |
-| Rapid Cortex | [support@rapidcortex.us](mailto:support@rapidcortex.us) |
+| NexCort iQ | [support@nexcortiq.us](mailto:support@nexcortiq.us) |
 | Hexagon Safety & Infrastructure | Use your **Hexagon support contract** portal / TAM. |
 
 ---
@@ -160,7 +160,7 @@ TLS 1.2+, encryption at rest, **tenant isolation**, **audit**. Treat as **CJI**.
 
 ## Appendix B: Field mapping reference
 
-| Source field (examples) | Rapid Cortex |
+| Source field (examples) | NexCort iQ |
 | --- | --- |
 | `IncidentNumber` | CAD incident id |
 | `NatureCode` / incident type | Nature / type |

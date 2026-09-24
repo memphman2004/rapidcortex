@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Rapid Cortex — ship the web container without local Docker.
+# NexCort iQ — ship the web container without local Docker.
 #
 # Vs. scripts/deploy-web-ssr.sh:
 #   • deploy-web-ssr.sh provisions/updates SSR infrastructure (VPC, ECS, CloudFront, …) via
@@ -101,7 +101,7 @@ SERVICE_NAME="${ECS_SERVICE_NAME:-${_ECS_SERVICE_DEFAULT}}"
 unset _SSR_STACK_DEFAULT _ECS_CLUSTER_DEFAULT _ECS_SERVICE_DEFAULT
 
 echo "════════════════════════════════════════════════════════"
-echo " Rapid Cortex web deploy (no local Docker)"
+echo " NexCort iQ web deploy (no local Docker)"
 echo "════════════════════════════════════════════════════════"
 echo " Environment:     ${ENVIRONMENT}"
 echo " Region:          ${AWS_REGION}"

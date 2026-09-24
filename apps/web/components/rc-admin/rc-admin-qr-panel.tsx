@@ -47,7 +47,7 @@ export function RcAdminQrPanel() {
   if (!enabled) {
     return (
       <p className="text-sm text-slate-400">
-        QR location tools aren’t enabled. Contact Rapid Cortex support.
+        QR location tools aren’t enabled. Contact NexCort iQ support.
       </p>
     );
   }

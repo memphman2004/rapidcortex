@@ -1,4 +1,4 @@
-# Rapid Cortex — Installation guide
+# NexCort iQ — Installation guide
 
 This document covers **local development** and **AWS deployment** of the monorepo: web app (`apps/web`), API (`apps/api` + SAM), and shared packages.
 
@@ -16,7 +16,7 @@ This document covers **local development** and **AWS deployment** of the monorep
 
 ```bash
 git clone <repository-url>
-cd "Rapid Cortex"   # or your checkout directory name
+cd "NexCort iQ"   # or your checkout directory name
 npm install
 ```
 

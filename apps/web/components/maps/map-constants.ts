@@ -1,5 +1,5 @@
 /**
- * Rapid Cortex — Map Constants
+ * NexCort iQ — Map Constants
  *
  * Overlay layer IDs, severity colors, defaults, and toggle mappings.
  * ALS Esri/HERE styles do not include the former Studio overlay IDs.
@@ -44,7 +44,7 @@ export const STUDIO_LAYER_IDS = [
   "rc-selected-incident",
   "rc-psap-zones-fill",
   "rc-psap-zones-line",
-  // Traffic — rename from "RC Live Traffic" / "RC Live Traffic Closures" in Studio
+  // Traffic — rename from "Live Traffic" / "Live Traffic Closures" in Studio
   "rc-live-traffic",
   "rc-live-traffic-closures",
 ] as const;

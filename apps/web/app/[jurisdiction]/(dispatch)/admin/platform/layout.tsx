@@ -32,7 +32,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
   if (rcAdminTarget && rcAdminTarget !== pathname) {
     return (
       <p className="p-8 text-sm text-slate-500" role="status">
-        Opening RC Admin console…
+        Opening NexCort Admin console…
       </p>
     );
   }

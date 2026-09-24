@@ -7,14 +7,14 @@ const CORE_HERO = {
   src: "/images/911-hero.webp",
   width: 1672,
   height: 941,
-  alt: "Rapid Cortex Core — 911 dispatch floor, live transcription, and emergency response coordination",
+  alt: "911 Centers/PSAPs — 911 dispatch floor, live transcription, and emergency response coordination",
 } as const;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "RC Core | Rapid Cortex",
+    title: "911 Centers/PSAPs | NexCort iQ",
     description:
-      "Rapid Cortex Core provides AI-assisted situational awareness and incident intelligence for 911, EMS, fire rescue, and law enforcement operations.",
+      "911 Centers/PSAPs provides AI-assisted situational awareness and incident intelligence for 911, EMS, fire rescue, and law enforcement operations.",
     keywords: [
       "911 software",
       "dispatch intelligence",
@@ -23,23 +23,23 @@ export async function generateMetadata(): Promise<Metadata> {
       "law enforcement incident management",
     ],
     openGraph: {
-      title: "RC Core | Rapid Cortex",
+      title: "911 Centers/PSAPs | NexCort iQ",
       description: "Intelligence at the speed of response for core public safety operations.",
       url: absoluteUrl("/product/core"),
-      siteName: "Rapid Cortex",
+      siteName: "NexCort iQ",
       images: [
         {
           url: absoluteUrl(CORE_HERO.src),
           width: CORE_HERO.width,
           height: CORE_HERO.height,
-          alt: "Rapid Cortex Core",
+          alt: "911 Centers/PSAPs",
         },
       ],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: "RC Core | Rapid Cortex",
+      title: "911 Centers/PSAPs | NexCort iQ",
       description: "AI-assisted public safety intelligence for dispatch operations.",
       images: [absoluteUrl(CORE_HERO.src)],
     },
@@ -74,7 +74,7 @@ export default function ProductCorePage() {
           />
           <div className="relative z-10 flex h-full w-full flex-col items-start justify-start px-4 pb-8 pt-2 text-left sm:px-6 sm:pb-10 sm:pt-3 lg:px-8">
             <div className="max-w-2xl space-y-3 sm:space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-300">RC Core</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-300">911 Centers/PSAPs</p>
               <h1
                 id="core-hero-title"
                 className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl"
@@ -120,7 +120,7 @@ export default function ProductCorePage() {
         <section id="transcription">
           <h2 className="text-xl font-medium text-white">Transcription support</h2>
           <p className="mt-2 text-sm text-slate-300">
-            RC Core provides live transcription workflows that help dispatch and supervisory teams retain critical
+            911 Centers/PSAPs provides live transcription workflows that help dispatch and supervisory teams retain critical
             context during active incidents.
           </p>
         </section>
@@ -136,7 +136,7 @@ export default function ProductCorePage() {
         <section className="mt-10 rounded-lg border border-slate-800 bg-slate-900/30 p-4">
           <h2 className="text-lg font-medium text-white">Decision-support disclaimer</h2>
           <p className="mt-2 text-sm text-slate-300">
-            Rapid Cortex is a decision-support tool. It does not replace dispatcher judgment, CAD systems, medical
+            NexCort iQ is a decision-support tool. It does not replace dispatcher judgment, CAD systems, medical
             direction, or established protocols.
           </p>
         </section>

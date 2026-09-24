@@ -51,7 +51,7 @@
     },
     "production": {
       "autoIncrement": true,
-      // Native iOS Rapid Cortex Mobile is apps/ios-mobile (us.rapidcortex.field). Use:
+      // Native iOS NexCort iQ Mobile is apps/ios-mobile (us.rapidcortex.field). Use:
       //   eas build --platform android --profile production
       "android": {
         "buildType": "app-bundle",
@@ -77,7 +77,7 @@
   "submit": {
     "production": {
       "android": {
-        // Google Play Console developer account ID: 7807903929046926180 (Rapid Cortex org)
+        // Google Play Console developer account ID: 7807903929046926180 (NexCort iQ org)
         "serviceAccountKeyPath": "./google-play-key.json",
         // Play Console is using Internal testing until the store listing can ship.
         "track": "internal"

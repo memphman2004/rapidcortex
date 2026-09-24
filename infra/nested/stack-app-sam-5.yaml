@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >-
-  Rapid Cortex API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks
+  NexCort iQ API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks
   use least-privilege actions, ARNs for Bedrock foundation models (AiBedrockFoundationModelId + QaBedrockModelId),
   stack Secrets prefix rapidcortex/<stage>/*, and regional Conditions where AWS control-plane APIs require Resource=*.
   Verify with npm run validate:iam and sam validate --lint.
@@ -486,15 +486,15 @@ Parameters:
   VideoWallConfigsTable:
     Type: String
     Default: ""
-    Description: Per-user Rapid Cortex Video wall layouts (agencyId HASH, userId RANGE).
+    Description: Per-user NexCort iQ Video wall layouts (agencyId HASH, userId RANGE).
   VideoClipsTable:
     Type: String
     Default: ""
-    Description: Rapid Cortex Video DVR clips (agencyId HASH, clipId RANGE).
+    Description: NexCort iQ Video DVR clips (agencyId HASH, clipId RANGE).
   VideoGatewayUrl:
     Type: String
     Default: ""
-    Description: On-prem Rapid Cortex Video PTZ gateway base URL (e.g. https://gateway.agency.local:8787). Empty = mock relay.
+    Description: On-prem NexCort iQ Video PTZ gateway base URL (e.g. https://gateway.agency.local:8787). Empty = mock relay.
   VideoGatewaySecretArn:
     Type: String
     Default: ""
@@ -904,10 +904,11 @@ Mappings:
       Tr3: "off"
   SmsEnvironmentDefaults:
     dev:
-      SmsProvider: mock
+      # DeploymentStage=dev is live production (app.rapidcortex.us).
+      SmsProvider: aws
       SmsPrimaryProvider: aws
-      MockSmsProvider: "true"
-      AwsSmsUseSimulator: "true"
+      MockSmsProvider: "false"
+      AwsSmsUseSimulator: "false"
     staging:
       SmsProvider: aws
       SmsPrimaryProvider: aws
@@ -1563,8 +1564,9 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       DefaultRouteSettings:
-        ThrottlingBurstLimit: 1000
-        ThrottlingRateLimit: 500
+        # Major-incident floor: 150+ concurrent PSAP consoles.
+        ThrottlingBurstLimit: 5000
+        ThrottlingRateLimit: 2000
       CorsConfiguration:
         AllowOrigins: !Split [",", !Ref HttpApiCorsAllowedOrigins]
         AllowHeaders:
@@ -1607,7 +1609,7 @@ Resources:
     Condition: HasApiWaf
     Properties:
       Name: !Sub "${AppName}-httpapi5-waf-${DeploymentStage}"
-      Description: Rapid Cortex API security - agency allowlist, US/CA geo block, anonymous/VPN monitor count.
+      Description: NexCort iQ API security - agency allowlist, US/CA geo block, anonymous/VPN monitor count.
       Scope: REGIONAL
       DefaultAction:
         Allow: {}
@@ -3559,9 +3561,21 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/campus/handlers/post-campus-incident.handler
       Timeout: 30
+      Environment:
+        Variables:
+          ENABLE_MILESTONE_XPROTECT: "true"
+          MILESTONE_CONNECTIONS_TABLE: !Sub "rapid-cortex-milestone-connections-${DeploymentStage}"
+          MILESTONE_MOCK: ""
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - Statement:
+            - Sid: MilestoneOutboundConnectionRead
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-milestone-connections-${DeploymentStage}"
       Events:
         Route:
           Type: HttpApi
@@ -3854,10 +3868,20 @@ Resources:
         Variables:
           ENABLE_CAMPUS_SECURITY_EVENTS: ""
           ENABLE_CAMPUS_SECURITY_EVENTS_MOCK: ""
+          ENABLE_MILESTONE_XPROTECT: "true"
+          MILESTONE_CONNECTIONS_TABLE: !Sub "rapid-cortex-milestone-connections-${DeploymentStage}"
+          MILESTONE_MOCK: ""
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - Statement:
+            - Sid: MilestoneOutboundConnectionRead
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-milestone-connections-${DeploymentStage}"
       Events:
         Route:
           Type: HttpApi
@@ -5107,7 +5131,7 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/rapid-cortex-video/http.handler
       Timeout: 30
-      Description: Rapid Cortex Video — command video wall, DVR playback, clip export, and PTZ gateway relay
+      Description: NexCort iQ Video — command video wall, DVR playback, clip export, and PTZ gateway relay
       Environment:
         Variables:
           ENABLE_RC_VIDEO: "true"
@@ -5238,7 +5262,7 @@ Resources:
       Timeout: 120
       MemorySize: 1024
       ReservedConcurrentExecutions: 3
-      Description: GetClip export of Rapid Cortex Video DVR clips to the assets bucket (max 5 minutes).
+      Description: GetClip export of NexCort iQ Video DVR clips to the assets bucket (max 5 minutes).
       Environment:
         Variables:
           DEPLOYMENT_STAGE: !Ref DeploymentStage
@@ -5294,8 +5318,8 @@ Resources:
         Service: rc-support-tickets
       Environment:
         Variables:
-          SUPPORT_EMAIL: support@rapidcortex.us
-          FROM_EMAIL: !If [CreateSesIdentity, !Ref SesIdentityValue, "noreply@rapidcortex.us"]
+          SUPPORT_EMAIL: support@nexcortiq.us
+          FROM_EMAIL: !If [CreateSesIdentity, !Ref SesIdentityValue, "noreply@nexcortiq.us"]
           SUPPORT_PHONE: ""
       Policies:
         - DynamoDBCrudPolicy:

@@ -18,7 +18,7 @@ export function exportCampusAfterActionPdf(incident: CampusIncident): Promise<Bu
     const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
 
     doc.rect(0, 0, doc.page.width, 64).fill(NAVY);
-    doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(16).text("Rapid Cortex Campus", 54, 22);
+    doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(16).text("NexCort iQ Campus", 54, 22);
     doc.font("Helvetica").fontSize(9).text("After-action extract — institutional review only", 54, 42);
 
     doc.moveDown(3);
@@ -49,7 +49,7 @@ export function exportCampusAfterActionPdf(incident: CampusIncident): Promise<Bu
       doc
         .font("Helvetica")
         .text(
-          `${incident.cleryCategorySuggested}. Rapid Cortex does not make Clery Act determinations. Designated Campus Security Authorities must verify before ASR inclusion.`,
+          `${incident.cleryCategorySuggested}. NexCort iQ does not make Clery Act determinations. Designated Campus Security Authorities must verify before ASR inclusion.`,
           { width: pageWidth },
         );
     }

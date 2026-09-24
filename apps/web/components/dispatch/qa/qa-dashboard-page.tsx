@@ -98,7 +98,7 @@ export function QaDashboardPage() {
   if (!enabled) {
     return (
       <div className="p-6 text-sm text-slate-400">
-        QA scoring isn’t enabled for this agency. Contact Rapid Cortex support.
+        QA scoring isn’t enabled for this agency. Contact NexCort iQ support.
       </div>
     );
   }

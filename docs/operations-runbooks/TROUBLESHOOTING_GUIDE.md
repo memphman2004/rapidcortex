@@ -46,7 +46,7 @@
 
 ## Operator-visible fallback guidance
 
-- **Continue operations without Rapid Cortex** when API is down—product is assistive, not SoR ([NON_GOALS.md](./NON_GOALS.md)).
+- **Continue operations without NexCort iQ** when API is down—product is assistive, not SoR ([NON_GOALS.md](./NON_GOALS.md)).
 - **Do not disable MFA** as a workaround without security sign-off.
 
 ## Related

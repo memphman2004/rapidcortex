@@ -124,7 +124,7 @@ struct IncidentDetailView: View {
             bg = Color(hex: "#1A2A50")
             fg = Color(hex: "#5B8AFF")
         default:
-            label = "RC AI"
+            label = "NC AI"
             alignment = .leading
             bg = Color(hex: "#1A1408")
             fg = RCTheme.amber

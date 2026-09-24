@@ -16,7 +16,7 @@ export type RcLiteV1RouteDef = {
 };
 
 /**
- * Canonical route table for RC Lite v1 — handlers may return 501 until wired to upstream services.
+ * Canonical route table for NexCort Lite v1 — handlers may return 501 until wired to upstream services.
  * Keep synchronized with OpenAPI (`apps/web/public/openapi/rc-lite-v1.openapi.yaml`).
  */
 export const RC_LITE_V1_ROUTES: readonly RcLiteV1RouteDef[] = [

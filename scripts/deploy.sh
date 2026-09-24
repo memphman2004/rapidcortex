@@ -16,6 +16,8 @@ set -euo pipefail
 # - ROOT_DOMAIN (default: rapidcortex.us)
 # - API_SUBDOMAIN_PREFIX (default: api; staging defaults to api-staging)
 # - I_UNDERSTAND_DEV_IS_PROD=1 required for `deploy.sh dev` (that stack is live production)
+# - P0 before sam deploy: vitest cross-tenant isolation, live isolation JWTs
+#   (API_URL, AGENCY_A_JWT, AGENCY_B_JWT), check-prod-mock-flags.py, check-go-no-go-p0.py
 # - EXISTING_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN / EXISTING_BILLING_SES_CREDENTIALS_SECRET_ARN
 #   skip DataLayer secret create when those names already exist (staging recreate)
 # - CAD_BRIDGE_VPC_ID / CAD_BRIDGE_VPC_SUBNET_IDS / CAD_BRIDGE_VPC_SECURITY_GROUP_ID
@@ -224,6 +226,8 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-mileston
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-physical-security.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-location.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-cad-bridge.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-cad-mesh.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-features.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-c2c.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-call-assist.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-sop-intel.yaml"
@@ -258,7 +262,7 @@ export NODE_OPTIONS
 export SAM_NODE_MODULES_SRC="${SAM_NODE_MODULES_SRC:-${ROOT}/apps/api/node_modules}"
 
 echo "═══════════════════════════════════════════════════════"
-echo " Rapid Cortex SAM backend deployment"
+echo " NexCort iQ SAM backend deployment"
 echo "═══════════════════════════════════════════════════════"
 echo " Stage:                ${STAGE}"
 echo " Stack:                ${STACK_NAME}"
@@ -569,6 +573,24 @@ fi
 if [[ "${INCLUDE_APP_SAM_BILLING_NESTED_STACK:-true}" == "false" ]]; then
   PARAMS="${PARAMS} IncludeAppSamBillingNestedStack=false"
 fi
+if [[ -n "${FEATURES_ACTIVE_AGENCY_IDS:-}" ]]; then
+  PARAMS="${PARAMS} FeaturesActiveAgencyIds=${FEATURES_ACTIVE_AGENCY_IDS}"
+fi
+if [[ -n "${FEATURES_SOCIAL_AGENCY_CONFIGS:-}" ]]; then
+  PARAMS="${PARAMS} FeaturesSocialAgencyConfigs=${FEATURES_SOCIAL_AGENCY_CONFIGS}"
+fi
+if [[ -n "${FEATURES_RING_NEIGHBORS_WEBHOOK_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} FeaturesRingNeighborsWebhookSecretArn=${FEATURES_RING_NEIGHBORS_WEBHOOK_SECRET_ARN}"
+fi
+if [[ -n "${AGENCY_KMS_KEY_ARN:-}" ]]; then
+  PARAMS="${PARAMS} AgencyKMSKeyArn=${AGENCY_KMS_KEY_ARN}"
+fi
+if [[ "${SIEM_ENABLED:-}" == "true" || "${SIEM_ENABLED:-}" == "1" ]]; then
+  PARAMS="${PARAMS} SIEMEnabled=true"
+  if [[ -n "${SIEM_ENDPOINT_URL:-}" ]]; then
+    PARAMS="${PARAMS} SIEMEndpointUrl=${SIEM_ENDPOINT_URL}"
+  fi
+fi
 # Rapid IQ nested hashed stack JWN4SGUYZXYF: intel-watch queues / extra ingest Lambdas
 # collide with leftover standalone rapid-cortex-dev-AppSamRapidIqPipelineStack.
 # HTTP routes are gated separately (recreate via SignalHttpIntegrationV2 on live).
@@ -808,6 +830,26 @@ rapid_cortex_print_deploy_failure_reason() {
   echo "Tip: full event history in console or: aws cloudformation describe-stack-events --stack-name '${STACK_NAME}'" >&2
   echo "Cognito group drift (AlreadyExists / rename): ./scripts/reconcile-cognito-groups-cfn-import.sh ${STAGE}" >&2
 }
+
+# P0 gates. Unit isolation always runs. Live isolation needs JWTs because the
+# pool requires TOTP, so USER_PASSWORD_AUTH cannot mint a token by itself.
+echo "==> P0 cross-tenant isolation (unit)"
+npx vitest run apps/api/src/__tests__/security/cross-tenant-isolation.test.ts --reporter=dot
+
+echo "==> P0 cross-tenant isolation (live)"
+if [[ -n "${AGENCY_A_JWT:-}" && -n "${AGENCY_B_JWT:-}" && -n "${API_URL:-}" ]]; then
+  npx tsx scripts/cross-agency-isolation-test.ts
+elif [[ -n "${RC_TEST_PASSWORD:-}" ]]; then
+  bash scripts/run-cross-agency-isolation-test.sh
+else
+  echo "P0 blocked: export API_URL, AGENCY_A_JWT, and AGENCY_B_JWT (MFA tokens)." >&2
+  echo "Password auth cannot complete while MfaConfiguration is ON." >&2
+  exit 1
+fi
+
+echo "==> P0 mock flags and go/no-go"
+CHECK_DEPLOY_ENV=1 python3 scripts/check-prod-mock-flags.py
+python3 scripts/check-go-no-go-p0.py
 
 # SAM_DISABLE_ROLLBACK=1 keeps failed stacks for inspection (blocks replacement updates on Cognito groups, etc.).
 DEPLOY_EXTRA_ARGS=()

@@ -146,24 +146,24 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     });
 
     const confirmHtml = `<p>Hi ${item.firstName},</p>
-<p>Thank you for applying for the <strong>${positionLabel}</strong> role at Rapid Cortex. We have received your application and will review it shortly.</p>
+<p>Thank you for applying for the <strong>${positionLabel}</strong> role at NexCort iQ. We have received your application and will review it shortly.</p>
 <p>You can revisit open roles anytime at <a href="https://www.rapidcortex.us/careers">www.rapidcortex.us/careers</a>.</p>
-<p>— The Rapid Cortex Team<br>careers@rapidcortex.us</p>`;
+<p>— The NexCort iQ Team<br>careers@nexcortiq.us</p>`;
     const confirmText = [
       `Hi ${item.firstName},`,
       "",
-      `Thank you for applying for the ${positionLabel} role at Rapid Cortex. We have received your application and will review it shortly.`,
+      `Thank you for applying for the ${positionLabel} role at NexCort iQ. We have received your application and will review it shortly.`,
       "",
       "Open roles: https://www.rapidcortex.us/careers",
       "",
-      "— The Rapid Cortex Team",
-      "careers@rapidcortex.us",
+      "— The NexCort iQ Team",
+      "careers@nexcortiq.us",
     ].join("\n");
 
     try {
       await sendSes({
         to: item.email,
-        subject: "We received your Rapid Cortex application",
+        subject: "We received your NexCort iQ application",
         html: confirmHtml,
         text: confirmText,
       });

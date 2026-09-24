@@ -5,10 +5,10 @@ import { buildPublicPageMetadata } from "@/lib/seo";
 const PATH = "/grants";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Grant Success Program — Rapid Cortex",
+  title: "Grant Success Program — NexCort iQ",
   description:
     "Free AI-powered grant writing for 911 centers and public safety agencies. " +
-    "Rapid Cortex generates complete, ready-to-submit grant applications for COPS, " +
+    "NexCort iQ generates complete, ready-to-submit grant applications for COPS, " +
     "NG911, Byrne JAG, ARPA, and more — included at no additional cost.",
   path: PATH,
 });

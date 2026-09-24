@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — RC Translate (Transcribe → Translate → Polly).
+  NexCort iQ — RC Translate (Transcribe → Translate → Polly).
   HTTP routes attach to stack 2 HttpApi. Dedicated WebSocket API for session audio.
 
 Parameters:

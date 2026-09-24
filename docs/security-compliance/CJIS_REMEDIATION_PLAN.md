@@ -1,4 +1,4 @@
-# Rapid Cortex CJIS Remediation Plan
+# NexCort iQ CJIS Remediation Plan
 
 This plan translates the CJIS gap audit into implementation workstreams. It is a readiness plan, not a certification statement.
 

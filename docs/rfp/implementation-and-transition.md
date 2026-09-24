@@ -1,6 +1,6 @@
 # Implementation and transition (RFP)
 
-**Scope:** Introducing Rapid Cortex as an **assistive** co-pilot beside existing CAD, 911, and radio. Rapid Cortex is never the system of record for dispatch.  
+**Scope:** Introducing NexCort iQ as an **assistive** co-pilot beside existing CAD, 911, and radio. NexCort iQ is never the system of record for dispatch.  
 **How to use:** copy §1 into the agency workbook and fill names/dates. Linked checklists are the working procedures.
 
 Index: [README.md](./README.md). Onboarding: [AGENCY_ONBOARDING_RUNBOOK.md](../operations-runbooks/AGENCY_ONBOARDING_RUNBOOK.md). Workbook: [IMPLEMENTATION_WORKBOOK_TEMPLATE.md](../go-to-market-sales/IMPLEMENTATION_WORKBOOK_TEMPLATE.md).
@@ -11,12 +11,12 @@ Index: [README.md](./README.md). Onboarding: [AGENCY_ONBOARDING_RUNBOOK.md](../o
 
 Standard **12-week** first-agency (or first-PSAP) plan. Compress to 8 weeks only if Cognito, privacy sign-off, and a single jurisdiction are already done. Expand if CAD vendor work or CJIS-sensitive AI mode is in the SOW.
 
-| Week | Phase | Rapid Cortex | Agency | Exit criteria |
+| Week | Phase | NexCort iQ | Agency | Exit criteria |
 |------|-------|--------------|--------|---------------|
 | **1** | Kickoff & governance | Assign RC pilot lead; deliver this pack + workbook | Name sponsor, IT/security, floor supervisor, training lead | Signed assistive SOW; [PILOT_KICKOFF_CHECKLIST.md](../go-to-market-sales/PILOT_KICKOFF_CHECKLIST.md) started |
 | **2** | Privacy, retention, protocols | Confirm AI/STT providers for this tenant | Privacy/retention decision; protocol pack owner | Checkpoints in workbook §4 dated |
 | **3** | Tenant & identity | Agency row; Cognito app client / CORS / callback URLs | MFA policy; who may be `agencyadmin` | Test admin can sign in on the agreed URL |
-| **4** | Environment ready | Confirm API + web stage; secrets ARNs; `CAD_WRITEBACK` remains **off** unless contracted | Network allowlist of Rapid Cortex HTTPS if required | [PILOT_VALIDATION_CHECKLIST.md](../go-to-market-sales/PILOT_VALIDATION_CHECKLIST.md) pre-flight green |
+| **4** | Environment ready | Confirm API + web stage; secrets ARNs; `CAD_WRITEBACK` remains **off** unless contracted | Network allowlist of NexCort iQ HTTPS if required | [PILOT_VALIDATION_CHECKLIST.md](../go-to-market-sales/PILOT_VALIDATION_CHECKLIST.md) pre-flight green |
 | **5** | Provisioning | Help create dispatcher / supervisor / admin users | Role mapping table approved | Each role reaches the correct home dashboard |
 | **6** | Technical smoke | Post-deploy + authenticated smoke; tenant isolation spot-check | Two test accounts if possible | Smoke scripts pass; no cross-agency data |
 | **7** | Training | Deliver dispatcher / supervisor / admin sessions | Staff attend; `/demo` only for scripted drills | [TRAINING_QUICKSTART.md](../operations-runbooks/TRAINING_QUICKSTART.md) complete |
@@ -34,18 +34,18 @@ Fill the same weeks into [IMPLEMENTATION_WORKBOOK_TEMPLATE.md](../go-to-market-s
 
 ## 2. Cutover strategy
 
-There is **no** cutover that turns off CAD, CPE, or radio. Cutover means Rapid Cortex becomes **available on the floor** under change control.
+There is **no** cutover that turns off CAD, CPE, or radio. Cutover means NexCort iQ becomes **available on the floor** under change control.
 
 ### Pattern (required)
 
-**Parallel operations.** Dispatchers keep CAD as system of record. Rapid Cortex provides transcript, translation, analysis, and QA **for human review**.
+**Parallel operations.** Dispatchers keep CAD as system of record. NexCort iQ provides transcript, translation, analysis, and QA **for human review**.
 
 | Gate | Must be true before floor use |
 |------|-------------------------------|
 | G0 | SOW states assistive use; CAD write-back **disabled** in API and web unless a signed CAD addendum exists |
 | G1 | Pre-flight validation checklist passed |
 | G2 | At least one `agencyadmin`, one `supervisor`, and N dispatchers (per SOW) can sign in |
-| G3 | Floor fallback briefed: if Rapid Cortex is down, work CAD/radio as today |
+| G3 | Floor fallback briefed: if NexCort iQ is down, work CAD/radio as today |
 | G4 | Ops SNS subscription live so RC sees 5xx/auth failures |
 
 ### Cutover steps (go-live window)
@@ -76,7 +76,7 @@ Rollback is **access and application**, then **data** only if required.
 
 1. Set pilot users `custom:status` inactive (or remove from the app client) so the floor returns to CAD-only.  
 2. Leave stacks in place; do not delete DynamoDB (DeletionPolicy Retain).  
-3. Notify sponsor: Rapid Cortex is paused, 911/CAD unchanged.
+3. Notify sponsor: NexCort iQ is paused, 911/CAD unchanged.
 
 ### B. Bad application deploy
 
@@ -103,8 +103,8 @@ Full drill: [BACKUP_AND_RECOVERY.md](../operations-runbooks/BACKUP_AND_RECOVERY.
 ### D. Decision tree
 
 ```
-Is CAD/911 impacted? → No (Rapid Cortex is assistive). Continue CAD.
-Is Rapid Cortex wrong/unsafe on the floor? → Pause user access (A).
+Is CAD/911 impacted? → No (NexCort iQ is assistive). Continue CAD.
+Is NexCort iQ wrong/unsafe on the floor? → Pause user access (A).
 Is a new release broken? → App rollback (B).
 Is tenant data corrupted? → PITR (C) with counsel if CJI-like content.
 ```
@@ -189,7 +189,7 @@ Customer readiness gates (G1–G5) remain [customer-readiness-gate.md](../custom
 
 ## 6. Transition support
 
-| Window | Rapid Cortex | Agency |
+| Window | NexCort iQ | Agency |
 |--------|--------------|--------|
 | **Implementation (weeks 1–10)** | Named pilot lead; scheduled training; technical smoke | Staff time; IT for Cognito/MFA |
 | **Hypercare (weeks 8–12, overlapping floor use)** | Bridge during first live blocks; 30-minute SEV-1 updates | Floor supervisor is first contact for “how do I…” |
@@ -202,7 +202,7 @@ Customer readiness gates (G1–G5) remain [customer-readiness-gate.md](../custom
 - Role training checklists under `docs/training/`  
 - Escalation: [ESCALATION_PATHS.md](../operations-runbooks/ESCALATION_PATHS.md)  
 
-**Out of Rapid Cortex support:** CAD vendor, 911 CPE, radio console, agency LAN, interpretation quality as a guaranteed SLA.
+**Out of NexCort iQ support:** CAD vendor, 911 CPE, radio console, agency LAN, interpretation quality as a guaranteed SLA.
 
 24/7 dedicated engineer: paid add-on, not assumed in hypercare.
 
@@ -210,11 +210,11 @@ Customer readiness gates (G1–G5) remain [customer-readiness-gate.md](../custom
 
 ## 7. Operational continuity planning
 
-Rapid Cortex **degrading must not stop 911**. Continuity is **agency floor procedures first**, Rapid Cortex recovery second.
+NexCort iQ **degrading must not stop 911**. Continuity is **agency floor procedures first**, NexCort iQ recovery second.
 
-| Scenario | Agency (authoritative) | Rapid Cortex |
+| Scenario | Agency (authoritative) | NexCort iQ |
 |----------|------------------------|--------------|
-| Rapid Cortex web/API down | Dispatch on CAD/radio/CPE as today | Rollback B; status to approved contacts |
+| NexCort iQ web/API down | Dispatch on CAD/radio/CPE as today | Rollback B; status to approved contacts |
 | Auth outage | Existing CAD sessions; do not share passwords | Cognito / authorizer triage |
 | AI / STT vendor outage | Continue without co-pilot | Degraded mode; no invented procedures |
 | Single-region AWS event | Floor continues on CAD | AWS status; failover only if a contracted multi-region design exists (**not** default) |
@@ -223,7 +223,7 @@ Rapid Cortex **degrading must not stop 911**. Continuity is **agency floor proce
 
 **Continuity checklist (keep in the playbook)**
 
-- [ ] Floor SOP one-pager: “If Rapid Cortex is unavailable…”  
+- [ ] Floor SOP one-pager: “If NexCort iQ is unavailable…”  
 - [ ] SNS / paging path tested  
 - [ ] Known-good release tags recorded  
 - [ ] PITR confirmed **on** for the stage  

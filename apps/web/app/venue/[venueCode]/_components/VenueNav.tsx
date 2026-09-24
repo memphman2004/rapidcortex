@@ -22,7 +22,7 @@ export function VenueNav({ venueCode, role = "VENUE_SUPERVISOR" }: { venueCode: 
         border: "1px solid var(--rc-border)",
       }}
     >
-      <RoleNavSections nav={nav} variant="compact" />
+      <RoleNavSections nav={nav} />
     </nav>
   );
 }

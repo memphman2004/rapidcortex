@@ -1,6 +1,6 @@
 import Foundation
 
-/// Booth / Rapid Cortex marketing signs open the public site — not a location report form.
+/// Booth / NexCort iQ marketing signs open the public site — not a location report form.
 /// Matches `packages/shared/src/qr-nfc/trade-show.ts`.
 enum TradeShowSite {
     static let agencyId = "rapid-cortex-platform"
@@ -41,8 +41,8 @@ enum TradeShowSite {
 
         var displayName: String {
             switch self {
-            case .home: return "Rapid Cortex site — Home"
-            case .demo: return "Rapid Cortex site — Demo"
+            case .home: return "NexCort iQ site — Home"
+            case .demo: return "NexCort iQ site — Demo"
             }
         }
 
@@ -64,7 +64,7 @@ enum TradeShowSite {
             QRNFCCode(
                 qrId: qrId,
                 agencyId: TradeShowSite.agencyId,
-                agencyName: "Rapid Cortex",
+                agencyName: "NexCort iQ",
                 name: displayName,
                 vertical: "core",
                 reportType: "both",

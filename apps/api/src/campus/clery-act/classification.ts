@@ -24,7 +24,7 @@ const KEYWORD_OFFENSE: Array<{ keywords: string[]; offense: CleryOffenseCategory
   { keywords: ["dating violence", "boyfriend hit", "girlfriend hit"], offense: "DATING_VIOLENCE" },
 ];
 
-function mockSuggest(incident: CampusIncident): CleryClassificationSuggestion {
+function keywordSuggest(incident: CampusIncident, note?: string): CleryClassificationSuggestion {
   const text = `${incident.type} ${incident.description}`.toLowerCase();
   const hits = KEYWORD_OFFENSE.filter((k) => k.keywords.some((w) => text.includes(w)));
   const primary: CleryOffenseCategory =
@@ -33,10 +33,14 @@ function mockSuggest(incident: CampusIncident): CleryClassificationSuggestion {
   return {
     primaryOffense: primary,
     confidence,
-    rationale:
+    rationale: [
+      note,
       hits.length === 1
         ? `Keyword match against campus incident text suggests ${primary}. This is advisory only.`
         : "Description is ambiguous or does not clearly meet a Clery offense definition. Human review is required.",
+    ]
+      .filter(Boolean)
+      .join(" "),
     isHateCrimePossible: /\b(bias|racist|slur|hate)\b/i.test(text),
     hateCrimeRationale: "Hate crime requires evidence of bias motivation — do not assume.",
     isVAWAPossible: hits.some((h) =>
@@ -88,11 +92,11 @@ export async function suggestCleryClassification(
 ): Promise<CleryClassificationSuggestion> {
   void agencyId;
   if (env.cleryClassificationMock) {
-    return mockSuggest(incident);
+    return keywordSuggest(incident, "Classification model is disabled.");
   }
   try {
     const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
-    if (!apiKey) return mockSuggest(incident);
+    if (!apiKey) return keywordSuggest(incident, "Classification model is not configured.");
     const user = JSON.stringify({
       type: incident.type,
       description: incident.description,
@@ -115,7 +119,7 @@ export async function suggestCleryClassification(
         messages: [{ role: "user", content: user }],
       }),
     });
-    if (!res.ok) return mockSuggest(incident);
+    if (!res.ok) return keywordSuggest(incident, "Classification model request failed.");
     const body = (await res.json()) as {
       content?: Array<{ type?: string; text?: string }>;
     };
@@ -125,11 +129,13 @@ export async function suggestCleryClassification(
       .join("\n");
     const jsonStart = text.indexOf("{");
     const jsonEnd = text.lastIndexOf("}");
-    if (jsonStart < 0 || jsonEnd <= jsonStart) return mockSuggest(incident);
+    if (jsonStart < 0 || jsonEnd <= jsonStart) {
+      return keywordSuggest(incident, "Classification model returned an unreadable response.");
+    }
     const parsed = parseSuggestion(JSON.parse(text.slice(jsonStart, jsonEnd + 1)));
-    return parsed ?? mockSuggest(incident);
+    return parsed ?? keywordSuggest(incident, "Classification model returned an unreadable response.");
   } catch {
-    return mockSuggest(incident);
+    return keywordSuggest(incident, "Classification model is unavailable.");
   }
 }
 

@@ -112,7 +112,7 @@ export function CadBridgeAdminPage() {
         <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-400/90">Admin</p>
         <h1 className="text-2xl font-semibold text-white">CAD Bridge</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Rapid Cortex is the broker, not the source of truth. If RC is unavailable, connected CADs keep operating
+          NexCort iQ is the broker, not the source of truth. If RC is unavailable, connected CADs keep operating
           independently — they only stop syncing until RC recovers. Up to {CAD_BRIDGE_MAX_PARTICIPANTS} CADs can join
           one hub. RC stores sync state and audit trails, not a live operational CAD record.
         </p>

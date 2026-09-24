@@ -1,4 +1,4 @@
-# Observation window — Rapid Cortex SOC 2 Type II (target)
+# Observation window — NexCort iQ SOC 2 Type II (target)
 
 **Not a Type II report.** This is the operating calendar management intends to hand a CPA firm.
 

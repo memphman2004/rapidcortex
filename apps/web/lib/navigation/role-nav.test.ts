@@ -201,7 +201,7 @@ describe("getRoleNav", () => {
     expect(byId.translate).toBe("/test-psap/translate");
   });
 
-  it("adds RC Translate to venue and campus navs and hides it from guest services", () => {
+  it("adds Translate to venue and campus navs and hides it from guest services", () => {
     const venue = getRoleNav("VENUE_OPERATOR", { venueCode: "MBS" });
     const venueHrefs = venue.sections.flatMap((s) => s.items).map((i) => i.id);
     expect(venueHrefs).toContain("translate");
@@ -230,12 +230,11 @@ describe("getRoleNav", () => {
     expect(adminHrefs["c2c-hub"]).toBe("/test-psap/admin/cad/c2c");
     const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" });
     expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "call-assist-qa")).toBeUndefined();
-    expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "cad-bridge")?.href).toBe(
-      "/test-psap/admin/cad/bridge",
-    );
-    expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "c2c-hub")?.href).toBe(
-      "/test-psap/admin/cad/c2c",
-    );
+    // CAD Bridge / C2C Hub / Agency Network are agency-admin configuration — not dispatcher ops.
+    expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "cad-bridge")).toBeUndefined();
+    expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "c2c-hub")).toBeUndefined();
+    expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "cad-mesh")).toBeUndefined();
+    expect(supervisor.sections.flatMap((s) => s.items).find((i) => i.id === "c2c-hub")).toBeUndefined();
   });
 
   it("Call Assist–only nav never includes the 911 dispatcher dashboard", () => {
@@ -257,7 +256,7 @@ describe("getRoleNav", () => {
     expect(hrefs).not.toContain("/app/call-assist/qa");
   });
 
-  it("keeps Rapid IQ in SALES & CRM and does not expose a separate Pipeline nav item", () => {
+  it("keeps NexiQ IQ in SALES & CRM and does not expose a separate Pipeline nav item", () => {
     for (const role of ["rcsuperadmin", "rcadmin"] as const) {
       const nav = getRoleNav(role, {});
       const items = nav.sections.flatMap((s) => s.items);
@@ -382,11 +381,11 @@ describe("getRoleNav", () => {
     expect(dispatcher).toBeUndefined();
   });
 
-  it("exposes Rapid Vision™ on dispatcher media, not supervisor or guest services", () => {
+  it("exposes NexiQ Vision™ on dispatcher media, not supervisor or guest services", () => {
     const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
       .sections.flatMap((s) => s.items)
       .find((i) => i.id === "rapid-vision");
-    expect(dispatcher?.label).toBe("Rapid Vision™");
+    expect(dispatcher?.label).toBe("NexiQ Vision™");
     expect(dispatcher?.href).toBe("/test-psap/media?vision=1");
     expect(dispatcher?.feature).toBe("rapidVision");
 

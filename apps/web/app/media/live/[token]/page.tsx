@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LiveVideoCallerClient } from "@/components/live-video/live-video-caller-client";
 
 export const metadata: Metadata = {
-  title: "Rapid Cortex Live Video",
+  title: "NexCort iQ Live Video",
   robots: { index: false, follow: false },
 };
 

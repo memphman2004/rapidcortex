@@ -92,7 +92,7 @@ export function MilestoneConnectPanel() {
     <section className="rounded-lg border border-slate-800 bg-slate-950/60 p-4">
       <h2 className="text-lg font-semibold text-white">Milestone XProtect</h2>
       <p className="mt-1 text-sm text-slate-400">
-        Connect the on-prem Rapid Cortex Milestone Bridge. Cloud never calls XProtect directly —
+        Connect the on-prem NexCort iQ Milestone Bridge. Cloud never calls XProtect directly —
         the bridge uses MIP SDK / XProtect REST on campus.
       </p>
 

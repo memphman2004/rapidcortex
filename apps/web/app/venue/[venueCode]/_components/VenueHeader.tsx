@@ -40,7 +40,7 @@ export function VenueHeader({
             className="text-xs uppercase tracking-wide"
             style={{ color: "var(--rc-vertical-accent)" }}
           >
-            Rapid Cortex Venue
+            NexCort iQ Venue
           </p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <h1 className="text-xl font-bold" style={{ color: "var(--rc-text-primary)" }}>

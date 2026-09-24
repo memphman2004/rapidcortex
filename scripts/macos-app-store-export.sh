@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Archive Rapid Cortex Desktop (macOS) for Mac App Store / Transporter.
+# Archive NexCort iQ Desktop (macOS) for Mac App Store / Transporter.
 # Requires: Xcode signed into team 6D7D94PU3M, Apple Distribution cert (Xcode can create it),
 # and an App Store Connect macOS app with bundle id com.rapidcortex.desktop.
 set -euo pipefail

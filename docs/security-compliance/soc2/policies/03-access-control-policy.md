@@ -55,7 +55,7 @@ Privileged access is reviewed **quarterly** ([access-review.md](../processes/acc
 
 ## 6. Remote access / physical
 
-Rapid Cortex does not operate a production data center. AWS physical security is inherited (request AWS Artifact reports). Operator laptops: full-disk encryption, OS auto-update, and unique accounts. Lost device → revoke sessions the same day.
+NexCort iQ does not operate a production data center. AWS physical security is inherited (request AWS Artifact reports). Operator laptops: full-disk encryption, OS auto-update, and unique accounts. Lost device → revoke sessions the same day.
 
 ## 7. Quarterly review evidence
 

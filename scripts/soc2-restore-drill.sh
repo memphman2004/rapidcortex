@@ -30,7 +30,7 @@ if [[ -z "$SOURCE" ]]; then
 fi
 
 if [[ "$SOURCE" != rapid-cortex-* && "$SOURCE" != RapidCortex* && "$SOURCE" != Ring* ]]; then
-  echo "ERROR: refusing table outside Rapid Cortex/Ring naming: $SOURCE" >&2
+  echo "ERROR: refusing table outside NexCort iQ/Ring naming: $SOURCE" >&2
   exit 1
 fi
 
@@ -83,4 +83,5 @@ aws dynamodb restore-table-to-point-in-time \
   --use-latest-restorable-time \
   | tee "$OUT/${STAMP}-restore-started.json"
 
-log "Restore requested. Wait until ACTIVE, validate counts, do not cut over production. Log the drill."
+log "Restore requested. Wait until ACTIVE, compare item counts, do not cut over production."
+log "Save docs/evidence/.../*-restore-completed.json with Table.TableStatus ACTIVE, sourceItemCount, and restoredItemCount."

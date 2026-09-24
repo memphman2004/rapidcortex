@@ -115,7 +115,7 @@ async function loadBillingSummary(request: NextRequest, agencyId: string): Promi
   const customer = customersRes.ok ? (customersRes.data.items ?? [])[0] : undefined;
 
   const subscription = (profile.subscription ?? {}) as Record<string, unknown>;
-  const plan = String(subscription.planId ?? profile.assignedPlanId ?? "RC CORE");
+  const plan = String(subscription.planId ?? profile.assignedPlanId ?? "911 CENTERS/PSAPS");
 
   return {
     ok: true,

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { StaffGuidePortal } from "./staff-guide-portal";
 import type { StaffGuideVertical } from "@/lib/staff-guide/catalog";
+import { loadStaffGuideArticles } from "@/lib/staff-guide/load-articles";
 
 function PortalFallback() {
   return (
@@ -15,9 +16,10 @@ export function StaffGuideView(props: {
   role: string;
   basePath: string;
 }) {
+  const articles = loadStaffGuideArticles(props.vertical);
   return (
     <Suspense fallback={<PortalFallback />}>
-      <StaffGuidePortal {...props} />
+      <StaffGuidePortal {...props} articles={articles} />
     </Suspense>
   );
 }

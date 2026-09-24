@@ -1,6 +1,6 @@
 # AWS Deployment Guide (Production-Native)
 
-This guide deploys Rapid Cortex with **ECS Fargate** for the Next.js SSR web runtime (container image in **ECR**) plus a **SAM** backend. The **runtime** for the web app is **ECS**—not Docker Engine on your own VMs.
+This guide deploys NexCort iQ with **ECS Fargate** for the Next.js SSR web runtime (container image in **ECR**) plus a **SAM** backend. The **runtime** for the web app is **ECS**—not Docker Engine on your own VMs.
 
 ## Prerequisites
 

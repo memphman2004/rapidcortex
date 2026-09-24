@@ -6,7 +6,7 @@ National outbound prospect database for US PSAPs (Public Safety Answering Points
 
 - Roles: `rcsuperadmin` | `rcadmin` | `rcitadmin` (`canAccessRcFinancePortal`)
 - UI flag: `NEXT_PUBLIC_ENABLE_PSAP_PROSPECTS` (default **on** when unset)
-- Nav: RC Admin → Business → **PSAP Prospects** (`/rc-admin/psap-prospects`)
+- Nav: NC Admin → Business → **PSAP Prospects** (`/rc-admin/psap-prospects`)
 
 ## Stack
 

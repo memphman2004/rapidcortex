@@ -400,7 +400,7 @@ function PageHeader({ theme, isVenue }: { theme: VerticalTheme; isVenue: boolean
         <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-blue-700">
           <Image
             src="/Logo/nowordslogo.png"
-            alt="Rapid Cortex"
+            alt="NexCort iQ"
             width={36}
             height={36}
             className="h-9 w-9 object-contain"

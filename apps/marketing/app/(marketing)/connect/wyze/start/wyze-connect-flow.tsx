@@ -114,7 +114,7 @@ export function WyzeConnectFlow() {
           <li>When responders need the feed, you get an SMS — tap to allow or decline.</li>
         </ol>
         <p className="rounded-lg border border-slate-700 bg-slate-950/40 p-4 text-xs text-slate-400">
-          Rapid Cortex never accesses your camera without your explicit approval for each request.
+          NexCort iQ never accesses your camera without your explicit approval for each request.
           You can remove your registration at any time.
         </p>
         <div className="flex flex-wrap gap-3">

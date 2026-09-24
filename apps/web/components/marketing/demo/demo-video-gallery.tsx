@@ -9,7 +9,7 @@ export const DEMO_VIDEOS = [
     id: "aBfBsM7TCrI",
     title: "Intelligence at the Speed of Response",
     description:
-      "A walkthrough of the Rapid Cortex platform from dispatcher workspace to supervisor dashboard.",
+      "A walkthrough of the NexCort iQ platform from dispatcher workspace to supervisor dashboard.",
     duration: "1:08",
     category: "Overview" as const,
   },
@@ -17,14 +17,14 @@ export const DEMO_VIDEOS = [
     id: "dNWFG0tx5kw",
     title: "Live Transcription",
     description:
-      "Watch how Rapid Cortex transcribes a 911 call in real time and generates an incident summary in under 2 seconds.",
+      "Watch how NexCort iQ transcribes a 911 call in real time and generates an incident summary in under 2 seconds.",
     duration: "1:36",
     category: "Features" as const,
   },
   {
     id: "YJT44fq5BGs",
     title: "CAD Integration Setup",
-    description: "Connecting Rapid Cortex to your CAD system.",
+    description: "Connecting NexCort iQ to your CAD system.",
     duration: "1:00",
     category: "Setup" as const,
   },
@@ -38,16 +38,16 @@ export const DEMO_VIDEOS = [
   },
   {
     id: "zcZn6dWLeks",
-    title: "Product Overview — Web, Desktop App, and RC Lite API",
+    title: "Product Overview — Web, Desktop App, and NexCort Lite API",
     description:
-      "For developers and agency IT teams; how easy it is to integrate Rapid Cortex into your existing systems.",
+      "For developers and agency IT teams; how easy it is to integrate NexCort iQ into your existing systems.",
     duration: "1:46",
     category: "Developers" as const,
   },
   {
     id: "FU6Nfei6-fs",
     playlistId: "PLQF5lJISQEZV-0OGyCrDLCT3wMGtY6wDJ",
-    title: "Rapid Cortex Campus: Not every emergency begins with a phone call",
+    title: "NexCort iQ Campus: Not every emergency begins with a phone call",
     description:
       "Campus safety operations for K-12 and university teams — patrol workflows, incident coordination, and intelligence beyond traditional phone intake.",
     duration: "Series",

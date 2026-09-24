@@ -15,15 +15,6 @@ describe("WyzeApiClient", () => {
     vi.unstubAllGlobals();
   });
 
-  it("returns mock cameras when WYZE_MOCK=1", async () => {
-    vi.stubEnv("WYZE_MOCK", "1");
-    const client = new WyzeApiClient();
-    const cameras = await client.listCameras({ keyId: "k", apiKey: "a" });
-    expect(cameras).toHaveLength(1);
-    expect(cameras[0]?.mac).toBe("AA:BB:CC:DD:EE:FF");
-    expect(cameras[0]?.hasLiveStream).toBe(true);
-  });
-
   it("filters the live API list to streamable cameras", async () => {
     vi.stubEnv("WYZE_MOCK", "0");
     vi.stubGlobal(
@@ -59,15 +50,28 @@ describe("WyzeApiClient", () => {
     expect(cameras.map((c) => c.mac)).toEqual(["AA:11"]);
   });
 
-  it("returns mock KVS signaling shape for getStreamInfo", async () => {
-    vi.stubEnv("WYZE_MOCK", "1");
+  it("uses the live signaling payload for getStreamInfo", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          code: "1",
+          data: {
+            signaling_url: "wss://kvs.example/signaling",
+            ice_servers: [{ urls: "stun:stun.l.google.com:19302" }],
+            auth_token: "live-token",
+          },
+        }),
+      })),
+    );
     const client = new WyzeApiClient();
     const info = await client.getStreamInfo("AA:BB:CC:DD:EE:FF", "WYZEC3", {
       keyId: "k",
       apiKey: "a",
     });
-    expect(info.signalingUrl).toContain("wss://");
-    expect(info.authToken).toBeTruthy();
+    expect(info.signalingUrl).toContain("wss://kvs.example/signaling");
+    expect(info.authToken).toBe("live-token");
     expect(info.iceServers.length).toBeGreaterThan(0);
   });
 });

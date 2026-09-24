@@ -61,7 +61,7 @@ enum QRCodeGenerator {
         return "rc-qr-\(safeName)-\(shortId).png"
     }
 
-    /// Agency branding logo if available; otherwise the Rapid Cortex mark.
+    /// Agency branding logo if available; otherwise the NexCort iQ mark.
     static func fallbackLogo() -> UIImage? {
         UIImage(named: "RCLogo")
     }

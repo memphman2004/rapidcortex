@@ -1,4 +1,4 @@
-# Rapid Cortex Deception Shield
+# NexCort iQ Deception Shield
 
 ## Purpose and scope
 
@@ -7,7 +7,7 @@ Deception Shield is a defensive deception layer comprising:
 1. Synthetic HTTP endpoints that imitate sensitive internal integrations (CAD, NCIC snapshots, backups, pseudo-secrets paths, etc.).
 2. Honey-token matching on authenticated traffic paths (JWT bearer fragments, explicit API keys within headers, URLs, JSON bodies).
 
-It exists to lure automated scanners toward isolated surfaces, correlate behaviors, tier risk severity, emit structured telemetry, and — when alerting is enabled — raise operator notifications via existing Rapid Cortex operational channels (`OpsAlertsTopic`).
+It exists to lure automated scanners toward isolated surfaces, correlate behaviors, tier risk severity, emit structured telemetry, and — when alerting is enabled — raise operator notifications via existing NexCort iQ operational channels (`OpsAlertsTopic`).
 
 ## What it does NOT do
 
@@ -136,7 +136,7 @@ Residual risk: deceptive signals require human analysis; correlate with authorit
 | LOW | Passive logging; annotate security backlog item |
 | MEDIUM | Review correlated CDN/WAF + SIEM timelines; widen packet capture selectively |
 | HIGH | Pivot on honeytoken key symbolism; initiate credential hygiene review loops |
-| CRITICAL | Engage Rapid Cortex security escalation; accelerate WAF/geo blocks if policy allows |
+| CRITICAL | Engage NexCort iQ security escalation; accelerate WAF/geo blocks if policy allows |
 
 Escalations must document rationale referencing correlation IDs surfaced in sanitized admin exports.
 

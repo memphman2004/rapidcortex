@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — Clery Act compliance (campus). Nested so stack-app-sam-5.yaml stays under size limits.
+  NexCort iQ — Clery Act compliance (campus). Nested so stack-app-sam-5.yaml stays under size limits.
   Single-table design (SK prefixes) with ExistingCleryActTableName workaround.
 
 Parameters:
@@ -50,7 +50,7 @@ Globals:
         ALLOW_UNAUTHENTICATED_API: "false"
         ENABLE_CLERY_MODULE: "true"
         ENABLE_CAMPUS_CLERY: "true"
-        CLERY_CLASSIFICATION_MOCK: "true"
+        CLERY_CLASSIFICATION_MOCK: "false"
         CAD_WRITEBACK_ENABLED: "false"
         CLERY_ACT_TABLE: !If
           - CreateCleryActTable

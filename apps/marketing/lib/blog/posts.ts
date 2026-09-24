@@ -20,12 +20,12 @@ const july2026WeeklyPosts: BlogPost[] = JULY_2026_WEEKLY_SLUGS.map((slug) => {
 export const posts: BlogPost[] = [
   {
     slug: "why-rapid-cortex-is-needed",
-    title: "Why Rapid Cortex Is Needed: The Future of Real-Time Incident Intelligence",
+    title: "Why NexCort iQ Is Needed: The Future of Real-Time Incident Intelligence",
     description:
       "911 centers, campuses, and venues all face the same problem: information about a critical incident arrives too slowly. Here's why that's changing.",
     category: "Industry Perspective",
     tags: ["emergency communication software", "public safety technology", "incident intelligence platform", "ng911"],
-    author: { name: "Rapid Cortex Team", role: "Product" },
+    author: { name: "NexCort iQ Team", role: "Product" },
     publishedAt: "2026-03-21",
     readingTimeMinutes: 9,
     content: [
@@ -101,12 +101,12 @@ export const posts: BlogPost[] = [
           type: "heading",
           level: 2,
           id: "how-rapid-cortex-bridges-the-gap",
-          text: "How Rapid Cortex bridges the gap",
+          text: "How NexCort iQ bridges the gap",
         },
         {
           type: "paragraph",
           text:
-            "This is the problem Rapid Cortex was built to solve, in three environments at once: [Rapid Cortex Core](/product/core) inside 911 centers and PSAPs, [Rapid Cortex Venue](/product/venue) inside stadiums, arenas, and large gatherings, and [Rapid Cortex Campus](/product/campus) on university and school campuses. The environments differ. The underlying problem doesn't — get accurate, structured incident information in front of a trained human fast enough for it to matter, without asking anyone to adopt a new app or change how they already report something. We cover how those three pieces fit together as one platform in [Rapid Cortex Offerings: One Platform, Three Powerful Solutions](/blog/rapid-cortex-offerings).",
+            "This is the problem NexCort iQ was built to solve, in three environments at once: [911 Centers/PSAPs](/product/core) inside 911 centers and PSAPs, [NexCort iQ Venue](/product/venue) inside stadiums, arenas, and large gatherings, and [NexCort iQ Campus](/product/campus) on university and school campuses. The environments differ. The underlying problem doesn't — get accurate, structured incident information in front of a trained human fast enough for it to matter, without asking anyone to adopt a new app or change how they already report something. We cover how those three pieces fit together as one platform in [NexCort iQ Offerings: One Platform, Three Powerful Solutions](/blog/rapid-cortex-offerings).",
         },
         {
           type: "heading",
@@ -254,26 +254,26 @@ export const posts: BlogPost[] = [
   cta: {
     eyebrow: "See the platform in action",
     text:
-      "Rapid Cortex brings real-time incident intelligence to 911 centers, campuses, and venues without replacing the systems you already rely on.",
+      "NexCort iQ brings real-time incident intelligence to 911 centers, campuses, and venues without replacing the systems you already rely on.",
     buttonLabel: "Schedule a Demo",
     href: "/demo",
   },
   },
   {
     slug: "rapid-cortex-offerings",
-    title: "Rapid Cortex Offerings: One Platform, Three Powerful Solutions",
+    title: "NexCort iQ Offerings: One Platform, Three Powerful Solutions",
     description:
-      "Rapid Cortex Core, Venue, and Campus share one technology foundation built for three different public safety environments. Here's how they fit together.",
+      "911 Centers/PSAPs, Venue, and Campus share one technology foundation built for three different public safety environments. Here's how they fit together.",
     category: "Product",
     tags: ["public safety software", "venue safety technology", "campus safety platform", "incident management software"],
-    author: { name: "Rapid Cortex Team", role: "Product" },
+    author: { name: "NexCort iQ Team", role: "Product" },
     publishedAt: "2026-03-28",
     readingTimeMinutes: 9,
     content: [
         {
           type: "paragraph",
           text:
-            "Rapid Cortex isn't three separate products that happen to share a name. It's one incident-intelligence platform, configured for three environments that each need it for a different reason: 911 centers, large venues, and campuses. [Why Rapid Cortex Is Needed](/blog/why-rapid-cortex-is-needed) covers the underlying problem; this is how we solve it.",
+            "NexCort iQ isn't three separate products that happen to share a name. It's one incident-intelligence platform, configured for three environments that each need it for a different reason: 911 centers, large venues, and campuses. [Why NexCort iQ Is Needed](/blog/why-rapid-cortex-is-needed) covers the underlying problem; this is how we solve it.",
         },
         {
           type: "heading",
@@ -284,7 +284,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "Every Rapid Cortex deployment, regardless of vertical, is built on the same underlying layer: role-based access control so each person only sees what their role requires, append-only audit logging for sensitive actions, encrypted intake and storage for photos, video, and messages, and a QR code, NFC tag, and SMS-based reporting infrastructure that lets anyone report something without downloading an app. Security posture is consistent across every deployment, built around CJIS-aware design principles rather than bolted on per vertical.",
+            "Every NexCort iQ deployment, regardless of vertical, is built on the same underlying layer: role-based access control so each person only sees what their role requires, append-only audit logging for sensitive actions, encrypted intake and storage for photos, video, and messages, and a QR code, NFC tag, and SMS-based reporting infrastructure that lets anyone report something without downloading an app. Security posture is consistent across every deployment, built around CJIS-aware design principles rather than bolted on per vertical.",
         },
         {
           type: "heading",
@@ -301,34 +301,34 @@ export const posts: BlogPost[] = [
           type: "heading",
           level: 2,
           id: "rapid-cortex-core-overview",
-          text: "Rapid Cortex Core — built for 911 centers and PSAPs",
+          text: "911 Centers/PSAPs — built for 911 centers and PSAPs",
         },
         {
           type: "paragraph",
           text:
-            "[Rapid Cortex Core](/product/core) brings real-time transcription, multi-language translation, and structured incident intelligence directly into the call-taking and dispatch workflow, alongside the CAD and telephony systems a center already runs. We go deeper on Core in [Rapid Cortex Core: Modernizing Emergency Communications Without Replacing Existing Systems](/blog/rapid-cortex-core).",
+            "[911 Centers/PSAPs](/product/core) brings real-time transcription, multi-language translation, and structured incident intelligence directly into the call-taking and dispatch workflow, alongside the CAD and telephony systems a center already runs. We go deeper on Core in [911 Centers/PSAPs: Modernizing Emergency Communications Without Replacing Existing Systems](/blog/rapid-cortex-core).",
         },
         {
           type: "heading",
           level: 2,
           id: "rapid-cortex-venue-overview",
-          text: "Rapid Cortex Venue — built for stadiums, arenas, and large gatherings",
+          text: "NexCort iQ Venue — built for stadiums, arenas, and large gatherings",
         },
         {
           type: "paragraph",
           text:
-            "[Rapid Cortex Venue](/product/venue) gives guests, fans, and staff a way to report a safety concern from anywhere in a facility — scanning a code, tapping an NFC sign, or sending a text — and gives venue security a zone-based view of what's being reported and where. More in [Rapid Cortex Venue: Enhancing Safety Inside Stadiums, Arenas, Airports, and Large Gatherings](/blog/rapid-cortex-venue).",
+            "[NexCort iQ Venue](/product/venue) gives guests, fans, and staff a way to report a safety concern from anywhere in a facility — scanning a code, tapping an NFC sign, or sending a text — and gives venue security a zone-based view of what's being reported and where. More in [NexCort iQ Venue: Enhancing Safety Inside Stadiums, Arenas, Airports, and Large Gatherings](/blog/rapid-cortex-venue).",
         },
         {
           type: "heading",
           level: 2,
           id: "rapid-cortex-campus-overview",
-          text: "Rapid Cortex Campus — built for universities and schools",
+          text: "NexCort iQ Campus — built for universities and schools",
         },
         {
           type: "paragraph",
           text:
-            "[Rapid Cortex Campus](/product/campus) applies the same low-friction reporting model to campuses, with routing built for the realities of student life: anonymous options, location-aware reports, and a dedicated path for welfare and mental-health concerns that don't belong in a security queue. Full detail in [Rapid Cortex Campus: Empowering Students to Report Safety Concerns Instantly](/blog/rapid-cortex-campus).",
+            "[NexCort iQ Campus](/product/campus) applies the same low-friction reporting model to campuses, with routing built for the realities of student life: anonymous options, location-aware reports, and a dedicated path for welfare and mental-health concerns that don't belong in a security queue. Full detail in [NexCort iQ Campus: Empowering Students to Report Safety Concerns Instantly](/blog/rapid-cortex-campus).",
         },
         {
           type: "heading",
@@ -362,12 +362,12 @@ export const posts: BlogPost[] = [
           type: "heading",
           level: 2,
           id: "what-doesnt-change",
-          text: "What doesn't change when you add Rapid Cortex",
+          text: "What doesn't change when you add NexCort iQ",
         },
         {
           type: "paragraph",
           text:
-            "It's sometimes easier to describe a platform by what it leaves alone. Your CAD system stays the system of record for dispatch. Your telephony provider keeps handling the call itself. Your emergency notification system keeps sending outbound mass alerts. Your radios, your existing security staff, your existing reporting policies all stay in place. Rapid Cortex adds a layer for capturing and structuring incident information faster than those systems were built to — it doesn't ask anyone to rip anything out to get there.",
+            "It's sometimes easier to describe a platform by what it leaves alone. Your CAD system stays the system of record for dispatch. Your telephony provider keeps handling the call itself. Your emergency notification system keeps sending outbound mass alerts. Your radios, your existing security staff, your existing reporting policies all stay in place. NexCort iQ adds a layer for capturing and structuring incident information faster than those systems were built to — it doesn't ask anyone to rip anything out to get there.",
         },
         {
           type: "heading",
@@ -406,7 +406,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "Yes — that's the common path. A campus that starts with Rapid Cortex Campus and later adds venue-style reporting for its athletics facilities, for example, is extending the same underlying account rather than starting over with a new vendor relationship.",
+            "Yes — that's the common path. A campus that starts with NexCort iQ Campus and later adds venue-style reporting for its athletics facilities, for example, is extending the same underlying account rather than starting over with a new vendor relationship.",
         },
         {
           type: "heading",
@@ -428,7 +428,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "Rapid Cortex doesn't publish a flat per-seat or per-site price list, for the same reason most serious public safety and enterprise software doesn't: the right number depends on deployment scope — how many sites, how many concurrent users, what level of integration with existing CAD or ENS systems, and what reporting volume the deployment needs to handle. A small single-campus deployment and a multi-state venue operator covering a dozen stadiums are not priced the same way, and treating them as if they should be would either overcharge the small deployment or undercharge the large one. The [pricing page](/pricing) walks through how that scoping conversation works; the short version is that every quote starts with understanding what's actually being deployed before a number gets attached to it.",
+            "NexCort iQ doesn't publish a flat per-seat or per-site price list, for the same reason most serious public safety and enterprise software doesn't: the right number depends on deployment scope — how many sites, how many concurrent users, what level of integration with existing CAD or ENS systems, and what reporting volume the deployment needs to handle. A small single-campus deployment and a multi-state venue operator covering a dozen stadiums are not priced the same way, and treating them as if they should be would either overcharge the small deployment or undercharge the large one. The [pricing page](/pricing) walks through how that scoping conversation works; the short version is that every quote starts with understanding what's actually being deployed before a number gets attached to it.",
         },
         {
           type: "heading",
@@ -450,7 +450,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "Most agencies aren't making a single purchasing decision in isolation — they're managing a multi-year technology roadmap that includes CAD upgrades, radio system replacements, camera system expansions, and compliance initiatives, often on staggered budget cycles. Because Rapid Cortex is built to sit alongside existing systems rather than as a dependency they have to be rebuilt around, it can usually be sequenced into that roadmap without forcing other initiatives to wait, and without itself needing to wait for a CAD replacement or telephony upgrade to finish first.",
+            "Most agencies aren't making a single purchasing decision in isolation — they're managing a multi-year technology roadmap that includes CAD upgrades, radio system replacements, camera system expansions, and compliance initiatives, often on staggered budget cycles. Because NexCort iQ is built to sit alongside existing systems rather than as a dependency they have to be rebuilt around, it can usually be sequenced into that roadmap without forcing other initiatives to wait, and without itself needing to wait for a CAD replacement or telephony upgrade to finish first.",
         },
         {
           type: "heading",
@@ -494,38 +494,38 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "Most agencies' second conversation with Rapid Cortex isn't about whether to continue, it's about where to expand next — a campus asking about venue-style coverage for its stadium, a city's 911 center asking whether the same platform can support a regional dispatch consolidation. Those conversations tend to move faster than the original evaluation, since the agency already has direct experience with how the platform behaves rather than relying on a vendor's claims alone.",
+            "Most agencies' second conversation with NexCort iQ isn't about whether to continue, it's about where to expand next — a campus asking about venue-style coverage for its stadium, a city's 911 center asking whether the same platform can support a regional dispatch consolidation. Those conversations tend to move faster than the original evaluation, since the agency already has direct experience with how the platform behaves rather than relying on a vendor's claims alone.",
         },
         {
           type: "paragraph",
           text:
-            "A single PSAP and a 70,000-seat stadium have almost nothing in common operationally, except this: both need information to move fast, and both already have systems they're not going to rip out to get it. Every Rapid Cortex deployment is scoped to the agency it serves and built to sit alongside CAD, telephony, and existing emergency notification systems rather than replace them. Deployment scope is quoted per agency on our [pricing page](/pricing).",
+            "A single PSAP and a 70,000-seat stadium have almost nothing in common operationally, except this: both need information to move fast, and both already have systems they're not going to rip out to get it. Every NexCort iQ deployment is scoped to the agency it serves and built to sit alongside CAD, telephony, and existing emergency notification systems rather than replace them. Deployment scope is quoted per agency on our [pricing page](/pricing).",
         },
     ],
 
   cta: {
     eyebrow: "One platform, scoped to you",
     text:
-      "See which Rapid Cortex solution fits your environment, and how the underlying platform adapts to it.",
+      "See which NexCort iQ solution fits your environment, and how the underlying platform adapts to it.",
     buttonLabel: "Schedule a Demo",
     href: "/demo",
   },
   },
   {
     slug: "rapid-cortex-core",
-    title: "Rapid Cortex Core: Modernizing Emergency Communications Without Replacing Existing Systems",
+    title: "911 Centers/PSAPs: Modernizing Emergency Communications Without Replacing Existing Systems",
     description:
       "Real-time transcription, multi-language translation, and structured incident intelligence for 911 centers and PSAPs — built to work alongside CAD, not instead of it.",
-    category: "Rapid Cortex Core",
+    category: "911 Centers/PSAPs",
     tags: ["911 software", "psap technology", "dispatch intelligence", "cad integration"],
-    author: { name: "Rapid Cortex Team", role: "Product" },
+    author: { name: "NexCort iQ Team", role: "Product" },
     publishedAt: "2026-04-04",
     readingTimeMinutes: 9,
     content: [
         {
           type: "paragraph",
           text:
-            "A Public Safety Answering Point, or PSAP, runs on two systems above all others: telephony, to take the call, and CAD, to dispatch the right resources. [Rapid Cortex Core](/product/core) doesn't replace either one. It sits alongside them, doing the work neither was originally designed to do — turning a live call into structured, searchable, multilingual incident intelligence in real time.",
+            "A Public Safety Answering Point, or PSAP, runs on two systems above all others: telephony, to take the call, and CAD, to dispatch the right resources. [911 Centers/PSAPs](/product/core) doesn't replace either one. It sits alongside them, doing the work neither was originally designed to do — turning a live call into structured, searchable, multilingual incident intelligence in real time.",
         },
         {
           type: "heading",
@@ -761,7 +761,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "The systems a 911 center already trusts stay exactly where they are. What changes is how much a call-taker can see, understand, and act on while the call is still live — and [Rapid Cortex Venue](/product/venue) and [Rapid Cortex Campus](/product/campus) extend that same real-time visibility to the environments that so often report into 911 in the first place.",
+            "The systems a 911 center already trusts stay exactly where they are. What changes is how much a call-taker can see, understand, and act on while the call is still live — and [NexCort iQ Venue](/product/venue) and [NexCort iQ Campus](/product/campus) extend that same real-time visibility to the environments that so often report into 911 in the first place.",
         },
     ],
 
@@ -775,19 +775,19 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "rapid-cortex-venue",
-    title: "Rapid Cortex Venue: Enhancing Safety Inside Stadiums, Arenas, Airports, and Large Gatherings",
+    title: "NexCort iQ Venue: Enhancing Safety Inside Stadiums, Arenas, Airports, and Large Gatherings",
     description:
       "QR code and text-based safety reporting, real-time photos and video, and zone-based security coordination for stadiums, arenas, and other large venues.",
-    category: "Rapid Cortex Venue",
+    category: "NexCort iQ Venue",
     tags: ["venue safety platform", "stadium security software", "airport incident reporting", "fan safety technology"],
-    author: { name: "Rapid Cortex Team", role: "Product" },
+    author: { name: "NexCort iQ Team", role: "Product" },
     publishedAt: "2026-04-11",
     readingTimeMinutes: 9,
     content: [
         {
           type: "paragraph",
           text:
-            "A stadium holds tens of thousands of people and a security team that, no matter how well trained, cannot be everywhere at once. The gap isn't awareness — it's that most guests who notice something have no fast way to tell anyone who could act on it. [Rapid Cortex Venue](/product/venue) closes that gap without asking a single guest to download anything.",
+            "A stadium holds tens of thousands of people and a security team that, no matter how well trained, cannot be everywhere at once. The gap isn't awareness — it's that most guests who notice something have no fast way to tell anyone who could act on it. [NexCort iQ Venue](/product/venue) closes that gap without asking a single guest to download anything.",
         },
         {
           type: "heading",
@@ -853,7 +853,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "Most reports a venue receives stay within venue security: a spill, a disruptive guest, a medical request for an usher. Some don't. Venue is built to make the handoff to local 911 dispatch fast and clear when an incident crosses that line — because [Rapid Cortex Core](/product/core) runs on the same underlying platform, the context gathered at the venue doesn't have to be re-explained from scratch to the PSAP picking it up. Venue extends visibility into what's happening on the ground. It does not replace law enforcement, EMS, or a venue's existing security staff and protocols.",
+            "Most reports a venue receives stay within venue security: a spill, a disruptive guest, a medical request for an usher. Some don't. Venue is built to make the handoff to local 911 dispatch fast and clear when an incident crosses that line — because [911 Centers/PSAPs](/product/core) runs on the same underlying platform, the context gathered at the venue doesn't have to be re-explained from scratch to the PSAP picking it up. Venue extends visibility into what's happening on the ground. It does not replace law enforcement, EMS, or a venue's existing security staff and protocols.",
         },
         {
           type: "heading",
@@ -1029,7 +1029,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "The same low-friction reporting model that works inside a stadium concourse works just as well in a school hallway — which is exactly what [Rapid Cortex Campus](/product/campus) is built for. See [Rapid Cortex Campus: Empowering Students to Report Safety Concerns Instantly](/blog/rapid-cortex-campus).",
+            "The same low-friction reporting model that works inside a stadium concourse works just as well in a school hallway — which is exactly what [NexCort iQ Campus](/product/campus) is built for. See [NexCort iQ Campus: Empowering Students to Report Safety Concerns Instantly](/blog/rapid-cortex-campus).",
         },
     ],
 
@@ -1043,19 +1043,19 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "rapid-cortex-campus",
-    title: "Rapid Cortex Campus: Empowering Students to Report Safety Concerns Instantly",
+    title: "NexCort iQ Campus: Empowering Students to Report Safety Concerns Instantly",
     description:
       "No-app safety reporting for universities and schools, with location-aware reports, anonymous options, and documentation that supports Clery Act recordkeeping.",
-    category: "Rapid Cortex Campus",
+    category: "NexCort iQ Campus",
     tags: ["campus safety software", "university safety platform", "clery act compliance", "student reporting system"],
-    author: { name: "Rapid Cortex Team", role: "Product" },
+    author: { name: "NexCort iQ Team", role: "Product" },
     publishedAt: "2026-04-18",
     readingTimeMinutes: 9,
     content: [
         {
           type: "paragraph",
           text:
-            "Students already have their phones out. The friction isn't getting their attention — it's everything that happens between noticing something and a trained person actually knowing about it. [Rapid Cortex Campus](/product/campus) is built to close that specific gap: see something, report it in under a minute, and have it land with the right person on campus.",
+            "Students already have their phones out. The friction isn't getting their attention — it's everything that happens between noticing something and a trained person actually knowing about it. [NexCort iQ Campus](/product/campus) is built to close that specific gap: see something, report it in under a minute, and have it land with the right person on campus.",
         },
         {
           type: "heading",
@@ -1110,7 +1110,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "Every report on Rapid Cortex Campus creates a timestamped, auditable record of what was reported, when, and how it was handled — records of reported incidents, response actions, and disposition history, all in one searchable place instead of scattered across email threads and paper logs. That record supports the documentation a campus needs for its own Clery Act reporting and recordkeeping obligations. Clery Act compliance itself remains the institution's legal responsibility, not something any software vendor can claim to deliver on its own; Campus is built to make that responsibility easier to document, not to replace the judgment of the people who own it.",
+            "Every report on NexCort iQ Campus creates a timestamped, auditable record of what was reported, when, and how it was handled — records of reported incidents, response actions, and disposition history, all in one searchable place instead of scattered across email threads and paper logs. That record supports the documentation a campus needs for its own Clery Act reporting and recordkeeping obligations. Clery Act compliance itself remains the institution's legal responsibility, not something any software vendor can claim to deliver on its own; Campus is built to make that responsibility easier to document, not to replace the judgment of the people who own it.",
         },
         {
           type: "heading",
@@ -1308,7 +1308,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "The reporting model is the same one [Rapid Cortex Venue](/product/venue) uses inside stadiums and arenas, because the underlying problem — getting a report from the person who noticed something to the person trained to act on it — doesn't change much between a concourse and a quad. See how the pieces fit together in [Rapid Cortex Offerings: One Platform, Three Powerful Solutions](/blog/rapid-cortex-offerings).",
+            "The reporting model is the same one [NexCort iQ Venue](/product/venue) uses inside stadiums and arenas, because the underlying problem — getting a report from the person who noticed something to the person trained to act on it — doesn't change much between a concourse and a quad. See how the pieces fit together in [NexCort iQ Offerings: One Platform, Three Powerful Solutions](/blog/rapid-cortex-offerings).",
         },
     ],
 
@@ -1327,7 +1327,7 @@ export const posts: BlogPost[] = [
       "AI is already inside many 911 centers, easing staffing strain, speeding up triage, and breaking down language barriers. Here's what's real today, and where the human stays in charge.",
     category: "Industry Perspective",
     tags: ["ai 911 dispatch", "dispatch ai software", "911 technology trends"],
-    author: { name: "Rapid Cortex Team", role: "Product" },
+    author: { name: "NexCort iQ Team", role: "Product" },
     publishedAt: "2026-04-25",
     readingTimeMinutes: 10,
     content: [
@@ -1569,7 +1569,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "This is exactly the layer [Rapid Cortex Core](/product/core) is built for, real-time transcription, translation, and structured incident intelligence that gives a call-taker more to work with, without taking the decision away from them. We go deeper on how that works in [Rapid Cortex Core: Modernizing Emergency Communications Without Replacing Existing Systems](/blog/rapid-cortex-core).",
+            "This is exactly the layer [911 Centers/PSAPs](/product/core) is built for, real-time transcription, translation, and structured incident intelligence that gives a call-taker more to work with, without taking the decision away from them. We go deeper on how that works in [911 Centers/PSAPs: Modernizing Emergency Communications Without Replacing Existing Systems](/blog/rapid-cortex-core).",
         },
     ],
 
@@ -1588,7 +1588,7 @@ export const posts: BlogPost[] = [
       "Next Generation 911 (NG911) is the multi-year shift from analog, voice-only 911 to an IP-based system that can carry text, photos, video, and data. Here's what it actually means.",
     category: "Industry Perspective",
     tags: ["ng911", "next generation 911", "911 technology"],
-    author: { name: "Rapid Cortex Team", role: "Product" },
+    author: { name: "NexCort iQ Team", role: "Product" },
     publishedAt: "2026-05-02",
     readingTimeMinutes: 10,
     content: [
@@ -1822,14 +1822,14 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "That's the layer [Rapid Cortex Core](/product/core) is built for: a PSAP that's completed its NG911 transition still needs software designed around multimedia, multilingual, structured intake to make use of it, and a PSAP mid-transition can start building that workflow now rather than waiting for the network side to finish. More on how Core approaches that in [Rapid Cortex Core: Modernizing Emergency Communications Without Replacing Existing Systems](/blog/rapid-cortex-core), and on the broader case for closing this gap in [Why Rapid Cortex Is Needed](/blog/why-rapid-cortex-is-needed).",
+            "That's the layer [911 Centers/PSAPs](/product/core) is built for: a PSAP that's completed its NG911 transition still needs software designed around multimedia, multilingual, structured intake to make use of it, and a PSAP mid-transition can start building that workflow now rather than waiting for the network side to finish. More on how Core approaches that in [911 Centers/PSAPs: Modernizing Emergency Communications Without Replacing Existing Systems](/blog/rapid-cortex-core), and on the broader case for closing this gap in [Why NexCort iQ Is Needed](/blog/why-rapid-cortex-is-needed).",
         },
     ],
 
   cta: {
     eyebrow: "NG911-ready, today",
     text:
-      "See how Rapid Cortex Core handles multimedia and multilingual intake regardless of where your state's NG911 transition currently stands.",
+      "See how 911 Centers/PSAPs handles multimedia and multilingual intake regardless of where your state's NG911 transition currently stands.",
     buttonLabel: "Schedule a Demo",
     href: "/demo",
   },
@@ -1841,7 +1841,7 @@ export const posts: BlogPost[] = [
       "A delayed incident report doesn't just slow response. It compounds into documentation gaps, reconstruction work, and trust erosion long after the moment has passed.",
     category: "Industry Perspective",
     tags: ["incident reporting delay", "response time", "incident management"],
-    author: { name: "Rapid Cortex Team", role: "Product" },
+    author: { name: "NexCort iQ Team", role: "Product" },
     publishedAt: "2026-05-09",
     readingTimeMinutes: 9,
     content: [
@@ -1859,7 +1859,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "In a 911 center, a venue, or a campus, every minute spent establishing the where, what, and who of an incident is a minute not spent responding to it. That's the headline cost, and it's the one [Why Rapid Cortex Is Needed](/blog/why-rapid-cortex-is-needed) covers directly. But it's far from the only one.",
+            "In a 911 center, a venue, or a campus, every minute spent establishing the where, what, and who of an incident is a minute not spent responding to it. That's the headline cost, and it's the one [Why NexCort iQ Is Needed](/blog/why-rapid-cortex-is-needed) covers directly. But it's far from the only one.",
         },
         {
           type: "heading",
@@ -1919,9 +1919,9 @@ export const posts: BlogPost[] = [
         {
           type: "list",
           items: [
-            "[Rapid Cortex Core](/product/core) structures 911 call intake into a searchable, auditable record the moment a call comes in.",
-            "[Rapid Cortex Venue](/product/venue) gives venue guests a QR, NFC, or text-based reporting path that's faster than finding a staff member, with a built-in location and timestamp.",
-            "[Rapid Cortex Campus](/product/campus) does the same for students, with documentation that supports Clery Act recordkeeping rather than relying on someone remembering to log it.",
+            "[911 Centers/PSAPs](/product/core) structures 911 call intake into a searchable, auditable record the moment a call comes in.",
+            "[NexCort iQ Venue](/product/venue) gives venue guests a QR, NFC, or text-based reporting path that's faster than finding a staff member, with a built-in location and timestamp.",
+            "[NexCort iQ Campus](/product/campus) does the same for students, with documentation that supports Clery Act recordkeeping rather than relying on someone remembering to log it.",
           ],
         },
         {
@@ -2076,7 +2076,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "Closing the reporting gap doesn't just speed up the response to today's incident. It removes the much larger, much less visible cost of every incident an organization never finds out about, and every record it can't fully stand behind months later. See how the three pieces fit together in [Rapid Cortex Offerings: One Platform, Three Powerful Solutions](/blog/rapid-cortex-offerings).",
+            "Closing the reporting gap doesn't just speed up the response to today's incident. It removes the much larger, much less visible cost of every incident an organization never finds out about, and every record it can't fully stand behind months later. See how the three pieces fit together in [NexCort iQ Offerings: One Platform, Three Powerful Solutions](/blog/rapid-cortex-offerings).",
         },
     ],
 
@@ -2095,7 +2095,7 @@ export const posts: BlogPost[] = [
       "From AI-assisted threat detection to rising Clery Act enforcement, here's what's actually shaping campus safety decisions in 2026, and what to watch heading into next year.",
     category: "Industry Perspective",
     tags: ["campus safety trends", "university safety", "campus security technology"],
-    author: { name: "Rapid Cortex Team", role: "Product" },
+    author: { name: "NexCort iQ Team", role: "Product" },
     publishedAt: "2026-05-16",
     readingTimeMinutes: 9,
     content: [
@@ -2168,7 +2168,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "Campus safety planning increasingly treats welfare and mental-health concerns as a distinct category from security incidents, not a subset of them, recognizing that a student in crisis needs a counselor in the loop, not a security dispatcher who isn't trained or positioned to be the first response. [Rapid Cortex Campus](/product/campus) builds that separation directly into how reports route, covered in more depth in [Rapid Cortex Campus: Empowering Students to Report Safety Concerns Instantly](/blog/rapid-cortex-campus).",
+            "Campus safety planning increasingly treats welfare and mental-health concerns as a distinct category from security incidents, not a subset of them, recognizing that a student in crisis needs a counselor in the loop, not a security dispatcher who isn't trained or positioned to be the first response. [NexCort iQ Campus](/product/campus) builds that separation directly into how reports route, covered in more depth in [NexCort iQ Campus: Empowering Students to Report Safety Concerns Instantly](/blog/rapid-cortex-campus).",
         },
         {
           type: "heading",
@@ -2362,7 +2362,7 @@ export const posts: BlogPost[] = [
       "Stadium security teams are stretched thin and unlikely to grow. Here's how integrated reporting and coordination tools let existing staff cover more ground.",
     category: "Industry Perspective",
     tags: ["stadium security staffing", "fan safety", "venue safety technology"],
-    author: { name: "Rapid Cortex Team", role: "Product" },
+    author: { name: "NexCort iQ Team", role: "Product" },
     publishedAt: "2026-05-23",
     readingTimeMinutes: 9,
     content: [
@@ -2422,7 +2422,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "None of that requires a single additional security hire. It requires closing the reporting gap between guest and staff, which is exactly what [Rapid Cortex Venue](/product/venue) is built to do, covered in detail in [Rapid Cortex Venue: Enhancing Safety Inside Stadiums, Arenas, Airports, and Large Gatherings](/blog/rapid-cortex-venue).",
+            "None of that requires a single additional security hire. It requires closing the reporting gap between guest and staff, which is exactly what [NexCort iQ Venue](/product/venue) is built to do, covered in detail in [NexCort iQ Venue: Enhancing Safety Inside Stadiums, Arenas, Airports, and Large Gatherings](/blog/rapid-cortex-venue).",
         },
         {
           type: "heading",
@@ -2623,7 +2623,7 @@ export const posts: BlogPost[] = [
       "Safer communities aren't built by adding more responders alone. They're built by closing the gap between when something happens and when the right person finds out.",
     category: "Industry Perspective",
     tags: ["community safety technology", "public safety communication", "real-time communication"],
-    author: { name: "Rapid Cortex Team", role: "Product" },
+    author: { name: "NexCort iQ Team", role: "Product" },
     publishedAt: "2026-05-30",
     readingTimeMinutes: 9,
     content: [
@@ -2661,7 +2661,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "Each of these is a version of the same underlying gap, in a different setting. That's not a coincidence, it's why [Rapid Cortex Core](/product/core), [Rapid Cortex Venue](/product/venue), and [Rapid Cortex Campus](/product/campus) share one technology foundation rather than being built as three unrelated products, as covered in [Rapid Cortex Offerings: One Platform, Three Powerful Solutions](/blog/rapid-cortex-offerings).",
+            "Each of these is a version of the same underlying gap, in a different setting. That's not a coincidence, it's why [911 Centers/PSAPs](/product/core), [NexCort iQ Venue](/product/venue), and [NexCort iQ Campus](/product/campus) share one technology foundation rather than being built as three unrelated products, as covered in [NexCort iQ Offerings: One Platform, Three Powerful Solutions](/blog/rapid-cortex-offerings).",
         },
         {
           type: "heading",
@@ -2861,7 +2861,7 @@ export const posts: BlogPost[] = [
   cta: {
     eyebrow: "Start with the gap, not the tech",
     text:
-      "Walk through where your community's reporting gap actually is, and which Rapid Cortex solution closes it.",
+      "Walk through where your community's reporting gap actually is, and which NexCort iQ solution closes it.",
     buttonLabel: "Schedule a Demo",
     href: "/demo",
   },
@@ -2873,7 +2873,7 @@ export const posts: BlogPost[] = [
       "Looking past this year's headlines: the public safety technology shifts already underway in 2026 that are set to define how agencies operate in 2027.",
     category: "Industry Perspective",
     tags: ["public safety technology trends", "911 technology trends", "campus safety technology"],
-    author: { name: "Rapid Cortex Team", role: "Product" },
+    author: { name: "NexCort iQ Team", role: "Product" },
     publishedAt: "2026-06-06",
     readingTimeMinutes: 9,
     content: [
@@ -2949,7 +2949,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "None of these trends are speculative bets on an uncertain future, they're already running in 2026, at varying speed across different agencies and verticals. The agencies best positioned for 2027 aren't the ones waiting for a single breakthrough technology. They're the ones already closing the basic gap between when something happens and when the right person has the information to act on it, the same problem covered from the start in [Why Rapid Cortex Is Needed](/blog/why-rapid-cortex-is-needed).",
+            "None of these trends are speculative bets on an uncertain future, they're already running in 2026, at varying speed across different agencies and verticals. The agencies best positioned for 2027 aren't the ones waiting for a single breakthrough technology. They're the ones already closing the basic gap between when something happens and when the right person has the information to act on it, the same problem covered from the start in [Why NexCort iQ Is Needed](/blog/why-rapid-cortex-is-needed).",
         },
         {
           type: "heading",
@@ -3123,7 +3123,7 @@ export const posts: BlogPost[] = [
   cta: {
     eyebrow: "Build on where things are heading",
     text:
-      "See how Rapid Cortex is built around the trends already underway: human-in-the-loop AI, multimedia intake, and audit-ready documentation by default.",
+      "See how NexCort iQ is built around the trends already underway: human-in-the-loop AI, multimedia intake, and audit-ready documentation by default.",
     buttonLabel: "Schedule a Demo",
     href: "/demo",
   },
@@ -3135,7 +3135,7 @@ export const posts: BlogPost[] = [
       "TSA secures the checkpoint. Airport operators are responsible for everything else, terminals, concourses, parking, and ground transportation, where a fast reporting channel matters just as much.",
     category: "Industry Perspective",
     tags: ["airport security software", "airport incident reporting", "aviation safety technology"],
-    author: { name: "Rapid Cortex Team", role: "Product" },
+    author: { name: "NexCort iQ Team", role: "Product" },
     publishedAt: "2026-06-13",
     readingTimeMinutes: 9,
     content: [
@@ -3190,7 +3190,7 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "This is the same reporting model [Rapid Cortex Venue](/product/venue) brings to stadiums and arenas, applied to an environment with an even higher proportion of one-time visitors who have no prior familiarity with the building. Full detail on how that reporting model works in [Rapid Cortex Venue: Enhancing Safety Inside Stadiums, Arenas, Airports, and Large Gatherings](/blog/rapid-cortex-venue).",
+            "This is the same reporting model [NexCort iQ Venue](/product/venue) brings to stadiums and arenas, applied to an environment with an even higher proportion of one-time visitors who have no prior familiarity with the building. Full detail on how that reporting model works in [NexCort iQ Venue: Enhancing Safety Inside Stadiums, Arenas, Airports, and Large Gatherings](/blog/rapid-cortex-venue).",
         },
         {
           type: "heading",
@@ -3402,7 +3402,7 @@ export const posts: BlogPost[] = [
       "What the Clery Act actually requires of colleges and universities, crime categories, deadlines, campus security authorities, and the 2025-2026 hazing reporting update, in plain terms.",
     category: "Compliance & Security",
     tags: ["clery act requirements", "clery act compliance", "campus safety software"],
-    author: { name: "Rapid Cortex Team", role: "Compliance" },
+    author: { name: "NexCort iQ Team", role: "Compliance" },
     publishedAt: "2026-06-20",
     readingTimeMinutes: 9,
     content: [
@@ -3668,14 +3668,14 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "[Rapid Cortex Campus](/product/campus) is built around that distinction: every report creates the kind of timestamped, structured record this kind of compliance work depends on, without claiming to replace the judgment of the people responsible for it. More on how that works in [Rapid Cortex Campus: Empowering Students to Report Safety Concerns Instantly](/blog/rapid-cortex-campus), and on the broader compliance landscape shaping campus decisions in [Campus Safety Trends Universities Should Watch](/blog/campus-safety-trends).",
+            "[NexCort iQ Campus](/product/campus) is built around that distinction: every report creates the kind of timestamped, structured record this kind of compliance work depends on, without claiming to replace the judgment of the people responsible for it. More on how that works in [NexCort iQ Campus: Empowering Students to Report Safety Concerns Instantly](/blog/rapid-cortex-campus), and on the broader compliance landscape shaping campus decisions in [Campus Safety Trends Universities Should Watch](/blog/campus-safety-trends).",
         },
     ],
 
   cta: {
     eyebrow: "See the documentation trail",
     text:
-      "Walk through how every report on Rapid Cortex Campus creates the timestamped record your Clery Act compliance process depends on.",
+      "Walk through how every report on NexCort iQ Campus creates the timestamped record your Clery Act compliance process depends on.",
     buttonLabel: "Request a Pilot",
     href: "/demo",
   },
@@ -3687,7 +3687,7 @@ export const posts: BlogPost[] = [
       "From the first 911 call in 1968 to today's push toward multimedia, NG911-enabled reporting, a look at how emergency communications got here, and where it's headed.",
     category: "Industry Perspective",
     tags: ["emergency communications history", "ng911", "911 technology"],
-    author: { name: "Rapid Cortex Team", role: "Product" },
+    author: { name: "NexCort iQ Team", role: "Product" },
     publishedAt: "2026-06-27",
     readingTimeMinutes: 9,
     content: [
@@ -3920,14 +3920,14 @@ export const posts: BlogPost[] = [
         {
           type: "paragraph",
           text:
-            "Each prior era of 911 modernization eventually produced a generation of software built around its new capability, CAD systems built around E911 location data, mobile-first tools built around wireless coverage. The current era is producing the same pattern around multimedia and structured intelligence, which is the specific gap [Rapid Cortex Core](/product/core) is built to fill: software designed from the start around real-time transcription, translation, and multimedia intake, rather than retrofitted onto a voice-only assumption. More in [Rapid Cortex Core: Modernizing Emergency Communications Without Replacing Existing Systems](/blog/rapid-cortex-core).",
+            "Each prior era of 911 modernization eventually produced a generation of software built around its new capability, CAD systems built around E911 location data, mobile-first tools built around wireless coverage. The current era is producing the same pattern around multimedia and structured intelligence, which is the specific gap [911 Centers/PSAPs](/product/core) is built to fill: software designed from the start around real-time transcription, translation, and multimedia intake, rather than retrofitted onto a voice-only assumption. More in [911 Centers/PSAPs: Modernizing Emergency Communications Without Replacing Existing Systems](/blog/rapid-cortex-core).",
         },
     ],
 
   cta: {
     eyebrow: "See where the next era is headed",
     text:
-      "Walk through how Rapid Cortex Core is built around multimedia and structured intelligence from the ground up, not retrofitted onto it.",
+      "Walk through how 911 Centers/PSAPs is built around multimedia and structured intelligence from the ground up, not retrofitted onto it.",
     buttonLabel: "Schedule a Demo",
     href: "/demo",
   },

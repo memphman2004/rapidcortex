@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { loadStaffGuideArticles } from "./load-articles";
 import {
   STAFF_GUIDE_ACCESS,
   findStaffGuideArticle,
@@ -47,6 +48,17 @@ describe("staff guide catalog", () => {
     expect(positionForRole("campus", "CAMPUS_DISPATCH")?.topic).toBe("position-dispatch");
     expect(positionForRole("venue", "venue_operator")?.topic).toBe("position-operator");
     expect(positionForRole("transit", "TRANSIT_SECURITY")?.topic).toBe("position-security");
+  });
+
+  it("renders venue and campus articles from disk", () => {
+    const venue = loadStaffGuideArticles("venue");
+    const campus = loadStaffGuideArticles("campus");
+    expect(venue.onboarding).toContain("Day one");
+    expect(venue["position-guest-services"].toLowerCase()).toContain("not a 911");
+    expect(campus.onboarding).toContain("Day one");
+    expect(campus["position-counselor"].toLowerCase()).toContain("wellness");
+    expect(Object.keys(venue).length).toBe(flattenStaffGuideArticles("venue").length);
+    expect(Object.keys(campus).length).toBe(flattenStaffGuideArticles("campus").length);
   });
 
   it("ships a markdown file on disk for every catalog article", () => {

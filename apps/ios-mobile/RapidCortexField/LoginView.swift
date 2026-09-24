@@ -23,9 +23,9 @@ struct LoginView: View {
                             .scaledToFit()
                             .frame(width: 88, height: 88)
                             .clipShape(RoundedRectangle(cornerRadius: 16))
-                            .accessibilityLabel("Rapid Cortex")
+                            .accessibilityLabel("NexCort iQ")
 
-                        Text("Rapid Cortex Mobile")
+                        Text("NexCort iQ Mobile")
                             .font(.system(size: 20, weight: .semibold))
                             .foregroundColor(RCTheme.textPrimary)
                     }

@@ -65,6 +65,8 @@ export * from "./cad.js";
 export * from "./cad-nature-mapping.js";
 export * from "./cad-connector/index.js";
 export * from "./cad-bridge/index.js";
+export * from "./cad-mesh/index.js";
+export * from "./features/index.js";
 export * from "./channels/channel.js";
 export { buildAgencySlug, resolveUniqueAgencySlug } from "./agency/agency-slug.js";
 export * from "./network/index.js";

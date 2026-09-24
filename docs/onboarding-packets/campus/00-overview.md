@@ -1,6 +1,6 @@
-# Rapid Cortex — Campus Safety
+# NexCort iQ — Campus Safety
 
-Rapid Cortex is **campus public-safety intelligence**. It helps campus safety, dispatch, counseling, and administrators see incidents, buildings, QR locations, and cameras across **every campus in the same tenant**.
+NexCort iQ is **campus public-safety intelligence**. It helps campus safety, dispatch, counseling, and administrators see incidents, buildings, QR locations, and cameras across **every campus in the same tenant**.
 
 ## This is not
 
@@ -11,6 +11,6 @@ Rapid Cortex is **campus public-safety intelligence**. It helps campus safety, d
 
 ## Multi-campus
 
-One Rapid Cortex tenant holds every campus. Operators use **All campuses** by default and can filter to one location.
+One NexCort iQ tenant holds every campus. Operators use **All campuses** by default and can filter to one location.
 
 The remaining files in this folder (what we need, roles, integrations, go-live) match the in-app packet under **Onboarding packet**.

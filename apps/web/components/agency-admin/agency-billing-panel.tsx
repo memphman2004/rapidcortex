@@ -28,7 +28,7 @@ export function AgencyBillingPanel({ initialUser }: { initialUser: UserContext }
   const load = useCallback(async () => {
     setErr(null);
     if (!isApiConfigured()) {
-      setErr("Billing data isn’t available — contact Rapid Cortex support.");
+      setErr("Billing data isn’t available — contact NexCort iQ support.");
       return;
     }
     try {
@@ -52,7 +52,7 @@ export function AgencyBillingPanel({ initialUser }: { initialUser: UserContext }
       <div>
         <h1 className="text-2xl font-semibold text-white">Billing & entitlement</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Rapid Cortex is sold through agency contracts, approved pilots, purchase orders, invoices, and authorized
+          NexCort iQ is sold through agency contracts, approved pilots, purchase orders, invoices, and authorized
           procurement workflows. This view summarizes entitlement and internal reconciliation identifiers for your tenant.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -112,7 +112,7 @@ export function AgencyBillingPanel({ initialUser }: { initialUser: UserContext }
             </div>
           </dl>
           <p className="mt-4 text-xs text-slate-500">
-            To discuss pricing, pilot access, or procurement options, contact the Rapid Cortex team.
+            To discuss pricing, pilot access, or procurement options, contact the NexCort iQ team.
           </p>
         </section>
       )}
@@ -130,7 +130,7 @@ export function AgencyBillingPanel({ initialUser }: { initialUser: UserContext }
           <p className="mt-2 text-sm text-slate-400">
             Internal invoice artifacts cached for this tenant ({legacyProfile?.invoices?.length ?? 0} row
             {legacyProfile?.invoices?.length === 1 ? "" : "s"}). Official PDFs follow your agency&apos;s procurement
-            path and Rapid Cortex finance operations.
+            path and NexCort iQ finance operations.
           </p>
         </section>
       )}
@@ -149,7 +149,7 @@ export function AgencyBillingPanel({ initialUser }: { initialUser: UserContext }
             .
           </p>
           <p className="mt-3 text-slate-400">
-            Rapid Cortex does not process public self-service card payments. Align renewals with the purchase order and
+            NexCort iQ does not process public self-service card payments. Align renewals with the purchase order and
             contracting package on file.
           </p>
         </section>

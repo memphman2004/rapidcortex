@@ -4,7 +4,7 @@ import { useSession } from "@/components/auth/session-context";
 import { formatUserRoleLabel } from "@/lib/auth/roles";
 
 type Props = {
-  /** Shown in the card title, e.g. "RC Admin". */
+  /** Shown in the card title, e.g. "NexCort Admin". */
   title: string;
   /** Jurisdiction path for this smoke test, e.g. /rc-admin */
   pathLabel: string;

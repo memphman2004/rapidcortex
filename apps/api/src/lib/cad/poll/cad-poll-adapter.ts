@@ -27,7 +27,7 @@ export interface CadIntegrationConfig {
   fieldMapping?: Record<string, string>;
   priorityMapping?: Record<string, string>;
   uiFieldMappings?: Array<{ sourceKey: string; targetId: string }>;
-  /** Agency CAD nature → Rapid Cortex type/SOP mapping (read by ingest, not the poller). */
+  /** Agency CAD nature → NexCort iQ type/SOP mapping (read by ingest, not the poller). */
   natureCodeMappings?: unknown;
 }
 

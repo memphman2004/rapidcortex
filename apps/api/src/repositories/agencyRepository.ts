@@ -3,7 +3,7 @@ import type { AgencyTenant } from "rapid-cortex-shared";
 import { ddb } from "./baseRepository.js";
 import { env } from "../lib/env.js";
 
-/** Map legacy Dynamo attribute names onto the neutral billing fields Rapid Cortex exposes. */
+/** Map legacy Dynamo attribute names onto the neutral billing fields NexCort iQ exposes. */
 export function normalizeAgencyItem(raw: Record<string, unknown>): AgencyTenant {
   const base = { ...raw };
   const customerRef =

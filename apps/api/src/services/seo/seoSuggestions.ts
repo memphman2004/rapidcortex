@@ -31,13 +31,13 @@ function fallbackSuggestions(url: string, keywords: string[]): SeoAiSuggestionPa
   const k = keywords[0]?.trim() ?? "your topic";
   return {
     seoTitleOptions: [
-      `${k} | Rapid Cortex`,
-      `Rapid Cortex — ${k}`,
+      `${k} | NexCort iQ`,
+      `NexCort iQ — ${k}`,
       `${k}: secure workflows for emergency communications`,
     ],
     metaDescriptionOptions: [
-      `Explore ${k} with Rapid Cortex—dispatcher-ready workflows, CJIS-minded safeguards, and integrations designed for real operations.`,
-      `Learn how agencies improve clarity and QA with Rapid Cortex around ${k.toLowerCase()}, without risky overpromises.`,
+      `Explore ${k} with NexCort iQ—dispatcher-ready workflows, CJIS-minded safeguards, and integrations designed for real operations.`,
+      `Learn how agencies improve clarity and QA with NexCort iQ around ${k.toLowerCase()}, without risky overpromises.`,
       `A concise overview of ${k.toLowerCase()}—what changes operationally, what stays under agency control, and how to pilot safely.`,
     ],
     faqSchemaIdeas: [
@@ -47,14 +47,14 @@ function fallbackSuggestions(url: string, keywords: string[]): SeoAiSuggestionPa
           "Expect phased pilots, role-based access, audit trails, and measurable QA loops rather than a big-bang swap.",
       },
       {
-        question: "How does Rapid Cortex handle sensitive communications data?",
+        question: "How does NexCort iQ handle sensitive communications data?",
         answer:
           "Use agency-scoped tenancy, least-privilege access patterns, and configurable retention aligned to policy.",
       },
       {
-        question: "Does Rapid Cortex replace our CAD?",
+        question: "Does NexCort iQ replace our CAD?",
         answer:
-          "Rapid Cortex augments workflows with intelligence layers; CAD remains the system of record unless your program dictates otherwise.",
+          "NexCort iQ augments workflows with intelligence layers; CAD remains the system of record unless your program dictates otherwise.",
       },
     ],
     blogOutline: [

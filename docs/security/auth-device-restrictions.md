@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-09-19 (60-day refresh) · **Owner:** Jeff Coleman  
 MFA and session: [AUTH_OPERATIONS.md](../product-architecture/AUTH_OPERATIONS.md). Native desktop is **not** blocked (non-mobile user agents).
 
-Operational Rapid Cortex login and authenticated app shells are intended for **approved desktop workstations**. Public marketing pages remain available on phones and tablets.
+Operational NexCort iQ login and authenticated app shells are intended for **approved desktop workstations**. Public marketing pages remain available on phones and tablets.
 
 ## Behavior
 

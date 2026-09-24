@@ -8,7 +8,7 @@ export default function HospitalStaffTranslatePage() {
   return (
     <TranslateHomeClient
       vertical="hospital"
-      heading="RC Translate — Clinical"
+      heading="Translate — Clinical"
       hospitalId={user?.hospitalId || user?.agencyId}
       sessionHref={(id) => `/hospital-staff/translate/${id}`}
     />

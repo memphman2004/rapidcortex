@@ -422,7 +422,7 @@ export function CampusCleryReviewClient({
                     onChange={(e) => setReportedAt(e.target.value)}
                   />
                   <span className="mt-1 block text-[11px] text-slate-500">
-                    Use the time campus received the report, not when it was entered in Rapid Cortex.
+                    Use the time campus received the report, not when it was entered in NexCort iQ.
                   </span>
                 </label>
                 <label className="block text-xs text-slate-400">

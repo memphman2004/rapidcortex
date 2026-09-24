@@ -17,7 +17,7 @@ function parseCoord(raw: string): number | null {
   return Number.isFinite(n) ? n : NaN;
 }
 
-/** Editable HQ pin for the RC Admin national deployments map. */
+/** Editable HQ pin for the NexCort Admin national deployments map. */
 export function AgencyHqCoordinatesCard({ agency }: Props) {
   const queryClient = useQueryClient();
   const [lat, setLat] = useState(
@@ -102,7 +102,7 @@ export function AgencyHqCoordinatesCard({ agency }: Props) {
         HQ map coordinates
       </h2>
       <p className="mt-1 text-xs text-slate-500">
-        Used on the RC Admin national deployments map. Optional — leave blank to omit this tenant.
+        Used on the NexCort Admin national deployments map. Optional — leave blank to omit this tenant.
       </p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label className="block text-sm">

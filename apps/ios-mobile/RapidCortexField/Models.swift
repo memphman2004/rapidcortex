@@ -168,6 +168,8 @@ struct RCUserClaims {
         case "agencyit": return "Agency IT"
         case "analyst": return "Analyst"
         case "auditor": return "Auditor"
+        case "rcsuperadmin", "rcadmin": return "NC Admin"
+        case "rcitadmin": return "NC IT"
         default:
             return canonicalRole.replacingOccurrences(of: "_", with: " ").capitalized
         }

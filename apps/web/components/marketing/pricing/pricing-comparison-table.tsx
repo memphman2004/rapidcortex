@@ -57,7 +57,7 @@ export function PricingComparisonTable() {
           operations demand it.
         </p>
         <p className="mt-3 hidden text-sm leading-relaxed text-slate-400 md:block">
-          RC Lite is an API-first Rapid Cortex offering for teams embedding intelligence in existing
+          NexCort Lite is an API-first NexCort iQ offering for teams embedding intelligence in existing
           systems. It does not include the full dispatcher or desktop operational interface.
         </p>
         <Legend />
@@ -95,7 +95,7 @@ export function PricingComparisonTable() {
                 scope="col"
                 className="hidden px-3 py-4 text-center text-xs font-semibold uppercase tracking-wide text-slate-300 sm:px-4 md:table-cell"
               >
-                RC Lite
+                NexCort Lite
               </th>
             </tr>
           </thead>

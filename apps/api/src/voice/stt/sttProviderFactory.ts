@@ -21,7 +21,7 @@ function buildOne(
       tier === "primary" ? cfg.sttModelPrimary : tier === "secondary" ? cfg.sttModelSecondary : cfg.sttModelTertiary;
     return new AwsTranscribeSttProvider(cfg, { name: `aws-transcribe-${tier}`, sttModelUsed });
   }
-  return new MockSpeechToTextProvider({ name: `mock-stt-fallback-${tier}` });
+  return null;
 }
 
 export function buildSttProviderChain(cfg: MultilingualVoiceConfig): ISpeechToTextProvider[] {

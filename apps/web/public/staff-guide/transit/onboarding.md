@@ -1,6 +1,6 @@
 # Transit — new employee onboarding
 
-Welcome to Rapid Cortex Transit. **Training access is unlimited.**
+Welcome to NexCort iQ Transit. **Training access is unlimited.**
 
 This is not 911 Help. You will not see dispatcher CAD entry here.
 
@@ -13,7 +13,7 @@ This is not 911 Help. You will not see dispatcher CAD entry here.
 
 ## When to call 911
 
-In-progress threat, medical emergency, fire, or other public-safety emergency: **call 911**. Flag or escalate in Rapid Cortex per SOP for audit — that is not CAD write-back.
+In-progress threat, medical emergency, fire, or other public-safety emergency: **call 911**. Flag or escalate in NexCort iQ per SOP for audit — that is not CAD write-back.
 
 ## First week
 

@@ -5,9 +5,9 @@ import StatusPage from "@/app/status/page";
 describe("/status page", () => {
   it("renders publicly without auth gate copy", () => {
     const html = renderToStaticMarkup(<StatusPage />);
-    expect(html).toContain("RAPID CORTEX STATUS");
+    expect(html).toContain("NEXCORT IQ STATUS");
     expect(html).toContain("System Status");
-    expect(html).toContain("Public operational status for Rapid Cortex services.");
+    expect(html).toContain("Public operational status for NexCort iQ services.");
     expect(html).toContain("No active incidents.");
     expect(html).toContain("No incidents reported in the past 90 days.");
     expect(html.toLowerCase()).toContain("last status refresh:");

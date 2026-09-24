@@ -206,9 +206,9 @@ export const calendarEntries: CalendarEntry[] = [
     releaseNumber: 24,
     publishedAt: "2026-09-15",
     hub: "Buyer Intent",
-    title: "Rapid Cortex vs. Traditional CAD: What Is the Difference?",
+    title: "NexCort iQ vs. Traditional CAD: What Is the Difference?",
     slug: "rapid-cortex-vs-traditional-cad",
-    seoFocus: "Rapid Cortex vs CAD",
+    seoFocus: "NexCort iQ vs CAD",
   },
   {
     releaseNumber: 25,

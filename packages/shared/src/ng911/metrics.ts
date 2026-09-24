@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** Call-processing style metrics for RC-owned surfaces (inspired by NENA-STA-019). */
+/** Call-processing style metrics for NexCort-owned surfaces (inspired by NENA-STA-019). */
 export const ng911MetricPeriodSchema = z.object({
   from: z.string().min(20),
   to: z.string().min(20),
@@ -74,7 +74,7 @@ export const ngSecEvidencePackSchema = z.object({
   generatedAt: z.string().min(20),
   disclaimer:
     z.string().default(
-      "This pack maps Rapid Cortex controls to NG-SEC themes for RFP evidence. It does not claim NENA NG-SEC certification or CJIS accreditation.",
+      "This pack maps NexCort iQ controls to NG-SEC themes for RFP evidence. It does not claim NENA NG-SEC certification or CJIS accreditation.",
     ),
   controls: z.array(ngSecControlEvidenceSchema).min(1),
   metricsSnapshot: ng911CallProcessingMetricsSchema.optional(),

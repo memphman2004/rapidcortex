@@ -320,7 +320,7 @@ function IntelDetail({
         <dd>{Math.round(opportunity.confidence * 100)}%</dd>
       </dl>
 
-      <Section title="Why Rapid Cortex Fits">{opportunity.reason}</Section>
+      <Section title="Why NexCort iQ Fits">{opportunity.reason}</Section>
       <Section title="Recommended Next Action">{opportunity.recommendedAction}</Section>
       {opportunity.competitiveNotes && (
         <Section title="Competitive Notes">{opportunity.competitiveNotes}</Section>
@@ -334,7 +334,7 @@ function IntelDetail({
         </Section>
       )}
       <Section title="Categories">{opportunity.categories.join(", ") || "—"}</Section>
-      <Section title="Rapid Cortex products">{opportunity.rapidCortexProducts.join(", ")}</Section>
+      <Section title="NexCort iQ products">{opportunity.rapidCortexProducts.join(", ")}</Section>
       <a
         href={opportunity.sourceUrl}
         target="_blank"

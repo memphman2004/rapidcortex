@@ -3,6 +3,8 @@ import {
   isCadConnectorUiEnabled,
   isCadBridgeUiEnabled,
   isC2cHubUiEnabled,
+  isCadMeshUiEnabled,
+  isFeaturesSuiteUiEnabled,
   isCampusCleryEnabled,
   isCleryModuleEnabled,
   isCampusEapEnabled,
@@ -53,6 +55,10 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isCadBridgeUiEnabled();
     case "c2cHub":
       return isC2cHubUiEnabled();
+    case "cadMesh":
+      return isCadMeshUiEnabled();
+    case "featuresSuite":
+      return isFeaturesSuiteUiEnabled();
     case "qaScoringEnabled":
       return isQaScoringEnabled();
     case "slaBacklog":

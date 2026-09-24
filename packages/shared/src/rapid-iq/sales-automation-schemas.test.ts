@@ -10,7 +10,7 @@ import {
 } from "./sales-automation-schemas.js";
 
 describe("normalizeSalesAutomationVertical", () => {
-  it("maps CRM and intel aliases onto Rapid IQ sales verticals", () => {
+  it("maps CRM and intel aliases onto NexiQ IQ sales verticals", () => {
     expect(normalizeSalesAutomationVertical("rc911")).toBe("PSAP");
     expect(normalizeSalesAutomationVertical("911")).toBe("PSAP");
     expect(normalizeSalesAutomationVertical("psap")).toBe("PSAP");

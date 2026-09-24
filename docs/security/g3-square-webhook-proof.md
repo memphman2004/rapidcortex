@@ -14,7 +14,7 @@ Lambda handler **`billingSquareHttp`** (`apps/api/src/handlers/billingSquareHttp
 
 | Mode | Requirement |
 |---|---|
-| Legacy shared-secret header (`x-square-webhook-secret` / Rapid Cortex aliases) | Compared to `SQUARE_WEBHOOK_SECRET` when set. Header must be present and match. |
+| Legacy shared-secret header (`x-square-webhook-secret` / NexCort iQ aliases) | Compared to `SQUARE_WEBHOOK_SECRET` when set. Header must be present and match. |
 | HMAC verification | Requires `SQUARE_WEBHOOK_SIGNATURE_KEY` + `SQUARE_WEBHOOK_NOTIFICATION_URL`; validates `notificationUrl + bodyRaw` matches `x-square-hmacsha256-signature` (supports SHA256/SHA1 base64 comparisons per helper). |
 
 ## Fail-closed in higher environments

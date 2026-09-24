@@ -1,6 +1,6 @@
 /**
- * Create or update fixed Rapid Cortex test accounts in Cognito (one password from env, never logged).
- * Intended for QA plus the App Store review login (`apple-review@rapidcortex.us`).
+ * Create or update fixed NexCort iQ test accounts in Cognito (one password from env, never logged).
+ * Intended for QA plus the App Store review login (`apple-review@nexcortiq.us`).
  * Run against the pool the iOS app uses (`us-east-1_0z6tA6WBs` in production).
  */
 import {
@@ -37,7 +37,7 @@ type TestRow = {
   agencyVertical?: string;
   /**
    * Clear per-user TOTP preference. The pool `MfaConfiguration` is `ON`, so Cognito
-   * still issues `MFA_SETUP` until a token is enrolled. Rapid Cortex Mobile
+   * still issues `MFA_SETUP` until a token is enrolled. NexCort iQ Mobile
    * auto-completes that challenge so field users and App Review only type a password.
    */
   disableMfa?: boolean;
@@ -99,7 +99,7 @@ const ACCOUNTS: TestRow[] = [
     cognitoGroup: "agencyit",
   },
   {
-    email: "apple-review@rapidcortex.us",
+    email: "apple-review@nexcortiq.us",
     customRole: "campus_admin",
     agencyId: "test-campus-uga",
     cognitoGroup: "campus_admin",
@@ -107,7 +107,7 @@ const ACCOUNTS: TestRow[] = [
     disableMfa: true,
   },
   {
-    email: "appreviewer@rapidcortex.us",
+    email: "appreviewer@nexcortiq.us",
     customRole: "venue_admin",
     agencyId: "test-venue-mbs",
     cognitoGroup: "venue_admin",

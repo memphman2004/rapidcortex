@@ -20,7 +20,7 @@ function stub(partial: Partial<RapidIqPipelineSignal> & Pick<RapidIqPipelineSign
 }
 
 describe("countUnworkedPipelineItems", () => {
-  it("counts Rapid IQ queued + reviewed, not collector inbox", () => {
+  it("counts NexiQ IQ queued + reviewed, not collector inbox", () => {
     expect(
       countUnworkedPipelineItems([
         stub({ status: "new", sourceId: "openlegislative" }),
@@ -34,7 +34,7 @@ describe("countUnworkedPipelineItems", () => {
 });
 
 describe("pipelineOpportunityIdSet", () => {
-  it("includes opportunityId and Rapid IQ source hash, skips dismissed", () => {
+  it("includes opportunityId and NexiQ IQ source hash, skips dismissed", () => {
     const ids = pipelineOpportunityIdSet([
       stub({ status: "new", opportunityId: "opp-1" }),
       stub({

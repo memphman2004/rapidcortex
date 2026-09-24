@@ -1,5 +1,5 @@
 /**
- * Rapid Cortex — Map Utilities
+ * NexCort iQ — Map Utilities
  *
  * Pure helper functions — no React, no MapLibre imports.
  * Safe to import anywhere including server components.

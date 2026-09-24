@@ -1,6 +1,6 @@
 # Agency Admin overview
 
-You manage users, integrations, SOP library, retention, and billing — **not** the live dispatcher workspace. If you land on a call-taker screen, stop and tell Rapid Cortex support. That is an operational separation failure.
+You manage users, integrations, SOP library, retention, and billing — **not** the live dispatcher workspace. If you land on a call-taker screen, stop and tell NexCort iQ support. That is an operational separation failure.
 
 Campus/venue/transit admins use **Staff Guide**, not this PSAP Help tab.
 

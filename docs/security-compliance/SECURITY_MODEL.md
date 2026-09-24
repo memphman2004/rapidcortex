@@ -2,7 +2,7 @@
 
 **Last reviewed:** 2026-09-19 (60-day refresh) · **Owner:** Jeff Coleman
 
-This document describes **pilot-grade technical controls** implemented in Rapid Cortex. It is **not** a CJIS, HIPAA, FedRAMP, or SOC 2 attestation. In-repo TSC pack: [soc2/README.md](./soc2/README.md) (observation target 2026-10-01). Agency security and compliance teams must map these controls to their own policies and any required **external** assessments.
+This document describes **pilot-grade technical controls** implemented in NexCort iQ. It is **not** a CJIS, HIPAA, FedRAMP, or SOC 2 attestation. In-repo TSC pack: [soc2/README.md](./soc2/README.md) (observation target 2026-10-01). Agency security and compliance teams must map these controls to their own policies and any required **external** assessments.
 
 ## Trust boundaries
 

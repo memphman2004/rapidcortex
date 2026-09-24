@@ -1,7 +1,7 @@
 # Security incident response runbook (operator draft)
 
 **Audience:** Security + engineering on-call.  
-**Disclaimer:** Adapt to your org’s SOC2/IR playbooks. This is a **starter** aligned to AWS-native Rapid Cortex deployments.
+**Disclaimer:** Adapt to your org’s SOC2/IR playbooks. This is a **starter** aligned to AWS-native NexCort iQ deployments.
 
 ## Severity levels (suggested)
 

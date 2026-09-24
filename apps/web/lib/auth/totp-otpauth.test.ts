@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildRapidCortexTotpOtpauthUrl } from "./totp-otpauth";
 
 describe("buildRapidCortexTotpOtpauthUrl", () => {
-  it("encodes a Google Authenticator-compatible Rapid Cortex account", () => {
+  it("encodes a Google Authenticator-compatible NexCort iQ account", () => {
     const url = buildRapidCortexTotpOtpauthUrl("dispatcher@agency.gov", "JBSWY3DPEHPK3PXP");
     expect(url.startsWith("otpauth://totp/")).toBe(true);
     expect(url).toContain("Rapid%20Cortex");

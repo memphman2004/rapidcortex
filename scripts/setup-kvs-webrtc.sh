@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Idempotent: Kinesis Video Streams signaling channel + optional video stream and storage mapping.
-# Rapid Cortex production also creates per-session channels via the API; this script is for
+# NexCort iQ production also creates per-session channels via the API; this script is for
 # operator bootstrap, staging defaults, and alignment checks (named resources).
 set -euo pipefail
 
@@ -163,4 +163,4 @@ else
 fi
 echo ""
 echo "When storage is ENABLED, use JoinStorageSession (not plain master/viewer) in clients — see docs/kvs-webrtc-setup.md."
-echo "Rapid Cortex can still create per-session channels via the API; this script targets named shared resources for ops/staging."
+echo "NexCort iQ can still create per-session channels via the API; this script targets named shared resources for ops/staging."

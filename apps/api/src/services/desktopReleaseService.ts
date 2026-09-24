@@ -18,10 +18,10 @@ const s3 = new S3Client({ region: env.region });
 const auditRepo = new AuditRepository();
 
 const MAC_INSTALL =
-  "Open the DMG, drag Rapid Cortex into Applications, then launch from Applications. If macOS blocks the first launch, use System Settings → Privacy & Security to approve the Developer ID–signed app. The app still requires Rapid Cortex sign-in before any incident data is available.";
+  "Open the DMG, drag NexCort iQ into Applications, then launch from Applications. If macOS blocks the first launch, use System Settings → Privacy & Security to approve the Developer ID–signed app. The app still requires NexCort iQ sign-in before any incident data is available.";
 
 const WIN_INSTALL =
-  "Run the signed installer from an agency-controlled location. The desktop app requires Rapid Cortex sign-in before any incident data is available.";
+  "Run the signed installer from an agency-controlled location. The desktop app requires NexCort iQ sign-in before any incident data is available.";
 
 function canDownloadDesktopInstallers(user: UserContext): boolean {
   if (isRcsuperadmin(user)) return true;

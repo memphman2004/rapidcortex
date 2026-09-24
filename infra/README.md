@@ -1,6 +1,6 @@
 # Infrastructure
 
-AWS resources for Rapid Cortex (API Gateway, Lambda, DynamoDB, Cognito, S3, CloudWatch, Route53 records) are defined in **`infra/template.yaml`**. Operator checklist and scripts: **[`docs/AWS_SETUP.md`](../docs/AWS_SETUP.md)**. **CloudWatch dashboard** (`PilotOperationsDashboard`), **SNS ops topic** (`OpsAlertsTopic` — outputs `PilotOperationsDashboardName` / `OpsAlertsTopicArn`), **alarms**, and **DynamoDB PITR** (staging / prod / pilot) are documented in **[`docs/MONITORING_AND_OPS.md`](../docs/MONITORING_AND_OPS.md)** and **[`docs/BACKUP_AND_RECOVERY.md`](../docs/BACKUP_AND_RECOVERY.md)**.
+AWS resources for NexCort iQ (API Gateway, Lambda, DynamoDB, Cognito, S3, CloudWatch, Route53 records) are defined in **`infra/template.yaml`**. Operator checklist and scripts: **[`docs/AWS_SETUP.md`](../docs/AWS_SETUP.md)**. **CloudWatch dashboard** (`PilotOperationsDashboard`), **SNS ops topic** (`OpsAlertsTopic` — outputs `PilotOperationsDashboardName` / `OpsAlertsTopicArn`), **alarms**, and **DynamoDB PITR** (staging / prod / pilot) are documented in **[`docs/MONITORING_AND_OPS.md`](../docs/MONITORING_AND_OPS.md)** and **[`docs/BACKUP_AND_RECOVERY.md`](../docs/BACKUP_AND_RECOVERY.md)**.
 
 ### Cognito self sign-up
 

@@ -1,6 +1,6 @@
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
-/** Hash Rapid Cortex Agency API client secrets (stored with random salt per client). */
+/** Hash NexCort iQ Agency API client secrets (stored with random salt per client). */
 export function hashApiClientSecret(secret: string): { saltHex: string; hashHex: string } {
   const saltHex = randomBytes(16).toString("hex");
   const hashBuf = scryptSync(secret, Buffer.from(saltHex, "utf8"), 64);

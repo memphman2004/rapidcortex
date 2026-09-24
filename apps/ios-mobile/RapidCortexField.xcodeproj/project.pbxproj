@@ -60,7 +60,7 @@
 		B252404851C891A2616CAD4E /* CodesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodesListView.swift; sourceTree = "<group>"; };
 		B435077A0EF9220C61909040 /* EnterTheCortexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnterTheCortexView.swift; sourceTree = "<group>"; };
 		B8538AB9AA07AFFCE1B642AE /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
-		BACB5C6D2D31F61953AE2040 /* Rapid Cortex Mobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Rapid Cortex Mobile.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BACB5C6D2D31F61953AE2040 /* NexCort iQ Mobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NexCort iQ Mobile.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C2AACB12525FDDC372A48FD3 /* NFCWriterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCWriterView.swift; sourceTree = "<group>"; };
 		CBCD7A49737FBDFF668306B5 /* SiteQrNfcView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteQrNfcView.swift; sourceTree = "<group>"; };
 		D8AB2BDE52E6C56177C9F254 /* TradeShowSite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeShowSite.swift; sourceTree = "<group>"; };
@@ -94,7 +94,7 @@
 		0CF5771E1ACE154F17F24AE3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				BACB5C6D2D31F61953AE2040 /* Rapid Cortex Mobile.app */,
+				BACB5C6D2D31F61953AE2040 /* NexCort iQ Mobile.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -176,7 +176,7 @@
 				F9A46F04A315A71390FF0FF5 /* BigInt */,
 			);
 			productName = RapidCortexField;
-			productReference = BACB5C6D2D31F61953AE2040 /* Rapid Cortex Mobile.app */;
+			productReference = BACB5C6D2D31F61953AE2040 /* NexCort iQ Mobile.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -343,14 +343,14 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = RapidCortexField/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Rapid Cortex Mobile";
+				INFOPLIST_KEY_CFBundleDisplayName = "NexCort iQ Mobile";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_NAME = "Rapid Cortex Mobile";
+				PRODUCT_NAME = "NexCort iQ Mobile";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -439,14 +439,14 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = RapidCortexField/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Rapid Cortex Mobile";
+				INFOPLIST_KEY_CFBundleDisplayName = "NexCort iQ Mobile";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_NAME = "Rapid Cortex Mobile";
+				PRODUCT_NAME = "NexCort iQ Mobile";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";

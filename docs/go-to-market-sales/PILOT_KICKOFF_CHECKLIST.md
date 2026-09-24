@@ -7,7 +7,7 @@ Run in the **first joint session** after signature and before broad user access.
 ## Attendees (minimum)
 
 - Agency: executive sponsor or delegate, IT/security, floor supervisor or training lead.
-- Rapid Cortex: pilot lead + implementation engineer.
+- NexCort iQ: pilot lead + implementation engineer.
 
 ## Decisions to capture (60–90 minutes)
 

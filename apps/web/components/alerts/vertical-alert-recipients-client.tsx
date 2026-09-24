@@ -44,7 +44,7 @@ export function VerticalAlertRecipientsClient({ vertical }: { vertical: AlertVer
     <div className="space-y-4">
       <h2 className="text-lg font-semibold text-white">Occupant recipient registry</h2>
       <p className="text-sm text-slate-400">
-        Rapid Cortex does not invent a student directory. Import opted-in records from SIS (Banner,
+        NexCort iQ does not invent a student directory. Import opted-in records from SIS (Banner,
         PeopleSoft, Workday) with TCPA consent. Phone rows require opt_in_date, opt_in_method, and
         opt_in_consent_text. This is not the inbound 10DLC safety-reporting campaign.
       </p>

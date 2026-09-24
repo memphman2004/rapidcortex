@@ -5,14 +5,14 @@ const DEST = "https://www.rapidcortex.us/contact-sales?interest=demo";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "Request a demo | Rapid Cortex",
-    description: "Request a Rapid Cortex live demo for your agency.",
+    title: "Request a demo | NexCort iQ",
+    description: "Request a NexCort iQ live demo for your agency.",
     robots: { index: false, follow: true },
     alternates: { canonical: absoluteUrl("/contact-sales?interest=demo") },
     openGraph: {
-      title: "Request a demo | Rapid Cortex",
+      title: "Request a demo | NexCort iQ",
       url: DEST,
-      images: [buildOgShareImage("Request a Rapid Cortex demo")],
+      images: [buildOgShareImage("Request a NexCort iQ demo")],
       type: "website",
     },
   };

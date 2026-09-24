@@ -13,7 +13,7 @@ describe("module dock reducer", () => {
       "Incident Picture",
       "Caller Mobile",
       "Silent Text Link",
-      "Rapid Cortex Pinpoint",
+      "NexiQ Pinpoint",
       "Location",
       "Premise Notice",
       "Map",

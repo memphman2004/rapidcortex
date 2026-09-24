@@ -1,4 +1,4 @@
-# Rapid Cortex Pilot Status Assessment
+# NexCort iQ Pilot Status Assessment
 
 | Deployment Scope | Status | Ready For | Notes |
 |------------------|--------|-----------|-------|
@@ -6,7 +6,7 @@
 | **Production Dashboard Rollout** | **YELLOW** | Not yet | Requires P1 items completion + evidence package |
 | **CAD Read Integration** | **YELLOW** | Conditional | Vendor-specific adapter needed |
 | **CAD Write-Back** | **RED** | **NO-GO** | Intentionally blocked - separate approval gate required |
-| **RC Lite API Production** | **YELLOW** | Conditional | Usage metering & overage reporting needed |
+| **NC Lite API Production** | **YELLOW** | Conditional | Usage metering & overage reporting needed |
 | **Desktop Connector Rollout** | **YELLOW** | Limited pilot only | Signing/notarization incomplete |
 | **Full Production** | **YELLOW** | Not yet | Evidence package + all P1 items required |
 
@@ -105,10 +105,10 @@ All P1 gates remain YELLOW with documented mitigations for pilot phase.
 - ❌ CAD integration (requires vendor adapter implementation)
 - ❌ CAD write-back (intentionally disabled)
 - ❌ Desktop applications (signing incomplete - web only)
-- ❌ Some RC Lite API features (usage metering incomplete)
+- ❌ Some NC Lite API features (usage metering incomplete)
 
 **Customer-Facing Message:**
-> "Rapid Cortex is ready for a controlled pilot to validate AI summaries, transcription, translation, and dispatcher workflow. CAD integration will be added in phase 2 after vendor-specific adapter is implemented. All features work in 'manual mode' where dispatchers enter information directly into Rapid Cortex."
+> "NexCort iQ is ready for a controlled pilot to validate AI summaries, transcription, translation, and dispatcher workflow. CAD integration will be added in phase 2 after vendor-specific adapter is implemented. All features work in 'manual mode' where dispatchers enter information directly into NexCort iQ."
 
 ---
 

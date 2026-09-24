@@ -22,7 +22,7 @@ export default function AdminPilotHubPage() {
       <div>
         <h1 className="text-xl font-semibold text-white">IT setup & integration</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Technical resources for configuring Rapid Cortex at your agency.
+          Technical resources for configuring NexCort iQ at your agency.
         </p>
       </div>
 
@@ -39,7 +39,7 @@ export default function AdminPilotHubPage() {
           <li>
             <DocumentationArticleLink
               file="admin-user-management/RapidCortex-CAD-Integration-Guide-1.0.pdf"
-              label="Rapid Cortex CAD Integration Guide 1.0 (PDF)"
+              label="NexCort iQ CAD Integration Guide 1.0 (PDF)"
             />
           </li>
           <li>

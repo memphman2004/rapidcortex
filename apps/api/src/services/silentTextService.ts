@@ -205,7 +205,7 @@ export class SilentTextService {
     const path = `/silent-text/${encodeURIComponent(token)}`;
     const publicUrl = `${base}${path}`;
 
-    const msg = `Rapid Cortex secure message from emergency services: If it is not safe to speak, use this secure link to continue by text: ${publicUrl}`;
+    const msg = `NexCort iQ secure message from emergency services: If it is not safe to speak, use this secure link to continue by text: ${publicUrl}`;
 
     const sms = await sendSilentTextSms({
       phoneE164: body.callerPhoneE164,
@@ -388,7 +388,7 @@ export class SilentTextService {
     if (!item.publicUrl) throw new Error("MISSING_PUBLIC_URL");
     const sms = await sendSilentTextSms({
       phoneE164: item.callerPhoneE164,
-      message: `Rapid Cortex secure text link (resend): ${item.publicUrl}`,
+      message: `NexCort iQ secure text link (resend): ${item.publicUrl}`,
       agencyId: incident.agencyId,
       incidentId,
     });

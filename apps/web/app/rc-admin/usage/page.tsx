@@ -20,7 +20,7 @@ export default async function RcAdminUsagePage() {
       <div>
         <h1 className="text-2xl font-semibold text-white">API usage</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          RC Lite programmatic API call meters by customer and billing tier. Revenue columns are visible
+          NexCort Lite programmatic API call meters by customer and billing tier. Revenue columns are visible
           to platform owners only.
         </p>
       </div>

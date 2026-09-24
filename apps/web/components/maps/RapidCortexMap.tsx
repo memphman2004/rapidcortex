@@ -1,5 +1,5 @@
 /**
- * Rapid Cortex — Public Map Component
+ * NexCort iQ — Public Map Component
  *
  * This is the file to import everywhere in the app.
  * It wraps RapidCortexMapCore via Next.js dynamic import with ssr: false,

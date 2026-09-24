@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — Rapid IQ Signal Intelligence Pipeline
+  NexCort iQ — Rapid IQ Signal Intelligence Pipeline
   (procurement signal ingest → SQS → NLP → DynamoDB → CRM push).
   Distinct from stack-app-sam-rapid-iq.yaml (opportunity feed).
 
@@ -167,7 +167,7 @@ Globals:
         COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
         COGNITO_REGION: !Ref AWS::Region
         APPROVED_CORS_ORIGINS: !Ref ApprovedCorsOrigins
-        SES_FROM_EMAIL: noreply@rapidcortex.us
+        SES_FROM_EMAIL: noreply@nexcortiq.us
         RAPID_IQ_ALERT_TO_EMAIL: ""
         EXTERNAL_API_ENCRYPTION_KEY_ARN: !Ref ExternalApiEncryptionKeyArn
         OUTLOOK_OAUTH_CLIENT_ID: !Ref OutlookOAuthClientId
@@ -175,7 +175,7 @@ Globals:
         OUTLOOK_OAUTH_REDIRECT_URI: !Ref OutlookOAuthRedirectUri
         OUTLOOK_OAUTH_TENANT: !Ref OutlookOAuthTenant
         OUTLOOK_GRAPH_MOCK: !Ref OutlookGraphMock
-        OUTLOOK_SALES_MAILBOX: hello@rapidcortex.us
+        OUTLOOK_SALES_MAILBOX: hello@nexcortiq.us
 
 Resources:
   RawSignalsDLQ:
@@ -381,9 +381,9 @@ Resources:
             Action:
               - ses:SendEmail
             Resource:
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/noreply@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/noreply@nexcortiq.us
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@nexcortiq.us
           - Sid: ReadOutlookOAuthSecret
             Effect: Allow
             Action:

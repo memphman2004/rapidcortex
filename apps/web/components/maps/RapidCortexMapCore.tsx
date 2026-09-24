@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Rapid Cortex — Map Core Component
+ * NexCort iQ — Map Core Component
  *
  * NEVER import this file directly in pages or server components.
  * It is loaded exclusively via Next.js dynamic import with ssr: false
@@ -1378,7 +1378,7 @@ function ensureLiveLayers(
       filter: ["in", ["get", "status"], ["literal", ["active", "responding"]]],
       layout: {
         "icon-image": INCIDENT_PULSE_IMAGE_ID,
-        "icon-size": 0.7,
+        "icon-size": 0.45,
         "icon-allow-overlap": true,
         "icon-ignore-placement": true,
       },

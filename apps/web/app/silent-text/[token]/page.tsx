@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SilentTextCallerClient } from "@/components/silent-text/silent-text-caller-client";
 
 export const metadata: Metadata = {
-  title: "Silent Text — Rapid Cortex",
+  title: "Silent Text — NexCort iQ",
   robots: { index: false, follow: false },
 };
 

@@ -1,6 +1,6 @@
 # Known limitations (pilot — honest list)
 
-Rapid Cortex is built for a **controlled pilot**. This page states boundaries clearly so agencies do not discover them under pressure.
+NexCort iQ is built for a **controlled pilot**. This page states boundaries clearly so agencies do not discover them under pressure.
 
 **Promise control:** external-facing language should follow [PROMISE_CONTROL.md](./PROMISE_CONTROL.md), [SALES_BOUNDARIES.md](./SALES_BOUNDARIES.md), [PILOT_NON_GOALS.md](./PILOT_NON_GOALS.md), [SALES_SCOPE_MATRIX.md](./SALES_SCOPE_MATRIX.md), [PRODUCT_OVERVIEW.md](./PRODUCT_OVERVIEW.md), and [FEATURE_MATRIX.md](./FEATURE_MATRIX.md) so maturity is not oversold. **Pilot configuration** assumptions: [IMPLEMENTATION_ASSUMPTIONS.md](./IMPLEMENTATION_ASSUMPTIONS.md). **Onboarding:** [AGENCY_ONBOARDING_RUNBOOK.md](./AGENCY_ONBOARDING_RUNBOOK.md). **Support:** [SUPPORT_MODEL.md](./SUPPORT_MODEL.md), [FAQ_INTERNAL.md](./FAQ_INTERNAL.md). **Pilot measurement:** [PILOT_SUCCESS_METRICS.md](./PILOT_SUCCESS_METRICS.md), [FEEDBACK_LOOP.md](./FEEDBACK_LOOP.md); index: [PILOT_SUCCESS_AND_FEEDBACK.md](./PILOT_SUCCESS_AND_FEEDBACK.md).
 

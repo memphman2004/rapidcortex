@@ -142,7 +142,7 @@ export function PinpointCallerClient({ token }: { token: string }) {
   return (
     <div className="flex min-h-screen flex-col bg-[#0A1628] px-4 py-10 text-slate-100">
       <div className="mx-auto w-full max-w-md">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-sky-400">Rapid Cortex Pinpoint</p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-sky-400">NexiQ Pinpoint</p>
         <h1 className="mt-1 text-lg font-semibold text-white">Share your location</h1>
         <p className="mt-2 text-sm leading-relaxed text-slate-400">
           Emergency responders asked for your phone&apos;s GPS to find you faster. Sharing is optional and only while

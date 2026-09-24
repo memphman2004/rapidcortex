@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Rapid Cortex desktop installers via private S3 + CloudFront OAC.
+Description: NexCort iQ desktop installers via private S3 + CloudFront OAC.
 
 Parameters:
   Environment:
@@ -38,7 +38,7 @@ Resources:
     Properties:
       DistributionConfig:
         Enabled: true
-        Comment: !Sub Rapid Cortex downloads (${Environment})
+        Comment: !Sub NexCort iQ downloads (${Environment})
         DefaultRootObject: index.html
         Origins:
           - Id: S3Downloads

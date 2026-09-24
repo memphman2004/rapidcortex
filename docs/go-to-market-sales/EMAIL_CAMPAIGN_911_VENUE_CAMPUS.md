@@ -12,7 +12,7 @@ This is one program with **three vertical tracks**. Do not mix tracks. A PSAP di
 
 | | |
 |--|--|
-| **Name** | Rapid Cortex vertical outbound 2026 |
+| **Name** | NexCort iQ vertical outbound 2026 |
 | **Goal** | Book a 20-minute product walkthrough that can convert to a **controlled pilot**. Not self-serve GA. |
 | **Primary CTA** | [Contact sales](https://www.rapidcortex.us/contact-sales?interest=demo) with vertical UTM (below). |
 | **Offer** | Assistive intelligence layer alongside existing CAD / campus PD / venue security — not a replacement for 911, CAD, radio, ENS, or VMS. |
@@ -45,8 +45,8 @@ Build three suppression-clean lists. Source: Rapid IQ intel, PSAP prospect expor
 
 | Field | Value |
 |-------|--------|
-| From name | Rapid Cortex |
-| From address | `hello@rapidcortex.us` (Connect Outlook as this mailbox on `/rc-admin/sales-automation`) |
+| From name | NexCort iQ |
+| From address | `hello@nexcortiq.us` (Connect Outlook as this mailbox on `/rc-admin/sales-automation`) |
 | Reply-to | Same mailbox (replies land in Outlook Sent / Inbox) |
 | Send window | Tue–Thu, 09:30–11:30 **recipient local** |
 | Cadence | Day 0 → 5 → 12 → 19 → 26 → 33. Stop on reply, bounce, or unsubscribe. |
@@ -65,7 +65,7 @@ Venue   https://www.rapidcortex.us/contact-sales?interest=venue-demo&utm_source=
 **Footer (required)**
 
 ```
-Rapid Cortex · rapidcortex.us
+NexCort iQ · rapidcortex.us
 This email is for {{org_name}} operations leadership. Unsubscribe: https://www.rapidcortex.us/unsubscribe
 ```
 
@@ -89,7 +89,7 @@ If Rapid IQ has a procurement signal, keep **one** factual clause. Do not invent
 
 ## 5. Track A — 911 / PSAP (Core)
 
-**Promise:** Rapid Cortex sits **beside** CAD and telephony. Transcription, structured AI assistance, supervisor visibility, and translation **when the agency configures that pipeline**. Humans remain in charge.
+**Promise:** NexCort iQ sits **beside** CAD and telephony. Transcription, structured AI assistance, supervisor visibility, and translation **when the agency configures that pipeline**. Humans remain in charge.
 
 **Asset links (email 5):** `/product/core` · `/psap-software` · `/cad-integration`
 
@@ -104,7 +104,7 @@ If Rapid IQ has a procurement signal, keep **one** factual clause. Do not invent
 
 Dispatchers at {{org_name}} still have to listen, type, and decide on the same call. That load does not get smaller when vacancies sit at 25–40%.
 
-Rapid Cortex is a browser co-pilot for 911 / ECC staff: live transcription, AI-assisted incident structure, and supervisor visibility. It does not replace CAD, CPE, radio, or the dispatcher.
+NexCort iQ is a browser co-pilot for 911 / ECC staff: live transcription, AI-assisted incident structure, and supervisor visibility. It does not replace CAD, CPE, radio, or the dispatcher.
 
 {{signal}}
 
@@ -112,7 +112,7 @@ If a 20-minute walkthrough would help you judge fit against your floor — not a
 {{cta}}
 
 Best,
-The Rapid Cortex team
+The NexCort iQ team
 ```
 
 ### A2 · Day 5 — How it sits with CAD (Rapid IQ step 2)
@@ -125,7 +125,7 @@ The Rapid Cortex team
 
 Quick clarification, because this is where 911 evaluations go sideways:
 
-CAD remains the system of record. Rapid Cortex is an intelligence layer: transcripts, suggested structure, protocol-aligned coaching when your agency has approved packs, and QA surfaces for supervisors.
+CAD remains the system of record. NexCort iQ is an intelligence layer: transcripts, suggested structure, protocol-aligned coaching when your agency has approved packs, and QA surfaces for supervisors.
 
 CAD write-back is off unless you later sign a scoped connector project. We start most agencies on a standalone pilot so IT is not blocked on a vendor program.
 
@@ -143,7 +143,7 @@ Happy to send the one-page architecture note or walk the dispatcher workspace li
 
 Last note unless you want a working session.
 
-Supervisors use Rapid Cortex for a second look: searchable transcripts, flags for review, and coaching that follows agency-approved protocol packs. Translation and language detection run when your deployment wires that pipeline — they do not replace interpreters.
+Supervisors use NexCort iQ for a second look: searchable transcripts, flags for review, and coaching that follows agency-approved protocol packs. Translation and language detection run when your deployment wires that pipeline — they do not replace interpreters.
 
 If the timing is wrong, say so. If a 20-minute floor walkthrough is useful before budget lock, I will keep it tight:
 {{cta}}
@@ -158,7 +158,7 @@ If the timing is wrong, say so. If a 20-minute floor walkthrough is useful befor
 
 Logging systems keep the tape. They do not usually put a structured, searchable incident in front of the call-taker while the caller is still talking.
 
-That is the gap Rapid Cortex is built for: assistive structure during the event, then audit after — still next to CAD, not instead of it.
+That is the gap NexCort iQ is built for: assistive structure during the event, then audit after — still next to CAD, not instead of it.
 
 If that is already solved on your floor, I will close this thread. If not:
 {{cta}}
@@ -171,7 +171,7 @@ If that is already solved on your floor, I will close this thread. If not:
 ```
 {{first_name}},
 
-If it is easier to share internally than take a call: Rapid Cortex Core overview is here:
+If it is easier to share internally than take a call: NexCort iQ Core overview is here:
 https://www.rapidcortex.us/product/core
 
 For agencies using NG911 or E911 surcharge / BRIC timing, we scope a controlled pilot first (transcription + AI assistance + supervisor view). We do not lead with a CAD rip-and-replace SOW.
@@ -187,7 +187,7 @@ Walkthrough when you are ready:
 ```
 {{first_name}},
 
-I will not keep pinging. If Rapid Cortex is not on {{org_name}}’s roadmap this cycle, that is fine.
+I will not keep pinging. If NexCort iQ is not on {{org_name}}’s roadmap this cycle, that is fine.
 
 If a later grant, accreditation, or CAD project reopens the conversation, we can pick it up then. Unsubscribe anytime: https://www.rapidcortex.us/unsubscribe
 ```
@@ -211,7 +211,7 @@ If a later grant, accreditation, or CAD project reopens the conversation, we can
 
 At {{org_name}}, a lot of welfare and property incidents never become a 911 call. Students will scan a code or text a short keyword. They will not install another app during week one.
 
-Rapid Cortex Campus puts QR, NFC, and SMS reports on a live campus console with building / zone context. It is not a 911 emergency dispatch system and it does not replace campus police.
+NexCort iQ Campus puts QR, NFC, and SMS reports on a live campus console with building / zone context. It is not a 911 emergency dispatch system and it does not replace campus police.
 
 {{signal}}
 
@@ -227,7 +227,7 @@ Fifteen minutes is enough to watch a scan land on the console:
 ```
 {{first_name}},
 
-Campus ENS products blast alerts. Rapid Cortex is the intake and coordination layer for what students actually report: location-aware incidents, two-way text with security when you enable it, and structured records that help Clery documentation instead of a reconstruction after the fact.
+Campus ENS products blast alerts. NexCort iQ is the intake and coordination layer for what students actually report: location-aware incidents, two-way text with security when you enable it, and structured records that help Clery documentation instead of a reconstruction after the fact.
 
 IT usually asks about FERPA and logs: we design for no PII in operational CloudWatch logs and anonymous reporting options. Your counsel still owns policy.
 
@@ -258,7 +258,7 @@ If this semester is already locked, say so. If Public Safety wants to see the QR
 
 Anonymous tip forms collect a paragraph and go dark. Students stop using them when nothing visible happens.
 
-Rapid Cortex keeps the report in a live incident with zone context so campus security can acknowledge and work it. Still not 911 dispatch.
+NexCort iQ keeps the report in a live incident with zone context so campus security can acknowledge and work it. Still not 911 dispatch.
 
 If your tip line already does that with location and two-way text, I will stand down. Otherwise:
 {{cta}}
@@ -296,7 +296,7 @@ Unsubscribe: https://www.rapidcortex.us/unsubscribe
 
 ## 7. Track C — Venue
 
-**Promise:** Guest QR/SMS into venue security ops. Section context. Camera views **when those cameras are registered** in Rapid Cortex — we do not replace Genetec/Milestone. Guest Services pages must keep the “not a 911 dispatch system” posture.
+**Promise:** Guest QR/SMS into venue security ops. Section context. Camera views **when those cameras are registered** in NexCort iQ — we do not replace Genetec/Milestone. Guest Services pages must keep the “not a 911 dispatch system” posture.
 
 **Asset links:** `/product/venue` · `/venue-safety-software` · `/stadium-security-software`
 
@@ -311,7 +311,7 @@ Unsubscribe: https://www.rapidcortex.us/unsubscribe
 
 On event day at {{org_name}}, guest problems still compete with radio traffic. A medical in 112, a fight on the concourse, and a lost child do not wait for a free channel.
 
-Rapid Cortex Venue gives guests QR / NFC / SMS reporting into a security console with section and gate context. It is not a 911 dispatch system and it does not replace your VMS or radio.
+NexCort iQ Venue gives guests QR / NFC / SMS reporting into a security console with section and gate context. It is not a 911 dispatch system and it does not replace your VMS or radio.
 
 {{signal}}
 
@@ -327,7 +327,7 @@ Twenty minutes, including how a section report can pull registered cameras when 
 ```
 {{first_name}},
 
-We do not ask you to rip out the camera platform. Rapid Cortex registers venue cameras you already have (RTSP / ONVIF) so a section incident can open the relevant views in the same console as the guest report.
+We do not ask you to rip out the camera platform. NexCort iQ registers venue cameras you already have (RTSP / ONVIF) so a section incident can open the relevant views in the same console as the guest report.
 
 Legal and risk usually want consent and retention in writing before a public QR program. We treat that as a joint plan, not a checkbox in a slide.
 
@@ -399,7 +399,7 @@ Use **instead of** email 1 when Rapid IQ has a hard signal. Then continue with e
 
 | Trigger | Who | First-line swap |
 |---------|-----|-----------------|
-| NG911 / E911 board or RFP | 911 | “I saw {{org_name}} moving on {{signal}}. Rapid Cortex is the assistive layer beside CAD, not a competing CPE bid.” |
+| NG911 / E911 board or RFP | 911 | “I saw {{org_name}} moving on {{signal}}. NexCort iQ is the assistive layer beside CAD, not a competing CPE bid.” |
 | Grant (BRIC, NG911) | 911 | “If {{org_name}} is lining up surcharge / grant spend, a standalone pilot is the piece that does not wait on a CAD vendor program.” |
 | Clery finding / new chief | Campus | “New chiefs usually want reporting they can demo in a week, not another ENS RFP.” |
 | Season opener / insurance audit | Venue | “Before {{signal}}, a section-level QR path is the piece you can test without touching radio.” |

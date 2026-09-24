@@ -17,7 +17,7 @@ STAGE="${STAGE:-prod}"
 BUCKET="rapid-cortex-help-${STAGE}"
 ACCOUNT="$(aws sts get-caller-identity --query Account --output text)"
 OAC_NAME="rapid-cortex-help-${STAGE}-oac"
-DIST_COMMENT="Rapid Cortex in-app help (${STAGE})"
+DIST_COMMENT="NexCort iQ in-app help (${STAGE})"
 
 echo "Account=${ACCOUNT} Bucket=${BUCKET} Region=${REGION}"
 

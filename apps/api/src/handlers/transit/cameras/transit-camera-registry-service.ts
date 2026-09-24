@@ -244,7 +244,7 @@ export function buildTransitProducerConfigYaml(agencyId: string, cameras: VenueC
   const rtspCameras = cameras.filter((c) => isRtspProducerVendor(c.vendor) && c.rtspUrl?.trim());
 
   const lines: string[] = [
-    `# Rapid Cortex KVS Producer Agent configuration (transit)`,
+    `# NexCort iQ KVS Producer Agent configuration (transit)`,
     `# Agency: ${agencyId}`,
     `# Generated: ${new Date().toISOString()}`,
     ``,

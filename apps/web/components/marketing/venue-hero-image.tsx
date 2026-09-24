@@ -4,7 +4,7 @@ export const VENUE_HERO_IMAGE = {
   src: "/images/venue-hero.webp",
   width: 1672,
   height: 941,
-  alt: "Rapid Cortex Venue Command — stadium security operations, help tower, and live camera feeds at night",
+  alt: "NexCort iQ Venue Command — stadium security operations, help tower, and live camera feeds at night",
 } as const;
 
 /** LCP hero — static export has no `/_next/image`; serve the 172KB WebP directly. */

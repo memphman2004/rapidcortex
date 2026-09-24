@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex Call Assist — Amazon Lex V2 bot + dialog/fulfillment Lambdas.
+  NexCort iQ Call Assist — Amazon Lex V2 bot + dialog/fulfillment Lambdas.
   Standalone stack (not nested in stack-app-sam.yaml). One bot serves all tenants.
   CAD write-back stays off. Safety TRANSFER_911 is enforced in the dialog hook, not by Lex NLU.
 
@@ -198,7 +198,7 @@ Resources:
       - LexFulfillmentHookFunction
     Properties:
       Name: !Sub "RCCallAssistBot-${DeploymentStage}"
-      Description: Rapid Cortex non-emergency conversational AI. Multi-tenant. Safety gate is Lambda, not NLU.
+      Description: NexCort iQ non-emergency conversational AI. Multi-tenant. Safety gate is Lambda, not NLU.
       RoleArn: !GetAtt LexServiceRole.Arn
       DataPrivacy:
         ChildDirected: false

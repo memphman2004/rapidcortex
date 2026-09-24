@@ -15,7 +15,7 @@
 
 | Source | Purpose | PII rule |
 |--------|---------|----------|
-| CloudTrail `rapid-cortex-cloudtrail-prod` | AWS API / data events for Rapid Cortex buckets + Lambda | Management events; no secret values |
+| CloudTrail `rapid-cortex-cloudtrail-prod` | AWS API / data events for NexCort iQ buckets + Lambda | Management events; no secret values |
 | CloudWatch Logs | Lambda / ECS application logs | No raw transcripts, JWTs, passwords |
 | DynamoDB audit table | Application mutations | Agency-scoped; see [AUDIT_EVENT_MATRIX.md](../../AUDIT_EVENT_MATRIX.md) |
 | WAF logs | Edge deny/count | IP + rule IDs |
@@ -23,7 +23,7 @@
 
 ## 2. Alerting
 
-CloudWatch alarms → SNS OpsAlerts topic. **Paging** (phone/Slack/PagerDuty) is PLT-025 — document the roster off-git. Two historical `INSUFFICIENT_DATA` alarms (MEL billing, ALB 5xx) are tracked; they are not Rapid Cortex customer-data controls.
+CloudWatch alarms → SNS OpsAlerts topic. **Paging** (phone/Slack/PagerDuty) is PLT-025 — document the roster off-git. Two historical `INSUFFICIENT_DATA` alarms (MEL billing, ALB 5xx) are tracked; they are not NexCort iQ customer-data controls.
 
 ## 3. Review
 

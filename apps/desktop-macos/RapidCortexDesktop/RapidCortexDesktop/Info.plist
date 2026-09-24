@@ -19,7 +19,7 @@
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.business</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>© Rapid Cortex, LLC</string>
+	<string>© NexCort iQ, LLC</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>CFBundleURLTypes</key>
@@ -42,7 +42,7 @@
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Rapid Cortex uses location to display emergency incidents, caller LiveLocation, responder positions, hospitals, and jurisdiction map context.</string>
+	<string>NexCort iQ uses location to display emergency incidents, caller LiveLocation, responder positions, hospitals, and jurisdiction map context.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>RC_ENVIRONMENT</key>

@@ -1,7 +1,7 @@
 # Promise control (internal)
 
 **Last reviewed:** 2026-09-19 (60-day refresh) · **Owner:** Jeff Coleman  
-**Audience:** sales, solutions engineering, product, legal, and anyone who speaks externally about Rapid Cortex during a **pilot**.  
+**Audience:** sales, solutions engineering, product, legal, and anyone who speaks externally about NexCort iQ during a **pilot**.  
 **Purpose:** keep language **truthful and operational** so pilots do not start with contractual or reputational debt.
 
 If this document conflicts with [MVP_SCOPE.md](./MVP_SCOPE.md) or [NON_GOALS.md](./NON_GOALS.md), **MVP_SCOPE + NON_GOALS win**.

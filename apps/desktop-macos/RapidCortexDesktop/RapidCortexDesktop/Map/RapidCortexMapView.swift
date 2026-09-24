@@ -16,7 +16,7 @@ struct RapidCortexMapView: View {
     private var header: some View {
         HStack(alignment: .center, spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Rapid Cortex Command Map")
+                Text("NexiQ Command Map")
                     .font(.title2.weight(.semibold))
                 Text("LiveLocation, responder awareness, hospital context, and incident mapping.")
                     .font(.subheadline)

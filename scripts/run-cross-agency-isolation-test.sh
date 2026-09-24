@@ -4,6 +4,10 @@
 # Usage:
 #   RC_TEST_PASSWORD='…' bash scripts/run-cross-agency-isolation-test.sh
 #
+# The live user pool has MfaConfiguration ON. USER_PASSWORD_AUTH returns an MFA
+# challenge instead of an IdToken. Prefer exporting AGENCY_A_JWT and AGENCY_B_JWT
+# from an already-authenticated session. deploy.sh accepts those and skips this fetch.
+#
 # Optional overrides:
 #   AGENCY_A_USER=dispatcher@appsondemand.net
 #   AGENCY_B_USER=campusadmin@appsondemand.net

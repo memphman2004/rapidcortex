@@ -8,7 +8,7 @@ import { isNetworkAccessSettingsUiEnabled } from "@/lib/runtime-flags";
 import { NetworkPolicyEditor } from "@/components/network/network-policy-editor";
 
 export const metadata = {
-  title: "Network access (RC Admin)",
+  title: "Network access (NexCort Admin)",
   robots: { index: false, follow: false },
 };
 

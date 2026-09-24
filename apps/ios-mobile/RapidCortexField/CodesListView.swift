@@ -137,7 +137,7 @@ struct CodesListView: View {
                     SiteQrNfcView()
                 } label: {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Rapid Cortex site QR & NFC")
+                        Text("NexCort iQ site QR & NFC")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(RCTheme.amber)
                         Text("Writes www.rapidcortex.us or /demo/ for booth visitors")

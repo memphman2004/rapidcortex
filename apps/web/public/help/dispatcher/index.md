@@ -2,7 +2,7 @@
 
 This Help tab is for **911 / PSAP** staff. Campus, venue, and transit employees use **Staff Guide** instead.
 
-Rapid Cortex enhances emergency communications. It does **not** replace CAD, telephony, dispatchers, or medical direction. AI text is a suggestion. Agency SOP and your supervisor win if they disagree.
+NexCort iQ enhances emergency communications. It does **not** replace CAD, telephony, dispatchers, or medical direction. AI text is a suggestion. Agency SOP and your supervisor win if they disagree.
 
 ## Your workspace
 

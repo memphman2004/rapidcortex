@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >
-  Rapid Cortex — AWS Location Place Index for PSAP prospect address enrichment (Esri).
+  NexCort iQ — AWS Location Place Index for PSAP prospect address enrichment (Esri).
   Deploy standalone; the enrichment script can also create the index if missing.
 
 Parameters:

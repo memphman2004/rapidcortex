@@ -1,4 +1,4 @@
-# Rapid Cortex — Windows installer (Inno Setup)
+# NexCort iQ — Windows installer (Inno Setup)
 
 The Windows desktop app is packaged with **Inno Setup** into a single **`RapidCortexSetup.exe`** installer.
 
@@ -47,7 +47,7 @@ Or open **`RapidCortexSetup.iss`** in the Inno Setup IDE and choose **Build → 
 - Installs under **`{autopf}\RapidCortex`** (64-bit Program Files).
 - Registers **`rapidcortex-desktop://`** with **`HKLM\SOFTWARE\Classes\rapidcortex-desktop`** so Cognito OAuth redirects can return to the app (matches `appsettings` redirect URI).
 - Optional **desktop shortcut** (unchecked by default).
-- Post-install **Launch Rapid Cortex** (skipped in silent install).
+- Post-install **Launch NexCort iQ** (skipped in silent install).
 
 ## Uploading a release
 

@@ -3,13 +3,13 @@ import type { BlogPost } from "./types";
 
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://www.rapidcortex.us";
-export const SITE_NAME = "Rapid Cortex";
+export const SITE_NAME = "NexCort iQ";
 
 export function buildPostMetadata(post: BlogPost): Metadata {
   const url = `${SITE_URL}/blog/${post.slug}`;
 
   return {
-    title: `${post.title} | Rapid Cortex Blog`,
+    title: `${post.title} | NexCort iQ Blog`,
     description: post.description,
     alternates: { canonical: url },
     openGraph: {

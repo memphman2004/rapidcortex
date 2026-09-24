@@ -84,7 +84,7 @@ export const centralSquareCadParser: CadParser = {
     return [
       `CentralSquare CAD (Enterprise / Inform / Superion / Tritech) — “${integration.name}” (${integration.id}):`,
       "",
-      "Read-only ingest. Field names vary by product version; Rapid Cortex accepts PascalCase and snake_case.",
+      "Read-only ingest. Field names vary by product version; NexCort iQ accepts PascalCase and snake_case.",
       "",
       "Webhook (recommended)",
       `POST ${u}`,
@@ -97,7 +97,7 @@ export const centralSquareCadParser: CadParser = {
       "CallerName, CallerPhone / callback, Comments, Status.",
       "",
       "API poll: paste the full incidents-list HTTPS URL from Integration Engine / vendor API,",
-      "plus org/agency code. Rapid Cortex adds `modifiedSince`, `pageSize`, and `page`.",
+      "plus org/agency code. NexCort iQ adds `modifiedSince`, `pageSize`, and `page`.",
     ].join("\n");
   },
 };

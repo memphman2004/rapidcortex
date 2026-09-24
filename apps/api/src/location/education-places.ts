@@ -7,8 +7,7 @@ import {
   type EducationMapFeatureCollection,
   type EducationPlaceInput,
 } from "rapid-cortex-shared";
-import { alsLocationMockEnabled, getGeoPlacesClient } from "./client.js";
-import { mockNearbyEducation } from "./mock-data.js";
+import { getGeoPlacesClient } from "./client.js";
 
 export const EDUCATION_SEARCH_PAGE_SIZE = 100;
 export const EDUCATION_SEARCH_MAX_PAGES = 3;
@@ -117,11 +116,6 @@ export async function searchNearbyEducation(
   query: AlsEducationSearchQuery,
 ): Promise<EducationMapFeatureCollection> {
   const origin = educationSearchOrigin(query);
-  const radius = educationQueryRadiusMeters(query);
-
-  if (alsLocationMockEnabled()) {
-    return educationToGeoJSON(mockNearbyEducation(query.centerLng, query.centerLat, radius), origin);
-  }
 
   try {
     const client = getGeoPlacesClient();

@@ -1,37 +1,39 @@
 # Work campus incidents
 
-The **Incidents** page is the campus safety queue. It is not a 911 CAD workspace and not Silent Text / SOP protocol from the PSAP Help tab.
+The **Incidents** page is the campus safety queue. It is not a 911 CAD workspace and it is not Silent Text or SOP protocol from the PSAP Help tab.
 
-Counselors see a **wellness queue**, not the full security table.
+Counselors do not see this table. They see a **wellness queue**. Faculty submit reports. They do not work the security queue.
 
 ## Open the queue
 
 1. Sign in to the campus console.
-2. Select **Incidents** in the navigation.
-3. Confirm the header still says this is **not a 911 dispatch console**.
-4. Use the campus site switcher if your tenant has more than one campus.
+2. Select **Incidents**.
+3. Confirm the header still says this is not a 911 dispatch console.
+4. Use the campus site switcher if this tenant has more than one campus. **All campuses** is the default.
 
 ## Work a report
 
-1. Open an incident row.
-2. Confirm building, zone, and type match what the reporter described.
-3. Add notes as facts, not speculation.
+1. Open the incident.
+2. Confirm building, zone, and type match what the reporter described. QR and NFC reports inherit the place on the code.
+3. Add notes as facts: what was reported, who was told, what is still open.
 4. Assign campus security or dispatch follow-up when your role allows it.
-5. Update status as the campus response proceeds (open, in progress, closed — per your labels).
+5. Update status as the campus response proceeds. Use your campus labels. Do not invent a CAD event number.
 
 ## QR and NFC reports
 
-Many incidents start when a student or visitor scans a posted code or taps an NFC tag. The report is tied to that location. If the location looks wrong, tell Campus Admin or Supervisor — they update or deactivate the code. See **QR Codes page** and **Update QR codes and NFC tags**.
+Many incidents start when someone scans a posted code or taps an NFC tag. If the building looks wrong, tell Campus Admin or Supervisor. Security can see the code list but cannot deactivate it. See **QR Codes page** and **Update QR codes and NFC tags**.
 
-## Create an incident (Security and Dispatch)
+## Create an incident
+
+Campus Security and Campus Dispatch can start a campus incident when staff observe something that did not arrive as a scan.
 
 1. Open **Incidents**.
-2. Start a new campus incident (label varies by screen).
-3. Set location (building / zone) when you know it.
-4. Save. Do not invent a CAD event number.
+2. Start a new campus incident.
+3. Set the building or zone when you know it.
+4. Save. There is no CAD number to type.
 
 ## Close or escalate
 
 Close when the campus response is complete per SOP.
 
-If the event is a public-safety emergency, **call 911 first**, then escalate or flag in Rapid Cortex so the campus record matches reality. Rapid Cortex does not replace that call.
+If the event is a public-safety emergency, **call 911 first**, then escalate or flag the campus record so it matches what you already told the PSAP. NexCort iQ does not replace that call.

@@ -146,7 +146,7 @@ export default function UnsubscribePage() {
 
         {/* Header */}
         <div style={S.header}>
-          <span style={S.logo}>RAPID CORTEX</span>
+          <span style={S.logo}>NEXCORT IQ</span>
           <span style={{ fontSize: "10px", color: "#334466", letterSpacing: "0.05em" }}>
             Inside the Cortex
           </span>
@@ -221,8 +221,8 @@ export default function UnsubscribePage() {
               <p style={S.sub}>
                 This unsubscribe link may have expired or already been used.
                 If you still want to unsubscribe, email us at{" "}
-                <a href="mailto:hello@rapidcortex.us" style={{ color: "#3b82f6" }}>
-                  hello@rapidcortex.us
+                <a href="mailto:hello@nexcortiq.us" style={{ color: "#3b82f6" }}>
+                  hello@nexcortiq.us
                 </a>{" "}
                 and we'll take care of it right away.
               </p>

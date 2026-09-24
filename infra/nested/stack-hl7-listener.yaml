@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Rapid Cortex — HL7 MLLP listener (ECS Fargate) for hospital capacity feeds
+Description: NexCort iQ — HL7 MLLP listener (ECS Fargate) for hospital capacity feeds
 
 Parameters:
   DeploymentStage:

@@ -1,4 +1,4 @@
-# Rapid Cortex — production readiness audit
+# NexCort iQ — production readiness audit
 
 **Audit date:** 2026-04-24  
 **Scope:** Website, web app, API/Lambdas (as defined in `infra/template.yaml`), desktop scaffolds, documentation, infrastructure patterns, security posture.  
@@ -80,7 +80,7 @@ This document is evidence-based. Items marked **FAIL** or **NOT FOUND** are miss
 - Added **`docs/PRODUCTION_READINESS_AUDIT.md`** (this file).
 - Added public marketing pages: **`/cad`**, **`/security`**, **`/contact`** (CAD positioning, security/CJIS-aligned posture, sales contact).
 - Updated **`marketing-links.ts`**, **header/footer** navigation.
-- Strengthened **homepage** copy: Rapid Cortex does **not** replace CAD; enhances with AI.
+- Strengthened **homepage** copy: NexCort iQ does **not** replace CAD; enhances with AI.
 - Updated **[GTM_PACKAGE.md](./GTM_PACKAGE.md)** with sales vocabulary (Core/Pro vs Essential/Professional), capability bullets, and admin desktop download pointer.
 
 ---
@@ -109,7 +109,7 @@ This document is evidence-based. Items marked **FAIL** or **NOT FOUND** are miss
 ## Test commands
 
 ```bash
-cd "/path/to/Rapid Cortex"
+cd "/path/to/NexCort iQ"
 npm run build -w rapid-cortex-shared
 # API
 npm run build -w rapid-cortex-api

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
 import { marketingOperationsStatusPath } from "@/lib/marketing-links";
 
-export const metadata = { title: "RC Lite — Status" };
+export const metadata = { title: "NexCort Lite — Status" };
 
 export default function DevelopersStatusPage() {
   const status = marketingOperationsStatusPath();
@@ -14,7 +14,7 @@ export default function DevelopersStatusPage() {
         summary that your customers already trust.
       </p>
       <p className="mt-4 leading-relaxed text-slate-300">
-        Public operational status for Rapid Cortex services:{" "}
+        Public operational status for NexCort iQ services:{" "}
         <Link href={status} className="font-medium text-sky-400 hover:text-sky-300">
           System status
         </Link>

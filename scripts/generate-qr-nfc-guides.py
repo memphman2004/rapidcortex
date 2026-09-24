@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Generate Rapid Cortex QR/NFC field guides (no third-party NFC apps).
+"""Generate NexCort iQ QR/NFC field guides (no third-party NFC apps).
 
 Outputs:
-  Rapid Cortex Internal Docs/RC_NFC_QR_Setup_Guide.pdf
-  Rapid Cortex Internal Docs/Product Usage/RC_NFC_QR_Setup_Guide.pdf
-  Rapid Cortex Internal Docs/RC_NFC_Tag_Installation_Guide.pdf
-  Rapid Cortex Internal Docs/Product Usage/RC_NFC_Tag_Installation_Guide.pdf
+  NexCort iQ Internal Docs/RC_NFC_QR_Setup_Guide.pdf
+  NexCort iQ Internal Docs/Product Usage/RC_NFC_QR_Setup_Guide.pdf
+  NexCort iQ Internal Docs/RC_NFC_Tag_Installation_Guide.pdf
+  NexCort iQ Internal Docs/Product Usage/RC_NFC_Tag_Installation_Guide.pdf
   apps/web/public/docs/RC_NFC_QR_Setup_Guide.pdf  (signed-in /docs on app.rapidcortex.us)
 
 Also patches RC_NFC_Tag_Installation_Guide.docx to remove NFC Tools.
@@ -30,7 +30,7 @@ from reportlab.platypus import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-DOCS = ROOT / "Rapid Cortex Internal Docs"
+DOCS = ROOT / "NexCort iQ Internal Docs"
 USAGE = DOCS / "Product Usage"
 
 # Brand
@@ -88,7 +88,7 @@ def draw_header(c, badge):
     c.rect(0, PAGE_H - 54, PAGE_W, 2.2, fill=1, stroke=0)
     c.setFillColor(WHITE)
     c.setFont("Helvetica-Bold", 13)
-    c.drawString(MARGIN, PAGE_H - 24, "Rapid Cortex")
+    c.drawString(MARGIN, PAGE_H - 24, "NexCort iQ")
     c.setFillColor(SLATE)
     c.setFont("Helvetica", 7.5)
     c.drawString(MARGIN, PAGE_H - 38, "Intelligence at the Speed of Response")
@@ -106,7 +106,7 @@ def draw_footer(c, page, total=2):
     c.rect(0, 28, PAGE_W, 1.6, fill=1, stroke=0)
     c.setFillColor(SLATE)
     c.setFont("Helvetica", 7)
-    c.drawString(MARGIN, 11, "Rapid Cortex  ·  support@rapidcortex.us  ·  app.rapidcortex.us")
+    c.drawString(MARGIN, 11, "NexCort iQ  ·  support@nexcortiq.us  ·  app.rapidcortex.us")
     c.drawRightString(PAGE_W - MARGIN, 11, f"Page {page} of {total}")
 
 
@@ -164,7 +164,7 @@ def draw_setup_page1(c):
     c.drawCentredString(
         PAGE_W / 2,
         PAGE_H - 92,
-        "Everything in the Rapid Cortex ecosystem — no third-party tools required",
+        "Everything in the NexCort iQ ecosystem — no third-party tools required",
     )
 
     gap = 8
@@ -226,7 +226,7 @@ def draw_setup_page1(c):
         y = numbered_step(c, left_x + 10, y, i, t, b, BLUE, col_w - 28)
 
     nfc_steps = [
-        ("Download the RC Mobile App", "App Store or Google Play — search “Rapid Cortex”."),
+        ("Download the RC Mobile App", "App Store or Google Play — search “NexCort iQ”."),
         ("Sign in with your RC account", "Same credentials as the web app."),
         ("Open QR & NFC", "Select your agency, then open the location list."),
         ("Tap the location to program", "e.g. “Main Lobby” or “Library 3rd Floor”."),
@@ -481,8 +481,8 @@ def draw_setup_page2(c):
 def write_setup_guide(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     c = canvas.Canvas(str(path), pagesize=letter)
-    c.setTitle("Rapid Cortex QR & NFC Setup Guide")
-    c.setAuthor("Rapid Cortex")
+    c.setTitle("NexCort iQ QR & NFC Setup Guide")
+    c.setAuthor("NexCort iQ")
     draw_setup_page1(c)
     c.showPage()
     draw_setup_page2(c)
@@ -524,7 +524,7 @@ def nfc_header_footer(canvas_obj, doc):
     canvas_obj.rect(0, PAGE_H - 38, PAGE_W, 2, fill=1, stroke=0)
     canvas_obj.setFillColor(WHITE)
     canvas_obj.setFont("Helvetica-Bold", 8)
-    canvas_obj.drawString(0.6 * inch, PAGE_H - 22, "RAPID CORTEX")
+    canvas_obj.drawString(0.6 * inch, PAGE_H - 22, "NEXCORT IQ")
     canvas_obj.setFont("Helvetica", 8)
     canvas_obj.setFillColor(SLATE)
     canvas_obj.drawString(1.55 * inch, PAGE_H - 22, "|  NFC Tag Installation Guide  ·  Confidential — Internal Use Only")
@@ -532,7 +532,7 @@ def nfc_header_footer(canvas_obj, doc):
     canvas_obj.rect(0, 0, PAGE_W, 28, fill=1, stroke=0)
     canvas_obj.setFillColor(MUTED)
     canvas_obj.setFont("Helvetica", 7.5)
-    canvas_obj.drawString(0.6 * inch, 11, "www.rapidcortex.us  ·  support@rapidcortex.us")
+    canvas_obj.drawString(0.6 * inch, 11, "www.rapidcortex.us  ·  support@nexcortiq.us")
     canvas_obj.drawRightString(PAGE_W - 0.6 * inch, 11, f"Page {doc.page}")
     canvas_obj.restoreState()
 
@@ -604,13 +604,13 @@ def write_nfc_install_guide(path: Path) -> None:
         rightMargin=0.6 * inch,
         topMargin=0.65 * inch,
         bottomMargin=0.5 * inch,
-        title="Rapid Cortex NFC Tag Installation Guide",
-        author="Rapid Cortex",
+        title="NexCort iQ NFC Tag Installation Guide",
+        author="NexCort iQ",
     )
     story = []
     story.append(Paragraph("NFC Tag Installation Guide", S["h1"]))
-    story.append(Paragraph("Rapid Cortex Campus · Rapid Cortex Venue", S["sub"]))
-    story.append(Paragraph("Step-by-step guide to programming and attaching NFC tags using only Rapid Cortex — no third-party NFC apps.", S["body"]))
+    story.append(Paragraph("NexCort iQ Campus · NexCort iQ Venue", S["sub"]))
+    story.append(Paragraph("Step-by-step guide to programming and attaching NFC tags using only NexCort iQ — no third-party NFC apps.", S["body"]))
 
     pills = Table(
         [[Paragraph(x, S["center"]) for x in ["15 minutes", "No technical skills needed", "Works on any smartphone"]]],
@@ -639,17 +639,17 @@ def write_nfc_install_guide(path: Path) -> None:
     )
     story.append(
         Paragraph(
-            "For Rapid Cortex, each NFC tag is programmed with a unique reporting URL tied to your agency and location. "
+            "For NexCort iQ, each NFC tag is programmed with a unique reporting URL tied to your agency and location. "
             "You create the code in the browser, then write the tag with the <b>RC Mobile App</b>. When someone taps the sign, they go directly to the safety reporting form for that exact location.",
             S["body"],
         )
     )
     story.append(callout("NOTE", "NFC tags and QR codes on the same sign point to the same location. They work identically — NFC is faster for newer phones; QR covers every camera.", S))
 
-    story.append(Paragraph("Trade show and Rapid Cortex booth signs", S["h2"]))
+    story.append(Paragraph("Trade show and NexCort iQ booth signs", S["h2"]))
     story.append(
         Paragraph(
-            "Booth visitors should open the public Rapid Cortex site — not a campus or venue report form. "
+            "Booth visitors should open the public NexCort iQ site — not a campus or venue report form. "
             "Do not create a location code for a trade-show sign. In the RC Mobile App (Campus or Venue), tap "
             "<b>Trade show signs</b>, choose <b>Home</b> or <b>Demo</b>, print the QR, then tap <b>Program NFC Tag</b>.",
             S["body"],
@@ -664,17 +664,17 @@ def write_nfc_install_guide(path: Path) -> None:
     story.append(
         callout(
             "WARNING",
-            "A location tag on a booth sign opens a safety report form. Always use Trade show signs for Rapid Cortex marketing URLs. Stay in the RC app — do not use NFC Tools or another writer.",
+            "A location tag on a booth sign opens a safety report form. Always use Trade show signs for NexCort iQ marketing URLs. Stay in the RC app — do not use NFC Tools or another writer.",
             S,
         )
     )
     story.append(Paragraph("What You Need", S["h2"]))
-    story.append(Paragraph("The Rapid Cortex browser and mobile app do the programming. You only buy blank NTAG213 stickers.", S["body"]))
+    story.append(Paragraph("The NexCort iQ browser and mobile app do the programming. You only buy blank NTAG213 stickers.", S["body"]))
 
     header = [Paragraph(x, S["th"]) for x in ["Item", "Details", "Where to get it"]]
     rows = [
         ["RC admin account", "Agency Admin or higher · same login as the mobile app", "app.rapidcortex.us"],
-        ["RC Mobile App", "Writes NFC tags and can scan/verify QR codes · no NFC Tools or other apps", "App Store / Google Play — search Rapid Cortex"],
+        ["RC Mobile App", "Writes NFC tags and can scan/verify QR codes · no NFC Tools or other apps", "App Store / Google Play — search NexCort iQ"],
         ["NTAG213 NFC stickers", "Pack of 100 · round or square · white finish", "Amazon — search “NTAG213 NFC stickers” (~$15–20 / 100)"],
         ["Smartphone with NFC", "iPhone 7 or newer · most Android phones since 2014", "You already have this"],
         ["Permanent marker (optional)", "Label tag backs with the location name", "Any office supply store"],
@@ -702,12 +702,12 @@ def write_nfc_install_guide(path: Path) -> None:
     story.append(callout("TIP", "NTAG213 is the most compatible chip type. NTAG215 / NTAG216 work but cost more for no benefit in this use case.", S))
 
     story.append(Paragraph("1  Create the location in the browser", S["h2"]))
-    story.append(Paragraph("Each physical sign location gets its own unique code. You generate it in the Rapid Cortex web app — you do not paste URLs into any other app.", S["body"]))
+    story.append(Paragraph("Each physical sign location gets its own unique code. You generate it in the NexCort iQ web app — you do not paste URLs into any other app.", S["body"]))
     for n, title, body in [
-        (1, "Log in to the Rapid Cortex web app", "Go to app.rapidcortex.us and sign in with your admin account."),
+        (1, "Log in to the NexCort iQ web app", "Go to app.rapidcortex.us and sign in with your admin account."),
         (2, "Open QR & NFC", "From the sidebar, select your agency, then click QR & NFC. RC platform admins go to RC Admin → Agencies → [Agency] → QR & NFC."),
         (3, "Tap “+ New QR / NFC Code”", "Enter the name and location of this sign (e.g., “McKinley Hall — 3rd Floor”), select the report type and vertical, and save."),
-        (4, "Leave the URL in Rapid Cortex", "The RC Mobile App writes the correct URL for you. You do not need to copy it into NFC Tools or any other writer."),
+        (4, "Leave the URL in NexCort iQ", "The RC Mobile App writes the correct URL for you. You do not need to copy it into NFC Tools or any other writer."),
     ]:
         story.append(step_row(n, title, body, S))
     story.append(Spacer(1, 6))
@@ -716,7 +716,7 @@ def write_nfc_install_guide(path: Path) -> None:
     story.append(Paragraph("2  Program the NFC tag in the RC Mobile App", S["h2"]))
     story.append(Paragraph("This takes about 10 seconds per tag once you know the steps. You only need to do this once per tag. The RC app writes the URL — no third-party NFC utility.", S["body"]))
     for n, title, body in [
-        (1, "Download the RC Mobile App", "Search “Rapid Cortex” in the App Store (iOS) or Google Play (Android). Sign in with the same account you use on the web."),
+        (1, "Download the RC Mobile App", "Search “NexCort iQ” in the App Store (iOS) or Google Play (Android). Sign in with the same account you use on the web."),
         (2, "Open QR & NFC", "Select your agency, then open the location you just created."),
         (3, "Tap Program NFC Tag", "The app activates NFC and waits for a tag. You do not paste a URL."),
         (4, "Hold an NTAG213 to the back of the phone", "iPhone: near the top edge. Android: center back. Hold still for about 2 seconds until the app shows Tag programmed successfully."),
@@ -730,7 +730,7 @@ def write_nfc_install_guide(path: Path) -> None:
     story.append(Paragraph("Always test before mounting. Testing takes 30 seconds and prevents pulling a tag out from under a sign.", S["body"]))
     for n, title, body in [
         (1, "Tap the programmed tag with a locked-awake phone", "Screen on, no app required for the person reporting. Hold the tag to the NFC antenna."),
-        (2, "Confirm the Rapid Cortex report form opens", "You should see the safety reporting form for this location and vertical."),
+        (2, "Confirm the NexCort iQ report form opens", "You should see the safety reporting form for this location and vertical."),
         (3, "Optional: verify the printed QR in the RC app", "Use Scan QR Code in the RC Mobile App to confirm the printed PNG before you mount."),
         (4, "Check the dashboard", "In the RC web app, confirm the NFC tap count for this code increased by 1."),
     ]:
@@ -783,10 +783,10 @@ def write_nfc_install_guide(path: Path) -> None:
     troubles = [
         ["Phone does not detect the tag", "Enable NFC: iPhone Control Center / Android Settings → Connected devices → NFC. Move the tag slowly across the phone back."],
         ["Wrong page opens", "Rewrite the tag from the RC Mobile App (Program NFC Tag). NTAG213 tags can be overwritten. Do not use NFC Tools or another writer."],
-        ["Tag detected but no page opens", "Rewrite from the RC app so the tag gets a full https:// Rapid Cortex URL."],
+        ["Tag detected but no page opens", "Rewrite from the RC app so the tag gets a full https:// NexCort iQ URL."],
         ["Tag stopped working after mounting", "Too close to metal. Move to a non-metallic area or use an on-metal / anti-metal NFC tag."],
         ["Tap count not updating", "Count increments when the reporting form loads. Check connectivity at the sign location."],
-        ["Correct form, wrong location name", "Update the zone name in the Rapid Cortex dashboard. No need to rewrite the tag."],
+        ["Correct form, wrong location name", "Update the zone name in the NexCort iQ dashboard. No need to rewrite the tag."],
         ["Adhesive came loose", "Clean with isopropyl alcohol, dry fully, and re-stick. For permanent installs, a small amount of clear super glue around the edge."],
         ["App says write failed", "NFC must be on. Hold the tag still. Use an NTAG213. Stay in the RC Mobile App — do not switch to a third-party NFC utility."],
     ]
@@ -835,7 +835,7 @@ def write_nfc_install_guide(path: Path) -> None:
     )
     story.append(q)
     story.append(Spacer(1, 16))
-    story.append(Paragraph("Need help? Contact Rapid Cortex Support — support@rapidcortex.us · www.rapidcortex.us", S["body"]))
+    story.append(Paragraph("Need help? Contact NexCort iQ Support — support@nexcortiq.us · www.rapidcortex.us", S["body"]))
 
     doc.build(story, onFirstPage=nfc_header_footer, onLaterPages=nfc_header_footer)
 
@@ -866,8 +866,8 @@ def patch_nfc_docx(path: Path) -> None:
         t3.rows[3].cells[1],
         "Writes NFC tags and scans/verifies QR codes · iOS and Android · no NFC Tools or other apps",
     )
-    set_cell_text(t3.rows[3].cells[2], "App Store / Google Play — search Rapid Cortex")
-    set_cell_text(t3.rows[4].cells[0], "Location created in Rapid Cortex")
+    set_cell_text(t3.rows[3].cells[2], "App Store / Google Play — search NexCort iQ")
+    set_cell_text(t3.rows[4].cells[0], "Location created in NexCort iQ")
     set_cell_text(
         t3.rows[4].cells[1],
         "Create the QR/NFC code in the web app. The RC Mobile App writes the URL — do not paste it into a third-party writer.",
@@ -885,13 +885,13 @@ def patch_nfc_docx(path: Path) -> None:
 
     set_cell_text(
         doc.tables[8].rows[0].cells[1],
-        "Program the NFC Tag\nUse the Rapid Cortex Mobile App to write the URL to the tag — no third-party tools.",
+        "Program the NFC Tag\nUse the NexCort iQ Mobile App to write the URL to the tag — no third-party tools.",
     )
 
     t9 = doc.tables[9]
     set_cell_text(
         t9.rows[0].cells[1],
-        "Download the RC Mobile App\nSearch “Rapid Cortex” in the App Store (iOS) or Google Play (Android). Sign in with the same account you use on the web.",
+        "Download the RC Mobile App\nSearch “NexCort iQ” in the App Store (iOS) or Google Play (Android). Sign in with the same account you use on the web.",
     )
     set_cell_text(
         t9.rows[2].cells[1],
@@ -907,11 +907,11 @@ def patch_nfc_docx(path: Path) -> None:
     )
     set_cell_text(
         t9.rows[8].cells[1],
-        "Wait for Tag programmed successfully\nThen tap the tag to confirm the Rapid Cortex report form opens. Use Write Another for extra tags at the same location.",
+        "Wait for Tag programmed successfully\nThen tap the tag to confirm the NexCort iQ report form opens. Use Write Another for extra tags at the same location.",
     )
     set_cell_text(
         t9.rows[10].cells[1],
-        "Stay in the RC app\nDo not switch to NFC Tools or any other NFC utility. Rapid Cortex writes and verifies the tag.",
+        "Stay in the RC app\nDo not switch to NFC Tools or any other NFC utility. NexCort iQ writes and verifies the tag.",
     )
 
     set_cell_text(
@@ -926,7 +926,7 @@ def patch_nfc_docx(path: Path) -> None:
     )
     set_cell_text(
         t19.rows[3].cells[1],
-        "Rewrite the tag from the RC Mobile App so it receives a full https:// Rapid Cortex URL. Do not use a third-party NFC writer.",
+        "Rewrite the tag from the RC Mobile App so it receives a full https:// NexCort iQ URL. Do not use a third-party NFC writer.",
     )
 
     set_cell_text(
@@ -943,7 +943,7 @@ def patch_nfc_docx(path: Path) -> None:
             for run in para.runs:
                 run.text = run.text.replace(
                     "Purchase these items before installation. Everything is available on Amazon.",
-                    "Create the location in the Rapid Cortex web app, then program tags with the RC Mobile App. Buy blank NTAG213 stickers (Amazon is fine for tags only).",
+                    "Create the location in the NexCort iQ web app, then program tags with the RC Mobile App. Buy blank NTAG213 stickers (Amazon is fine for tags only).",
                 )
 
     doc.save(str(path))

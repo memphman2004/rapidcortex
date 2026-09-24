@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — surgical GET /api/platform/deployments-map on AppSam3 HttpApi.
+  NexCort iQ — surgical GET /api/platform/deployments-map on AppSam3 HttpApi.
   Avoids full AppSam3Stack deploy when only this route is missing.
 
 Parameters:

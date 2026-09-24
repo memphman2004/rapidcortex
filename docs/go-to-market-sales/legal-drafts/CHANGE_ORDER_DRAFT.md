@@ -67,7 +67,7 @@ Attach revised Exhibit A excerpt if scope is material.
 
 ## Signatures
 
-| **Customer** | **Rapid Cortex** |
+| **Customer** | **NexCort iQ** |
 |--------------|------------------|
 | Authorized signature | Authorized signature |
 | Date | Date |

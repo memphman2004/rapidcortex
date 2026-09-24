@@ -25,7 +25,7 @@ export const OPEN_ROLES: OpenRole[] = [
     positionCode: "EA_STARTUP_OPS_COORDINATOR",
     title: "Executive Assistant / Startup Operations Coordinator",
     subtitle: "Founder & executive support",
-    company: "Rapid Cortex",
+    company: "NexCort iQ",
     location: "United States (Remote)",
     workplaceType: "Remote",
     employmentType: "Contract (1099)",
@@ -35,7 +35,7 @@ export const OPEN_ROLES: OpenRole[] = [
     applicantsLabel: "Be an early applicant",
     chips: ["Remote", "Part-time", "1099", "Growth path"],
     about: [
-      "Rapid Cortex is an intelligence platform serving 911 centers, university campuses, and large venues. We help dispatchers, supervisors, and command staff make faster, smarter decisions when it matters most.",
+      "NexCort iQ is an intelligence platform serving 911 centers, university campuses, and large venues. We help dispatchers, supervisors, and command staff make faster, smarter decisions when it matters most.",
       "We are looking for a sharp, organized, entrepreneurially-minded Executive Assistant to work directly alongside our Founder & CEO, Chief Revenue Officer, and Marketing Director. You will own calendars, CRM hygiene, outreach coordination, marketing support, and customer pilot logistics.",
       "This is not a traditional admin role. It is a ground-floor opportunity at a mission-driven startup where your contributions are visible, and your work directly supports technology that protects communities.",
     ],

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# Rapid Cortex — Security Hardening Stack Deploy
+# NexCort iQ — Security Hardening Stack Deploy
 #
 # Deploys: CloudFront WAF (us-east-1) + Regional WAF + GuardDuty + Audit Logs
 #
@@ -51,7 +51,7 @@ if [[ ! -f "$TEMPLATE_FILE" ]]; then
 fi
 
 echo "──────────────────────────────────────────────────────────────────────"
-echo "  Rapid Cortex — Security Hardening Deploy"
+echo "  NexCort iQ — Security Hardening Deploy"
 echo "  Stack:    ${STACK_NAME}"
 echo "  Region:   ${CDN_REGION} (CloudFront WAF must be us-east-1)"
 echo "  Stage:    ${STAGE}"

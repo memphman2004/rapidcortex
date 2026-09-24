@@ -93,16 +93,16 @@ export function TradeShowMarketingQrPanel({ onCopied, onDownloaded, onError }: P
       className="rounded-lg border border-amber-900/50 bg-amber-950/20 p-4"
     >
       <h3 className="text-xs font-semibold uppercase tracking-wide text-amber-400/90">
-        Rapid Cortex site QR
+        NexCort iQ site QR
       </h3>
       <p className="mt-1 text-xs text-slate-400">
-        Booth and Rapid Cortex marketing signs. Choose Home or Demo, download the PNG, and print it.
+        Booth and NexCort iQ marketing signs. Choose Home or Demo, download the PNG, and print it.
         Scans are counted, then the visitor lands on the public site. Do not use + New QR / NFC Code —
-        that opens a location report form. Program the matching NFC tag in Rapid Cortex Mobile while
-        signed in with an RC account (Codes → globe, or Settings → Rapid Cortex site QR & NFC).
+        that opens a location report form. Program the matching NFC tag in NexCort iQ Mobile while
+        signed in with an RC account (Codes → globe, or Settings → NexCort iQ site QR & NFC).
       </p>
 
-      <div className="mt-3 flex gap-2" role="tablist" aria-label="Rapid Cortex site destination">
+      <div className="mt-3 flex gap-2" role="tablist" aria-label="NexCort iQ site destination">
         {TRADE_SHOW_DESTINATIONS.map((dest) => {
           const selected = dest.id === destination;
           return (

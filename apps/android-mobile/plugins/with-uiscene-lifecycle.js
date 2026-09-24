@@ -120,7 +120,7 @@ const SUPER_RETURN_REPLACEMENT = `  BOOL rcLaunchOk = [super application:applica
 
 const FATAL_GUARDS = `static void RCUncaughtExceptionHandler(NSException *exception)
 {
-  NSLog(@"[RapidCortex] uncaught %@: %@", exception.name, exception.reason);
+  NSLog(@"[NexCortiQ] uncaught %@: %@", exception.name, exception.reason);
 }
 
 static void RCInstallFatalGuards(void)
@@ -131,11 +131,11 @@ static void RCInstallFatalGuards(void)
     // Release RCTFatal throws an NSException that is not caught (DEBUG wraps it
     // in @try). TestFlight 32 SIGABRT'd on ExceptionsManagerQueue because of that.
     RCTSetFatalHandler(^(NSError *error) {
-      NSLog(@"[RapidCortex] RCTFatal: %@", error.localizedDescription);
-      NSLog(@"[RapidCortex] RCTFatal info: %@", error.userInfo);
+      NSLog(@"[NexCortiQ] RCTFatal: %@", error.localizedDescription);
+      NSLog(@"[NexCortiQ] RCTFatal info: %@", error.userInfo);
     });
     RCTSetFatalExceptionHandler(^(NSException *exception) {
-      NSLog(@"[RapidCortex] RCTFatalException %@: %@", exception.name, exception.reason);
+      NSLog(@"[NexCortiQ] RCTFatalException %@: %@", exception.name, exception.reason);
     });
   });
 }
@@ -206,7 +206,7 @@ const START_METHOD = `
 #pragma clang diagnostic pop
     return YES;
   } @catch (NSException *exception) {
-    NSLog(@"[RapidCortex] DevLauncher autoSetupStart: %@", exception.reason);
+    NSLog(@"[NexCortiQ] DevLauncher autoSetupStart: %@", exception.reason);
     return NO;
   }
 }

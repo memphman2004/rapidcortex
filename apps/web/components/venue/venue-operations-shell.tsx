@@ -94,7 +94,7 @@ function VenueOperationsShellInner({
             <Ticket size={16} color="var(--rc-vertical-accent)" />
           </div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700 }}>Rapid Cortex</div>
+            <div style={{ fontSize: 13, fontWeight: 700 }}>NexCort iQ</div>
             <div style={{ fontSize: 10, color: "var(--rc-text-secondary)", letterSpacing: "0.05em" }}>
               VENUE OPERATIONS
             </div>

@@ -1,5 +1,5 @@
 /**
- * Detects RC Admin console home paths where RcAdminConsoleHome owns chrome.
+ * Detects NexCort Admin console home paths where RcAdminConsoleHome owns chrome.
  * Sub-routes keep DashboardShell RoleNavSidebar / TopNav / header strip.
  *
  * - `/rc-admin/dashboard` — home for rcsuperadmin / rcadmin

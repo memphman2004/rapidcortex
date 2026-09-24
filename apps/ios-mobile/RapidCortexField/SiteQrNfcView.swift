@@ -15,7 +15,7 @@ struct SiteQrNfcView: View {
 
             ScrollView {
                 VStack(spacing: 0) {
-                    Text("Booth and Rapid Cortex marketing signs. Scans are counted, then the visitor lands on the public site. Do not use New Code — that opens a location report form.")
+                    Text("Booth and NexCort iQ marketing signs. Scans are counted, then the visitor lands on the public site. Do not use New Code — that opens a location report form.")
                         .font(.system(size: 13))
                         .foregroundColor(RCTheme.textMuted)
                         .multilineTextAlignment(.center)
@@ -61,7 +61,7 @@ struct SiteQrNfcView: View {
                 .frame(maxWidth: .infinity)
             }
         }
-        .navigationTitle("Rapid Cortex site")
+        .navigationTitle("NexCort iQ site")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { rebuildQR() }
         .sheet(isPresented: $showingNFCSheet) {

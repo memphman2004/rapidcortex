@@ -25,7 +25,7 @@ REGION="${AWS_REGION:-us-east-1}"
 APPLY="${APPLY:-0}"
 STATE_FILE="${AWS_10DLC_STATE_FILE:-.aws-10dlc-state.json}"
 
-# Rapid Cortex lives in one account only. Ambient credentials default to a different project's
+# NexCort iQ lives in one account only. Ambient credentials default to a different project's
 # account on this machine, and a 10DLC filing landing there is not a no-op: it registers the
 # company EIN with TCR under the wrong account and has to be unwound.
 EXPECTED_ACCOUNT_ID="${AWS_EXPECTED_ACCOUNT_ID:-158961537080}"

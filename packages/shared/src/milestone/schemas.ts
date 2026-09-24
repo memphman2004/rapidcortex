@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** Agency connects Rapid Cortex cloud to an on-prem Milestone Bridge. */
+/** Agency connects NexCort iQ cloud to an on-prem Milestone Bridge. */
 export const milestoneConnectBodySchema = z
   .object({
     /** HTTPS base URL of the on-prem bridge (e.g. https://bridge.campus.example:8443). */

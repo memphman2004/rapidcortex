@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
-  CloudWatch alarms for the Rapid Cortex SAM comms/platform stack (stack-app-sam-2).
+  CloudWatch alarms for the NexCort iQ SAM comms/platform stack (stack-app-sam-2).
   Lambda error alarms for resources moved out of stack-app-alarms.yaml; HTTP API 5xx/latency for stack 2 HttpApi.
 
 Parameters:

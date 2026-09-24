@@ -15,9 +15,9 @@ const VENUE_OG_IMAGE_SRC = "/images/venue-og.jpg";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "RC Venue | Rapid Cortex",
+    title: "Venue | NexCort iQ",
     description:
-      "Rapid Cortex Venue provides command-level awareness for stadium, arena, and event security operations.",
+      "NexCort iQ Venue provides command-level awareness for stadium, arena, and event security operations.",
     keywords: [
       "venue security software",
       "stadium command platform",
@@ -26,23 +26,23 @@ export async function generateMetadata(): Promise<Metadata> {
       "venue incident coordination",
     ],
     openGraph: {
-      title: "RC Venue | Rapid Cortex",
+      title: "Venue | NexCort iQ",
       description: "Command-level awareness for every event.",
       url: absoluteUrl("/product/venue"),
-      siteName: "Rapid Cortex",
+      siteName: "NexCort iQ",
       images: [
         {
           url: absoluteUrl(VENUE_OG_IMAGE_SRC),
           width: VENUE_HERO_IMAGE.width,
           height: VENUE_HERO_IMAGE.height,
-          alt: "Rapid Cortex Venue",
+          alt: "NexCort iQ Venue",
         },
       ],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: "RC Venue | Rapid Cortex",
+      title: "Venue | NexCort iQ",
       description: "Venue and event command intelligence for security teams.",
       images: [absoluteUrl(VENUE_OG_IMAGE_SRC)],
     },
@@ -68,7 +68,7 @@ export default function ProductVenuePage() {
           />
           <div className="relative z-10 flex h-full w-full flex-col items-start justify-start px-4 pb-8 pt-2 text-left sm:px-6 sm:pb-10 sm:pt-3 lg:px-8">
             <div className="max-w-2xl space-y-3 sm:space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">RC Venue</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">Venue</p>
               <h1
                 id="venue-hero-title"
                 className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl"

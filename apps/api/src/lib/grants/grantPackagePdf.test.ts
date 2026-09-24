@@ -9,7 +9,7 @@ const sample: GrantPackage = {
   technologyDescription: "Technology description.",
   budget: [
     {
-      item: "Rapid Cortex Campus platform",
+      item: "NexCort iQ Campus platform",
       quantity: 1,
       unitCost: 90000,
       totalCost: 90000,

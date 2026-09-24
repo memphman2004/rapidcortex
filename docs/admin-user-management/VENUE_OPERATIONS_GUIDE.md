@@ -6,9 +6,9 @@
 
 ---
 
-## 1. What venue Rapid Cortex is (and is not)
+## 1. What venue NexCort iQ is (and is not)
 
-| Rapid Cortex venue **is** | Rapid Cortex venue **is not** |
+| NexCort iQ venue **is** | NexCort iQ venue **is not** |
 |---------------------------|-------------------------------|
 | Assistive incident intake, staff workflows, QR/NFC location context | A replacement for **911**, CAD, or public-safety radio |
 | Orange-branded **venue console** at `/app/venue/{code}` | A PSAP dispatcher workspace |

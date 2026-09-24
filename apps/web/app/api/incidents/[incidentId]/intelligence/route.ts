@@ -4,7 +4,7 @@ import { proxyToAuthUpstream } from "@/lib/server/auth-upstream-proxy";
 type Ctx = { params: Promise<{ incidentId: string }> };
 
 /**
- * Alias for Rapid Vision intelligence.
+ * Alias for NexiQ Vision intelligence.
  * Live dispatcher still requests `/api/incidents/{id}/intelligence` (no `/vision/` segment).
  */
 export async function GET(request: NextRequest, ctx: Ctx) {

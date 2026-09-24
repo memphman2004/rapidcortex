@@ -22,7 +22,7 @@
 #   picked up on the next fetch after TTL (or on a cold start).
 #   Do not put the raw key in Lambda environment variables.
 #
-# Rapid Cortex notes:
+# NexCort iQ notes:
 #   STAGE=dev is live production (rapid-cortex-dev), not a sandbox.
 #   Engineering isolation uses STAGE=staging.
 #   Compatible with macOS /bin/bash 3.2 (no associative arrays).
@@ -255,7 +255,7 @@ INBOX="${INBOUND_EMAIL:-procurement-signals@signals.rapidcortex.com}"
 
 echo ""
 echo "╔══════════════════════════════════════════════════════════════════╗"
-echo "║   RAPID CORTEX — Gov Procurement Alert Setup Guide              ║"
+echo "║   NEXCORT IQ — Gov Procurement Alert Setup Guide              ║"
 echo "║   Register the inbox below on all seven portals                 ║"
 echo "╚══════════════════════════════════════════════════════════════════╝"
 echo ""

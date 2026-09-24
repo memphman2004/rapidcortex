@@ -1,5 +1,5 @@
 /**
- * Stable HTTPS contract between Rapid Cortex cloud Lambdas and the on-prem
+ * Stable HTTPS contract between NexCort iQ cloud Lambdas and the on-prem
  * Milestone Bridge (MIP SDK / XProtect REST). Cloud never calls XProtect directly.
  */
 

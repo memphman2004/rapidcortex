@@ -9,7 +9,7 @@ export default function VenueTranslatePage() {
   return (
     <TranslateHomeClient
       vertical="venue"
-      heading="RC Translate"
+      heading="Translate"
       venueCode={code}
       sessionHref={(id) => `/app/venue/${code}/translate/${id}`}
     />

@@ -126,7 +126,7 @@ export function IntegrationDetailDrawer({
               <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-3">
                 <p className="text-sm font-medium text-white">Security token</p>
                 <p className="mt-1 text-xs text-slate-500">
-                  Rapid Cortex never returns the plaintext token after creation. Regenerate if the CAD vendor lost the secret.
+                  NexCort iQ never returns the plaintext token after creation. Regenerate if the CAD vendor lost the secret.
                 </p>
                 <button
                   type="button"

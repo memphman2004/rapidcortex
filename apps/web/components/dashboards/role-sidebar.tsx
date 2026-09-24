@@ -57,13 +57,13 @@ export function RoleSidebar({
         <div className="mb-5 hidden px-1 md:flex md:items-center md:gap-2.5">
           <Image
             src={SITE_SQUARE_ICON_PATH}
-            alt="Rapid Cortex"
+            alt="NexCort iQ"
             width={SITE_SQUARE_ICON_WIDTH}
             height={SITE_SQUARE_ICON_HEIGHT}
             className="h-8 w-8 shrink-0 rounded-md ring-1 ring-white/10"
             priority
           />
-          <span className="text-sm font-semibold tracking-tight text-white">Rapid Cortex</span>
+          <span className="text-sm font-semibold tracking-tight text-white">NexCort iQ</span>
         </div>
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto">
           {user ? <SidebarHomeButton user={user} onNavigate={onNavigate} /> : null}

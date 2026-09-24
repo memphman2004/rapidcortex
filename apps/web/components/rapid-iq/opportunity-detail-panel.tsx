@@ -46,7 +46,7 @@ function buildLocalOutreachBody(opportunity: RapidIqOpportunity, talkingPoints: 
           "Ask about timeline for evaluation.",
           "Ask which budget cycle funds the modernization.",
           "Ask which CAD/NG911 stack they run today.",
-          `Offer a 30-minute Rapid Cortex Core demo tailored to ${opportunity.agencyName}.`,
+          `Offer a 30-minute 911 Centers/PSAPs demo tailored to ${opportunity.agencyName}.`,
         ];
   const summary = opportunity.aiSummary?.trim() || opportunity.aiHeadline;
   return [
@@ -59,10 +59,10 @@ function buildLocalOutreachBody(opportunity: RapidIqOpportunity, talkingPoints: 
     "Talking points for our conversation:",
     ...points.map((p, i) => `${i + 1}. ${p}`),
     "",
-    `Would you have 20 minutes this week for a brief Rapid Cortex overview tailored to ${opportunity.agencyName}?`,
+    `Would you have 20 minutes this week for a brief NexCort iQ overview tailored to ${opportunity.agencyName}?`,
     "",
     "Best,",
-    "Rapid Cortex",
+    "NexCort iQ",
   ].join("\n");
 }
 
@@ -109,7 +109,7 @@ export function OpportunityDetailPanel({
 
       const result = await fetchOutreach(opportunity.opportunityId, undefined, demo);
       const subject =
-        result.subject?.trim() || `Rapid Cortex — ${opportunity.agencyName}`;
+        result.subject?.trim() || `NexCort iQ — ${opportunity.agencyName}`;
       let body = result.body?.trim() ?? "";
       if (!body) {
         body = buildLocalOutreachBody(opportunity, talkingPoints);

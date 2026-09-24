@@ -1,6 +1,6 @@
 # CJIS alignment notes (engineering)
 
-Rapid Cortex is built for **public safety** workloads where CJIS Security Policy is often in scope. This document describes **alignment goals** and **technical controls** — **not** CJIS certification or FBI approval.
+NexCort iQ is built for **public safety** workloads where CJIS Security Policy is often in scope. This document describes **alignment goals** and **technical controls** — **not** CJIS certification or FBI approval.
 
 ## Authentication & access control
 

@@ -5,7 +5,7 @@
 
 ## Pilot intent
 
-One (or tightly controlled) public-safety agency runs Rapid Cortex **in production-shaped AWS** (`rapid-cortex-dev` / `https://app.rapidcortex.us`) with **real auth**, **MFA required**, **real API**, and **human-in-the-loop** workflows. Success is **safe assistive use**, **operational credibility**, and **governance**—not feature breadth ([MVP_SCOPE.md](./MVP_SCOPE.md)).
+One (or tightly controlled) public-safety agency runs NexCort iQ **in production-shaped AWS** (`rapid-cortex-dev` / `https://app.rapidcortex.us`) with **real auth**, **MFA required**, **real API**, and **human-in-the-loop** workflows. Success is **safe assistive use**, **operational credibility**, and **governance**—not feature breadth ([MVP_SCOPE.md](./MVP_SCOPE.md)).
 
 ## What the pilot includes
 

@@ -3,7 +3,7 @@ import { MarketingArticleShell } from "@/components/marketing/marketing-article-
 import { RoiCalculatorSandbox } from "./roi-calculator";
 
 export const metadata = {
-  title: "RC Lite ROI calculator",
+  title: "NexCort Lite ROI calculator",
 };
 
 export default function DevelopersRoiPage() {

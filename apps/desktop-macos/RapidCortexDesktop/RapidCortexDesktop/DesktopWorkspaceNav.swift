@@ -17,7 +17,7 @@ enum DesktopWorkspaceNav {
             : operationsManualPath
     }
 
-    /// Mirrors `hasSubscriberManualAccess` for PSAP / RC operator roles (desktop users).
+    /// Mirrors `hasSubscriberManualAccess` for PSAP / NC operator roles (desktop users).
     static func showsOperationsManual(forRole role: String) -> Bool {
         if DesktopRoleRouting.isProductVerticalRoleToken(role) { return true }
         let effective = DesktopRoleRouting.normalizeSessionRole(role)
@@ -37,8 +37,8 @@ enum DesktopWorkspaceNav {
         case "supervisor": return "SUPERVISOR"
         case "agencyadmin": return "AGENCY ADMIN"
         case "agencyit": return "IT ADMIN"
-        case "rcsuperadmin", "rcadmin": return "RC ADMIN"
-        case "rcitadmin": return "RC IT"
+        case "rcsuperadmin", "rcadmin": return "NC ADMIN"
+        case "rcitadmin": return "NC IT"
         default:
             return effective.uppercased()
         }
@@ -76,7 +76,7 @@ enum DesktopWorkspaceNav {
                 QuickLink(id: "call-assist", label: "Call Assist", path: "/\(j)/call-assist"),
                 QuickLink(id: "incidents", label: "Incidents", path: "/\(j)/incidents"),
                 QuickLink(id: "media", label: "Media", path: "/\(j)/media"),
-                QuickLink(id: "rapid-vision", label: "Rapid Vision", path: "/\(j)/media?vision=1"),
+                QuickLink(id: "rapid-vision", label: "NexiQ Vision", path: "/\(j)/media?vision=1"),
             ]
         case "supervisor":
             return [
@@ -85,7 +85,7 @@ enum DesktopWorkspaceNav {
                 QuickLink(id: "call-assist", label: "Call Assist", path: "/\(j)/call-assist"),
                 QuickLink(id: "incidents", label: "Incidents", path: "/\(j)/incidents"),
                 QuickLink(id: "media", label: "Media", path: "/\(j)/media"),
-                QuickLink(id: "rapid-vision", label: "Rapid Vision", path: "/\(j)/media?vision=1"),
+                QuickLink(id: "rapid-vision", label: "NexiQ Vision", path: "/\(j)/media?vision=1"),
             ]
         case "agencyadmin", "agencyit":
             return [
@@ -96,7 +96,7 @@ enum DesktopWorkspaceNav {
             ]
         case "rcsuperadmin", "rcadmin", "rcitadmin":
             return [
-                QuickLink(id: "rc-admin", label: "RC Admin", path: "/rc-admin/dashboard"),
+                QuickLink(id: "rc-admin", label: "NC Admin", path: "/rc-admin/dashboard"),
             ]
         default:
             return [

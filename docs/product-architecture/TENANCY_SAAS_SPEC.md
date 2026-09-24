@@ -1,4 +1,4 @@
-# Rapid Cortex — Multi-tenant SaaS specification (Agencies, users, invites, RBAC)
+# NexCort iQ — Multi-tenant SaaS specification (Agencies, users, invites, RBAC)
 
 This document is the canonical reference for city/municipality onboarding, provisioning, and authorization. It is **CJIS-aligned** (controls and evidence) — **not** a compliance certification claim.
 
@@ -6,7 +6,7 @@ This document is the canonical reference for city/municipality onboarding, provi
 
 ## SECTION 1 — Executive Summary
 
-Rapid Cortex is a multi-tenant SaaS: every customer organization is an **Agency** (tenant). All operational and configuration data is scoped by **`agencyId`**. **Cognito ID tokens** supply `sub`, `email`, **`custom:agencyId`**, and **`custom:role`**. The **backend is authoritative** for authorization; the UI mirrors RBAC for UX only.
+NexCort iQ is a multi-tenant SaaS: every customer organization is an **Agency** (tenant). All operational and configuration data is scoped by **`agencyId`**. **Cognito ID tokens** supply `sub`, `email`, **`custom:agencyId`**, and **`custom:role`**. The **backend is authoritative** for authorization; the UI mirrors RBAC for UX only.
 
 A **platform_superadmin** (internal staff) uses a dedicated role and a sentinel tenant id (`__platform__`) in JWT claims so the same `UserContext` shape holds for all principals. Platform users bypass **read** tenant boundaries only on explicitly allow-listed operations (e.g. list agencies, read any incident when `agencyId` query is absent policy — see implementation: cross-tenant incident list requires `agencyId` query for platform).
 

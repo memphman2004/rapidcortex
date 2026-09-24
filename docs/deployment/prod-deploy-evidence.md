@@ -1,4 +1,4 @@
-# Production deploy evidence — Rapid Cortex SAM (nested stacks)
+# Production deploy evidence — NexCort iQ SAM (nested stacks)
 
 Fill this document after each production deployment. Paste sanitized CLI output where noted; do not paste secret values.
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Rapid Cortex — Documentation</title>
+<title>NexCort iQ — Documentation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -537,7 +537,7 @@
       <div class="brand-icon">
         <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
       </div>
-      <span class="brand-name">Rapid Cortex</span>
+      <span class="brand-name">NexCort iQ</span>
     </div>
     <div class="brand-version">Platform Documentation</div>
   </div>
@@ -545,7 +545,7 @@
   <nav class="sidebar-nav">
     <div class="nav-section-label">Getting Started</div>
     <a class="nav-item active" href="#overview">
-      <span class="nav-dot"></span>What is Rapid Cortex?
+      <span class="nav-dot"></span>What is NexCort iQ?
     </a>
     <a class="nav-item" href="#signin">
       <span class="nav-dot"></span>Signing In
@@ -603,7 +603,7 @@
   <!-- TOP BAR -->
   <div class="topbar">
     <div class="breadcrumb">
-      Rapid Cortex <span class="breadcrumb-sep">›</span>
+      NexCort iQ <span class="breadcrumb-sep">›</span>
       <span>Platform Documentation</span>
     </div>
     <div class="topbar-right">
@@ -615,7 +615,7 @@
   <!-- HERO -->
   <div class="hero" id="overview">
     <div class="hero-eyebrow">Emergency Communications Platform</div>
-    <h1>Rapid Cortex Documentation</h1>
+    <h1>NexCort iQ Documentation</h1>
     <p>A browser-based co-pilot for emergency communications — built to sit alongside your CAD, telephony, and radio systems. Everything your team needs to operate, configure, and integrate.</p>
 
     <div class="url-display">
@@ -657,13 +657,13 @@
       <div class="section-header">
         <div class="section-icon teal">⚡</div>
         <div>
-          <div class="section-title">What Rapid Cortex Does</div>
+          <div class="section-title">What NexCort iQ Does</div>
           <div class="section-subtitle">Platform overview and design philosophy</div>
         </div>
       </div>
       <div class="callout info">
         <span class="callout-icon">ℹ️</span>
-        <span>Rapid Cortex is <strong>decision support</strong> — not a replacement for your CAD, telephony, or radio systems. AI suggestions are advisory; your agency's SOPs, medical control, and supervisor direction always take precedence.</span>
+        <span>NexCort iQ is <strong>decision support</strong> — not a replacement for your CAD, telephony, or radio systems. AI suggestions are advisory; your agency's SOPs, medical control, and supervisor direction always take precedence.</span>
       </div>
       <div class="card-grid card-grid-3" style="margin-top: 16px;">
         <div class="card">
@@ -715,7 +715,7 @@
       </div>
       <div class="callout warning">
         <span class="callout-icon">⚠️</span>
-        <span>Can't sign in? Contact your <strong>agency IT</strong> or Rapid Cortex support per your contract. Do not share login credentials with colleagues.</span>
+        <span>Can't sign in? Contact your <strong>agency IT</strong> or NexCort iQ support per your contract. Do not share login credentials with colleagues.</span>
       </div>
     </section>
 
@@ -759,7 +759,7 @@
             <tr>
               <td><span class="role-badge superadmin">platform_superadmin</span></td>
               <td>Cross-agency operations: create/suspend agencies, list all agencies, invite to any agency</td>
-              <td>Rapid Cortex internal platform operators only</td>
+              <td>NexCort iQ internal platform operators only</td>
             </tr>
           </tbody>
         </table>
@@ -829,7 +829,7 @@
       </div>
       <div class="callout info">
         <span class="callout-icon">ℹ️</span>
-        <span>Rapid Cortex surfaces what needs review; <strong>your SOP defines the policy</strong>. The software does not automate disposition decisions.</span>
+        <span>NexCort iQ surfaces what needs review; <strong>your SOP defines the policy</strong>. The software does not automate disposition decisions.</span>
       </div>
     </section>
 
@@ -1112,12 +1112,12 @@
         <div class="section-icon amber">📡</div>
         <div>
           <div class="section-title">CAD &amp; Motorola Integration</div>
-          <div class="section-subtitle">How Rapid Cortex connects to dispatch systems</div>
+          <div class="section-subtitle">How NexCort iQ connects to dispatch systems</div>
         </div>
       </div>
       <div class="callout warning">
         <span class="callout-icon">⚠️</span>
-        <span>The live CAD connector is <strong>not turnkey</strong> in this release. The admin UI shows CAD as <span class="status-badge planned">planned</span>. Integration requires a scoped engagement with your vendor and Rapid Cortex engineering.</span>
+        <span>The live CAD connector is <strong>not turnkey</strong> in this release. The admin UI shows CAD as <span class="status-badge planned">planned</span>. Integration requires a scoped engagement with your vendor and NexCort iQ engineering.</span>
       </div>
 
       <div class="prose" style="margin-bottom:16px;">
@@ -1135,7 +1135,7 @@
             <ul>
               <li>Inventory systems: CAD product name/version, RMS, logging recorder, 911 CPE, any middleware</li>
               <li>List integration options the vendor supports for your deployment (APIs, message buses, XML/JSON feeds, webhooks)</li>
-              <li>Define data scope: which fields Rapid Cortex needs and what must never leave CAD</li>
+              <li>Define data scope: which fields NexCort iQ needs and what must never leave CAD</li>
               <li>Agree on security path: CJIS alignment, TLS 1.2+, authentication method, audit requirements</li>
             </ul>
           </div>
@@ -1147,7 +1147,7 @@
             <span class="phase-tag milestone">First technical milestone</span>
           </div>
           <div class="phase-body">
-            Ingest incident updates or transcript-adjacent events into Rapid Cortex <strong>without</strong> controlling dispatch. Use <code>INTEGRATION_TRANSCRIPT_CONNECTOR_MODE=shadow</code> to compare external feed behavior to mock/live paths before full reliance.
+            Ingest incident updates or transcript-adjacent events into NexCort iQ <strong>without</strong> controlling dispatch. Use <code>INTEGRATION_TRANSCRIPT_CONNECTOR_MODE=shadow</code> to compare external feed behavior to mock/live paths before full reliance.
           </div>
         </div>
         <div class="phase">
@@ -1176,7 +1176,7 @@
       <ul class="checklist">
         <li>Confirm product names, versions, and hosting model with your Motorola Solutions account team</li>
         <li>Request the integration catalog for your SKU: protocols, rate limits, test environments</li>
-        <li>Request a non-production endpoint for Rapid Cortex development and testing</li>
+        <li>Request a non-production endpoint for NexCort iQ development and testing</li>
         <li>Agree on network path (public internet vs private connectivity) and IP allow-lists</li>
         <li>Agree on data elements available in each message and retention constraints</li>
         <li>Plan fallback: if the feed stalls, dispatch continues in CAD per your SOP</li>
@@ -1325,7 +1325,7 @@
           <span class="help-icon">🔑</span>
           <div>
             <div class="help-q">Login, password, or MFA issues</div>
-            <div class="help-a">Contact your <strong>agency IT</strong> or Rapid Cortex support per your contract.</div>
+            <div class="help-a">Contact your <strong>agency IT</strong> or NexCort iQ support per your contract.</div>
           </div>
         </div>
         <div class="help-item">
@@ -1346,14 +1346,14 @@
           <span class="help-icon">📻</span>
           <div>
             <div class="help-q">CAD, radio, or 911 vendor problems</div>
-            <div class="help-a">Contact <strong>that vendor's support</strong> directly. Rapid Cortex does not replace or control those systems.</div>
+            <div class="help-a">Contact <strong>that vendor's support</strong> directly. NexCort iQ does not replace or control those systems.</div>
           </div>
         </div>
         <div class="help-item">
           <span class="help-icon">🔗</span>
           <div>
             <div class="help-q">CAD or Motorola integration questions</div>
-            <div class="help-a">Engage your <strong>Motorola Solutions account team</strong> and Rapid Cortex engineering simultaneously. See the Integrations section above.</div>
+            <div class="help-a">Engage your <strong>Motorola Solutions account team</strong> and NexCort iQ engineering simultaneously. See the Integrations section above.</div>
           </div>
         </div>
         <div class="help-item">

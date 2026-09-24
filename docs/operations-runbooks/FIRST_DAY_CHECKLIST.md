@@ -1,11 +1,11 @@
-# First day on Rapid Cortex (pilot)
+# First day on NexCort iQ (pilot)
 
 For **dispatchers**, **supervisors**, and **admins** on day one of live pilot access. Tick with a partner; keep evidence for retro ([PILOT_SUCCESS_AND_FEEDBACK.md](./PILOT_SUCCESS_AND_FEEDBACK.md)).
 
 ## Everyone
 
 - [ ] I can sign in at my agency **`/<slug>/login`** URL.
-- [ ] **Connections** shows **Rapid Cortex API live** (if not, stop — [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md)).
+- [ ] **Connections** shows **NexCort iQ API live** (if not, stop — [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md)).
 - [ ] I know where **KNOWN_LIMITATIONS** and **USER_GUIDE** live (bookmarked or printed [QUICKSTART_CARD.md](./QUICKSTART_CARD.md)).
 
 ## Dispatcher

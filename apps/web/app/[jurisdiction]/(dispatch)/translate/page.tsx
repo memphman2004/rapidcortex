@@ -9,7 +9,7 @@ export default function TranslateIndexPage() {
   return (
     <TranslateHomeClient
       vertical="law_enforcement"
-      heading="RC Translate"
+      heading="Translate"
       sessionHref={(id) => `/${jurisdiction}/translate/${id}`}
     />
   );

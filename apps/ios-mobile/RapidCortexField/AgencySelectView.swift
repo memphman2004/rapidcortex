@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// RC platform admins choose an agency by name. No operational-profile labels.
+/// NC platform admins choose an agency by name. No operational-profile labels.
 @MainActor
 final class AgencySelectViewModel: ObservableObject {
     @Published private(set) var agencies: [Agency] = []

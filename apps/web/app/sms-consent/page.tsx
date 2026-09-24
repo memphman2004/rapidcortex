@@ -8,7 +8,7 @@ const PAGE_TITLE = "SMS Consent";
 export const metadata = {
   title: PAGE_TITLE,
   description:
-    "SMS consent disclosure for Rapid Cortex: approved agency workflows, opt-out guidance, and public safety communications context.",
+    "SMS consent disclosure for NexCort iQ: approved agency workflows, opt-out guidance, and public safety communications context.",
 };
 
 export default function SmsConsentPage() {
@@ -16,13 +16,13 @@ export default function SmsConsentPage() {
     <LegalDocShell title={PAGE_TITLE} lastReviewed="August 1, 2026">
       <section className="space-y-4 pb-8">
         <p>
-          By providing a mobile number through Rapid Cortex forms or approved agency workflows, you consent to receive
-          SMS messages related to demo scheduling, onboarding, account access, support, or authorized Rapid Cortex
+          By providing a mobile number through NexCort iQ forms or approved agency workflows, you consent to receive
+          SMS messages related to demo scheduling, onboarding, account access, support, or authorized NexCort iQ
           communications. Message and data rates may apply. Message frequency may vary. You may reply STOP to opt out or
           HELP for assistance where supported.
         </p>
         <p className="text-slate-400">
-          SMS consent is not required to purchase Rapid Cortex services unless SMS-based communication is part of the
+          SMS consent is not required to purchase NexCort iQ services unless SMS-based communication is part of the
           approved agency workflow.
         </p>
         <p className="flex flex-wrap gap-x-6 gap-y-2">
@@ -38,7 +38,7 @@ export default function SmsConsentPage() {
         </p>
       </section>
 
-      <p className="text-base font-medium text-slate-200">Rapid Cortex by Apps On Demand</p>
+      <p className="text-base font-medium text-slate-200">NexCort iQ by Apps On Demand</p>
       <p className="text-xs text-slate-500">
         Operated by{" "}
         <a href={SITE_OPERATOR_URL} target="_blank" rel="noopener noreferrer" className="text-slate-400">

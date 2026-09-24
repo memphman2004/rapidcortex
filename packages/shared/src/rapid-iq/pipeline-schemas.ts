@@ -17,7 +17,7 @@ export const RAPID_IQ_PIPELINE_SOURCE_IDS = [
   "state-arpa",
   "openlegislative",
   "county-procurement",
-  "rapid-iq", // queued from Rapid IQ opportunity cards
+  "rapid-iq", // queued from NexiQ IQ opportunity cards
   "grants-gov",
   "911-gov",
   "trade-publication",
@@ -35,7 +35,7 @@ export const RAPID_IQ_PIPELINE_SOURCE_IDS = [
 ] as const;
 export type RapidIqPipelineSourceId = (typeof RAPID_IQ_PIPELINE_SOURCE_IDS)[number];
 
-/** Rapid IQ inbox + pipeline slice (matches the dashboard tabs). */
+/** NexiQ IQ inbox + pipeline slice (matches the dashboard tabs). */
 export const RAPID_IQ_PIPELINE_FEED_TABS = ["911", "campus", "venue", "transit", "competitor"] as const;
 export type RapidIqPipelineFeedTab = (typeof RAPID_IQ_PIPELINE_FEED_TABS)[number];
 
@@ -136,7 +136,7 @@ export const rapidIqPipelineSignalSchema = z.object({
   pageLocation: z.string().max(200).optional(),
   taxonomyTags: z.array(z.string().min(1).max(80)).max(40).optional(),
   recommendedAction: z.string().max(400).optional(),
-  /** Linked Rapid IQ agency profile (pipeline table pk AGENCY#…). */
+  /** Linked NexiQ IQ agency profile (pipeline table pk AGENCY#…). */
   agencyProfileId: z.string().min(1).max(128).optional(),
   manualEntry: z.boolean().optional(),
   enteredBy: z.string().max(200).optional(),
@@ -151,7 +151,7 @@ export const rapidIqPipelineSignalSchema = z.object({
   reviewedAt: z.string().optional(),
   crmLeadId: z.string().optional(),
   pushedAt: z.string().optional(),
-  /** Set when an opportunity is queued from the Rapid IQ feed. */
+  /** Set when an opportunity is queued from the NexiQ IQ feed. */
   opportunityId: z.string().min(1).optional(),
   /** Inbox / pipeline category. Inferred client-side when omitted. */
   vertical: z.enum(RAPID_IQ_PIPELINE_FEED_TABS).optional(),
@@ -382,7 +382,7 @@ export const RAPID_IQ_PIPELINE_SOURCE_LABELS: Record<RapidIqPipelineSourceId, st
   "state-arpa": "ARPA Dashboard",
   openlegislative: "State Legislature",
   "county-procurement": "County Procurement",
-  "rapid-iq": "Rapid IQ",
+  "rapid-iq": "NexiQ IQ",
   "grants-gov": "Grants.gov",
   "911-gov": "911.gov",
   "trade-publication": "APCO / NENA",
@@ -436,7 +436,7 @@ const TRANSIT_RE =
   /\b(transit|metro|subway|light rail|commuter rail|bus rapid|ferry|paratransit|ridership|mta|wmata|mbta|bart|trimet)\b/i;
 
 /**
- * Map a pipeline / collector signal onto the Rapid IQ category tabs.
+ * Map a pipeline / collector signal onto the NexiQ IQ category tabs.
  * Explicit `vertical` wins; otherwise keywords + source; default is 911.
  */
 export function classifyPipelineFeedTab(input: {

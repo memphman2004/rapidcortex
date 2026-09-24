@@ -45,7 +45,7 @@ async function fetchRecentArticles(sourceUrl: string, sourceName: string): Promi
         text: [
           "Campus safety software RFP and Clery Act compliance technology",
           "University police budget increase for campus emergency notification",
-          "Higher education public safety modernization — Rapid Cortex Campus fit",
+          "Higher education public safety modernization — NexCort iQ Campus fit",
           `Source: ${sourceName}`,
         ].join(". "),
       },

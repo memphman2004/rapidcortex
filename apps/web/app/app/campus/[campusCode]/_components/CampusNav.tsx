@@ -1,26 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
+import { RoleNavSections } from "@/components/navigation/role-nav-sidebar";
 import { filterRoleNavByFeatures } from "@/lib/navigation/filter-role-nav";
-import { navIconByName } from "@/lib/navigation/nav-icons";
-import { getRoleNav, type NavItem } from "@/lib/navigation/role-nav";
-
-const C = {
-  surface: "var(--rc-surface)",
-  border: "var(--rc-border)",
-  text: "var(--rc-text-primary)",
-  textSub: "var(--rc-text-secondary)",
-  textMuted: "var(--rc-text-muted)",
-  blue: "var(--rc-blue)",
-} as const;
-
-function navItemActive(pathname: string, item: NavItem): boolean {
-  if (item.exact) return pathname === item.href || pathname === `${item.href}/`;
-  return pathname === item.href || pathname.startsWith(`${item.href}/`);
-}
+import { getRoleNav } from "@/lib/navigation/role-nav";
 
 export function CampusNav({
   campusCode,
@@ -29,7 +13,6 @@ export function CampusNav({
   campusCode: string;
   role?: string;
 }) {
-  const pathname = usePathname() ?? "";
   const navRole = isRcInternalOperator(role) ? "CAMPUS_ADMIN" : role;
   const nav = useMemo(
     () =>
@@ -39,44 +22,16 @@ export function CampusNav({
     [navRole, campusCode],
   );
 
-  const items = nav.sections.flatMap((s) => s.items);
-
   return (
     <nav
-      className="w-full rounded-[10px] p-2"
+      className="w-full rounded-lg p-3 lg:w-64 lg:shrink-0"
       style={{
-        background: C.surface,
-        border: `1px solid ${C.border}`,
+        background: "var(--rc-surface)",
+        border: "1px solid var(--rc-border)",
       }}
       aria-label="Campus navigation"
     >
-      <div className="flex flex-wrap gap-1">
-        {items.map((item) => {
-          const Icon = navIconByName(item.icon);
-          const active = navItemActive(pathname, item);
-          return (
-            <Link
-              key={item.id}
-              href={item.href}
-              className="inline-flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[12.5px] no-underline transition-colors"
-              style={{
-                background: active ? "var(--rc-vertical-accent-dim)" : "transparent",
-                borderLeft: active ? `2px solid ${C.blue}` : "2px solid transparent",
-                color: active ? C.text : C.textSub,
-                fontWeight: active ? 600 : 400,
-              }}
-            >
-              <Icon size={14} color={active ? C.blue : C.textMuted} strokeWidth={1.7} />
-              {item.label}
-              {item.badge?.type === "label" ? (
-                <span className="text-[8.5px] font-bold" style={{ color: C.textMuted }}>
-                  {item.badge.text}
-                </span>
-              ) : null}
-            </Link>
-          );
-        })}
-      </div>
+      <RoleNavSections nav={nav} />
     </nav>
   );
 }

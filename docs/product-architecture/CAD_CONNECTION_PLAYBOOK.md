@@ -1,8 +1,8 @@
-# Rapid Cortex CAD Connection Playbook
+# NexCort iQ CAD Connection Playbook
 
-This playbook provides a strict, step-by-step, implementation-oriented guide for connecting Rapid Cortex to an agency CAD environment during pilot and production rollout.
+This playbook provides a strict, step-by-step, implementation-oriented guide for connecting NexCort iQ to an agency CAD environment during pilot and production rollout.
 
-Rapid Cortex does **not** replace CAD. Rapid Cortex augments existing CAD operations with AI-assisted transcription, triage support, summarization, translation, QA scoring, and responder context.
+NexCort iQ does **not** replace CAD. NexCort iQ augments existing CAD operations with AI-assisted transcription, triage support, summarization, translation, QA scoring, and responder context.
 
 Important scope statement:
 
@@ -13,7 +13,7 @@ Important scope statement:
 
 ## 1. Integration Goal
 
-The goal is to connect Rapid Cortex to CAD in controlled phases:
+The goal is to connect NexCort iQ to CAD in controlled phases:
 
 1. **Read-only / shadow mode**
 2. **Dispatcher-reviewed recommendations**
@@ -30,9 +30,9 @@ The goal is to connect Rapid Cortex to CAD in controlled phases:
 
 | Mode                          | Description                                                                                                                | Risk profile                            |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| **No CAD integration**        | Rapid Cortex runs beside CAD; dispatcher manually copies approved summaries into CAD.                                      | Lowest risk                             |
-| **Read-only CAD integration** | Rapid Cortex reads incident/call metadata from CAD; no CAD updates are sent.                                               | Best for pilots                         |
-| **Assisted write-back**       | Rapid Cortex drafts updates; dispatcher explicitly approves before CAD update.                                             | Recommended first production write mode |
+| **No CAD integration**        | NexCort iQ runs beside CAD; dispatcher manually copies approved summaries into CAD.                                      | Lowest risk                             |
+| **Read-only CAD integration** | NexCort iQ reads incident/call metadata from CAD; no CAD updates are sent.                                               | Best for pilots                         |
+| **Assisted write-back**       | NexCort iQ drafts updates; dispatcher explicitly approves before CAD update.                                             | Recommended first production write mode |
 | **Automated write-back**      | System writes approved fields automatically. Requires strict agency approval, audit logs, rollback, and vendor validation. | Not recommended for early pilots        |
 
 ## 3. Prerequisites
@@ -63,7 +63,7 @@ The goal is to connect Rapid Cortex to CAD in controlled phases:
 - [ ] Audit log requirements
 - [ ] Data retention requirements
 
-### Rapid Cortex checklist
+### NexCort iQ checklist
 
 - [ ] API base URL
 - [ ] Environment name: dev/stage/prod
@@ -81,8 +81,8 @@ Step-by-step:
 2. Request official CAD integration documentation.
 3. Confirm whether the agency has a sandbox CAD environment.
 4. Identify allowed integration method.
-5. Identify fields Rapid Cortex may read.
-6. Identify fields Rapid Cortex may write.
+5. Identify fields NexCort iQ may read.
+6. Identify fields NexCort iQ may write.
 7. Confirm security requirements.
 8. Confirm audit/logging requirements.
 9. Confirm approval process for go-live.
@@ -106,15 +106,15 @@ Step-by-step:
 
 Recommended first pilot:
 
-`Caller audio/transcript -> Rapid Cortex AI processing -> AI summary/triage/recommendation -> dispatcher review -> optional manual copy into CAD`
+`Caller audio/transcript -> NexCort iQ AI processing -> AI summary/triage/recommendation -> dispatcher review -> optional manual copy into CAD`
 
 Next stage:
 
-`CAD read-only feed -> Rapid Cortex displays incident/call metadata -> AI enriches context -> dispatcher reviews -> no CAD write-back`
+`CAD read-only feed -> NexCort iQ displays incident/call metadata -> AI enriches context -> dispatcher reviews -> no CAD write-back`
 
 Final stage:
 
-`Dispatcher-approved write-back -> Rapid Cortex sends approved note/update to CAD -> CAD confirms success/failure -> Rapid Cortex stores audit record`
+`Dispatcher-approved write-back -> NexCort iQ sends approved note/update to CAD -> CAD confirms success/failure -> NexCort iQ stores audit record`
 
 ## 6. Environment Variables
 
@@ -147,8 +147,8 @@ CAD_MAX_RETRIES=2
 | `CAD_CLIENT_ID_SECRET_ARN`     | Secrets Manager ARN for OAuth client id or equivalent identity value.                         |
 | `CAD_CLIENT_SECRET_SECRET_ARN` | Secrets Manager ARN for OAuth client secret or equivalent confidential token.                 |
 | `CAD_CERT_SECRET_ARN`          | Secrets Manager ARN for client certificate material for mTLS/cert flows.                      |
-| `CAD_ALLOWED_READ_FIELDS`      | Comma-separated allowlist of CAD fields Rapid Cortex may ingest.                              |
-| `CAD_ALLOWED_WRITE_FIELDS`     | Comma-separated allowlist of fields Rapid Cortex may submit to CAD.                           |
+| `CAD_ALLOWED_READ_FIELDS`      | Comma-separated allowlist of CAD fields NexCort iQ may ingest.                              |
+| `CAD_ALLOWED_WRITE_FIELDS`     | Comma-separated allowlist of fields NexCort iQ may submit to CAD.                           |
 | `CAD_WRITEBACK_ENABLED`        | Safety flag for all write paths; keep `false` until explicit approval.                        |
 | `CAD_SANDBOX_MODE`             | Marks adapter runtime as sandbox/test mode.                                                   |
 | `CAD_TIMEOUT_MS`               | CAD request timeout to avoid blocking dispatcher workflows.                                   |
@@ -171,7 +171,7 @@ interface CadAdapter {
 Design rules:
 
 - Each CAD vendor gets its own adapter implementation.
-- Core Rapid Cortex workflow calls the generic adapter interface.
+- Core NexCort iQ workflow calls the generic adapter interface.
 - Vendor-specific logic must not be scattered across web/API surfaces.
 - Write-back must be disabled by default.
 
@@ -195,7 +195,7 @@ Design rules:
 1. Keep `CAD_WRITEBACK_ENABLED=false` initially.
 2. Define allowed write fields.
 3. Confirm required CAD fields.
-4. Create draft CAD update from Rapid Cortex summary.
+4. Create draft CAD update from NexCort iQ summary.
 5. Show draft to dispatcher.
 6. Require explicit dispatcher approval.
 7. Submit approved update to CAD sandbox.
@@ -215,7 +215,7 @@ Design rules:
 - [ ] Read-only mode cannot write
 - [ ] Write-back disabled blocks all write attempts
 - [ ] Dispatcher approval required
-- [ ] CAD timeout does not freeze Rapid Cortex UI
+- [ ] CAD timeout does not freeze NexCort iQ UI
 - [ ] Failed write-back is visible to dispatcher
 - [ ] Audit log created for every attempt
 - [ ] Duplicate write-back prevented
@@ -232,7 +232,7 @@ If issues appear during pilot or production:
 3. Revoke CAD API key/cert if needed.
 4. Confirm no queued write-backs remain.
 5. Notify agency IT and dispatch supervisor.
-6. Continue using Rapid Cortex in no-CAD or shadow mode.
+6. Continue using NexCort iQ in no-CAD or shadow mode.
 
 ## 12. Security and Compliance Notes
 

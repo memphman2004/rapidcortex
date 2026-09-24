@@ -104,7 +104,7 @@ artifacts/
 
 
 # internal marketing assets (large videos — keep local, not in git)
-Rapid Cortex Internal Docs/Sales_Marketing/Videos/
+NexCort iQ Internal Docs/Sales_Marketing/Videos/
 
 # additional local/sensitive files
 *.env
@@ -154,6 +154,9 @@ results/*.log
 results/stress-report.html
 results/stress-v2/
 !results/.gitkeep
+
+# DR test reports (keep README; ignore generated evidence)
+docs/dr-test-results/dr-test-*.md
 
 # Lex Lambda bundles (scripts/deploy-lex.sh runs esbuild)
 infra/lex-lambda/dialog-hook.js

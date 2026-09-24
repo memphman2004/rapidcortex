@@ -152,7 +152,7 @@ APP_NAME="${APP_NAME:-rapid-cortex}"
 STACK_NAME="${STACK_NAME:-${APP_NAME}-2-${STAGE}}"
 
 echo "═══════════════════════════════════════════════════════"
-echo " Rapid Cortex SAM backend deployment (./scripts/deploy2.sh)"
+echo " NexCort iQ SAM backend deployment (./scripts/deploy2.sh)"
 echo "═══════════════════════════════════════════════════════"
 echo " Stage:                ${STAGE}"
 echo " Stack:                ${STACK_NAME}"

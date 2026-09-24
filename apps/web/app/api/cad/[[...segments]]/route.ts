@@ -108,7 +108,7 @@ export async function POST(_request: Request, ctx: Ctx) {
       {
         ok: false,
         message:
-          "CAD write-back adapters are intentionally not wired in this repository build — contact Rapid Cortex integrations before attempting enablement.",
+          "CAD write-back adapters are intentionally not wired in this repository build — contact NexCort iQ integrations before attempting enablement.",
       },
       { status: 501 },
     );

@@ -20,7 +20,7 @@ const CONFIG_ROLES = new Set([
 ]);
 
 export function VisionAiOpsConsole({
-  title = "Rapid Vision AI",
+  title = "NexiQ Vision AI",
   subtitle = "AI surfaces camera alerts. Staff confirm every action — nothing auto-dispatches.",
 }: {
   title?: string;

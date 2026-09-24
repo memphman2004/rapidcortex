@@ -175,7 +175,7 @@ struct LoginView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                             .shadow(color: .black.opacity(0.45), radius: 16, y: 8)
 
-                        Text("Rapid Cortex")
+                        Text("NexCort iQ")
                             .font(.system(size: 28, weight: .bold, design: .default))
                             .foregroundStyle(.white)
 
@@ -184,7 +184,7 @@ struct LoginView: View {
                             .foregroundStyle(LoginChrome.muted)
                             .multilineTextAlignment(.center)
 
-                        Text("Sign in opens the Rapid Cortex site in your browser; when you finish, you return here automatically.")
+                        Text("Sign in opens the NexCort iQ site in your browser; when you finish, you return here automatically.")
                             .font(.system(size: 13, weight: .regular, design: .default))
                             .foregroundStyle(LoginChrome.muted.opacity(0.95))
                             .multilineTextAlignment(.center)
@@ -225,7 +225,7 @@ struct LoginView: View {
                                     .foregroundStyle(Color.orange.opacity(0.95))
                                     .fixedSize(horizontal: false, vertical: true)
                             } else if !session.configuration.canSignInWithWeb {
-                                Text("Add WEB_APP_BASE_URL or NEXT_PUBLIC_SITE_URL to Secrets.plist (your Rapid Cortex website URL, e.g. https://app.rapidcortex.us) so the app can open web sign-in.")
+                                Text("Add WEB_APP_BASE_URL or NEXT_PUBLIC_SITE_URL to Secrets.plist (your NexCort iQ website URL, e.g. https://app.rapidcortex.us) so the app can open web sign-in.")
                                     .font(.caption)
                                     .foregroundStyle(Color.orange.opacity(0.95))
                                     .fixedSize(horizontal: false, vertical: true)

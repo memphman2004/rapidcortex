@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
-        Title="Rapid Cortex"
+        Title="NexCort iQ"
         Height="800"
         Width="1280"
         MinHeight="720"
@@ -87,7 +87,7 @@
 
     <DockPanel x:Name="WebWorkspace" Visibility="Collapsed" Margin="0">
       <ToolBar DockPanel.Dock="Top" Padding="8,4">
-        <TextBlock Text="Rapid Cortex" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
+        <TextBlock Text="NexCort iQ" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
         <TextBlock x:Name="WebAgencyText" VerticalAlignment="Center" Foreground="#666" Margin="0,0,8,0" />
         <Border Background="#E0F2FE" CornerRadius="8" Padding="8,2" Margin="0,0,12,0">
           <TextBlock x:Name="WebRoleBadgeText" FontSize="11" FontWeight="SemiBold" Foreground="#0369A1" />
@@ -107,7 +107,7 @@
     <StackPanel x:Name="WebWorkspaceRequiredPanel" Visibility="Collapsed" Margin="32" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520">
       <TextBlock Text="Web workspace required" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center" />
       <TextBlock TextWrapping="Wrap" Foreground="#666" Margin="0,12,0,0" TextAlignment="Center"
-                 Text="Set RapidCortex:WebAppBaseUrl in appsettings (e.g. https://app.rapidcortex.us) so this desktop app loads the same Rapid Cortex web workspace as the browser." />
+                 Text="Set RapidCortex:WebAppBaseUrl in appsettings (e.g. https://app.rapidcortex.us) so this desktop app loads the same NexCort iQ web workspace as the browser." />
       <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="12" Margin="0,12,0,0" TextAlignment="Center"
                  Text="After updating configuration, restart the app or use Reload configuration on the About tab (Debug builds)." />
     </StackPanel>

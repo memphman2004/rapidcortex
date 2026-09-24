@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — Inside the Cortex marketing lead capture (surgical).
+  NexCort iQ — Inside the Cortex marketing lead capture (surgical).
   Attaches POST /api/marketing/lead + /unsubscribe to AppSam3 HttpApi.
 
 Parameters:
@@ -44,10 +44,10 @@ Parameters:
     Default: rapid-cortex
   SesFromEmail:
     Type: String
-    Default: noreply@rapidcortex.us
+    Default: noreply@nexcortiq.us
   RcTeamNotifyEmail:
     Type: String
-    Default: team@rapidcortex.us
+    Default: team@nexcortiq.us
   SesMock:
     Type: String
     Default: "false"
@@ -127,9 +127,9 @@ Resources:
             Action:
               - ses:SendEmail
             Resource:
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/noreply@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/noreply@nexcortiq.us
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@nexcortiq.us
 
   MarketingLeadFunction:
     Type: AWS::Serverless::Function

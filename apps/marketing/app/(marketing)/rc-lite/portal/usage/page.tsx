@@ -1,4 +1,4 @@
-export const metadata = { title: "RC Lite — usage", robots: { index: false, follow: false } };
+export const metadata = { title: "NexCort Lite — usage", robots: { index: false, follow: false } };
 
 export default function RcLitePortalUsagePage() {
   return (

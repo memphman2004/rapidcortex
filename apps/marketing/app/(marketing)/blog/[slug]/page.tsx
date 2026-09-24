@@ -91,7 +91,7 @@ export default async function BlogPostPage({
             </p>
             <p className="mt-2 text-slate-300">
               {post.cta?.text ??
-                "Rapid Cortex enhances dispatch operations without replacing your CAD, telephony, or call-takers. Request a walkthrough scoped to your agency."}
+                "NexCort iQ enhances dispatch operations without replacing your CAD, telephony, or call-takers. Request a walkthrough scoped to your agency."}
             </p>
             <Link
               href={post.cta?.href ?? "/demo"}

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * Practical EIDO-compatible envelope for Rapid Cortex ↔ NG9-1-1 / CAD partners.
+ * Practical EIDO-compatible envelope for NexCort iQ ↔ NG9-1-1 / CAD partners.
  * Subset of NENA-STA-021 concepts (not a claim of full schema compliance).
  * Authoritative OpenAPI lives on NENA GitHub; we map RC incidents to this shape.
  */

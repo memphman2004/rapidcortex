@@ -1,12 +1,12 @@
 # Deployment readiness map
 
-**Purpose:** Define **four readiness levels** for Rapid Cortex using **repo evidence** (code + `docs/`), not marketing claims. This map is the contract for what “ready” means at each tier.
+**Purpose:** Define **four readiness levels** for NexCort iQ using **repo evidence** (code + `docs/`), not marketing claims. This map is the contract for what “ready” means at each tier.
 
 **Primary sources:** [PRODUCTION_READINESS_AUDIT.md](./PRODUCTION_READINESS_AUDIT.md), [PILOT_READINESS_CHECKLIST.md](./PILOT_READINESS_CHECKLIST.md), [FEATURE_READINESS_MATRIX.md](./FEATURE_READINESS_MATRIX.md), [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md), [NON_GOALS.md](./NON_GOALS.md), [INTEGRATIONS_CAD_AND_MOTOROLA.md](./INTEGRATIONS_CAD_AND_MOTOROLA.md), [CAD_CONNECTION_PLAYBOOK.md](./CAD_CONNECTION_PLAYBOOK.md), [PILOT_AWS_DEFENSE.md](./PILOT_AWS_DEFENSE.md), `apps/web/lib/rapid-cortex/features.ts`.
 
 **Product facts (non-negotiable in documentation):**
 
-- Rapid Cortex **enhances** existing CAD workflows; it **does not replace CAD** as the system of record.
+- NexCort iQ **enhances** existing CAD workflows; it **does not replace CAD** as the system of record.
 - **CJIS-aligned controls** may be described in engineering/security docs; **CJIS certification** must not be claimed without a completed assessment program ([NON_GOALS.md](./NON_GOALS.md) §1).
 - **Registry entries** (`features.ts`) describe intent, plans, env vars, and routes — they **do not** prove a capability is live, configured, monitored, or agency-approved ([FEATURE_READINESS_MATRIX.md](./FEATURE_READINESS_MATRIX.md)).
 - **Public pricing** stays **quote-based**; internal dollar pricing must not appear on public marketing surfaces (`apps/web/lib/marketing/pricing-content.ts`).
@@ -110,7 +110,7 @@ A **non-production** stack (or a dedicated staging slice) that **mirrors pilot/p
 
 - Marketing or runbooks implying **GA / self-serve** scale without evidence.
 - **CJIS certification** claims ([NON_GOALS.md](./NON_GOALS.md)).
-- Positioning Rapid Cortex as **replacing CAD**.
+- Positioning NexCort iQ as **replacing CAD**.
 
 ### Required evidence
 

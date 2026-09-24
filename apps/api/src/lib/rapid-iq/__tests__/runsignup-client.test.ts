@@ -23,7 +23,7 @@ describe("runsignup-client", () => {
     expect(text).toContain("AJC Peachtree Road Race");
     expect(text).toContain("Atlanta, GA");
     expect(text).toContain("Days until event: 45");
-    expect(text).toContain("Rapid Cortex Venue");
+    expect(text).toContain("NexCort iQ Venue");
   });
 });
 

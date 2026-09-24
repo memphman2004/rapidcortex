@@ -56,10 +56,10 @@ export const salesLeadPackageSoldSchema = z.enum([
 export type SalesLeadPackageSold = z.infer<typeof salesLeadPackageSoldSchema>;
 
 export const SALES_LEAD_PACKAGE_SOLD_LABELS: Record<SalesLeadPackageSold, string> = {
-  rc_core: "RC Core (911)",
-  rc_campus: "RC Campus",
-  rc_venue: "RC Venue",
-  rc_lite: "RC Lite",
+  rc_core: "911 Centers/PSAPs (911)",
+  rc_campus: "Campus",
+  rc_venue: "Venue",
+  rc_lite: "NexCort Lite",
   none: "None",
 };
 

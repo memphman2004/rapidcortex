@@ -1,10 +1,10 @@
-# Rapid Cortex — Cursor Rules
+# NexCort iQ — Cursor Rules
 # Real-Time AI Intelligence for Emergency Response
 # Senior Full-Stack Engineer, AWS Architect, and UI/UX Design standards
 
 ## PROJECT OVERVIEW
 
-Rapid Cortex is a production public safety intelligence platform for:
+NexCort iQ is a production public safety intelligence platform for:
 - 911 dispatch centers / PSAPs
 - Emergency communications centers
 - Law enforcement, fire, EMS
@@ -28,7 +28,7 @@ It enhances operations but does NOT replace CAD, telephony, dispatchers, or medi
 │   ├── web/              # Next.js 14 App Router (TypeScript, Tailwind)
 │   ├── marketing/        # Next.js static marketing site
 │   ├── android-mobile/   # Expo/React Native Android (Play)
-│   ├── ios-mobile/       # Native Swift Rapid Cortex Mobile (Xcode / TestFlight)
+│   ├── ios-mobile/       # Native Swift NexCort iQ Mobile (Xcode / TestFlight)
 │   ├── desktop-macos/    # Swift WKWebView wrapper
 │   └── desktop-windows/  # WPF WebView2 wrapper (C#)
 ├── packages/

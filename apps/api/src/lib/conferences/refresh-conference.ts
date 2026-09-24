@@ -203,7 +203,7 @@ Return JSON only:
 }
 
 function fromAddress(): string {
-  return process.env.SES_FROM_EMAIL?.trim() || env.sesFromEmail || "noreply@rapidcortex.us";
+  return process.env.SES_FROM_EMAIL?.trim() || env.sesFromEmail || "noreply@nexcortiq.us";
 }
 
 function alertToAddresses(): string[] {
@@ -240,7 +240,7 @@ export async function sendChangeAlert(
     .join("\n");
 
   const body = `
-Rapid Cortex detected changes on the ${conf.name} website.
+NexCort iQ detected changes on the ${conf.name} website.
 
 EVENT: ${conf.name}
 WEBSITE: ${conferenceSourceUrl(conf)}
@@ -255,7 +255,7 @@ This update was detected automatically. Please verify on the
 official conference website before acting on this information.
 
 —
-Rapid Cortex Conference Tracker
+NexCort iQ Conference Tracker
 `.trim();
 
   const to = alertToAddresses();

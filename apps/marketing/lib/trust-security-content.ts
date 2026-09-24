@@ -37,14 +37,14 @@ export const TRUST_PILLARS: readonly TrustPillarContent[] = [
 
 export const SECURITY_PAGE_DISCLAIMER = {
   heading: "What we do not claim on this page",
-  bodyLead: "Rapid Cortex does ",
+  bodyLead: "NexCort iQ does ",
   bodyNegation: "not",
   bodyRest:
     ' assert CJIS, CJIS-ATP, or FedRAMP certification on this page. We have not completed a SOC 2 audit. "CJIS-aligned" means we document controls your assessors can map to the CJIS Security Policy; your agency completes its own authorization path.',
 } as const;
 
 export const SECURITY_PAGE_METADATA = {
-  title: "Trust & Operations | Rapid Cortex",
+  title: "Trust & Operations | NexCort iQ",
   description:
     "Security, privacy, and operational posture for public safety teams — identity controls, tenant isolation, encryption, and CJIS-aligned control mapping for procurement review.",
   keywords: [
@@ -56,5 +56,5 @@ export const SECURITY_PAGE_METADATA = {
     "psap procurement security",
     "emergency communications security",
   ],
-  openGraphImageAlt: "Rapid Cortex trust and security",
+  openGraphImageAlt: "NexCort iQ trust and security",
 } as const;

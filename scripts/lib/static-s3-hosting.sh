@@ -62,7 +62,7 @@ static_s3_extensionless_route_paths() {
 static_s3_verify_local_brand_assets() {
   local static_dir="$1"
   local -a required_assets=(
-    "Logo/rapid-cortex-logo-2.png"
+    "Logo/nexcort-iq-logo-transparent.png"
     "Logo/icon.png"
     "Logo/icon-192.png"
     "Logo/icon-512.png"

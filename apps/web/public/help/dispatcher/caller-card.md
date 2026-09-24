@@ -1,6 +1,6 @@
 # Caller card and premise notes
 
-The **caller card** (when enabled) shows what Rapid Cortex already knows about the caller or location: hazard flags, premise notes, and prior incident history.
+The **caller card** (when enabled) shows what NexCort iQ already knows about the caller or location: hazard flags, premise notes, and prior incident history.
 
 ## How to use it
 

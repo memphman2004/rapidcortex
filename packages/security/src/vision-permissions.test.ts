@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { defaultPermissionForRole } from "./permissions.js";
 
-describe("Rapid Vision™ RBAC", () => {
+describe("NexiQ Vision™ RBAC", () => {
   it("grants camera view to dispatcher and not hospital staff", () => {
     expect(defaultPermissionForRole("dispatcher", "vision.cameras_view")).toBe(true);
     expect(defaultPermissionForRole("hospitalstaff", "vision.cameras_view")).toBe(false);

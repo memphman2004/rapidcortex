@@ -1,5 +1,5 @@
 /**
- * Rapid Cortex — OSM Campus Map Setup
+ * NexCort iQ — OSM Campus Map Setup
  *
  * Fetches campus buildings from OpenStreetMap (Overpass) and writes GeoJSON.
  * Default is DRY_RUN (print + optional local files). AWS S3/Dynamo writes are

@@ -45,7 +45,7 @@ const SIGNAL_COUNT = 12;
 const MAX_EDGE_RATIO = 0.18;
 
 /**
- * Neural field animation ported from marketing Enter the Cortex (`/enter`).
+ * Neural field animation ported from marketing Enter NexCort (`/enter`).
  * Uses SVG + rAF (lighter than a full canvas port on device).
  */
 export function NeuralField() {

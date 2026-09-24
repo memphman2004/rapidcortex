@@ -33,7 +33,7 @@ export function SupportHelpButton({
   const agency = agencyId ?? user?.agencyId ?? "";
   const agencyLabel =
     agencyName ??
-    (user && isRcInternalOperator(user.role) ? "Rapid Cortex Internal" : agency) ??
+    (user && isRcInternalOperator(user.role) ? "NexCort iQ Internal" : agency) ??
     agency;
 
   if (!role || !id) return null;

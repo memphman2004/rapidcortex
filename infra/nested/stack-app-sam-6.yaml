@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — Rapid Vision™ (AI visual intelligence).
+  NexCort iQ — Rapid Vision™ (AI visual intelligence).
   HTTP routes attach to stack 2 HttpApi. Scheduled AI Writer streams Claude tokens to dispatchers.
 
 Parameters:

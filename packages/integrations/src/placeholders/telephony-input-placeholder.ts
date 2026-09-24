@@ -9,7 +9,7 @@ export type ConnectMediaIngest = {
 };
 
 /**
- * Live telephony ingest for Rapid Cortex is Amazon Connect, not a PSAP SIP/CPE
+ * Live telephony ingest for NexCort iQ is Amazon Connect, not a PSAP SIP/CPE
  * stack. Transcript chunks arrive from Connect (Lex, Contact Lens, or the
  * Call Assist webhook). ANI/ALI are contact attributes — see ani-ali ingest.
  */

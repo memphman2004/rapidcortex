@@ -118,7 +118,7 @@ export function IncidentMap({
       >
         <p className="text-sm font-semibold text-rose-300">Map isn’t configured</p>
         <p className="max-w-sm text-xs leading-relaxed text-slate-500">
-          Map isn’t available in this environment. Contact Rapid Cortex support.
+          Map isn’t available in this environment. Contact NexCort iQ support.
         </p>
         <p className="font-mono text-[11px] text-slate-500">
           {lat.toFixed(5)}, {lng.toFixed(5)}
@@ -218,7 +218,7 @@ export function MapModal({
         <header className="flex items-start justify-between gap-3 border-b border-slate-800 px-4 py-3">
           <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-400/90">
-              Rapid Cortex · Map
+              NexCort iQ · Map
             </p>
             <h2 className="truncate text-sm font-semibold text-white">
               {label ?? "Incident location"}

@@ -39,7 +39,7 @@ export function PilotIntegrationStatusPanel() {
   if (!isApiConfigured()) {
     return (
       <p className="text-sm text-amber-200/90">
-        Platform connection isn’t configured. Contact Rapid Cortex support to load live
+        Platform connection isn’t configured. Contact NexCort iQ support to load live
         integration status.
       </p>
     );

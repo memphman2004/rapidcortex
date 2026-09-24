@@ -7,7 +7,7 @@
 ## 1. Before you sign in
 
 - Use the **URL your IT team gave you** (`…/<slug>/login`). The **slug** is for routing only; **your access** is controlled by Cognito (`custom:agencyId`, `custom:role`).
-- Check the **Connections** strip at the bottom after login: **Rapid Cortex API** should show **live** for pilot (not offline). If it says offline, stop and contact **agency IT** or your supervisor ([SUPPORT_MODEL.md](./SUPPORT_MODEL.md)).
+- Check the **Connections** strip at the bottom after login: **NexCort iQ API** should show **live** for pilot (not offline). If it says offline, stop and contact **agency IT** or your supervisor ([SUPPORT_MODEL.md](./SUPPORT_MODEL.md)).
 
 ## 2. Dashboard (`/<slug>/dashboard`)
 

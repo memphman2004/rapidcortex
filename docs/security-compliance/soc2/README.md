@@ -1,4 +1,4 @@
-# SOC 2 Trust Services Criteria — Rapid Cortex pack
+# SOC 2 Trust Services Criteria — NexCort iQ pack
 
 **Status:** Internal control descriptions, policies, procedures, and evidence templates.  
 **Not a SOC 2 Type I or Type II report.** Do not quote this pack as an attestation.

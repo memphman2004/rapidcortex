@@ -34,7 +34,7 @@ export function consentPage(title: string, body: string, actionsHtml = ""): stri
   </style>
 </head>
 <body>
-  <div class="brand">Rapid Cortex</div>
+  <div class="brand">NexCort iQ</div>
   <div class="card"><p>${body}</p>${actionsHtml}</div>
 </body>
 </html>`;

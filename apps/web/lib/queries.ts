@@ -100,7 +100,7 @@ export async function runAnalysis(incidentId: string): Promise<AIAnalysis> {
   if (!isApiConfigured()) {
     if (!isOfflineDemoDataEnabled()) {
       throw new Error(
-        "Platform connection isn’t configured. Contact Rapid Cortex support. Training mode can still show sample incidents.",
+        "Platform connection isn’t configured. Contact NexCort iQ support. Training mode can still show sample incidents.",
       );
     }
     const existing = mockGetLatestAnalysis(incidentId);

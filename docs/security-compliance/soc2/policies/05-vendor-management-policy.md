@@ -25,8 +25,8 @@ Canonical list: [SUBPROCESSOR_LIST.md](../../SUBPROCESSOR_LIST.md). AWS is the p
 ## 3. Ongoing
 
 - Quarterly review of the list vs deployed secret ARNs (`scripts/soc2-observation-pack.sh` secret **names** only).
-- Vendor incident at a subprocessor → Rapid Cortex IR (POL-07) and customer notice per DPA.
-- CAD vendors are **agency-chosen** integrators; Rapid Cortex does not bid as prime on Charleston C2C RFP 6212-27L.
+- Vendor incident at a subprocessor → NexCort iQ IR (POL-07) and customer notice per DPA.
+- CAD vendors are **agency-chosen** integrators; NexCort iQ does not bid as prime on Charleston C2C RFP 6212-27L.
 
 ## 4. Evidence
 

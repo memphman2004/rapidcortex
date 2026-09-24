@@ -166,6 +166,8 @@ export CAD_BRIDGE_MOCK=true
 export NEXT_PUBLIC_ENABLE_CAD_BRIDGE="${NEXT_PUBLIC_ENABLE_CAD_BRIDGE:-1}"
 export ENABLE_C2C_HUB=true
 export NEXT_PUBLIC_ENABLE_C2C_HUB="${NEXT_PUBLIC_ENABLE_C2C_HUB:-1}"
+export ENABLE_CAD_MESH=true
+export NEXT_PUBLIC_ENABLE_CAD_MESH="${NEXT_PUBLIC_ENABLE_CAD_MESH:-1}"
 # Per-agency CAD API keys and webhook signing secrets (create before enabling a bridge):
 #   rapid-cortex/cad-bridge/{agencyId}/cad-a-api-key
 #   rapid-cortex/cad-bridge/{agencyId}/cad-b-api-key
@@ -210,7 +212,8 @@ export NEXT_PUBLIC_ENABLE_RAPID_IQ="${NEXT_PUBLIC_ENABLE_RAPID_IQ:-1}"
 export ENABLE_RAPID_IQ_PIPELINE=true
 export ENABLE_SALES_AUTOMATION=true
 export NEXT_PUBLIC_ENABLE_SALES_AUTOMATION="${NEXT_PUBLIC_ENABLE_SALES_AUTOMATION:-1}"
-# RC Sales Automation campaign mail via Microsoft Graph (hello@rapidcortex.us).
+# NC Sales Automation campaign mail via Microsoft Graph (hello@nexcortiq.us).
+export OUTLOOK_SALES_MAILBOX="${OUTLOOK_SALES_MAILBOX:-hello@nexcortiq.us}"
 export OUTLOOK_GRAPH_MOCK="${OUTLOOK_GRAPH_MOCK:-false}"
 export OUTLOOK_OAUTH_CLIENT_ID="${OUTLOOK_OAUTH_CLIENT_ID:-6110ccac-58b6-4976-86c9-46339151aa9f}"
 export OUTLOOK_OAUTH_TENANT="${OUTLOOK_OAUTH_TENANT:-0a85f08a-54a8-43de-bdc1-4ad4e52d3af8}"
@@ -232,7 +235,7 @@ export NEXT_PUBLIC_ENABLE_AUTOMATED_INVOICES="${NEXT_PUBLIC_ENABLE_AUTOMATED_INV
 export ENABLE_SUPPORT_FORM=true
 export NEXT_PUBLIC_ENABLE_SUPPORT_FORM="${NEXT_PUBLIC_ENABLE_SUPPORT_FORM:-1}"
 export TICKETS_TABLE="rapid-cortex-support-tickets-staging"
-export SUPPORT_EMAIL="support@rapidcortex.us"
+export SUPPORT_EMAIL="support@nexcortiq.us"
 
 export RAPID_IQ_OPPORTUNITIES_TABLE="rapid-cortex-rapid-iq-opportunities-staging"
 export RAPID_IQ_SIGNALS_TABLE="rapid-cortex-rapid-iq-signals-staging"

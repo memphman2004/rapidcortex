@@ -2,10 +2,10 @@
 
 ## Purpose
 
-Rapid Cortex supports a vendor-neutral CAD adapter framework so agencies can integrate their existing CAD
+NexCort iQ supports a vendor-neutral CAD adapter framework so agencies can integrate their existing CAD
 systems without hardcoding vendor logic into the core application.
 
-Rapid Cortex does **not** replace CAD.
+NexCort iQ does **not** replace CAD.
 
 ## Key design principles
 

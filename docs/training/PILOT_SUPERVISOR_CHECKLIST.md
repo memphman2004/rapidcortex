@@ -45,7 +45,7 @@ Supervisors **monitor and review**; they do not replace dispatch authority or CA
 
 ---
 
-## Escalation to Rapid Cortex
+## Escalation to NexCort iQ
 
 When opening a support thread, include:
 

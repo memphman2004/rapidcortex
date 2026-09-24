@@ -1081,7 +1081,7 @@ function VenueConsoleHomeInner({
                     lineHeight: 1,
                   }}
                 >
-                  RAPID <span style={{ color: C.orange }}>CORTEX</span>
+                  NexCort <span style={{ color: C.orange }}>iQ</span>
                 </div>
                 <div
                   style={{
@@ -1446,7 +1446,7 @@ function VenueConsoleHomeInner({
                   />
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>
-                      Rapid Cortex Network
+                      NexCort iQ Network
                     </div>
                     <div style={{ fontSize: 10, color: C.green }}>All Systems Operational</div>
                   </div>
@@ -2223,7 +2223,7 @@ function VenueConsoleHomeInner({
                         link: "Get Support",
                         color: C.orange,
                         rgb: "249,115,22",
-                        href: "mailto:support@rapidcortex.us",
+                        href: "mailto:support@nexcortiq.us",
                       },
                     ] as const
                   ).map((u) => {

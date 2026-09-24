@@ -5,7 +5,7 @@
 # Add these to env-web-ssr-prod.sh, env-web-pilot-test.sh, and deploy scripts.
 #
 # NAMING NOTE:
-#   Product name is Rapid Vision™ (formerly Rapid Cortex Connect).
+#   Product name is Rapid Vision™ (formerly NexCort iQ Connect).
 #   HTTP routes attach to stack 2 (API_UPSTREAM_BASE_2), not a separate API Gateway.
 # ─────────────────────────────────────────────────────────────────────────────
 

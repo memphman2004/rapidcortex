@@ -391,7 +391,7 @@ export type NeuralBrainHeroNetworkProps = {
   ambientFloat?: boolean;
   readingScrim?: "landing" | "leftCopy";
   variant?: "marketing" | "inset";
-  /** Center mark: Rapid Cortex logo with animated EEG-style waves when true. */
+  /** Center mark: NexCort iQ logo with animated EEG-style waves when true. */
   showCenterLogo?: boolean;
   children?: ReactNode;
 };

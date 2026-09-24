@@ -1,4 +1,4 @@
-# Rapid Cortex — Web deployment runbook (no local Docker)
+# NexCort iQ — Web deployment runbook (no local Docker)
 
 This runbook describes how to ship **`apps/web`** using **AWS CodeBuild** (Docker runs in AWS only), **ECR**, **ECS Fargate**, and **CloudFront**. One-shot automation lives in **`scripts/deploy-web-no-docker.sh`**.
 
@@ -13,7 +13,7 @@ This runbook describes how to ship **`apps/web`** using **AWS CodeBuild** (Docke
 
 ## Prerequisites
 
-From the repo root (`Rapid Cortex/`), verify resources exist (**adjust account/region** if needed):
+From the repo root (`NexCort iQ/`), verify resources exist (**adjust account/region** if needed):
 
 ```bash
 export AWS_REGION="${AWS_REGION:-us-east-1}"
@@ -134,14 +134,14 @@ curl -fsS "${BASE_URL}/api/health/upstream" | jq .
 ```bash
 curl -sI "${BASE_URL}/downloads" | head -n 1
 
-curl -fsS "${BASE_URL}/downloads" | grep -qi "Rapid Cortex Downloads" && echo "downloads HTML OK"
+curl -fsS "${BASE_URL}/downloads" | grep -qi "NexCort iQ Downloads" && echo "downloads HTML OK"
 
 curl -fsS "${BASE_URL}/rc-lite" | grep -qiE 'rc-lite|RC[[:space:]]*Lite' && echo "rc-lite HTML OK"
 
 curl -sI "${BASE_URL}/developers/api" | head -n 1
 ```
 
-**Note**: Grepping for **`RC Lite API`** may fail if the page copy uses **`RC Lite`** only; **`smoke-web.sh`** uses a flexible pattern.
+**Note**: Grepping for **`NC Lite API`** may fail if the page copy uses **`NC Lite`** only; **`smoke-web.sh`** uses a flexible pattern.
 
 ### 3. Reserved first segments (not jurisdiction slugs)
 

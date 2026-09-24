@@ -135,7 +135,7 @@ export function buildAgencyInvoicePrefillLines(
   addOns: PrefillAddOn[] = [],
 ): UiLineItem[] {
   const planPrice = resolveAgencyPlanMonthlyRate(summary);
-  const planLabel = summary.plan?.trim() || "RC CORE";
+  const planLabel = summary.plan?.trim() || "911 CENTERS/PSAPS";
   const lines: UiLineItem[] = [
     {
       id: "plan-monthly",

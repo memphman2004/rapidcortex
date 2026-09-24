@@ -24,6 +24,7 @@ import {
 } from "../../lib/response.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { env } from "../../lib/env.js";
+import { LocationNotConfiguredError } from "../../location/client.js";
 import { geocodeAddress, reverseGeocode } from "../../location/geocoding.js";
 import {
   EducationPlacesUnavailableError,
@@ -219,6 +220,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     return withCorrelationHeaders(event, notFound());
   } catch (err) {
+    if (err instanceof LocationNotConfiguredError) {
+      return withCorrelationHeaders(event, serviceUnavailable(err.message));
+    }
     const status = (err as { statusCode?: number }).statusCode;
     if (status === 403) return withCorrelationHeaders(event, forbidden());
     return withCorrelationHeaders(event, serverError());

@@ -110,7 +110,7 @@ export function CadEntryWorkspace({ incidentId }: { incidentId: string | null })
       });
     },
     onSuccess: async () => {
-      setToast({ tone: "ok", text: "Saved to Rapid Cortex." });
+      setToast({ tone: "ok", text: "Saved to NexCort iQ." });
       await qc.invalidateQueries({ queryKey: ["incident", incidentId] });
     },
     onError: (e: Error) => setToast({ tone: "err", text: e.message }),
@@ -386,7 +386,7 @@ export function CadEntryWorkspace({ incidentId }: { incidentId: string | null })
               {incident.cadDuplicateOfCadNumber ? (
                 <p className="mt-2 text-amber-200">
                   Duplicate of CAD #{incident.cadDuplicateOfCadNumber}
-                  <span className="ml-1 text-slate-500">(CAD-owned — Rapid Cortex does not close CFS)</span>
+                  <span className="ml-1 text-slate-500">(CAD-owned — NexCort iQ does not close CFS)</span>
                 </p>
               ) : null}
               {(incident.cadRelatedCadNumbers ?? []).length > 0 ? (
@@ -397,7 +397,7 @@ export function CadEntryWorkspace({ incidentId }: { incidentId: string | null })
               ) : null}
               {(incident.cadLinkedIncidentIds ?? []).length > 0 ? (
                 <p className="mt-1">
-                  Linked Rapid Cortex incidents:{" "}
+                  Linked NexCort iQ incidents:{" "}
                   {(incident.cadLinkedIncidentIds ?? []).map((id) => (
                     <Link key={id} href={to(`/incidents/${encodeURIComponent(id)}`)} className="mr-2 font-mono text-sky-400 hover:text-sky-300">
                       {id}

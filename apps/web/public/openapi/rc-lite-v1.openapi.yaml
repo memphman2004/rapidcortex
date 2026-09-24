@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
-  title: Rapid Cortex RC Lite API
+  title: NexCort iQ RC Lite API
   version: "1.1.0"
   description: |
     Secure public-safety intelligence APIs for CAD vendors, dispatch platforms,
-    emergency systems, and OEM cohorts integrating Rapid Cortex without the full dashboards.
+    emergency systems, and OEM cohorts integrating NexCort iQ without the full dashboards.
     Sandbox keys cannot promote production CAD export until contract uplift.
 servers:
   - url: https://{host}/api/v1

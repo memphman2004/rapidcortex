@@ -40,7 +40,7 @@ export function AdminAddUserRunbook() {
         form does not send an automated welcome email yet. Until that is enabled,{" "}
         <span className="text-amber-50">you must deliver</span> the temporary password and sign-in link through your
         agency&apos;s approved secure channel (treat steps 7–8 as your runbook for that handoff). Use subject line
-        such as <span className="font-mono text-amber-200/90">Your Rapid Cortex account is ready</span> if your
+        such as <span className="font-mono text-amber-200/90">Your NexCort iQ account is ready</span> if your
         process uses email.
       </p>
 

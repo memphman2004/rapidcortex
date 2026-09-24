@@ -348,7 +348,7 @@ async function main() {
     // ADD-ONS — CAD Integration
     // -------------------------------------------------------------------------
     addon("addon-cad-module", "CAD Integration Module", "CAD Integration",
-      "Bidirectional CAD data feed: receive incident data from your CAD and surface it in Rapid Cortex.",
+      "Bidirectional CAD data feed: receive incident data from your CAD and surface it in NexCort iQ.",
       30_000, null, null, "fixed", "monthly", "agency/month", 200, now,
       ["cad"], "Requires CAD vendor API access. Setup included."),
     addon("addon-cad-writeback", "CAD Write-Back", "CAD Integration",
@@ -448,7 +448,7 @@ async function main() {
       "Extended analytics: rolling SLA reports, call volume trends, and CSV/JSON exports.",
       8_000, null, null, "fixed", "monthly", "agency/month", 263, now, ["analytics"]),
     addon("addon-ops-desktop", "Desktop App Distribution", "Reliability & Tech Ops",
-      "Signed macOS and Windows desktop app with auto-update (Rapid Cortex Desktop).",
+      "Signed macOS and Windows desktop app with auto-update (NexCort iQ Desktop).",
       5_000, null, null, "fixed", "monthly", "agency/month", 264, now, ["desktop"]),
 
     // -------------------------------------------------------------------------
@@ -473,7 +473,7 @@ async function main() {
       null, 500_000, 2_000_000, "range", "one_time", "engagement", false, 320, now,
       "Scoped after technical discovery call. Fixed-fee contract issued after scoping."),
     professional("ps-data-migration", "Historical Data Migration", "Implementation",
-      "Migration of historical call data and incident records into Rapid Cortex.",
+      "Migration of historical call data and incident records into NexCort iQ.",
       null, 200_000, 600_000, "range", "one_time", "engagement", false, 321, now),
 
     // -------------------------------------------------------------------------

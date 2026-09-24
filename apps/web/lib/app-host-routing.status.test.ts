@@ -31,7 +31,7 @@ describe("app-host-routing — public status", () => {
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/call-assist/report/tok"))).toBeNull();
   });
 
-  it("keeps RC Translate officer deep links on the app host", () => {
+  it("keeps Translate officer deep links on the app host", () => {
     expect(isMarketingPublicPath("/translate/xlat_abc")).toBe(false);
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/translate/xlat_abc"))).toBeNull();
   });

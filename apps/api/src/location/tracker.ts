@@ -4,7 +4,7 @@ import {
 } from "@aws-sdk/client-location";
 import { alsAgencyPrefix, alsScopedId, type AlsDevicePosition } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
-import { alsLocationMockEnabled, getLocationClient } from "./client.js";
+import { getLocationClient, LocationNotConfiguredError } from "./client.js";
 
 export async function updateDevicePosition(
   agencyId: string,
@@ -13,8 +13,8 @@ export async function updateDevicePosition(
   latitude: number,
 ): Promise<{ deviceId: string; mocked: boolean }> {
   const deviceId = alsScopedId(agencyId, userId);
-  if (alsLocationMockEnabled() || !env.alsTrackerName) {
-    return { deviceId, mocked: true };
+  if (!env.alsTrackerName) {
+    throw new LocationNotConfiguredError("tracker");
   }
   await getLocationClient().send(
     new BatchUpdateDevicePositionCommand({
@@ -33,7 +33,7 @@ export async function updateDevicePosition(
 
 export async function getAgencyDevicePositions(agencyId: string): Promise<AlsDevicePosition[]> {
   const prefix = alsAgencyPrefix(agencyId);
-  if (alsLocationMockEnabled() || !env.alsTrackerName) {
+  if (!env.alsTrackerName) {
     return [];
   }
   const resp = await getLocationClient().send(

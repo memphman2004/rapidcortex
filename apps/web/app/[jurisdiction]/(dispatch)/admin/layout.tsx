@@ -6,6 +6,7 @@ import { WellnessNavBadge } from "@/components/admin/wellness-nav-badge";
 import { useSession } from "@/components/auth/session-context";
 import { SidebarHomeButton } from "@/components/ui/sidebar-home-button";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
+import { resolvePsapRole } from "@/lib/dashboards/psap-role-nav";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import { RC_PLATFORM_COMMAND_PATHS } from "@/lib/platform-command-nav";
 import {
@@ -18,6 +19,13 @@ import {
   isSopProtocolEnabled,
   isScenarioCenterUiEnabled,
 } from "@/lib/runtime-flags";
+
+/** Paths dispatchers may open under /admin (middleware allowlist). Not full agency admin. */
+const DISPATCHER_CAD_INTEROP_TABS = new Set([
+  "/admin/cad/bridge",
+  "/admin/cad/c2c",
+  "/admin/cad/mesh",
+]);
 
 const tabs = [
   { path: "/admin", label: "Overview" },
@@ -54,8 +62,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const to = useJurisdictionLink();
   const { user } = useSession();
+  const dispatcherCadInteropOnly = resolvePsapRole(user?.role) === "dispatcher";
 
   const visibleTabs = tabs.filter((t) => {
+    if (dispatcherCadInteropOnly && !DISPATCHER_CAD_INTEROP_TABS.has(t.path)) {
+      return false;
+    }
     if ("rolesOnly" in t) {
       if (!isDeceptionShieldUiEnabled()) return false;
       const r = user?.role ?? "";

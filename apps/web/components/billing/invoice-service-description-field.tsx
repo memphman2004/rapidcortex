@@ -17,7 +17,7 @@ const CATEGORY_LABEL: Record<ServiceCategory, string> = {
   addon: "Add-ons",
   professional: "Professional services",
   support: "Support",
-  rc_lite: "RC Lite",
+  rc_lite: "NexCort Lite",
   vertical: "Verticals",
 };
 

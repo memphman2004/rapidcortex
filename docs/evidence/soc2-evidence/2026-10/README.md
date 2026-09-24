@@ -11,7 +11,7 @@ Auditor role: `arn:aws:iam::158961537080:role/rapid-cortex-soc2-auditor`
 |---|---|---|
 | CloudTrail + log validation | **PASS** — `rapid-cortex-cloudtrail-prod`, `IsLogging=true`, `LogFileValidationEnabled=true`, multi-Region, S3 data events on all `rapid-cortex-*` buckets + all Lambda | `cloudtrail-status.json`, `cloudtrail-describe.json`, `cloudtrail-event-selectors.json` |
 | S3 encryption + BPA | **PASS** (prior snapshot) | re-run `soc2-technical-controls-snapshot.sh` |
-| DynamoDB PITR | **PASS** — 182/182 Rapid Cortex/Ring tables ENABLED | `dynamodb-pitr-post-fix.tsv` |
+| DynamoDB PITR | **PASS** — 182/182 NexCort iQ/Ring tables ENABLED | `dynamodb-pitr-post-fix.tsv` |
 | KMS CMK rotation | **ACCEPT** — no customer-managed keys; AWS-managed `alias/aws/*` only (rotate by AWS) | snapshot KMS aliases |
 | Secrets Manager rotation | **ACCEPT** — no auto-rotation; SOP below | `secrets-inventory.json`, `secrets-rotation-sop.md` |
 | WAF logging | **PASS** on API CloudFront edge + web CDN. HTTP API is not a REST API — do not `associate-web-acl` on `restapis/` | `waf-logging-config.json` |
@@ -31,7 +31,7 @@ Policy/process pack: [docs/security-compliance/soc2/README.md](../../../security
 
 ## Scope
 
-Shared account carve-out: `Business Documents/Compliance/Rapid Cortex Compliance/01 - Governance/SYSTEM-BOUNDARY.md`
+Shared account carve-out: `Business Documents/Compliance/NexCort iQ Compliance/01 - Governance/SYSTEM-BOUNDARY.md`
 
 Re-run full snapshot:
 

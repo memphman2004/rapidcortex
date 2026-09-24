@@ -130,7 +130,7 @@ public static class CognitoPkceAuth
         var errDesc = request.QueryString["error_description"];
 
         const string html = "<!DOCTYPE html><html><head><meta charset=\"utf-8\"/><title>Signed in</title></head>"
-            + "<body><p>You can return to Rapid Cortex Desktop.</p></body></html>";
+            + "<body><p>You can return to NexCort iQ Desktop.</p></body></html>";
         var body = Encoding.UTF8.GetBytes(html);
         context.Response.StatusCode = 200;
         context.Response.ContentType = "text/html; charset=utf-8";

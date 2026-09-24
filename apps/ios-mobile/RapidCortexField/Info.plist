@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Rapid Cortex Mobile</string>
+	<string>NexCort iQ Mobile</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -29,9 +29,9 @@
 	<key>UIRequiresFullScreen</key>
 	<true/>
 	<key>NFCReaderUsageDescription</key>
-	<string>Rapid Cortex Mobile uses NFC to program location reporting tags and Rapid Cortex site signs.</string>
+	<string>NexCort iQ Mobile uses NFC to program location reporting tags and NexCort iQ site signs.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Rapid Cortex Mobile saves QR code images to your photo library when you choose Save.</string>
+	<string>NexCort iQ Mobile saves QR code images to your photo library when you choose Save.</string>
 	<key>RC_API_BASE_URL</key>
 	<string>https://api.rapidcortex.us</string>
 	<key>RC_TEST_AGENCY_ID</key>

@@ -1,10 +1,10 @@
 # CAD entry and submission
 
-Rapid Cortex can prepare a CAD payload. **CAD write-back is off by default.** Many agencies copy into CAD by hand even when the form is visible.
+NexCort iQ can prepare a CAD payload. **CAD write-back is off by default.** Many agencies copy into CAD by hand even when the form is visible.
 
 ## If write-back is off
 
-Use the CAD fields as a checklist. Enter the incident in your CAD the way you do today. Rapid Cortex does not replace CAD.
+Use the CAD fields as a checklist. Enter the incident in your CAD the way you do today. NexCort iQ does not replace CAD.
 
 ## If write-back is on for your agency
 

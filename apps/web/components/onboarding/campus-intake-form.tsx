@@ -240,7 +240,7 @@ export function CampusIntakeForm({ orgCode, agencyId }: Props) {
                 options={[
                   { value: "facilities", label: "Facilities" },
                   { value: "vendor", label: "Vendor" },
-                  { value: "rc", label: "Rapid Cortex" },
+                  { value: "rc", label: "NexCort iQ" },
                 ]}
               />
             </Field>

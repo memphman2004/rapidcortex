@@ -106,10 +106,10 @@ export default function TermsOfUsePage() {
       </section>
 
       <section id="sms" className="space-y-3">
-        <h2 className="text-base font-semibold text-white">Rapid Cortex SMS messaging program</h2>
+        <h2 className="text-base font-semibold text-white">NexCort iQ SMS messaging program</h2>
         <p>
-          <strong className="font-medium text-slate-200">Program name:</strong> Rapid Cortex SMS
-          (including Rapid Vision™), operated by {SITE_OPERATOR_NAME} LLC d/b/a {SITE_NAME} (
+          <strong className="font-medium text-slate-200">Program name:</strong> NexCort iQ SMS
+          (including NexiQ Vision™), operated by {SITE_OPERATOR_NAME} LLC d/b/a {SITE_NAME} (
           <a href="https://www.rapidcortex.us">https://www.rapidcortex.us</a>).
         </p>
         <p>
@@ -143,7 +143,7 @@ export default function TermsOfUsePage() {
         </p>
         <p>
           <strong className="font-medium text-slate-200">Support contact:</strong>{" "}
-          <a href="mailto:support@rapidcortex.us?subject=SMS%20program%20help">support@rapidcortex.us</a>.
+          <a href="mailto:support@nexcortiq.us?subject=SMS%20program%20help">support@nexcortiq.us</a>.
         </p>
       </section>
 
@@ -154,7 +154,7 @@ export default function TermsOfUsePage() {
             {SITE_OPERATOR_NAME}
           </a>{" "}
           supports site operations. Product and contracting questions should follow the channel in your
-          order documentation. For SMS program support, use the contacts listed under Rapid Cortex SMS
+          order documentation. For SMS program support, use the contacts listed under NexCort iQ SMS
           messaging program above.
         </p>
       </section>

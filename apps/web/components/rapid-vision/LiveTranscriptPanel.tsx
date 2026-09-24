@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Live scene-audio transcript for a Rapid Vision™ session.
+ * Live scene-audio transcript for a NexiQ Vision™ session.
  *
  * Tokens from IncidentCameraPanel / KVSWebRTCPlayer:
  *   surface #100e1a  border #1e1a30  text #e4dff5  muted #7c6fa0

@@ -20,24 +20,24 @@ describe("sessionPassesProductGateForPath", () => {
     isSubscriber: true,
   });
 
-  it("denies RC Lite subscriber from dispatcher operational route", () => {
+  it("denies NexCort Lite subscriber from dispatcher operational route", () => {
     expect(sessionPassesProductGateForPath(rcLite, "/dispatcher/dashboard")).toBe(false);
   });
 
-  it("denies RC Lite subscriber from agency-admin route", () => {
+  it("denies NexCort Lite subscriber from agency-admin route", () => {
     expect(sessionPassesProductGateForPath(rcLite, "/agency-admin/billing")).toBe(false);
   });
 
-  it("denies RC Lite subscriber from supervisor operational route", () => {
+  it("denies NexCort Lite subscriber from supervisor operational route", () => {
     expect(sessionPassesProductGateForPath(rcLite, "/supervisor/performance")).toBe(false);
   });
 
-  it("allows RC Lite subscriber into RC Lite portal subtree", () => {
+  it("allows NexCort Lite subscriber into NexCort Lite portal subtree", () => {
     expect(sessionPassesProductGateForPath(rcLite, "/rc-lite/portal")).toBe(true);
     expect(sessionPassesProductGateForPath(rcLite, "/rc-lite/portal/api-clients")).toBe(true);
   });
 
-  it("allows Rapid Cortex platform subscriber into dispatcher prefix", () => {
+  it("allows NexCort iQ platform subscriber into dispatcher prefix", () => {
     const platform = u({ planId: "essential", isSubscriber: true, role: "dispatcher" });
     expect(sessionPassesProductGateForPath(platform, "/dispatcher/workspace")).toBe(true);
   });

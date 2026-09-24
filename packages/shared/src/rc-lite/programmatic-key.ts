@@ -1,4 +1,4 @@
-/** Stored API key rows for RC Lite programmatic access (`rclite_*` secrets, DynamoDB hashed). */
+/** Stored API key rows for NexCort Lite programmatic access (`rclite_*` secrets, DynamoDB hashed). */
 
 export type RcLiteKeyTier = "dev" | "small" | "medium" | "large" | "enterprise";
 export type RcLiteKeyEnv = "live" | "test";

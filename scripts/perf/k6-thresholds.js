@@ -1,5 +1,5 @@
 /**
- * k6 threshold sets for Rapid Cortex load profiles.
+ * k6 threshold sets for NexCort iQ load profiles.
  *
  * Smoke is a connectivity gate (cold Lambda starts are expected).
  * Load+ profiles apply MSA Exhibit C §C.5.1 latency targets.

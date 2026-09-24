@@ -1,5 +1,5 @@
 /**
- * Canonical Rapid Cortex RBAC values (JWT `custom:role`, Dynamo user records, audits).
+ * Canonical NexCort iQ RBAC values (JWT `custom:role`, Dynamo user records, audits).
  *
  * Nine official roles — platform (`rc*`) and agency-scoped. Legacy Cognito values
  * normalize via {@link migrateLegacyRapidCortexRoleTokenValue} at token parse only.
@@ -105,8 +105,8 @@ export type AgencyAssignableRole = (typeof AGENCY_ASSIGNABLE_ROLES)[number];
 /** Human-readable labels — UI displays */
 export const ROLE_LABELS: Record<string, string> = {
   rcsuperadmin: "Platform Owner",
-  rcadmin: "RC Operations",
-  rcitadmin: "RC IT Admin",
+  rcadmin: "NexCort Operations",
+  rcitadmin: "NexCort IT Admin",
   agencyadmin: "Agency Admin",
   agencyit: "Agency IT",
   supervisor: "Supervisor",
@@ -137,7 +137,7 @@ export const ROLE_LABELS: Record<string, string> = {
   call_assist_supervisor: "Call Assist Supervisor",
   call_assist_operator: "Call Assist Operator",
   platform_superadmin: "Platform Owner",
-  rc_admin: "RC Operations",
+  rc_admin: "NexCort Operations",
   admin: "Agency Admin",
   it_admin: "Agency IT",
   readonly_auditor: "Auditor",
@@ -147,11 +147,11 @@ export const ROLE_LABELS: Record<string, string> = {
 /** Single-line descriptions — user management UI tooltips */
 export const ROLE_DESCRIPTIONS: Record<string, string> = {
   rcsuperadmin:
-    "Rapid Cortex platform owner. Unrestricted cross-tenant access to all features, agencies, and financial data.",
+    "NexCort iQ platform owner. Unrestricted cross-tenant access to all features, agencies, and financial data.",
   rcadmin:
-    "Rapid Cortex operations staff. Cross-tenant visibility for support. No financial revenue totals or destructive actions.",
+    "NexCort iQ operations staff. Cross-tenant visibility for support. No financial revenue totals or destructive actions.",
   rcitadmin:
-    "Rapid Cortex IT team. Infrastructure diagnostics, platform health, and technical integration management.",
+    "NexCort iQ IT team. Infrastructure diagnostics, platform health, and technical integration management.",
   agencyadmin:
     "Communications center manager. Full agency configuration, user management, billing, QA, and compliance.",
   agencyit:

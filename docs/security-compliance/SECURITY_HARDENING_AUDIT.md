@@ -1,4 +1,4 @@
-# Security hardening audit (Rapid Cortex)
+# Security hardening audit (NexCort iQ)
 
 **Scope:** Web app (`apps/web`), API Lambdas (`apps/api`), shared packages, SAM template (`infra/template.yaml`).  
 **Posture:** CJIS-aligned and SOC 2–ready **controls** — not certifications. This document describes production hardening and breach-risk reduction, not a guarantee of compliance.

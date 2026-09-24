@@ -1,6 +1,6 @@
 # When to call 911 (Transit)
 
-Rapid Cortex Transit is **not** a 911 PSAP console and **not** transit CAD write-back.
+NexCort iQ Transit is **not** a 911 PSAP console and **not** transit CAD write-back.
 
 ## Call 911 immediately when
 
@@ -11,7 +11,7 @@ Rapid Cortex Transit is **not** a 911 PSAP console and **not** transit CAD write
 
 Then update the transit incident. Supervisors can flag **911 escalate** for audit. That flag **does not** write to CAD.
 
-## Use Rapid Cortex Transit for
+## Use NexCort iQ Transit for
 
 - Fleet and route awareness
 - On-system incident records

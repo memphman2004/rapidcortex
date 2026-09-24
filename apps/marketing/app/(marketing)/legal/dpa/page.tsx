@@ -3,20 +3,20 @@ import { absoluteUrl, buildOgShareImage } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "DPA | Rapid Cortex",
-    description: "Data Processing Addendum summary for Rapid Cortex customer and partner engagements.",
+    title: "DPA | NexCort iQ",
+    description: "Data Processing Addendum summary for NexCort iQ customer and partner engagements.",
     keywords: ["data processing addendum", "DPA", "rapid cortex compliance", "public safety data processing"],
     openGraph: {
-      title: "DPA | Rapid Cortex",
-      description: "Data processing terms and controls summary for Rapid Cortex engagements.",
+      title: "DPA | NexCort iQ",
+      description: "Data processing terms and controls summary for NexCort iQ engagements.",
       url: absoluteUrl("/legal/dpa"),
-      siteName: "Rapid Cortex",
-      images: [buildOgShareImage("Rapid Cortex DPA")],
+      siteName: "NexCort iQ",
+      images: [buildOgShareImage("NexCort iQ DPA")],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: "DPA | Rapid Cortex",
+      title: "DPA | NexCort iQ",
       description: "Data processing addendum summary.",
       images: [{ url: buildOgShareImage().url, alt: buildOgShareImage().alt }],
     },
@@ -30,7 +30,7 @@ export default function LegalDpaPage() {
       <header className="space-y-4">
         <h1 className="text-3xl font-semibold text-white sm:text-4xl">Data Processing Addendum (DPA)</h1>
         <p className="text-sm text-slate-300">
-          Rapid Cortex can provide a contractual DPA for customer and partner engagements that defines data roles,
+          NexCort iQ can provide a contractual DPA for customer and partner engagements that defines data roles,
           processing purposes, and control responsibilities.
         </p>
       </header>

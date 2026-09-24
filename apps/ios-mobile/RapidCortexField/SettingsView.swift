@@ -97,7 +97,7 @@ struct SettingsView: View {
                                 SiteQrNfcView()
                             } label: {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Label("Rapid Cortex site QR & NFC", systemImage: "globe")
+                                    Label("NexCort iQ site QR & NFC", systemImage: "globe")
                                         .foregroundColor(RCTheme.textPrimary)
                                     Text("www.rapidcortex.us — booth and marketing signs")
                                         .font(.system(size: 11))
@@ -123,7 +123,7 @@ struct SettingsView: View {
 
                     Section {
                         Button {
-                            if let url = URL(string: "mailto:support@rapidcortex.us") {
+                            if let url = URL(string: "mailto:support@nexcortiq.us") {
                                 UIApplication.shared.open(url)
                             }
                         } label: {
@@ -160,7 +160,7 @@ struct SettingsView: View {
                 .scrollContentBackground(.hidden)
             }
             .navigationTitle("Settings")
-            .confirmationDialog("Sign out of Rapid Cortex Mobile?", isPresented: $confirmSignOut, titleVisibility: .visible) {
+            .confirmationDialog("Sign out of NexCort iQ Mobile?", isPresented: $confirmSignOut, titleVisibility: .visible) {
                 Button("Sign Out", role: .destructive) { auth.signOut() }
                 Button("Cancel", role: .cancel) {}
             }
@@ -274,7 +274,7 @@ struct RequestAccessView: View {
                         Text("Scoped to your agency")
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(RCTheme.textPrimary)
-                        Text("Any access added applies to your agency only. Rapid Cortex will verify and activate it.")
+                        Text("Any access added applies to your agency only. NexCort iQ will verify and activate it.")
                             .font(.system(size: 11))
                             .foregroundColor(RCTheme.textMuted)
                             .fixedSize(horizontal: false, vertical: true)
@@ -380,7 +380,7 @@ struct RequestAccessView: View {
                 .font(.system(size: 20, weight: .bold))
                 .foregroundColor(RCTheme.textPrimary)
             if let tool = selectedTool {
-                Text("Your request for \(tool.name) has been sent to Rapid Cortex. They’ll verify with your agency and activate access after review.")
+                Text("Your request for \(tool.name) has been sent to NexCort iQ. They’ll verify with your agency and activate access after review.")
                     .font(.system(size: 13))
                     .foregroundColor(RCTheme.textMuted)
                     .multilineTextAlignment(.center)

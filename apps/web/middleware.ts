@@ -312,7 +312,7 @@ function ensureRoleDashboardPath(
   return null;
 }
 
-/** Jurisdiction-path segments that imply the Rapid Cortex web dashboards (subscriber + entitlement gated). */
+/** Jurisdiction-path segments that imply the NexCort iQ web dashboards (subscriber + entitlement gated). */
 function jurisdictionSubpathRequiresDashboardEntitlement(subpath: string): boolean {
   const prefixes = [
     "/dashboard",
@@ -1248,6 +1248,6 @@ async function runMiddleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Run for `/docs/*.html` so manuals can require auth; still skip most static file extensions.
-    "/((?!_next/static|_next/image|favicon.ico|api/health|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/health|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|md)$).*)",
   ],
 };

@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Rapid Cortex — AWS-Native Security Hardening Stack
+  NexCort iQ — AWS-Native Security Hardening Stack
   Adds VPN/proxy blocking, geo-restriction, bot control, threat detection,
   and enhanced audit logging to existing CloudFront + API WAF ACLs.
 
@@ -106,7 +106,7 @@ Resources:
     Properties:
       Name: !Sub "${AppName}-cdn-security-${DeploymentStage}"
       Scope: CLOUDFRONT
-      Description: "Rapid Cortex CDN security: VPN block, geo-restrict, bot control, rate limit"
+      Description: "NexCort iQ CDN security: VPN block, geo-restrict, bot control, rate limit"
       DefaultAction:
         Allow: {}
       VisibilityConfig:
@@ -130,7 +130,7 @@ Resources:
             MetricName: !Sub "${AppName}AllowedAgencyIPs"
 
         # ── Priority 1: Geo-restrict to US + Canada ──────────────────────────
-        # Rapid Cortex serves North American public safety agencies only.
+        # NexCort iQ serves North American public safety agencies only.
         - Name: GeoRestrictToNorthAmerica
           Priority: 1
           Action:
@@ -268,7 +268,7 @@ Resources:
     Properties:
       Name: !Sub "${AppName}-api-security-${DeploymentStage}"
       Scope: REGIONAL
-      Description: "Rapid Cortex API security: VPN block, geo-restrict, SQL/XSS, rate limit"
+      Description: "NexCort iQ API security: VPN block, geo-restrict, SQL/XSS, rate limit"
       DefaultAction:
         Allow: {}
       VisibilityConfig:
@@ -664,7 +664,7 @@ Resources:
               accountId: "$.account"
               time: "$.time"
             InputTemplate: |
-              "RAPID CORTEX SECURITY ALERT"
+              "NEXCORT IQ SECURITY ALERT"
               "Time: <time>"
               "Account: <accountId> | Region: <region>"
               "Finding Type: <type>"

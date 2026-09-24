@@ -199,7 +199,7 @@ export class LiveVideoService {
     if (!base) throw new Error("MISSING_PUBLIC_BASE_URL");
     const callerUrl = `${base}/media/live/${encodeURIComponent(callerToken)}`;
 
-    const smsText = `Rapid Cortex: A dispatcher requested a secure live video link for your active incident. Joining is optional. Open: ${callerUrl}`;
+    const smsText = `NexCort iQ: A dispatcher requested a secure live video link for your active incident. Joining is optional. Open: ${callerUrl}`;
     const smsResult = await sendIncidentMediaLinkSms(
       await buildSmsFactoryEnvForAgency(incident.agencyId),
       {

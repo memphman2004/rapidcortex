@@ -1,6 +1,6 @@
 # Sharing an incident
 
-Cross-agency **incident shares** expose a controlled view of an incident to another Rapid Cortex agency when your policy allows it.
+Cross-agency **incident shares** expose a controlled view of an incident to another NexCort iQ agency when your policy allows it.
 
 ## Before you share
 

@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — NENA EIDO C2C hub with 8 CAD slots (CAD_A–H). Real HTTPS
+  NexCort iQ — NENA EIDO C2C hub with 8 CAD slots (CAD_A–H). Real HTTPS
   adapters and HMAC webhooks are live; a slot stays dark until its Secrets
   Manager JSON has baseUrl + credentials. Per-slot enabled / inbound / outbound
   toggles. Live partner CAD writes remain fail-closed (CAD_WRITEBACK_ENABLED=false).
@@ -81,7 +81,7 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      Description: !Sub "Rapid Cortex C2C EIDO payload key (${DeploymentStage})"
+      Description: !Sub "NexCort iQ C2C EIDO payload key (${DeploymentStage})"
       EnableKeyRotation: true
       KeyPolicy:
         Version: "2012-10-17"

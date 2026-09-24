@@ -40,7 +40,7 @@ export function EscalationViewerClient({
         ) : null}
 
         <header className="space-y-1">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Rapid Cortex Escalation</p>
+          <p className="text-xs uppercase tracking-wide text-slate-500">NexCort iQ Escalation</p>
           <h1 className="text-2xl font-semibold">{escalation.incidentType}</h1>
           <EscalationStatusBadge status={escalation.status} />
         </header>
@@ -103,7 +103,7 @@ export function EscalationViewerClient({
         </div>
 
         <footer className="text-center text-[10px] text-slate-600 print:block">
-          Rapid Cortex escalation record {escalation.escalationId}
+          NexCort iQ escalation record {escalation.escalationId}
         </footer>
       </div>
     </div>

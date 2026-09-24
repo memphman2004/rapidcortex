@@ -81,7 +81,7 @@ describe("resolvePostLoginNavigationHrefAfterPasswordChange", () => {
 });
 
 describe("resolvePostAuthenticationHomeHref", () => {
-  it("sends rcsuperadmin to RC Admin dashboard", () => {
+  it("sends rcsuperadmin to NexCort Admin dashboard", () => {
     const user: UserContext = {
       userId: "u-sa",
       agencyId: "__platform__",

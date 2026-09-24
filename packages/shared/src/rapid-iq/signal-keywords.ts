@@ -1,6 +1,6 @@
 /**
- * Shared Rapid IQ keyword library, procurement-stage classification, and fit scoring.
- * Used by pipeline ingest Lambdas and the Rapid IQ UI (stage badges / filters).
+ * Shared NexiQ IQ keyword library, procurement-stage classification, and fit scoring.
+ * Used by pipeline ingest Lambdas and the NexiQ IQ UI (stage badges / filters).
  */
 
 export const KEYWORDS = {

@@ -105,6 +105,8 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_CAD_CONNECTOR: process.env.NEXT_PUBLIC_ENABLE_CAD_CONNECTOR,
   NEXT_PUBLIC_ENABLE_CAD_BRIDGE: process.env.NEXT_PUBLIC_ENABLE_CAD_BRIDGE,
   NEXT_PUBLIC_ENABLE_C2C_HUB: process.env.NEXT_PUBLIC_ENABLE_C2C_HUB,
+  NEXT_PUBLIC_ENABLE_CAD_MESH: process.env.NEXT_PUBLIC_ENABLE_CAD_MESH,
+  NEXT_PUBLIC_ENABLE_FEATURES_SUITE: process.env.NEXT_PUBLIC_ENABLE_FEATURES_SUITE,
   NEXT_PUBLIC_ENABLE_CONTACTS_MODULE: process.env.NEXT_PUBLIC_ENABLE_CONTACTS_MODULE,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
 };
@@ -220,7 +222,7 @@ export function isCallAssistGreetingConfigEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CALL_ASSIST_GREETING_CONFIG");
 }
 
-/** RC Translate — field / venue / campus / clinical voice translation. Default on when unset. */
+/** Translate — field / venue / campus / clinical voice translation. Default on when unset. */
 export function isRcTranslateEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RC_TRANSLATE");
 }
@@ -237,22 +239,22 @@ export function isRcTranslateHospitalEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL");
 }
 
-/** Rapid Vision™ — AI visual intelligence. Default on when unset. */
+/** NexiQ Vision™ — AI visual intelligence. Default on when unset. */
 export function isRapidVisionEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION");
 }
 
 /**
- * Rapid Vision™ — Google Nest camera source.
+ * NexiQ Vision™ — Google Nest camera source.
  *
- * Guards any Rapid Vision UI surface that draws from a Nest WebRTC stream
+ * Guards any NexiQ Vision UI surface that draws from a Nest WebRTC stream
  * (dispatcher camera panel, incident media viewer, AI writer frame capture).
  *
- * Requires both the top-level Rapid Vision gate and the Nest Connect gate to
+ * Requires both the top-level NexiQ Vision gate and the Nest Connect gate to
  * be live — disabling either silently disables this sub-flag so no surface
  * ever shows a Nest stream without a valid SDM token.
  *
- * Defaults **on** when unset, matching the pattern of all other Rapid Vision
+ * Defaults **on** when unset, matching the pattern of all other NexiQ Vision
  * sub-flags.
  *
  * Env: NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST
@@ -265,7 +267,7 @@ export function isRapidVisionNestEnabled(): boolean {
   );
 }
 
-/** Rapid Vision™ — Wyze camera source. Requires Vision + Wyze Connect. Default on when unset. */
+/** NexiQ Vision™ — Wyze camera source. Requires Vision + Wyze Connect. Default on when unset. */
 export function isRapidVisionWyzeEnabled(): boolean {
   return (
     isRapidVisionEnabled() &&
@@ -292,8 +294,8 @@ export function isRapidVisionTranscriptEnabled(): boolean {
 }
 
 /**
- * Rapid Vision™ AI Scene Intelligence — proactive camera alerts on the dispatcher board.
- * Spec flag `NEXT_PUBLIC_ENABLE_VISION_AI`. Nested under Rapid Vision. Default on when unset.
+ * NexiQ Vision™ AI Scene Intelligence — proactive camera alerts on the dispatcher board.
+ * Spec flag `NEXT_PUBLIC_ENABLE_VISION_AI`. Nested under NexiQ Vision. Default on when unset.
  */
 export function isRapidVisionSceneIntelEnabled(): boolean {
   return isRapidVisionEnabled() && envFlag("NEXT_PUBLIC_ENABLE_VISION_AI");
@@ -398,7 +400,7 @@ export function isCadAdminUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CAD_ADMIN");
 }
 
-/** Agency CAD nature-code → Rapid Cortex type/SOP mapping editor. Default on when unset. */
+/** Agency CAD nature-code → NexCort iQ type/SOP mapping editor. Default on when unset. */
 export function isCadNatureMappingUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CAD_NATURE_MAPPING");
 }
@@ -431,6 +433,16 @@ export function isCadBridgeUiEnabled(): boolean {
 /** NENA EIDO CAD-to-CAD hub. Default on when unset. Live CAD writes stay fail-closed. */
 export function isC2cHubUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_C2C_HUB");
+}
+
+/** Agency CAD intelligence mesh. Default on when unset. Live CAD writes stay fail-closed. */
+export function isCadMeshUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CAD_MESH");
+}
+
+/** 13-feature suite (citizens, address intel, MCI, evidence, check-in, social, …). Default on. */
+export function isFeaturesSuiteUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_FEATURES_SUITE");
 }
 
 /** Call queue backlog + SLA monitoring (dispatcher/supervisor dashboards). */
@@ -572,22 +584,22 @@ export function isChannelMonitoringEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING");
 }
 
-/** RC Admin Leads CRM inbox (Contact Sales). Default on when unset. */
+/** NexCort Admin Leads CRM inbox (Contact Sales). Default on when unset. */
 export function isSalesLeadsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SALES_LEADS");
 }
 
-/** Support form panel + RC Admin ticket board. Default on when unset. */
+/** Support form panel + NexCort Admin ticket board. Default on when unset. */
 export function isSupportFormUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SUPPORT_FORM");
 }
 
-/** RC Admin PSAP Prospect CRM (national outbound outreach). Default on when unset. */
+/** NexCort Admin PSAP Prospect CRM (national outbound outreach). Default on when unset. */
 export function isPsapProspectsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_PSAP_PROSPECTS");
 }
 
-/** RC Admin Hiring ATS (careers applications). Default on when unset. */
+/** NexCort Admin Hiring ATS (careers applications). Default on when unset. */
 export function isHiringUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_HIRING");
 }
@@ -643,7 +655,7 @@ export function isMapEducationEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_MAP_EDUCATION");
 }
 
-/** RC Admin national cross-agency deployments map. Default on when unset. */
+/** NexCort Admin national cross-agency deployments map. Default on when unset. */
 export function isDeploymentsMapEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP");
 }
@@ -689,32 +701,32 @@ export function isMilestoneXprotectEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_MILESTONE_XPROTECT");
 }
 
-/** RC Admin Rapid IQ sales intelligence (procurement signals). Default on when unset. */
+/** NexCort Admin NexiQ IQ sales intelligence (procurement signals). Default on when unset. */
 export function isRapidIqUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ");
 }
 
-/** RC Admin Rapid IQ Signal Intelligence Pipeline. Default on when unset. */
+/** NexCort Admin NexiQ IQ Signal Intelligence Pipeline. Default on when unset. */
 export function isRapidIqPipelineUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE");
 }
 
-/** Rapid IQ Opportunity Intelligence (OpenAI). Default on when unset. */
+/** NexiQ IQ Opportunity Intelligence (OpenAI). Default on when unset. */
 export function isRapidIqIntelUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL");
 }
 
-/** RC Admin Rapid IQ sales automation (campaign drafts + Outlook send after approval). Default on when unset. */
+/** NexCort Admin NexiQ IQ sales automation (campaign drafts + Outlook send after approval). Default on when unset. */
 export function isSalesAutomationUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SALES_AUTOMATION");
 }
 
-/** RC Admin conference tracker (weekly website refresh). Default on when unset. */
+/** NexCort Admin conference tracker (weekly website refresh). Default on when unset. */
 export function isConferencesUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CONFERENCES");
 }
 
-/** RC Admin Contacts address book. Default on when unset. */
+/** NexCort Admin Contacts address book. Default on when unset. */
 export function isContactsModuleUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CONTACTS_MODULE");
 }
@@ -734,7 +746,7 @@ export function isTransitCamerasUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_TRANSIT_CAMERAS");
 }
 
-/** Rapid Cortex Video — agency-owned camera wall / VMS. Default on when unset. Distinct from Rapid Vision. */
+/** NexiQ Video — agency-owned camera wall / VMS. Default on when unset. Distinct from NexiQ Vision. */
 export function isRcVideoEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RC_VIDEO");
 }

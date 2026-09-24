@@ -7,13 +7,13 @@ export default async function UnauthorizedPage({ searchParams }: Props) {
   const raw = searchParams !== undefined ? await searchParams : undefined;
   const reason = typeof raw?.reason === "string" ? raw.reason : "";
   let detail =
-    "Your account signed in correctly, but this browser could not load your Rapid Cortex workspace session. Try signing in again, use a supported desktop browser, or contact your administrator.";
+    "Your account signed in correctly, but this browser could not load your NexCort iQ workspace session. Try signing in again, use a supported desktop browser, or contact your administrator.";
   if (reason === "inactive") {
     detail =
-      "This account is not active for Rapid Cortex. Contact your agency administrator if you believe this is a mistake.";
+      "This account is not active for NexCort iQ. Contact your agency administrator if you believe this is a mistake.";
   } else if (reason === "claims") {
     detail =
-      "Your sign-in succeeded, but required account fields (agency or permissions) could not be read. Ask your administrator to verify your Rapid Cortex assignment.";
+      "Your sign-in succeeded, but required account fields (agency or permissions) could not be read. Ask your administrator to verify your NexCort iQ assignment.";
   }
 
   return (
@@ -33,7 +33,7 @@ export default async function UnauthorizedPage({ searchParams }: Props) {
         </li>
         <li>
           <Link href={marketingContactPath()} className="underline hover:text-sky-300">
-            Contact Rapid Cortex
+            Contact NexCort iQ
           </Link>
         </li>
       </ul>

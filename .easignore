@@ -20,8 +20,8 @@
 /agent-transcripts/
 /results/
 # Sales/internal docs (~300MB of .mov/.pptx) — spaces in the path must be listed.
-/Rapid Cortex Internal Docs/
-Rapid Cortex Internal Docs/
+/NexCort iQ Internal Docs/
+NexCort iQ Internal Docs/
 /web-source-prod.zip
 /web-source-*.zip
 *.zip

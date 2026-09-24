@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — Vertical mass notification (campus / venue / transit occupant alerts).
+  NexCort iQ — Vertical mass notification (campus / venue / transit occupant alerts).
   Routes attach to stack 2 HttpApi. Mass SMS uses a dedicated short code from SSM only;
   never TWILIO_PHONE_NUMBER / 10DLC inbound reporting numbers.
 
@@ -69,11 +69,11 @@ Parameters:
       (rapid-cortex/{stage}/integrations/fourwinds).
   FourWindsMock:
     Type: String
-    Default: "true"
+    Default: "false"
     AllowedValues: ["true", "false"]
     Description: >-
-      When true, Four Winds REST calls are mocked. Set false only after
-      putting a real apiKey into the Four Winds secret.
+      Production default is false (fail closed without a real apiKey).
+      Set true only for an explicit engineering demo.
 
 Conditions:
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
@@ -113,7 +113,7 @@ Globals:
         VERTICAL_ALERTS_TABLE: !Sub "rapid-cortex-vertical-alerts-${DeploymentStage}"
         ALERT_SHORT_CODE_SSM_PREFIX: !Ref AlertShortCodeSsmPrefix
         ALERT_EMAIL_SENDER: "alerts@alerts.rapidcortex.us"
-        ALERT_SES_MOCK: "true"
+        ALERT_SES_MOCK: "false"
         AUDIT_TABLE: !Ref AuditTable
         AGENCIES_TABLE: !Ref AgenciesTable
         INCIDENTS_TABLE: !Ref IncidentsTable
@@ -140,7 +140,6 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      Name: !Sub "rapid-cortex/${DeploymentStage}/integrations/fourwinds"
       Description: >-
         Four Winds Interactive REST credentials (SOC-024 emergency takeover, SOC-025 all-clear).
         Replace PLACEHOLDER_REPLACE_ME with the vendor apiKey, set clientId/baseUrl, then
@@ -205,14 +204,23 @@ Resources:
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}/index/*"
-              - !If
-                - HasWebSocketConnectionsTable
+          - !If
+            - HasWebSocketConnectionsTable
+            - Sid: WebSocketConnectionsTable
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+                - dynamodb:Query
+                - dynamodb:BatchGetItem
+                - dynamodb:BatchWriteItem
+                - dynamodb:DescribeTable
+              Resource:
                 - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}"
-                - !Ref AWS::NoValue
-              - !If
-                - HasWebSocketConnectionsTable
                 - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}/index/*"
-                - !Ref AWS::NoValue
+            - !Ref AWS::NoValue
           - Sid: AlertShortCodeSsm
             Effect: Allow
             Action:

@@ -38,7 +38,7 @@ export type {
 export { isSupportedCallLanguage } from "./language-registry/language-registry.js";
 
 /**
- * Normalize provider / detector output to Rapid Cortex call-language primary subtags for live-call routing.
+ * Normalize provider / detector output to NexCort iQ call-language primary subtags for live-call routing.
  * Prefer {@link normalizeLanguageCode} for canonical registry / translation UI keys.
  */
 export function normalizeCallLanguageCode(raw: string | undefined): string {

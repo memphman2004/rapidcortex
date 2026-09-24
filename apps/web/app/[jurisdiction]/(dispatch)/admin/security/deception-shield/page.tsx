@@ -146,7 +146,7 @@ function DeceptionShieldContent() {
           <ShieldAlert className="h-6 w-6 text-sky-400" aria-hidden /> Deception Shield
         </h1>
         <p className="text-sm leading-relaxed text-slate-400">
-          Deception Shield isn’t enabled for this agency. Contact Rapid Cortex support.
+          Deception Shield isn’t enabled for this agency. Contact NexCort iQ support.
         </p>
       </div>
     );
@@ -165,7 +165,7 @@ function DeceptionShieldContent() {
       <div className="mx-auto max-w-2xl px-4 py-10 text-slate-200">
         <h1 className="text-xl font-semibold text-white">Deception Shield</h1>
         <p className="mt-4 text-sm text-slate-400">
-          This view is restricted to platform security administrators (Rapid Cortex).
+          This view is restricted to platform security administrators (NexCort iQ).
         </p>
         <a href={to("/dashboard")} className="mt-6 inline-flex text-sm text-sky-400 hover:text-sky-300">
           Return to dashboard
@@ -199,7 +199,7 @@ function DeceptionShieldContent() {
           className="rounded-md border border-amber-900/50 bg-amber-950/30 px-3 py-2 text-sm text-amber-100"
           role="status"
         >
-          Access denied — Rapid Cortex restricts this dashboard to Rapid Cortex administrators and delegated IT admins.
+          Access denied — NexCort iQ restricts this dashboard to NexCort iQ administrators and delegated IT admins.
         </aside>
       ) : null}
 

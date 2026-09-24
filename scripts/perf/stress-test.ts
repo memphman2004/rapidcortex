@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 /**
- * Rapid Cortex — concurrent HTTP stress probe (read-only by default).
+ * NexCort iQ — concurrent HTTP stress probe (read-only by default).
  *
  * Staging / health endpoints. Refuses CAD writeback and mutating RMS/escalation
  * unless STRESS_ALLOW_WRITES=1 (never set against prod).
@@ -225,7 +225,7 @@ async function runVu(all: Scenario[], deadline: number, bag: Map<string, Sample[
 function printReport(bag: Map<string, Sample[]>, elapsedMs: number): boolean {
   console.log("");
   console.log("════════════════════════════════════════════════════════");
-  console.log(" Rapid Cortex stress probe");
+  console.log(" NexCort iQ stress probe");
   console.log("════════════════════════════════════════════════════════");
   console.log(` WEB_BASE=${WEB_BASE}`);
   console.log(` API_BASE=${API_BASE}`);

@@ -188,7 +188,7 @@ Any authenticated user (dispatcher+) may override. Writes:
 
 ### System prompt
 ```
-You are a 911 dispatch triage assistant for the Rapid Cortex platform.
+You are a 911 dispatch triage assistant for the NexCort iQ platform.
 Your job is to classify an ongoing emergency call transcript as EMERGENCY,
 NON_EMERGENCY, or UNCERTAIN based on the transcript so far.
 

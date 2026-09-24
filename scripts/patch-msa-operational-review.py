@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""2026-09-20 operational review of Rapid Cortex MSA Word templates (raw OOXML text swaps)."""
+"""2026-09-20 operational review of NexCort iQ MSA Word templates (raw OOXML text swaps)."""
 from __future__ import annotations
 
 import shutil
@@ -12,11 +12,11 @@ from xml.sax.saxutils import escape
 REPLACEMENTS: list[tuple[str, str]] = [
     (
         "Effective Date: [Date]",
-        "Effective Date: [Date]. Document control: Template last operationally reviewed 2026-09-20. Contracting entity: Apps on Demand LLC d/b/a Rapid Cortex. This template is not a SOC 2 Type II report, CJIS certification, HIPAA certification, or FedRAMP authorization. Counsel review required before customer send.",
+        "Effective Date: [Date]. Document control: Template last operationally reviewed 2026-09-20. Contracting entity: Apps on Demand LLC d/b/a NexCort iQ. This template is not a SOC 2 Type II report, CJIS certification, HIPAA certification, or FedRAMP authorization. Counsel review required before customer send.",
     ),
     (
-        "Subject to the terms and conditions of this Agreement, Vendor shall provide to Agency access to and use of the Rapid Cortex software platform (the 'Platform'), a cloud-based Software-as-a-Service (SaaS) solution specifically designed and optimized for emergency response operations, 911 call center management, public safety communications, and emergency dispatch services.",
-        "Subject to the terms and conditions of this Agreement, Vendor shall provide to Agency access to and use of the Rapid Cortex software platform (the 'Platform'), a cloud-based Software-as-a-Service (SaaS) solution for emergency communications assist, public safety operations, and related modules selected in the Statement of Work. The Platform is decision-support software for trained Agency personnel. It is not a 911 customer-premises equipment (CPE) system, not a Computer-Aided Dispatch system of record, and does not autonomously dispatch units.",
+        "Subject to the terms and conditions of this Agreement, Vendor shall provide to Agency access to and use of the NexCort iQ software platform (the 'Platform'), a cloud-based Software-as-a-Service (SaaS) solution specifically designed and optimized for emergency response operations, 911 call center management, public safety communications, and emergency dispatch services.",
+        "Subject to the terms and conditions of this Agreement, Vendor shall provide to Agency access to and use of the NexCort iQ software platform (the 'Platform'), a cloud-based Software-as-a-Service (SaaS) solution for emergency communications assist, public safety operations, and related modules selected in the Statement of Work. The Platform is decision-support software for trained Agency personnel. It is not a 911 customer-premises equipment (CPE) system, not a Computer-Aided Dispatch system of record, and does not autonomously dispatch units.",
     ),
     (
         "The Services are designed to enhance efficiency, accuracy, and effectiveness of emergency call handling through advanced AI, ML, NLP, and cloud computing technologies.",
@@ -44,7 +44,7 @@ REPLACEMENTS: list[tuple[str, str]] = [
     ),
     (
         "CAD field auto-population",
-        "Assisted population of Rapid Cortex incident fields; write-back to Agency's vendor CAD system only if a named CAD integration is specified in the Statement of Work",
+        "Assisted population of NexCort iQ incident fields; write-back to Agency's vendor CAD system only if a named CAD integration is specified in the Statement of Work",
     ),
     (
         "Whisper coaching (supervisor talks to dispatcher, caller can't hear)",
@@ -59,8 +59,8 @@ REPLACEMENTS: list[tuple[str, str]] = [
         "Caller Video Assist (WebRTC): When enabled for the tenant, dispatcher may send a one-time SMS link so the caller's mobile browser streams live video to the dispatcher console. No app download required. Session is consent-gated and logged to the incident record. Venue camera integration (including Ring Connect) is available only when that module is enabled and in scope of the Statement of Work.",
     ),
     (
-        "Complete two-way synchronization. Incident data flows automatically to CAD on call completion. Status updates, unit assignments, and disposition codes flow back to Rapid Cortex in real-time. Requires custom development based on CAD vendor API availability.",
-        "Complete two-way synchronization only if a named CAD vendor, connector project, and write-back authorization are specified in an executed Statement of Work or CAD addendum. Automated CAD write-back is not a Day-1 default and is not enabled without that written scope. Status updates, unit assignments, and disposition codes flow back to Rapid Cortex only to the extent the named connector supports them.",
+        "Complete two-way synchronization. Incident data flows automatically to CAD on call completion. Status updates, unit assignments, and disposition codes flow back to NexCort iQ in real-time. Requires custom development based on CAD vendor API availability.",
+        "Complete two-way synchronization only if a named CAD vendor, connector project, and write-back authorization are specified in an executed Statement of Work or CAD addendum. Automated CAD write-back is not a Day-1 default and is not enabled without that written scope. Status updates, unit assignments, and disposition codes flow back to NexCort iQ only to the extent the named connector supports them.",
     ),
     (
         "Vendor has experience integrating with major CAD systems: Motorola PremierOne, Tyler New World, Hexagon Intergraph, Central Square, Spillman. Integration approach, timeline, and fees defined in SOW based on Agency's specific CAD vendor and API availability.",
@@ -108,7 +108,7 @@ REPLACEMENTS: list[tuple[str, str]] = [
     ),
     (
         "Dispatcher: Frontline telecommunicator. Full live call workspace — AI-assisted triage, CAD entry and submission, real-time translation, caller media (Silent Text Link, Caller Video Assist, Pinpoint Location, photo intake), SOP Protocol AI. Cannot access QA scorecards, billing, or user management.",
-        "Dispatcher: Frontline telecommunicator. Live call workspace — AI-assisted triage, Rapid Cortex incident entry, real-time translation when enabled, caller media modules when enabled (Silent Text Link, Caller Video Assist, Pinpoint Location, photo intake), SOP Protocol AI when configured. Vendor CAD submission only if a CAD integration is in the Statement of Work. Cannot access QA scorecards, billing, or user management.",
+        "Dispatcher: Frontline telecommunicator. Live call workspace — AI-assisted triage, NexCort iQ incident entry, real-time translation when enabled, caller media modules when enabled (Silent Text Link, Caller Video Assist, Pinpoint Location, photo intake), SOP Protocol AI when configured. Vendor CAD submission only if a CAD integration is in the Statement of Work. Cannot access QA scorecards, billing, or user management.",
     ),
     (
         "7.10.1 SOC 2 Type II Compliance",
@@ -172,7 +172,7 @@ ROUND2: list[tuple[str, str]] = [
     ),
     (
         "Compliance certifications: AWS data centers certified to SOC 1, SOC 2, SOC 3, ISO 27001, ISO 27017, ISO 27018, PCI DSS Level 1, FedRAMP High, and numerous other security standards and compliance frameworks",
-        "Infrastructure note: Amazon Web Services publishes SOC, ISO, PCI, and FedRAMP authorizations for eligible AWS services. Those certifications apply to AWS, not to Rapid Cortex as a FedRAMP-authorized, SOC 2 Type II-certified, or PCI-certified product.",
+        "Infrastructure note: Amazon Web Services publishes SOC, ISO, PCI, and FedRAMP authorizations for eligible AWS services. Those certifications apply to AWS, not to NexCort iQ as a FedRAMP-authorized, SOC 2 Type II-certified, or PCI-certified product.",
     ),
     (
         "Transcription Latency: Real-time transcription with latency of less than two (2) seconds from speech to text appearance",
@@ -188,7 +188,7 @@ ROUND2: list[tuple[str, str]] = [
     ),
     (
         "Integrate with Existing CAD System: Seamlessly integrate the Platform with Agency's existing Computer-Aided Dispatch (CAD) system to enable bi-directional data exchange and streamlined workflows",
-        "Integrate with Existing CAD System (if selected in the Statement of Work): Connect Rapid Cortex to Agency's Computer-Aided Dispatch system per a named-vendor connector. Bi-directional write-back is not a Day-1 default and is not enabled without written SOW scope. Rapid Cortex is not the CAD of record.",
+        "Integrate with Existing CAD System (if selected in the Statement of Work): Connect NexCort iQ to Agency's Computer-Aided Dispatch system per a named-vendor connector. Bi-directional write-back is not a Day-1 default and is not enabled without written SOW scope. NexCort iQ is not the CAD of record.",
     ),
     (
         "Ensure CJIS Compliance: Implement the Platform with security controls aligned with FBI CJIS Security Policy requirements to protect criminal justice information",
@@ -208,14 +208,14 @@ ROUND2: list[tuple[str, str]] = [
     ),
     (
         "One-click transfer of extracted data to CAD system (when integrated)",
-        "Assisted transfer of extracted Rapid Cortex incident data to Agency CAD only when a named CAD integration is in the Statement of Work",
+        "Assisted transfer of extracted NexCort iQ incident data to Agency CAD only when a named CAD integration is in the Statement of Work",
     ),
     (
-        "Phase 3: Full CAD Control** - Ability to create, update, and dispatch units directly from Rapid Cortex interface",
-        "Phase 3: Bidirectional CAD (SOW-gated)** - Create/update Rapid Cortex incident records and, only if a named CAD write-back connector and authorization are in an executed Statement of Work, submit approved data to Agency CAD. Rapid Cortex is not the CAD of record and does not autonomously dispatch units.",
+        "Phase 3: Full CAD Control** - Ability to create, update, and dispatch units directly from NexCort iQ interface",
+        "Phase 3: Bidirectional CAD (SOW-gated)** - Create/update NexCort iQ incident records and, only if a named CAD write-back connector and authorization are in an executed Statement of Work, submit approved data to Agency CAD. NexCort iQ is not the CAD of record and does not autonomously dispatch units.",
     ),
     (
-        "Phase 2: Bi-Directional Sync** - Two-way synchronization of incident data between Rapid Cortex and CAD",
+        "Phase 2: Bi-Directional Sync** - Two-way synchronization of incident data between NexCort iQ and CAD",
         "Phase 2: Assisted / bidirectional sync (SOW-gated)** - Two-way synchronization of incident data only if a named CAD connector is in the Statement of Work",
     ),
     (
@@ -231,8 +231,8 @@ ROUND2: list[tuple[str, str]] = [
 # Undo accidental second-pass doubling of replacements whose old text is a prefix of new.
 DEDUPE: list[tuple[str, str]] = [
     (
-        "Effective Date: [Date]. Document control: Template last operationally reviewed 2026-09-20. Contracting entity: Apps on Demand LLC d/b/a Rapid Cortex. This template is not a SOC 2 Type II report, CJIS certification, HIPAA certification, or FedRAMP authorization. Counsel review required before customer send.. Document control: Template last operationally reviewed 2026-09-20. Contracting entity: Apps on Demand LLC d/b/a Rapid Cortex. This template is not a SOC 2 Type II report, CJIS certification, HIPAA certification, or FedRAMP authorization. Counsel review required before customer send.",
-        "Effective Date: [Date]. Document control: Template last operationally reviewed 2026-09-20. Contracting entity: Apps on Demand LLC d/b/a Rapid Cortex. This template is not a SOC 2 Type II report, CJIS certification, HIPAA certification, or FedRAMP authorization. Counsel review required before customer send.",
+        "Effective Date: [Date]. Document control: Template last operationally reviewed 2026-09-20. Contracting entity: Apps on Demand LLC d/b/a NexCort iQ. This template is not a SOC 2 Type II report, CJIS certification, HIPAA certification, or FedRAMP authorization. Counsel review required before customer send.. Document control: Template last operationally reviewed 2026-09-20. Contracting entity: Apps on Demand LLC d/b/a NexCort iQ. This template is not a SOC 2 Type II report, CJIS certification, HIPAA certification, or FedRAMP authorization. Counsel review required before customer send.",
+        "Effective Date: [Date]. Document control: Template last operationally reviewed 2026-09-20. Contracting entity: Apps on Demand LLC d/b/a NexCort iQ. This template is not a SOC 2 Type II report, CJIS certification, HIPAA certification, or FedRAMP authorization. Counsel review required before customer send.",
     ),
     (
         "CAD system licenses, maintenance, support, and any CAD system-of-record functions, and any CAD system-of-record functions",
@@ -248,7 +248,7 @@ DEDUPE: list[tuple[str, str]] = [
 def patch_core(xml: str) -> str:
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     xml = re_sub_once(xml, r"(<dcterms:modified[^>]*>)[^<]*(</dcterms:modified>)", rf"\g<1>{now}\g<2>")
-    xml = re_sub_once(xml, r"(<cp:lastModifiedBy[^>]*>)[^<]*(</cp:lastModifiedBy>)", r"\g<1>Rapid Cortex operational review\g<2>")
+    xml = re_sub_once(xml, r"(<cp:lastModifiedBy[^>]*>)[^<]*(</cp:lastModifiedBy>)", r"\g<1>NexCort iQ operational review\g<2>")
     return xml
 
 
@@ -313,9 +313,9 @@ def patch_docx(path: Path) -> tuple[int, list[str]]:
 
 
 def main() -> None:
-    root = Path("/Volumes/Mac Mini/Coding Projects/Rapid Cortex")
+    root = Path("/Volumes/Mac Mini/Coding Projects/NexCort iQ")
     files = [
-        root / "Rapid Cortex Internal Docs/COMPLETE_MSA_MASTER_DOCUMENT_updated.docx",
+        root / "NexCort iQ Internal Docs/COMPLETE_MSA_MASTER_DOCUMENT_updated.docx",
         root / "apps/web/public/docs/MASTER SERVICES AGREEMENT.docx",
     ]
     for f in files:

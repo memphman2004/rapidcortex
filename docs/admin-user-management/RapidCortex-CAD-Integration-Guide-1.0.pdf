@@ -482,8 +482,8 @@ endobj
 endobj
 53 0 obj
 <<
-/Author (Rapid Cortex) /CreationDate (D:20260511202226+00'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20260511202226+00'00') /Producer (ReportLab PDF Library - \(opensource\)) 
-  /Subject (CAD Integration) /Title (Rapid Cortex CAD Integration Guide) /Trapped /False
+/Author (NexCort iQ  ) /CreationDate (D:20260511202226+00'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20260511202226+00'00') /Producer (ReportLab PDF Library - \(opensource\)) 
+  /Subject (CAD Integration) /Title (NexCort iQ   CAD Integration Guide) /Trapped /False
 >>
 endobj
 54 0 obj
@@ -917,7 +917,7 @@ trailer
 startxref
 105927
 %%EOF
-2 0 obj<</BaseFont/Helvetica/Encoding/WinAnsiEncoding/Subtype/Type1/Type/Font>>endobj3 0 obj<</BaseFont/Helvetica-Bold/Encoding/WinAnsiEncoding/Subtype/Type1/Type/Font>>endobj4 0 obj<</Contents 102 0 R/MediaBox[0 0 612 792]/Parent 54 0 R/Resources<</Font<</C2_0 99 0 R/T1_0 3 0 R/T1_1 2 0 R>>/ProcSet[/PDF/Text/ImageC]/XObject<</Im0 103 0 R>>>>/Rotate 0/Trans<<>>/Type/Page>>endobj52 0 obj<</AcroForm 100 0 R/Metadata 101 0 R/PageMode/UseNone/Pages 54 0 R/Type/Catalog>>endobj53 0 obj<</Author(Rapid Cortex)/CreationDate(D:20260511202226Z)/Creator(\(unspecified\))/Keywords()/ModDate(D:20260511162521-04'00')/Producer(ReportLab PDF Library - \(opensource\))/Subject(CAD Integration)/Title(Rapid Cortex CAD Integration Guide)/Trapped/False>>endobj99 0 obj<</BaseFont/AKNNJS+Helvetica/DescendantFonts 105 0 R/Encoding/Identity-H/Subtype/Type0/ToUnicode 106 0 R/Type/Font>>endobj100 0 obj<</DA(/Helv 0 Tf 0 g )/DR<</Encoding<</PDFDocEncoding 114 0 R>>/Font<</Helv 112 0 R/ZaDb 113 0 R>>>>/Fields[]>>endobj101 0 obj<</Length 3713/Subtype/XML/Type/Metadata>>stream
+2 0 obj<</BaseFont/Helvetica/Encoding/WinAnsiEncoding/Subtype/Type1/Type/Font>>endobj3 0 obj<</BaseFont/Helvetica-Bold/Encoding/WinAnsiEncoding/Subtype/Type1/Type/Font>>endobj4 0 obj<</Contents 102 0 R/MediaBox[0 0 612 792]/Parent 54 0 R/Resources<</Font<</C2_0 99 0 R/T1_0 3 0 R/T1_1 2 0 R>>/ProcSet[/PDF/Text/ImageC]/XObject<</Im0 103 0 R>>>>/Rotate 0/Trans<<>>/Type/Page>>endobj52 0 obj<</AcroForm 100 0 R/Metadata 101 0 R/PageMode/UseNone/Pages 54 0 R/Type/Catalog>>endobj53 0 obj<</Author(NexCort iQ  )/CreationDate(D:20260511202226Z)/Creator(\(unspecified\))/Keywords()/ModDate(D:20260511162521-04'00')/Producer(ReportLab PDF Library - \(opensource\))/Subject(CAD Integration)/Title(NexCort iQ   CAD Integration Guide)/Trapped/False>>endobj99 0 obj<</BaseFont/AKNNJS+Helvetica/DescendantFonts 105 0 R/Encoding/Identity-H/Subtype/Type0/ToUnicode 106 0 R/Type/Font>>endobj100 0 obj<</DA(/Helv 0 Tf 0 g )/DR<</Encoding<</PDFDocEncoding 114 0 R>>/Font<</Helv 112 0 R/ZaDb 113 0 R>>>>/Fields[]>>endobj101 0 obj<</Length 3713/Subtype/XML/Type/Metadata>>stream
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
 <x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 9.1-c001 79.675d0f7, 2023/06/11-19:21:16        ">
    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -929,7 +929,7 @@ startxref
          <dc:format>application/pdf</dc:format>
          <dc:creator>
             <rdf:Seq>
-               <rdf:li>Rapid Cortex</rdf:li>
+               <rdf:li>NexCort iQ  </rdf:li>
             </rdf:Seq>
          </dc:creator>
          <dc:description>
@@ -939,7 +939,7 @@ startxref
          </dc:description>
          <dc:title>
             <rdf:Alt>
-               <rdf:li xml:lang="x-default">Rapid Cortex CAD Integration Guide</rdf:li>
+               <rdf:li xml:lang="x-default">NexCort iQ   CAD Integration Guide</rdf:li>
             </rdf:Alt>
          </dc:title>
          <xmp:CreateDate>2026-05-11T20:22:26Z</xmp:CreateDate>

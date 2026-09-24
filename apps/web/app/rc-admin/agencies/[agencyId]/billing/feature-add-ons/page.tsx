@@ -5,7 +5,7 @@ import { marketingLoginPath } from "@/lib/marketing-links";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 
 export const metadata = {
-  title: "Feature add-ons billing (RC Admin)",
+  title: "Feature add-ons billing (NexCort Admin)",
   robots: { index: false, follow: false },
 };
 

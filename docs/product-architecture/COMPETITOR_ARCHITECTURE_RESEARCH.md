@@ -1,9 +1,9 @@
-# Rapid Cortex — Competitor Architecture Research Report
+# NexCort iQ — Competitor Architecture Research Report
 
 > **PUBLIC-SOURCE DISCLAIMER:** This report is based exclusively on publicly available information including vendor websites, press releases, AWS/cloud partner blogs, industry publications, and regulatory filings. No proprietary architectures, source code, internal documents, or confidential materials were accessed. Statements marked **[INFERRED]** represent logical deductions from public evidence and should not be treated as confirmed fact. This document is intended for internal strategic planning only.
 
 **Report Date:** April 2026
-**Prepared for:** Rapid Cortex — Internal Product & Strategy Team
+**Prepared for:** NexCort iQ — Internal Product & Strategy Team
 **Scope:** 7 competitors in the public safety / 911 / PSAP intelligence space
 
 ---
@@ -23,7 +23,7 @@
 4. [Feature Comparison Matrix](#4-feature-comparison-matrix)
 5. [Integration Architecture Comparison](#5-integration-architecture-comparison)
 6. [Security & Compliance Comparison](#6-security--compliance-comparison)
-7. [Recommended Architecture for Rapid Cortex](#7-recommended-architecture-for-rapid-cortex)
+7. [Recommended Architecture for NexCort iQ](#7-recommended-architecture-for-rapid-cortex)
 8. [Differentiation Strategy](#8-differentiation-strategy)
 9. [Pilot-Ready Feature Priorities](#9-pilot-ready-feature-priorities)
 10. [Enterprise & Statewide Roadmap](#10-enterprise--statewide-roadmap)
@@ -43,7 +43,7 @@ The public safety communications technology market is undergoing a rapid consoli
 - AI transcription, real-time translation, and automated CAD population are becoming table stakes, not differentiators.
 - The biggest remaining gaps in the market are: **vendor-agnostic AI enrichment that works alongside any existing CAD**, truly seamless responder-side intelligence delivery, and affordable deployment for smaller PSAPs.
 
-**Rapid Cortex opportunity:** Position as the **neutral AI intelligence layer** — enhancing any CAD system rather than replacing it. This is a gap no single large vendor can credibly fill because each is locked into its own ecosystem.
+**NexCort iQ opportunity:** Position as the **neutral AI intelligence layer** — enhancing any CAD system rather than replacing it. This is a gap no single large vendor can credibly fill because each is locked into its own ecosystem.
 
 ---
 
@@ -173,20 +173,20 @@ Prepared is now branded as **"Prepared by Axon"** and positioned as the "assisti
 - Translation limited to what Axon's AI model supports; edge cases for rare/regional languages are unclear
 - Privacy concerns around a single company controlling 911 call data + body cam data + evidence management (civil liberties groups have flagged this)
 
-#### What Rapid Cortex Should Copy
+#### What NexCort iQ Should Copy
 
 - Real-time (in-call) AI summary generation — not post-call
 - Automatic CAD population with structured incident fields
 - QA module with automated call scoring and coaching recommendations tied to specific calls
 - Concept of "a second set of ears" — AI that supports the call taker without replacing them
 
-#### What Rapid Cortex Should Avoid
+#### What NexCort iQ Should Avoid
 
 - Requiring agencies to replace their existing CAD
 - Bundling with hardware (body cameras, drones) — creates procurement friction for software-first buyers
 - Deep vertical integration that locks out non-ecosystem partners
 
-#### Differentiation Opportunity for Rapid Cortex
+#### Differentiation Opportunity for NexCort iQ
 
 - Position as the **neutral Prepared alternative** that works with ANY CAD (CentralSquare, Motorola, Tyler, etc.) — not just the Axon stack
 - Offer standalone QA tooling and supervisor dashboards as a product, not just an Axon upsell
@@ -291,21 +291,21 @@ RapidSOS is positioned as the **emergency data network** — not a call handling
 - Does not address workforce/burnout challenges facing PSAPs
 - Post-Axon acquisitions (Carbyne, Prepared), RapidSOS faces competitive pressure as a standalone enrichment layer
 
-#### What Rapid Cortex Should Copy
+#### What NexCort iQ Should Copy
 
 - The "we integrate with your existing CAD, we don't replace it" positioning — this is the most trusted framing in the PSAP market
 - Deep partnerships with all major CAD vendors as an approved data source
 - Developer portal / integration documentation for rapid partner onboarding
 
-#### What Rapid Cortex Should Avoid
+#### What NexCort iQ Should Avoid
 
 - Building an independent location data network (RapidSOS owns this; cannot compete on device scale)
 - Positioning as a data clearinghouse — differentiate as an AI intelligence layer, not a data pipe
 
-#### Differentiation Opportunity for Rapid Cortex
+#### Differentiation Opportunity for NexCort iQ
 
-- RapidSOS provides the data; Rapid Cortex can provide the **AI intelligence on top of that data** — transcription, summary, translation, QA — as a neutral layer that also ingests RapidSOS data
-- Partnership opportunity: Rapid Cortex could be positioned as the AI analysis layer that works alongside RapidSOS data enrichment
+- RapidSOS provides the data; NexCort iQ can provide the **AI intelligence on top of that data** — transcription, summary, translation, QA — as a neutral layer that also ingests RapidSOS data
+- Partnership opportunity: NexCort iQ could be positioned as the AI analysis layer that works alongside RapidSOS data enrichment
 
 ---
 
@@ -421,21 +421,21 @@ Post-acquisition, Carbyne is the call handling infrastructure of Axon 911, and P
 - International (non-US) deployments may face ESInet compatibility challenges
 - Smaller PSAPs may face budget barriers to the full Axon 911 stack
 
-#### What Rapid Cortex Should Copy
+#### What NexCort iQ Should Copy
 
 - AWS GovCloud deployment strategy for CJIS compliance
-- Active-active multi-region failover — even as an overlay layer, Rapid Cortex should design for resilience
-- The "Universe" model (overlay that enriches without replacing) — this is the exact positioning Rapid Cortex should use for CAD enrichment
+- Active-active multi-region failover — even as an overlay layer, NexCort iQ should design for resilience
+- The "Universe" model (overlay that enriches without replacing) — this is the exact positioning NexCort iQ should use for CAD enrichment
 
-#### What Rapid Cortex Should Avoid
+#### What NexCort iQ Should Avoid
 
 - Requiring PSAPs to replace their call handling infrastructure (the APEX model) — adoption friction is too high for an early-stage product
 - Building a competing ESInet — this requires carrier partnerships that take years to establish
 
-#### Differentiation Opportunity for Rapid Cortex
+#### Differentiation Opportunity for NexCort iQ
 
 - With Carbyne now Axon-only, the market needs a **Carbyne Universe equivalent** that is vendor-neutral — an AI overlay that enriches calls without requiring CPE or CAD replacement
-- Rapid Cortex can target Carbyne APEX customers who need AI intelligence but cannot afford the full Axon bundle
+- NexCort iQ can target Carbyne APEX customers who need AI intelligence but cannot afford the full Axon bundle
 
 ---
 
@@ -547,22 +547,22 @@ Motorola Solutions CommandCentral is positioned as the **only end-to-end public 
 - Azure Government (not AWS GovCloud) creates friction for agencies that have AWS commitments
 - Translation not a prominent feature — limited multilingual support
 
-#### What Rapid Cortex Should Copy
+#### What NexCort iQ Should Copy
 
 - Radio/PTT awareness in the CAD interface — understand that radio is still the dominant field communication tool
 - Esri-based GIS as the mapping standard — don't build a proprietary map layer
-- Suite marketing concept ("call to case closure") — use as a storytelling frame even if Rapid Cortex only owns the AI intelligence slice
+- Suite marketing concept ("call to case closure") — use as a storytelling frame even if NexCort iQ only owns the AI intelligence slice
 
-#### What Rapid Cortex Should Avoid
+#### What NexCort iQ Should Avoid
 
 - Competing on the radio/hardware stack — Motorola owns this deeply
 - Building a proprietary RMS or Records product
 - Requiring a full suite replacement for an agency
 
-#### Differentiation Opportunity for Rapid Cortex
+#### Differentiation Opportunity for NexCort iQ
 
-- Rapid Cortex can sell to Motorola CommandCentral agencies as an **AI intelligence upgrade layer** that doesn't require replacing the CommandCentral investment — specifically targeting transcription, translation, AI summaries, and supervisor QA tooling that Motorola's cloud add-ons don't fully deliver
-- Azure Government compatibility (if Rapid Cortex supports multi-cloud) would allow direct integration with Motorola-aligned agencies
+- NexCort iQ can sell to Motorola CommandCentral agencies as an **AI intelligence upgrade layer** that doesn't require replacing the CommandCentral investment — specifically targeting transcription, translation, AI summaries, and supervisor QA tooling that Motorola's cloud add-ons don't fully deliver
+- Azure Government compatibility (if NexCort iQ supports multi-cloud) would allow direct integration with Motorola-aligned agencies
 
 ---
 
@@ -675,22 +675,22 @@ CentralSquare is the **largest independent public sector software provider** in 
 - Pricing opacity — custom quotes only; smaller agencies report cost barriers
 - QA/supervisor tooling is limited compared to Prepared AI
 
-#### What Rapid Cortex Should Copy
+#### What NexCort iQ Should Copy
 
 - The ONESolution framework concept — single login, unified data, across all public safety workflows
 - AWS GovCloud deployment architecture — CJIS by default
 - CAD-to-CAD interoperability design (cross-jurisdictional data sharing)
 - 135+ language translation model — don't underestimate multilingual needs in PSAPs
 
-#### What Rapid Cortex Should Avoid
+#### What NexCort iQ Should Avoid
 
 - Trying to serve CentralSquare's breadth (911 + CAD + RMS + JMS + corrections + finance) — stay focused on the AI intelligence layer
 - Complex multi-product procurement cycles
 
-#### Differentiation Opportunity for Rapid Cortex
+#### Differentiation Opportunity for NexCort iQ
 
-- CentralSquare just lost its Prepared AI reseller relationship. **Rapid Cortex can step in as the preferred neutral AI intelligence partner for CentralSquare CAD agencies** — offering transcription, translation, AI summaries, and QA tooling that CentralSquare does not natively provide at depth
-- Rapid Cortex should target CentralSquare agencies with an integration that feels like a natural extension of the CentralSquare workflow, not a competitor
+- CentralSquare just lost its Prepared AI reseller relationship. **NexCort iQ can step in as the preferred neutral AI intelligence partner for CentralSquare CAD agencies** — offering transcription, translation, AI summaries, and QA tooling that CentralSquare does not natively provide at depth
+- NexCort iQ should target CentralSquare agencies with an integration that feels like a natural extension of the CentralSquare workflow, not a competitor
 
 ---
 
@@ -800,21 +800,21 @@ Tyler Technologies (NYSE: TYL) is one of the largest government software compani
 - Limited multimedia capabilities compared to Carbyne, CentralSquare Vertex, or Prepared
 - NG911 readiness is dependent on partner integrations, not native capabilities
 
-#### What Rapid Cortex Should Copy
+#### What NexCort iQ Should Copy
 
-- Tyler Alliance cross-agency sharing concept — design Rapid Cortex to work across agency boundaries, not just within a single PSAP
+- Tyler Alliance cross-agency sharing concept — design NexCort iQ to work across agency boundaries, not just within a single PSAP
 - Esri as the GIS standard — integrate with Esri rather than building proprietary mapping
 
-#### What Rapid Cortex Should Avoid
+#### What NexCort iQ Should Avoid
 
 - Competing on the criminal justice back-end (courts/corrections) — this is Tyler's fortress
 - Building a Windows desktop client — browser-native or mobile-native only
 
-#### Differentiation Opportunity for Rapid Cortex
+#### Differentiation Opportunity for NexCort iQ
 
 - Tyler Technologies agencies represent the **largest underserved market** for AI intelligence tooling — they have no native transcription, translation, AI summary, or QA capabilities
-- Rapid Cortex can be the "AI intelligence upgrade" for Tyler New World CAD agencies — a zero-friction SaaS overlay that doesn't require replacing their Tyler investment
-- Tyler's evergreen model means agencies are sticky — if Rapid Cortex integrates well with Tyler, it inherits that stickiness
+- NexCort iQ can be the "AI intelligence upgrade" for Tyler New World CAD agencies — a zero-friction SaaS overlay that doesn't require replacing their Tyler investment
+- Tyler's evergreen model means agencies are sticky — if NexCort iQ integrates well with Tyler, it inherits that stickiness
 
 ---
 
@@ -913,27 +913,27 @@ Axon Fusus is positioned as the **Real-Time Crime Center (RTCC) platform** — a
 - Camera integration depends on Fusus Core hardware in some cases — adds deployment complexity
 - [INFERRED] AI-powered camera analytics (Axon Vision) may raise civil liberties concerns in some jurisdictions
 
-#### What Rapid Cortex Should Copy
+#### What NexCort iQ Should Copy
 
 - The "open ecosystem" framing — integrate with any camera, any data source, preserve existing investments
 - Community Connect concept of consent-based data sharing — this is the future of public-private 911 intelligence
 - The RTCC-to-dispatcher data flow — how Fusus surfaces intelligence to dispatch in real time
 
-#### What Rapid Cortex Should Avoid
+#### What NexCort iQ Should Avoid
 
 - Building a competing RTCC video platform — Fusus has won this space decisively
 - Proprietary hardware dependencies for integrations
 
-#### Differentiation Opportunity for Rapid Cortex
+#### Differentiation Opportunity for NexCort iQ
 
-- Rapid Cortex can be the **AI intelligence enrichment layer for agencies that have Fusus video data but don't have the Axon AI stack** — bridging Fusus camera intelligence into transcription, summaries, and CAD population workflows for non-Axon-aligned agencies
+- NexCort iQ can be the **AI intelligence enrichment layer for agencies that have Fusus video data but don't have the Axon AI stack** — bridging Fusus camera intelligence into transcription, summaries, and CAD population workflows for non-Axon-aligned agencies
 - Position as the "intelligence glue" that connects Fusus-type video awareness with any CAD system
 
 ---
 
 ## 4. Feature Comparison Matrix
 
-| Feature | Prepared/Axon | RapidSOS | Carbyne APEX | Motorola CC | CentralSquare | Tyler Tech | Axon Fusus | **Rapid Cortex Target** |
+| Feature | Prepared/Axon | RapidSOS | Carbyne APEX | Motorola CC | CentralSquare | Tyler Tech | Axon Fusus | **NexCort iQ Target** |
 |---|---|---|---|---|---|---|---|---|
 | Call handling (voice) | Via Carbyne | ❌ | ✅ | ✅ VESTA | ✅ Vertex | ❌ (3rd party) | ❌ | ❌ (by design) |
 | CAD integration | ✅ auto-populate | ✅ data enrichment | ✅ | ✅ PremierOne | ✅ Pro/Enterprise | ✅ New World | ✅ (feed) | ✅ **Neutral/all CADs** |
@@ -998,7 +998,7 @@ FCC NG911 Standard Architecture (public reference):
         |-- Tyler New World CAD
         |
         v
-    AI Intelligence Layer ← [RAPID CORTEX OPTIMAL INSERTION POINT]
+    AI Intelligence Layer ← [NEXCORT IQ OPTIMAL INSERTION POINT]
         |
         |-- Transcription / Translation
         |-- AI Call Summary → CAD population
@@ -1006,7 +1006,7 @@ FCC NG911 Standard Architecture (public reference):
         |-- Responder Brief
 ```
 
-**Rapid Cortex should insert at the AI Intelligence Layer** — after the CAD has received the call, enriching the dispatch workflow without touching the call handling or CAD infrastructure.
+**NexCort iQ should insert at the AI Intelligence Layer** — after the CAD has received the call, enriching the dispatch workflow without touching the call handling or CAD infrastructure.
 
 ---
 
@@ -1027,7 +1027,7 @@ FCC NG911 Standard Architecture (public reference):
 
 *NP = not publicly documented | INF = inferred | ✅ = confirmed*
 
-**Rapid Cortex security minimum requirements (based on competitor landscape):**
+**NexCort iQ security minimum requirements (based on competitor landscape):**
 - AWS GovCloud deployment (the de facto PSAP standard)
 - CJIS Security Policy compliance (mandatory for any CJI access)
 - Encryption at rest and in transit
@@ -1038,13 +1038,13 @@ FCC NG911 Standard Architecture (public reference):
 
 ---
 
-## 7. Recommended Architecture for Rapid Cortex
+## 7. Recommended Architecture for NexCort iQ
 
 ### Architecture Philosophy
 
 > **"We enhance CAD, not replace it."**
 
-Rapid Cortex should be architected as a **vendor-neutral AI intelligence layer** that integrates with any existing CAD system via lightweight API connectors, audio capture integration, and webhook-based event triggers. The system should be deployable in under 2 weeks for a PSAP of any size, require no hardware, and deliver measurable value on day one.
+NexCort iQ should be architected as a **vendor-neutral AI intelligence layer** that integrates with any existing CAD system via lightweight API connectors, audio capture integration, and webhook-based event triggers. The system should be deployable in under 2 weeks for a PSAP of any size, require no hardware, and deliver measurable value on day one.
 
 ### Recommended High-Level Architecture
 
@@ -1064,7 +1064,7 @@ Rapid Cortex should be architected as a **vendor-neutral AI intelligence layer**
           │                            │
           ▼                            ▼
 ╔══════════════════════════════════════════════════════════════════╗
-║              RAPID CORTEX INTELLIGENCE PLATFORM                  ║
+║              NEXCORT IQ INTELLIGENCE PLATFORM                  ║
 ║              (AWS GovCloud — CJIS Compliant SaaS)                ║
 ║                                                                  ║
 ║  ┌─────────────────────────────────────────────────────────┐    ║
@@ -1109,7 +1109,7 @@ Rapid Cortex should be architected as a **vendor-neutral AI intelligence layer**
 
 ### Integration Connector Strategy
 
-Rapid Cortex should build and maintain certified connectors for the top 5 CAD platforms by market share:
+NexCort iQ should build and maintain certified connectors for the top 5 CAD platforms by market share:
 
 | Priority | CAD Vendor | Integration Method | Market Justification |
 |---|---|---|---|
@@ -1123,7 +1123,7 @@ Rapid Cortex should build and maintain certified connectors for the top 5 CAD pl
 
 ```
 T+0s  Call received at PSAP
-T+1s  Audio tap established → Rapid Cortex ingestion
+T+1s  Audio tap established → NexCort iQ ingestion
 T+3s  Transcription begins in real time (rolling transcript)
 T+5s  Language detected; translation activated if non-English
 T+8s  First entity extraction: location, call type
@@ -1140,13 +1140,13 @@ T+90s QA score generated; flagged for supervisor review if threshold met
 
 ### Core Positioning
 
-> **Rapid Cortex is the neutral AI intelligence layer for 911. We work alongside any CAD system your agency already uses — enhancing every call with real-time transcription, translation, summaries, and QA — without requiring you to replace anything.**
+> **NexCort iQ is the neutral AI intelligence layer for 911. We work alongside any CAD system your agency already uses — enhancing every call with real-time transcription, translation, summaries, and QA — without requiring you to replace anything.**
 
 ### The Competitive Moat: Vendor Neutrality
 
 Every major competitor is building a walled garden:
 
-| Competitor | Lock-in | Rapid Cortex Response |
+| Competitor | Lock-in | NexCort iQ Response |
 |---|---|---|
 | Axon (Prepared + Carbyne + Fusus) | Requires Axon CAD, body cams, drones, Evidence | "Works with any CAD, any camera, any evidence system" |
 | Motorola CommandCentral | Best with Motorola radios + CAD + cameras | "Enhances Motorola agencies with AI they don't yet have" |
@@ -1156,7 +1156,7 @@ Every major competitor is building a walled garden:
 
 ### Differentiation Summary
 
-| Dimension | Rapid Cortex | Nearest Competitor |
+| Dimension | NexCort iQ | Nearest Competitor |
 |---|---|---|
 | Vendor neutrality | ✅ Works with all major CADs | ❌ All major AI players are Axon-aligned |
 | CAD replacement required | ❌ Never | ✅ Carbyne/Prepared require Axon ecosystem |
@@ -1171,7 +1171,7 @@ Every major competitor is building a walled garden:
 
 ## 9. Pilot-Ready Feature Priorities
 
-Based on competitive gaps and minimum viable PSAP value, the following features are recommended for Rapid Cortex's pilot release:
+Based on competitive gaps and minimum viable PSAP value, the following features are recommended for NexCort iQ's pilot release:
 
 ### Phase 1 — Pilot (0–6 months)
 
@@ -1205,7 +1205,7 @@ These are the minimum features needed to demonstrate value and win agency trust:
 
 ### Agency Size Segmentation
 
-| Segment | Seats | Current Vendor | Rapid Cortex Entry | Annual Value |
+| Segment | Seats | Current Vendor | NexCort iQ Entry | Annual Value |
 |---|---|---|---|---|
 | Small PSAP | 1–10 | Tyler (on-prem), legacy CAD | SaaS overlay, no IT required | $12K–$36K |
 | Mid-size PSAP | 10–50 | CentralSquare, Tyler, Motorola | CAD connector + AI layer | $36K–$150K |
@@ -1214,7 +1214,7 @@ These are the minimum features needed to demonstrate value and win agency trust:
 
 ### Statewide Deployment Strategy
 
-The most defensible position for Rapid Cortex is statewide contracts — following CentralSquare's "Cloud 1000" and RapidSOS's approach of working directly with state-level NG911 coordinators:
+The most defensible position for NexCort iQ is statewide contracts — following CentralSquare's "Cloud 1000" and RapidSOS's approach of working directly with state-level NG911 coordinators:
 
 ```
 STATEWIDE DEPLOYMENT MODEL
@@ -1223,19 +1223,19 @@ State NG911 Program Office
         |
         | (Master contract / SLERP grant alignment)
         v
-[Rapid Cortex Statewide License]
+[NexCort iQ Statewide License]
         |
-        |-- County PSAP 1 (Tyler CAD) ─── Rapid Cortex connector
-        |-- County PSAP 2 (CentralSquare) ── Rapid Cortex connector
-        |-- County PSAP 3 (Motorola) ────── Rapid Cortex connector
-        |-- State Police Dispatch ───────── Rapid Cortex connector
+        |-- County PSAP 1 (Tyler CAD) ─── NexCort iQ connector
+        |-- County PSAP 2 (CentralSquare) ── NexCort iQ connector
+        |-- County PSAP 3 (Motorola) ────── NexCort iQ connector
+        |-- State Police Dispatch ───────── NexCort iQ connector
         |
         |-- Statewide QA Dashboard (state oversight)
         |-- Cross-agency incident timeline analytics
         |-- Annual compliance reporting
 ```
 
-**Grant alignment:** Target SLERP (State and Local Emergency Response Planning) grants and NG911 implementation funding. FCC mandated NG911 transition creates grant availability that Rapid Cortex should align with.
+**Grant alignment:** Target SLERP (State and Local Emergency Response Planning) grants and NG911 implementation funding. FCC mandated NG911 transition creates grant availability that NexCort iQ should align with.
 
 ### Enterprise Roadmap Phases
 
@@ -1252,27 +1252,27 @@ State NG911 Program Office
 
 ### Against Axon/Prepared
 
-> "Prepared is a great product — but it's only available if you buy the entire Axon ecosystem: Axon CAD, Axon body cameras, Axon Evidence. If you're a CentralSquare shop or a Tyler shop, you can't get it. Rapid Cortex gives you everything Prepared offers — real-time transcription, translation, AI summaries, QA — and it works with the CAD you already have."
+> "Prepared is a great product — but it's only available if you buy the entire Axon ecosystem: Axon CAD, Axon body cameras, Axon Evidence. If you're a CentralSquare shop or a Tyler shop, you can't get it. NexCort iQ gives you everything Prepared offers — real-time transcription, translation, AI summaries, QA — and it works with the CAD you already have."
 
 ### Against Motorola CommandCentral
 
-> "Motorola's transcription is a cloud add-on bolted onto a legacy system. It's not real-time intelligence — it's post-call analysis stored in Vault. Rapid Cortex provides in-call AI summary, in-call translation, and AI-driven QA that your supervisors can actually use to coach their teams. And it works alongside your CommandCentral investment, not instead of it."
+> "Motorola's transcription is a cloud add-on bolted onto a legacy system. It's not real-time intelligence — it's post-call analysis stored in Vault. NexCort iQ provides in-call AI summary, in-call translation, and AI-driven QA that your supervisors can actually use to coach their teams. And it works alongside your CommandCentral investment, not instead of it."
 
 ### Against CentralSquare
 
-> "CentralSquare had Prepared as a reseller relationship, but now that Axon owns Prepared, that relationship is uncertain. Rapid Cortex is the vendor-neutral AI intelligence layer that CentralSquare agencies have been waiting for — natively integrated with your CAD, no new CAD required."
+> "CentralSquare had Prepared as a reseller relationship, but now that Axon owns Prepared, that relationship is uncertain. NexCort iQ is the vendor-neutral AI intelligence layer that CentralSquare agencies have been waiting for — natively integrated with your CAD, no new CAD required."
 
 ### Against Tyler Technologies
 
-> "Tyler is an amazing CAD platform — and we have no intention of replacing it. Rapid Cortex is the AI layer your Tyler system has never had: real-time transcription, translation in 70+ languages, AI summaries that auto-populate your CAD fields, and a supervisor QA dashboard that finally shows you what's happening in your call center. Day one value. No migration."
+> "Tyler is an amazing CAD platform — and we have no intention of replacing it. NexCort iQ is the AI layer your Tyler system has never had: real-time transcription, translation in 70+ languages, AI summaries that auto-populate your CAD fields, and a supervisor QA dashboard that finally shows you what's happening in your call center. Day one value. No migration."
 
 ### Against RapidSOS
 
-> "RapidSOS gets data to you faster. Rapid Cortex makes sense of it. RapidSOS tells you where the caller is. Rapid Cortex tells you what they're saying, what the emergency is, what language they're speaking, and writes the CAD narrative for your dispatcher. We're additive — we're better together."
+> "RapidSOS gets data to you faster. NexCort iQ makes sense of it. RapidSOS tells you where the caller is. NexCort iQ tells you what they're saying, what the emergency is, what language they're speaking, and writes the CAD narrative for your dispatcher. We're additive — we're better together."
 
 ### Universal "We Enhance CAD" Framing
 
-> "You spent years getting your CAD configured exactly the way your agency needs it. You trained your staff. You built your workflows. We're not here to change that. Rapid Cortex sits alongside your CAD, listens to every call, and makes your dispatchers faster, your supervisors more informed, and your call takers less burned out. We enhance CAD — we don't replace it."
+> "You spent years getting your CAD configured exactly the way your agency needs it. You trained your staff. You built your workflows. We're not here to change that. NexCort iQ sits alongside your CAD, listens to every call, and makes your dispatchers faster, your supervisors more informed, and your call takers less burned out. We enhance CAD — we don't replace it."
 
 ---
 
@@ -1317,4 +1317,4 @@ All sources are publicly available as of April 2026.
 
 *End of Report*
 
-> **PUBLIC-SOURCE DISCLAIMER (REPEATED):** All information in this report was sourced from publicly available materials as of April 2026, including vendor websites, press releases, cloud partner blogs, and industry publications. No proprietary or confidential information was accessed. Statements labeled [INFERRED] are logical deductions and have not been confirmed by the respective vendors. This report is intended solely for internal strategic planning by Rapid Cortex personnel.
+> **PUBLIC-SOURCE DISCLAIMER (REPEATED):** All information in this report was sourced from publicly available materials as of April 2026, including vendor websites, press releases, cloud partner blogs, and industry publications. No proprietary or confidential information was accessed. Statements labeled [INFERRED] are logical deductions and have not been confirmed by the respective vendors. This report is intended solely for internal strategic planning by NexCort iQ personnel.

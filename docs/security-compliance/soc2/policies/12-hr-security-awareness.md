@@ -13,7 +13,7 @@
 
 ## 1. Screening
 
-Personnel with production AWS or Restricted operational data access complete screening commensurate with their role (criminal background as required by contract/CJIS **agency** programs). Rapid Cortex does not assert CJIS personnel certification for customers.
+Personnel with production AWS or Restricted operational data access complete screening commensurate with their role (criminal background as required by contract/CJIS **agency** programs). NexCort iQ does not assert CJIS personnel certification for customers.
 
 ## 2. Training
 

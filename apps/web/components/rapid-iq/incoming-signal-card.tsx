@@ -95,7 +95,7 @@ function localTalkingPoints(signal: RapidIqPipelineSignal): string[] {
   }
   if (signal.competitorName) {
     const product = signal.competitorProduct ? ` ${signal.competitorProduct}` : "";
-    points.push(`Position Rapid Cortex against ${signal.competitorName}${product}.`);
+    points.push(`Position NexCort iQ against ${signal.competitorName}${product}.`);
   }
   return points.slice(0, 4);
 }

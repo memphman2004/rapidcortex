@@ -7,7 +7,7 @@ export function PricingFinalCta() {
       aria-labelledby="pricing-final-heading"
     >
       <h2 id="pricing-final-heading" className="text-balance text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-        Ready to see Rapid Cortex in action?
+        Ready to see NexCort iQ in action?
       </h2>
       <p className="mx-auto mt-4 max-w-2xl text-pretty text-sm leading-relaxed text-slate-400 sm:text-base">
         Schedule a tailored walkthrough to explore the right deployment for your agency, center, or

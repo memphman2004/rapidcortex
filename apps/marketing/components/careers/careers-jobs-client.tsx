@@ -217,8 +217,8 @@ function JobDetail({
         </p>
         <p className="max-w-md text-sm text-slate-500">
           Questions:{" "}
-          <a href="mailto:careers@rapidcortex.us" className="text-sky-400 hover:text-sky-300">
-            careers@rapidcortex.us
+          <a href="mailto:careers@nexcortiq.us" className="text-sky-400 hover:text-sky-300">
+            careers@nexcortiq.us
           </a>
         </p>
         <button
@@ -272,7 +272,7 @@ function JobDetail({
             Easy Apply
           </button>
           <a
-            href="mailto:careers@rapidcortex.us"
+            href="mailto:careers@nexcortiq.us"
             className="rounded-full border border-slate-600 px-5 py-2.5 text-sm font-medium text-slate-200 hover:border-slate-400"
           >
             Save for later
@@ -321,13 +321,13 @@ function JobDetail({
         </ul>
 
         <div className="mt-8 border-t border-slate-800 pt-5 text-sm text-slate-500">
-          Apps on Demand LLC d/b/a Rapid Cortex ·{" "}
+          Apps on Demand LLC d/b/a NexCort iQ ·{" "}
           <Link href="/privacy" className="text-sky-400 hover:text-sky-300">
             Privacy policy
           </Link>{" "}
           ·{" "}
-          <a href="mailto:careers@rapidcortex.us" className="text-sky-400 hover:text-sky-300">
-            careers@rapidcortex.us
+          <a href="mailto:careers@nexcortiq.us" className="text-sky-400 hover:text-sky-300">
+            careers@nexcortiq.us
           </a>
         </div>
       </section>
@@ -448,7 +448,7 @@ function JobDetail({
               <Field
                 label="Why are you a great fit?"
                 required
-                hint="2–4 sentences about your experience and interest in Rapid Cortex."
+                hint="2–4 sentences about your experience and interest in NexCort iQ."
               >
                 <textarea
                   className={`${inputCls} min-h-[120px] resize-y`}
@@ -503,7 +503,7 @@ function JobDetail({
               </Field>
 
               <p className="text-xs leading-relaxed text-slate-500">
-                By submitting, you agree Rapid Cortex (Apps on Demand LLC) may use your information to
+                By submitting, you agree NexCort iQ (Apps on Demand LLC) may use your information to
                 evaluate your candidacy. See our{" "}
                 <Link href="/privacy" className="text-sky-400 hover:text-sky-300">
                   Privacy policy
@@ -583,15 +583,15 @@ export function CareersJobsClient() {
       <header className="mb-8 max-w-2xl">
         <p className="text-xs font-semibold uppercase tracking-wider text-sky-400">Careers</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-          Jobs at Rapid Cortex
+          Jobs at NexCort iQ
         </h1>
         <p className="mt-3 text-sm text-slate-400">
           {loading
             ? "Loading open roles…"
             : `${roles.length} open ${roles.length === 1 ? "role" : "roles"}`}{" "}
-          · Apps on Demand LLC d/b/a Rapid Cortex ·{" "}
-          <a href="mailto:careers@rapidcortex.us" className="text-sky-400 hover:text-sky-300">
-            careers@rapidcortex.us
+          · Apps on Demand LLC d/b/a NexCort iQ ·{" "}
+          <a href="mailto:careers@nexcortiq.us" className="text-sky-400 hover:text-sky-300">
+            careers@nexcortiq.us
           </a>
         </p>
       </header>

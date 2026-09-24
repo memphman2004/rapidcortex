@@ -23,7 +23,7 @@ export const hexagonCadParser: CadParser = {
       `X-RC-Token: …${tp}`,
       "Optional integrity: X-RC-Signature: sha256=<hex> (HMAC-SHA256 of raw body, key=plaintext token).",
       "",
-      "Send JSON or XML incident updates; Rapid Cortex accepts Motorola-style fields",
+      "Send JSON or XML incident updates; NexCort iQ accepts Motorola-style fields",
       "(IncidentNumber, NatureCode, Location, Priority, Units) or vendor-specific keys.",
     ].join("\n");
   },

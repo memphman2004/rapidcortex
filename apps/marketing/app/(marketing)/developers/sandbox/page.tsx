@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
 
-export const metadata = { title: "RC Lite — Sandbox" };
+export const metadata = { title: "NexCort Lite — Sandbox" };
 
 export default function DevelopersSandboxPage() {
   return (

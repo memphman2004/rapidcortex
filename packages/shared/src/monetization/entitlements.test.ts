@@ -40,7 +40,7 @@ describe("resolveFeatureEntitlements", () => {
     expect(s.has("api_portal_access")).toBe(true);
   });
 
-  it("RC Lite is API-product only — excludes dashboard_access and ECC consoles", () => {
+  it("NexCort Lite is API-product only — excludes dashboard_access and ECC consoles", () => {
     const input = { planId: "rc_lite", addOnIds: [] as string[] };
     const s = resolveFeatureEntitlements(input);
     expect(s.has("dashboard_access")).toBe(false);
@@ -57,7 +57,7 @@ describe("resolveFeatureEntitlements", () => {
     expect(cadExportApiEntitled(input)).toBe(true);
   });
 
-  it("maps legacy intelligence_api plan id to RC Lite entitlements", () => {
+  it("maps legacy intelligence_api plan id to NexCort Lite entitlements", () => {
     const s = resolveFeatureEntitlements({
       planId: "intelligence_api",
       addOnIds: [],
@@ -66,7 +66,7 @@ describe("resolveFeatureEntitlements", () => {
     expect(s.has("dispatcher_dashboard")).toBe(false);
   });
 
-  it("supports featureOverrides merged like RC Admin catalog tooling", () => {
+  it("supports featureOverrides merged like NexCort Admin catalog tooling", () => {
     const s = resolveFeatureEntitlements({
       planId: "essential",
       addOnIds: [],
@@ -75,7 +75,7 @@ describe("resolveFeatureEntitlements", () => {
     expect(s.has("qa_dashboard")).toBe(true);
   });
 
-  it("RC Lite connects to external API metering — billing keyed off tenant + hashed API credentials", () => {
+  it("NexCort Lite connects to external API metering — billing keyed off tenant + hashed API credentials", () => {
     expect(featureEntitled({ planId: "rc_lite", addOnIds: [] }, "api_access")).toBe(true);
   });
 });

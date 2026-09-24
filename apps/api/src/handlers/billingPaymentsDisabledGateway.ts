@@ -3,7 +3,7 @@ import { jsonStatus } from "../lib/response.js";
 
 const BODY = {
   error: "payments_disabled",
-  message: "Rapid Cortex payments are handled through agency procurement workflows.",
+  message: "NexCort iQ payments are handled through agency procurement workflows.",
 } as const;
 
 /**

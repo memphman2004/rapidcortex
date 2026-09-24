@@ -1,4 +1,4 @@
-/** RC Lite OAuth/API key scopes — enforce per route alongside tenant isolation. */
+/** NexCort Lite OAuth/API key scopes — enforce per route alongside tenant isolation. */
 export const RC_LITE_API_SCOPES = [
   "intelligence:write",
   "cad:write",

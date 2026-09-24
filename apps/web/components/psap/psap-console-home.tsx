@@ -984,7 +984,7 @@ function PsapConsoleHomeInner({
                     lineHeight: 1,
                   }}
                 >
-                  RAPID <span style={{ color: C.blue }}>CORTEX</span>
+                  NexCort <span style={{ color: C.blue }}>iQ</span>
                 </div>
                 <div
                   style={{
@@ -995,7 +995,7 @@ function PsapConsoleHomeInner({
                     marginTop: 2,
                   }}
                 >
-                  9-1-1
+                  911
                 </div>
               </div>
             </div>
@@ -1336,7 +1336,7 @@ function PsapConsoleHomeInner({
                   />
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>
-                      Rapid Cortex Network
+                      NexCort iQ Network
                     </div>
                     <div style={{ fontSize: 10, color: C.green }}>All Systems Operational</div>
                   </div>
@@ -2230,7 +2230,7 @@ function PsapConsoleHomeInner({
                         link: "View Training",
                         color: C.purple,
                         rgb: "139,92,246",
-                        href: "mailto:support@rapidcortex.us?subject=RC%20911%20training",
+                        href: "mailto:support@nexcortiq.us?subject=RC%20911%20training",
                       },
                     ] as const
                   ).map((u) => {

@@ -4,7 +4,7 @@ import {
   TRIAGE_SOURCE_CITATION_INSTRUCTION,
 } from "../../ai/anti-hallucination-prompt.js";
 
-export const TRIAGE_SYSTEM_PROMPT = `You are a 911 dispatch triage assistant for the Rapid Cortex platform.
+export const TRIAGE_SYSTEM_PROMPT = `You are a 911 dispatch triage assistant for the NexCort iQ platform.
 Your job is to classify an in-progress emergency call transcript as EMERGENCY, NON_EMERGENCY, or UNCERTAIN.
 
 ${ANTI_HALLUCINATION_CONSTRAINTS}

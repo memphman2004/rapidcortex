@@ -1,26 +1,29 @@
 # Cameras, Camera AI, and video wall (Campus)
 
-Cameras are for **awareness**. Rapid Cortex Camera AI **never creates an incident and never dispatches units**.
+Cameras are for **awareness**. They do not notify the PSAP and they do not prove that 911 was called.
+
+**Camera AI never creates an incident and never dispatches units.** An alert is a tip. A person decides whether to create a campus incident or call 911.
 
 Faculty and counselors do not have camera navigation. If you do not see **Cameras**, your role is not supposed to.
 
 ## Cameras
 
-1. Open **Cameras** from the campus navigation.
-2. Select a camera by building or zone when the registry is populated.
-3. Use live view only for the incident or patrol you are working.
-4. Do not treat a camera picture as proof that 911 was notified.
+1. Open **Cameras**.
+2. Select a camera by building or zone when the registry has those tags.
+3. Use live view for the incident or patrol you are already working.
+4. If the camera is offline or pointed at the wrong door, say so in the incident note. Do not wait on the picture during an in-progress emergency.
 
 ## Camera AI
 
-1. Open **Camera AI** (labeled Camera AI / Vision AI in the nav).
-2. Read proactive alerts as **tips**, not automatic tickets.
-3. If an alert matches a real campus event, create or update a **campus incident** yourself, or call 911 if it is an emergency.
+1. Open **Camera AI** (also labeled Vision AI in some navigation).
+2. Read alerts as tips, not automatic tickets.
+3. If the alert matches a real campus event, create or update a **campus incident** yourself, or call 911 if it is an emergency.
+4. If you cannot confirm it, write that. Do not close an emergency because the alert cleared.
 
 ## Video wall
 
-**Video Wall** shows multiple campus cameras on one screen when Rapid Cortex Video is enabled. Use it for events, weather, or a known incident. It is not a 911 video assist workspace.
+**Video Wall** shows several campus cameras when video is enabled for this tenant. Use it for a known incident, an event, or weather. It is not a 911 caller-video workspace.
 
-## If a camera is missing or wrong
+## Tie a camera to a posted code
 
-Admins and supervisors assign cameras to QR locations so a scan can open the right views. See **Assign cameras** in **Update QR codes and NFC tags**. Registry and vendor linking (for example Ring) follow your campus IT playbook — not this Staff Guide’s 911 Help counterpart.
+Admins and supervisors assign cameras on a QR location so a scan opens the views for that building or floor. See **Update QR codes and NFC tags**. Linking a vendor camera (for example a campus camera system) follows campus IT’s registry steps, not the 911 Help tab.
