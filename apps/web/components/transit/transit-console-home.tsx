@@ -26,7 +26,7 @@ import {
 import { CreateTransitIncidentModal, TransitBroadcastModal } from "./transit-ops-modals";
 import { useTransitOpsData } from "./use-transit-ops-data";
 import { T } from "./transit-theme";
-import { StaffGuideView } from "@/components/staff-guide/staff-guide-view";
+import { StaffGuidePortal } from "@/components/staff-guide/staff-guide-portal";
 import { QRNFCManager } from "@/components/qr-nfc/qr-nfc-manager";
 import { TransitUsersClient } from "./transit-users-client";
 import { VideoWallClient } from "@/components/video/video-wall-client";
@@ -40,6 +40,7 @@ export function TransitConsoleHome(props: {
   userEmail: string;
   userRole: string;
   userId: string;
+  staffGuideArticles: Record<string, string>;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -102,11 +103,14 @@ export function TransitConsoleHome(props: {
           Not a 911 PSAP console. Transit operations only.
         </p>
         {view === "staff-guide" ? (
-          <StaffGuideView
-            vertical="transit"
-            role={props.userRole}
-            basePath={`${linkBase}/staff-guide`}
-          />
+          <Suspense fallback={<p style={{ color: T.textSecondary, fontSize: 13 }}>Loading staff guide…</p>}>
+            <StaffGuidePortal
+              vertical="transit"
+              role={props.userRole}
+              basePath={`${linkBase}/staff-guide`}
+              articles={props.staffGuideArticles}
+            />
+          </Suspense>
         ) : view === "qr-codes" ? (
           canSupervisor ? (
             <QRNFCManager

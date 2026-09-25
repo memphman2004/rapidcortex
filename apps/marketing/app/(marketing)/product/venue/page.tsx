@@ -80,7 +80,7 @@ export default function ProductVenuePage() {
               </p>
               <div className="flex flex-wrap justify-start gap-3 pt-1">
                 <Link
-                  href="https://www.rapidcortex.us/contact-sales?interest=demo"
+                  href="https://www.nexcortiq.us/contact-sales?interest=demo"
                   className="inline-flex min-h-12 items-center justify-center rounded-lg bg-orange-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-950/40 hover:bg-orange-500"
                 >
                   Talk to Venue Sales

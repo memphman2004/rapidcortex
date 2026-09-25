@@ -115,6 +115,28 @@ const ACCOUNTS: TestRow[] = [
     disableMfa: true,
   },
   {
+    /**
+     * Canonical App Store Connect demo account (Guideline 2.1).
+     * Sign-In Information: appreviewer@rapidcortex.us — keep MFA cleared between devices.
+     * Switch ASC to appreviewer@nexcortiq.us only when we cut the review mailbox to that domain.
+     */
+    email: "appreviewer@rapidcortex.us",
+    customRole: "venue_admin",
+    agencyId: "test-venue-mbs",
+    cognitoGroup: "venue_admin",
+    agencyVertical: "venue",
+    disableMfa: true,
+  },
+  {
+    /** Alias only — not the ASC Sign-In Information username. Same silent-MFA path as .us. */
+    email: "appreviewer@rapidcortex.ai",
+    customRole: "venue_admin",
+    agencyId: "test-venue-mbs",
+    cognitoGroup: "venue_admin",
+    agencyVertical: "venue",
+    disableMfa: true,
+  },
+  {
     email: "campus-admin@appsondemand.net",
     customRole: "campus_admin",
     agencyId: "test-campus-uga",

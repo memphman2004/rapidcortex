@@ -26,7 +26,7 @@ export function SiteLogoMark({
   return (
     <Image
       src={SITE_LOGO_PATH}
-      alt={SITE_NAME}
+      alt={`${SITE_NAME} logo`}
       width={SITE_LOGO_WIDTH}
       height={SITE_LOGO_HEIGHT}
       priority={priority}
@@ -68,7 +68,7 @@ export function SiteSquareMark({
     >
       <Image
         src={SITE_SQUARE_ICON_PATH}
-        alt={SITE_NAME}
+        alt={`${SITE_NAME} logo`}
         width={SITE_SQUARE_ICON_WIDTH}
         height={SITE_SQUARE_ICON_HEIGHT}
         priority={priority}

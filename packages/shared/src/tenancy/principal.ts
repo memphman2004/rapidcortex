@@ -36,6 +36,12 @@ export function canAccessRcFinancePortal(role: UserRole | string): boolean {
   return e === "rcadmin" || e === "rcsuperadmin" || e === "rcitadmin";
 }
 
+/** Leads CRM — RC finance operators plus sales contractors (portal Pipeline tab). */
+export function canAccessSalesLeadsCrm(role: UserRole | string): boolean {
+  const e = effective(role);
+  return canAccessRcFinancePortal(e) || e === "salescontractor";
+}
+
 /** Revenue / MRR totals — rcsuperadmin only (Role Access Matrix v2). */
 export function canAccessRcRevenuePortal(role: UserRole | string): boolean {
   return effective(role) === "rcsuperadmin";

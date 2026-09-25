@@ -170,6 +170,7 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       id: "sales-crm",
       label: "SALES & CRM",
       items: [
+        { id: "sales-portal", label: "Sales Portal", href: "/sales", icon: "Briefcase" },
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
         { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
         { id: "contacts", label: "Contacts", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
@@ -287,6 +288,20 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
   ],
 };
 
+export const SALES_CONTRACTOR_NAV: RoleNav = {
+  accent: "sky",
+  roleBadge: "SALES",
+  sections: [
+    {
+      id: "home",
+      label: "SALES PORTAL",
+      items: [
+        { id: "sales-home", label: "Sales Portal", href: "/sales", icon: "Briefcase", exact: true },
+      ],
+    },
+  ],
+};
+
 export const RC_ADMIN_NAV: RoleNav = {
   accent: "violet",
   roleBadge: "RC ADMIN",
@@ -330,6 +345,7 @@ export const RC_ADMIN_NAV: RoleNav = {
       id: "sales-crm",
       label: "SALES & CRM",
       items: [
+        { id: "sales-portal", label: "Sales Portal", href: "/sales", icon: "Briefcase" },
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
         { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
         { id: "contacts", label: "Contacts", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
@@ -1816,6 +1832,7 @@ export function getRoleNav(role: string, ctx: NavContext): RoleNav {
     case "rcsuperadmin":        return RC_SUPERADMIN_NAV;
     case "rcadmin":             return RC_ADMIN_NAV;
     case "rcitadmin":           return RC_IT_ADMIN_NAV;
+    case "salescontractor":     return SALES_CONTRACTOR_NAV;
     // PSAP
     case "dispatcher":          return getDispatcherNav(j);
     case "supervisor":          return getSupervisorNav(j);

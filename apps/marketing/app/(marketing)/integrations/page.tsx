@@ -140,7 +140,7 @@ export default function IntegrationsLandingPage() {
         </p>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row">
           <Link
-            href="https://www.rapidcortex.us/contact-sales?interest=demo"
+            href="https://www.nexcortiq.us/contact-sales?interest=demo"
             className="inline-flex min-h-11 items-center justify-center rounded-md bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-500"
           >
             Talk to integrations

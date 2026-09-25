@@ -660,8 +660,9 @@ Resources:
       Name: !Sub rapidcortex/${DeploymentStage}/multilingual/google-service-account
       Description: >-
         Full Google Cloud service account JSON for Speech + Translate. Replace entire SecretString after deploy
-        (GCP console → IAM → Service accounts → Keys → JSON).
-      SecretString: '{"type":"service_account","project_id":"REPLACE_ME","private_key_id":"REPLACE","private_key":"-----BEGIN PRIVATE KEY-----\\nREPLACE\\n-----END PRIVATE KEY-----\\n","client_email":"replace-me@project.iam.gserviceaccount.com"}'
+        (GCP console → IAM → Service accounts → Keys → JSON). Placeholder only — not a real private key.
+      # Intentionally avoids PEM BEGIN markers so secret scanners do not false-positive on this archive template.
+      SecretString: '{"type":"service_account","project_id":"REPLACE_ME","private_key_id":"REPLACE","private_key":"<GCP_SERVICE_ACCOUNT_PRIVATE_KEY_PEM_PLACEHOLDER>","client_email":"replace-me@project.iam.gserviceaccount.com"}'
 
   BillingPaymentInstructionsSecret:
     Type: AWS::SecretsManager::Secret

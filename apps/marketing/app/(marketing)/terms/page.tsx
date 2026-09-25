@@ -110,7 +110,7 @@ export default function TermsOfUsePage() {
         <p>
           <strong className="font-medium text-slate-200">Program name:</strong> NexCort iQ SMS
           (including NexiQ Vision™), operated by {SITE_OPERATOR_NAME} LLC d/b/a {SITE_NAME} (
-          <a href="https://www.rapidcortex.us">https://www.rapidcortex.us</a>).
+          <a href="https://www.nexcortiq.us">https://www.nexcortiq.us</a>).
         </p>
         <p>
           <strong className="font-medium text-slate-200">Program description:</strong> {SITE_NAME}{" "}
@@ -138,7 +138,7 @@ export default function TermsOfUsePage() {
           <strong>STOP</strong> to opt out of further SMS from this program. Reply <strong>HELP</strong>{" "}
           for help. Opting out of SMS does not cancel 911 voice service or other non-SMS emergency
           channels. Additional consent and disclosure details are published at{" "}
-          <Link href="/sms-consent">https://www.rapidcortex.us/sms-consent</Link>. Mobile numbers and SMS
+          <Link href="/sms-consent">https://www.nexcortiq.us/sms-consent</Link>. Mobile numbers and SMS
           consent are handled as described in our <Link href="/privacy">Privacy policy</Link>.
         </p>
         <p>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { canAccessRcFinancePortal } from "rapid-cortex-shared";
+import { canAccessSalesLeadsCrm } from "rapid-cortex-shared";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { isSalesLeadsUiEnabled } from "@/lib/runtime-flags";
 import { proxyToAuthUpstream } from "@/lib/server/auth-upstream-proxy";
@@ -8,7 +8,7 @@ type Ctx = { params: Promise<{ leadId: string }> };
 
 export async function PATCH(request: NextRequest, context: Ctx) {
   const user = await getDashboardSessionUser();
-  if (!user || !canAccessRcFinancePortal(user.role) || !isSalesLeadsUiEnabled()) {
+  if (!user || !canAccessSalesLeadsCrm(user.role) || !isSalesLeadsUiEnabled()) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const { leadId } = await context.params;

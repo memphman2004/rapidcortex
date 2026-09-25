@@ -51,7 +51,10 @@ export function marketingHomePath(): string {
 export function marketingSiteOrigin(): string {
   const explicit = process.env.NEXT_PUBLIC_MARKETING_SITE_URL?.trim().replace(/\/$/, "");
   if (explicit) return explicit;
-  return "https://www.rapidcortex.us";
+  const fromSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
+  // App host (app.*) is not the marketing origin.
+  if (fromSiteUrl && !fromSiteUrl.includes("://app.")) return fromSiteUrl;
+  return "https://www.nexcortiq.us";
 }
 
 /** Google Nest™ Connect — agency + citizen consent camera overview.
@@ -197,7 +200,7 @@ export function marketingAcceptableUsePath(): string {
   return "/acceptable-use";
 }
 
-/** Public SMS consent disclosure (marketing host: rapidcortex.us / www). */
+/** Public SMS consent disclosure (marketing host: nexcortiq.us / www). */
 export function marketingSmsConsentPath(): string {
   return "/sms-consent";
 }

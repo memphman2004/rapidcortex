@@ -52,13 +52,13 @@ export default function PricingPage() {
               <h3 className="text-base font-semibold text-slate-100">{tier}</h3>
               <nav className="mt-4 flex gap-2">
                 <Link
-                  href="https://www.rapidcortex.us/contact-sales?interest=demo"
+                  href="https://www.nexcortiq.us/contact-sales?interest=demo"
                   className="inline-flex min-h-10 items-center rounded-md bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-500"
                 >
                   Request Demo
                 </Link>
                 <Link
-                  href="https://www.rapidcortex.us/contact-sales?interest=demo"
+                  href="https://www.nexcortiq.us/contact-sales?interest=demo"
                   className="inline-flex min-h-10 items-center rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-100 hover:bg-slate-800"
                 >
                   Contact

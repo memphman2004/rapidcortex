@@ -34,7 +34,9 @@ export function marketingHomePath(): string {
 export function marketingSiteOrigin(): string {
   const explicit = process.env.NEXT_PUBLIC_MARKETING_SITE_URL?.trim().replace(/\/$/, "");
   if (explicit) return explicit;
-  return "https://www.rapidcortex.us";
+  const fromSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
+  if (fromSiteUrl) return fromSiteUrl;
+  return "https://www.nexcortiq.us";
 }
 
 /** Google Nest™ Connect — agency + citizen consent camera overview.

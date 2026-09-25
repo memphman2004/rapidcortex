@@ -36,7 +36,7 @@ function effectiveRole(role: UserRole | string): string {
 
 export function verticalFromRole(role: UserRole | string): RCVertical {
   const r = effectiveRole(role);
-  if (r.startsWith("rc")) return "platform";
+  if (r.startsWith("rc") || r === "salescontractor") return "platform";
   if (r.startsWith("campus_")) return "campus";
   if (r.startsWith("venue_")) return "venue";
   if (r.startsWith("hospital_") || r === "hospitaladmin" || r === "hospitalstaff") return "hospital";
@@ -77,6 +77,8 @@ export function dashboardRouteFromRole(role: UserRole | string, agencyId: string
     case "rcadmin":
     case "rcitadmin":
       return "/rc-admin";
+    case "salescontractor":
+      return "/sales";
     case "agencyadmin":
       return `/${jurisdiction}/admin`;
     case "agencyit":
@@ -141,7 +143,8 @@ export function dashboardRouteFromRole(role: UserRole | string, agencyId: string
 /** Route prefixes a role may access — used to detect wrong-vertical navigation. */
 export function allowedRoutePrefixesForRole(rawRole: string): string[] {
   const role = effectiveRole(rawRole);
-  if (["rcsuperadmin", "rcadmin", "rcitadmin"].includes(role)) return ["/rc-admin"];
+  if (["rcsuperadmin", "rcadmin", "rcitadmin"].includes(role)) return ["/rc-admin", "/sales"];
+  if (role === "salescontractor") return ["/sales"];
   if (role === "staff") return ["/not-authorized"];
   if (role.startsWith("campus_")) return ["/app/campus"];
   if (role.startsWith("venue_")) return ["/app/venue", "/venue"];
@@ -164,7 +167,16 @@ export function pathMatchesRoleDashboard(
   const home = dashboardRouteFromRole(role, agencyId);
 
   if (vertical === "platform") {
-    return path === "/rc-admin" || path.startsWith("/rc-admin/");
+    const roleToken = effectiveRole(role);
+    if (roleToken === "salescontractor") {
+      return path === "/sales" || path.startsWith("/sales/");
+    }
+    return (
+      path === "/rc-admin" ||
+      path.startsWith("/rc-admin/") ||
+      path === "/sales" ||
+      path.startsWith("/sales/")
+    );
   }
 
   if (vertical === "911") {

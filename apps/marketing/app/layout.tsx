@@ -91,7 +91,7 @@ export default function RootLayout({
     <html lang="en" className={`dark ${inter.variable} min-h-full`}>
       <head>
         <Script id="marketing-splash-gate" strategy="beforeInteractive">
-          {`(function(){try{var p=location.pathname;if(p!=='/'&&p!=='/index.html')return;if(document.cookie.indexOf('cortex_entered=1')!==-1)return;if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))return;var h=location.hostname;if(h!=='rapidcortex.us'&&h!=='www.rapidcortex.us'&&!h.startsWith('localhost'))return;location.replace('/enter');}catch(e){}})();`}
+          {`(function(){try{var p=location.pathname;if(p!=='/'&&p!=='/index.html')return;if(document.cookie.indexOf('cortex_entered=1')!==-1)return;if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))return;var h=location.hostname;if(h!=='nexcortiq.us'&&h!=='www.nexcortiq.us'&&h!=='rapidcortex.us'&&h!=='www.rapidcortex.us'&&!h.startsWith('localhost'))return;location.replace('/enter');}catch(e){}})();`}
         </Script>
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}

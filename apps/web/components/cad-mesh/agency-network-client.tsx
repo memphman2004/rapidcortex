@@ -711,7 +711,7 @@ function PartnerDrawer({
               Partnership invite received
             </div>
             <div style={{ fontSize: '13px', color: '#c9cad3', lineHeight: 1.6, marginBottom: '12px' }}>
-              {relationship.initiatorAgencyName} has invited your agency to join the NexCortiQ CAD intelligence mesh.
+              {relationship.partnerAgencyName} has invited your agency to join the NexCort iQ CAD intelligence mesh.
               By accepting, you agree to the Mutual Aid Data Sharing Agreement (MOU v{MOU_VERSION}).
             </div>
             {relationship.inviteMessage && (
@@ -802,7 +802,9 @@ function DrawerOverview({ relationship }: { relationship: EnrichedRelationship }
           <InfoRow label="Sharing mode" value={policy.sharingMode} />
           <InfoRow label="Priority threshold" value={`P1–P${policy.sharePriorityThreshold}`} />
           <InfoRow label="Incident types" value={
-            policy.shareIncidentTypes.includes('*' as any) ? 'All types' : policy.shareIncidentTypes.join(', ')
+            policy.shareIncidentTypes.length === 1 && policy.shareIncidentTypes[0] === '*'
+              ? 'All types'
+              : policy.shareIncidentTypes.join(', ')
           } />
           <InfoRow label="CAD write-back" value={
             policy.writebackEnabled ? `Enabled (${policy.writebackMode} mode)` : 'Disabled'

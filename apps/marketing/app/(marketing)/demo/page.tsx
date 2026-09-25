@@ -6,7 +6,7 @@ import { marketingDemoPath } from "@/lib/marketing-links";
 import { absoluteUrl, buildPublicPageMetadata } from "@/lib/seo";
 
 const DEMO_PATH = marketingDemoPath();
-const DEMO_CANONICAL = "https://www.rapidcortex.us/demo";
+const DEMO_CANONICAL = absoluteUrl(DEMO_PATH);
 
 export const metadata: Metadata = {
   ...buildPublicPageMetadata({

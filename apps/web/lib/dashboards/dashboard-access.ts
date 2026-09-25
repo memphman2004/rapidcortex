@@ -24,6 +24,7 @@ export const DASHBOARD_PREFIX_BY_ROLE: Record<UserRole, DashboardPrefix | null> 
   rcsuperadmin: "rc-admin",
   rcadmin: "rc-admin",
   rcitadmin: "rc-admin",
+  salescontractor: null,
   agencyadmin: "agency-admin",
   dispatcher: "dispatcher",
   supervisor: "supervisor",

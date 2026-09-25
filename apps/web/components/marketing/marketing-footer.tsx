@@ -27,11 +27,13 @@ import {
   marketingPricingPath,
   marketingPrivacyPath,
   marketingSecurityPath,
+  marketingSiteOrigin,
   marketingSolutionsVendorsPath,
   marketingTermsPath,
   marketingVenuePath,
 } from "@/lib/marketing-links";
 import {
+  SITE_FORMER_NAME,
   SITE_NAME,
   SITE_OPERATOR_NAME,
   SITE_OPERATOR_URL,
@@ -95,6 +97,14 @@ export function MarketingFooter() {
             </p>
             <p className="text-[10px] leading-snug text-slate-600">
               &copy; 2026 {SITE_NAME}. Decision support — not a replacement for CAD, telephony, or medical direction.
+              {" "}
+              <a
+                href={`${marketingSiteOrigin()}/rapid-cortex`}
+                className="text-slate-400 underline-offset-2 hover:text-slate-300 hover:underline"
+              >
+                {SITE_FORMER_NAME} is now {SITE_NAME}
+              </a>
+              .
             </p>
             <p className="text-[10px] leading-snug text-slate-600">
               Built by{" "}

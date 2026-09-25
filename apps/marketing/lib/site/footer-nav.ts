@@ -31,7 +31,7 @@ export const footerNav: FooterNavItem[] = [
   },
   { label: "About", href: "/about" },
   { label: "Careers", href: "/careers" },
-  { label: "Contact", href: "https://www.rapidcortex.us/contact-sales?interest=demo" },
+  { label: "Contact", href: "/contact-sales?interest=demo" },
   { label: "Insights & Resources", href: "/blog" },
   {
     label: "Legal",

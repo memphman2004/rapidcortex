@@ -2,17 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { buildPublicPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  ...buildPublicPageMetadata({
-    title: "How NexCort iQ Venue Works | QR & SMS Venue Safety Reporting",
-    description:
-      "Guests scan a QR code or text a venue code to report incidents. NexCort iQ routes the report to security with location, media, and nearby camera references — and can escalate to 911 dispatch if needed.",
-    path: "/venue/how-it-works",
-  }),
-  alternates: {
-    canonical: "https://www.rapidcortex.us/venue/how-it-works",
-  },
-};
+export const metadata: Metadata = buildPublicPageMetadata({
+  title: "How NexCort iQ Venue Works | QR & SMS Venue Safety Reporting",
+  description:
+    "Guests scan a QR code or text a venue code to report incidents. NexCort iQ routes the report to security with location, media, and nearby camera references — and can escalate to 911 dispatch if needed.",
+  path: "/venue/how-it-works",
+});
 
 const workflowSteps = [
   "Guest scans a QR code posted at their zone or section OR texts their venue code to 723389 (SAFETY)",

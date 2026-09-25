@@ -6107,7 +6107,110 @@
           ]
         }
       }
+    },
+
+    "SalesRoiSessionsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "TableName": { "Fn::Sub": "rapid-cortex-sales-roi-sessions-${DeploymentStage}" },
+        "AttributeDefinitions": [
+          { "AttributeName": "roiToken", "AttributeType": "S" }
+        ],
+        "KeySchema": [
+          { "AttributeName": "roiToken", "KeyType": "HASH" }
+        ],
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        },
+        "Tags": [
+          { "Key": "App", "Value": "rapid-cortex" },
+          { "Key": "Component", "Value": "sales-roi" }
+        ]
+      }
+    },
+    "SalesActivityReportsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "TableName": { "Fn::Sub": "rapid-cortex-sales-activity-reports-${DeploymentStage}" },
+        "AttributeDefinitions": [
+          { "AttributeName": "contractorEmail", "AttributeType": "S" },
+          { "AttributeName": "weekOf", "AttributeType": "S" }
+        ],
+        "KeySchema": [
+          { "AttributeName": "contractorEmail", "KeyType": "HASH" },
+          { "AttributeName": "weekOf", "KeyType": "RANGE" }
+        ],
+        "Tags": [
+          { "Key": "App", "Value": "rapid-cortex" },
+          { "Key": "Component", "Value": "sales-activity" }
+        ]
+      }
+    },
+    "SalesAccountClaimsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "TableName": { "Fn::Sub": "rapid-cortex-sales-account-claims-${DeploymentStage}" },
+        "AttributeDefinitions": [
+          { "AttributeName": "agencySlug", "AttributeType": "S" }
+        ],
+        "KeySchema": [
+          { "AttributeName": "agencySlug", "KeyType": "HASH" }
+        ],
+        "Tags": [
+          { "Key": "App", "Value": "rapid-cortex" },
+          { "Key": "Component", "Value": "sales-claims" }
+        ]
+      }
+    },
+    "SalesRfpTrackerTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "TableName": { "Fn::Sub": "rapid-cortex-sales-rfp-tracker-${DeploymentStage}" },
+        "AttributeDefinitions": [
+          { "AttributeName": "rfpId", "AttributeType": "S" }
+        ],
+        "KeySchema": [
+          { "AttributeName": "rfpId", "KeyType": "HASH" }
+        ],
+        "Tags": [
+          { "Key": "App", "Value": "rapid-cortex" },
+          { "Key": "Component", "Value": "sales-rfp" }
+        ]
+      }
+    },
+    "FreeTierRegistrationsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "TableName": { "Fn::Sub": "rapid-cortex-free-tier-registrations-${DeploymentStage}" },
+        "AttributeDefinitions": [
+          { "AttributeName": "registrationId", "AttributeType": "S" }
+        ],
+        "KeySchema": [
+          { "AttributeName": "registrationId", "KeyType": "HASH" }
+        ],
+        "Tags": [
+          { "Key": "App", "Value": "rapid-cortex" },
+          { "Key": "Component", "Value": "sales-free-tier" }
+        ]
+      }
     }
+
   },
   "Outputs": {
     "AgenciesTable": {

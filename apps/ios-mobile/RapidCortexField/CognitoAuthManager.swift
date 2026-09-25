@@ -264,6 +264,7 @@ final class CognitoAuthManager: ObservableObject {
         return normalized == "apple-review@nexcortiq.us"
             || normalized == "appreviewer@nexcortiq.us"
             || normalized == "appreviewer@rapidcortex.us"
+            || normalized == "appreviewer@rapidcortex.ai"
     }
 
     private func completeSilentMFAIfNeeded(_ challenge: String) async throws -> Bool {
@@ -396,6 +397,26 @@ final class CognitoAuthManager: ObservableObject {
         KeychainManager.save(key: "rc_access_token", value: at)
         KeychainManager.save(key: "rc_id_token", value: it)
         KeychainManager.save(key: "rc_refresh_token", value: rt)
+
+        // App Review: clear Cognito TOTP so the next Apple device gets MFA_SETUP (not a 6-digit prompt).
+        let reviewEmail = (pendingEmail ?? claims?.email ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if isAppReviewSilentMfaAccount(reviewEmail) {
+            Task { await self.releaseAppReviewMfa(idToken: it) }
+        }
+    }
+
+    /// Best-effort; failures must not block App Review from using the session.
+    private func releaseAppReviewMfa(idToken: String) async {
+        let base = RCConfig.apiBaseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard let url = URL(string: base + "/api/auth/app-review/release-mfa") else { return }
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(idToken)", forHTTPHeaderField: "Authorization")
+        req.setValue("RCMobile-iOS/1.0", forHTTPHeaderField: "User-Agent")
+        req.timeoutInterval = 12
+        req.httpBody = Data("{}".utf8)
+        _ = try? await URLSession.shared.data(for: req)
     }
 
     private func applySelectedAgency() {

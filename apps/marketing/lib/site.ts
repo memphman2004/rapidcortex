@@ -1,5 +1,11 @@
 export const SITE_NAME = "NexCort iQ";
 
+/** Previous product brand — use sparingly for SEO continuity, never keyword-stuff. */
+export const SITE_FORMER_NAME = "Rapid Cortex";
+
+/** Natural phrase for strategic pages (home, about, press, rebrand landing). */
+export const SITE_NAME_WITH_FORMER = "NexCort iQ, formerly Rapid Cortex";
+
 /** Brand slogan — use in hero, footer, and high-visibility marketing surfaces. */
 export const SITE_SLOGAN = "Intelligence at the speed of response";
 
@@ -14,7 +20,13 @@ export const SITE_MISSION =
  * Default `<meta name="description">` / OG description — short, scannable, SEO-friendly.
  * Uses the slogan plus a one-line value prop.
  */
-export const SITE_DESCRIPTION = `${SITE_SLOGAN} — Real-time decision support for public safety: dispatch, supervision, and emergency response. Does not replace CAD, telephony, or your agency's systems of record.`;
+export const SITE_DESCRIPTION = `${SITE_SLOGAN} — Real-time decision support for public safety from NexCort iQ (formerly Rapid Cortex): dispatch, supervision, and emergency response. Does not replace CAD, telephony, or your agency's systems of record.`;
+
+/** Canonical marketing host (apex redirects to www). */
+export const SITE_MARKETING_ORIGIN = "https://www.nexcortiq.us";
+
+/** Former marketing host — retained for 301 continuity docs and rebrand copy only. */
+export const SITE_FORMER_MARKETING_ORIGIN = "https://www.rapidcortex.us";
 /** Canonical static brand directory (`apps/web/public/Logo/`). */
 export const SITE_BRAND_ASSETS_BASE = "/Logo";
 

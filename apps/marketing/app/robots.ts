@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { absoluteUrl } from "@/lib/seo";
 
 export const dynamic = "force-static";
 
@@ -14,6 +15,7 @@ export default function robots(): MetadataRoute.Robots {
         "/about",
         "/contact",
         "/request-demo",
+        "/rapid-cortex",
         "/legal",
       ],
       disallow: [
@@ -29,6 +31,6 @@ export default function robots(): MetadataRoute.Robots {
         "/api",
       ],
     },
-    sitemap: "https://www.rapidcortex.us/sitemap.xml",
+    sitemap: absoluteUrl("/sitemap.xml"),
   };
 }

@@ -3660,6 +3660,35 @@ Resources:
             Path: /api/auth/password-renewal-sync
             Method: POST
 
+  AuthAppReviewReleaseMfaFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/authAppReviewReleaseMfa.handler
+      Policies:
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - Statement:
+            Effect: Allow
+            Action:
+              - cognito-idp:AdminGetUser
+              - cognito-idp:AdminSetUserMFAPreference
+            Resource: !GetAtt CognitoUserPool.Arn
+
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/auth/app-review/release-mfa
+            Method: POST
+
   GetMeFunction:
     Type: AWS::Serverless::Function
     Metadata:

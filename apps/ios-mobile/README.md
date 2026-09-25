@@ -79,7 +79,7 @@ Learn more at https://www.rapidcortex.us
 
 ### Seed the review login (before Submit)
 
-App Store Connect currently uses `appreviewer@nexcortiq.us` as **venue admin** on `test-venue-mbs` so Apple lands on **QR & NFC Codes**, not the 911 console. Production Cognito MFA stays **ON** for the web console. NexCort iQ Mobile auto-completes TOTP **only** for App Review emails so ASC signs in with email + password; all other accounts show the authenticator QR / code prompt. Do not commit the password.
+App Store Connect currently uses `appreviewer@rapidcortex.us` as **venue admin** on `test-venue-mbs` so Apple lands on **QR & NFC Codes**, not the 911 console. (Some ASC notes still say `@rapidcortex.ai` — that alias is also on the silent-MFA allowlist; prefer `.us` in Sign-In Information.) Production Cognito MFA stays **ON** for the web console. NexCort iQ Mobile auto-completes TOTP **only** for App Review emails, then calls `/api/auth/app-review/release-mfa` so iPhone and iPad each get a fresh MFA_SETUP (no 6-digit wall). Do not commit the password.
 
 ```bash
 source scripts/env-api-dev.sh
@@ -92,7 +92,13 @@ Confirm `test-venue-mbs` exists (`bash scripts/seed-vertical-agencies.sh` if nee
 
 ### Review notes (paste into App Store Connect)
 
-Keep the username/password fields as `appreviewer@nexcortiq.us` and the password already entered. Replace the Notes box with (paste the **unlisted NFC demo video URL** on the DEMO VIDEO line):
+**Sign-In Information (canonical until we cut over to nexcortiq):**
+- User name: `appreviewer@rapidcortex.us`
+- Password: the Cognito password already set for that user (do not commit it)
+
+Aliases `appreviewer@nexcortiq.us` / `appreviewer@rapidcortex.ai` exist for silent MFA, but **do not put those in Sign-In Information** unless we intentionally switch domains. Apple previously tried `appviewer@rapidcortex.ai` (typo) — that is not the demo login.
+
+Replace the Notes box with (paste the **unlisted NFC demo video URL** on the DEMO VIDEO line):
 
 ```
 WHAT THIS APP IS
@@ -102,7 +108,7 @@ REVIEW ON IPHONE
 Please review on a physical iPhone. Core NFC tag writing is not available on iPad (including iPad Air). iPhone-only binary; iPad compatibility mode can sign in and view QR codes. NFC programming requires iPhone 7 or later.
 
 SIGN IN (use the username and password in Sign-In Information above)
-Email: appreviewer@nexcortiq.us
+Email: appreviewer@rapidcortex.us
 This demo account does not require an authenticator code. Enter the password and tap Sign in. You land on QR & NFC Codes.
 
 After Sign in you are already on the Codes tab (large title: QR & NFC Codes). There is no home screen or main menu to tap first.
@@ -129,7 +135,7 @@ Support: support@nexcortiq.us
 Film on a **physical iPhone** (not Simulator, not iPad). One take, 30–90 seconds, showing the device and the sticker in the same frame:
 
 1. Phone lock screen or home screen so it is clearly a physical iPhone, then open NexCort iQ Mobile.
-2. Sign in as `appreviewer@nexcortiq.us` (password only; no authenticator prompt).
+2. Sign in as `appreviewer@rapidcortex.us` (password only; no authenticator prompt).
 3. Codes list → tap **Program NFC Tag**.
 4. Hold the **top edge** of the iPhone to a blank NTAG213 until the write succeeds.
 5. Optional: NFC Tools / a second phone reading the tag URL is helpful but not required.
@@ -148,11 +154,14 @@ Demo video of the current app on a physical iPhone programming an NFC sticker:
 https://REPLACE_WITH_UNLISTED_VIDEO_URL
 
 Guideline 2.1(a) — sign-in
-The demo account is valid. Production Cognito still requires authenticator MFA on the web console. NexCort iQ Mobile completes MFA automatically, so Review (and agency staff) only enter email and password.
+Please use exactly these Sign-In Information credentials (not the older .ai address or the mistyped appviewer username):
 
-Please review on a physical iPhone with the same demo credentials already in App Review Information. After sign-in the app opens on QR & NFC Codes.
+User name: appreviewer@rapidcortex.us
+Password: (the password already entered in Sign-In Information)
 
-We also updated Notes in App Review Information.
+Production Cognito still requires authenticator MFA on the web console. NexCort iQ Mobile completes MFA automatically for this demo account only, so Review only enters email and password — no 6-digit authenticator code.
+
+Please review on a physical iPhone. After sign-in the app opens on QR & NFC Codes. We also updated Notes and Sign-In Information in App Review Information.
 ```
 
 ### Still required in App Store Connect (not in git)

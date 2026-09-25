@@ -80,6 +80,14 @@ export const ROLE_DASHBOARD_PALETTE_BY_ROLE: Record<UserRole, RoleDashboardIdent
     badgeBg: "#0E7490",
     textColor: "#CFFAFE",
   }),
+  salescontractor: withAccents({
+    identityTitle: "Sales Portal",
+    identitySubtitle: "Pipeline & enablement",
+    accent: "#38BDF8",
+    dim: "#0C4A6E",
+    badgeBg: "#0369A1",
+    textColor: "#E0F2FE",
+  }),
   agencyadmin: withAccents({
     identityTitle: "Agency Management",
     identitySubtitle: "Users & settings",

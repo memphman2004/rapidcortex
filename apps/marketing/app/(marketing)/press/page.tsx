@@ -27,7 +27,7 @@ const SUPPORT_EMAIL = "support@nexcortiq.us";
 export const metadata: Metadata = buildPublicPageMetadata({
   title: "Press & Media | NexCort iQ Public Safety Intelligence Platform",
   description:
-    "Press resources, media assets, and company background for journalists covering emergency communications, public safety intelligence, and 911 dispatch decision support.",
+    "Press resources for NexCort iQ, formerly Rapid Cortex — media assets and company background for journalists covering emergency communications and 911 dispatch decision support.",
   path: PRESS_PATH,
 });
 
@@ -193,7 +193,8 @@ export default function MarketingPressPage() {
                   ["Industry", "Public Safety Technology / AI"],
                   ["Platform", "SaaS — Web, Desktop, API"],
                   ["Security", "CJIS-Aligned, SOC2 in progress"],
-                  ["Website", "rapidcortex.us"],
+                  ["Website", "nexcortiq.us"],
+                  ["Formerly", "Rapid Cortex"],
                   ["Press contact", PRESS_EMAIL],
                 ] as const
               ).map(([k, v]) => (

@@ -31,6 +31,10 @@ import {
 import { isHospitalOperatorRole } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isRcInternalOperator, isRcsuperadmin } from "rapid-cortex-shared/tenancy/principal";
 import {
+  canViewPipeline,
+  isSalesContractor,
+} from "@/lib/sales/sales-authz";
+import {
   dashboardPrefixFromPathname,
   type DashboardPrefix,
   userMayAccessDashboardPrefix,
@@ -364,6 +368,12 @@ const RESERVED_FIRST_SEGMENTS = new Set<string>([
   "sms-consent",
   /** Hospital capacity portal (legacy URL — redirects to role dashboards). */
   "hospital-portal",
+  /** Sales contractor portal (not a jurisdiction slug). */
+  "sales",
+  /** Public shareable ROI calculator (`/roi/[token]`). */
+  "roi",
+  /** Public free-tier registration (`/register/free`). */
+  "register",
   /**
    * PWA metadata route — first segment is literally `manifest.webmanifest`. If we treat it as a
    * `{jurisdiction}` slug and the browser requests `/manifest.webmanifest/dashboard` (bad href or
@@ -571,6 +581,10 @@ async function guardRoleDashboard(
   );
   if (roleDashRenewal) return roleDashRenewal;
 
+  if (isSalesContractor(user)) {
+    return nextOrRedirect(request, resolveRedirectUrl("/sales", request));
+  }
+
   if (isHospitalDashboardPrefix(prefix)) {
     if (!isHospitalPortalEnabled()) {
       return new NextResponse(null, { status: 404 });
@@ -647,6 +661,45 @@ async function guardRcLitePortal(request: NextRequest): Promise<NextResponse> {
 
   const rcLiteNetwork = await maybeBlockNetworkAccess(request, user);
   if (rcLiteNetwork) return rcLiteNetwork;
+
+  return NextResponse.next();
+}
+
+async function guardSalesPortal(request: NextRequest): Promise<NextResponse> {
+  if (!isAuthConfigured()) {
+    return NextResponse.next();
+  }
+  const pathname = request.nextUrl.pathname;
+  const loginUrl = resolveRedirectUrl(marketingLoginPath(), request);
+  loginUrl.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
+
+  const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
+  const refresh = request.cookies.get(COOKIE_REFRESH_TOKEN)?.value;
+  if (!token && !refresh) {
+    return nextOrRedirect(request, loginUrl);
+  }
+
+  const user = token ? await verifyCognitoIdToken(token) : null;
+  if (!user && refresh) {
+    const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
+    bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
+    return nextOrRedirect(request, bounce);
+  }
+
+  if (!user) {
+    return nextOrRedirect(request, loginUrl);
+  }
+
+  const renewal = handleOperationalPasswordRenewalGate(
+    request,
+    user,
+    resolveRedirectUrl("/change-password", request),
+  );
+  if (renewal) return renewal;
+
+  if (!canViewPipeline(user)) {
+    return nextOrRedirect(request, resolveRedirectUrl("/unauthorized", request));
+  }
 
   return NextResponse.next();
 }
@@ -984,6 +1037,9 @@ async function runMiddleware(request: NextRequest) {
   }
   if (isCallAssistDashboardPath(pathname)) {
     return guardCallAssistDashboard(request);
+  }
+  if (pathname === "/sales" || pathname.startsWith("/sales/")) {
+    return guardSalesPortal(request);
   }
   if (pathname === "/not-authorized" || pathname.startsWith("/not-authorized/")) {
     return NextResponse.next();

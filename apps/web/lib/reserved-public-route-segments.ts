@@ -58,6 +58,10 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "diversion",
   /** Detachable incident map window (pop-out to second monitor). */
   "map-preview",
+  /** Sales contractor portal + public ROI / free registration. */
+  "sales",
+  "roi",
+  "register",
   /** Legacy RCLI intake (`/r/{rcli}`). */
   "r",
   /** Public escalation viewer (`/e/{token}`). */

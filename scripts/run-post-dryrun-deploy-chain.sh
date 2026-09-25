@@ -93,9 +93,9 @@ load_web_prod_env() {
     # shellcheck source=/dev/null
     source "${ROOT}/scripts/env-web-ssr-prod.sh"
   fi
-  export NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-https://www.rapidcortex.us}"
+  export NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-https://www.nexcortiq.us}"
   export NEXT_PUBLIC_APP_ORIGIN="${NEXT_PUBLIC_APP_ORIGIN:-https://app.rapidcortex.us}"
-  export NEXT_PUBLIC_MARKETING_SITE_URL="${NEXT_PUBLIC_MARKETING_SITE_URL:-https://www.rapidcortex.us}"
+  export NEXT_PUBLIC_MARKETING_SITE_URL="${NEXT_PUBLIC_MARKETING_SITE_URL:-https://www.nexcortiq.us}"
   export NEXT_PUBLIC_AUTH_PROXY="${NEXT_PUBLIC_AUTH_PROXY:-1}"
   export API_UPSTREAM_BASE="${API_UPSTREAM_BASE:-https://api.rapidcortex.us}"
   # shellcheck source=scripts/lib/resolve-als-map-env.sh
@@ -110,7 +110,7 @@ load_web_prod_env
 
 echo ""
 echo "Step: Marketing (www.rapidcortex.us)…"
-export NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-https://www.rapidcortex.us}"
+export NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-https://www.nexcortiq.us}"
 export NEXT_PUBLIC_APP_ORIGIN="${NEXT_PUBLIC_APP_ORIGIN:-https://app.rapidcortex.us}"
 "${ROOT}/scripts/deploy-marketing.sh" prod
 

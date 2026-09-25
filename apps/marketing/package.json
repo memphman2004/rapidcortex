@@ -13,7 +13,7 @@
     "@tanstack/react-query": "^5.90.16",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.8.0",
-    "next": "16.2.4",
+    "next": "16.3.6",
     "rapid-cortex-integrations": "1.0.0",
     "rapid-cortex-maps": "1.0.0",
     "rapid-cortex-protocols": "1.0.0",

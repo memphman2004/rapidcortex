@@ -223,3 +223,9 @@ export function canAccessRapidIq(role: string | undefined | null): boolean {
   const r = String(role ?? "").trim().toLowerCase();
   return r === "rcsuperadmin" || r === "rcadmin";
 }
+
+/** Email campaigns — Rapid IQ operators plus sales contractors (portal Campaigns tab). */
+export function canAccessSalesAutomation(role: string | undefined | null): boolean {
+  const r = String(role ?? "").trim().toLowerCase();
+  return canAccessRapidIq(r) || r === "salescontractor";
+}

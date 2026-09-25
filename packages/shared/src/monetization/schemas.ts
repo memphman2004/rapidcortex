@@ -85,6 +85,8 @@ export const patchSalesLeadBodySchema = z
     nextAction: z.string().max(500).optional(),
     nextActionDate: z.string().max(64).optional(),
     lostReason: z.string().max(200).optional(),
+    selectedFeatureIds: z.array(z.string().min(1).max(80)).max(100).optional(),
+    freeOfferings: z.array(z.string().min(1).max(80)).max(50).optional(),
   })
   .strict()
   .refine((v) => Object.keys(v).length > 0, {

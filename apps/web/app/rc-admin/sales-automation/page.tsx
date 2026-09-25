@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { canAccessRapidIq } from "rapid-cortex-shared";
+import { canAccessSalesAutomation } from "rapid-cortex-shared";
 import { SalesAutomationClient } from "@/components/rapid-iq/sales-automation-client";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { marketingLoginPath } from "@/lib/marketing-links";
@@ -12,7 +12,7 @@ export const metadata = {
 
 export default async function RcAdminSalesAutomationPage() {
   const user = await getDashboardSessionUser();
-  if (!user || !canAccessRapidIq(user.role) || !isSalesAutomationUiEnabled()) {
+  if (!user || !canAccessSalesAutomation(user.role) || !isSalesAutomationUiEnabled()) {
     redirect(`${marketingLoginPath()}?from=/rc-admin/sales-automation`);
   }
 

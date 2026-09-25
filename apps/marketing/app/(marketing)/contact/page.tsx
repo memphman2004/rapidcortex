@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { absoluteUrl, buildOgShareImage } from "@/lib/seo";
 
-const DEST = "https://www.rapidcortex.us/contact-sales?interest=demo";
+const DEST = "https://www.nexcortiq.us/contact-sales?interest=demo";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {

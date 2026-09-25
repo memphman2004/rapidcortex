@@ -6,7 +6,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Product Overview | NexCort iQ",
     description:
-      "Explore NexCort iQ product lines for core public safety operations, campus safety teams, and venue command environments.",
+      "Explore NexCort iQ (formerly Rapid Cortex) product lines for core public safety operations, campus safety teams, and venue command environments.",
     keywords: [
       "public safety software",
       "campus safety platform",
@@ -40,8 +40,8 @@ export default function ProductOverviewPage() {
       <header className="space-y-4">
         <h1 className="text-3xl font-semibold text-white sm:text-4xl">NexCort iQ Product Overview</h1>
         <p className="max-w-3xl text-sm text-slate-300">
-          NexCort iQ delivers decision-support and incident intelligence for emergency operations across core public safety,
-          campus safety, and venue command environments.
+          NexCort iQ, formerly Rapid Cortex, delivers decision-support and incident intelligence for
+          emergency operations across core public safety, campus safety, and venue command environments.
         </p>
       </header>
 

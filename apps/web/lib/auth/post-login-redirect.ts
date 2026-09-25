@@ -90,6 +90,7 @@ export function resolvePostAuthenticationHomeHrefAfterPasswordChange(
     migrateLegacyRapidCortexRoleTokenValue(user.role) ?? user.role;
   if (effective === "rcitadmin") return "/rc-admin/infrastructure";
   if (effective === "rcsuperadmin" || isRcsuperadmin(user)) return "/rc-admin/dashboard";
+  if (effective === "salescontractor") return "/sales";
   if (effective === "rcadmin" || isRcInternalOperator(user.role)) {
     return "/rc-admin/dashboard";
   }

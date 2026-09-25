@@ -36,7 +36,7 @@ export default function PrivacyPolicyPage() {
         in connection with the product and marketing sites. It is not a substitute for your agency’s
         own privacy program, public records rules, or counsel review. For A2P 10DLC and SMS compliance,
         this page at{" "}
-        <a href="https://www.rapidcortex.us/privacy">https://www.rapidcortex.us/privacy</a> is the
+        <a href="https://www.nexcortiq.us/privacy">https://www.nexcortiq.us/privacy</a> is the
         single controlling privacy policy for Apps on Demand LLC d/b/a NexCort iQ. See also the{" "}
         <Link href="/sms-consent">SMS Consent</Link> disclosure.
       </p>
@@ -155,7 +155,7 @@ export default function PrivacyPolicyPage() {
           NexCort iQ does not sell, rent, or share personal data with third parties for advertising,
           marketing, or any purpose other than delivering the contracted services. A complete list of
           sub-processors is published at{" "}
-          <Link href="/legal/sub-processors">rapidcortex.us/legal/sub-processors/</Link>.
+          <Link href="/legal/sub-processors">nexcortiq.us/legal/sub-processors/</Link>.
         </p>
       </section>
 

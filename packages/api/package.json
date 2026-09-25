@@ -14,7 +14,7 @@
     "@aws-sdk/client-dynamodb": "^3.964.0",
     "@aws-sdk/client-sns": "^3.964.0",
     "@aws-sdk/lib-dynamodb": "^3.964.0",
-    "nanoid": "^5.0.9",
+    "nanoid": "^5.1.16",
     "rapid-cortex-security": "1.0.0",
     "rapid-cortex-shared": "1.0.0",
     "zod": "^3.24.1"

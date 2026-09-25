@@ -187,6 +187,8 @@ export class SalesLeadRepository {
     assign("nextAction", patch.nextAction, "nextAction");
     assign("nextActionDate", patch.nextActionDate, "nextActionDate");
     assign("lostReason", patch.lostReason, "lostReason");
+    assign("selectedFeatureIds", patch.selectedFeatureIds, "selectedFeatureIds");
+    assign("freeOfferings", patch.freeOfferings, "freeOfferings");
 
     const assignee = patch.assignedTo ?? patch.assignee;
     if (assignee !== undefined) {

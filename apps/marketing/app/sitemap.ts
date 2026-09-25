@@ -5,7 +5,7 @@ import { absoluteUrl } from "@/lib/seo";
 export const dynamic = "force-static";
 
 /** Bumped when the public route set changes (forces crawlers to re-fetch). */
-const STABLE_LAST_MODIFIED = new Date("2026-09-13T00:00:00.000Z");
+const STABLE_LAST_MODIFIED = new Date("2026-09-24T00:00:00.000Z");
 
 type RouteEntry = {
   path: string;
@@ -21,6 +21,7 @@ type RouteEntry = {
 const PUBLIC_ROUTES: RouteEntry[] = [
   // Core
   { path: "/", changeFrequency: "weekly", priority: 1 },
+  { path: "/rapid-cortex", changeFrequency: "monthly", priority: 0.85 },
   { path: "/blog", changeFrequency: "weekly", priority: 0.8 },
   { path: "/about", changeFrequency: "monthly", priority: 0.65 },
   { path: "/careers", changeFrequency: "weekly", priority: 0.7 },

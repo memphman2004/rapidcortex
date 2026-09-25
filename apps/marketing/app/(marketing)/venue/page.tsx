@@ -1,26 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MessageSquare, QrCode, ShieldCheck } from "lucide-react";
-import { buildPublicPageMetadata } from "@/lib/seo";
+import { absoluteUrl, buildPublicPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  ...buildPublicPageMetadata({
-    title: "NexCort iQ Venue | Stadium & Venue Safety Intelligence Platform",
-    description:
-      "NexCort iQ Venue helps stadiums, arenas, airports, and universities coordinate guest assistance and security incidents with QR code reporting, SMS reporting, real-time security dashboards, and optional escalation to emergency communications.",
-    path: "/venue",
-  }),
-  alternates: {
-    canonical: "https://www.rapidcortex.us/venue",
-  },
-};
+export const metadata: Metadata = buildPublicPageMetadata({
+  title: "NexCort iQ Venue | Stadium & Venue Safety Intelligence Platform",
+  description:
+    "NexCort iQ Venue helps stadiums, arenas, airports, and universities coordinate guest assistance and security incidents with QR code reporting, SMS reporting, real-time security dashboards, and optional escalation to emergency communications.",
+  path: "/venue",
+});
 
 const venueSoftwareJsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "NexCort iQ Venue",
+  alternateName: "Rapid Cortex Venue",
   applicationCategory: "BusinessApplication",
-  url: "https://www.rapidcortex.us/venue",
+  url: absoluteUrl("/venue"),
   description:
     "Venue safety and incident coordination platform for stadiums, arenas, airports, universities, and large venues. Guests report via QR code or SMS. Security teams manage incidents through a unified dashboard with location, media, and camera references.",
   offers: {
@@ -32,7 +28,8 @@ const venueSoftwareJsonLd = {
   provider: {
     "@type": "Organization",
     name: "NexCort iQ",
-    url: "https://www.rapidcortex.us",
+    alternateName: "Rapid Cortex",
+    url: absoluteUrl("/"),
   },
 };
 
@@ -140,13 +137,13 @@ export default function MarketingVenuePage() {
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Link
-            href="https://www.rapidcortex.us/contact-sales?interest=demo"
+            href="https://www.nexcortiq.us/contact-sales?interest=demo"
             className="inline-flex min-h-12 items-center justify-center rounded-md bg-sky-600 px-6 py-3 text-sm font-semibold text-white hover:bg-sky-500"
           >
             Request a demo
           </Link>
           <Link
-            href="https://www.rapidcortex.us/contact-sales?interest=demo"
+            href="https://www.nexcortiq.us/contact-sales?interest=demo"
             className="inline-flex min-h-12 items-center justify-center rounded-md border border-slate-600/90 bg-slate-950/40 px-6 py-3 text-sm font-semibold text-slate-100 hover:border-slate-500"
           >
             Contact us

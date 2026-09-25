@@ -1,0 +1,199 @@
+# HTTPS path-preserving redirect: rapidcortex.us (+ www) → https://www.nexcortiq.us{path}{query}
+# Deploy in us-east-1 (CloudFront viewer cert must be us-east-1).
+#
+# Preserves URI + query string (does NOT collapse everything to homepage).
+# Example: https://www.rapidcortex.us/pricing?x=1 → https://www.nexcortiq.us/pricing?x=1
+#
+# Prerequisites:
+#   1. Public hosted zone for rapidcortex.us in Route 53
+#   2. Parameter Route53HostedZoneId = that zone's ID (Z…)
+#   3. Marketing site already live on www.nexcortiq.us (or RedirectTargetHost)
+#
+# Example:
+#   aws cloudformation deploy \
+#     --region us-east-1 \
+#     --stack-name rapidcortex-us-redirect \
+#     --template-file infra/rapidcortex-us-redirect.yaml \
+#     --parameter-overrides Route53HostedZoneId=ZXXXXXXXX
+#
+# Optional: point app.rapidcortex.us → app.nexcortiq.us with a second stack by overriding
+# RootDomainName / RedirectTargetHost (use a subdomain-capable cert + DNS). This template
+# covers the SEO-critical apex + www marketing hosts.
+AWSTemplateFormatVersion: "2010-09-09"
+Description: rapidcortex.us → www.nexcortiq.us HTTPS path-preserving 301 (CloudFront + ACM + Route 53)
+
+Parameters:
+  RootDomainName:
+    Type: String
+    Default: rapidcortex.us
+    Description: Former brand domain (apex + www receive 301s).
+  RedirectTargetHost:
+    Type: String
+    Default: www.nexcortiq.us
+    Description: Destination host (scheme is always https). Path and query are preserved.
+  Route53HostedZoneId:
+    Type: String
+    Description: Public hosted zone ID for RootDomainName (e.g. Z123…).
+
+Resources:
+  RedirectCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref RootDomainName
+      SubjectAlternativeNames:
+        - !Sub "www.${RootDomainName}"
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref RootDomainName
+          HostedZoneId: !Ref Route53HostedZoneId
+        - DomainName: !Sub "www.${RootDomainName}"
+          HostedZoneId: !Ref Route53HostedZoneId
+
+  RedirectFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub "rapidcortex-us-to-nexcortiq-redirect-${AWS::StackName}"
+      AutoPublish: true
+      FunctionConfig:
+        Comment: !Sub "301 ${RootDomainName} → https://${RedirectTargetHost}{path}{query}"
+        Runtime: cloudfront-js-2.0
+      FunctionCode: !Sub |
+        function handler(event) {
+          var request = event.request;
+          var host = '${RedirectTargetHost}';
+          var loc = 'https://' + host + request.uri;
+          if (request.querystring && Object.keys(request.querystring).length > 0) {
+            var parts = [];
+            for (var key in request.querystring) {
+              if (!Object.prototype.hasOwnProperty.call(request.querystring, key)) continue;
+              var q = request.querystring[key];
+              if (q.multiValue) {
+                for (var i = 0; i < q.multiValue.length; i++) {
+                  parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(q.multiValue[i].value));
+                }
+              } else if (q.value !== undefined) {
+                parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(q.value));
+              }
+            }
+            if (parts.length > 0) {
+              loc += '?' + parts.join('&');
+            }
+          }
+          return {
+            statusCode: 301,
+            statusDescription: 'Moved Permanently',
+            headers: {
+              location: { value: loc },
+              'cache-control': { value: 'max-age=3600' }
+            }
+          };
+        }
+
+  # Dummy S3 origin — never hit; viewer-request function always returns 301.
+  RedirectBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  RedirectOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "rapidcortex-us-redirect-oac-${AWS::StackName}"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  RedirectDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "Redirect ${RootDomainName} → https://${RedirectTargetHost} (path-preserving)"
+        HttpVersion: http2and3
+        PriceClass: PriceClass_100
+        Aliases:
+          - !Ref RootDomainName
+          - !Sub "www.${RootDomainName}"
+        Origins:
+          - Id: DummyS3
+            DomainName: !GetAtt RedirectBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt RedirectOAC.Id
+            S3OriginConfig: {}
+        DefaultCacheBehavior:
+          TargetOriginId: DummyS3
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # CachingDisabled
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt RedirectFunction.FunctionARN
+        ViewerCertificate:
+          AcmCertificateArn: !Ref RedirectCertificate
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+        IPV6Enabled: true
+
+  ApexAliasA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Ref RootDomainName
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt RedirectDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  ApexAliasAAAA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Ref RootDomainName
+      Type: AAAA
+      AliasTarget:
+        DNSName: !GetAtt RedirectDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  WwwAliasA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub "www.${RootDomainName}"
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt RedirectDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  WwwAliasAAAA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      Name: !Sub "www.${RootDomainName}"
+      Type: AAAA
+      AliasTarget:
+        DNSName: !GetAtt RedirectDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+Outputs:
+  DistributionId:
+    Value: !Ref RedirectDistribution
+  DistributionDomainName:
+    Value: !GetAtt RedirectDistribution.DomainName
+  CertificateArn:
+    Value: !Ref RedirectCertificate
+  RedirectRule:
+    Value: !Sub "301 https://${RootDomainName}{path}?{query} → https://${RedirectTargetHost}{path}?{query}"

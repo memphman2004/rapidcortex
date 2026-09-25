@@ -59,6 +59,6 @@ bash "${ROOT}/scripts/sync-marketing-to-s3.sh"
 
 echo ""
 echo "Marketing content deploy complete."
-echo "  Site: https://www.rapidcortex.us"
+echo "  Site: https://www.nexcortiq.us"
 echo "  Account: ${RAPID_CORTEX_AWS_ACCOUNT_ID}"
 echo "  Manifest: s3://${RAPID_CORTEX_MARKETING_S3_BUCKET}/.well-known/marketing-build.json"

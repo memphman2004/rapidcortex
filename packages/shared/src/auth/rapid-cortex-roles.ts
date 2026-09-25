@@ -9,6 +9,7 @@ export const RAPID_CORTEX_ROLES = [
   "rcsuperadmin",
   "rcadmin",
   "rcitadmin",
+  "salescontractor",
   "agencyadmin",
   "agencyit",
   "supervisor",
@@ -107,6 +108,7 @@ export const ROLE_LABELS: Record<string, string> = {
   rcsuperadmin: "Platform Owner",
   rcadmin: "NexCort Operations",
   rcitadmin: "NexCort IT Admin",
+  salescontractor: "Sales Contractor",
   agencyadmin: "Agency Admin",
   agencyit: "Agency IT",
   supervisor: "Supervisor",
@@ -152,6 +154,8 @@ export const ROLE_DESCRIPTIONS: Record<string, string> = {
     "NexCort iQ operations staff. Cross-tenant visibility for support. No financial revenue totals or destructive actions.",
   rcitadmin:
     "NexCort iQ IT team. Infrastructure diagnostics, platform health, and technical integration management.",
+  salescontractor:
+    "Commission sales contractor. Sales portal only — pipeline, quotes, campaigns, and enablement tools. No agency ops access.",
   agencyadmin:
     "Communications center manager. Full agency configuration, user management, billing, QA, and compliance.",
   agencyit:
@@ -224,6 +228,7 @@ export const ROLE_DISPLAY_LABELS: Record<RapidCortexRole, string> = {
   rcsuperadmin: ROLE_LABELS.rcsuperadmin,
   rcadmin: ROLE_LABELS.rcadmin,
   rcitadmin: ROLE_LABELS.rcitadmin,
+  salescontractor: ROLE_LABELS.salescontractor,
   campus_admin: ROLE_LABELS.campus_admin,
   campus_supervisor: ROLE_LABELS.campus_supervisor,
   campus_security: ROLE_LABELS.campus_security,
