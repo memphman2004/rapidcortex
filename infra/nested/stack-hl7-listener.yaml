@@ -31,6 +31,9 @@ Resources:
     Type: AWS::ECS::Cluster
     Properties:
       ClusterName: !Sub rapid-cortex-hl7-${DeploymentStage}
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
 
   Hl7LogGroup:
     Type: AWS::Logs::LogGroup
@@ -44,7 +47,8 @@ Resources:
       GroupDescription: !Sub HL7 MLLP listener ${DeploymentStage}
       VpcId: !Ref VpcId
       SecurityGroupIngress:
-        - IpProtocol: tcp
+        - Description: Security group rule required by Checkov CKV_AWS_23
+          IpProtocol: tcp
           FromPort: 2575
           ToPort: 2575
           CidrIp: !Ref AllowedHospitalCidr

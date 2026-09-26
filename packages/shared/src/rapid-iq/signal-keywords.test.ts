@@ -8,6 +8,7 @@ import {
   isRelevantSignalText,
   keywordMatches,
   matchesProcurementStageFilter,
+  matchesWatchFeedFilter,
   scoreFit,
   scoreSignal,
 } from "./signal-keywords.js";
@@ -94,6 +95,14 @@ describe("matchesProcurementStageFilter", () => {
     expect(matchesProcurementStageFilter("competitor-win", "competitor")).toBe(true);
     expect(matchesProcurementStageFilter("rfp", "early")).toBe(false);
     expect(matchesProcurementStageFilter("rfp", "all")).toBe(true);
+  });
+});
+
+describe("matchesWatchFeedFilter", () => {
+  it("only includes chatgpt-watch when filter is watch", () => {
+    expect(matchesWatchFeedFilter("chatgpt-watch", "watch")).toBe(true);
+    expect(matchesWatchFeedFilter("sam-gov", "watch")).toBe(false);
+    expect(matchesWatchFeedFilter("chatgpt-watch", "rfp")).toBe(true);
   });
 });
 

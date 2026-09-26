@@ -109,6 +109,8 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_FEATURES_SUITE: process.env.NEXT_PUBLIC_ENABLE_FEATURES_SUITE,
   NEXT_PUBLIC_ENABLE_CONTACTS_MODULE: process.env.NEXT_PUBLIC_ENABLE_CONTACTS_MODULE,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
+  NEXT_PUBLIC_ENABLE_LOADOUT: process.env.NEXT_PUBLIC_ENABLE_LOADOUT,
+  NEXT_PUBLIC_ENABLE_LOADOUT_PORTAL: process.env.NEXT_PUBLIC_ENABLE_LOADOUT_PORTAL,
 };
 
 const CAD_WRITEBACK_FLAG = "NEXT_PUBLIC_ENABLE_CAD_WRITEBACK";
@@ -701,22 +703,22 @@ export function isMilestoneXprotectEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_MILESTONE_XPROTECT");
 }
 
-/** NexCort Admin NexiQ IQ sales intelligence (procurement signals). Default on when unset. */
+/** NexCort Admin NexiQ sales intelligence (procurement signals). Default on when unset. */
 export function isRapidIqUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ");
 }
 
-/** NexCort Admin NexiQ IQ Signal Intelligence Pipeline. Default on when unset. */
+/** NexCort Admin NexiQ Signal Intelligence Pipeline. Default on when unset. */
 export function isRapidIqPipelineUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE");
 }
 
-/** NexiQ IQ Opportunity Intelligence (OpenAI). Default on when unset. */
+/** NexiQ Opportunity Intelligence (OpenAI). Default on when unset. */
 export function isRapidIqIntelUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL");
 }
 
-/** NexCort Admin NexiQ IQ sales automation (campaign drafts + Outlook send after approval). Default on when unset. */
+/** NexCort Admin NexiQ sales automation (campaign drafts + Outlook send after approval). Default on when unset. */
 export function isSalesAutomationUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SALES_AUTOMATION");
 }
@@ -757,4 +759,14 @@ export function isRcVideoEnabled(): boolean {
  */
 export function isStaffGuideEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_STAFF_GUIDE");
+}
+
+/** NexCortiQ Loadout — API provisioning, usage metering, and invoicing engine. Default on when unset. */
+export function isLoadoutEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_LOADOUT");
+}
+
+/** NexCortiQ Loadout — agency-facing portal (dashboard, catalog, invoices, API keys). Default on when unset. */
+export function isLoadoutPortalEnabled(): boolean {
+  return isLoadoutEnabled() && envFlag("NEXT_PUBLIC_ENABLE_LOADOUT_PORTAL");
 }

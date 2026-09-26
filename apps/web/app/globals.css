@@ -2064,7 +2064,7 @@ textarea {
   }
 }
 
-/* NexiQ IQ — pipeline toggle in the opportunity header */
+/* NexiQ — pipeline toggle in the opportunity header */
 .pipeline-toggle-btn {
   position: relative;
   display: inline-flex;

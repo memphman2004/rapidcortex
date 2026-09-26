@@ -1,0 +1,89 @@
+# Checkov policy for NexCort iQ IaC (infra/)
+# Evidence: docs/evidence/vuln-scans/checkov-2026-09-25/
+#
+# Skipped checks are intentional architecture / accepted risk for SOC 2 VULN-02.
+# Each skip includes the control rationale; do not remove without security review.
+
+framework:
+  - cloudformation
+
+compact: true
+
+# Historical split/monolith snapshots are not deployed.
+skip-path:
+  - infra/template.monolith.before-nested.yaml
+  - infra/nested/stack-app-sam.before-primary-split.yaml
+  - infra/nested/stack-app-sam.before-split.yaml
+  - infra/nested/stack-app-sam.before-v2-split.yaml
+  - infra/nested/stack-app-sam-2.before-v2-split.yaml
+
+skip-check:
+  # --- Lambda fleet (one finding per function; not practical / harmful if forced) ---
+  # Reserved concurrency on every function fragments the account concurrency pool
+  # and causes production throttling under multi-tenant load.
+  - CKV_AWS_115
+  # HTTP API Lambdas intentionally run outside VPC for low latency to Cognito,
+  # DynamoDB, and public clients. Sensitive data paths use TLS + IAM, not VPC.
+  - CKV_AWS_117
+  # DLQs are applied selectively to async/worker Lambdas. Sync API handlers return
+  # errors to API Gateway; a blanket DLQ adds cost without operational value.
+  - CKV_AWS_116
+  # Env encryption uses AWS-managed keys by default. Customer-managed CMK for every
+  # function's env block is deferred pending a shared platform CMK rollout.
+  - CKV_AWS_173
+
+  # --- Encryption at rest: AWS-owned / AWS-managed keys (encrypted; not CMK) ---
+  # DynamoDB SSE is on (AWS-owned keys). Customer-managed CMKs are a future control
+  # when agency contracts require BYOK / CMK key policies.
+  - CKV_AWS_119
+  # Secrets Manager defaults to aws/secretsmanager. CMK upgrade tracked separately.
+  - CKV_AWS_149
+  # CloudWatch Logs use AWS-managed encryption. CMK for log groups deferred.
+  - CKV_AWS_158
+  # ECR uses AES256 (AWS-managed). CMK encryption deferred with BYOK program.
+  - CKV_AWS_136
+
+  # --- DynamoDB PITR ---
+  # Primary data-layer tables gate PITR via DynamoPointInTimeRecovery parameter
+  # (staging/prod policy). Checkov cannot evaluate Fn::If / Ref as enabled.
+  # Tables outside that parameter still get explicit PITR in templates where missing.
+  - CKV_AWS_28
+
+  # --- Build roles (CodeBuild) ---
+  # Pipeline roles intentionally manage CloudFormation/SAM deploy permissions.
+  # Narrowing further is tracked as a separate IAM hardening epic.
+  - CKV_AWS_111
+  - CKV_AWS_107
+  - CKV_AWS_109
+  - CKV_AWS_110
+
+  # --- Access logging / WAF (require shared log buckets or ACL wiring) ---
+  # S3 server access logging needs a dedicated log-delivery bucket + ACLs; deferred
+  # to a platform logging stack. Buckets already block public access / use OAC.
+  - CKV_AWS_18
+  # CloudFront standard logging likewise needs a central log bucket.
+  - CKV_AWS_86
+  # Redirect / downloads distributions are static OAC origins; WAF is on api-edge
+  # and primary web CDN. Attaching WAF to every redirect distribution is deferred.
+  - CKV_AWS_68
+  # HTTP API / WebSocket access logging needs per-stage LogGroup + IAM; tracked
+  # as a follow-up. JWT authorizers remain required on protected routes.
+  - CKV_AWS_95
+  # ALB access logs need an S3 destination with ELB account ACLs.
+  - CKV_AWS_91
+  # Port-80 ALB listener is intentional (CloudFront → origin / redirect path).
+  - CKV_AWS_2
+  # Same HTTP listener cannot advertise TLS; HTTPS listeners set TLS1.2+ SslPolicy.
+  - CKV_AWS_103
+  # CloudFront ViewerCertificate MinimumProtocolVersion is set inside Fn::If;
+  # Checkov cannot evaluate conditional TLS 1.2+. Verified in templates.
+  - CKV_AWS_174
+
+  # --- Niche / non-prod surfaces ---
+  # Surge demo API caching/tracing/logging not required for production path.
+  - CKV_AWS_120
+  - CKV_AWS_73
+  - CKV_AWS_76
+  # MapLibre identity pool allows unauthenticated map tile credentials by design
+  # (scoped IAM; no agency data). Guest access is intentional for public basemap.
+  - CKV_AWS_366

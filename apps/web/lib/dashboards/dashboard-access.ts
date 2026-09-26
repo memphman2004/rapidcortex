@@ -98,6 +98,8 @@ export function userMayAccessDashboardPrefix(
   if (prefix === "hospital-admin" && isHospitalAdminPortalRole(user.role)) return true;
   if (prefix === "hospital-staff" && isHospitalStaffPortalRole(user.role)) return true;
   const effectiveRole = migrateLegacyRapidCortexRoleTokenValue(user.role) ?? user.role;
+  // Sales contractors use RoleDashboardLayout for allowlisted /rc-admin tools; page + middleware enforce scope.
+  if (prefix === "rc-admin" && effectiveRole === "salescontractor") return true;
   const base = (ROLES_BY_DASHBOARD_PREFIX[prefix] as readonly string[]).includes(effectiveRole);
   if (base) return true;
   const fullUser = user as UserContext;

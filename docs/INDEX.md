@@ -154,6 +154,17 @@ Paths below are **canonical** — prefer these over flat `docs/FOO.md` links in 
 
 ---
 
+## Marketing, SEO & analytics
+
+| Document | Path |
+|----------|------|
+| Google Analytics 4 property & page index | [seo/GOOGLE_ANALYTICS_INDEX.md](./seo/GOOGLE_ANALYTICS_INDEX.md) |
+| Marketing site map (current pages) | [seo/SITE_MAP.md](./seo/SITE_MAP.md) |
+| NexCort iQ cutover (keep Rapid Cortex live) | [seo/NEXCORTIQ_CUTOVER.md](./seo/NEXCORTIQ_CUTOVER.md) |
+| Cortex SEO intelligence notes | [seo/CORTEX_SEO_INTELLIGENCE.md](./seo/CORTEX_SEO_INTELLIGENCE.md) |
+
+---
+
 ## Hosted documentation
 
 Set `NEXT_PUBLIC_DOCUMENTATION_BASE_URL` to a hosted copy of this tree (GitHub raw, internal portal, or S3 static site) so **Admin → Pilot hub** links work for non-git users.

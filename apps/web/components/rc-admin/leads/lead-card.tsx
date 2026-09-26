@@ -1,6 +1,6 @@
 "use client";
 
-import { type PipelineStage, type SalesLeadCrmRecord } from "rapid-cortex-shared";
+import { filterSignalsForVertical, type PipelineStage, type SalesLeadCrmRecord } from "rapid-cortex-shared";
 import {
   channelBadgeClass,
   channelShortLabel,
@@ -44,6 +44,9 @@ export function LeadCard({ lead, selected, onSelect, onDragStart }: Props) {
   const overdue = isOverdue(lead.nextActionDate);
   const soon = !overdue && isDueSoon(lead.nextActionDate);
   const hasValue = (lead.estimatedValue ?? 0) > 0;
+  const verticalSignals = filterSignalsForVertical(lead.signals, lead.vertical);
+  const grantCount = verticalSignals.filter((s) => s.type === "GRANT_SIGNAL").length;
+  const hotScore = lead.hotScore ?? 0;
 
   return (
     <button
@@ -106,6 +109,24 @@ export function LeadCard({ lead, selected, onSelect, onDragStart }: Props) {
         {lead.vertical && lead.vertical !== "unknown" && (
           <span className="rounded-md bg-white/[0.04] px-1.5 py-0.5 text-[9px] font-semibold text-slate-400">
             {verticalLabel(lead.vertical)}
+          </span>
+        )}
+        {grantCount > 0 && (
+          <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-400">
+            {grantCount} grant{grantCount === 1 ? "" : "s"}
+          </span>
+        )}
+        {hotScore > 0 && (
+          <span
+            className={`rounded-full border px-1.5 py-0.5 text-[9px] font-semibold ${
+              hotScore >= 70
+                ? "border-red-500/20 bg-red-500/10 text-red-400"
+                : hotScore >= 40
+                  ? "border-amber-500/20 bg-amber-500/10 text-amber-400"
+                  : "border-slate-700 bg-slate-500/10 text-slate-400"
+            }`}
+          >
+            {hotScore}
           </span>
         )}
         {(lead.probability ?? 0) > 0 && (

@@ -212,6 +212,7 @@ Resources:
   CadMeshRouterFailureQueue:
     Type: AWS::SQS::Queue
     Properties:
+      KmsMasterKeyId: alias/aws/sqs
       QueueName: !Sub "rapid-cortex-cad-mesh-router-failures-${DeploymentStage}"
       MessageRetentionPeriod: 1209600
 

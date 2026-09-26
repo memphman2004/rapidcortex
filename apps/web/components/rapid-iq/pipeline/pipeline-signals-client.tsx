@@ -262,7 +262,7 @@ function SignalCard({
 }
 
 type Props = {
-  /** Fill the NexiQ IQ workspace instead of a standalone page chrome. */
+  /** Fill the NexiQ workspace instead of a standalone page chrome. */
   embedded?: boolean;
   /** Pre-sliced signals for the active 911 / campus / venue / competitor tab. */
   items?: RapidIqPipelineSignal[];
@@ -552,5 +552,5 @@ export function PipelineSignalsClient({
   );
 }
 
-/** Alias used by the NexiQ IQ page toggle. */
+/** Alias used by the NexiQ page toggle. */
 export const PipelineView = PipelineSignalsClient;

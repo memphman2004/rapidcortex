@@ -2,7 +2,7 @@ import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { randomUUID } from "node:crypto";
 import {
-  canAccessRapidIq,
+  canAccessRapidIqWorkspace,
   convertToLeadBodySchema,
   outreachBodySchema,
   agencyProfileBodySchema,
@@ -68,7 +68,7 @@ async function requireRapidIqAdmin(
   if (!user) return { error: unauthorized() };
   if (!isUserAccountActive(user)) return { error: unauthorized(ACCOUNT_INACTIVE_MESSAGE) };
   if (!env.enableRapidIq) return { error: serviceUnavailable("Rapid IQ is not enabled") };
-  if (!canAccessRapidIq(user.role)) return { error: forbidden() };
+  if (!canAccessRapidIqWorkspace(user.role)) return { error: forbidden() };
   return { user };
 }
 

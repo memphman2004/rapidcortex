@@ -1,4 +1,4 @@
-import type maplibregl from "maplibre-gl";
+import type * as maplibregl from "maplibre-gl";
 
 /** Amazon Location Maps V2 only paints custom layers that belong to a slot. */
 export const OVERLAY_SLOT = "top";

@@ -52,6 +52,12 @@ Parameters:
     Type: String
     Default: ""
     Description: Secrets Manager ARN for LegiScan (legislative ingest fallback)
+  RapidIqWatchIngestApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Secrets Manager ARN for ChatGPT Watch ingest API key (JSON {apiKey} or raw string).
+      Used by POST /api/rapid-iq/pipeline/watch-ingest (no Cognito JWT).
   OpenAiApiKeySecretArn:
     Type: String
     Default: ""
@@ -126,6 +132,7 @@ Conditions:
   HasApolloSecretArn: !Not [!Equals [!Ref RapidIqApolloApiKeySecretArn, ""]]
   HasOpenstatesSecretArn: !Not [!Equals [!Ref RapidIqOpenstatesApiKeySecretArn, ""]]
   HasLegiscanSecretArn: !Not [!Equals [!Ref RapidIqLegiscanApiKeySecretArn, ""]]
+  HasWatchIngestSecretArn: !Not [!Equals [!Ref RapidIqWatchIngestApiKeySecretArn, ""]]
   HasOpenAiApiKeySecretArn: !Not [!Equals [!Ref OpenAiApiKeySecretArn, ""]]
   HasConferencesTable: !Not [!Equals [!Ref ConferencesTable, ""]]
   HasMarketingLeadsTable: !Not [!Equals [!Ref MarketingLeadsTable, ""]]
@@ -156,6 +163,7 @@ Globals:
         RAPID_IQ_APOLLO_API_KEY_SECRET_ARN: !Ref RapidIqApolloApiKeySecretArn
         RAPID_IQ_OPENSTATES_API_KEY_SECRET_ARN: !Ref RapidIqOpenstatesApiKeySecretArn
         RAPID_IQ_LEGISCAN_API_KEY_SECRET_ARN: !Ref RapidIqLegiscanApiKeySecretArn
+        RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN: !Ref RapidIqWatchIngestApiKeySecretArn
         OPENAI_API_KEY_SECRET_ARN: !Ref OpenAiApiKeySecretArn
         RAPID_IQ_OPPORTUNITIES_TABLE: !Ref RapidIqOpportunitiesTable
         RAPID_IQ_AI_ENABLED: "true"
@@ -181,6 +189,7 @@ Resources:
   RawSignalsDLQ:
     Type: AWS::SQS::Queue
     Properties:
+      KmsMasterKeyId: alias/aws/sqs
       QueueName: !Sub "${ManagedPolicyNamePrefix}-rapid-iq-pipeline-raw-signals-dlq-${DeploymentStage}-v2.fifo"
       FifoQueue: true
       ContentBasedDeduplication: false
@@ -189,6 +198,7 @@ Resources:
   RawSignalsQueue:
     Type: AWS::SQS::Queue
     Properties:
+      KmsMasterKeyId: alias/aws/sqs
       QueueName: !Sub "${ManagedPolicyNamePrefix}-rapid-iq-pipeline-raw-signals-${DeploymentStage}-v2.fifo"
       FifoQueue: true
       ContentBasedDeduplication: false
@@ -368,6 +378,14 @@ Resources:
               - HasLegiscanSecretArn
               - !Ref RapidIqLegiscanApiKeySecretArn
               - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-legiscan-*
+          - Sid: ReadWatchIngestSecret
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !If
+              - HasWatchIngestSecretArn
+              - !Ref RapidIqWatchIngestApiKeySecretArn
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-watch-ingest-*
           - Sid: ReadOpenAiSecret
             Effect: Allow
             Action:
@@ -988,8 +1006,11 @@ Resources:
   # those retained-then-deleted resources.
   # Live tbr4zvjlk5 (2026-09-17, CLI until nested import): GET collection b5idqxm,
   # POST collection zb710pi, GET item wchhkmd, PATCH gizyj72,
-  # POST push-to-crm hr9q6vf, GET credits 7ky32ki. Next nested update that
-  # creates these RouteKeys must import those IDs if AlreadyExists.
+  # POST push-to-crm hr9q6vf, GET credits 7ky32ki.
+  # Watch ingest (2026-09-25 CLI): POST watch-ingest 2q8spkt (AuthorizationType NONE).
+  # Next nested update that creates these RouteKeys must import those IDs if AlreadyExists.
+  # 2026-09-25 sam deploy UPDATE_ROLLBACK: AlreadyExists on signals/credits routes —
+  # go-live used lambda update-function-code + create-route; import before next CFN.
 
   RoutePipelineSignalsGet:
     Type: AWS::ApiGatewayV2::Route
@@ -1010,6 +1031,16 @@ Resources:
       Target: !Sub "integrations/${SignalHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  # ChatGPT Watch machine ingest — API key checked in Lambda (no Cognito JWT).
+  RoutePipelineWatchIngestPost:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rapid-iq/pipeline/watch-ingest"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: NONE
 
   RoutePipelineSignalGet:
     Type: AWS::ApiGatewayV2::Route

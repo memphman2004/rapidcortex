@@ -1030,6 +1030,7 @@ Resources:
   OpsAlertsTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       DisplayName: !Sub "${AppName} ops (${DeploymentStage})"
 
   OpsAlertsEmailSubscription:
@@ -1057,6 +1058,7 @@ Resources:
   SesNotificationsTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       TopicName: !Sub "${AppName}-ses-notifications-${DeploymentStage}"
       DisplayName: !Sub "${AppName} SES bounce/complaint (${DeploymentStage})"
 

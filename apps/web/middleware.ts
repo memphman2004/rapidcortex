@@ -30,6 +30,7 @@ import {
 } from "rapid-cortex-shared/auth/session-product";
 import { isHospitalOperatorRole } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isRcInternalOperator, isRcsuperadmin } from "rapid-cortex-shared/tenancy/principal";
+import { salesContractorMayAccessPath } from "rapid-cortex-shared/auth/sales-contractor-paths";
 import {
   canViewPipeline,
   isSalesContractor,
@@ -1266,7 +1267,11 @@ async function runMiddleware(request: NextRequest) {
     }
   }
   if (subpath === "/rc-admin" || subpath.startsWith("/rc-admin/")) {
-    if (!isRcInternalOperator(user.role)) {
+    if (isRcInternalOperator(user.role)) {
+      // ok
+    } else if (isSalesContractor(user) && salesContractorMayAccessPath(subpath)) {
+      // Sales contractors: allowlisted CRM / enablement tools only
+    } else {
       return redirectToRoleAwareHome(request, user, jurisdiction);
     }
   } else if (subpath === "/staff" || subpath.startsWith("/staff/")) {

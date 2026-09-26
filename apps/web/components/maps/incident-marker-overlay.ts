@@ -5,7 +5,7 @@
  * Canvas image (same technique as live-caller) so ALS paints it in the top slot.
  */
 
-import type maplibregl from "maplibre-gl";
+import type * as maplibregl from "maplibre-gl";
 
 export const INCIDENT_PULSE_IMAGE_ID = "rc-incident-pulse-active";
 

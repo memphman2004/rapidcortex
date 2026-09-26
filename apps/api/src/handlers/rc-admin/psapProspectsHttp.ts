@@ -2,7 +2,7 @@ import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import {
   addPsapActivityRequestSchema,
-  canAccessRcFinancePortal,
+  canAccessPsapProspectsCrm,
   patchPsapProspectBodySchema,
   psapPinsToGeoJSON,
   psapProspectListQuerySchema,
@@ -113,7 +113,7 @@ async function requireRcAdmin(
 ): Promise<{ error: JsonResult } | { user: UserContext }> {
   const auth = await requireAuthenticated(event);
   if ("error" in auth) return auth;
-  if (!canAccessRcFinancePortal(auth.user.role)) return { error: forbidden() };
+  if (!canAccessPsapProspectsCrm(auth.user.role)) return { error: forbidden() };
   return auth;
 }
 

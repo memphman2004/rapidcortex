@@ -6,7 +6,7 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import {
   addSalesLeadActivityBodySchema,
   addSalesLeadNoteBodySchema,
-  canAccessRcFinancePortal,
+  canAccessSalesLeadsCrm,
   patchSalesLeadBodySchema,
   patchSalesLeadStageBodySchema,
 } from "rapid-cortex-shared";
@@ -50,7 +50,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   const user = await getUserContext(event);
   if (!user) return unauthorized();
   if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
-  if (!canAccessRcFinancePortal(user.role)) return forbidden();
+  if (!canAccessSalesLeadsCrm(user.role)) return forbidden();
 
   const m = method(event);
   const path = pathOf(event);

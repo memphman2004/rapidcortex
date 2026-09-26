@@ -1,4 +1,4 @@
-import type maplibregl from "maplibre-gl";
+import type * as maplibregl from "maplibre-gl";
 import type { RCMapLayerVisibility } from "./map-types";
 import { addOverlayLayer, firstSymbolFont } from "./overlay-slot";
 import {

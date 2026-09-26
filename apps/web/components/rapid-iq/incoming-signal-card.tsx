@@ -49,6 +49,8 @@ const SOURCE_TAG_STYLES: Record<string, string> = {
   "CO-OP PURCHASING": "bg-teal-500/15 text-teal-300 border border-teal-500/30",
   "UNIVERSITY PROCUREMENT": "bg-sky-500/15 text-sky-300 border border-sky-500/30",
   "FCC 911": "bg-rose-500/15 text-rose-300 border border-rose-500/30",
+  "CHATGPT WATCH": "bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-500/30",
+  UPDATED: "bg-amber-500/20 text-amber-200 border border-amber-500/40",
   911: "bg-blue-500/15 text-blue-300 border border-blue-500/30",
   CAMPUS: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30",
   VENUE: "bg-violet-500/15 text-violet-300 border border-violet-500/30",
@@ -62,6 +64,7 @@ function synthesizedTags(signal: RapidIqPipelineSignal, vertical: FeedVertical):
   const tags: string[] = [];
   const sourceLabel = RAPID_IQ_PIPELINE_SOURCE_LABELS[signal.sourceId] ?? signal.sourceId;
   tags.push(sourceLabel.toUpperCase());
+  if (signal.watchUpdated) tags.push("UPDATED");
   if (vertical === "911") tags.push("911");
   if (vertical === "campus") tags.push("CAMPUS");
   if (vertical === "venue") tags.push("VENUE");

@@ -234,6 +234,10 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-sop-inte
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-translate.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-6.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-alarms-2.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-data-layer-loadout.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-loadout.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-data-layer-grants.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-grants.yaml"
 fi
 
 echo "IAM managed policy size preflight (6,144-byte cap)..."
@@ -508,6 +512,9 @@ if [[ -n "${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN:-}" ]]; then
 fi
 if [[ -n "${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} RapidIqApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}"
+fi
+if [[ -n "${RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} RapidIqWatchIngestApiKeySecretArn=${RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN}"
 fi
 if [[ -n "${RMS_VENDOR_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} RmsVendorSecretArn=${RMS_VENDOR_SECRET_ARN}"

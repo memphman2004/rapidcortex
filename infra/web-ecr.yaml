@@ -15,6 +15,7 @@ Resources:
   WebAppRepository:
     Type: AWS::ECR::Repository
     Properties:
+      ImageTagMutability: IMMUTABLE
       RepositoryName: !Sub ${RepositoryNameSuffix}-${Environment}
       ImageScanningConfiguration:
         ScanOnPush: true

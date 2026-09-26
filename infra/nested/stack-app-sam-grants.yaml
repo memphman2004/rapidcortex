@@ -1,0 +1,141 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  NexCort iQ Grant Intelligence — daily ingest + SNS matcher.
+  Vertical isolation enforced in matcher (grant.verticals ∩ lead.vertical).
+
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks: [W1030, W2531, W3005]
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  GrantsTable:
+    Type: String
+  GrantMatchesTable:
+    Type: String
+  GrantRunsTable:
+    Type: String
+  SalesLeadsTable:
+    Type: String
+  SamGovApiKeySecretArn:
+    Type: String
+    Default: ""
+  BedrockModelId:
+    Type: String
+    Default: "anthropic.claude-3-haiku-20240307-v1:0"
+  GrantAlertFromEmail:
+    Type: String
+    Default: "noreply@rapidcortex.us"
+  BedrockMock:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+
+Conditions:
+  HasSamSecret: !Not [!Equals [!Ref SamGovApiKeySecretArn, ""]]
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Architectures: [arm64]
+    Timeout: 300
+    MemorySize: 512
+    Tracing: Active
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        GRANTS_TABLE: !Ref GrantsTable
+        GRANT_MATCHES_TABLE: !Ref GrantMatchesTable
+        GRANT_RUNS_TABLE: !Ref GrantRunsTable
+        SALES_LEADS_TABLE: !Ref SalesLeadsTable
+        BEDROCK_MODEL_ID: !Ref BedrockModelId
+        BEDROCK_MOCK: !Ref BedrockMock
+        GRANT_ALERT_FROM_EMAIL: !Ref GrantAlertFromEmail
+
+Resources:
+  GrantMatchTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub rapid-cortex-grant-match-${DeploymentStage}
+      Tags:
+        - Key: Project
+          Value: NexCortiQ
+        - Key: Component
+          Value: GrantIntelligence
+
+  GrantIngestorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rapid-cortex-grant-ingestor-${DeploymentStage}
+      CodeUri: ../../apps/api/
+      Handler: dist/grants/grant-ingestor.handler
+      Description: Daily grants.gov + SAM.gov ingest with vertical classification
+      Environment:
+        Variables:
+          GRANT_MATCH_TOPIC_ARN: !Ref GrantMatchTopic
+          SAM_GOV_API_KEY_SECRET_ARN: !Ref SamGovApiKeySecretArn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GrantsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GrantRunsTable
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt GrantMatchTopic.TopicName
+        - Statement:
+            - Effect: Allow
+              Action: [bedrock:InvokeModel]
+              Resource: "*"
+        - !If
+          - HasSamSecret
+          - Statement:
+              - Effect: Allow
+                Action: [secretsmanager:GetSecretValue]
+                Resource: !Ref SamGovApiKeySecretArn
+          - !Ref AWS::NoValue
+      Events:
+        DailySchedule:
+          Type: ScheduleV2
+          Properties:
+            ScheduleExpression: cron(0 6 * * ? *)
+            Name: !Sub grant-ingestor-daily-${DeploymentStage}
+            Description: Grant ingest 06:00 UTC
+
+  GrantMatcherFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rapid-cortex-grant-matcher-${DeploymentStage}
+      CodeUri: ../../apps/api/
+      Handler: dist/grants/grant-matcher.handler
+      Description: Match grants to QUALIFIED+ leads within the same vertical only
+      Timeout: 120
+      Environment:
+        Variables:
+          GRANT_MATCH_TOPIC_ARN: !Ref GrantMatchTopic
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GrantsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GrantMatchesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SalesLeadsTable
+        - Statement:
+            - Effect: Allow
+              Action: [ses:SendEmail, ses:SendRawEmail]
+              Resource: "*"
+      Events:
+        MatchTopic:
+          Type: SNS
+          Properties:
+            Topic: !Ref GrantMatchTopic
+
+Outputs:
+  GrantMatchTopicArn:
+    Value: !Ref GrantMatchTopic
+  GrantIngestorFunctionArn:
+    Value: !GetAtt GrantIngestorFunction.Arn
+  GrantMatcherFunctionArn:
+    Value: !GetAtt GrantMatcherFunction.Arn

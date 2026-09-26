@@ -160,5 +160,32 @@ export function defaultAddOnSeed(now: string): Record<MonetizationAddOnId, impor
       "Setup / Implementation Fee",
       "Initial integration, SSO, and workspace provisioning billed one-time.",
     ),
+    call_assist: mk(
+      "call_assist",
+      "Call Assist (Non-Emergency)",
+      "AI-assisted non-emergency intake, greetings, callbacks, and operator console.",
+    ),
+    rapid_vision: mk(
+      "rapid_vision",
+      "NexIQ Vision™",
+      "Live camera assist and scene intelligence for authorized roles.",
+    ),
+    rc_translate: mk(
+      "rc_translate",
+      "NexCort Translate",
+      "Field / venue / campus / clinical voice translation sessions.",
+    ),
+    cad_mesh: mk("cad_mesh", "CAD-to-CAD Mesh", "Cross-agency CAD mesh for mutual aid partners."),
+    mutual_aid_mci: mk(
+      "mutual_aid_mci",
+      "Mutual Aid & MCI Command",
+      "Mutual aid coordination and multi-casualty incident command.",
+    ),
+    ng911_assist: mk("ng911_assist", "NG911 Assist", "Diversion, EIDO, Additional Data, and NG911 metrics."),
+    connect_nest_wyze: mk(
+      "connect_nest_wyze",
+      "Nest / Wyze Connect",
+      "Citizen Nest and Wyze camera share flows alongside Ring Connect.",
+    ),
   };
 }

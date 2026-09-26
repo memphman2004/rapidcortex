@@ -68,7 +68,7 @@ Resources:
       QueueName: !Sub "rc-invoice-jobs-dlq-${DeploymentStage}.fifo"
       FifoQueue: true
       MessageRetentionPeriod: 1209600
-      SqsManagedSseEnabled: true
+      KmsMasterKeyId: alias/aws/sqs
 
   InvoiceJobsQueue:
     Type: AWS::SQS::Queue
@@ -77,7 +77,7 @@ Resources:
       FifoQueue: true
       ContentBasedDeduplication: false
       VisibilityTimeout: 360
-      SqsManagedSseEnabled: true
+      KmsMasterKeyId: alias/aws/sqs
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt InvoiceJobsDlq.Arn
         maxReceiveCount: 5

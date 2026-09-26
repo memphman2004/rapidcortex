@@ -146,9 +146,9 @@ function evaluatePolicy(
   if (!policy.enabled) return { ...noop, reason: 'policy disabled' };
   if (policy.sharingMode === 'manual') return { ...noop, reason: 'manual mode — dispatcher must share' };
 
-  // Incident type filter
-  const types = policy.shareIncidentTypes;
-  if (!types.includes('*' as any) && !types.includes(incident.incidentType)) {
+  // Incident type filter (`IncidentType[] | ['*']` makes Array.includes infer `never`)
+  const types = policy.shareIncidentTypes as ReadonlyArray<string>;
+  if (!types.includes('*') && !types.includes(incident.incidentType)) {
     return { ...noop, reason: `incident type ${incident.incidentType} not in policy` };
   }
 

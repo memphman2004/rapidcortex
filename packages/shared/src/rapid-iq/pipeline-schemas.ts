@@ -17,7 +17,7 @@ export const RAPID_IQ_PIPELINE_SOURCE_IDS = [
   "state-arpa",
   "openlegislative",
   "county-procurement",
-  "rapid-iq", // queued from NexiQ IQ opportunity cards
+  "rapid-iq", // queued from NexiQ opportunity cards
   "grants-gov",
   "911-gov",
   "trade-publication",
@@ -32,10 +32,11 @@ export const RAPID_IQ_PIPELINE_SOURCE_IDS = [
   "watch-page",
   "watch-rss",
   "manual-url",
+  "chatgpt-watch",
 ] as const;
 export type RapidIqPipelineSourceId = (typeof RAPID_IQ_PIPELINE_SOURCE_IDS)[number];
 
-/** NexiQ IQ inbox + pipeline slice (matches the dashboard tabs). */
+/** NexiQ inbox + pipeline slice (matches the dashboard tabs). */
 export const RAPID_IQ_PIPELINE_FEED_TABS = ["911", "campus", "venue", "transit", "competitor"] as const;
 export type RapidIqPipelineFeedTab = (typeof RAPID_IQ_PIPELINE_FEED_TABS)[number];
 
@@ -136,7 +137,7 @@ export const rapidIqPipelineSignalSchema = z.object({
   pageLocation: z.string().max(200).optional(),
   taxonomyTags: z.array(z.string().min(1).max(80)).max(40).optional(),
   recommendedAction: z.string().max(400).optional(),
-  /** Linked NexiQ IQ agency profile (pipeline table pk AGENCY#…). */
+  /** Linked NexiQ agency profile (pipeline table pk AGENCY#…). */
   agencyProfileId: z.string().min(1).max(128).optional(),
   manualEntry: z.boolean().optional(),
   enteredBy: z.string().max(200).optional(),
@@ -151,10 +152,43 @@ export const rapidIqPipelineSignalSchema = z.object({
   reviewedAt: z.string().optional(),
   crmLeadId: z.string().optional(),
   pushedAt: z.string().optional(),
-  /** Set when an opportunity is queued from the NexiQ IQ feed. */
+  /** Set when an opportunity is queued from the NexiQ feed. */
   opportunityId: z.string().min(1).optional(),
   /** Inbox / pipeline category. Inferred client-side when omitted. */
   vertical: z.enum(RAPID_IQ_PIPELINE_FEED_TABS).optional(),
+
+  /**
+   * Deterministic ChatGPT Watch / external ingest key
+   * (e.g. LA|CalcasieuParishSheriff|RFP-2027-10).
+   */
+  externalKey: z.string().min(1).max(300).optional(),
+  /** Watch id from ingest payload (psap_rfp, campus_safety, …). */
+  watchName: z.string().max(80).optional(),
+  /** True after a lifecycle update from an external watch (deadline/status change). */
+  watchUpdated: z.boolean().optional(),
+  lastWatchUpdateAt: z.string().optional(),
+  evidence: z
+    .array(
+      z.object({
+        url: z.string().url().max(2000),
+        sourceType: z
+          .enum(["official_procurement", "board_agenda", "news", "other"])
+          .default("other"),
+        retrievedAt: z.string().optional(),
+      }),
+    )
+    .max(20)
+    .optional(),
+  activities: z
+    .array(
+      z.object({
+        at: z.string().min(1),
+        changeType: z.string().min(1).max(80),
+        summary: z.string().min(1).max(500),
+      }),
+    )
+    .max(40)
+    .optional(),
 });
 export type RapidIqPipelineSignal = z.infer<typeof rapidIqPipelineSignalSchema>;
 
@@ -382,7 +416,7 @@ export const RAPID_IQ_PIPELINE_SOURCE_LABELS: Record<RapidIqPipelineSourceId, st
   "state-arpa": "ARPA Dashboard",
   openlegislative: "State Legislature",
   "county-procurement": "County Procurement",
-  "rapid-iq": "NexiQ IQ",
+  "rapid-iq": "NexiQ",
   "grants-gov": "Grants.gov",
   "911-gov": "911.gov",
   "trade-publication": "APCO / NENA",
@@ -397,7 +431,103 @@ export const RAPID_IQ_PIPELINE_SOURCE_LABELS: Record<RapidIqPipelineSourceId, st
   "watch-page": "Agency Watch Page",
   "watch-rss": "Agency Watch RSS",
   "manual-url": "Manual URL",
+  "chatgpt-watch": "ChatGPT Watch",
 };
+
+/** ChatGPT Watch → NexiQ Inbox ingest (machine auth; does not auto-create Leads). */
+export const RAPID_IQ_WATCH_INGEST_VERTICALS = [
+  "911_psap",
+  "campus",
+  "venue",
+  "transit",
+  "competitors",
+] as const;
+export type RapidIqWatchIngestVertical = (typeof RAPID_IQ_WATCH_INGEST_VERTICALS)[number];
+
+export const RAPID_IQ_WATCH_INGEST_SIGNAL_TYPES = [
+  "rfp",
+  "planning",
+  "funded",
+  "early_signal",
+  "competitor",
+] as const;
+
+export const rapidIqWatchIngestEvidenceSchema = z.object({
+  url: z.string().url().max(2000),
+  source_type: z
+    .enum(["official_procurement", "board_agenda", "news", "other"])
+    .optional()
+    .default("other"),
+});
+
+export const rapidIqWatchIngestBodySchema = z.object({
+  source: z.literal("chatgpt_watch").default("chatgpt_watch"),
+  watch: z.string().min(1).max(80),
+  external_key: z.string().min(3).max(300),
+  signal_type: z.enum(RAPID_IQ_WATCH_INGEST_SIGNAL_TYPES),
+  vertical: z.enum(RAPID_IQ_WATCH_INGEST_VERTICALS),
+  agency: z.object({
+    name: z.string().min(1).max(300),
+    city: z.string().max(200).nullable().optional(),
+    state: z.string().min(2).max(2),
+  }),
+  opportunity: z.object({
+    title: z.string().min(1).max(500),
+    solicitation_number: z.string().max(120).nullable().optional(),
+    posted_date: z.string().max(32).nullable().optional(),
+    due_date: z.string().max(40).nullable().optional(),
+    estimated_value: z.number().nullable().optional(),
+    procurement_url: z.string().url().max(2000),
+    status: z
+      .enum(["open", "updated", "cancelled", "awarded", "unknown"])
+      .optional()
+      .default("open"),
+  }),
+  contact: z
+    .object({
+      name: z.string().max(200).nullable().optional(),
+      title: z.string().max(200).nullable().optional(),
+      email: z.string().max(320).nullable().optional(),
+      phone: z.string().max(40).nullable().optional(),
+    })
+    .optional(),
+  qualification: z
+    .object({
+      fit: z.enum(["high", "medium", "low"]).optional().default("medium"),
+      strategy: z.enum(["direct", "partner", "monitor"]).optional().default("monitor"),
+      reason: z.string().max(500).optional(),
+    })
+    .optional(),
+  next_action: z.string().max(400).optional(),
+  lifecycle: z
+    .object({
+      change_type: z
+        .enum([
+          "new",
+          "deadline_change",
+          "addendum",
+          "qa",
+          "cancel",
+          "award",
+          "contact_change",
+          "budget_change",
+          "none",
+        ])
+        .optional()
+        .default("new"),
+      summary: z.string().max(500).optional(),
+    })
+    .optional(),
+  evidence: z.array(rapidIqWatchIngestEvidenceSchema).max(20).optional(),
+});
+export type RapidIqWatchIngestBody = z.infer<typeof rapidIqWatchIngestBodySchema>;
+
+/** Single object or batch array from ChatGPT Watch custom actions. */
+export const rapidIqWatchIngestRequestSchema = z.union([
+  rapidIqWatchIngestBodySchema,
+  z.array(rapidIqWatchIngestBodySchema).min(1).max(25),
+]);
+export type RapidIqWatchIngestRequest = z.infer<typeof rapidIqWatchIngestRequestSchema>;
 
 export const enqueueRapidIqPipelineFromOpportunityBodySchema = z.object({
   opportunityId: z.string().min(1).max(128),
@@ -436,7 +566,7 @@ const TRANSIT_RE =
   /\b(transit|metro|subway|light rail|commuter rail|bus rapid|ferry|paratransit|ridership|mta|wmata|mbta|bart|trimet)\b/i;
 
 /**
- * Map a pipeline / collector signal onto the NexiQ IQ category tabs.
+ * Map a pipeline / collector signal onto the NexiQ category tabs.
  * Explicit `vertical` wins; otherwise keywords + source; default is 911.
  */
 export function classifyPipelineFeedTab(input: {

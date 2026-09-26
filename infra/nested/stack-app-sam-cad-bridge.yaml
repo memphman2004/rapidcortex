@@ -262,6 +262,7 @@ Resources:
   CadBridgeEventsDlq:
     Type: AWS::SQS::Queue
     Properties:
+      KmsMasterKeyId: alias/aws/sqs
       QueueName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-events-dlq-${DeploymentStage}.fifo"
       FifoQueue: true
       ContentBasedDeduplication: false
@@ -270,6 +271,7 @@ Resources:
   CadBridgeEventsQueue:
     Type: AWS::SQS::Queue
     Properties:
+      KmsMasterKeyId: alias/aws/sqs
       QueueName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-events-${DeploymentStage}.fifo"
       FifoQueue: true
       ContentBasedDeduplication: false

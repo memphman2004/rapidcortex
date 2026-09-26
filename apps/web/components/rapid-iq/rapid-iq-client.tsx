@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { RapidIqOpportunity, IntentStage, RapidIqVertical } from "@/lib/rapid-iq/types";
 import type { RapidIqPipelineSignal, RapidIqProcurementStageFilterId } from "rapid-cortex-shared";
-import { matchesProcurementStageFilter, resolveProcurementStage } from "rapid-cortex-shared";
+import { matchesProcurementStageFilter, matchesWatchFeedFilter, resolveProcurementStage } from "rapid-cortex-shared";
 import {
   computeStats,
   getOpportunityDetail,
@@ -116,6 +116,8 @@ export function RapidIqClient() {
   const incomingSignals = useMemo(
     () =>
       inboxPipelineSignals(pipelineItems, feedTab).filter((s) => {
+        if (!matchesWatchFeedFilter(s.sourceId, procurementStageFilter)) return false;
+        if (procurementStageFilter === "watch") return true;
         if (!matchesProcurementStageFilter(resolveProcurementStage(s), procurementStageFilter)) {
           return false;
         }

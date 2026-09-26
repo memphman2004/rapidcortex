@@ -138,6 +138,7 @@ const STACK3_PATH_TESTS: RegExp[] = [
   /^\/api\/video-assist\//,
   /^\/api\/incidents\/[^/]+\/video-assist/,
   /^\/api\/agencies\/[^/]+\/share-partners/,
+  /^\/api\/loadout\//,
 ];
 
 export function isSam4ApiPath(path: string): boolean {

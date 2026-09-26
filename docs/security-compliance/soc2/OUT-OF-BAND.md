@@ -12,7 +12,7 @@ This pack finishes **in-repo** design of CC1–CC9. The items below still need p
 | SOC-106 | Execute restore drill (new table) | Eng | **Yes** | **DONE** Scan COUNT 13218=13218; copy deleted; no production cutover |
 | SOC-107 | Monthly live observation packs | Eng | **Yes** | **DONE** Mac Mini stamp `20260919T014158Z` — commit `docs/evidence/soc2-evidence/2026-09/` |
 | SOC-108 | Signed shared-account carve-out | Management | Firm-dependent | Same signature packet |
-| SOC-109 | Pen-test SOW / report | Security | Often requested | Open (LEG-010) |
+| SOC-109 | Pen-test SOW / report | Security | Often requested | **DRAFT** inquiry ready — [LEG-010-PENTEST-INQUIRY.md](./LEG-010-PENTEST-INQUIRY.md) (send to Cobalt) |
 | SOC-110 | Executed DPA / MSA | Legal | Customer + CC9 | Open |
 | SOC-111 | AWS Artifact SOC reports | Security | CC6.8 inherited | Open |
 | SOC-112 | Entity naming (AOD vs NexCort iQ LLC) | Legal | LEG-007 | Open |

@@ -3,19 +3,18 @@
 import { Suspense } from "react";
 import { CallAssistAdminEditor } from "@/components/call-assist/admin/call-assist-admin-editor";
 import { CallAssistWorkspace } from "@/components/call-assist/call-assist-workspace";
-import { useAgencyContext } from "@/contexts/agency-context";
-import { JurisdictionProvider } from "@/lib/jurisdiction-context";
+import { CallAssistProductBaseProvider } from "@/lib/jurisdiction-context";
 
 /**
  * RC operator Call Assist: agency switcher + greeting/config editor.
- * Nested jurisdiction slug follows the selected tenant so chrome links stay on that agency.
+ *
+ * Use the Call Assist product base (`/app/call-assist/...`) for setup/config links —
+ * wrapping with JurisdictionProvider(agencyId) previously sent operators to
+ * `/{agencyId}/call-assist/setup`, which 404s when agencyId is not a jurisdiction slug.
  */
 export function RcAdminCallAssistClient() {
-  const { activeAgencyId } = useAgencyContext();
-  const slug = activeAgencyId ?? "kcpd";
-
   return (
-    <JurisdictionProvider slug={slug}>
+    <CallAssistProductBaseProvider base="/rc-admin/call-assist">
       <div className="flex h-[calc(100vh-9rem)] min-h-[28rem]">
         <Suspense fallback={<p className="p-6 text-sm text-slate-400">Loading Call Assist…</p>}>
           <CallAssistWorkspace>
@@ -23,6 +22,6 @@ export function RcAdminCallAssistClient() {
           </CallAssistWorkspace>
         </Suspense>
       </div>
-    </JurisdictionProvider>
+    </CallAssistProductBaseProvider>
   );
 }

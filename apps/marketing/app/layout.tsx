@@ -15,7 +15,7 @@ const inter = Inter({
 
 const siteUrl = getSiteUrl();
 const defaultOgImage = buildOgShareImage(`${SITE_NAME} — branded preview`);
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-S83NHMBHRD";
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-NGT17QK1LW";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

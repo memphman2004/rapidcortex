@@ -60,4 +60,14 @@ describe("app-host-routing — public status", () => {
     expect(isMarketingPublicPath("/rc-guest-assist.html")).toBe(false);
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/rc-guest-assist.html"))).toBeNull();
   });
+
+  it("keeps sales contractor portal + ROI + free register on the app host", () => {
+    expect(isMarketingPublicPath("/sales")).toBe(false);
+    expect(isMarketingPublicPath("/sales/anything")).toBe(false);
+    expect(isMarketingPublicPath("/roi/tok")).toBe(false);
+    expect(isMarketingPublicPath("/register/free")).toBe(false);
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/sales"))).toBeNull();
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/roi/abc"))).toBeNull();
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/register/free"))).toBeNull();
+  });
 });

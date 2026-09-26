@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 const proxyToAuthUpstream = vi.fn(async () => new Response("ok", { status: 200 }));
 
 vi.mock("@/lib/server/auth-upstream-proxy", () => ({
-  proxyToAuthUpstream: (...args: unknown[]) => proxyToAuthUpstream(...args),
+  proxyToAuthUpstream,
 }));
 
 describe("GET /api/incidents/:incidentId/intelligence", () => {

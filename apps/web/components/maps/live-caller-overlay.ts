@@ -6,7 +6,7 @@
  * Restored after style.load from app state — not baked into the basemap.
  */
 
-import type maplibregl from "maplibre-gl";
+import type * as maplibregl from "maplibre-gl";
 import { EMPTY_OVERLAY_FC } from "./runtime-overlays";
 import { addOverlayLayer } from "./overlay-slot";
 import type { RCLiveCaller, RCMapLayerVisibility } from "./map-types";

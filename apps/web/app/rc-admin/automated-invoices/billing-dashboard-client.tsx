@@ -97,7 +97,16 @@ export function AutomatedBillingDashboardClient() {
       </div>
 
       {query.isError ? (
-        <p className="text-sm text-red-400">{query.error instanceof Error ? query.error.message : "Failed to load invoices"}</p>
+        <div className="space-y-1 rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-3 text-sm text-red-300">
+          <p className="font-medium">Could not load automated invoices</p>
+          <p className="text-red-400/90">
+            {query.error instanceof Error ? query.error.message : "Failed to load invoices"}
+          </p>
+          <p className="text-xs text-slate-500">
+            Expected route: <code className="text-slate-400">/api/billing/automated-invoices</code> via billing stack
+            (API_UPSTREAM_BASE_4). Empty drafts are normal until the monthly generator runs.
+          </p>
+        </div>
       ) : null}
 
       <div className="overflow-x-auto rounded-xl border border-slate-800">

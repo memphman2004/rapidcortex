@@ -5,7 +5,7 @@
  * Custom icon + clustered GeoJSON — not baked into the basemap.
  */
 
-import type maplibregl from "maplibre-gl";
+import type * as maplibregl from "maplibre-gl";
 import {
   isPsapMapFeatureCollection,
   type PsapMapFeatureCollection,
@@ -306,7 +306,7 @@ export function bindPsapOverlayInteractions(
     const source = map.getSource(OVERLAY_PSAPS_SOURCE) as maplibregl.GeoJSONSource | undefined;
     if (!source?.getClusterExpansionZoom) return;
     const coords = feature.geometry.coordinates as [number, number];
-    void source.getClusterExpansionZoom(clusterId).then((zoom) => {
+    void source.getClusterExpansionZoom(clusterId).then((zoom: number) => {
       if (zoom == null) return;
       map.easeTo({ center: coords, zoom });
     });

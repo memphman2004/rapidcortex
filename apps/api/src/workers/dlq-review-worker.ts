@@ -172,7 +172,7 @@ async function reviewOneQueue(queueName: string): Promise<{ queueName: string; c
         MaxNumberOfMessages: 10,
         WaitTimeSeconds: 0,
         VisibilityTimeout: 30,
-        AttributeNames: ["ApproximateReceiveCount"],
+        MessageSystemAttributeNames: ["ApproximateReceiveCount"],
         MessageAttributeNames: ["All"],
       }),
     );

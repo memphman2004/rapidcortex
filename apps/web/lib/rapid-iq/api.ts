@@ -277,7 +277,7 @@ export async function fetchOutreach(
       body: [
         "Hi Director,",
         "",
-        "Demo outreach draft grounded in this NexiQ IQ signal.",
+        "Demo outreach draft grounded in this NexiQ signal.",
         "",
         "Talking points for our conversation:",
         "1. Reference the signal in your opener.",

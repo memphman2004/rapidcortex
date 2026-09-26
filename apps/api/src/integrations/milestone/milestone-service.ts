@@ -378,6 +378,7 @@ export async function notifyMilestoneOfCampusIncident(opts: {
         opts.agencyId,
         {
           incidentId: opts.incidentId,
+          alarmName: opts.title.slice(0, 120) || "RapidCortexIncident",
           message: opts.title,
           severity: opts.severity ?? "high",
           cameraIds: opts.cameraIds,

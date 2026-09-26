@@ -1,0 +1,406 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  NexCort iQ Loadout — REST API (/v1/* REQUEST authorizer) + HttpApi portal
+  (/api/loadout/* JWT) + invoice EventBridge worker.
+
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks: [W1030, W2531, W3005]
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+    Description: AppSam3 HttpApi id for portal /api/loadout routes
+  HttpApiJwtAuthorizerId:
+    Type: String
+    Default: ""
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoIssuer:
+    Type: String
+  LoadoutSubscriptionsTable:
+    Type: String
+  LoadoutApiKeysTable:
+    Type: String
+  LoadoutUsageTable:
+    Type: String
+  LoadoutSwapHistoryTable:
+    Type: String
+  LoadoutInvoicesTable:
+    Type: String
+  AuditTable:
+    Type: String
+    Default: ""
+  FromEmail:
+    Type: String
+    Default: billing@rapidcortex.us
+  AdminEmail:
+    Type: String
+    Default: ops@rapidcortex.us
+  AlertEmail:
+    Type: String
+    Default: ""
+  OpsSnsTopicArn:
+    Type: String
+    Default: ""
+
+Conditions:
+  IsProd: !Equals [!Ref DeploymentStage, prod]
+  HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
+  HasAlertEmail: !Not [!Equals [!Ref AlertEmail, ""]]
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Architectures: [arm64]
+    Timeout: 29
+    MemorySize: 256
+    Tracing: Active
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        ENABLE_LOADOUT: "true"
+        SUBSCRIPTIONS_TABLE: !Ref LoadoutSubscriptionsTable
+        API_KEYS_TABLE: !Ref LoadoutApiKeysTable
+        USAGE_TABLE: !Ref LoadoutUsageTable
+        SWAP_HISTORY_TABLE: !Ref LoadoutSwapHistoryTable
+        INVOICES_TABLE: !Ref LoadoutInvoicesTable
+        FROM_EMAIL: !Ref FromEmail
+        ADMIN_EMAIL: !Ref AdminEmail
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_ISSUER: !Ref ImportedCognitoIssuer
+        COGNITO_REGION: !Ref AWS::Region
+        AUDIT_TABLE: !Ref AuditTable
+
+Resources:
+  LoadoutOpsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub rapid-cortex-loadout-ops-${DeploymentStage}
+
+  LoadoutOpsEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasAlertEmail
+    Properties:
+      TopicArn: !Ref LoadoutOpsTopic
+      Protocol: email
+      Endpoint: !Ref AlertEmail
+
+  LoadoutInvoiceDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub rapid-cortex-loadout-invoice-dlq-${DeploymentStage}
+      MessageRetentionPeriod: 1209600
+
+  LoadoutRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub rapid-cortex-loadout-api-${DeploymentStage}
+      StageName: !Ref DeploymentStage
+      Description: NexCort iQ Loadout external /v1 API (API key authorizer)
+      TracingEnabled: true
+      Auth:
+        DefaultAuthorizer: LoadoutAuthorizer
+        Authorizers:
+          LoadoutAuthorizer:
+            FunctionArn: !GetAtt LoadoutAuthorizerFunction.Arn
+            FunctionPayloadType: REQUEST
+            Identity:
+              Headers:
+                - x-api-key
+              # Cache key is only x-api-key (no path). Must be 0 so feature licensing
+              # is re-evaluated per endpoint; TTL>0 falsely ALLOWs unlicensed routes.
+              ReauthorizeEvery: 0
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,x-api-key,Authorization'"
+        AllowOrigin: "'*'"
+      GatewayResponses:
+        ACCESS_DENIED:
+          StatusCode: 403
+          ResponseTemplates:
+            application/json: |
+              {
+                "success": false,
+                "error": "$context.authorizer.error_code",
+                "message": "$context.authorizer.message",
+                "feature": "$context.authorizer.feature",
+                "upgrade_url": "$context.authorizer.upgrade_url",
+                "request_id": "$context.requestId"
+              }
+        UNAUTHORIZED:
+          StatusCode: 401
+          ResponseTemplates:
+            application/json: |
+              {
+                "success": false,
+                "error": "unauthorized",
+                "message": "Invalid or missing API key.",
+                "request_id": "$context.requestId"
+              }
+      MethodSettings:
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          ThrottlingBurstLimit: 1000
+          ThrottlingRateLimit: 500
+      Tags:
+        Project: NexCortiQ
+        Component: Loadout
+        Stage: !Ref DeploymentStage
+
+  LoadoutAuthorizerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      FunctionName: !Sub rc-loadout-authorizer-${DeploymentStage}
+      CodeUri: ../../apps/api/
+      Handler: dist/loadout/authorizer.handler
+      Description: Loadout API key REQUEST authorizer
+      MemorySize: 192
+      Timeout: 5
+      Environment:
+        Variables:
+          API_KEYS_TABLE: !Ref LoadoutApiKeysTable
+          USAGE_TABLE: !Ref LoadoutUsageTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref LoadoutApiKeysTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LoadoutUsageTable
+
+  LoadoutV1StubFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      FunctionName: !Sub rc-loadout-v1-stub-${DeploymentStage}
+      CodeUri: ../../apps/api/
+      Handler: dist/loadout/v1-stub.handler
+      Description: Stub handlers for Loadout /v1/* licensed endpoints
+      Events:
+        Transcribe:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LoadoutRestApi
+            Path: /v1/transcribe
+            Method: POST
+        Translate:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LoadoutRestApi
+            Path: /v1/translate
+            Method: POST
+        Analyze:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LoadoutRestApi
+            Path: /v1/analyze
+            Method: POST
+        Classify:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LoadoutRestApi
+            Path: /v1/classify
+            Method: POST
+        Sentiment:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LoadoutRestApi
+            Path: /v1/sentiment
+            Method: POST
+        QaScore:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LoadoutRestApi
+            Path: /v1/qa/score
+            Method: POST
+        FieldBrief:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LoadoutRestApi
+            Path: /v1/field/brief
+            Method: POST
+
+  LoadoutSubscriptionManagerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      FunctionName: !Sub rc-loadout-subscription-mgr-${DeploymentStage}
+      CodeUri: ../../apps/api/
+      Handler: dist/loadout/subscription-manager.handler
+      Description: Loadout portal subscription CRUD
+      Timeout: 30
+      MemorySize: 512
+      Environment:
+        Variables:
+          OPS_SNS_TOPIC_ARN: !Ref LoadoutOpsTopic
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LoadoutSubscriptionsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LoadoutApiKeysTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref LoadoutUsageTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LoadoutSwapHistoryTable
+        - Statement:
+            - Effect: Allow
+              Action: [sns:Publish]
+              Resource: !Ref LoadoutOpsTopic
+
+  LoadoutSubscriptionHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LoadoutSubscriptionManagerFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  LoadoutSubscriptionInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LoadoutSubscriptionManagerFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteLoadoutProxy:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/loadout/{proxy+}"
+      Target: !Sub "integrations/${LoadoutSubscriptionHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteLoadoutRoot:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/loadout"
+      Target: !Sub "integrations/${LoadoutSubscriptionHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  LoadoutInvoiceGeneratorFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      FunctionName: !Sub rc-loadout-invoice-gen-${DeploymentStage}
+      CodeUri: ../../apps/api/
+      Handler: dist/loadout/invoice-generator.handler
+      Description: Monthly Loadout invoice generation + SES
+      Timeout: 120
+      MemorySize: 512
+      ReservedConcurrentExecutions: 10
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt LoadoutInvoiceDlq.Arn
+      Environment:
+        Variables:
+          FROM_EMAIL: !Ref FromEmail
+          ADMIN_EMAIL: !Ref AdminEmail
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref LoadoutSubscriptionsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LoadoutInvoicesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LoadoutUsageTable
+        - Statement:
+            - Effect: Allow
+              Action: [ses:SendEmail, sesv2:SendEmail]
+              Resource: "*"
+            - Effect: Allow
+              Action: cloudwatch:PutMetricData
+              Resource: "*"
+            - Effect: Allow
+              Action: [sqs:SendMessage]
+              Resource: !GetAtt LoadoutInvoiceDlq.Arn
+      Events:
+        MonthlySchedule:
+          Type: Schedule
+          Properties:
+            Name: !Sub rapid-cortex-loadout-monthly-invoice-${DeploymentStage}
+            Schedule: cron(0 8 1 * ? *)
+            Description: Monthly Loadout invoice generation
+            Enabled: !If [IsProd, true, false]
+
+  LoadoutAuthorizerErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rapid-cortex-loadout-authorizer-errors-${DeploymentStage}
+      AlarmDescription: Loadout authorizer errors > 10 in 5 minutes
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LoadoutAuthorizerFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref LoadoutOpsTopic
+
+  LoadoutInvoiceErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rapid-cortex-loadout-invoice-errors-${DeploymentStage}
+      AlarmDescription: Loadout invoice generator any error (critical)
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LoadoutInvoiceGeneratorFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref LoadoutOpsTopic
+
+  LoadoutQuotaExceededAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rapid-cortex-loadout-quota-exceeded-${DeploymentStage}
+      AlarmDescription: quota_exceeded custom metric > 100 in 1 hour
+      Namespace: NexCortiQ/Loadout
+      MetricName: QuotaExceeded
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 1
+      Threshold: 100
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref LoadoutOpsTopic
+
+Outputs:
+  LoadoutApiEndpoint:
+    Description: External Loadout REST API base URL
+    Value: !Sub "https://${LoadoutRestApi}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+  LoadoutAuthorizerArn:
+    Description: Loadout REQUEST authorizer Lambda ARN
+    Value: !GetAtt LoadoutAuthorizerFunction.Arn
+  LoadoutInvoiceGeneratorFunctionName:
+    Description: Invoice generator function name
+    Value: !Ref LoadoutInvoiceGeneratorFunction
+  LoadoutRestApiId:
+    Description: REST API id
+    Value: !Ref LoadoutRestApi

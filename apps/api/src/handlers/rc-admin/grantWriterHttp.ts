@@ -5,7 +5,8 @@
  */
 
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { AUDIT_EVENT_TYPES, isRcAdmin, isRcSuperAdmin } from "rapid-cortex-security";
+import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
+import { canAccessGrantSuccessProgram } from "rapid-cortex-shared";
 import "../../lib/env.js";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { makeId } from "../../lib/ids.js";
@@ -21,8 +22,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   const user = await getUserContext(event);
   if (!user) return unauthorized();
   if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
-  if (!isRcSuperAdmin(user.role) && !isRcAdmin(user.role)) {
-    return forbidden("Forbidden — platform admin access required");
+  if (!canAccessGrantSuccessProgram(user.role)) {
+    return forbidden("Forbidden — grant success access required");
   }
 
   const bodyRaw =

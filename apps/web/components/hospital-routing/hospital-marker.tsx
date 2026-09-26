@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { HospitalCapacity, HospitalProfile, HospitalRecommendationLevel } from "rapid-cortex-shared";
-import maplibregl from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 
 import { useClockPreference } from "@/components/providers/clock-preference-provider";
 import { formatClockTime } from "@/lib/clock-format";

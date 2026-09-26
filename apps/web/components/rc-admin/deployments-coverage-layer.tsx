@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import type maplibregl from "maplibre-gl";
+import type * as maplibregl from "maplibre-gl";
 import {
   COVERAGE_BORDER_LAYER_ID,
   COVERAGE_FILL_LAYER_ID,

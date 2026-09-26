@@ -6,8 +6,12 @@ import { formatShortDate } from "@/lib/rapid-iq/scoring";
 
 export function SignalEvidenceBlock({ signal }: { signal: RapidIqPipelineSignal }) {
   const excerpt = signal.excerpt || signal.summary || signal.rawSnippet;
-  const [open, setOpen] = useState(Boolean(signal.excerpt));
-  if (!excerpt && !signal.sourceUrl) return null;
+  const evidenceLinks = signal.evidence ?? [];
+  const activities = signal.activities ?? [];
+  const [open, setOpen] = useState(Boolean(signal.excerpt) || Boolean(signal.watchUpdated));
+  if (!excerpt && !signal.sourceUrl && evidenceLinks.length === 0 && activities.length === 0) {
+    return null;
+  }
 
   return (
     <div className="signal-evidence mt-2">
@@ -48,6 +52,38 @@ export function SignalEvidenceBlock({ signal }: { signal: RapidIqPipelineSignal 
           )}
           {signal.pageLocation && (
             <div className="evidence-location mt-1 text-[10px] text-slate-500">{signal.pageLocation}</div>
+          )}
+          {evidenceLinks.length > 0 && (
+            <ul className="mt-2 space-y-1 border-t border-slate-800 pt-2">
+              {evidenceLinks.map((ev) => (
+                <li key={ev.url} className="text-[10px] text-slate-400">
+                  <span className="mr-1.5 uppercase tracking-wide text-slate-600">
+                    {ev.sourceType.replace(/_/g, " ")}
+                  </span>
+                  <a
+                    href={ev.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sky-400 hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {ev.url.replace(/^https?:\/\//, "").slice(0, 72)}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+          {activities.length > 0 && (
+            <ul className="mt-2 space-y-1 border-t border-slate-800 pt-2">
+              {activities.slice(0, 8).map((act, i) => (
+                <li key={`${act.at}-${i}`} className="text-[10px] text-slate-400">
+                  <span className="font-medium text-slate-300">
+                    {formatShortDate(act.at)} — {act.changeType.replace(/_/g, " ")}
+                  </span>
+                  {act.summary ? `: ${act.summary}` : ""}
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       )}

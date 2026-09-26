@@ -218,7 +218,7 @@ export const searchContactsBodySchema = z.object({
 });
 export type SearchContactsBody = z.infer<typeof searchContactsBodySchema>;
 
-/** NexCort Admin NexiQ IQ — rcsuperadmin and rcadmin only (not rcitadmin). */
+/** NexCort Admin NexiQ — rcsuperadmin and rcadmin only (not rcitadmin). */
 export function canAccessRapidIq(role: string | undefined | null): boolean {
   const r = String(role ?? "").trim().toLowerCase();
   return r === "rcsuperadmin" || r === "rcadmin";

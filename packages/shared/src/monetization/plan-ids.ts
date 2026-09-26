@@ -15,7 +15,14 @@ export type MonetizationAddOnId =
   | "api_access"
   | "premium_support"
   | "onsite_deployment_training"
-  | "setup_implementation_fee";
+  | "setup_implementation_fee"
+  | "call_assist"
+  | "rapid_vision"
+  | "rc_translate"
+  | "cad_mesh"
+  | "mutual_aid_mci"
+  | "ng911_assist"
+  | "connect_nest_wyze";
 
 export type MonetizationBillingType = "monthly" | "annual" | "custom" | "pilot";
 

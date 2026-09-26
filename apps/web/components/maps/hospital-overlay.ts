@@ -5,7 +5,7 @@
  * Results are not stored; each viewport query uses IntendedUse SingleUse.
  */
 
-import type maplibregl from "maplibre-gl";
+import type * as maplibregl from "maplibre-gl";
 import {
   filterHospitalFeatures,
   isHospitalMapFeatureCollection,

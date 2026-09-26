@@ -1542,6 +1542,7 @@ Resources:
   OpsAlertsTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       DisplayName: !Sub "${AppName} ops (${DeploymentStage})"
 
   OpsAlertsEmailSubscription:
@@ -1788,6 +1789,7 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       RepositoryName: !Sub "${AppName}-sam5-r2-connect-bridge-${DeploymentStage}"
+      ImageTagMutability: IMMUTABLE
       ImageScanningConfiguration:
         ScanOnPush: true
       LifecyclePolicy:
@@ -1800,6 +1802,7 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       RepositoryName: !Sub "${AppName}-sam5-r2-venue-bridge-${DeploymentStage}"
+      ImageTagMutability: IMMUTABLE
       ImageScanningConfiguration:
         ScanOnPush: true
       LifecyclePolicy:
@@ -3319,6 +3322,7 @@ Resources:
   UnroutedSmsDlq:
     Type: AWS::SQS::Queue
     Properties:
+      KmsMasterKeyId: alias/aws/sqs
       QueueName: !Sub "${AppName}-unrouted-sms-${DeploymentStage}"
       MessageRetentionPeriod: 1209600
 
@@ -3326,11 +3330,13 @@ Resources:
   AwsSmsInboundTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       TopicName: !Sub "${AppName}-aws-sms-inbound-${DeploymentStage}"
 
   AwsSmsDeliveryEventsTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       TopicName: !Sub "${AppName}-aws-sms-delivery-events-${DeploymentStage}"
 
   AwsSmsInboundTopicPolicy:

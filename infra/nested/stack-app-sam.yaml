@@ -3927,11 +3927,13 @@ Resources:
   OpsAlertsTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       DisplayName: !Sub "${AppName} ops (${DeploymentStage})"
 
   CadWebhookIngressTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       DisplayName: !Sub "${AppName} cad-webhook-ingress (${DeploymentStage})"
 
   CadWebhookIdempotencyTable:
@@ -4054,16 +4056,19 @@ Resources:
   CadWebhookProcessingTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       DisplayName: !Sub "${AppName} cad-webhook (${DeploymentStage})"
 
   CadWebhookIngestDLQ:
     Type: AWS::SQS::Queue
     Properties:
+      KmsMasterKeyId: alias/aws/sqs
       MessageRetentionPeriod: 1209600
 
   CadWebhookIngestQueue:
     Type: AWS::SQS::Queue
     Properties:
+      KmsMasterKeyId: alias/aws/sqs
       VisibilityTimeout: 180
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt CadWebhookIngestDLQ.Arn
@@ -4395,6 +4400,7 @@ Resources:
     Type: AWS::SNS::Topic
     Condition: CloudTrailEnabled
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       DisplayName: !Sub "${AppName} CloudTrail (${DeploymentStage})"
 
   CloudTrailNotificationTopicPolicy:

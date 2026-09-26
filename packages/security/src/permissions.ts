@@ -327,6 +327,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, Record<Permission, boole
   rcsuperadmin: fullTrue(),
   rcadmin: buildMatrixRolePermissions("rcadmin"),
   rcitadmin: buildMatrixRolePermissions("rcitadmin"),
+  /** Sales portal only — no agency ops / CJIS permissions. */
+  salescontractor: maskFromList([]),
   agencyadmin: buildMatrixRolePermissions("agencyadmin"),
   agencyit: buildMatrixRolePermissions("agencyit"),
   supervisor: buildMatrixRolePermissions("supervisor"),

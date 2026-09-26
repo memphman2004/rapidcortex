@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo } from "react";
-import maplibregl from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 
 import { lineStringFeature } from "../utils/geojson-helpers";
 

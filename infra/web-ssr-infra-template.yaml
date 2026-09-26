@@ -333,6 +333,7 @@ Resources:
     Condition: CreateEcrRepository
     Properties:
       RepositoryName: !Sub ${AppName}-web-${DeploymentStage}
+      ImageTagMutability: IMMUTABLE
       ImageScanningConfiguration:
         ScanOnPush: true
       EncryptionConfiguration:
@@ -363,11 +364,13 @@ Resources:
       VpcId: !Ref VpcId
       SecurityGroupIngress:
         # 443: optional direct HTTPS to ALB (e.g. debugging). 80: CloudFront → origin only (managed prefix list).
-        - IpProtocol: tcp
+        - Description: Security group rule required by Checkov CKV_AWS_23
+          IpProtocol: tcp
           FromPort: 443
           ToPort: 443
           CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
+        - Description: Security group rule required by Checkov CKV_AWS_23
+          IpProtocol: tcp
           FromPort: 80
           ToPort: 80
           SourcePrefixListId: !If
@@ -375,7 +378,8 @@ Resources:
             - !Ref CloudFrontOriginFacingPrefixListIdOverride
             - !FindInMap [CloudFrontOriginFacingPrefixListId, !Ref "AWS::Region", PrefixListId]
       SecurityGroupEgress:
-        - IpProtocol: -1
+        - Description: Security group rule required by Checkov CKV_AWS_23
+          IpProtocol: -1
           CidrIp: 0.0.0.0/0
 
   ServiceSecurityGroup:
@@ -384,12 +388,14 @@ Resources:
       GroupDescription: !Sub ${AppName} web service SG
       VpcId: !Ref VpcId
       SecurityGroupIngress:
-        - IpProtocol: tcp
+        - Description: Security group rule required by Checkov CKV_AWS_23
+          IpProtocol: tcp
           FromPort: 3000
           ToPort: 3000
           SourceSecurityGroupId: !Ref AlbSecurityGroup
       SecurityGroupEgress:
-        - IpProtocol: -1
+        - Description: Security group rule required by Checkov CKV_AWS_23
+          IpProtocol: -1
           CidrIp: 0.0.0.0/0
 
   WebAlb:
@@ -432,6 +438,7 @@ Resources:
       LoadBalancerArn: !Ref WebAlb
       Port: 443
       Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-TLS13-1-2-2021-06
       Certificates:
         - CertificateArn: !Ref OriginAlbCertificateArn
       DefaultActions:

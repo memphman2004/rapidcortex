@@ -5,7 +5,7 @@ import { absoluteUrl } from "@/lib/seo";
 export const dynamic = "force-static";
 
 /** Bumped when the public route set changes (forces crawlers to re-fetch). */
-const STABLE_LAST_MODIFIED = new Date("2026-09-24T00:00:00.000Z");
+const STABLE_LAST_MODIFIED = new Date("2026-09-25T00:00:00.000Z");
 
 type RouteEntry = {
   path: string;
@@ -79,6 +79,7 @@ const PUBLIC_ROUTES: RouteEntry[] = [
   { path: "/developers/pricing", changeFrequency: "monthly", priority: 0.55 },
   { path: "/developers/roi", changeFrequency: "monthly", priority: 0.5 },
   { path: "/developers/status", changeFrequency: "weekly", priority: 0.45 },
+  { path: "/status", changeFrequency: "weekly", priority: 0.45 },
 
   // Legal / compliance
   { path: "/legal/dpa", changeFrequency: "monthly", priority: 0.4 },

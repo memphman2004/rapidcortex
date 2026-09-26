@@ -8,7 +8,7 @@ import type { Permission } from "./permissions.js";
  */
 export type MatrixRole = Exclude<
   UserRole,
-  "hospitaladmin" | "hospitalstaff" | "rcsuperadmin"
+  "hospitaladmin" | "hospitalstaff" | "rcsuperadmin" | "salescontractor"
 >;
 
 export const CAMPUS_ROLE_BASE_MAP = {

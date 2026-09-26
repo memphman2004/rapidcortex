@@ -941,4 +941,10 @@ export const env = {
   get alsLocationMock(): boolean {
     return process.env.ALS_LOCATION_MOCK !== "false" && process.env.ALS_LOCATION_MOCK !== "0";
   },
+  /** NexCortiQ Loadout — API provisioning, metering, and invoicing. Default on when unset. */
+  enableLoadout: featureEnabled("ENABLE_LOADOUT"),
+  loadoutSubscriptionsTable: process.env.LOADOUT_SUBSCRIPTIONS_TABLE?.trim() ?? "",
+  loadoutApiKeysTable: process.env.LOADOUT_API_KEYS_TABLE?.trim() ?? "",
+  loadoutUsageTable: process.env.LOADOUT_USAGE_TABLE?.trim() ?? "",
+  loadoutInvoicesTable: process.env.LOADOUT_INVOICES_TABLE?.trim() ?? "",
 };

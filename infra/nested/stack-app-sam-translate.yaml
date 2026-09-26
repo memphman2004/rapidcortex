@@ -212,6 +212,8 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
+      VersioningConfiguration:
+        Status: Enabled
       BucketName: !Sub "rapid-cortex-translate-audio-${DeploymentStage}-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true

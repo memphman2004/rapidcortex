@@ -392,4 +392,10 @@ export type SalesLeadCrmRecord = {
   /** Sales order selections from the sales feature catalog. */
   selectedFeatureIds?: string[];
   freeOfferings?: string[];
+  /** Outbound / grant intelligence signals (vertical-scoped via LeadSignal.vertical). */
+  signals?: import("../sales/grant-signal-types.js").LeadSignal[];
+  signalCount?: number;
+  lastSignalAt?: string;
+  /** 0–100 rolling score from recent signals. */
+  hotScore?: number;
 };

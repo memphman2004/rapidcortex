@@ -41,6 +41,7 @@ import {
   isWarRoomsEnabled,
   isScenarioCenterUiEnabled,
   isStaffGuideEnabled,
+  isLoadoutPortalEnabled,
 } from "@/lib/runtime-flags";
 import { isVerticalEnabled } from "@/lib/features";
 
@@ -133,6 +134,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isScenarioCenterUiEnabled();
     case "staffGuide":
       return isStaffGuideEnabled();
+    case "loadout":
+      return isLoadoutPortalEnabled();
     default:
       return true;
   }

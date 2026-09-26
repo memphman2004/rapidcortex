@@ -1560,6 +1560,7 @@ Resources:
   OpsAlertsTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       DisplayName: !Sub "${AppName} ops (${DeploymentStage})"
 
   OpsAlertsEmailSubscription:
@@ -3128,6 +3129,7 @@ Resources:
   AgencyNetworkPolicySyncTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       DisplayName: !Sub "${AppName} agency network policy sync (${DeploymentStage})"
 
   AgencyNetworkPolicyHttpFunction:

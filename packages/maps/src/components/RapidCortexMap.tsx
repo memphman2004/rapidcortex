@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, type ReactNode } from "react";
-import maplibregl from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 
 import type { MapTheme } from "../types/map-types";
 import { getMapAuthenticationOptions, isMapAuthReady, subscribeMapAuthReady } from "../utils/map-auth";

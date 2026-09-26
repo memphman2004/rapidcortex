@@ -1,13 +1,23 @@
 # HTTPS path-preserving redirect: rapidcortex.us (+ www) → https://www.nexcortiq.us{path}{query}
 # Deploy in us-east-1 (CloudFront viewer cert must be us-east-1).
 #
+# ⚠ DO NOT deploy this stack while marketing dist EWZ286WS69KX1 still owns aliases
+#   rapidcortex.us / www.rapidcortex.us / nexcortiq.us / www.nexcortiq.us (dual-brand).
+#   CloudFront will fail with CNAMEAlreadyExists. Use instead:
+#     bash scripts/enable-marketing-legacy-host-redirect.sh
+#   See docs/seo/NEXCORTIQ_CUTOVER.md Phase B.
+#
 # Preserves URI + query string (does NOT collapse everything to homepage).
 # Example: https://www.rapidcortex.us/pricing?x=1 → https://www.nexcortiq.us/pricing?x=1
+#
+# This standalone stack is only for a future world where Rapid Cortex marketing
+# CNAMEs have been removed from the dual-brand distribution.
 #
 # Prerequisites:
 #   1. Public hosted zone for rapidcortex.us in Route 53
 #   2. Parameter Route53HostedZoneId = that zone's ID (Z…)
 #   3. Marketing site already live on www.nexcortiq.us (or RedirectTargetHost)
+#   4. CNAMEs freed from EWZ286WS69KX1 (or any other distribution)
 #
 # Example:
 #   aws cloudformation deploy \
@@ -93,6 +103,8 @@ Resources:
   RedirectBucket:
     Type: AWS::S3::Bucket
     Properties:
+      VersioningConfiguration:
+        Status: Enabled
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:

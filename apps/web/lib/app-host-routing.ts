@@ -130,7 +130,11 @@ export function isMarketingPublicPath(pathname: string): boolean {
     first === "rc-guest-assist.html" ||
     // Authenticated campus/venue/NexCort Admin wizards — reserved so they are not a
     // jurisdiction slug, but they are not marketing pages.
-    first === "onboarding"
+    first === "onboarding" ||
+    // Sales contractor portal + public ROI / free-tier registration (app host, not www).
+    first === "sales" ||
+    first === "roi" ||
+    first === "register"
   ) {
     return false;
   }

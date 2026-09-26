@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { canAccessRcFinancePortal } from "rapid-cortex-shared";
+import { canAccessPsapProspectsCrm } from "rapid-cortex-shared";
 import { isSam3ApiPath, resolveUpstreamApiBase } from "@/lib/comms-api-path";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { isPsapProspectsUiEnabled } from "@/lib/runtime-flags";
@@ -12,7 +12,7 @@ import { applyRotatedAuthCookies, resolveBffBearerToken } from "@/lib/server/bff
  */
 export async function GET(request: NextRequest) {
   const user = await getDashboardSessionUser();
-  if (!user || !canAccessRcFinancePortal(user.role) || !isPsapProspectsUiEnabled()) {
+  if (!user || !canAccessPsapProspectsCrm(user.role) || !isPsapProspectsUiEnabled()) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const role = String(user.role ?? "").toLowerCase();

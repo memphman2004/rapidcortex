@@ -33,7 +33,7 @@ function seedProfileFromOpportunity(opportunity: RapidIqOpportunity): AgencyProf
           : null,
     currentCadVendor: opportunity.incumbentVendor ?? null,
     cadNotes: opportunity.incumbentVendor
-      ? `Incumbent from NexiQ IQ signal: ${opportunity.incumbentVendor}`
+      ? `Incumbent from NexiQ signal: ${opportunity.incumbentVendor}`
       : null,
     agencyWebsite: null,
     psapType:

@@ -14,7 +14,7 @@
  *                                       This file
  */
 
-import maplibregl from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { alsMapStyleUrl, getMapAuthenticationOptions, isAlsMapApiV2 } from "rapid-cortex-maps";

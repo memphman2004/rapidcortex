@@ -109,6 +109,12 @@ Parameters:
     Type: String
     Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/apollo-api-key-BDql0e"
     Description: Secrets Manager ARN for Apollo.io (PSAP / Rapid IQ contact enrichment).
+  RapidIqWatchIngestApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Secrets Manager ARN for ChatGPT Watch → NexiQ Inbox ingest API key
+      (JSON {apiKey:"…"} or raw string). Empty disables machine ingest until set.
   RmsVendorSecretArn:
     Type: String
     Default: ""
@@ -893,6 +899,24 @@ Resources:
         SnsEmailSubscription: !Ref SnsEmailSubscription
         SnsSmsSubscription: !Ref SnsSmsSubscription
         WwwCnameTarget: !Ref WwwCnameTarget
+
+  LoadoutDataStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-data-layer-loadout.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        DynamoTableNamePrefix: !Ref DynamoTableNamePrefix
+
+  GrantsDataStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-data-layer-grants.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        DynamoTableNamePrefix: !Ref DynamoTableNamePrefix
 
   AppSamStackV2:
     Type: AWS::CloudFormation::Stack
@@ -2395,6 +2419,7 @@ Resources:
         RapidIqApolloApiKeySecretArn: !Ref RapidIqApolloApiKeySecretArn
         RapidIqOpenstatesApiKeySecretArn: ""
         RapidIqLegiscanApiKeySecretArn: ""
+        RapidIqWatchIngestApiKeySecretArn: !Ref RapidIqWatchIngestApiKeySecretArn
         OpenAiApiKeySecretArn: !Ref OpenAiApiKeySecretArn
         OpenAiWebSearchEnabled: !Ref OpenAiWebSearchEnabled
         EnableRapidIqNewHttpRoutes: !Ref EnableRapidIqNewHttpRoutes
@@ -3605,6 +3630,70 @@ Resources:
         WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
         AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
 
+  LoadoutAppStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - LoadoutDataStack
+      - AppSam3Stack
+      - AppSamStackV2
+    Properties:
+      TimeoutInMinutes: 90
+      TemplateURL: nested/stack-app-sam-loadout.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam3Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: ""
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        LoadoutSubscriptionsTable: !GetAtt LoadoutDataStack.Outputs.LoadoutSubscriptionsTable
+        LoadoutApiKeysTable: !GetAtt LoadoutDataStack.Outputs.LoadoutApiKeysTable
+        LoadoutUsageTable: !GetAtt LoadoutDataStack.Outputs.LoadoutUsageTable
+        LoadoutSwapHistoryTable: !GetAtt LoadoutDataStack.Outputs.LoadoutSwapHistoryTable
+        LoadoutInvoicesTable: !GetAtt LoadoutDataStack.Outputs.LoadoutInvoicesTable
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        FromEmail: billing@rapidcortex.us
+        AdminEmail: ops@rapidcortex.us
+        AlertEmail: ""
+        OpsSnsTopicArn: ""
+
+  AppSamGrantsStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - GrantsDataStack
+      - AppSamStackV2
+    Properties:
+      TimeoutInMinutes: 90
+      TemplateURL: nested/stack-app-sam-grants.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        GrantsTable: !GetAtt GrantsDataStack.Outputs.GrantsTableName
+        GrantMatchesTable: !GetAtt GrantsDataStack.Outputs.GrantMatchesTableName
+        GrantRunsTable: !GetAtt GrantsDataStack.Outputs.GrantRunsTableName
+        SalesLeadsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SalesLeadsTable
+            - !Sub "${DynamoTableNamePrefix}-sales-leads-${DeploymentStage}"
+        SamGovApiKeySecretArn: ""
+        BedrockModelId: anthropic.claude-3-haiku-20240307-v1:0
+        GrantAlertFromEmail: noreply@rapidcortex.us
+        BedrockMock: "false"
+
   AppSamNg911Stack2:
     Type: AWS::CloudFormation::Stack
     Metadata:
@@ -4294,6 +4383,15 @@ Outputs:
   HttpApi3Id:
     Description: Tertiary HTTP API ID (stack-app-sam-3)
     Value: !GetAtt AppSam3Stack.Outputs.HttpApiId
+  LoadoutApiEndpoint:
+    Description: Loadout external REST API base URL (/v1/*)
+    Value: !GetAtt LoadoutAppStack.Outputs.LoadoutApiEndpoint
+  LoadoutAuthorizerArn:
+    Description: Loadout REQUEST authorizer Lambda ARN
+    Value: !GetAtt LoadoutAppStack.Outputs.LoadoutAuthorizerArn
+  LoadoutInvoiceGeneratorFunctionName:
+    Description: Loadout monthly invoice generator function name
+    Value: !GetAtt LoadoutAppStack.Outputs.LoadoutInvoiceGeneratorFunctionName
   RapidIqIntelWatchWorkerFunctionName:
     Description: Opportunity Intelligence watch worker (web search + collect)
     Value: !GetAtt AppSamRapidIqPipelineStack.Outputs.IntelWatchWorkerFunctionName

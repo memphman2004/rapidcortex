@@ -3,6 +3,7 @@ import {
   migrateLegacyRapidCortexRoleTokenValue,
   resolveHospitalPortalDashboardHref,
 } from "./rapid-cortex-roles.js";
+import { salesContractorMayAccessPath } from "./sales-contractor-paths.js";
 
 export type RCVertical = "platform" | "911" | "campus" | "venue" | "hospital" | "transit" | "call_assist";
 
@@ -144,7 +145,8 @@ export function dashboardRouteFromRole(role: UserRole | string, agencyId: string
 export function allowedRoutePrefixesForRole(rawRole: string): string[] {
   const role = effectiveRole(rawRole);
   if (["rcsuperadmin", "rcadmin", "rcitadmin"].includes(role)) return ["/rc-admin", "/sales"];
-  if (role === "salescontractor") return ["/sales"];
+  // Sales shell is /sales; allowlisted /rc-admin tools are checked via salesContractorMayAccessPath.
+  if (role === "salescontractor") return ["/sales", "/rc-admin"];
   if (role === "staff") return ["/not-authorized"];
   if (role.startsWith("campus_")) return ["/app/campus"];
   if (role.startsWith("venue_")) return ["/app/venue", "/venue"];
@@ -169,7 +171,7 @@ export function pathMatchesRoleDashboard(
   if (vertical === "platform") {
     const roleToken = effectiveRole(role);
     if (roleToken === "salescontractor") {
-      return path === "/sales" || path.startsWith("/sales/");
+      return salesContractorMayAccessPath(path);
     }
     return (
       path === "/rc-admin" ||

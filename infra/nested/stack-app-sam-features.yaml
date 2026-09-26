@@ -683,6 +683,7 @@ Resources:
   PanicAlertTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       TopicName: !Sub "rapid-cortex-panic-alerts-${DeploymentStage}"
       DisplayName: NexCort iQ Panic Alerts
 
@@ -730,6 +731,7 @@ Resources:
   SocialAlertTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       TopicName: !Sub "rapid-cortex-social-alerts-${DeploymentStage}"
       DisplayName: NexCort iQ Social Awareness Alerts
 

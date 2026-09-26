@@ -96,7 +96,7 @@ const sourceSans = Source_Sans_3({
 
 const siteUrl = getSiteUrl();
 const defaultOgImage = absoluteUrl(SEO_IMAGE_PATH);
-const defaultGaId = "G-S83NHMBHRD";
+const defaultGaId = "G-NGT17QK1LW";
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || defaultGaId;
 const gaEnabled = GA_MEASUREMENT_ID.length > 0;
 

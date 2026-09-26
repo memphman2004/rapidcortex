@@ -61,6 +61,9 @@ Resources:
             QueryString: false
         HttpVersion: http2and3
         PriceClass: PriceClass_100
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+          MinimumProtocolVersion: TLSv1.2_2021
 
   DownloadsBucketPolicy:
     Type: AWS::S3::BucketPolicy

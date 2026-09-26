@@ -256,7 +256,35 @@ describe("getRoleNav", () => {
     expect(hrefs).not.toContain("/app/call-assist/qa");
   });
 
-  it("keeps NexiQ IQ in SALES & CRM and does not expose a separate Pipeline nav item", () => {
+  it("sales contractor nav includes CRM tools and feature-only catalogs", () => {
+    const nav = getRoleNav("salescontractor", {});
+    const items = nav.sections.flatMap((s) => s.items);
+    const hrefs = items.map((i) => i.href);
+    expect(hrefs).toEqual(
+      expect.arrayContaining([
+        "/sales",
+        "/rc-admin/deployments-map",
+        "/rc-admin/leads",
+        "/rc-admin/psap-prospects",
+        "/rc-admin/contacts",
+        "/rc-admin/rapid-iq",
+        "/rc-admin/conferences",
+        "/sales/pricing-catalog",
+        "/sales/service-catalog",
+        "/rc-admin/support",
+        "/rc-admin/grants",
+        "/rc-admin/onboarding/packets",
+        "/rc-admin/system-health",
+      ]),
+    );
+    expect(items.find((i) => i.id === "pricing-catalog")?.badge).toEqual({
+      type: "label",
+      text: "FEATURES",
+      color: "slate",
+    });
+  });
+
+  it("keeps NexiQ in SALES & CRM and does not expose a separate Pipeline nav item", () => {
     for (const role of ["rcsuperadmin", "rcadmin"] as const) {
       const nav = getRoleNav(role, {});
       const items = nav.sections.flatMap((s) => s.items);

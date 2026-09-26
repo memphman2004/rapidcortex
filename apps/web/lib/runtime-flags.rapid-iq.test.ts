@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-describe("NexiQ IQ UI flag", () => {
+describe("NexiQ UI flag", () => {
   it("defaults on when unset and honors explicit disable", async () => {
     vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_IQ", "");

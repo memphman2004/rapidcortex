@@ -15,7 +15,7 @@
 | LEG-007 | Entity naming reconciliation | P0 | OPEN | NEEDS OWNER | AOD LLC vs NexCort iQ LLC |
 | LEG-008 | MSA Exhibit B pricing (filled) | P0 | TBD | Finance | `RC_Pricing_Master_Guide_v4.xlsx` |
 | LEG-009 | Per-vendor CAD SOW | P1 | GAP | NEEDS OWNER | GA-013 |
-| LEG-010 | Pen-test SOW / report | P2 | GAP | NEEDS OWNER | Acceptable-use references pen-test SOW |
+| LEG-010 | Pen-test SOW / report | P2 | DRAFT inquiry | Jeff | Send [LEG-010-PENTEST-INQUIRY.md](../security-compliance/soc2/LEG-010-PENTEST-INQUIRY.md) to Cobalt (`sales@cobalt.io`); Schellman backup |
 | LEG-011 | SOC 2 Type II **report** | P2 | N/A | CPA firm | Third-party attestation only — [OUT-OF-BAND.md](../security-compliance/soc2/OUT-OF-BAND.md) |
 | SOC-001 | SOC 2 policy + process pack (CC1–CC9) | P1 | **DONE** | — | [soc2/README.md](../security-compliance/soc2/README.md) — not a Type II report |
 | SOC-002 | Observation window calendar + evidence ledgers | P1 | **DONE** (templates + 2026-09-19 closeout) | Security | [2026-09-19-prewindow](../security-compliance/soc2/evidence/2026-09-19-prewindow/README.md); live AWS re-run still due |

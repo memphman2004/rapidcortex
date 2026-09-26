@@ -214,6 +214,84 @@ export const SALES_FEATURE_CATALOG: readonly SalesFeatureCatalogItem[] = [
     isFree: false,
     category: "Implementation",
   },
+
+  // ── Product surfaces often missing from older catalogs ────────────────────
+  {
+    id: "call_assist",
+    name: "Call Assist (non-emergency)",
+    explanation:
+      "AI-assisted non-emergency call intake, greeting flows, callbacks, and operator console — separate from 911 dispatch.",
+    compatibleVerticals: ["rc911", "campus", "venue", "transit"],
+    isFree: false,
+    category: "Call Assist",
+  },
+  {
+    id: "rapid_vision",
+    name: "NexIQ Vision™",
+    explanation:
+      "Live camera assist (Ring, Nest, Wyze, Milestone), scene intelligence, and vision transcripts for authorized roles.",
+    compatibleVerticals: ["rc911", "campus", "venue", "transit"],
+    isFree: false,
+    neverFree: true,
+    category: "Vision & Cameras",
+  },
+  {
+    id: "rapid_iq",
+    name: "Rapid IQ sales & RFP intelligence",
+    explanation: "PSAP/RFP signal pipeline, contact enrichment, and opportunity scoring for NexCort sales teams.",
+    compatibleVerticals: ["all"],
+    isFree: false,
+    category: "Sales Intelligence",
+  },
+  {
+    id: "rc_translate",
+    name: "NexCort Translate",
+    explanation: "Field / venue / campus / clinical voice translation sessions for non-911 and ops consoles.",
+    compatibleVerticals: ALL,
+    isFree: false,
+    category: "Language",
+  },
+  {
+    id: "cad_mesh",
+    name: "CAD-to-CAD mesh",
+    explanation: "Cross-agency CAD mesh sharing for mutual aid and regional partners.",
+    compatibleVerticals: ["rc911"],
+    isFree: false,
+    neverFree: true,
+    category: "CAD Integration",
+  },
+  {
+    id: "mutual_aid_mci",
+    name: "Mutual Aid & MCI Command",
+    explanation: "Mutual aid coordination and multi-casualty incident command tooling.",
+    compatibleVerticals: ["rc911", "hospital"],
+    isFree: false,
+    category: "Command",
+  },
+  {
+    id: "connect_nest_wyze",
+    name: "Nest / Wyze Connect",
+    explanation: "Citizen Nest and Wyze camera share flows alongside Ring Connect.",
+    compatibleVerticals: ["rc911", "campus", "venue"],
+    isFree: false,
+    category: "Vision & Cameras",
+  },
+  {
+    id: "ng911_assist",
+    name: "NG911 Assist",
+    explanation: "Diversion, EIDO, Additional Data, and NG911 metrics assist packs.",
+    compatibleVerticals: ["rc911"],
+    isFree: false,
+    category: "911 Centers / PSAPs",
+  },
+  {
+    id: "venue_guest_services",
+    name: "Venue Guest Services console",
+    explanation: "Non-911 venue guest-services ops console (orange-branded), separate from PSAP dispatch.",
+    compatibleVerticals: ["venue"],
+    isFree: false,
+    category: "Campus & Venue",
+  },
 ] as const;
 
 export function salesFeatureCompatibleWithVertical(

@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useMemo } from "react";
-import maplibregl from "maplibre-gl";
+import type { FeatureCollection, Point } from "geojson";
+import * as maplibregl from "maplibre-gl";
 
 import { emptyFeatureCollection } from "../utils/geojson-helpers";
 
 export interface HeatMapProps {
   map: maplibregl.Map | null;
-  points: GeoJSON.FeatureCollection<GeoJSON.Point>;
+  points: FeatureCollection<Point>;
   layerIdPrefix?: string;
   intensity?: number;
   radius?: number;

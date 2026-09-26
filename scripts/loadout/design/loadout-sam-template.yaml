@@ -1,0 +1,515 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: >
+  NexCortiQ Loadout — Composable API feature licensing platform
+  Tables: subscriptions, api-keys, usage, swap-history, invoices
+  Lambdas: authorizer, subscription-manager, invoice-generator, key-rotator
+  Schedule: invoice generation fired by EventBridge on the 1st of each month
+
+# ── PARAMETERS ──────────────────────────────────────────────────────────────
+
+Parameters:
+  Stage:
+    Type: String
+    Default: prod
+    AllowedValues: [dev, staging, prod]
+  FromEmail:
+    Type: String
+    Default: billing@nexcortiq.us
+  AdminEmail:
+    Type: String
+    Default: ops@nexcortiq.us
+  AlertEmail:
+    Type: String
+    Default: alerts@nexcortiq.us
+  CustomDomainName:
+    Type: String
+    Default: api.nexcortiq.us
+
+# ── GLOBALS ──────────────────────────────────────────────────────────────────
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Architectures: [arm64]   # Graviton2 — same perf, ~20% cost savings
+    Timeout: 29
+    MemorySize: 256
+    Environment:
+      Variables:
+        STAGE:                !Ref Stage
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
+        SUBSCRIPTIONS_TABLE:  !Ref SubscriptionsTable
+        API_KEYS_TABLE:       !Ref ApiKeysTable
+        USAGE_TABLE:          !Ref UsageTable
+        SWAP_HISTORY_TABLE:   !Ref SwapHistoryTable
+        INVOICES_TABLE:       !Ref InvoicesTable
+        FROM_EMAIL:           !Ref FromEmail
+        ADMIN_EMAIL:          !Ref AdminEmail
+        OPS_SNS_TOPIC:        !Ref OpsNotificationsTopic
+    Tracing: Active
+
+# ── RESOURCES ────────────────────────────────────────────────────────────────
+
+Resources:
+
+  # ── API GATEWAY ─────────────────────────────────────────────────────────
+
+  LoadoutApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub nexcortiq-loadout-api-${Stage}
+      StageName: !Ref Stage
+      Description: NexCortiQ Loadout composable feature API
+      TracingEnabled: true
+      Auth:
+        DefaultAuthorizer: LoadoutAuthorizer
+        Authorizers:
+          LoadoutAuthorizer:
+            FunctionArn: !GetAtt AuthorizerFunction.Arn
+            Identity:
+              Headers: [x-api-key]
+            AuthorizerPayloadFormatVersion: '1.0'
+            ResultTtlInSeconds: 30     # 30-second cache per key — reduces DDB reads
+            EnableSimpleResponses: false
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,x-api-key,Authorization'"
+        AllowOrigin: "'*'"
+      GatewayResponses:
+        # Surface structured error body from authorizer context on 403/401
+        ACCESS_DENIED:
+          StatusCode: 403
+          ResponseTemplates:
+            application/json: |
+              {
+                "success": false,
+                "error": "$context.authorizer.error_code",
+                "message": "$context.authorizer.message",
+                "feature": "$context.authorizer.feature",
+                "upgrade_url": "$context.authorizer.upgrade_url",
+                "request_id": "$context.requestId"
+              }
+        UNAUTHORIZED:
+          StatusCode: 401
+          ResponseTemplates:
+            application/json: |
+              {
+                "success": false,
+                "error": "unauthorized",
+                "message": "Invalid or missing API key.",
+                "request_id": "$context.requestId"
+              }
+      Tags:
+        Project: NexCortiQ
+        Component: Loadout
+        Stage: !Ref Stage
+
+  # ── LAMBDAS ──────────────────────────────────────────────────────────────
+
+  AuthorizerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ncq-loadout-authorizer-${Stage}
+      Handler: loadout-authorizer.handler
+      CodeUri: ./dist/
+      Description: API key validation, feature gating, quota enforcement
+      MemorySize: 192     # Lightweight — fast path, no heavy SDK calls after warmup
+      Timeout: 5          # Authorizer must respond quickly; 5s hard deadline
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ApiKeysTable
+        - DynamoDBWritePolicy:
+            TableName: !Ref UsageTable
+        - Statement:
+            Effect: Allow
+            Action: [xray:PutTraceSegments, xray:PutTelemetryRecords]
+            Resource: '*'
+
+  SubscriptionManagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ncq-loadout-subscription-manager-${Stage}
+      Handler: loadout-subscription-manager.handler
+      CodeUri: ./dist/
+      Description: Feature add/remove, enterprise provisioning requests, invoice preview
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SubscriptionsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ApiKeysTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsageTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SwapHistoryTable
+        - Statement:
+            Effect: Allow
+            Action: sns:Publish
+            Resource: !Ref OpsNotificationsTopic
+      Events:
+        ListFeatures:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LoadoutApi
+            Path: /loadout/features
+            Method: GET
+            Auth:
+              Authorizer: LoadoutAuthorizer
+        AddFeature:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LoadoutApi
+            Path: /loadout/features/add
+            Method: POST
+        RemoveFeature:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LoadoutApi
+            Path: /loadout/features/remove
+            Method: POST
+        EnterpriseRequest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LoadoutApi
+            Path: /loadout/enterprise/request
+            Method: POST
+        InvoicePreview:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LoadoutApi
+            Path: /loadout/invoice/preview
+            Method: GET
+
+  InvoiceGeneratorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ncq-loadout-invoice-generator-${Stage}
+      Handler: loadout-invoice-generator.handler
+      CodeUri: ./dist/
+      Description: Monthly invoice generation, SES email delivery, usage reset
+      MemorySize: 512
+      Timeout: 120
+      ReservedConcurrentExecutions: 10  # Prevent runaway billing loops
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref SubscriptionsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref InvoicesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsageTable
+        - Statement:
+            Effect: Allow
+            Action: [ses:SendEmail, sesv2:SendEmail]
+            Resource: '*'
+        - Statement:
+            Effect: Allow
+            Action: cloudwatch:PutMetricData
+            Resource: '*'
+      Events:
+        # Fire on 1st of every month at 08:00 UTC
+        MonthlySchedule:
+          Type: Schedule
+          Properties:
+            Name: !Sub ncq-loadout-monthly-invoice-${Stage}
+            Schedule: cron(0 8 1 * ? *)
+            Description: Trigger monthly invoice generation for all active Loadout tenants
+            Enabled: !If [IsProd, true, false]
+
+  # Admin-only endpoint (internal use, not exposed through LoadoutApi)
+  InvoiceAdminFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ncq-loadout-invoice-admin-${Stage}
+      Handler: loadout-invoice-generator.handler
+      CodeUri: ./dist/
+      Description: Admin-triggered invoice preview and manual generation
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref SubscriptionsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref InvoicesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsageTable
+        - Statement:
+            Effect: Allow
+            Action: [ses:SendEmail, sesv2:SendEmail]
+            Resource: '*'
+        - Statement:
+            Effect: Allow
+            Action: cloudwatch:PutMetricData
+            Resource: '*'
+
+  # ── DYNAMODB TABLES ──────────────────────────────────────────────────────
+
+  SubscriptionsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Sub ncq-loadout-subscriptions-${Stage}
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      # pk = SUB#{tenantId}
+      # sk = SUBSCRIPTION
+      # Attrs: orgName, activeFeatures (SS), pendingSwaps (SS),
+      #        billingCycleDay (N), billingEmail, technicalEmail,
+      #        tier, status, version (N), createdAt, updatedAt
+      Tags:
+        - Key: Project
+          Value: NexCortiQ
+        - Key: Component
+          Value: Loadout
+
+  ApiKeysTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Sub ncq-loadout-api-keys-${Stage}
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: tenantId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: TenantIndex
+          KeySchema:
+            - AttributeName: tenantId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      # pk = APIKEY#{sha256(rawKey)}
+      # Attrs: tenantId, status (active|suspended|revoked),
+      #        tier, enabledFeatures (SS), quotaPerFeature (M),
+      #        usageThisMonth (M), allowedJurisdictions (SS),
+      #        keyName, createdAt, lastUsedAt
+      Tags:
+        - Key: Project
+          Value: NexCortiQ
+
+  UsageTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Sub ncq-loadout-usage-${Stage}
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      # pk = USAGE#{tenantId}#{YYYY-MM}
+      # sk = FEATURE#{featureId}
+      # Attrs: callCount (N), quotaLimit (N), tenantId, featureId, month
+      # TTL: 13 months — keeps last full year + current for comps
+      Tags:
+        - Key: Project
+          Value: NexCortiQ
+
+  SwapHistoryTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Sub ncq-loadout-swap-history-${Stage}
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      # pk = SWAP#{tenantId}
+      # sk = {ISO8601}#{uuid}
+      # Attrs: action (add|remove|enterprise_request), featureId, source, requestId
+      Tags:
+        - Key: Project
+          Value: NexCortiQ
+
+  InvoicesTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Sub ncq-loadout-invoices-${Stage}
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      # pk = INV#{tenantId}
+      # sk = PERIOD#{YYYY-MM}
+      # Attrs: invoiceId, totalDue (N), status, invoiceJson (S), generatedAt
+      # TTL: 3 years (regulatory retention)
+      Tags:
+        - Key: Project
+          Value: NexCortiQ
+
+  # ── SNS ──────────────────────────────────────────────────────────────────
+
+  OpsNotificationsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub ncq-loadout-ops-${Stage}
+      Subscription:
+        - Protocol: email
+          Endpoint: !Ref AdminEmail
+
+  # ── CLOUDWATCH ALARMS ────────────────────────────────────────────────────
+
+  AuthorizerErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ncq-loadout-authorizer-errors-${Stage}
+      AlarmDescription: Authorizer Lambda error rate > 1% over 5 minutes
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref AuthorizerFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsNotificationsTopic]
+      OKActions:    [!Ref OpsNotificationsTopic]
+
+  InvoiceFailureAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ncq-loadout-invoice-failures-${Stage}
+      AlarmDescription: Invoice generator Lambda error (any failure = immediate alert)
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref InvoiceGeneratorFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsNotificationsTopic]
+
+  QuotaExceededAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ncq-loadout-quota-exceeded-${Stage}
+      AlarmDescription: High rate of quota_exceeded denials — tenant may need upgrade
+      Namespace: NexCortiQ/Loadout
+      MetricName: QuotaExceededDenials
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 1
+      Threshold: 100
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsNotificationsTopic]
+
+  # ── AUTHORIZER INVOKE PERMISSION ────────────────────────────────────────
+
+  AuthorizerInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt AuthorizerFunction.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${LoadoutApi}/*
+
+# ── CONDITIONS ───────────────────────────────────────────────────────────────
+
+Conditions:
+  IsProd: !Equals [!Ref Stage, prod]
+
+# ── OUTPUTS ──────────────────────────────────────────────────────────────────
+
+Outputs:
+  LoadoutApiUrl:
+    Description: NexCortiQ Loadout API endpoint
+    Value: !Sub https://${LoadoutApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}
+    Export:
+      Name: !Sub ncq-loadout-api-url-${Stage}
+
+  AuthorizerFunctionArn:
+    Description: Authorizer Lambda ARN — attach to feature Lambdas
+    Value: !GetAtt AuthorizerFunction.Arn
+    Export:
+      Name: !Sub ncq-loadout-authorizer-arn-${Stage}
+
+  SubscriptionsTableName:
+    Value: !Ref SubscriptionsTable
+    Export:
+      Name: !Sub ncq-loadout-subscriptions-table-${Stage}
+
+  ApiKeysTableName:
+    Value: !Ref ApiKeysTable
+    Export:
+      Name: !Sub ncq-loadout-apikeys-table-${Stage}
+
+  UsageTableName:
+    Value: !Ref UsageTable
+    Export:
+      Name: !Sub ncq-loadout-usage-table-${Stage}
+
+  InvoicesTableName:
+    Value: !Ref InvoicesTable
+    Export:
+      Name: !Sub ncq-loadout-invoices-table-${Stage}
+
+  OpsTopicArn:
+    Value: !Ref OpsNotificationsTopic
+    Export:
+      Name: !Sub ncq-loadout-ops-topic-${Stage}
