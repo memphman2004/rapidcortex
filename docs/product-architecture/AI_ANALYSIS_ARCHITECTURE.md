@@ -1,6 +1,6 @@
 # AI analysis architecture
 
-Rapid Cortex turns **incident transcripts** into a **single validated triage JSON object** (category, urgency, confidence, dispatcher-facing strings, escalation flag), then enriches it with **protocol-backed coaching** (`buildProtocolGuidance` + phrase humanizer). The LLM never invents protocol wording; packs supply that layer.
+NexCort iQ turns **incident transcripts** into a **single validated triage JSON object** (category, urgency, confidence, dispatcher-facing strings, escalation flag), then enriches it with **protocol-backed coaching** (`buildProtocolGuidance` + phrase humanizer). The LLM never invents protocol wording; packs supply that layer.
 
 ## Production path (staging / pilot / prod)
 

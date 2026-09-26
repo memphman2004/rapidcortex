@@ -1,21 +1,21 @@
-# Google Play — Rapid Cortex Android (`us.rapidcortex.app`)
+# Google Play — NexCort iQ Android (`us.rapidcortex.app`)
 
 First listing is the **QR / NFC field tool** for Venue and Campus staff. Safe & Sound / Guardian stays flag-gated and is stripped from the Play permission set.
 
 Package: `us.rapidcortex.app`  
 EAS project: `2d1ae3e1-5867-48f0-8ed8-a8eb53d920dc` (`owner: rapid-cortex`)  
-Play Console developer account: `7807903929046926180` (org **Rapid Cortex** / Apps on Demand LLC)
+Play Console developer account: `7807903929046926180` (org **NexCort iQ** / Apps on Demand LLC)
 
 ## Store listing copy
 
-**App name (30):** Rapid Cortex
+**App name (30):** NexCort iQ
 
 **Short description (80):**
 QR and NFC safety codes for campus and venue staff. Program signs in the field.
 
 **Full description:**
 
-Rapid Cortex is a field tool for licensed campus and venue staff. Create location QR codes, print or share the sign package, and program NTAG213 NFC tags so visitors can report a safety concern at that spot.
+NexCort iQ is a field tool for licensed campus and venue staff. Create location QR codes, print or share the sign package, and program NTAG213 NFC tags so visitors can report a safety concern at that spot.
 
 This app is not a 911 dispatch console, CAD system, or public reporting app. Sign-in is for agency-provisioned accounts only. There is no in-app signup.
 
@@ -24,18 +24,18 @@ What you can do:
 • Create and manage venue or campus location codes
 • Display and share the QR artwork for print
 • Program NFC tags from an Android phone with NFC
-• Sign in with the same Rapid Cortex work account used on the web
+• Sign in with the same NexCort iQ work account used on the web
 
-Rapid Cortex enhances campus and venue operations. It does not replace campus police, venue security, 911, or medical direction.
+NexCort iQ enhances campus and venue operations. It does not replace campus police, venue security, 911, or medical direction.
 
-Support: support@rapidcortex.us
+Support: support@nexcortiq.us
 Privacy: https://www.rapidcortex.us/privacy
 Account deletion: https://www.rapidcortex.us/account-deletion
 Terms: https://www.rapidcortex.us/terms
 
 **Category:** Business  
 **Tags:** public safety, campus safety, venue operations, NFC, QR code  
-**Contact email:** support@rapidcortex.us  
+**Contact email:** support@nexcortiq.us  
 **Privacy policy:** https://www.rapidcortex.us/privacy  
 **Account deletion URL (Data safety):** https://www.rapidcortex.us/account-deletion
 
@@ -63,7 +63,7 @@ Do not upload screenshots that show Safe & Sound, BLE pairing, maps, or live dis
 | Bluetooth | No | — | Blocked; Guardian is flag-gated | — |
 | Approximate location | No | — | — | — |
 
-Encryption in transit: **Yes** (HTTPS / TLS to Rapid Cortex APIs).  
+Encryption in transit: **Yes** (HTTPS / TLS to NexCort iQ APIs).  
 Account deletion: **Yes** — in-app Account screen + https://www.rapidcortex.us/account-deletion  
 Data sold: **No**  
 Data used for ads / ads personalization: **No**  
@@ -79,18 +79,18 @@ Advertising ID: **No** (permission blocked)
 
 ## Review notes (paste into Play Console)
 
-Rapid Cortex Android is a staff tool for licensed campus and venue customers of Apps on Demand LLC d/b/a Rapid Cortex.
+NexCort iQ Android is a staff tool for licensed campus and venue customers of Apps on Demand LLC d/b/a NexCort iQ.
 
 Demo / review login: use the agency test account provided to Google (email + password). The app does not offer Create account.
 
-Core path: Products → RC Venue (or RC Campus) → Sign in → create or open a location code → Share QR → Program NFC Tag (physical NTAG213; skip if the review device has no NFC — NFC is optional hardware).
+Core path: Products → NC Venue (or NC Campus) → Sign in → create or open a location code → Share QR → Program NFC Tag (physical NTAG213; skip if the review device has no NFC — NFC is optional hardware).
 
 The app does not replace 911 or CAD. Safe & Sound / Guardian / Bluetooth / background location are not in this listing.
 
 ## Console + EAS steps
 
 1. Finish Play identity verification (website + phone) on account `7807903929046926180`.
-2. **Create app** if missing: name Rapid Cortex, default language en-US, App, Free. Package **must** be `us.rapidcortex.app`.
+2. **Create app** if missing: name NexCort iQ, default language en-US, App, Free. Package **must** be `us.rapidcortex.app`.
 3. Play Console → Users and permissions → **Account permissions / API access** → create a Google Cloud service account, grant it access to this app, download JSON to `apps/android-mobile/google-play-key.json` (gitignored).
 4. Complete listing, Data safety, content rating (IARC), target audience, news declaration, ads declaration.
 5. From `apps/android-mobile`:

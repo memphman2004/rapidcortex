@@ -1,15 +1,15 @@
 # Customer Readiness Gate Sheet (One Page)
 
-**Project:** Rapid Cortex  
+**Project:** NexCort iQ  
 **Audience:** Customer readiness meeting (Product, Engineering, Security, Operations, Agency IT)  
 **Current Program Position:** **Conditional No-Go** for production CAD write integration
 
 ## Positioning and customer language
 
-**Pilot position:** Rapid Cortex is a **read-only operational intelligence layer** that augments existing CAD workflows without modifying CAD records.
+**Pilot position:** NexCort iQ is a **read-only operational intelligence layer** that augments existing CAD workflows without modifying CAD records.
 
 **Customer communication statement:**  
-"Initial deployment will run in read-only/shadow mode. Rapid Cortex will monitor, summarize, translate, and support operational visibility without writing back into CAD. CAD write-back will only be considered after joint validation, approval workflows, rollback procedures, audit evidence, and customer sign-off are complete."
+"Initial deployment will run in read-only/shadow mode. NexCort iQ will monitor, summarize, translate, and support operational visibility without writing back into CAD. CAD write-back will only be considered after joint validation, approval workflows, rollback procedures, audit evidence, and customer sign-off are complete."
 
 ## Gate status legend
 

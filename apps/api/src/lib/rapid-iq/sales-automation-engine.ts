@@ -106,7 +106,7 @@ export function buildHtmlEmail(subject: string, bodyText: string): string {
 <html><head><meta charset="utf-8"><title>${escapeHtml(subject)}</title></head>
 <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;max-width:560px;margin:40px auto;padding:0 20px;">
 ${escapeHtml(bodyText).replace(/\n/g, "<br>")}
-<p style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e5e5;color:#555;font-size:13px;">Rapid Cortex · rapidcortex.us</p>
+<p style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e5e5;color:#555;font-size:13px;">NexCort iQ · rapidcortex.us</p>
 </body></html>`;
 }
 
@@ -129,7 +129,7 @@ function scheduleStepsFromOrigin(
 
 function wrapBody(firstName: string | undefined, body: string): string {
   const hi = firstName?.trim() ? `Hi ${firstName.trim()},` : "Hi,";
-  return `${hi}\n\n${body.trim()}\n\nBest,\nThe Rapid Cortex team\nrapidcortex.us`;
+  return `${hi}\n\n${body.trim()}\n\nBest,\nThe NexCort iQ team\nrapidcortex.us`;
 }
 
 export function heuristicThreeTouch(input: {
@@ -181,7 +181,7 @@ async function generateThreeTouch(input: {
   const raw = await createJsonResponse({
     model: rapidIqModelStrategy(),
     system:
-      "You write concise public-safety outreach for Rapid Cortex. Return JSON only. Follow the vertical campaign: PSAP = assistive 911 co-pilot, CAD stays system of record, no write-back by default; CAMPUS = QR/NFC/SMS, not a 911 dispatch system, not an ENS replacement; VENUE = guest QR into security console, cameras stay the venue's, not 911 dispatch. Never mention Ring. No competitor names. No unverified metrics or certification claims. Step 3 is a low-pressure close.",
+      "You write concise public-safety outreach for NexCort iQ. Return JSON only. Follow the vertical campaign: PSAP = assistive 911 co-pilot, CAD stays system of record, no write-back by default; CAMPUS = QR/NFC/SMS, not a 911 dispatch system, not an ENS replacement; VENUE = guest QR into security console, cameras stay the venue's, not 911 dispatch. Never mention Ring. No competitor names. No unverified metrics or certification claims. Step 3 is a low-pressure close.",
     jsonSchemaName: "rapid_iq_sales_sequence",
     jsonSchema: {
       type: "object",
@@ -640,7 +640,7 @@ export async function computeSalesMetrics(): Promise<RapidIqSalesMetrics> {
 
 export function campaignGoal(type: string): string {
   if (type === "budget_season") {
-    return "Agencies are writing next-year budgets. Position Rapid Cortex as a line item before the window closes.";
+    return "Agencies are writing next-year budgets. Position NexCort iQ as a line item before the window closes.";
   }
   if (type === "conference_pre") {
     return "Invite the agency to meet at the upcoming conference or a pre-event briefing.";
@@ -648,7 +648,7 @@ export function campaignGoal(type: string): string {
   if (type === "re_engagement") {
     return "Light-touch re-engagement after 90 days of silence.";
   }
-  return "Relevant Rapid Cortex outreach for this campaign.";
+  return "Relevant NexCort iQ outreach for this campaign.";
 }
 
 export function listCampaignCards(

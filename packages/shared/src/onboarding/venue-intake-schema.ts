@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { venueGuestAssistKnowledgeSchema } from "../guest-assist/knowledge.js";
 
 export const venueEventFrequencySchema = z.enum(["year_round", "seasonal", "single_event"]);
 export const venueSecurityStaffingSchema = z.enum(["in_house", "contracted", "hybrid"]);
@@ -35,6 +36,7 @@ export const venueIntakeSchema = z
     eventCodesAutoExpire: z.boolean(),
     mediaSignageRestrictions: z.string().trim().max(4000).optional(),
     dataRetentionPreference: venueDataRetentionPreferenceSchema,
+    guestAssistKnowledge: venueGuestAssistKnowledgeSchema.default({}),
     notes: z.string().trim().max(8000).optional(),
   })
   .strict()

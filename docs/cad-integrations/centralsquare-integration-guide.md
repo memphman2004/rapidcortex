@@ -1,6 +1,6 @@
-# CentralSquare CAD + Rapid Cortex Integration Guide
+# CentralSquare CAD + NexCort iQ Integration Guide
 
-**Version 1.0** | Rapid Cortex Public Safety AI Platform
+**Version 1.0** | NexCort iQ Public Safety AI Platform
 
 ---
 
@@ -10,8 +10,8 @@ This guide applies to **CentralSquare CAD** and related product lines historical
 
 **What this integration does**
 
-- Delivers CAD incident and update events to Rapid Cortex over **HTTPS** (typically **JSON**).
-- Enables Rapid Cortex to display CAD-sourced fields and optional AI overlays while **CAD remains authoritative**.
+- Delivers CAD incident and update events to NexCort iQ over **HTTPS** (typically **JSON**).
+- Enables NexCort iQ to display CAD-sourced fields and optional AI overlays while **CAD remains authoritative**.
 
 **Data flow (ASCII)**
 
@@ -28,8 +28,8 @@ This guide applies to **CentralSquare CAD** and related product lines historical
 
 - Supported CentralSquare CAD release (confirm with CentralSquare for your **build** and **interface** modules).
 - CAD **admin** access to **External interfaces** / webhooks.
-- Rapid Cortex **admin** for credentials.
-- Outbound **HTTPS** to Rapid Cortex.
+- NexCort iQ **admin** for credentials.
+- Outbound **HTTPS** to NexCort iQ.
 
 **Estimated setup time:** 2–4 hours.
 
@@ -39,14 +39,14 @@ This guide applies to **CentralSquare CAD** and related product lines historical
 | --- | --- |
 | Agency IT | Firewall, secrets, change windows |
 | CAD admin | Webhook configuration |
-| Rapid Cortex admin | Integration + validation |
+| NexCort iQ admin | Integration + validation |
 | CentralSquare support | Version-specific steps |
 
 ---
 
 ## Prerequisites checklist
 
-- [ ] Rapid Cortex **Admin** access.
+- [ ] NexCort iQ **Admin** access.
 - [ ] CentralSquare CAD version documented.
 - [ ] CAD admin credentials.
 - [ ] Outbound **443** to `api.rapidcortex.us`.
@@ -54,7 +54,7 @@ This guide applies to **CentralSquare CAD** and related product lines historical
 
 ---
 
-## Step 1: Generate integration credentials in Rapid Cortex
+## Step 1: Generate integration credentials in NexCort iQ
 
 1. **https://www.rapidcortex.us** → **Admin → CAD Integrations**.
 2. **Add integration** → **CentralSquare** (or **CentralSquare / Tritech** if shown).
@@ -74,11 +74,11 @@ This guide applies to **CentralSquare CAD** and related product lines historical
 1. **Administration → System Configuration → External Interfaces → REST Webhooks**  
    (On some builds: **Integrations → Outbound Webhooks**.)
 2. **Add webhook**
-   - **Endpoint URL:** Rapid Cortex webhook URL.
+   - **Endpoint URL:** NexCort iQ webhook URL.
    - **Method:** `POST`
    - **Content-Type:** `application/json`
 3. **Authentication**
-   - Use **API key header** or **Bearer** as required by your Rapid Cortex integration screen (match header name exactly).
+   - Use **API key header** or **Bearer** as required by your NexCort iQ integration screen (match header name exactly).
 4. **Events** (recommended): CAD call/incident **added**, **updated**, **closed**; unit assignment updates if licensed.
 5. **Save** and **Test**.
 
@@ -99,14 +99,14 @@ Use **AWS API Gateway** IP range guidance (dynamic): [AWS IP address ranges](htt
 
 ## Step 4: Test the connection
 
-1. Rapid Cortex **Send test incident**.
+1. NexCort iQ **Send test incident**.
 2. Validate in dispatcher UI and **webhook / raw log** views.
 
 ---
 
 ## Step 5: Validate data mapping
 
-| CentralSquare (examples) | Rapid Cortex |
+| CentralSquare (examples) | NexCort iQ |
 | --- | --- |
 | `CallId` / `IncidentNumber` | CAD incident id |
 | `NatureText` / `CallType` | Type / nature |
@@ -147,7 +147,7 @@ TLS 1.2+, encryption at rest, **tenant isolation**, **audit** trails. Treat payl
 
 | Channel | Detail |
 | --- | --- |
-| Rapid Cortex | [support@rapidcortex.us](mailto:support@rapidcortex.us) |
+| NexCort iQ | [support@nexcortiq.us](mailto:support@nexcortiq.us) |
 | CentralSquare | Use your **CentralSquare support portal** / account team (URLs vary by contract). |
 
 ---
@@ -174,7 +174,7 @@ TLS 1.2+, encryption at rest, **tenant isolation**, **audit** trails. Treat payl
 
 ## Appendix B: Field mapping reference
 
-| CAD field (examples) | Rapid Cortex |
+| CAD field (examples) | NexCort iQ |
 | --- | --- |
 | `incident_id` / `IncidentNumber` | CAD incident linkage |
 | `nature` / `incident_type` | Nature / type |

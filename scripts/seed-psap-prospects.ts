@@ -19,7 +19,7 @@
  *   # Old behavior: skip existing phones, never update
  *   PSAP_PROSPECTS_TABLE=… npx tsx scripts/seed-psap-prospects.ts ./file.xls --insert-only
  *
- * Requires `xlsx` (`npm i -D xlsx`).
+ * Requires `exceljs` (`npm i -D exceljs`).
  */
 
 import { randomUUID } from "node:crypto";
@@ -31,6 +31,7 @@ import {
   ScanCommand,
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
+import ExcelJS from "exceljs";
 
 const TABLE = process.env.PSAP_PROSPECTS_TABLE;
 if (!TABLE) {
@@ -49,13 +50,6 @@ const BATCH_LABEL = process.env.PSAP_IMPORT_LABEL ?? `psap_registry_${new Date()
 const client = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
   marshallOptions: { removeUndefinedValues: true },
 });
-
-type XlsxModule = {
-  readFile: (path: string) => { SheetNames: string[]; Sheets: Record<string, unknown> };
-  utils: {
-    sheet_to_json: <T>(sheet: unknown) => T[];
-  };
-};
 
 type ProspectRow = {
   psapId: string;
@@ -100,16 +94,42 @@ type SheetFields = {
   contacts: SheetContact[];
 };
 
-async function loadXlsx(): Promise<XlsxModule> {
-  try {
-    const mod = (await import("xlsx")) as unknown as XlsxModule & { default?: XlsxModule };
-    return mod.default ?? mod;
-  } catch {
-    console.error(
-      "ERROR: package `xlsx` is required. Install with `npm i -D xlsx` (or ensure it is resolvable).",
-    );
+async function loadSheetRows(filePath: string): Promise<Record<string, unknown>[]> {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(filePath);
+  const sheet = workbook.worksheets[0];
+  if (!sheet) {
+    console.error("ERROR: workbook has no sheets");
     process.exit(1);
   }
+
+  const headerRow = sheet.getRow(1);
+  const headers: string[] = [];
+  headerRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+    headers[colNumber] = String(cell.text ?? cell.value ?? "").trim();
+  });
+
+  const rows: Record<string, unknown>[] = [];
+  sheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+    if (rowNumber === 1) return;
+    const obj: Record<string, unknown> = {};
+    let hasValue = false;
+    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+      const key = headers[colNumber];
+      if (!key) return;
+      const raw = cell.value;
+      const value =
+        raw && typeof raw === "object" && "text" in (raw as object)
+          ? String((raw as { text?: string }).text ?? "")
+          : raw && typeof raw === "object" && "result" in (raw as object)
+            ? (raw as { result?: unknown }).result
+            : raw;
+      if (value != null && String(value).trim() !== "") hasValue = true;
+      obj[key] = value ?? "";
+    });
+    if (hasValue) rows.push(obj);
+  });
+  return rows;
 }
 
 function cell(row: Record<string, unknown>, ...keys: string[]): string {
@@ -475,18 +495,10 @@ async function insertProspect(fields: SheetFields): Promise<void> {
 }
 
 async function seed() {
-  const XLSX = await loadXlsx();
-  const workbook = XLSX.readFile(FILE);
-  const sheetName = workbook.SheetNames[0];
-  if (!sheetName) {
-    console.error("ERROR: workbook has no sheets");
-    process.exit(1);
-  }
-  const sheet = workbook.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet);
+  const rows = await loadSheetRows(FILE);
 
   console.log("─────────────────────────────────────────────────────────────");
-  console.log("  Rapid Cortex — PSAP seed / upsert");
+  console.log("  NexCort iQ — PSAP seed / upsert");
   console.log(`  File:        ${FILE}`);
   console.log(`  Table:       ${TABLE}`);
   console.log(`  Rows:        ${rows.length}`);

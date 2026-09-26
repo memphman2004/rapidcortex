@@ -1,5 +1,5 @@
 /**
- * Rapid Cortex — Map Constants
+ * NexCort iQ — Map Constants
  *
  * Overlay layer IDs, severity colors, defaults, and toggle mappings.
  * ALS Esri/HERE styles do not include the former Studio overlay IDs.
@@ -8,25 +8,14 @@
  */
 
 import type { ExpressionSpecification } from "maplibre-gl";
+import { alsMapStyleUrl as sharedAlsMapStyleUrl } from "rapid-cortex-maps";
 
-function alsMapStyleDescriptor(kind: "dark" | "light"): string {
-  const region =
-    (typeof process !== "undefined" && process.env.NEXT_PUBLIC_ALS_REGION?.trim()) || "us-east-1";
-  const mapName =
-    kind === "dark"
-      ? (typeof process !== "undefined" && process.env.NEXT_PUBLIC_ALS_MAP_NAME_DARK?.trim()) ||
-        "rc-map-dark-dev"
-      : (typeof process !== "undefined" && process.env.NEXT_PUBLIC_ALS_MAP_NAME?.trim()) ||
-        "rc-map-dev";
-  return `https://maps.geo.${region}.amazonaws.com/maps/v0/maps/${mapName}/style-descriptor`;
-}
-
-export const RC_STYLE_URL_DARK = alsMapStyleDescriptor("dark");
-export const RC_STYLE_URL_LIGHT = alsMapStyleDescriptor("light");
+export const RC_STYLE_URL_DARK = sharedAlsMapStyleUrl("dark");
+export const RC_STYLE_URL_LIGHT = sharedAlsMapStyleUrl("light");
 export const RC_STYLE_URL = RC_STYLE_URL_DARK;
 
 export function alsMapStyleUrl(theme: "dark" | "light" = "dark"): string {
-  return theme === "light" ? RC_STYLE_URL_LIGHT : RC_STYLE_URL_DARK;
+  return sharedAlsMapStyleUrl(theme);
 }
 
 /** @deprecated Use alsMapStyleUrl */
@@ -55,7 +44,7 @@ export const STUDIO_LAYER_IDS = [
   "rc-selected-incident",
   "rc-psap-zones-fill",
   "rc-psap-zones-line",
-  // Traffic — rename from "RC Live Traffic" / "RC Live Traffic Closures" in Studio
+  // Traffic — rename from "Live Traffic" / "Live Traffic Closures" in Studio
   "rc-live-traffic",
   "rc-live-traffic-closures",
 ] as const;

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { AGENCY_TYPE_VALUES } from "../tenancy/agency.js";
 
-/** One pin on the RC Admin national deployments map (cross-tenant). */
+/** One pin on the NexCort Admin national deployments map (cross-tenant). */
 export const agencyDeploymentMarkerSchema = z.object({
   agencyId: z.string().min(1).max(128),
   name: z.string().min(1).max(200),

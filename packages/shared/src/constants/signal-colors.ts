@@ -1,7 +1,7 @@
 export const ROLE_BAND_COLORS = {
   // ── Platform ──────────────────────────────────────────
   rcsuperadmin: { color: "#7C3AED", label: "Platform Command", vertical: "platform" },
-  rcadmin: { color: "#7C3AED", label: "RC Operations", vertical: "platform" },
+  rcadmin: { color: "#7C3AED", label: "NexCort Operations", vertical: "platform" },
   rcitadmin: { color: "#7C3AED", label: "RC Infrastructure", vertical: "platform" },
 
   // ── RC 911 ────────────────────────────────────────────
@@ -12,14 +12,14 @@ export const ROLE_BAND_COLORS = {
   analyst: { color: "#2979FF", label: "Analytics", vertical: "911" },
   auditor: { color: "#2979FF", label: "Audit", vertical: "911" },
 
-  // ── RC Campus ─────────────────────────────────────────
+  // ── Campus ─────────────────────────────────────────
   campus_admin: { color: "#10B981", label: "Campus Admin", vertical: "campus" },
   campus_supervisor: { color: "#10B981", label: "Campus Supervisor", vertical: "campus" },
   campus_security: { color: "#10B981", label: "Campus Security", vertical: "campus" },
   campus_counselor: { color: "#10B981", label: "Campus Counselor", vertical: "campus" },
   campus_faculty: { color: "#10B981", label: "Campus Faculty", vertical: "campus" },
 
-  // ── RC Venue ──────────────────────────────────────────
+  // ── Venue ──────────────────────────────────────────
   venue_admin: { color: "#F59E0B", label: "Venue Admin", vertical: "venue" },
   venue_supervisor: { color: "#F59E0B", label: "Venue Supervisor", vertical: "venue" },
   venue_security: { color: "#F59E0B", label: "Venue Security", vertical: "venue" },

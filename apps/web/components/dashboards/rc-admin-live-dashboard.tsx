@@ -411,7 +411,7 @@ export function RcAdminDashboardActivity() {
   if (auditQ.isError) {
     return (
       <p className="text-sm text-amber-200">
-        Audit stream unavailable — platform summary may require RC Super Admin role.
+        Audit stream unavailable — platform summary may require NexCort Super Admin role.
       </p>
     );
   }

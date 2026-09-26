@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PinpointCallerClient } from "@/components/pinpoint/pinpoint-caller-client";
 
 export const metadata: Metadata = {
-  title: "Share location — LiveLocation · Rapid Cortex",
+  title: "Share location — LiveLocation · NexCort iQ",
   robots: { index: false, follow: false },
 };
 

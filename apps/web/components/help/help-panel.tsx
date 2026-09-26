@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Rapid Cortex — Help Panel (slide-out drawer)
+ * NexCort iQ — Help Panel (slide-out drawer)
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -9,15 +9,24 @@ import { ArrowLeft, BookOpen, ExternalLink, X } from "lucide-react";
 import { useHelpPanel } from "./help-panel-context";
 import { fetchHelpArticle, type HelpArticleContent } from "@/lib/help/fetch-help-article";
 import { getHelpIndex, type HelpArticle, type HelpIndex } from "@/lib/help/help-content";
+import { fetchStaffGuideArticle } from "@/lib/staff-guide/fetch-article";
+import {
+  getStaffGuideIndex,
+  isStaffGuideRole,
+  staffGuideVerticalFromRole,
+} from "@/lib/staff-guide/catalog";
+import { isStaffGuideEnabled } from "@/lib/runtime-flags";
 import { V } from "@/lib/theme/rc-theme-tokens";
 
 function ArticleView({
   role,
   article,
+  staffGuide,
   onBack,
 }: {
   role: string;
   article: HelpArticle;
+  staffGuide: boolean;
   onBack: () => void;
 }) {
   const [content, setContent] = useState<HelpArticleContent | null>(null);
@@ -29,7 +38,11 @@ function ArticleView({
     setLoading(true);
     setMissing(false);
     setContent(null);
-    void fetchHelpArticle(role, article.topic).then((result) => {
+    const vertical = staffGuideVerticalFromRole(role);
+    const load = staffGuide && vertical
+      ? fetchStaffGuideArticle(vertical, article.topic)
+      : fetchHelpArticle(role, article.topic);
+    void load.then((result) => {
       if (cancelled) return;
       if (result) setContent(result);
       else setMissing(true);
@@ -38,7 +51,7 @@ function ArticleView({
     return () => {
       cancelled = true;
     };
-  }, [role, article.topic]);
+  }, [role, article.topic, staffGuide]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -99,10 +112,10 @@ function ArticleView({
             <div style={{ fontSize: 12, color: V.muted, lineHeight: 1.6 }}>
               This guide is being written. In the meantime, contact support at{" "}
               <a
-                href="mailto:support@rapidcortex.com"
+                href="mailto:support@nexcortiq.us"
                 style={{ color: V.purple, textDecoration: "none" }}
               >
-                support@rapidcortex.com
+                support@nexcortiq.us
               </a>{" "}
               or check the release notes for details.
             </div>
@@ -125,25 +138,29 @@ function ArticleView({
                 gap: 8,
               }}
             >
+            {staffGuide ? null : (
+              <>
+                <a
+                  href={`https://docs.rapidcortex.us/${role}/${article.topic}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontSize: 11,
+                    color: V.purple,
+                    textDecoration: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <ExternalLink size={11} />
+                  Open in full docs
+                </a>
+                <span style={{ fontSize: 11, color: V.dim }}>·</span>
+              </>
+            )}
               <a
-                href={`https://docs.rapidcortex.us/${role}/${article.topic}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  fontSize: 11,
-                  color: V.purple,
-                  textDecoration: "none",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                }}
-              >
-                <ExternalLink size={11} />
-                Open in full docs
-              </a>
-              <span style={{ fontSize: 11, color: V.dim }}>·</span>
-              <a
-                href="mailto:support@rapidcortex.com"
+                href="mailto:support@nexcortiq.us"
                 style={{ fontSize: 11, color: V.dim, textDecoration: "none" }}
               >
                 Send feedback
@@ -215,7 +232,7 @@ function ArticleIndex({
       <div style={{ padding: "16px 20px", borderTop: `1px solid ${V.border}`, marginTop: 8 }}>
         <div style={{ fontSize: 11, color: V.dim, marginBottom: 6 }}>Need more help?</div>
         <a
-          href="mailto:support@rapidcortex.com"
+          href="mailto:support@nexcortiq.us"
           style={{
             fontSize: 12,
             color: V.purple,
@@ -237,7 +254,10 @@ export function HelpPanel() {
   const { isOpen, activeTopic, role, closeHelp, openHelp } = useHelpPanel();
   const [activeArticle, setActiveArticle] = useState<HelpArticle | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const helpIndex = getHelpIndex(role);
+  const staffGuide = isStaffGuideEnabled() && isStaffGuideRole(role);
+  const vertical = staffGuideVerticalFromRole(role);
+  const helpIndex: HelpIndex =
+    staffGuide && vertical ? getStaffGuideIndex(vertical) : getHelpIndex(role);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -283,7 +303,7 @@ export function HelpPanel() {
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Help & Documentation"
+        aria-label={staffGuide ? "Staff Guide" : "Help & Documentation"}
         style={{
           position: "fixed",
           top: 0,
@@ -312,7 +332,7 @@ export function HelpPanel() {
         >
           <BookOpen size={15} color={V.purple} />
           <span style={{ fontSize: 13, fontWeight: 700, color: V.text, flex: 1 }}>
-            Help & Documentation
+            {staffGuide ? "Staff Guide" : "Help & Documentation"}
           </span>
           <span
             style={{
@@ -350,7 +370,7 @@ export function HelpPanel() {
         <div style={{ padding: "10px 16px", borderBottom: `1px solid ${V.border}`, flexShrink: 0 }}>
           <input
             type="search"
-            placeholder="Search help articles…"
+            placeholder={staffGuide ? "Search staff guide…" : "Search help articles…"}
             style={{
               width: "100%",
               background: V.bg,
@@ -372,6 +392,7 @@ export function HelpPanel() {
           <ArticleView
             role={role}
             article={activeArticle}
+            staffGuide={staffGuide}
             onBack={() => {
               setActiveArticle(null);
               openHelp("index");

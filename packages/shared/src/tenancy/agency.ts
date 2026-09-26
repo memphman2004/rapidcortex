@@ -115,24 +115,21 @@ export interface AgencyTenant {
   contractEndDate?: string;
   renewalDate?: string;
   usageBillingFrequency?: "monthly" | "quarterly" | "annually";
-  /** Serialized map of MonetizationFeatureKey → boolean — RC Admin pilots / holds. */
+  /** Serialized map of MonetizationFeatureKey → boolean — NexCort Admin pilots / holds. */
   monetizationFeatureOverridesJson?: string;
-  /** Per-agency IP allowlist + shift-hour access control (opt-in). */
+  /**
+   * Per-agency IP allowlist + shift-hour access control (opt-in).
+   */
   networkPolicy?: AgencyNetworkPolicy;
 
-  // Ring Connect public directory — all four fields must be set before an agency is listed.
-  /** When true, agency appears in GET /api/public/agencies/by-state. Default false. */
-  publicDirectoryOptIn?: boolean;
-  /** Display name shown to homeowners (may differ from internal `name`). */
-  publicDisplayName?: string;
-  /** City shown in the public directory. */
-  publicCity?: string;
-  /** 2-letter US state code for the public directory index. */
-  publicState?: string;
+  /** When true, Cognito SAML IdP `SAML-${agencyId}` is configured for this tenant. */
+  ssoEnabled?: boolean;
+  /** Cognito Identity Provider name (typically `SAML-${agencyId}`). */
+  samlProviderName?: string | null;
 
   /**
    * Headquarters / deployment map pin (WGS84).
-   * Optional for legacy rows; required for RC Admin national deployments map markers.
+   * Optional for legacy rows; required for NexCort Admin national deployments map markers.
    */
   latitude?: number;
   longitude?: number;

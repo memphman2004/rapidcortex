@@ -16,7 +16,7 @@ export default async function AgencyAdminQrCodesPage() {
         canCreate={perms.canCreate}
         canDeactivate={perms.canDeactivate}
         canDownload={perms.canDownload}
-        zoneLabel="Zone / Location"
+        zoneLabel="Location Details"
       />
     </div>
   );

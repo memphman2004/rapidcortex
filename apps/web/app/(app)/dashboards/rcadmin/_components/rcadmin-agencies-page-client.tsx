@@ -98,7 +98,7 @@ export function RcAdminAgenciesPageClient() {
   return (
     <div className="space-y-4">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold text-white">RC Admin Agencies</h1>
+        <h1 className="text-2xl font-semibold text-white">NexCort Admin Agencies</h1>
         <p className="text-sm text-slate-400">
           Filter by vertical and drill into tenant add-on controls.
         </p>

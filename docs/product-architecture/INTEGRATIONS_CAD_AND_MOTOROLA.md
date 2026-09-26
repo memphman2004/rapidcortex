@@ -1,14 +1,14 @@
 # Integrations — CAD systems and Motorola-class environments
 
-This document explains **how Rapid Cortex approaches CAD (Computer-Aided Dispatch) integration**, with **Motorola Solutions–class** environments called out as a common U.S. public-safety scenario. It is **not** a Motorola licensing or product manual; your agency’s **contracted interfaces**, **CJIS controls**, and **vendor professional services** are authoritative.
+This document explains **how NexCort iQ approaches CAD (Computer-Aided Dispatch) integration**, with **Motorola Solutions–class** environments called out as a common U.S. public-safety scenario. It is **not** a Motorola licensing or product manual; your agency’s **contracted interfaces**, **CJIS controls**, and **vendor professional services** are authoritative.
 
 ## Product stance (today)
 
-- Rapid Cortex ships **adapter interfaces** and **mock implementations** in `packages/integrations` (for example `CadAdapter`, `MockCadAdapter`). See [`cad-adapter.ts`](../packages/integrations/src/cad-adapter.ts).
+- NexCort iQ ships **adapter interfaces** and **mock implementations** in `packages/integrations` (for example `CadAdapter`, `MockCadAdapter`). See [`cad-adapter.ts`](../packages/integrations/src/cad-adapter.ts).
 - The **live CAD connector is not productized** in this repository as a turnkey Motorola (or other vendor) module. The admin UI shows CAD as **planned** alongside other connectors (`apps/web/lib/connection-status.ts`), under **`https://www.rapidcortex.us/<city-town-or-county-slug>/admin/integrations`** (and related admin routes).
 - The API exposes **`GET /api/integration/status`**, which today surfaces **transcript connector rollout** flags (`INTEGRATION_TRANSCRIPT_CONNECTOR_MODE`, `INTEGRATION_TRANSCRIPT_AGENCY_ALLOWLIST`) from `apps/api/src/lib/integration-surface.ts`. CAD-specific health will evolve with real adapters.
 
-This matches the **side-by-side** model in [`docs/phase-0/product-one-pager.md`](./phase-0/product-one-pager.md): Rapid Cortex is an **intelligence layer**, not a CAD replacement.
+This matches the **side-by-side** model in [`docs/phase-0/product-one-pager.md`](./phase-0/product-one-pager.md): NexCort iQ is an **intelligence layer**, not a CAD replacement.
 
 For strict rollout instructions, use the operational playbook:
 
@@ -23,7 +23,7 @@ Agencies often say **“Motorola CAD”** to mean Motorola Solutions’ **CAD / 
 - **Topology**: hosted vs on-prem, **CAD-to-CAD** middleware, regional data centers, and **CJIS** networking (VPN, private interconnect, allow-listed IPs).
 - **Read vs write**: read-only incident visibility is very different from **write-back** of narrative or disposition codes.
 
-**Rapid Cortex engineering** should therefore treat “Motorola integration” as a **discovery and design** exercise with your agency and the vendor, then implement a **narrow adapter** behind `CadAdapter` (or adjacent interfaces such as incident event feeds).
+**NexCort iQ engineering** should therefore treat “Motorola integration” as a **discovery and design** exercise with your agency and the vendor, then implement a **narrow adapter** behind `CadAdapter` (or adjacent interfaces such as incident event feeds).
 
 ## Recommended integration phases
 
@@ -31,12 +31,12 @@ Agencies often say **“Motorola CAD”** to mean Motorola Solutions’ **CAD / 
 
 1. **Inventory systems**: CAD product name/version, RMS, logging recorder, 911 CPE, and any **middleware** already licensed.
 2. **List integration options** the vendor supports for _your_ deployment: APIs, message buses (for example JMS/Kafka-style where offered), **XML/JSON** incident feeds, **webhooks**, **FTP/SFTP** drops, CAD-to-CAD, etc.
-3. **Define data scope**: which fields Rapid Cortex needs (incident id, type, location, units, timestamps, narrative snippets) and what must **never** leave CAD (some agencies restrict narrative export).
+3. **Define data scope**: which fields NexCort iQ needs (incident id, type, location, units, timestamps, narrative snippets) and what must **never** leave CAD (some agencies restrict narrative export).
 4. **Security path**: CJIS alignment, encryption in transit (TLS 1.2+), authentication (OAuth, mutual TLS, API keys in HSM-backed stores), and **audit** requirements.
 
 ### Phase B — Read-only “shadow” (recommended first technical milestone)
 
-- Ingest **incident updates** or **transcript-adjacent** events into Rapid Cortex **without** controlling dispatch.
+- Ingest **incident updates** or **transcript-adjacent** events into NexCort iQ **without** controlling dispatch.
 - Align with transcript connector philosophy: use **`INTEGRATION_TRANSCRIPT_CONNECTOR_MODE=shadow`** (or `off` / `on` per `packages/integrations` rollout) so you can compare external feed behavior to existing mock/live paths before full reliance.
 
 ### Phase C — Operator-visible “on”
@@ -71,7 +71,7 @@ Use this list with your **Motorola Solutions account team**; wording may change 
 
 - [ ] Confirm **product names**, versions, and **hosting** model.
 - [ ] Request the **integration catalog** for your SKU: supported protocols, rate limits, test environments.
-- [ ] Request a **non-production** endpoint for Rapid Cortex development.
+- [ ] Request a **non-production** endpoint for NexCort iQ development.
 - [ ] Agree on **network path** (public internet vs private connectivity) and **IP allow lists**.
 - [ ] Agree on **data elements** available in each message and **retention** constraints.
 - [ ] Plan **fallback**: if the feed stalls, dispatch continues in CAD per your SOP.
@@ -79,7 +79,7 @@ Use this list with your **Motorola Solutions account team**; wording may change 
 ## Support model
 
 - **Agency IT / Motorola support** own CAD uptime and interface contracts.
-- **Rapid Cortex engineering** owns adapter code inside this repo and AWS resources defined in `infra/template.yaml`.
+- **NexCort iQ engineering** owns adapter code inside this repo and AWS resources defined in `infra/template.yaml`.
 
 ## Related documents
 

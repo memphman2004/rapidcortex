@@ -8,7 +8,7 @@ export AWS_REGION="${AWS_REGION:-$AWS_DEFAULT_REGION}"
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 EVID="${SOC2_EVIDENCE_DIR:-$ROOT/docs/evidence/soc2-evidence/2026-10}"
-COMPLY="/Volumes/Mac Mini/Business Documents/Compliance/Rapid Cortex Compliance/06 - AWS & Infrastructure Security/Evidence/2026-10"
+COMPLY="/Volumes/Mac Mini/Business Documents/Compliance/NexCort iQ Compliance/06 - AWS & Infrastructure Security/Evidence/2026-10"
 mkdir -p "$EVID"
 mkdir -p "$COMPLY" 2>/dev/null || true
 cp_ev() { cp "$1" "$COMPLY/" 2>/dev/null || true; }

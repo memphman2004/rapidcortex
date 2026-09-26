@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — automated monthly invoices (orchestrator, FIFO generator, HTTP API on AppSam4 HttpApi).
+  NexCort iQ — automated monthly invoices (orchestrator, FIFO generator, HTTP API on AppSam4 HttpApi).
 
 Parameters:
   DeploymentStage:
@@ -28,7 +28,7 @@ Parameters:
     Default: rapid-cortex
   FromEmail:
     Type: String
-    Default: billing@rapidcortex.us
+    Default: billing@nexcortiq.us
   AutoSendInvoices:
     Type: String
     AllowedValues: ["true", "false"]
@@ -68,7 +68,7 @@ Resources:
       QueueName: !Sub "rc-invoice-jobs-dlq-${DeploymentStage}.fifo"
       FifoQueue: true
       MessageRetentionPeriod: 1209600
-      SqsManagedSseEnabled: true
+      KmsMasterKeyId: alias/aws/sqs
 
   InvoiceJobsQueue:
     Type: AWS::SQS::Queue
@@ -77,7 +77,7 @@ Resources:
       FifoQueue: true
       ContentBasedDeduplication: false
       VisibilityTimeout: 360
-      SqsManagedSseEnabled: true
+      KmsMasterKeyId: alias/aws/sqs
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt InvoiceJobsDlq.Arn
         maxReceiveCount: 5

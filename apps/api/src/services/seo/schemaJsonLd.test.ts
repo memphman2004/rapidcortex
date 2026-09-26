@@ -3,10 +3,10 @@ import { generateJsonLd } from "./schemaJsonLd.js";
 
 describe("generateJsonLd", () => {
   it("outputs Organization JSON-LD with @context", () => {
-    const doc = generateJsonLd("Organization", { name: "Rapid Cortex", url: "https://example.com" });
+    const doc = generateJsonLd("Organization", { name: "NexCort iQ", url: "https://example.com" });
     expect(doc["@context"]).toBe("https://schema.org");
     expect(doc["@type"]).toBe("Organization");
-    expect(doc.name).toBe("Rapid Cortex");
+    expect(doc.name).toBe("NexCort iQ");
   });
 
   it("outputs FAQPage JSON-LD", () => {

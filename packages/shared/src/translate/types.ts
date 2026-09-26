@@ -1,5 +1,5 @@
 /**
- * RC Translate — bidirectional field translation session types.
+ * Translate — bidirectional field translation session types.
  * Addons: `rc.translate` (LE), `rc.translate.venue`, `rc.translate.campus`, `rc.translate.hospital`.
  */
 

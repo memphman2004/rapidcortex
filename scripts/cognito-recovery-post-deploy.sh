@@ -50,9 +50,9 @@ create_group() {
 }
 
 echo "→ Cognito groups"
-create_group rcsuperadmin "Rapid Cortex platform super-administrator"
-create_group rcadmin "Rapid Cortex business operations"
-create_group rcitadmin "Rapid Cortex technical support"
+create_group rcsuperadmin "NexCort iQ platform super-administrator"
+create_group rcadmin "NexCort iQ business operations"
+create_group rcitadmin "NexCort iQ technical support"
 create_group agencyadmin "Agency-scoped administrators"
 create_group agencyit "Agency IT administrators"
 create_group supervisor "Agency shift supervisors"

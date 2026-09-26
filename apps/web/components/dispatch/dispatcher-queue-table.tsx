@@ -2,6 +2,8 @@
 
 import type { AggregateConfidence, Incident } from "rapid-cortex-shared";
 import { ConfidenceMiniBar } from "@/components/confidence/confidence-mini-bar";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 import { formatRelativeOpened } from "@/lib/format";
 import { isApiConfigured } from "@/lib/api";
 import { TRAINING_MODE_LABEL } from "@/lib/training-mode";
@@ -12,10 +14,8 @@ function priorityFromUrgency(u: Incident["urgency"]): "p1" | "p2" | "p3" {
   return "p3";
 }
 
-function formatClock(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+function formatClock(iso: string, hour12: boolean): string {
+  return formatClockTime(iso, hour12);
 }
 
 export function DispatcherQueueTable({
@@ -33,6 +33,7 @@ export function DispatcherQueueTable({
   emptyHint?: string;
   selectedFieldConfidenceAggregate?: AggregateConfidence | null;
 }) {
+  const { hour12 } = useClockPreference();
   if (isLoading) {
     return (
       <div className="space-y-1 p-1">
@@ -68,7 +69,7 @@ export function DispatcherQueueTable({
           >
             <span className={`ws-priority ${pri} self-center`}>{pri.toUpperCase()}</span>
             <span className="self-center font-mono text-[11px] tabular-nums text-[var(--rc-text-muted)]">
-              {formatClock(inc.createdAt)}
+              {formatClock(inc.createdAt, hour12)}
             </span>
             <span className="min-w-0">
               <span className="block truncate text-[12px] font-medium text-[var(--rc-text)]">

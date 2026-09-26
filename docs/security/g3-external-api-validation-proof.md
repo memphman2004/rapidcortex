@@ -10,6 +10,6 @@
 | Stripe gateway | `stripe-signature` header validated in `billingStripeGateway` handler (`apps/api/src/handlers/billingStripeGateway.ts`) | Stripe idempotency keys on REST calls outbound (not exhaustive here) | **Enable only when secrets provisioned** |
 | AWS End User Messaging delivery events | SNS-signed inbound from configuration-set event destination (`apps/api/src/integrations/sms/aws-sms-delivery-events.ts`) | Provider-specific | Confirm configuration set is attached on send |
 | CAD vendor inbound | **Not wired** for write-back pilot; read-only egress only (`apps/web/lib/rapid-cortex/cad/*`). | N/A |
-| Rapid Cortex agency API OAuth | Bearer JWT issuance + RSA secrets via Secrets Manager ARN (`externalApiJwtSecret.ts`) | Client credential tokens short-lived | Document key rotation playbook |
+| NexCort iQ agency API OAuth | Bearer JWT issuance + RSA secrets via Secrets Manager ARN (`externalApiJwtSecret.ts`) | Client credential tokens short-lived | Document key rotation playbook |
 
 Anything not wired for pilot MUST remain disabled or guarded by feature flags (`docs/pilot-path-stub-remediation-report.md` lineage).

@@ -14,7 +14,7 @@ export default async function AdminConfigurationPage({ params }: Props) {
         <h1 className="text-lg font-semibold text-white">Configuration</h1>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-400">
           Read-only visibility for agency admins: browser feature flags and live integration posture.
-          Platform auth and compute settings are not changed from this page — contact Rapid Cortex
+          Platform auth and compute settings are not changed from this page — contact NexCort iQ
           support for infrastructure changes.
         </p>
       </div>

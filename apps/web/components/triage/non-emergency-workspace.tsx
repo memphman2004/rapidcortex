@@ -31,7 +31,7 @@ export function NonEmergencyWorkspace({ variant }: NonEmergencyWorkspaceProps) {
       <div className="m-4 max-w-2xl space-y-3 rounded-xl border border-slate-800 bg-slate-900/50 p-5">
         <h1 className="text-lg font-semibold text-white">{title}</h1>
         <p className="text-sm text-slate-400">
-          Non-emergency triage isn’t enabled for this agency. Contact Rapid Cortex support.
+          Non-emergency triage isn’t enabled for this agency. Contact NexCort iQ support.
         </p>
         <Link href={to("/dispatcher")} className="text-sm text-sky-400 hover:underline">
           ← Dispatcher console

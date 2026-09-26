@@ -101,6 +101,9 @@ export class QrNfcService {
       ...(parsed.data.buildingId?.trim() ? { buildingId: parsed.data.buildingId.trim() } : {}),
       ...(parsed.data.floor?.trim() ? { floor: parsed.data.floor.trim() } : {}),
       ...(parsed.data.cameraIds?.length ? { cameraIds: parsed.data.cameraIds } : {}),
+      ...(parsed.data.vehicleId?.trim() ? { vehicleId: parsed.data.vehicleId.trim() } : {}),
+      ...(parsed.data.stationId?.trim() ? { stationId: parsed.data.stationId.trim() } : {}),
+      ...(parsed.data.routeId?.trim() ? { routeId: parsed.data.routeId.trim() } : {}),
       ...(parsed.data.siteCode?.trim() ? { siteCode: parsed.data.siteCode.trim().toUpperCase() } : {}),
       vertical: parsed.data.vertical,
       reportType: parsed.data.reportType,
@@ -130,7 +133,7 @@ export class QrNfcService {
       }
     }
     if (
-      (record.vertical === "campus" || record.vertical === "venue") &&
+      (record.vertical === "campus" || record.vertical === "venue" || record.vertical === "transit") &&
       (record.cameraIds?.length ?? 0) > 0
     ) {
       try {
@@ -259,7 +262,7 @@ export class QrNfcService {
         console.warn("[qr-nfc] campus building sync on update failed", qrId, err);
       }
     }
-    if (updated && parsed.data.cameraIds && (existing.vertical === "campus" || existing.vertical === "venue")) {
+    if (updated && parsed.data.cameraIds && (existing.vertical === "campus" || existing.vertical === "venue" || existing.vertical === "transit")) {
       try {
         await bindQrLocationCameras({
           agencyId: existing.agencyId,
@@ -384,7 +387,8 @@ export class QrNfcService {
         active: true,
         qrId,
         agencyId: TRADE_SHOW_SITE_AGENCY_ID,
-        agencyName: "Rapid Cortex",
+        agencyName: "NexCort iQ",
+        name: tradeShowSiteDisplayName(dest),
         vertical: "911",
         reportType: "anonymous",
         medium,
@@ -408,6 +412,7 @@ export class QrNfcService {
       qrId: record.qrId,
       agencyId: record.agencyId,
       agencyName: agency?.name ?? record.agencyName ?? record.agencyId,
+      name: record.name,
       zoneName: record.zoneName,
       vertical: record.vertical,
       reportType: record.reportType,

@@ -16,14 +16,6 @@ export type GrantWriterSections = {
   conclusion: string;
 };
 
-export function isGrantWriterMockMode(): boolean {
-  return (
-    process.env.GRANT_WRITER_MOCK === "1" ||
-    process.env.GRANT_WRITER_MOCK === "true" ||
-    process.env.GRANT_GENERATE_MOCK === "true"
-  );
-}
-
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.filter((v): v is string => typeof v === "string" && v.trim().length > 0);
@@ -68,7 +60,7 @@ APPLICANT AGENCY:
 
 PROJECT:
 - Title: ${form.projectTitle || "AI-Powered Public Safety Communications Intelligence System"}
-- Technology: Rapid Cortex — next-generation AI intelligence and decision-support platform
+- Technology: NexCort iQ — next-generation AI intelligence and decision-support platform
 - Modules: ${modules || "Core platform"}
 - Existing Technology: ${form.existingTechnology || "Not specified"}
 - Staffing Challenge: ${form.staffingChallenge || "Not specified"}
@@ -82,8 +74,8 @@ ${form.projectDescription}
 ADDITIONAL CONTEXT:
 ${form.additionalContext || "None."}
 
-ABOUT RAPID CORTEX:
-Rapid Cortex is a public safety AI platform that enhances — does NOT replace — CAD systems, dispatchers, or responders. It provides real-time AI transcription, supervisor dashboards, automated QA, incident command tools, multi-language translation, and post-incident analytics. CJIS-compliant, AWS-hosted, integrates with Tyler Technologies, Motorola, CentralSquare, and Hexagon.
+ABOUT NEXCORT IQ:
+NexCort iQ is a public safety AI platform that enhances — does NOT replace — CAD systems, dispatchers, or responders. It provides real-time AI transcription, supervisor dashboards, automated QA, incident command tools, multi-language translation, and post-incident analytics. CJIS-compliant, AWS-hosted, integrates with Tyler Technologies, Motorola, CentralSquare, and Hexagon.
 
 Respond ONLY with a valid JSON object — no markdown, no preamble:
 {
@@ -100,31 +92,9 @@ Respond ONLY with a valid JSON object — no markdown, no preamble:
 }`;
 }
 
-export function mockGrantWriterSections(form: Record<string, unknown>): GrantWriterSections {
-  const agency = String(form.agencyName || "Applicant Agency");
-  return normalizeGrantWriterSections({
-    executiveSummary: `${agency} requests funding to deploy Rapid Cortex as a decision-support layer alongside existing CAD and telephony.`,
-    statementOfNeed: `${agency} faces staffing pressure and increasing call complexity. This request does not replace 911 operations.`,
-    projectDescription: String(form.projectDescription || "Deploy Rapid Cortex intelligence for dispatch operations."),
-    goalsAndObjectives: [
-      "Improve call documentation quality",
-      "Reduce supervisor review latency",
-      "Expand language coverage without replacing interpreters",
-    ],
-    implementationTimeline: ["Month 1-3: Configure and train", "Month 4-6: Pilot", "Month 7-12: Agency-wide"],
-    evaluationPlan: "Track QA scores, time-to-dispatch documentation, and language-assist usage monthly.",
-    organizationalCapacity: `${agency} will assign a project lead and retain existing CAD/telephony vendors.`,
-    budgetNarrative: "Funds cover licensing, implementation, and training. No CAD replacement is requested.",
-    sustainabilityPlan: "The agency will budget recurring licensing after the grant period.",
-    conclusion: `${agency} will use Rapid Cortex to enhance — not replace — emergency communications.`,
-  });
-}
-
 export async function generateGrantWriterSections(
   form: Record<string, unknown>,
 ): Promise<GrantWriterSections> {
-  if (isGrantWriterMockMode()) return mockGrantWriterSections(form);
-
   const apiKey = await resolvePlainOrSecretArn(
     process.env.ANTHROPIC_API_KEY,
     process.env.ANTHROPIC_API_KEY_SECRET_ARN,

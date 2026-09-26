@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import type { HospitalRecommendation } from "rapid-cortex-shared";
 
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 import {
   formatTraumaLevel,
   parseAddressCityState,
@@ -111,6 +113,7 @@ function HospitalCard({
   onClick: () => void;
   onOpenDetail?: () => void;
 }) {
+  const { hour12 } = useClockPreference();
   const { hospital, capacity, routing, scoring, match, recommendation: level } = recommendation;
   const { city, state } = parseAddressCityState(hospital.address);
   const trauma = formatTraumaLevel(hospital.traumaLevel);
@@ -237,7 +240,7 @@ function HospitalCard({
             {RECOMMENDATION_ICONS[level]} {recommendationLabel(level)}
           </span>
           <span className="text-xs text-slate-500">
-            Updated {new Date(capacity.timestamp).toLocaleTimeString()}
+            Updated {formatClockTime(capacity.timestamp, hour12)}
           </span>
         </div>
       </button>

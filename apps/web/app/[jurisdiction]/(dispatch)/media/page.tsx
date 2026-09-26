@@ -11,17 +11,13 @@ import { NestCameraPanel } from "@/components/cameras/NestCameraPanel";
 import { WyzeCameraPanel } from "@/components/cameras/WyzeCameraPanel";
 import { RapidVisionPanel } from "@/components/rapid-vision/RapidVisionPanel";
 import { useSession } from "@/components/auth/session-context";
-import { GOOGLE_NEST_TM, NEST_TM, RING_TM, WYZE_TM } from "@/lib/brand-marks";
+import { useOptionalJurisdictionSlug } from "@/lib/jurisdiction-context";
+import { defaultJurisdictionSlug } from "@/lib/marketing-links";
+import { GOOGLE_NEST_TM, NEST_TM, WYZE_TM, joinTrademarkList } from "@/lib/brand-marks";
 import { loadIncidents } from "@/lib/queries";
 import { isLiveVideoEnabled, isRapidVisionEnabled } from "@/lib/runtime-flags";
 import { isRapidVisionNestEnabled } from "@/lib/feature-flags";
 import { isWyzeEnabled } from "@/lib/wyze-feature-flags";
-import {
-  RingConnectButton,
-  ViewAvailableRingCamerasButton,
-  isRingEnabled,
-} from "@/src/features/connect/ring";
-import type { RingRole } from "@/src/features/connect/ring/ring-types";
 
 function canVerifyRapidVision(role: string | undefined): boolean {
   const normalized = (role ?? "").toLowerCase();
@@ -35,20 +31,18 @@ function canVerifyRapidVision(role: string | undefined): boolean {
 
 export default function MediaPage() {
   const { user } = useSession();
+  const jurisdiction = useOptionalJurisdictionSlug() ?? defaultJurisdictionSlug();
   const searchParams = useSearchParams();
   const focusVision = searchParams.get("vision") === "1";
-  const isSupervisor = (user?.role ?? "").toLowerCase() === "supervisor";
-  const ringEnabled = isRingEnabled() && !isSupervisor;
   const nestEnabled = isRapidVisionNestEnabled();
   const wyzeEnabled = isWyzeEnabled();
   const liveVideoEnabled = isLiveVideoEnabled();
   const rapidVisionEnabled = isRapidVisionEnabled();
-  const mediaEnabled = ringEnabled || nestEnabled || wyzeEnabled || liveVideoEnabled || rapidVisionEnabled;
+  const mediaEnabled = nestEnabled || wyzeEnabled || liveVideoEnabled || rapidVisionEnabled;
 
-  const [showRing, setShowRing] = useState(ringEnabled);
   const [showNest, setShowNest] = useState(nestEnabled);
   const [showWyze, setShowWyze] = useState(wyzeEnabled);
-  const [showFacility, setShowFacility] = useState(!ringEnabled && !nestEnabled && !wyzeEnabled);
+  const [showFacility, setShowFacility] = useState(!nestEnabled && !wyzeEnabled);
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
   const [nestPendingCount, setNestPendingCount] = useState(0);
   const [wyzePendingCount, setWyzePendingCount] = useState(0);
@@ -59,11 +53,6 @@ export default function MediaPage() {
   });
 
   const incidents = useMemo(() => incidentsQuery.data ?? [], [incidentsQuery.data]);
-
-  useEffect(() => {
-    if (!ringEnabled) setShowRing(false);
-    else setShowRing((prev) => prev || (!showNest && !showFacility));
-  }, [ringEnabled]); // eslint-disable-line react-hooks/exhaustive-deps -- sync enablement only
 
   useEffect(() => {
     if (!nestEnabled) setShowNest(false);
@@ -94,7 +83,7 @@ export default function MediaPage() {
     [incidents, selectedIncidentId],
   );
 
-  const providerCount = (showRing ? 1 : 0) + (showNest ? 1 : 0) + (showWyze ? 1 : 0) + (showFacility ? 1 : 0);
+  const providerCount = (showNest ? 1 : 0) + (showWyze ? 1 : 0) + (showFacility ? 1 : 0);
 
   if (!mediaEnabled) {
     return (
@@ -164,18 +153,6 @@ export default function MediaPage() {
               Live Camera
             </span>
             <div className="inline-flex flex-wrap items-center gap-1 rounded border border-slate-700 bg-slate-800 p-0.5">
-              {ringEnabled ? (
-                <button
-                  type="button"
-                  aria-pressed={showRing}
-                  onClick={() => setShowRing((v) => !v)}
-                  className={`h-6 rounded px-2 text-xs ${
-                    showRing ? "bg-blue-600/80 text-white" : "text-slate-300 hover:text-white"
-                  }`}
-                >
-                  {RING_TM}
-                </button>
-              ) : null}
               {nestEnabled ? (
                 <button
                   type="button"
@@ -217,7 +194,8 @@ export default function MediaPage() {
           <div className="min-h-0 flex-1 overflow-auto p-3">
             {providerCount === 0 ? (
               <p className="text-sm text-slate-400">
-                Select {RING_TM}, {NEST_TM}, {WYZE_TM}, and/or Facility above to view camera workflows
+                Select {joinTrademarkList([nestEnabled && NEST_TM, wyzeEnabled && WYZE_TM])}
+                {nestEnabled || wyzeEnabled ? " and/or " : ""}Facility above to view camera workflows
                 side by side.
               </p>
             ) : (
@@ -226,29 +204,6 @@ export default function MediaPage() {
                   providerCount > 1 ? "xl:grid-cols-2" : "grid-cols-1"
                 }`}
               >
-                {showRing && ringEnabled ? (
-                  <section className="space-y-3 rounded-lg border border-blue-500/30 bg-slate-950/40 p-3">
-                    <h3 className="text-[10px] font-semibold uppercase tracking-widest text-blue-300">
-                      {RING_TM}
-                    </h3>
-                    {user ? (
-                      <>
-                        <RingConnectButton agencyId={user.agencyId} userId={user.userId} />
-                        <ViewAvailableRingCamerasButton
-                          incidentId={selectedIncidentId}
-                          incidentLatitude={selectedIncident?.callerLocationLat ?? null}
-                          incidentLongitude={selectedIncident?.callerLocationLng ?? null}
-                          userRole={user.role as RingRole}
-                        />
-                      </>
-                    ) : (
-                      <p className="text-sm text-slate-300">
-                        Sign in to manage {RING_TM} camera workflows.
-                      </p>
-                    )}
-                  </section>
-                ) : null}
-
                 {showNest && nestEnabled ? (
                   <section className="space-y-3 rounded-lg border border-emerald-500/30 bg-slate-950/40 p-3">
                     <h3 className="text-[10px] font-semibold uppercase tracking-widest text-emerald-300">
@@ -261,7 +216,7 @@ export default function MediaPage() {
                         incidentLat={selectedIncident?.callerLocationLat}
                         incidentLng={selectedIncident?.callerLocationLng}
                         onPendingCountChange={setNestPendingCount}
-                        connectSettingsHref="/admin/integrations"
+                        connectSettingsHref={`/${jurisdiction}/admin/integrations`}
                       />
                     ) : (
                       <p className="text-sm text-slate-300">

@@ -35,7 +35,7 @@ Must be built on **Windows** with Visual Studio 2022 (Windows Application Packag
 2. Open `apps/desktop-windows/RapidCortexDesktop.sln`.
 3. Set **RapidCortexDesktop.Package** as startup project, **Release | x64**.
 4. **Project → Publish → Create App Packages** → Microsoft Store (need a store-associated app).
-5. Replace `Publisher="CN=Rapid Cortex"` with the Store publisher CN.
+5. Replace `Publisher="CN=NexCort iQ"` with the Store publisher CN.
 6. Submit the `.msixupload` / `.msixbundle`.
 
 `WebAppBaseUrl` in production appsettings must be `https://app.rapidcortex.us`.

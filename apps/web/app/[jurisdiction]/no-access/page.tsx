@@ -11,9 +11,9 @@ type Props = {
 
 function messageFor(reason: string | undefined) {
   if (reason === "dashboard_subscription_required") {
-    return "Your account does not currently include Rapid Cortex dashboard access. Contact your agency administrator or Rapid Cortex support.";
+    return "Your account does not currently include NexCort iQ dashboard access. Contact your agency administrator or NexCort iQ support.";
   }
-  return "Your account is active, but no product access has been assigned yet. Ask your Rapid Cortex billing contact to attach a Rapid Cortex dashboard plan or an RC Lite subscription.";
+  return "Your account is active, but no product access has been assigned yet. Ask your NexCort iQ billing contact to attach a NexCort iQ dashboard plan or an NexCort Lite subscription.";
 }
 
 export default async function NoProductAccessPage({ searchParams }: Props) {

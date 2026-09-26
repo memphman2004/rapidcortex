@@ -2,8 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import type { HospitalCapacity, HospitalProfile, HospitalRecommendationLevel } from "rapid-cortex-shared";
-import maplibregl from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 import {
   formatTraumaLevel,
   parseAddressCityState,
@@ -29,6 +31,7 @@ export function HospitalMarker({
   isSelected = false,
   onClick,
 }: HospitalMarkerProps) {
+  const { hour12 } = useClockPreference();
   const markerRef = useRef<maplibregl.Marker | null>(null);
 
   useEffect(() => {
@@ -129,7 +132,7 @@ export function HospitalMarker({
             </div>
           </div>
           <div style="font-size:11px;color:#666;">
-            ${new Date(capacity.timestamp).toLocaleTimeString()}
+            ${formatClockTime(capacity.timestamp, hour12)}
           </div>
         </div>
       </div>
@@ -149,7 +152,7 @@ export function HospitalMarker({
       marker.remove();
       markerRef.current = null;
     };
-  }, [map, hospital, capacity, recommendation, isSelected, onClick]);
+  }, [map, hospital, capacity, recommendation, isSelected, onClick, hour12]);
 
   return null;
 }

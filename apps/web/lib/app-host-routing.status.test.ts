@@ -31,7 +31,7 @@ describe("app-host-routing — public status", () => {
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/call-assist/report/tok"))).toBeNull();
   });
 
-  it("keeps RC Translate officer deep links on the app host", () => {
+  it("keeps Translate officer deep links on the app host", () => {
     expect(isMarketingPublicPath("/translate/xlat_abc")).toBe(false);
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/translate/xlat_abc"))).toBeNull();
   });
@@ -46,5 +46,28 @@ describe("app-host-routing — public status", () => {
     const res = maybeRedirectAppHostAwayFromMarketing(appRequest("/about"));
     expect(res?.status).toBe(307);
     expect(res?.headers.get("location")).toContain("www.rapidcortex.us/about");
+  });
+
+  it("keeps vertical onboarding wizards on the app host", () => {
+    expect(isMarketingPublicPath("/onboarding/campus/intake")).toBe(false);
+    expect(isMarketingPublicPath("/onboarding/venue/intake")).toBe(false);
+    expect(isMarketingPublicPath("/onboarding/transit/intake")).toBe(false);
+    expect(isMarketingPublicPath("/onboarding/checklist/campus")).toBe(false);
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/onboarding/campus/intake"))).toBeNull();
+  });
+
+  it("keeps QR Guest Assist on the app host", () => {
+    expect(isMarketingPublicPath("/rc-guest-assist.html")).toBe(false);
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/rc-guest-assist.html"))).toBeNull();
+  });
+
+  it("keeps sales contractor portal + ROI + free register on the app host", () => {
+    expect(isMarketingPublicPath("/sales")).toBe(false);
+    expect(isMarketingPublicPath("/sales/anything")).toBe(false);
+    expect(isMarketingPublicPath("/roi/tok")).toBe(false);
+    expect(isMarketingPublicPath("/register/free")).toBe(false);
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/sales"))).toBeNull();
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/roi/abc"))).toBeNull();
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/register/free"))).toBeNull();
   });
 });

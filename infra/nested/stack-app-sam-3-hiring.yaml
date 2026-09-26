@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — surgical Careers + Hiring ATS routes on AppSam3 HttpApi.
+  NexCort iQ — surgical Careers + Hiring ATS routes on AppSam3 HttpApi.
   Public /api/careers/* and JWT /api/rc-admin/applications/*
 
 Parameters:
@@ -47,10 +47,10 @@ Parameters:
     Default: "https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us"
   CareersFromEmail:
     Type: String
-    Default: careers@rapidcortex.us
+    Default: careers@nexcortiq.us
   CareersNotifyEmail:
     Type: String
-    Default: jeff@rapidcortex.us
+    Default: jeff@nexcortiq.us
   ReviewerName:
     Type: String
     Default: Jeffrey Coleman
@@ -149,9 +149,9 @@ Resources:
               - ses:SendEmail
               - ses:SendRawEmail
             Resource:
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/careers@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/careers@nexcortiq.us
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@nexcortiq.us
 
   CareersPresignedUploadFunction:
     Type: AWS::Serverless::Function

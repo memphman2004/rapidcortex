@@ -122,9 +122,9 @@ export function bundledPacketS3Key(vertical: OnboardingPacketVertical, fileName:
   return `${ONBOARDING_PACKETS_S3_PREFIX}/${vertical}/${fileName}`;
 }
 
-const CAMPUS_OVERVIEW = `# Rapid Cortex — Campus Safety
+const CAMPUS_OVERVIEW = `# NexCort iQ — Campus Safety
 
-Rapid Cortex is **campus public-safety intelligence**. It helps campus safety, dispatch, counseling, and administrators see incidents, buildings, QR locations, and cameras across **every campus in the same tenant**.
+NexCort iQ is **campus public-safety intelligence**. It helps campus safety, dispatch, counseling, and administrators see incidents, buildings, QR locations, and cameras across **every campus in the same tenant**.
 
 ## This is not
 
@@ -135,7 +135,7 @@ Rapid Cortex is **campus public-safety intelligence**. It helps campus safety, d
 
 ## Multi-campus
 
-One Rapid Cortex tenant holds every campus (for example Bloomington, Indianapolis, South Bend). Operators use **All campuses** by default and can filter to one location. Buildings, QR codes, cameras, and incidents are tagged to a campus.
+One NexCort iQ tenant holds every campus (for example Bloomington, Indianapolis, South Bend). Operators use **All campuses** by default and can filter to one location. Buildings, QR codes, cameras, and incidents are tagged to a campus.
 
 ## Who this packet is for
 
@@ -144,7 +144,7 @@ Share these files with the campus implementation lead, public-safety leadership,
 
 const CAMPUS_WHAT_WE_NEED = `# Campus — information we need
 
-Complete **Onboarding Intake** and the **Integration Questionnaire** in Rapid Cortex (Campus Admin → Configuration). Saving the questionnaire publishes the campus list used by every dashboard. It does **not** turn on CAD write-back.
+Complete **Onboarding Intake** and the **Integration Questionnaire** in NexCort iQ (Campus Admin → Configuration). Saving the questionnaire publishes the campus list used by every dashboard. It does **not** turn on CAD write-back.
 
 ## Campuses and locations
 
@@ -163,7 +163,7 @@ Complete **Onboarding Intake** and the **Integration Questionnaire** in Rapid Co
 
 - VMS of record (Milestone, Hanwha, Genetec, Avigilon, other) and version
 - Estimated camera count; who owns privacy masks in the VMS
-- Rapid Cortex connects to your VMS. We do not replace it.
+- NexCort iQ connects to your VMS. We do not replace it.
 
 ## Access control, ALPR, CAD/RMS
 
@@ -203,11 +203,11 @@ const CAMPUS_INTEGRATIONS = `# Campus integrations and hard limits
 
 ## Lockdown
 
-Rapid Cortex **never auto-locks doors**. Every lockdown requires an on-duty operator to confirm.
+NexCort iQ **never auto-locks doors**. Every lockdown requires an on-duty operator to confirm.
 
 ## Clery
 
-Keyword categories are **suggestions only**. A CSA must review. Rapid Cortex never auto-files Clery determinations and never issues Timely Warnings.
+Keyword categories are **suggestions only**. A CSA must review. NexCort iQ never auto-files Clery determinations and never issues Timely Warnings.
 
 ## CAD write-back
 
@@ -228,21 +228,21 @@ const CAMPUS_GO_LIVE = `# Campus go-live checklist
 6. EAP library owner and Clery coordinator named
 7. Firewall / webhook allowlist in place
 8. Tabletop: create a test incident, switch campuses, scan a QR, confirm counseling routing
-9. Go-live window agreed; Rapid Cortex implementation lead on standby
+9. Go-live window agreed; NexCort iQ implementation lead on standby
 `;
 
-const VENUE_OVERVIEW = `# Rapid Cortex — Venue Operations
+const VENUE_OVERVIEW = `# NexCort iQ — Venue Operations
 
-Rapid Cortex Venue is **event and facility operations intelligence** for arenas, stadiums, and similar sites.
+NexCort iQ Venue is **event and facility operations intelligence** for arenas, stadiums, and similar sites.
 
 **Every venue page must make clear this is not a 911 emergency dispatch system.** Guest Services especially: guest reports are hospitality/operations, not CAD.
 
-Rapid Cortex does not replace the venue’s VMS, access control, or public-safety CAD.
+NexCort iQ does not replace the venue’s VMS, access control, or public-safety CAD.
 `;
 
 const VENUE_WHAT_WE_NEED = `# Venue — information we need
 
-Complete **Venue Onboarding Intake** in Rapid Cortex.
+Complete **Venue Onboarding Intake** in NexCort iQ.
 
 - Venue legal name, code, city, typical event types and capacity
 - Zones / sections map; guest-services vs security org chart
@@ -268,11 +268,11 @@ const VENUE_GO_LIVE = `# Venue go-live checklist
 6. Event-day tabletop before first gated event
 `;
 
-const HOSPITAL_OVERVIEW = `# Rapid Cortex — Hospital Routing
+const HOSPITAL_OVERVIEW = `# NexCort iQ — Hospital Routing
 
 Hospital Admin and Staff use a **capacity and routing portal**. This is not a 911 dispatch workspace and not medical direction.
 
-Rapid Cortex can share inbound EMS awareness with participating hospitals. It does not replace the hospital’s EHR, bed-management system, or medical control.
+NexCort iQ can share inbound EMS awareness with participating hospitals. It does not replace the hospital’s EHR, bed-management system, or medical control.
 `;
 
 const HOSPITAL_WHAT_WE_NEED = `# Hospital — information we need
@@ -293,7 +293,7 @@ const HOSPITAL_GO_LIVE = `# Hospital go-live checklist
 4. Tabletop with a partner PSAP or EMS agency
 `;
 
-const TRANSIT_OVERVIEW = `# Rapid Cortex — Transit Operations
+const TRANSIT_OVERVIEW = `# NexCort iQ — Transit Operations
 
 Transit Admin, Supervisor, Security, and Operator consoles cover fleet, routes, and on-system incidents.
 
@@ -317,9 +317,9 @@ const TRANSIT_GO_LIVE = `# Transit go-live checklist
 4. Tabletop: in-service incident → security → public safety
 `;
 
-const PSAP_OVERVIEW = `# Rapid Cortex — PSAP / 911
+const PSAP_OVERVIEW = `# NexCort iQ — PSAP / 911
 
-Rapid Cortex **enhances** emergency communications. It does **not** replace CAD, telephony, dispatchers, or medical direction.
+NexCort iQ **enhances** emergency communications. It does **not** replace CAD, telephony, dispatchers, or medical direction.
 
 CAD write-back is **off by default** everywhere and stays off until a signed addendum and an explicit production go/no-go.
 `;
@@ -353,11 +353,11 @@ export function getBundledOnboardingPackets(): BundledOnboardingPacketFolder[] {
       vertical: "campus",
       title: "Campus Safety",
       summary:
-        "Customer packet for university and school public-safety programs: what Rapid Cortex is, what to collect, integrations, and go-live.",
+        "Customer packet for university and school public-safety programs: what NexCort iQ is, what to collect, integrations, and go-live.",
       files: [
         mdFile(
           "00-overview.md",
-          "Campus overview — what Rapid Cortex is and is not",
+          "Campus overview — what NexCort iQ is and is not",
           CAMPUS_OVERVIEW,
         ),
         mdFile("01-what-we-need.md", "Information we need to integrate you", CAMPUS_WHAT_WE_NEED),
@@ -372,7 +372,7 @@ export function getBundledOnboardingPackets(): BundledOnboardingPacketFolder[] {
       summary:
         "Customer packet for arenas, stadiums, and campuses-of-events: guest reporting, cameras, QR, and the 911 disclaimer.",
       files: [
-        mdFile("00-overview.md", "Venue overview — what Rapid Cortex is and is not", VENUE_OVERVIEW),
+        mdFile("00-overview.md", "Venue overview — what NexCort iQ is and is not", VENUE_OVERVIEW),
         mdFile("01-what-we-need.md", "Information we need to integrate you", VENUE_WHAT_WE_NEED),
         mdFile("02-roles-and-operations.md", "Roles and operations", VENUE_ROLES),
         mdFile("03-go-live.md", "Go-live checklist", VENUE_GO_LIVE),
@@ -402,7 +402,7 @@ export function getBundledOnboardingPackets(): BundledOnboardingPacketFolder[] {
       vertical: "psap",
       title: "PSAP / 911 Dispatch",
       summary:
-        "Customer packet for PSAPs and emergency communications centers. Rapid Cortex assists dispatchers; it does not replace CAD, telephony, or medical direction.",
+        "Customer packet for PSAPs and emergency communications centers. NexCort iQ assists dispatchers; it does not replace CAD, telephony, or medical direction.",
       files: [
         mdFile("00-overview.md", "PSAP overview — assistive posture", PSAP_OVERVIEW),
         mdFile("01-what-we-need.md", "Information we need to integrate you", PSAP_WHAT_WE_NEED),

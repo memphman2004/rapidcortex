@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 /**
- * Rapid Cortex — Cross-Agency Tenant Isolation Test Suite (P0 Go/No-Go gate)
+ * NexCort iQ — Cross-Agency Tenant Isolation Test Suite (P0 Go/No-Go gate)
  *
  * Probes cross-tenant read/write paths using two agency JWTs. Routes match the
  * split HttpApi stacks (1–4) deployed behind api.rapidcortex.us + execute-api bases.
@@ -15,7 +15,7 @@
  * Optional:
  *   API_URL_2        Stack 2 (audit, QA scorecards, media)
  *   API_URL_3        Stack 3 (platform summary)
- *   API_URL_4        Stack 4 (billing, Ring)
+ *   API_URL_4        Stack 4 (billing)
  *   AGENCY_A_ADMIN_JWT  Admin token for Agency A (incident seed)
  *   VERBOSE=1
  */
@@ -49,11 +49,7 @@ function record(name: string, verdict: Verdict, detail?: string) {
 function baseForPath(path: string): string {
   if (path.startsWith("/api/audit/") || path.startsWith("/api/qa/")) return API2;
   if (path.startsWith("/api/platform/")) return API3;
-  if (
-    path.startsWith("/api/integrations/ring/") ||
-    path.includes("/billing") ||
-    path.startsWith("/api/admin/tenants/")
-  ) {
+  if (path.includes("/billing") || path.startsWith("/api/admin/tenants/")) {
     return API4;
   }
   if (path.includes("/media") && path.includes("/incidents/")) return API2;
@@ -379,27 +375,8 @@ async function testAgencyIdInjection() {
   }
 }
 
-async function testMediaAndRing() {
-  console.log("\n── 10. Ring / billing — cross-agency access ──");
-  const ring = await get(`/api/integrations/ring/devices?agencyId=${encodeURIComponent(AID_A)}`, JWT_B);
-  if (ring.status === 200) {
-    const body = ring.body as Record<string, unknown>;
-    const data = (body.data ?? body) as Record<string, unknown>;
-    const devices = (data.devices ?? []) as Array<Record<string, unknown>>;
-    const foreign = devices.filter((d) => d.agencyId === AID_A);
-    record(
-      "Ring devices ignores agencyId param — no Agency A device rows returned",
-      foreign.length === 0 ? "PASS" : "FAIL",
-      foreign.length > 0 ? `${foreign.length} device(s) leaked with Agency A agencyId` : undefined,
-    );
-  } else {
-    record(
-      "Agency B blocked from Ring devices",
-      isBlocked(ring.status) ? "PASS" : "FAIL",
-      `Status ${ring.status}`,
-    );
-  }
-
+async function testBillingIsolation() {
+  console.log("\n── 10. Billing — cross-agency access ──");
   const billing = await get(`/api/agencies/${AID_A}/billing-profile`, JWT_B);
   record(
     "Agency B blocked from Agency A billing-profile",
@@ -427,7 +404,7 @@ async function testPlatformRouteBlocking() {
 
 async function main() {
   console.log("═══════════════════════════════════════════════════════════════");
-  console.log("  Rapid Cortex — Cross-Agency Tenant Isolation Test Suite");
+  console.log("  NexCort iQ — Cross-Agency Tenant Isolation Test Suite");
   console.log(`  API stack 1: ${API1}`);
   console.log(`  API stack 2: ${API2}`);
   console.log(`  API stack 3: ${API3}`);
@@ -446,7 +423,7 @@ async function main() {
   await testAuditLog();
   await testQACoaching();
   await testAgencyIdInjection();
-  await testMediaAndRing();
+  await testBillingIsolation();
   await testPlatformRouteBlocking();
 
   const pass = results.filter((r) => r.verdict === "PASS").length;

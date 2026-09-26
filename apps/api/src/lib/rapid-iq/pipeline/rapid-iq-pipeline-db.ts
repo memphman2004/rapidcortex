@@ -57,6 +57,57 @@ export async function getSignalIdByHash(hash: string): Promise<string | null> {
   return typeof id === "string" && id.trim() ? id : null;
 }
 
+function normalizeExternalKey(key: string): string {
+  return key.trim().toUpperCase().replace(/\s+/g, " ").slice(0, 300);
+}
+
+export async function getSignalIdByExternalKey(externalKey: string): Promise<string | null> {
+  const key = normalizeExternalKey(externalKey);
+  if (!key) return null;
+  const res = await ddb.send(
+    new GetCommand({
+      TableName: table(),
+      Key: { pk: `EXTKEY#${key}`, sk: "META" },
+    }),
+  );
+  const id = res.Item?.signalId;
+  return typeof id === "string" && id.trim() ? id : null;
+}
+
+export async function reserveExternalKey(externalKey: string, signalId: string): Promise<void> {
+  const key = normalizeExternalKey(externalKey);
+  await ddb.send(
+    new PutCommand({
+      TableName: table(),
+      Item: {
+        pk: `EXTKEY#${key}`,
+        sk: "META",
+        signalId,
+        externalKey: key,
+        createdAt: new Date().toISOString(),
+      },
+      ConditionExpression: "attribute_not_exists(pk)",
+    }),
+  );
+}
+
+/** Point an existing EXTKEY row at a signal (idempotent overwrite after create race). */
+export async function putExternalKeyPointer(externalKey: string, signalId: string): Promise<void> {
+  const key = normalizeExternalKey(externalKey);
+  await ddb.send(
+    new PutCommand({
+      TableName: table(),
+      Item: {
+        pk: `EXTKEY#${key}`,
+        sk: "META",
+        signalId,
+        externalKey: key,
+        updatedAt: new Date().toISOString(),
+      },
+    }),
+  );
+}
+
 export async function signalExistsByHash(hash: string): Promise<boolean> {
   return (await getSignalIdByHash(hash)) != null;
 }

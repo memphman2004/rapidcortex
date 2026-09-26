@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { canAccessRcFinancePortal, isRcInternalOperator } from "rapid-cortex-shared";
+import { canAccessDeploymentsMap, canAccessPsapProspectsCrm } from "rapid-cortex-shared";
 import { DeploymentsMapPanel } from "@/components/rc-admin/deployments-map-panel";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { marketingLoginPath } from "@/lib/marketing-links";
@@ -12,12 +12,12 @@ export const metadata = {
 
 export default async function RcAdminDeploymentsMapPage() {
   const user = await getDashboardSessionUser();
-  if (!user || !isRcInternalOperator(user.role) || !isDeploymentsMapEnabled()) {
+  if (!user || !canAccessDeploymentsMap(user.role) || !isDeploymentsMapEnabled()) {
     redirect(`${marketingLoginPath()}?from=/rc-admin/deployments-map`);
   }
 
   const showPsapProspectsLayer =
-    canAccessRcFinancePortal(user.role) && isPsapProspectsUiEnabled();
+    canAccessPsapProspectsCrm(user.role) && isPsapProspectsUiEnabled();
 
   return (
     <div className="space-y-4">

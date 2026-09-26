@@ -42,17 +42,15 @@ export function TransitSettingsRoutesPanel({ routes }: { routes: TransitRoute[] 
   );
 }
 
-/** Camera registry + Ring/Nest (campus/venue parity). Falls back to vehicle ID list if the flag is off. */
+/** Camera registry + Nest/Wyze (campus/venue parity). Falls back to vehicle ID list if the flag is off. */
 export function TransitSettingsCamerasPanel({
   agencyId,
   transitCode,
-  userId,
   userRole,
   vehicles,
 }: {
   agencyId: string;
   transitCode: string;
-  userId: string;
   userRole: string;
   vehicles: TransitVehicle[];
 }) {
@@ -64,12 +62,7 @@ export function TransitSettingsCamerasPanel({
   return (
     <div style={{ display: "grid", gap: 24 }}>
       {canManage ? <VenueCamerasSettingsClient agencyId={agencyId} apiVertical="transit" /> : null}
-      <TransitCamerasConnectClient
-        agencyId={agencyId}
-        transitCode={transitCode}
-        userId={userId}
-        userRole={userRole}
-      />
+      <TransitCamerasConnectClient agencyId={agencyId} transitCode={transitCode} />
       <TransitCameraIdList vehicles={vehicles} />
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Plus, Trash2 } from "lucide-react";
 import {
@@ -19,6 +20,7 @@ import {
   TextInput,
 } from "@/components/onboarding/intake-form-primitives";
 import { fetchCampusIntegrations, saveCampusIntegrations } from "@/lib/onboarding/onboarding-api";
+import { verticalOnboardingContinueHref } from "@/lib/onboarding/continue-href";
 
 function stripRecord(
   record: CampusIntegrationQuestionnaire & Record<string, unknown>,
@@ -65,6 +67,7 @@ function CheckAck({
 type Props = { orgCode: string; agencyId?: string };
 
 export function CampusIntegrationForm({ orgCode, agencyId }: Props) {
+  const pathname = usePathname();
   const qc = useQueryClient();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<CampusIntegrationQuestionnaire>(() =>
@@ -207,7 +210,7 @@ export function CampusIntegrationForm({ orgCode, agencyId }: Props) {
       },
       {
         title: "Identity & SSO",
-        description: "How staff will sign in. Rapid Cortex uses Cognito Hosted UI with your IdP.",
+        description: "How staff will sign in. NexCort iQ uses Cognito Hosted UI with your IdP.",
         content: (
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Identity provider">
@@ -292,7 +295,7 @@ export function CampusIntegrationForm({ orgCode, agencyId }: Props) {
       },
       {
         title: "Video (VMS)",
-        description: "Rapid Cortex connects to your VMS of record. We do not replace Milestone, Hanwha, or Genetec.",
+        description: "NexCort iQ connects to your VMS of record. We do not replace Milestone, Hanwha, or Genetec.",
         content: (
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Primary VMS">
@@ -344,7 +347,7 @@ export function CampusIntegrationForm({ orgCode, agencyId }: Props) {
       },
       {
         title: "Access control, ALPR, CAD",
-        description: "Named-system connectors. Rapid Cortex never auto-locks doors or writes back to CAD from this form.",
+        description: "Named-system connectors. NexCort iQ never auto-locks doors or writes back to CAD from this form.",
         content: (
           <div className="space-y-5">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -409,7 +412,7 @@ export function CampusIntegrationForm({ orgCode, agencyId }: Props) {
             <CheckAck
               checked={form.lockdownOperatorConfirmUnderstood}
               onChange={(v) => setForm({ ...form, lockdownOperatorConfirmUnderstood: v })}
-              label="I understand Rapid Cortex never auto-locks doors. Every lockdown requires an operator confirm."
+              label="I understand NexCort iQ never auto-locks doors. Every lockdown requires an operator confirm."
             />
             <CheckAck
               checked={form.cadWritebackDesired}
@@ -504,7 +507,7 @@ export function CampusIntegrationForm({ orgCode, agencyId }: Props) {
       },
       {
         title: "EAP, Clery, counseling",
-        description: "Clery stays suggestion-only. Rapid Cortex never auto-files or issues Timely Warnings.",
+        description: "Clery stays suggestion-only. NexCort iQ never auto-files or issues Timely Warnings.",
         content: (
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="EAP library owner">
@@ -543,7 +546,7 @@ export function CampusIntegrationForm({ orgCode, agencyId }: Props) {
               <CheckAck
                 checked={form.clerySuggestionOnlyAcknowledged}
                 onChange={(v) => setForm({ ...form, clerySuggestionOnlyAcknowledged: v })}
-                label="I understand Clery categories are suggestions only. CSA review is required; Rapid Cortex never auto-files or sends Timely Warnings."
+                label="I understand Clery categories are suggestions only. CSA review is required; NexCort iQ never auto-files or sends Timely Warnings."
               />
             </div>
             <div className="sm:col-span-2">
@@ -640,7 +643,10 @@ export function CampusIntegrationForm({ orgCode, agencyId }: Props) {
           write-back and Clery auto-file were not enabled.
         </p>
         <Link
-          href={`/onboarding/checklist/campus?orgCode=${encodeURIComponent(orgCode)}`}
+          href={verticalOnboardingContinueHref(
+            pathname,
+            `/onboarding/checklist/campus?orgCode=${encodeURIComponent(orgCode)}`,
+          )}
           className="mt-6 inline-block text-sm text-violet-400 hover:underline"
         >
           Continue to onboarding checklist →

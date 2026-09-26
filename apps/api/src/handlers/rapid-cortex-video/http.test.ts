@@ -7,7 +7,7 @@ import {
   videoWallConfigPutBodySchema,
 } from "rapid-cortex-shared";
 
-describe("Rapid Cortex Video HTTP gates", () => {
+describe("NexCort iQ Video HTTP gates", () => {
   it("rejects wall tile counts above the role stream limit", () => {
     const limit = concurrentStreamLimitForRole("CAMPUS_SECURITY");
     expect(limit).toBe(4);

@@ -1,6 +1,8 @@
 # Security model — pilot (technical controls)
 
-This document describes **pilot-grade technical controls** implemented in Rapid Cortex. It is **not** a CJIS, HIPAA, FedRAMP, or SOC 2 attestation. Agency security and compliance teams must map these controls to their own policies and any required **external** assessments.
+**Last reviewed:** 2026-09-19 (60-day refresh) · **Owner:** Jeff Coleman
+
+This document describes **pilot-grade technical controls** implemented in NexCort iQ. It is **not** a CJIS, HIPAA, FedRAMP, or SOC 2 attestation. In-repo TSC pack: [soc2/README.md](./soc2/README.md) (observation target 2026-10-01). Agency security and compliance teams must map these controls to their own policies and any required **external** assessments.
 
 ## Trust boundaries
 
@@ -29,8 +31,9 @@ This document describes **pilot-grade technical controls** implemented in Rapid 
 
 ## Authentication & authorization
 
-- **Cognito JWT** (ID token claims) drive `custom:agencyId` and `custom:role`.
-- **RBAC** enforced in Lambda services and mirrored in Next.js middleware for UX — see [AUTH_OPERATIONS.md](./AUTH_OPERATIONS.md) and [API_SURFACE.md](./API_SURFACE.md).
+- **Cognito JWT** (ID token claims) drive `custom:agencyId` and `custom:role`. Canonical roles: `packages/shared/src/auth/rapid-cortex-roles.ts`.
+- **MFA required** on production pool `us-east-1_0z6tA6WBs` (`MfaConfiguration=ON`, evidence 2026-09-17). TOTP (and SMS when Cognito challenges `SMS_MFA`). Agencies own authenticator-device possession (CUEC). See [AUTH_OPERATIONS.md](../product-architecture/AUTH_OPERATIONS.md) and [POL-03](./soc2/policies/03-access-control-policy.md).
+- **RBAC** enforced in Lambda services and mirrored in Next.js middleware for UX — see [AUTH_OPERATIONS.md](../product-architecture/AUTH_OPERATIONS.md) and [API_SURFACE.md](../product-architecture/API_SURFACE.md).
 
 ## Audit
 
@@ -44,10 +47,11 @@ This document describes **pilot-grade technical controls** implemented in Rapid 
 
 ## Compliance dependencies (external)
 
-Formal **CJIS Security Policy** compliance, **state 911** certification, and **vendor-specific** CAD/radio approvals are **out of product scope** for this repo’s documentation claims — see [NON_GOALS.md](./NON_GOALS.md). This file exists so engineers and agencies share a **common technical vocabulary** without overstating certification.
+Formal **CJIS Security Policy** compliance, **state 911** certification, and **vendor-specific** CAD/radio approvals are **out of product scope** for this repo’s documentation claims — see [NON_GOALS.md](../go-to-market-sales/NON_GOALS.md). This file exists so engineers and agencies share a **common technical vocabulary** without overstating certification.
 
 ## Related
 
 - [AUDIT_EVENT_MATRIX.md](./AUDIT_EVENT_MATRIX.md)
 - [PRIVACY_RETENTION_DECISIONS.md](./PRIVACY_RETENTION_DECISIONS.md)
-- [PILOT_GOVERNANCE.md](./PILOT_GOVERNANCE.md)
+- [PILOT_GOVERNANCE.md](../go-to-market-sales/PILOT_GOVERNANCE.md)
+- [SOC 2 control pack](./soc2/README.md) (policies and evidence templates — **not** a Type II report)

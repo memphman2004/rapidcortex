@@ -261,7 +261,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           });
           const sent = await sendIncidentMediaLinkSms(smsEnv, {
             toPhoneE164: parsed.data.officerPhone,
-            messageBody: `Rapid Cortex Translate session: ${session.sessionUrl}`,
+            messageBody: `NexCort iQ Translate session: ${session.sessionUrl}`,
             agencyId: user.agencyId,
             incidentId: session.incidentId || sessionId,
             messageType: "translate_session_link",

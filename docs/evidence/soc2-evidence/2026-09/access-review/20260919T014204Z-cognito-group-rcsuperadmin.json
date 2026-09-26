@@ -1,0 +1,78 @@
+{
+    "Users": [
+        {
+            "Username": "c4a87408-6041-70b7-6935-51859353c28e",
+            "Attributes": [
+                {
+                    "Name": "email",
+                    "Value": "Support@appsondemand.net"
+                },
+                {
+                    "Name": "email_verified",
+                    "Value": "true"
+                },
+                {
+                    "Name": "custom:status",
+                    "Value": "active"
+                },
+                {
+                    "Name": "custom:agencyId",
+                    "Value": "__platform__"
+                },
+                {
+                    "Name": "custom:role",
+                    "Value": "rcsuperadmin"
+                },
+                {
+                    "Name": "sub",
+                    "Value": "c4a87408-6041-70b7-6935-51859353c28e"
+                }
+            ],
+            "UserCreateDate": "2026-05-23T11:59:53.361000-04:00",
+            "UserLastModifiedDate": "2026-09-02T15:26:20.908000-04:00",
+            "Enabled": true,
+            "UserStatus": "CONFIRMED"
+        },
+        {
+            "Username": "1428f4f8-9051-704a-6036-a67bf10e8ad2",
+            "Attributes": [
+                {
+                    "Name": "email",
+                    "Value": "rcsuperadmin@appsondemand.net"
+                },
+                {
+                    "Name": "email_verified",
+                    "Value": "true"
+                },
+                {
+                    "Name": "custom:status",
+                    "Value": "active"
+                },
+                {
+                    "Name": "custom:pwdChangedAt",
+                    "Value": "2026-07-29T22:00:46.537Z"
+                },
+                {
+                    "Name": "custom:pwdChangeReq",
+                    "Value": "false"
+                },
+                {
+                    "Name": "custom:agencyId",
+                    "Value": "__platform__"
+                },
+                {
+                    "Name": "custom:role",
+                    "Value": "rcsuperadmin"
+                },
+                {
+                    "Name": "sub",
+                    "Value": "1428f4f8-9051-704a-6036-a67bf10e8ad2"
+                }
+            ],
+            "UserCreateDate": "2026-05-23T11:59:13.504000-04:00",
+            "UserLastModifiedDate": "2026-09-02T15:26:22.207000-04:00",
+            "Enabled": true,
+            "UserStatus": "CONFIRMED"
+        }
+    ]
+}

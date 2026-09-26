@@ -24,7 +24,7 @@ export function PlatformGate({ children }: { children: ReactNode }) {
         </div>
         <h1 className="text-lg font-semibold text-white">RC internal area restricted</h1>
         <p className="text-sm leading-relaxed text-slate-400">
-          This command center is for Rapid Cortex internal operators (RC Super Admin, RC Admin, or RC
+          This command center is for NexCort iQ internal operators (NexCort Super Admin, NexCort Admin, or RC
           IT Admin). Agency administrators use the standard Admin section.
         </p>
       </div>

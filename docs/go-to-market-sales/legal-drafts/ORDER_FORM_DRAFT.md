@@ -1,7 +1,8 @@
 # Order Form — DRAFT
 
 > **STATUS: DRAFT — COUNSEL AND FINANCE REVIEW REQUIRED**  
-> Attach to and governed by the **Master Services Agreement** (`COMPLETE_MSA_MASTER_DOCUMENT.docx`) or **Platform Services Agreement**.  
+> **Last reviewed:** 2026-09-19 (60-day refresh — still draft).  
+> Attach to and governed by the **Master Services Agreement** (`COMPLETE_MSA_MASTER_DOCUMENT_updated.docx`) or **Platform Services Agreement**.  
 > Exhibit A (Statement of Work) may be attached or incorporated by reference.
 
 ---
@@ -12,7 +13,7 @@
 |-------|--------|
 | **Order Form ID** | RC-OF-[YYYY]-[NNNN] |
 | **Customer legal name** | [AGENCY LEGAL NAME] |
-| **Contracting entity** | [TBD — Apps on Demand LLC d/b/a Rapid Cortex **or** Rapid Cortex, LLC] |
+| **Contracting entity** | [TBD — Apps on Demand LLC d/b/a NexCort iQ **or** NexCort iQ, LLC] |
 | **Effective date** | [DATE] |
 | **MSA effective date** | [DATE] (or “MSA executed concurrently”) |
 | **Initial term** | [12] months from Service Commencement Date |
@@ -43,9 +44,8 @@ Align with [SALES_SCOPE_MATRIX.md](../SALES_SCOPE_MATRIX.md) — do not check mo
 | CAD read-only adapter | [ ] | Vendor: ______ |
 | CAD assisted write-back | [ ] | **Separate legal addendum required** |
 | Media / caller link intake | [ ] | |
-| Ring Connect | [ ] | |
 | Desktop apps (macOS / Windows) | [ ] | |
-| RC Lite API | [ ] | Use RC Lite Agreement instead if API-only |
+| NC Lite API | [ ] | Use NC Lite Agreement instead if API-only |
 
 ---
 
@@ -106,8 +106,10 @@ Escalation contacts per [OPS_CONTACT_MATRIX.md](../../operations-runbooks/OPS_CO
 |------|----------------|
 | DPA executed | [ ] Concurrent DPA  [ ] DPA dated ______ |
 | Privacy / retention decisions reviewed | [ ] Per [PRIVACY_RETENTION_DECISIONS.md](../../security-compliance/PRIVACY_RETENTION_DECISIONS.md) |
+| MFA required for production users | [ ] Acknowledged ([AUTH_OPERATIONS.md](../../product-architecture/AUTH_OPERATIONS.md)) |
 | CJIS / security review | [ ] Complete  [ ] In progress |
 | Assistive AI / not autonomous dispatch | [ ] Acknowledged ([PILOT_GOVERNANCE.md](../PILOT_GOVERNANCE.md)) |
+| SOC 2 Type II report | [ ] Not issued — observation pack only |
 
 ---
 
@@ -128,7 +130,7 @@ Escalation contacts per [OPS_CONTACT_MATRIX.md](../../operations-runbooks/OPS_CO
 
 ## Signatures
 
-| **Customer** | **Rapid Cortex** |
+| **Customer** | **NexCort iQ** |
 |--------------|------------------|
 | Authorized signature | Authorized signature |
 | Print name / title | Print name / title |

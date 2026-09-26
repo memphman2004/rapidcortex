@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { canAccessRapidIq } from "rapid-cortex-shared";
+import { canAccessRapidIqWorkspace } from "rapid-cortex-shared";
 import { ConferencesClient } from "@/components/conferences/conferences-client";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { marketingLoginPath } from "@/lib/marketing-links";
@@ -12,7 +12,7 @@ export const metadata = {
 
 export default async function RcAdminConferencesPage() {
   const user = await getDashboardSessionUser();
-  if (!user || !canAccessRapidIq(user.role) || !isConferencesUiEnabled()) {
+  if (!user || !canAccessRapidIqWorkspace(user.role) || !isConferencesUiEnabled()) {
     redirect(`${marketingLoginPath()}?from=/rc-admin/conferences`);
   }
 

@@ -3,7 +3,7 @@
  * Standard: APCO/NENA 2.105.1-2017 + NENA STA-021
  * Wire format: JSON
  *
- * This is the authoritative EIDO type definition for the Rapid Cortex C2C hub.
+ * This is the authoritative EIDO type definition for the NexCort iQ C2C hub.
  * Every CAD adapter must produce/consume this format.
  */
 

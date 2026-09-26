@@ -1,5 +1,5 @@
 /**
- * Secure one-shot (or re-run) seed: create or update the first Rapid Cortex RC Super Admin principal in Cognito.
+ * Secure one-shot (or re-run) seed: create or update the first NexCort iQ RC Super Admin principal in Cognito.
  *
  * Security: never log passwords. Prefer `RAPID_CORTEX_RC_ADMIN_TEMP_PASSWORD` (falls back to legacy
  * `RAPID_CORTEX_SUPERADMIN_TEMP_PASSWORD`).

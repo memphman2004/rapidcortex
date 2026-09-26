@@ -15,7 +15,7 @@ const inter = Inter({
 
 const siteUrl = getSiteUrl();
 const defaultOgImage = buildOgShareImage(`${SITE_NAME} — branded preview`);
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-S83NHMBHRD";
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-NGT17QK1LW";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -91,7 +91,7 @@ export default function RootLayout({
     <html lang="en" className={`dark ${inter.variable} min-h-full`}>
       <head>
         <Script id="marketing-splash-gate" strategy="beforeInteractive">
-          {`(function(){try{var p=location.pathname;if(p!=='/'&&p!=='/index.html')return;if(document.cookie.indexOf('cortex_entered=1')!==-1)return;if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))return;var h=location.hostname;if(h!=='rapidcortex.us'&&h!=='www.rapidcortex.us'&&!h.startsWith('localhost'))return;location.replace('/enter');}catch(e){}})();`}
+          {`(function(){try{var p=location.pathname;if(p!=='/'&&p!=='/index.html')return;if(document.cookie.indexOf('cortex_entered=1')!==-1)return;if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))return;var h=location.hostname;if(h!=='nexcortiq.us'&&h!=='www.nexcortiq.us'&&h!=='rapidcortex.us'&&h!=='www.rapidcortex.us'&&!h.startsWith('localhost'))return;location.replace('/enter');}catch(e){}})();`}
         </Script>
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}

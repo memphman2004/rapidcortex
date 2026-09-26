@@ -82,25 +82,29 @@ upsert_managed_policy() {
   echo "  ${name}: ${chars}/6144 chars"
 
   local arn
-  arn="$(aws iam list-policies --scope Local --query "Policies[?PolicyName=='${name}'].Arn | [0]" --output text)"
+  # --output text can append a trailing "None" when the JMESPath projection is empty-ish;
+  # take the first non-empty, non-None token only.
+  arn="$(aws iam list-policies --scope Local \
+    --query "Policies[?PolicyName=='${name}'].Arn | [0]" \
+    --output text 2>/dev/null | tr '\t' '\n' | awk 'NF && $0 != "None" { print; exit }')"
   if [[ -z "${arn}" || "${arn}" == "None" ]]; then
     echo "Creating managed policy ${name}…"
     arn="$(aws iam create-policy \
       --policy-name "${name}" \
       --policy-document "file://${file}" \
       --query 'Policy.Arn' \
-      --output text)"
+      --output text | tr -d '[:space:]')"
   else
     echo "Updating managed policy ${name} (new default version)…"
     local non_default
     non_default="$(aws iam list-policy-versions --policy-arn "${arn}" --query 'Versions[?IsDefaultVersion==`false`].VersionId' --output text)"
     local count=0
-    if [[ -n "${non_default}" ]]; then
+    if [[ -n "${non_default}" && "${non_default}" != "None" ]]; then
       for _ in ${non_default}; do count=$((count + 1)); done
     fi
     if (( count >= 4 )); then
       local oldest
-      oldest="$(aws iam list-policy-versions --policy-arn "${arn}" --query 'Versions[?IsDefaultVersion==`false`]|sort_by(@,&CreateDate)[0].VersionId' --output text)"
+      oldest="$(aws iam list-policy-versions --policy-arn "${arn}" --query 'Versions[?IsDefaultVersion==`false`]|sort_by(@,&CreateDate)[0].VersionId' --output text | awk 'NF && $0 != "None" { print; exit }')"
       if [[ -n "${oldest}" && "${oldest}" != "None" ]]; then
         aws iam delete-policy-version --policy-arn "${arn}" --version-id "${oldest}" >/dev/null
       fi

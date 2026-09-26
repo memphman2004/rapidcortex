@@ -9,7 +9,7 @@ import type { AgencyBillingConfig, MonthlyUsageSnapshot } from "./invoice-types.
 
 const config: AgencyBillingConfig = {
   agencyId: "test-agency",
-  agencyName: "Rapid Cortex Test Agency",
+  agencyName: "NexCort iQ Test Agency",
   planId: "professional",
   billingCycle: "monthly",
   contractTermYears: 1,

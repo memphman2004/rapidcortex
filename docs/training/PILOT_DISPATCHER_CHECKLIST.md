@@ -1,10 +1,13 @@
 # Pilot checklist — dispatcher
 
+**Last reviewed:** 2026-09-19 (60-day refresh)
+
 Use with [USER_GUIDE.md](../admin-user-management/USER_GUIDE.md) and the agency’s completed [AGENCY_PLAYBOOK_TEMPLATE.md](../admin-user-management/AGENCY_PLAYBOOK_TEMPLATE.md).
 
 ## Every shift
 
 - [ ] Sign in at the **agency URL** provided by IT (not a personal bookmark to another tenant’s slug).
+- [ ] Complete **MFA** (authenticator app or SMS) when prompted — production requires it.
 - [ ] Confirm **connection strip**: API shows **Live backend** before working real incidents.
 - [ ] Treat AI text as **suggestions** — agency policy and supervisor direction override software.
 

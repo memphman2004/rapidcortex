@@ -1,4 +1,4 @@
-/** LegiScan search queries by Rapid Cortex product vertical. */
+/** LegiScan search queries by NexCort iQ product vertical. */
 
 export type LegislatureQuery = {
   query: string;

@@ -6,11 +6,11 @@ Weekly Saturday cadence through **2026-07-25**. July posts are pulled from the S
 
 | # | Title | Slug | Published |
 |---|---|---|---|
-| — | Why Rapid Cortex Is Needed | `why-rapid-cortex-is-needed` | 2026-03-21 |
-| — | Rapid Cortex Offerings | `rapid-cortex-offerings` | 2026-03-28 |
-| — | Rapid Cortex Core | `rapid-cortex-core` | 2026-04-04 |
-| — | Rapid Cortex Venue | `rapid-cortex-venue` | 2026-04-11 |
-| — | Rapid Cortex Campus | `rapid-cortex-campus` | 2026-04-18 |
+| — | Why NexCort iQ Is Needed | `why-rapid-cortex-is-needed` | 2026-03-21 |
+| — | NexCort iQ Offerings | `rapid-cortex-offerings` | 2026-03-28 |
+| — | 911 Centers/PSAPs | `rapid-cortex-core` | 2026-04-04 |
+| — | NexCort iQ Venue | `rapid-cortex-venue` | 2026-04-11 |
+| — | NexCort iQ Campus | `rapid-cortex-campus` | 2026-04-18 |
 | 1 | How AI Is Transforming 911 Centers | `ai-transforming-911-centers` | 2026-04-25 |
 | 2 | What Is NG911 and Why Does It Matter? | `what-is-ng911` | 2026-05-02 |
 | 3 | The Hidden Cost of Delayed Incident Reporting | `cost-of-delayed-incident-reporting` | 2026-05-09 |

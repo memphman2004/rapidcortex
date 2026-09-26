@@ -1,7 +1,7 @@
-; Rapid Cortex — Windows installer (Inno Setup 6+)
+; NexCort iQ — Windows installer (Inno Setup 6+)
 ; Build: run scripts/build-installer.sh from repo (Windows + ISCC), or open in Inno Setup Compiler.
 
-#define MyAppName "Rapid Cortex"
+#define MyAppName "NexCort iQ"
 #define MyAppVersion "1.0.3"
 #define MyAppPublisher "Apps on Demand llc"
 #define MyAppExeName "RapidCortexDesktop.exe"
@@ -50,10 +50,10 @@ Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; Flags: no
 
 [Registry]
 ; Default value — friendly protocol description
-Root: HKLM; Subkey: "Software\Classes\rapidcortex"; ValueType: string; ValueName: ""; ValueData: "URL:Rapid Cortex Protocol"; Flags: uninsdeletekey
+Root: HKLM; Subkey: "Software\Classes\rapidcortex"; ValueType: string; ValueName: ""; ValueData: "URL:NexCort iQ Protocol"; Flags: uninsdeletekey
 Root: HKLM; Subkey: "Software\Classes\rapidcortex"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
 Root: HKLM; Subkey: "Software\Classes\rapidcortex\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
-Root: HKLM; Subkey: "Software\Classes\rapidcortex-desktop"; ValueType: string; ValueName: ""; ValueData: "URL:Rapid Cortex Desktop Protocol"; Flags: uninsdeletekey
+Root: HKLM; Subkey: "Software\Classes\rapidcortex-desktop"; ValueType: string; ValueName: ""; ValueData: "URL:NexCort iQ Desktop Protocol"; Flags: uninsdeletekey
 ; Declares this class as a URL protocol (empty value)
 Root: HKLM; Subkey: "Software\Classes\rapidcortex-desktop"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
 ; Handler: pass full activation URL to the app

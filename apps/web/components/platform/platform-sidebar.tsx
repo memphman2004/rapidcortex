@@ -43,7 +43,7 @@ export function PlatformSidebar() {
     >
       <div className="border-b border-slate-800/80 px-3 py-3 lg:px-4 lg:py-4">
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-rose-400/90">
-          Rapid Cortex
+          NexCort iQ
         </p>
         <p className="mt-0.5 text-sm font-semibold text-white">Platform command</p>
         <p className="mt-1 text-[11px] text-slate-500">Internal operations only</p>

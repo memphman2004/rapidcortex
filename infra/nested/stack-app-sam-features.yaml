@@ -1,0 +1,1471 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  NexCort iQ Feature Modules (13 competitive differentiators). Tables use
+  rapid-cortex-{name}-{DeploymentStage}. Evidence bucket enables S3 Object Lock
+  (GOVERNANCE, 5-year default) at CREATE TIME ONLY — Object Lock cannot be added
+  to an existing bucket. Lambdas: FeaturesHttpFunction catch-all, learning-nightly,
+  checkin-expiry, Bluesky poll (2 min), Ring Neighbors + Nextdoor webhook receivers,
+  DLQ review worker (rate 5 minutes).
+
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+        - W1030
+        - W2531
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  HttpApiJwtAuthorizerId:
+    Type: String
+    Default: ""
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoIssuer:
+    Type: String
+  AuditTable:
+    Type: String
+  AgenciesTable:
+    Type: String
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+  WebUrl:
+    Type: String
+    Default: ""
+    Description: Origin allowed for PrePlan/Evidence S3 CORS PUT. Empty → "*".
+  OpsAlertsTopicArn:
+    Type: String
+    Default: ""
+  BedrockModelArn:
+    Type: String
+    Default: ""
+    Description: >
+      Optional Bedrock model/inference-profile ARN for learning/assessment.
+      Empty omits the Bedrock IAM statement (statement-level !If — never NoValue in Resource lists).
+  ActiveAgencyIds:
+    Type: String
+    Default: ""
+    Description: >
+      Comma-separated agency IDs for scheduled feature workers (check-in expiry,
+      Bluesky poll, learning). Empty → workers no-op until set.
+  SocialAgencyConfigs:
+    Type: String
+    Default: ""
+    Description: >
+      Optional JSON array of {agencyId,cityHints,lat,lon,radiusKm,blueskyEnabled}
+      for social jurisdiction filtering. Prefer Secrets Manager for large configs.
+  RingNeighborsWebhookSecretArn:
+    Type: String
+    Default: ""
+    Description: >
+      Secrets Manager ARN for Ring Neighbors webhook HMAC secret
+      (rapid-cortex/social/ring-neighbors-webhook-secret*). Empty → Ring Lambda
+      returns 503 until configured (statement-level !If — never NoValue in Resource).
+  WebSocketConnectionsTable:
+    Type: String
+    Default: ""
+    Description: Connections table for CHECKIN_EXPIRED agency broadcast. Empty → soft no-op.
+  WebSocketApiEndpoint:
+    Type: String
+    Default: ""
+    Description: https://{api-id}.execute-api.{region}.amazonaws.com/{stage}
+  WebSocketApiId:
+    Type: String
+    Default: ""
+    Description: API Gateway WebSocket API id for execute-api:ManageConnections IAM.
+  AgencyKMSKeyArn:
+    Type: String
+    Default: ""
+    Description: >
+      Optional customer-managed KMS key ARN for Features DynamoDB tables and S3
+      buckets. Empty → AWS-managed AES256. When set, SSE uses KMS + this key.
+  SIEMEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >
+      When true (and SIEMEndpointUrl is set), provisions a Firehose HTTP delivery
+      stream + S3 backup bucket for SIEM log export. Default off.
+  SIEMEndpointUrl:
+    Type: String
+    Default: ""
+    Description: >
+      HTTPS URL of the customer SIEM HTTP collector. Required when SIEMEnabled=true.
+      Empty disables SIEM resources even if SIEMEnabled is true.
+
+Conditions:
+  HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
+  HasOpsAlertsTopic: !Not [!Equals [!Ref OpsAlertsTopicArn, ""]]
+  HasWebUrl: !Not [!Equals [!Ref WebUrl, ""]]
+  HasBedrockModelArn: !Not [!Equals [!Ref BedrockModelArn, ""]]
+  HasRingNeighborsWebhookSecret: !Not [!Equals [!Ref RingNeighborsWebhookSecretArn, ""]]
+  HasWebSocketConnectionsTable: !Not [!Equals [!Ref WebSocketConnectionsTable, ""]]
+  HasWebSocketApiId: !Not [!Equals [!Ref WebSocketApiId, ""]]
+  HasWebSocketBroadcast: !And
+    - !Condition HasWebSocketConnectionsTable
+    - !Not [!Equals [!Ref WebSocketApiEndpoint, ""]]
+  UseCustomKMS: !Not [!Equals [!Ref AgencyKMSKeyArn, ""]]
+  SIEMActive: !And
+    - !Equals [!Ref SIEMEnabled, "true"]
+    - !Not [!Equals [!Ref SIEMEndpointUrl, ""]]
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Timeout: 30
+    MemorySize: 512
+    Tracing: Active
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        ALLOW_UNAUTHENTICATED_API: "false"
+        ENABLE_FEATURES_SUITE: "true"
+        WEB_URL: !Ref WebUrl
+        CITIZENS_TABLE: !Ref CitizensTable
+        ADDRESS_INTEL_TABLE: !Ref AddressIntelTable
+        ALT_RESPONSE_TABLE: !Ref AltResponseTable
+        CO_RESPONDERS_TABLE: !Ref CoRespondersTable
+        MUTUAL_AID_TABLE: !Ref MutualAidTable
+        MCI_TABLE: !Ref MCITable
+        INFRA_TABLE: !Ref InfraTable
+        INTERPRETER_TABLE: !Ref InterpreterTable
+        EVIDENCE_TABLE: !Ref EvidenceTable
+        EVIDENCE_BUCKET: !Ref EvidenceBucket
+        PREPLAN_BUCKET: !Ref PrePlanBucket
+        ASSESSMENT_TABLE: !Ref AssessmentTable
+        LEARNING_TABLE: !Ref LearningTable
+        PUBLIC_EVENTS_TABLE: !Ref PublicEventsTable
+        CHECKIN_TABLE: !Ref CheckinTable
+        SOCIAL_SIGNALS_TABLE: !Ref SocialSignalsTable
+        PANIC_ALERT_SNS_TOPIC: !Ref PanicAlertTopic
+        SOCIAL_ALERT_SNS_TOPIC: !Ref SocialAlertTopic
+        DEFAULT_INTERPRETER_SERVICE: "language-line"
+        AUDIT_TABLE: !Ref AuditTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        ACTIVE_AGENCY_IDS: !Ref ActiveAgencyIds
+        SOCIAL_AGENCY_CONFIGS: !Ref SocialAgencyConfigs
+        SOCIAL_BLUESKY_ENABLED: "true"
+        RING_NEIGHBORS_WEBHOOK_SECRET_ARN: !Ref RingNeighborsWebhookSecretArn
+        WEBSOCKET_CONNECTIONS_TABLE: !If
+          - HasWebSocketBroadcast
+          - !Ref WebSocketConnectionsTable
+          - ""
+        WEBSOCKET_API_ENDPOINT: !If
+          - HasWebSocketBroadcast
+          - !Ref WebSocketApiEndpoint
+          - ""
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_ISSUER: !Ref ImportedCognitoIssuer
+        COGNITO_REGION: !Ref AWS::Region
+
+Resources:
+  # ── Feature 1: Citizen Safety Registry ────────────────────────────────────
+  CitizensTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-citizens-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification: !If
+        - UseCustomKMS
+        - SSEEnabled: true
+          SSEType: KMS
+          KMSMasterKeyId: !Ref AgencyKMSKeyArn
+        - SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: normalizedAddress
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: address-index
+          KeySchema:
+            - AttributeName: normalizedAddress
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  # ── Feature 2: Address Intelligence ───────────────────────────────────────
+  AddressIntelTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-address-intel-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification: !If
+        - UseCustomKMS
+        - SSEEnabled: true
+          SSEType: KMS
+          KMSMasterKeyId: !Ref AgencyKMSKeyArn
+        - SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  PrePlanBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub "rapid-cortex-preplans-${DeploymentStage}-${AWS::AccountId}"
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: !If
+              - UseCustomKMS
+              - SSEAlgorithm: aws:kms
+                KMSMasterKeyID: !Ref AgencyKMSKeyArn
+              - SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedMethods: [PUT]
+            AllowedOrigins: !If
+              - HasWebUrl
+              - [!Ref WebUrl]
+              - ["*"]
+            AllowedHeaders: ["*"]
+            MaxAge: 3600
+
+  # ── Feature 3: Alternative Response Router ────────────────────────────────
+  AltResponseTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-alt-response-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: !If
+        - UseCustomKMS
+        - SSEEnabled: true
+          SSEType: KMS
+          KMSMasterKeyId: !Ref AgencyKMSKeyArn
+        - SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  CoRespondersTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-co-responders-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: !If
+        - UseCustomKMS
+        - SSEEnabled: true
+          SSEType: KMS
+          KMSMasterKeyId: !Ref AgencyKMSKeyArn
+        - SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  # ── Feature 4: Mutual Aid Resource Board ──────────────────────────────────
+  MutualAidTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-mutual-aid-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: !If
+        - UseCustomKMS
+        - SSEEnabled: true
+          SSEType: KMS
+          KMSMasterKeyId: !Ref AgencyKMSKeyArn
+        - SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gsi1pk
+          AttributeType: S
+        - AttributeName: gsi1sk
+          AttributeType: S
+        - AttributeName: requestId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: status-priority-index
+          KeySchema:
+            - AttributeName: gsi1pk
+              KeyType: HASH
+            - AttributeName: gsi1sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: request-id-index
+          KeySchema:
+            - AttributeName: requestId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  # ── Feature 5: MCI Command Console ────────────────────────────────────────
+  MCITable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-mci-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: !If
+        - UseCustomKMS
+        - SSEEnabled: true
+          SSEType: KMS
+          KMSMasterKeyId: !Ref AgencyKMSKeyArn
+        - SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gsi1pk
+          AttributeType: S
+        - AttributeName: gsi1sk
+          AttributeType: S
+        - AttributeName: mciId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: status-activated-index
+          KeySchema:
+            - AttributeName: gsi1pk
+              KeyType: HASH
+            - AttributeName: gsi1sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: mci-id-index
+          KeySchema:
+            - AttributeName: mciId
+              KeyType: HASH
+          Projection:
+            ProjectionType: KEYS_ONLY
+
+  # ── Feature 6: Critical Infrastructure Pre-Plans ──────────────────────────
+  InfraTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-infrastructure-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: !If
+        - UseCustomKMS
+        - SSEEnabled: true
+          SSEType: KMS
+          KMSMasterKeyId: !Ref AgencyKMSKeyArn
+        - SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gsi1pk
+          AttributeType: S
+        - AttributeName: gsi1sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: type-agency-index
+          KeySchema:
+            - AttributeName: gsi1pk
+              KeyType: HASH
+            - AttributeName: gsi1sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  # ── Feature 7: Interpreter Dispatch ───────────────────────────────────────
+  InterpreterTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-interpreter-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: !If
+        - UseCustomKMS
+        - SSEEnabled: true
+          SSEType: KMS
+          KMSMasterKeyId: !Ref AgencyKMSKeyArn
+        - SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  # ── Feature 8: Evidence Chain of Custody ──────────────────────────────────
+  # Object Lock MUST be enabled at bucket creation — cannot be added later.
+  EvidenceBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub "rapid-cortex-evidence-${DeploymentStage}-${AWS::AccountId}"
+      VersioningConfiguration:
+        Status: Enabled
+      ObjectLockEnabled: true
+      ObjectLockConfiguration:
+        ObjectLockEnabled: Enabled
+        Rule:
+          DefaultRetention:
+            Mode: GOVERNANCE
+            Days: 1825
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: !If
+              - UseCustomKMS
+              - SSEAlgorithm: aws:kms
+                KMSMasterKeyID: !Ref AgencyKMSKeyArn
+              - SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedMethods: [PUT, GET]
+            AllowedOrigins: !If
+              - HasWebUrl
+              - [!Ref WebUrl]
+              - ["*"]
+            AllowedHeaders: ["*"]
+            MaxAge: 3600
+
+  EvidenceTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-evidence-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification: !If
+        - UseCustomKMS
+        - SSEEnabled: true
+          SSEType: KMS
+          KMSMasterKeyId: !Ref AgencyKMSKeyArn
+        - SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: incidentId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: incident-index
+          KeySchema:
+            - AttributeName: pk
+              KeyType: HASH
+            - AttributeName: incidentId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  # ── Feature 9: Pre-Hire Assessment ────────────────────────────────────────
+  AssessmentTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-assessment-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification: !If
+        - UseCustomKMS
+        - SSEEnabled: true
+          SSEType: KMS
+          KMSMasterKeyId: !Ref AgencyKMSKeyArn
+        - SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+
+  # ── Feature 10: After-Action Learning Engine ──────────────────────────────
+  LearningTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-learning-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: !If
+        - UseCustomKMS
+        - SSEEnabled: true
+          SSEType: KMS
+          KMSMasterKeyId: !Ref AgencyKMSKeyArn
+        - SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gsi1pk
+          AttributeType: S
+        - AttributeName: gsi1sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: agency-impact-index
+          KeySchema:
+            - AttributeName: gsi1pk
+              KeyType: HASH
+            - AttributeName: gsi1sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  # ── Feature 11: Surge / Event Preparedness ────────────────────────────────
+  PublicEventsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-public-events-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: !If
+        - UseCustomKMS
+        - SSEEnabled: true
+          SSEType: KMS
+          KMSMasterKeyId: !Ref AgencyKMSKeyArn
+        - SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  # ── Feature 12: Responder Safety Check-in ─────────────────────────────────
+  CheckinTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-checkin-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: !If
+        - UseCustomKMS
+        - SSEEnabled: true
+          SSEType: KMS
+          KMSMasterKeyId: !Ref AgencyKMSKeyArn
+        - SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: expiresAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        # Sparse GSI: only items with expiresAt (timers) appear. Panic rows omit it.
+        - IndexName: expiry-index
+          KeySchema:
+            - AttributeName: pk
+              KeyType: HASH
+            - AttributeName: expiresAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  PanicAlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      KmsMasterKeyId: alias/aws/sns
+      TopicName: !Sub "rapid-cortex-panic-alerts-${DeploymentStage}"
+      DisplayName: NexCort iQ Panic Alerts
+
+  # ── Feature 13: Social Awareness Feed ─────────────────────────────────────
+  SocialSignalsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-social-signals-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification: !If
+        - UseCustomKMS
+        - SSEEnabled: true
+          SSEType: KMS
+          KMSMasterKeyId: !Ref AgencyKMSKeyArn
+        - SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gsi1pk
+          AttributeType: S
+        - AttributeName: gsi1sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: agency-urgency-index
+          KeySchema:
+            - AttributeName: gsi1pk
+              KeyType: HASH
+            - AttributeName: gsi1sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  SocialAlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      KmsMasterKeyId: alias/aws/sns
+      TopicName: !Sub "rapid-cortex-social-alerts-${DeploymentStage}"
+      DisplayName: NexCort iQ Social Awareness Alerts
+
+  # ── IAM ───────────────────────────────────────────────────────────────────
+  AppManagedPolicyFeaturesData:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-features-data-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: FeaturesTables
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !GetAtt CitizensTable.Arn
+              - !Sub "${CitizensTable.Arn}/index/*"
+              - !GetAtt AddressIntelTable.Arn
+              - !Sub "${AddressIntelTable.Arn}/index/*"
+              - !GetAtt AltResponseTable.Arn
+              - !Sub "${AltResponseTable.Arn}/index/*"
+              - !GetAtt CoRespondersTable.Arn
+              - !Sub "${CoRespondersTable.Arn}/index/*"
+              - !GetAtt MutualAidTable.Arn
+              - !Sub "${MutualAidTable.Arn}/index/*"
+              - !GetAtt MCITable.Arn
+              - !Sub "${MCITable.Arn}/index/*"
+              - !GetAtt InfraTable.Arn
+              - !Sub "${InfraTable.Arn}/index/*"
+              - !GetAtt InterpreterTable.Arn
+              - !Sub "${InterpreterTable.Arn}/index/*"
+              - !GetAtt EvidenceTable.Arn
+              - !Sub "${EvidenceTable.Arn}/index/*"
+              - !GetAtt AssessmentTable.Arn
+              - !Sub "${AssessmentTable.Arn}/index/*"
+              - !GetAtt LearningTable.Arn
+              - !Sub "${LearningTable.Arn}/index/*"
+              - !GetAtt PublicEventsTable.Arn
+              - !Sub "${PublicEventsTable.Arn}/index/*"
+              - !GetAtt CheckinTable.Arn
+              - !Sub "${CheckinTable.Arn}/index/*"
+              - !GetAtt SocialSignalsTable.Arn
+              - !Sub "${SocialSignalsTable.Arn}/index/*"
+          - Sid: AgencyAndAuditReadWrite
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+            Resource:
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*"
+          - !If
+            - HasWebSocketConnectionsTable
+            - Sid: WebSocketConnectionsRead
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Query
+                - dynamodb:DeleteItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}"
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}/index/*"
+            - !Ref AWS::NoValue
+
+  AppManagedPolicyFeaturesWebSocket:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: HasWebSocketApiId
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-features-ws-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: CheckInExpiredBroadcast
+            Effect: Allow
+            Action:
+              - execute-api:ManageConnections
+            Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApiId}/${DeploymentStage}/POST/@connections/*"
+
+  AppManagedPolicyFeaturesS3:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-features-s3-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PrePlanAndEvidenceObjects
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:GetObjectVersion
+              - s3:AbortMultipartUpload
+              - s3:ListBucket
+              - s3:GetBucketLocation
+            Resource:
+              - !GetAtt PrePlanBucket.Arn
+              - !Sub "${PrePlanBucket.Arn}/*"
+              - !GetAtt EvidenceBucket.Arn
+              - !Sub "${EvidenceBucket.Arn}/*"
+
+  AppManagedPolicyFeaturesSns:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-features-sns-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PanicAndSocialPublish
+            Effect: Allow
+            Action:
+              - sns:Publish
+            Resource:
+              - !Ref PanicAlertTopic
+              - !Ref SocialAlertTopic
+
+  AppManagedPolicyFeaturesComprehend:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-features-pii-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          # Comprehend DetectPiiEntities requires Resource "*" (AWS limitation).
+          - Sid: ComprehendPiiRegional
+            Effect: Allow
+            Action:
+              - comprehend:DetectPiiEntities
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+
+  AppManagedPolicyFeaturesBedrock:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: HasBedrockModelArn
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-features-bedrock-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: InvokeConfiguredBedrockModel
+            Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+            Resource: !Ref BedrockModelArn
+
+  # DLQ review worker — explicit queue ARNs from discovered SAM QueueName patterns.
+  # Never put AWS::NoValue inside Resource/Action lists (statement-level !If only).
+  AppManagedPolicyFeaturesDlqReview:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-features-dlq-review-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DlqGetUrlAndReceive
+            Effect: Allow
+            Action:
+              - sqs:GetQueueUrl
+              - sqs:ReceiveMessage
+              - sqs:GetQueueAttributes
+            Resource:
+              - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:rapid-cortex-rapid-iq-pipeline-raw-signals-dlq-${DeploymentStage}-v2.fifo"
+              - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:rapid-cortex-rapid-iq-intel-watch-dlq-${DeploymentStage}-v2.fifo"
+              - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:rapid-cortex-unrouted-sms-${DeploymentStage}"
+              - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:rc-invoice-jobs-dlq-${DeploymentStage}.fifo"
+              - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:rapid-cortex-vision-scene-classify-dlq-${DeploymentStage}"
+              - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:rapid-cortex-vision-scene-describe-dlq-${DeploymentStage}"
+              - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:rapid-cortex-c2c-outbound-dlq-${DeploymentStage}"
+              - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:rapid-cortex-c2c-inbound-dlq-${DeploymentStage}"
+              - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:rapid-cortex-cad-bridge-events-dlq-${DeploymentStage}.fifo"
+              - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:rapid-cortex-cad-mesh-dlq-${DeploymentStage}-*"
+              # Stacks that prefix queues with ManagedPolicyNamePrefix (may equal parent stack name).
+              - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${ManagedPolicyNamePrefix}-rapid-iq-pipeline-raw-signals-dlq-${DeploymentStage}-v2.fifo"
+              - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${ManagedPolicyNamePrefix}-rapid-iq-intel-watch-dlq-${DeploymentStage}-v2.fifo"
+              - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${ManagedPolicyNamePrefix}-c2c-outbound-dlq-${DeploymentStage}"
+              - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${ManagedPolicyNamePrefix}-c2c-inbound-dlq-${DeploymentStage}"
+              - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${ManagedPolicyNamePrefix}-cad-bridge-events-dlq-${DeploymentStage}.fifo"
+          - Sid: DlqCloudWatchMetrics
+            Effect: Allow
+            Action:
+              - cloudwatch:PutMetricData
+            Resource: "*"
+            Condition:
+              StringEquals:
+                cloudwatch:namespace: RapidCortex/DLQ
+
+  # Cognito SAML IdP management for agency SSO (FeaturesHttp only).
+  AppManagedPolicyFeaturesCognitoIdp:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-features-cognito-idp-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: ManageAgencySamlIdp
+            Effect: Allow
+            Action:
+              - cognito-idp:CreateIdentityProvider
+              - cognito-idp:UpdateIdentityProvider
+              - cognito-idp:DeleteIdentityProvider
+              - cognito-idp:DescribeIdentityProvider
+              - cognito-idp:ListIdentityProviders
+              - cognito-idp:DescribeUserPoolClient
+              - cognito-idp:UpdateUserPoolClient
+            Resource: !Sub "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${ImportedCognitoUserPoolId}"
+
+  # Customer-managed KMS — statement only when AgencyKMSKeyArn is set.
+  AppManagedPolicyFeaturesKms:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: UseCustomKMS
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-features-kms-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AgencyCustomerManagedKms
+            Effect: Allow
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+            Resource: !Ref AgencyKMSKeyArn
+
+  # ── Lambdas (HTTP catch-all + schedules + social workers) ─────────────────
+  FeaturesHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/features/http.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyFeaturesData
+        - !Ref AppManagedPolicyFeaturesS3
+        - !Ref AppManagedPolicyFeaturesSns
+        - !Ref AppManagedPolicyFeaturesComprehend
+        - !Ref AppManagedPolicyFeaturesCognitoIdp
+        - !If
+          - HasBedrockModelArn
+          - !Ref AppManagedPolicyFeaturesBedrock
+          - !Ref AWS::NoValue
+        - !If
+          - UseCustomKMS
+          - !Ref AppManagedPolicyFeaturesKms
+          - !Ref AWS::NoValue
+
+  FeaturesLearningNightlyFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/features/learning-nightly.handler
+      Timeout: 120
+      MemorySize: 512
+      Events:
+        NightlySchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 6 * * ? *)
+            Description: After-action learning pattern analysis (06:00 UTC)
+      Policies:
+        - !Ref AppManagedPolicyFeaturesData
+        - !If
+          - HasBedrockModelArn
+          - !Ref AppManagedPolicyFeaturesBedrock
+          - !Ref AWS::NoValue
+
+  FeaturesCheckinExpiryFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/features/checkin-expiry.handler
+      Timeout: 30
+      Events:
+        EveryMinute:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Description: Check for expired responder check-in timers
+      Policies:
+        - !Ref AppManagedPolicyFeaturesData
+        - !Ref AppManagedPolicyFeaturesSns
+        - !If
+          - HasWebSocketApiId
+          - !Ref AppManagedPolicyFeaturesWebSocket
+          - !Ref AWS::NoValue
+
+  # Bluesky public poll — every 2 minutes (Twitter/X excluded)
+  FeaturesBlueskyIngestionFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      FunctionName: !Sub "rapid-cortex-social-bluesky-${DeploymentStage}"
+      CodeUri: ../../apps/api/
+      Handler: dist/workers/social/bluesky-ingestion-worker.handler
+      Timeout: 60
+      Events:
+        Poll:
+          Type: Schedule
+          Properties:
+            Schedule: rate(2 minutes)
+            Description: Bluesky AT Protocol emergency-signal poll
+      Policies:
+        - !Ref AppManagedPolicyFeaturesData
+        - !Ref AppManagedPolicyFeaturesSns
+        - !If
+          - HasBedrockModelArn
+          - !Ref AppManagedPolicyFeaturesBedrock
+          - !Ref AWS::NoValue
+
+  # Ring Neighbors webhook receiver (HMAC via Secrets Manager)
+  FeaturesRingNeighborsWebhookFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      FunctionName: !Sub "rapid-cortex-social-ring-webhook-${DeploymentStage}"
+      CodeUri: ../../apps/api/
+      Handler: dist/workers/social/ring-neighbors-worker.ringNeighborsWebhookHandler
+      Timeout: 10
+      Policies:
+        - !Ref AppManagedPolicyFeaturesData
+        - !Ref AppManagedPolicyFeaturesSns
+        - !If
+          - HasBedrockModelArn
+          - !Ref AppManagedPolicyFeaturesBedrock
+          - !Ref AWS::NoValue
+        # Statement-level !If — never put AWS::NoValue inside Resource lists.
+        - !If
+          - HasRingNeighborsWebhookSecret
+          - Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref RingNeighborsWebhookSecretArn
+          - !Ref AWS::NoValue
+
+  # Nextdoor webhook stub — pending Neighbors App enrollment
+  FeaturesNextdoorWebhookFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      FunctionName: !Sub "rapid-cortex-social-nextdoor-webhook-${DeploymentStage}"
+      CodeUri: ../../apps/api/
+      Handler: dist/workers/social/nextdoor-worker.nextdoorWebhookHandler
+      Timeout: 10
+      Policies:
+        - !Ref AppManagedPolicyFeaturesData
+
+  # DLQ depth review — every 5 minutes (peek + metric + OpsAlerts when count > 0)
+  FeaturesDlqReviewFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      FunctionName: !Sub "rapid-cortex-dlq-review-${DeploymentStage}"
+      CodeUri: ../../apps/api/
+      Handler: dist/workers/dlq-review-worker.checkDLQs
+      Timeout: 60
+      MemorySize: 256
+      Environment:
+        Variables:
+          STAGE: !Ref DeploymentStage
+          DEPLOYMENT_STAGE: !Ref DeploymentStage
+          OPS_ALERTS_TOPIC_ARN: !Ref OpsAlertsTopicArn
+          DLQ_QUEUE_NAMES: !Sub "rapid-cortex-rapid-iq-pipeline-raw-signals-dlq-${DeploymentStage}-v2.fifo,rapid-cortex-rapid-iq-intel-watch-dlq-${DeploymentStage}-v2.fifo,rapid-cortex-unrouted-sms-${DeploymentStage},rc-invoice-jobs-dlq-${DeploymentStage}.fifo,rapid-cortex-vision-scene-classify-dlq-${DeploymentStage},rapid-cortex-vision-scene-describe-dlq-${DeploymentStage},rapid-cortex-c2c-outbound-dlq-${DeploymentStage},rapid-cortex-c2c-inbound-dlq-${DeploymentStage},rapid-cortex-cad-bridge-events-dlq-${DeploymentStage}.fifo"
+      Events:
+        EveryFiveMinutes:
+          Type: Schedule
+          Properties:
+            Schedule: rate(5 minutes)
+            Description: Peek DLQs; emit RapidCortex/DLQ metrics; alert OpsAlerts when depth > 0
+      Policies:
+        - !Ref AppManagedPolicyFeaturesDlqReview
+        - !If
+          - HasOpsAlertsTopic
+          - Statement:
+              - Sid: PublishOpsAlertsOnDlqDepth
+                Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !Ref OpsAlertsTopicArn
+          - !Ref AWS::NoValue
+
+  FeaturesHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FeaturesHttpFunction.Arn}/invocations"
+      PayloadFormatVersion: "2.0"
+
+  FeaturesRingNeighborsWebhookIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FeaturesRingNeighborsWebhookFunction.Arn}/invocations"
+      PayloadFormatVersion: "2.0"
+
+  FeaturesNextdoorWebhookIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FeaturesNextdoorWebhookFunction.Arn}/invocations"
+      PayloadFormatVersion: "2.0"
+
+  FeaturesHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref FeaturesHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*"
+
+  FeaturesRingNeighborsWebhookInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref FeaturesRingNeighborsWebhookFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*"
+
+  FeaturesNextdoorWebhookInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref FeaturesNextdoorWebhookFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*"
+
+  RouteFeaturesProxy:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/features/{proxy+}"
+      Target: !Sub "integrations/${FeaturesHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteFeaturesRingNeighborsWebhook:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/webhooks/ring-neighbors"
+      Target: !Sub "integrations/${FeaturesRingNeighborsWebhookIntegration}"
+      AuthorizationType: NONE
+
+  RouteFeaturesNextdoorWebhook:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/webhooks/nextdoor"
+      Target: !Sub "integrations/${FeaturesNextdoorWebhookIntegration}"
+      AuthorizationType: NONE
+
+  # ── Optional CloudWatch alarms (only when OpsAlertsTopicArn is set) ───────
+  AlarmFeaturesHttpErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: HasOpsAlertsTopic
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-features-http-errors-${DeploymentStage}"
+      AlarmDescription: Features HTTP Lambda errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref FeaturesHttpFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+
+  AlarmFeaturesCheckinExpiryErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: HasOpsAlertsTopic
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-features-checkin-errors-${DeploymentStage}"
+      AlarmDescription: Features check-in expiry Lambda errors (panic path).
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref FeaturesCheckinExpiryFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+
+  AlarmPanicAlertDelivery:
+    Type: AWS::CloudWatch::Alarm
+    Condition: HasOpsAlertsTopic
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-features-panic-delivery-${DeploymentStage}"
+      AlarmDescription: Panic alert SNS delivery failures.
+      Namespace: AWS/SNS
+      MetricName: NumberOfNotificationsFailed
+      Dimensions:
+        - Name: TopicName
+          Value: !GetAtt PanicAlertTopic.TopicName
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+
+  AlarmFeaturesDlqReviewErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: HasOpsAlertsTopic
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-features-dlq-review-errors-${DeploymentStage}"
+      AlarmDescription: DLQ review worker Lambda errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref FeaturesDlqReviewFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+
+  # ── Optional SIEM export (Firehose HTTP + S3 backup; default off) ─────────
+  SiemBackupBucket:
+    Type: AWS::S3::Bucket
+    Condition: SIEMActive
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub "rapid-cortex-siem-backup-${DeploymentStage}-${AWS::AccountId}"
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: !If
+              - UseCustomKMS
+              - SSEAlgorithm: aws:kms
+                KMSMasterKeyID: !Ref AgencyKMSKeyArn
+              - SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: siem-backup-transition
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 90
+                StorageClass: GLACIER
+            ExpirationInDays: 2555
+
+  SiemFirehoseRole:
+    Type: AWS::IAM::Role
+    Condition: SIEMActive
+    Properties:
+      RoleName: !Sub "${ManagedPolicyNamePrefix}-features-siem-firehose-${DeploymentStage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: firehose.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: SiemFirehoseS3Backup
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: S3BackupWrite
+                Effect: Allow
+                Action:
+                  - s3:AbortMultipartUpload
+                  - s3:GetBucketLocation
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:ListBucketMultipartUploads
+                  - s3:PutObject
+                Resource:
+                  - !GetAtt SiemBackupBucket.Arn
+                  - !Sub "${SiemBackupBucket.Arn}/*"
+              - !If
+                - UseCustomKMS
+                - Sid: SiemBackupKms
+                  Effect: Allow
+                  Action:
+                    - kms:Encrypt
+                    - kms:Decrypt
+                    - kms:GenerateDataKey*
+                    - kms:DescribeKey
+                  Resource: !Ref AgencyKMSKeyArn
+                - !Ref AWS::NoValue
+
+  SiemDeliveryStream:
+    Type: AWS::KinesisFirehose::DeliveryStream
+    Condition: SIEMActive
+    Properties:
+      DeliveryStreamName: !Sub "rapid-cortex-siem-${DeploymentStage}"
+      DeliveryStreamType: DirectPut
+      HttpEndpointDestinationConfiguration:
+        EndpointConfiguration:
+          Url: !Ref SIEMEndpointUrl
+          Name: AgencySIEM
+        RequestConfiguration:
+          ContentEncoding: GZIP
+        BufferingHints:
+          IntervalInSeconds: 60
+          SizeInMBs: 5
+        RetryOptions:
+          DurationInSeconds: 300
+        S3BackupMode: FailedDataOnly
+        S3Configuration:
+          BucketARN: !GetAtt SiemBackupBucket.Arn
+          RoleARN: !GetAtt SiemFirehoseRole.Arn
+          Prefix: "failed/"
+          ErrorOutputPrefix: "errors/"
+          BufferingHints:
+            IntervalInSeconds: 60
+            SizeInMBs: 5
+          CompressionFormat: GZIP
+        RoleARN: !GetAtt SiemFirehoseRole.Arn
+
+  # Optional: FeaturesHttp logs → Firehose.
+  # Do NOT create FeaturesHttpLogGroup here — Lambda auto-creates
+  # /aws/lambda/<fn> on first invoke; an explicit LogGroup races AlreadyExists.
+  # Enable SIEM only after FeaturesHttp has been invoked once (or create the
+  # log group manually), then set SIEMEnabled=true.
+  SiemLogsToFirehoseRole:
+    Type: AWS::IAM::Role
+    Condition: SIEMActive
+    Properties:
+      RoleName: !Sub "${ManagedPolicyNamePrefix}-features-siem-logs-${DeploymentStage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: logs.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+      Policies:
+        - PolicyName: PutToSiemFirehose
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: FirehosePut
+                Effect: Allow
+                Action:
+                  - firehose:PutRecord
+                  - firehose:PutRecordBatch
+                Resource: !GetAtt SiemDeliveryStream.Arn
+
+  SiemFeaturesHttpSubscription:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: SIEMActive
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${FeaturesHttpFunction}"
+      FilterPattern: ""
+      DestinationArn: !GetAtt SiemDeliveryStream.Arn
+      RoleArn: !GetAtt SiemLogsToFirehoseRole.Arn
+
+Outputs:
+  FeaturesHttpFunctionArn:
+    Value: !GetAtt FeaturesHttpFunction.Arn
+  FeaturesBlueskyIngestionFunctionArn:
+    Value: !GetAtt FeaturesBlueskyIngestionFunction.Arn
+  FeaturesRingNeighborsWebhookFunctionArn:
+    Value: !GetAtt FeaturesRingNeighborsWebhookFunction.Arn
+  FeaturesNextdoorWebhookFunctionArn:
+    Value: !GetAtt FeaturesNextdoorWebhookFunction.Arn
+  FeaturesDlqReviewFunctionArn:
+    Value: !GetAtt FeaturesDlqReviewFunction.Arn
+  CitizensTableName:
+    Value: !Ref CitizensTable
+  AddressIntelTableName:
+    Value: !Ref AddressIntelTable
+  EvidenceBucketName:
+    Value: !Ref EvidenceBucket
+  PanicAlertTopicArn:
+    Value: !Ref PanicAlertTopic
+  SocialAlertTopicArn:
+    Value: !Ref SocialAlertTopic
+  SiemDeliveryStreamArn:
+    Condition: SIEMActive
+    Value: !GetAtt SiemDeliveryStream.Arn
+  SiemBackupBucketName:
+    Condition: SIEMActive
+    Value: !Ref SiemBackupBucket
+  RingNeighborsWebhookPath:
+    Value: /api/webhooks/ring-neighbors
+  NextdoorWebhookPath:
+    Value: /api/webhooks/nextdoor

@@ -76,7 +76,7 @@ The JSON template uses `{{lexBotAliasArn}}`, `__DEMO_QUEUE_ARN__`, and `__EMERGE
 
 ## Live telephony ingest
 
-Rapid Cortex does not operate PSAP SIP/CPE or a carrier ALI database. Live ingest is Amazon Connect:
+NexCort iQ does not operate PSAP SIP/CPE or a carrier ALI database. Live ingest is Amazon Connect:
 - ANI = `$.CustomerEndpoint.Address` (passed into Lex session attributes and the DID-lookup Lambda)
 - ALI = Connect contact attributes (`ALI`, RapidSOS address) when the agency's CPE/ALI or RapidSOS integration writes them
 - Transcripts arrive via Lex (`inputTranscript`) and the Connect webhook (`INITIATED` / `UTTERANCE`)

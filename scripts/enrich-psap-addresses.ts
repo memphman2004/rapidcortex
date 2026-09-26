@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 /**
- * Rapid Cortex — PSAP Address Enrichment (AWS Location Service / Esri)
+ * NexCort iQ — PSAP Address Enrichment (AWS Location Service / Esri)
  *
  * Replaces Nominatim with AWS-native geocoding. Writes into the existing
  * nested `mailingAddress` shape used by PSAP Prospect CRM.
@@ -138,7 +138,7 @@ async function ensurePlaceIndex(): Promise<void> {
         IndexName: PLACE_INDEX_NAME,
         DataSource: "Esri",
         DataSourceConfiguration: { IntendedUse: "Storage" },
-        Description: "Rapid Cortex PSAP address enrichment index",
+        Description: "NexCort iQ PSAP address enrichment index",
         Tags: {
           App: "rapid-cortex",
           Stage: STAGE,
@@ -366,7 +366,7 @@ async function listPage(
 
 async function run(): Promise<void> {
   console.log("─────────────────────────────────────────────────────────────");
-  console.log("  Rapid Cortex — PSAP Address Enrichment (AWS Location / Esri)");
+  console.log("  NexCort iQ — PSAP Address Enrichment (AWS Location / Esri)");
   console.log(`  Table:       ${TABLE_NAME}`);
   console.log(`  Region:      ${REGION}`);
   console.log(`  Place Index: ${PLACE_INDEX_NAME}`);

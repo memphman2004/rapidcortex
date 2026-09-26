@@ -15,7 +15,7 @@ export default function CampusTranslateSessionPage() {
       <TranslateSessionPageClient
         sessionId={params.sessionId}
         vertical="campus"
-        heading="RC Translate"
+        heading="Translate"
         monitor={monitor}
         createRequest={{ vertical: "campus", campusContext: { campusCode: params.campusCode } }}
       />

@@ -5,7 +5,7 @@ import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session"
 import { isAutomatedInvoicesEnabled } from "@/lib/runtime-flags";
 import { AutomatedInvoiceDetailClient } from "../invoice-detail-client";
 
-export const metadata = { title: "Automated invoice — Rapid Cortex Admin", robots: { index: false, follow: false } };
+export const metadata = { title: "Automated invoice — NexCort iQ Admin", robots: { index: false, follow: false } };
 
 type Props = { params: Promise<{ invoiceId: string }> };
 

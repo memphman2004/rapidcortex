@@ -1,13 +1,12 @@
 /**
- * Rapid Vision™ data types.
- * Product name: Rapid Vision™ (formerly Rapid Cortex Connect).
+ * NexiQ Vision™ data types.
+ * Product name: NexiQ Vision™ (formerly Rapid Vision / NexCort iQ Connect).
  */
 
-export const RAPID_VISION_PRODUCT_NAME = "Rapid Vision™";
-export const RAPID_VISION_PRODUCT_NAME_ASCII = "Rapid Vision";
+export const RAPID_VISION_PRODUCT_NAME = "NexiQ Vision™";
+export const RAPID_VISION_PRODUCT_NAME_ASCII = "NexiQ Vision";
 
 export type VisionProvider =
-  | "ring"
   | "rtsp"
   | "onvif"
   | "caller_video"

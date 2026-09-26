@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 /**
- * Rapid Cortex — Stress Test Report Generator
+ * NexCort iQ — Stress Test Report Generator
  *
  * Reads results/k6-summary.json (produced by rc-stress-test.js handleSummary),
  * evaluates against MSA Exhibit C §C.5.1 SLA thresholds, and emits:
@@ -341,7 +341,7 @@ function buildHTML(summary: K6Summary, gates: SLAGate[], findings: string[]): st
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rapid Cortex — Stress Test Report (${meta.profile})</title>
+<title>NexCort iQ — Stress Test Report (${meta.profile})</title>
 <style>
   :root {
     --bg:        #0d0f14;
@@ -530,7 +530,7 @@ function buildHTML(summary: K6Summary, gates: SLAGate[], findings: string[]): st
 </main>
 
 <footer>
-  Rapid Cortex — Intelligence at the speed of response ·
+  NexCort iQ — Intelligence at the speed of response ·
   Report generated ${ts} ·
   SLA thresholds per MSA Exhibit C §C.5.1 and §8.4
 </footer>
@@ -605,7 +605,7 @@ function main() {
 
   console.log("");
   console.log("═══════════════════════════════════════════════════════");
-  console.log(" Rapid Cortex — Stress Test Report");
+  console.log(" NexCort iQ — Stress Test Report");
   console.log("═══════════════════════════════════════════════════════");
   console.log(` Profile:  ${summary.meta.profile}`);
   console.log(` Peak VUs: ${summary.meta.vus_max}`);

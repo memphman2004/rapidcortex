@@ -19,7 +19,7 @@ import {
   AuthorizationService,
   AgencyScopeResolver,
 } from "rapid-cortex-security";
-import { isRcInternalOperator } from "rapid-cortex-shared";
+import { isRcInternalOperator, isSalesContractorRole } from "rapid-cortex-shared";
 import { makeId } from "../lib/ids.js";
 import { AgencyRepository } from "../repositories/agencyRepository.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
@@ -338,7 +338,11 @@ export class AgencyService {
     missingCoordinatesCount: number;
     totalAgencies: number;
   }> {
-    if (!authz.canManageAgencies(user) && !isRcInternalOperator(user.role)) {
+    if (
+      !authz.canManageAgencies(user) &&
+      !isRcInternalOperator(user.role) &&
+      !isSalesContractorRole(user.role)
+    ) {
       throw new Error("FORBIDDEN");
     }
     const agencies = await agencyRepo.listRecent(500);

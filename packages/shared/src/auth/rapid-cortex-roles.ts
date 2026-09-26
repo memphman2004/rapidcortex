@@ -1,5 +1,5 @@
 /**
- * Canonical Rapid Cortex RBAC values (JWT `custom:role`, Dynamo user records, audits).
+ * Canonical NexCort iQ RBAC values (JWT `custom:role`, Dynamo user records, audits).
  *
  * Nine official roles — platform (`rc*`) and agency-scoped. Legacy Cognito values
  * normalize via {@link migrateLegacyRapidCortexRoleTokenValue} at token parse only.
@@ -9,6 +9,7 @@ export const RAPID_CORTEX_ROLES = [
   "rcsuperadmin",
   "rcadmin",
   "rcitadmin",
+  "salescontractor",
   "agencyadmin",
   "agencyit",
   "supervisor",
@@ -38,8 +39,6 @@ export const RAPID_CORTEX_ROLES = [
   "call_assist_admin",
   "call_assist_supervisor",
   "call_assist_operator",
-  /** Ring Connect device-owner (Appstore account-link). Cognito JWT role; not agency-assignable. */
-  "homeowner",
 ] as const;
 
 export type RapidCortexRole = (typeof RAPID_CORTEX_ROLES)[number];
@@ -107,8 +106,9 @@ export type AgencyAssignableRole = (typeof AGENCY_ASSIGNABLE_ROLES)[number];
 /** Human-readable labels — UI displays */
 export const ROLE_LABELS: Record<string, string> = {
   rcsuperadmin: "Platform Owner",
-  rcadmin: "RC Operations",
-  rcitadmin: "RC IT Admin",
+  rcadmin: "NexCort Operations",
+  rcitadmin: "NexCort IT Admin",
+  salescontractor: "Sales Contractor",
   agencyadmin: "Agency Admin",
   agencyit: "Agency IT",
   supervisor: "Supervisor",
@@ -138,9 +138,8 @@ export const ROLE_LABELS: Record<string, string> = {
   call_assist_admin: "Call Assist Admin",
   call_assist_supervisor: "Call Assist Supervisor",
   call_assist_operator: "Call Assist Operator",
-  homeowner: "Ring Device Owner",
   platform_superadmin: "Platform Owner",
-  rc_admin: "RC Operations",
+  rc_admin: "NexCort Operations",
   admin: "Agency Admin",
   it_admin: "Agency IT",
   readonly_auditor: "Auditor",
@@ -150,11 +149,13 @@ export const ROLE_LABELS: Record<string, string> = {
 /** Single-line descriptions — user management UI tooltips */
 export const ROLE_DESCRIPTIONS: Record<string, string> = {
   rcsuperadmin:
-    "Rapid Cortex platform owner. Unrestricted cross-tenant access to all features, agencies, and financial data.",
+    "NexCort iQ platform owner. Unrestricted cross-tenant access to all features, agencies, and financial data.",
   rcadmin:
-    "Rapid Cortex operations staff. Cross-tenant visibility for support. No financial revenue totals or destructive actions.",
+    "NexCort iQ operations staff. Cross-tenant visibility for support. No financial revenue totals or destructive actions.",
   rcitadmin:
-    "Rapid Cortex IT team. Infrastructure diagnostics, platform health, and technical integration management.",
+    "NexCort iQ IT team. Infrastructure diagnostics, platform health, and technical integration management.",
+  salescontractor:
+    "Commission sales contractor. Sales portal only — pipeline, quotes, campaigns, and enablement tools. No agency ops access.",
   agencyadmin:
     "Communications center manager. Full agency configuration, user management, billing, QA, and compliance.",
   agencyit:
@@ -213,8 +214,6 @@ export const ROLE_DESCRIPTIONS: Record<string, string> = {
     "Call Assist supervisor. Live non-emergency sessions, QA, analytics, and human takeover — no CAD queue or dispatcher dashboard.",
   call_assist_operator:
     "Call Assist operator. Live non-emergency monitor, session intake, and transfer — not a 911 telecommunicator console.",
-  homeowner:
-    "Ring device owner. Lightweight account for Rapid Vision™ Appstore linking and camera consent — no dispatch workspace.",
 };
 
 export const ROLE_DISPLAY_LABELS: Record<RapidCortexRole, string> = {
@@ -229,6 +228,7 @@ export const ROLE_DISPLAY_LABELS: Record<RapidCortexRole, string> = {
   rcsuperadmin: ROLE_LABELS.rcsuperadmin,
   rcadmin: ROLE_LABELS.rcadmin,
   rcitadmin: ROLE_LABELS.rcitadmin,
+  salescontractor: ROLE_LABELS.salescontractor,
   campus_admin: ROLE_LABELS.campus_admin,
   campus_supervisor: ROLE_LABELS.campus_supervisor,
   campus_security: ROLE_LABELS.campus_security,
@@ -243,7 +243,6 @@ export const ROLE_DISPLAY_LABELS: Record<RapidCortexRole, string> = {
   hospital_supervisor: ROLE_LABELS.hospital_supervisor,
   hospital_staff: ROLE_LABELS.hospital_staff,
   hospital_coord: ROLE_LABELS.hospital_coord,
-  homeowner: ROLE_LABELS.homeowner,
   transit_admin: ROLE_LABELS.transit_admin,
   transit_supervisor: ROLE_LABELS.transit_supervisor,
   transit_security: ROLE_LABELS.transit_security,

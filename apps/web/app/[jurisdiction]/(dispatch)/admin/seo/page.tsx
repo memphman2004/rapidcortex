@@ -32,7 +32,7 @@ export default function CortexSeoIntelligencePage() {
     "Organization" | "SoftwareApplication" | "FAQPage" | "Article" | "BreadcrumbList" | "Product" | "LocalBusiness"
   >("Organization");
   const [schemaPayload, setSchemaPayload] = useState(
-    JSON.stringify({ name: "Rapid Cortex", url: "https://www.rapidcortex.us" }, null, 2),
+    JSON.stringify({ name: "NexCort iQ", url: "https://www.rapidcortex.us" }, null, 2),
   );
   const [originCheck, setOriginCheck] = useState("https://www.rapidcortex.us");
   const [toolOutput, setToolOutput] = useState<string | null>(null);
@@ -62,7 +62,7 @@ export default function CortexSeoIntelligencePage() {
       <div className="mx-auto max-w-3xl px-4 py-10 text-slate-200">
         <h1 className="text-xl font-semibold text-white">Cortex SEO Intelligence</h1>
         <p className="mt-3 text-sm text-slate-400">
-          SEO Intelligence isn’t enabled for this environment. Contact Rapid Cortex support.
+          SEO Intelligence isn’t enabled for this environment. Contact NexCort iQ support.
         </p>
       </div>
     );
@@ -331,9 +331,9 @@ export default function CortexSeoIntelligencePage() {
               value={topicId}
               onChange={(e) => setTopicId(e.target.value as typeof topicId)}
             >
-              <option value="rapid-cortex-vs-legacy-cad">Rapid Cortex vs legacy CAD</option>
-              <option value="rapid-cortex-vs-ng911-media-only">Rapid Cortex vs NG911 media-only</option>
-              <option value="rc-lite-api-cad-vendors">RC Lite API for CAD vendors</option>
+              <option value="rapid-cortex-vs-legacy-cad">NexCort iQ vs legacy CAD</option>
+              <option value="rapid-cortex-vs-ng911-media-only">NexCort iQ vs NG911 media-only</option>
+              <option value="rc-lite-api-cad-vendors">NexCort Lite API for CAD vendors</option>
               <option value="emergency-response-intelligence">Emergency response intelligence</option>
               <option value="911-dispatcher-decision-support">911 dispatcher decision-support</option>
             </select>

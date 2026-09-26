@@ -292,6 +292,10 @@ export const patchSalesLeadCrmBodySchema = z
     nextActionDate: z.string().max(64).optional(),
     packageSold: z.enum(["rc_core", "rc_campus", "rc_venue", "rc_lite", "none"]).optional(),
     lostReason: z.string().max(200).optional(),
+    /** Sales order feature IDs from sales feature catalog (no prices). */
+    selectedFeatureIds: z.array(z.string().min(1).max(80)).max(100).optional(),
+    /** Free offering IDs included on the order. */
+    freeOfferings: z.array(z.string().min(1).max(80)).max(50).optional(),
     /** Legacy assignee alias — maps to assignedTo on write. */
     assignee: z.string().max(320).optional(),
     /** Legacy status write still accepted; also sets pipelineStage [CR-2]. */
@@ -385,4 +389,13 @@ export type SalesLeadCrmRecord = {
   notes?: LeadNote[];
   activities?: LeadActivity[];
   attribution?: LeadAttribution;
+  /** Sales order selections from the sales feature catalog. */
+  selectedFeatureIds?: string[];
+  freeOfferings?: string[];
+  /** Outbound / grant intelligence signals (vertical-scoped via LeadSignal.vertical). */
+  signals?: import("../sales/grant-signal-types.js").LeadSignal[];
+  signalCount?: number;
+  lastSignalAt?: string;
+  /** 0–100 rolling score from recent signals. */
+  hotScore?: number;
 };

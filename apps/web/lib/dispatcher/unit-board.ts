@@ -30,6 +30,9 @@ export const UNIT_STATUS_LABEL: Record<UnitBoardStatus, string> = {
   OFF_DUTY: "OFF DUTY",
 };
 
+/** Dispatcher live workspace unit board — Unit Status must land here, not CAD entry. */
+export const UNIT_BOARD_ELEMENT_ID = "ws-unit-board";
+
 export function mapCadStatus(raw: string | null | undefined): UnitBoardStatus {
   const s = String(raw ?? "")
     .trim()

@@ -24,15 +24,15 @@ export function ReturnToAppClient({ code, state }: { code?: string; state?: stri
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-6 py-16 text-slate-100">
       <div className="rounded-xl border border-slate-800 bg-slate-950 p-8 shadow-xl">
-        <h1 className="text-2xl font-semibold">Rapid Cortex</h1>
+        <h1 className="text-2xl font-semibold">NexCort iQ</h1>
         <p className="mt-3 text-sm text-slate-300">
-          You are signed in. Return to Rapid Cortex to continue.
+          You are signed in. Return to NexCort iQ to continue.
         </p>
         <a
           href={deepLink}
           className="mt-6 inline-flex rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
         >
-          Open Rapid Cortex
+          Open NexCort iQ
         </a>
         <p className="mt-4 text-xs text-slate-400">
           If the app does not open automatically, click the button above. If you do not have Rapid

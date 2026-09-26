@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — Call Assist (non-emergency AI call management).
+  NexCort iQ — Call Assist (non-emergency AI call management).
   Routes attach to stack 2 HttpApi. CAD push and RMS draft remain fail-closed.
 
 Parameters:

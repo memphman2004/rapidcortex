@@ -99,6 +99,8 @@ describe("getRoleNav", () => {
   it("uses indigo accent for transit so it does not match PSAP sky", () => {
     const nav = getRoleNav("TRANSIT_ADMIN", { transitCode: "MARTA" });
     expect(nav.accent).toBe("indigo");
+    const hrefs = nav.sections.flatMap((s) => s.items.map((i) => i.href));
+    expect(hrefs).toContain("/onboarding/transit/intake?orgCode=MARTA");
   });
 
   it("uses slate accent for campus and orange for venue", () => {
@@ -119,6 +121,12 @@ describe("getRoleNav", () => {
     for (const role of ["rcsuperadmin", "rcadmin"] as const) {
       const hrefs = getRoleNav(role, {}).sections.flatMap((s) => s.items.map((i) => i.href));
       expect(hrefs).toContain("/rc-admin/onboarding/packets");
+      expect(hrefs).toContain("/rc-admin/onboarding/campus/intake");
+      expect(hrefs).toContain("/rc-admin/onboarding/campus/integrations");
+      expect(hrefs).toContain("/rc-admin/onboarding/venue/intake");
+      expect(hrefs).toContain("/rc-admin/onboarding/transit/intake");
+      expect(hrefs).toContain("/rc-admin/onboarding/checklist/campus");
+      expect(hrefs).not.toContain("/onboarding/campus/intake");
     }
   });
 
@@ -193,7 +201,7 @@ describe("getRoleNav", () => {
     expect(byId.translate).toBe("/test-psap/translate");
   });
 
-  it("adds RC Translate to venue and campus navs and hides it from guest services", () => {
+  it("adds Translate to venue and campus navs and hides it from guest services", () => {
     const venue = getRoleNav("VENUE_OPERATOR", { venueCode: "MBS" });
     const venueHrefs = venue.sections.flatMap((s) => s.items).map((i) => i.id);
     expect(venueHrefs).toContain("translate");
@@ -222,12 +230,11 @@ describe("getRoleNav", () => {
     expect(adminHrefs["c2c-hub"]).toBe("/test-psap/admin/cad/c2c");
     const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" });
     expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "call-assist-qa")).toBeUndefined();
-    expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "cad-bridge")?.href).toBe(
-      "/test-psap/admin/cad/bridge",
-    );
-    expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "c2c-hub")?.href).toBe(
-      "/test-psap/admin/cad/c2c",
-    );
+    // CAD Bridge / C2C Hub / Agency Network are agency-admin configuration — not dispatcher ops.
+    expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "cad-bridge")).toBeUndefined();
+    expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "c2c-hub")).toBeUndefined();
+    expect(dispatcher.sections.flatMap((s) => s.items).find((i) => i.id === "cad-mesh")).toBeUndefined();
+    expect(supervisor.sections.flatMap((s) => s.items).find((i) => i.id === "c2c-hub")).toBeUndefined();
   });
 
   it("Call Assist–only nav never includes the 911 dispatcher dashboard", () => {
@@ -249,7 +256,35 @@ describe("getRoleNav", () => {
     expect(hrefs).not.toContain("/app/call-assist/qa");
   });
 
-  it("keeps Rapid IQ in SALES & CRM and does not expose a separate Pipeline nav item", () => {
+  it("sales contractor nav includes CRM tools and feature-only catalogs", () => {
+    const nav = getRoleNav("salescontractor", {});
+    const items = nav.sections.flatMap((s) => s.items);
+    const hrefs = items.map((i) => i.href);
+    expect(hrefs).toEqual(
+      expect.arrayContaining([
+        "/sales",
+        "/rc-admin/deployments-map",
+        "/rc-admin/leads",
+        "/rc-admin/psap-prospects",
+        "/rc-admin/contacts",
+        "/rc-admin/rapid-iq",
+        "/rc-admin/conferences",
+        "/sales/pricing-catalog",
+        "/sales/service-catalog",
+        "/rc-admin/support",
+        "/rc-admin/grants",
+        "/rc-admin/onboarding/packets",
+        "/rc-admin/system-health",
+      ]),
+    );
+    expect(items.find((i) => i.id === "pricing-catalog")?.badge).toEqual({
+      type: "label",
+      text: "FEATURES",
+      color: "slate",
+    });
+  });
+
+  it("keeps NexiQ in SALES & CRM and does not expose a separate Pipeline nav item", () => {
     for (const role of ["rcsuperadmin", "rcadmin"] as const) {
       const nav = getRoleNav(role, {});
       const items = nav.sections.flatMap((s) => s.items);
@@ -374,11 +409,11 @@ describe("getRoleNav", () => {
     expect(dispatcher).toBeUndefined();
   });
 
-  it("exposes Rapid Vision™ on dispatcher media, not supervisor or guest services", () => {
+  it("exposes NexiQ Vision™ on dispatcher media, not supervisor or guest services", () => {
     const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
       .sections.flatMap((s) => s.items)
       .find((i) => i.id === "rapid-vision");
-    expect(dispatcher?.label).toBe("Rapid Vision™");
+    expect(dispatcher?.label).toBe("NexiQ Vision™");
     expect(dispatcher?.href).toBe("/test-psap/media?vision=1");
     expect(dispatcher?.feature).toBe("rapidVision");
 
@@ -427,5 +462,28 @@ describe("getRoleNav", () => {
       .sections.flatMap((s) => s.items)
       .find((i) => i.id === "vision-ai");
     expect(transit?.href).toContain("/vision-ai");
+  });
+
+  it("puts Staff Guide on campus, venue, and transit navs but not 911 dispatcher Help", () => {
+    const campus = getRoleNav("CAMPUS_ADMIN", { campusCode: "LINCOLNHIGH" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "staff-guide");
+    expect(campus?.href).toBe("/app/campus/LINCOLNHIGH/staff-guide");
+    expect(campus?.label).toBe("Staff Guide");
+
+    const guest = getRoleNav("VENUE_GUEST_SERVICES", { venueCode: "MBS" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "staff-guide");
+    expect(guest?.href).toBe("/app/venue/MBS/staff-guide");
+
+    const transit = getRoleNav("TRANSIT_OPERATOR", { transitCode: "HVT" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "staff-guide");
+    expect(transit?.href).toBe("/transit/HVT/staff-guide");
+
+    const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "staff-guide");
+    expect(dispatcher).toBeUndefined();
   });
 });

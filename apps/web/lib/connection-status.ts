@@ -19,7 +19,7 @@ export function getIntegrationStatusRows(): IntegrationStatusRow[] {
   return [
     {
       id: "api",
-      label: "Rapid Cortex API",
+      label: "NexCort iQ API",
       detail: apiLive
         ? "Connected"
         : trainingModeCompactDetail(),

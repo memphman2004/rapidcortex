@@ -8,11 +8,11 @@ import {
 
 describe("resolveAgencyPlanMonthlyRate", () => {
   it("prefers currentMonthlyRate when set", () => {
-    expect(resolveAgencyPlanMonthlyRate({ plan: "RC CORE", currentMonthlyRate: 2500 })).toBe(2500);
+    expect(resolveAgencyPlanMonthlyRate({ plan: "911 CENTERS/PSAPS", currentMonthlyRate: 2500 })).toBe(2500);
   });
 
-  it("maps RC CORE to essential catalog price", () => {
-    expect(resolveAgencyPlanMonthlyRate({ plan: "RC CORE", currentMonthlyRate: 0 })).toBe(1999);
+  it("maps 911 CENTERS/PSAPS to essential catalog price", () => {
+    expect(resolveAgencyPlanMonthlyRate({ plan: "911 CENTERS/PSAPS", currentMonthlyRate: 0 })).toBe(1999);
   });
 });
 
@@ -90,7 +90,7 @@ describe("monthlyFeatureAddOnsToPrefill", () => {
 describe("buildAgencyInvoicePrefillLines", () => {
   it("includes plan and enabled monthly add-ons", () => {
     const lines = buildAgencyInvoicePrefillLines(
-      { plan: "RC CORE", currentMonthlyRate: 1999 },
+      { plan: "911 CENTERS/PSAPS", currentMonthlyRate: 1999 },
       [
         {
           id: "translation.live.tier1",
@@ -109,7 +109,7 @@ describe("buildAgencyInvoicePrefillLines", () => {
       ],
     );
     expect(lines).toHaveLength(2);
-    expect(lines[0]?.description).toContain("RC CORE");
+    expect(lines[0]?.description).toContain("911 CENTERS/PSAPS");
     expect(lines[0]?.unitPrice).toBe(1999);
     expect(lines[1]?.description).toContain("monthly add-on");
     expect(lines[1]?.unitPrice).toBe(500);

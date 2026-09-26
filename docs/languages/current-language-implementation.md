@@ -1,6 +1,6 @@
 # Current language and translation implementation
 
-This document summarizes how Rapid Cortex handled **call languages** and **text translation** after the centralized registry and Azure→Google text path work. See also [`supported-call-languages.md`](./supported-call-languages.md) and the **911 operator tiered fallback** narrative in [`911-language-fallback-reliability.md`](./911-language-fallback-reliability.md).
+This document summarizes how NexCort iQ handled **call languages** and **text translation** after the centralized registry and Azure→Google text path work. See also [`supported-call-languages.md`](./supported-call-languages.md) and the **911 operator tiered fallback** narrative in [`911-language-fallback-reliability.md`](./911-language-fallback-reliability.md).
 
 ## Default “top 10” call-routing codes
 

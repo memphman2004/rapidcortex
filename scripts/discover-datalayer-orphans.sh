@@ -74,19 +74,6 @@ fi
 
 echo ""
 
-# ─── Secrets Manager ─────────────────────────────────────────────────────────
-RING_SECRET="rapid-cortex/connect/ring-credentials"
-echo "Secrets Manager:"
-if aws secretsmanager describe-secret --secret-id "$RING_SECRET" \
-     --region "$REGION" --output text --query 'Name' \
-     >/dev/null 2>&1; then
-  ok "SecretsManager RingCredentialsSecret → $RING_SECRET"
-else
-  fail "SecretsManager RingCredentialsSecret → $RING_SECRET (not found in AWS)"
-fi
-
-echo ""
-
 # ─── Check these resources are NOT already owned by the DataLayer stack ───────
 ROOT_STACK="${ROOT_STACK_NAME:-rapid-cortex-dev}"
 echo "Checking DataLayer stack resource ownership..."
@@ -113,7 +100,7 @@ else
              VenueAssetsTable VenueFacilitiesTable ConnectRegistryTable ConnectEvidenceTable \
              ConnectAccessSessionsTable ConnectAccessLogTable PlatformNoticesTable \
              PlatformNoticeAcksTable VenueCameraAccessLogTable VenueIncidentOverlaysTable \
-             VenueAssetsBucket RingCredentialsSecret; do
+             VenueAssetsBucket; do
     if echo "$STACK_LOGICAL_IDS" | grep -qw "$id"; then
       echo "  ⚠ $id is already owned by the stack — remove from import manifest"
       FAILED=$((FAILED + 1))
@@ -132,13 +119,12 @@ fi
 
 echo "=== All resources confirmed in AWS and not yet stack-owned ==="
 echo ""
-echo "resources-to-import-new.json content (16 new entries only):"
+echo "resources-to-import-new.json content (15 new entries only):"
 echo "---"
 
 jq -n \
   --arg stage "$STAGE" \
   --arg account "$ACCOUNT_ID" \
-  --arg ring "$RING_SECRET" \
   '[
     {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"QRLocationsTable",
      "ResourceIdentifier":{"TableName":("rapid-cortex-qr-locations-" + $stage)}},
@@ -169,7 +155,5 @@ jq -n \
     {"ResourceType":"AWS::DynamoDB::Table","LogicalResourceId":"VenueIncidentOverlaysTable",
      "ResourceIdentifier":{"TableName":("rapid-cortex-venue-incident-overlays-" + $stage)}},
     {"ResourceType":"AWS::S3::Bucket","LogicalResourceId":"VenueAssetsBucket",
-     "ResourceIdentifier":{"BucketName":("rapid-cortex-venue-assets-" + $stage + "-" + $account)}},
-    {"ResourceType":"AWS::SecretsManager::Secret","LogicalResourceId":"RingCredentialsSecret",
-     "ResourceIdentifier":{"Id":$ring}}
+     "ResourceIdentifier":{"BucketName":("rapid-cortex-venue-assets-" + $stage + "-" + $account)}}
   ]'

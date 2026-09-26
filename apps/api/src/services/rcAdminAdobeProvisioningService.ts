@@ -24,7 +24,7 @@ const SYSTEM_ACTOR: UserContext = {
   userId: "adobe-sign-provisioning",
   agencyId: "__platform__",
   role: "rcsuperadmin",
-  email: "noreply@rapidcortex.us",
+  email: "noreply@nexcortiq.us",
 };
 
 const DEFAULT_LITE_SCOPES: RcLiteProgrammaticScope[] = [
@@ -50,7 +50,7 @@ async function sendEmail(params: {
   html: string;
   text: string;
 }): Promise<void> {
-  const from = env.contactFromEmail || "noreply@rapidcortex.us";
+  const from = env.contactFromEmail || "noreply@nexcortiq.us";
   if (env.adobeSignMock) {
     console.info("[adobe-provision] mock email", params.subject, params.to);
     return;
@@ -192,7 +192,7 @@ export class RcAdminAdobeProvisioningService {
 
     await sendEmail({
       to: payload.contactEmail,
-      subject: "Your Rapid Cortex RC Lite API key",
+      subject: "Your NexCort iQ RC Lite API key",
       html: `<p>Your RC Lite API agreement is complete.</p>
         <p><strong>Key ID:</strong> ${key.keyId}</p>
         <p><strong>Secret (store securely):</strong> <code>${rawKey}</code></p>

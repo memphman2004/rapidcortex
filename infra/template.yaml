@@ -5,7 +5,7 @@ Metadata:
       ignore_checks:
         - W3002
 Description: >-
-  Rapid Cortex nested root stack. Delegates DynamoDB/S3/multilingual billing secrets to stack-data-layer,
+  NexCort iQ nested root stack. Delegates DynamoDB/S3/multilingual billing secrets to stack-data-layer,
   primary SAM runtime to stack-app-sam, and secondary HttpApi (comms / RC Lite / language / live routes) to
   stack-app-sam-2 (same Cognito as stack 1; execute-api URL exposed as HttpApi2Url),
   and media/admin/platform routes to stack-app-sam-3 (HttpApi3Url).
@@ -96,6 +96,11 @@ Parameters:
     Type: String
     Default: ""
     Description: Optional Secrets Manager secret ARN for Anthropic (plain string or JSON with apiKey).
+  GuestAssistSessionSecret:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: HMAC secret for QR Guest Assist WebSocket sessions. Empty keeps staff chat on the local mock path.
   RapidIqHunterApiKeySecretArn:
     Type: String
     Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/hunter-api-key-LXEwMX"
@@ -104,6 +109,12 @@ Parameters:
     Type: String
     Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/apollo-api-key-BDql0e"
     Description: Secrets Manager ARN for Apollo.io (PSAP / Rapid IQ contact enrichment).
+  RapidIqWatchIngestApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Secrets Manager ARN for ChatGPT Watch → NexiQ Inbox ingest API key
+      (JSON {apiKey:"…"} or raw string). Empty disables machine ingest until set.
   RmsVendorSecretArn:
     Type: String
     Default: ""
@@ -223,7 +234,7 @@ Parameters:
     Type: String
     Default: auto
     AllowedValues: [auto, "true", "false"]
-    Description: PITR on DynamoDB. auto = on for staging/prod/pilot, off for dev (matches previous template).
+    Description: PITR on DynamoDB. auto = on for staging/prod/pilot and for live DeploymentStage=dev (app.rapidcortex.us). deploy.sh forces true on STAGE=dev. Do not pass false on live.
   DynamoBillingMode:
     Type: String
     Default: PAY_PER_REQUEST
@@ -325,7 +336,7 @@ Parameters:
     AllowedValues: [auto, "true", "false"]
     Description: >-
       When auto, turns on pilot-test API feature flags for DeploymentStage=dev (Silent Text, Pinpoint,
-      Ring emergency cameras, QA scoring, Surge, SOP AI, etc.). Set false to force off; true to force on in any stage.
+      emergency cameras, QA scoring, Surge, SOP AI, etc.). Set false to force off; true to force on in any stage.
   AppPublicBaseUrl:
     Type: String
     Default: "https://app.rapidcortex.us"
@@ -577,6 +588,56 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: When true, AppSamCadBridgeStack2 skips creating retained CAD Bridge DynamoDB tables (config/sync/buffer/audit).
+  IncludeAppSamCadMeshNestedStack:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, deploy the CAD intelligence mesh (trust registry, share router, per-agency
+      delivery queues). Leave false until the first mesh deploy is intentional. Live CAD
+      write-back stays fail-closed.
+  IncludeAppSamFeaturesNestedStack:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true (default), deploy the 13-feature suite nested stack (citizens, address intel,
+      mutual aid, MCI, evidence Object Lock bucket, etc.) on AppSam2 HttpApi.
+  FeaturesActiveAgencyIds:
+    Type: String
+    Default: ""
+    Description: >-
+      Comma-separated agency IDs for Features scheduled workers (check-in expiry, Bluesky,
+      learning). Empty → those workers no-op. Override via FEATURES_ACTIVE_AGENCY_IDS / deploy.sh.
+  FeaturesSocialAgencyConfigs:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional JSON array for social jurisdiction filtering. Prefer Secrets Manager for large configs.
+  FeaturesRingNeighborsWebhookSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Secrets Manager ARN for Ring Neighbors webhook HMAC. Empty → Ring webhook returns 503.
+  AgencyKMSKeyArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional customer-managed KMS key ARN passed to AppSamFeaturesStack for Features
+      DynamoDB/S3 SSE. Empty → AES256. Override via AGENCY_KMS_KEY_ARN / deploy.sh.
+  SIEMEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true (with SIEMEndpointUrl), Features stack provisions Firehose HTTP + S3 backup
+      for SIEM export. Default off. Override via SIEM_ENABLED=true / deploy.sh.
+  SIEMEndpointUrl:
+    Type: String
+    Default: ""
+    Description: >-
+      HTTPS SIEM collector URL for Features Firehose HTTP destination. Required when
+      SIEMEnabled=true. Override via SIEM_ENDPOINT_URL / deploy.sh.
   CadBridgeVpcId:
     Type: String
     Default: ""
@@ -597,6 +658,18 @@ Parameters:
     Description: >-
       When set, AppSamVerticalAlertsStack2 uses this existing DynamoDB table instead of creating
       rapid-cortex-vertical-alerts-${stage}.
+  ExistingFourWindsSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, AppSamVerticalAlertsStack2 reuses this Four Winds secret ARN instead of creating
+      rapid-cortex/{stage}/integrations/fourwinds.
+  FourWindsMock:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      Four Winds REST mock. Keep true until vendor apiKey is in Secrets Manager; then set false.
   ExistingCleryActTableName:
     Type: String
     Default: ""
@@ -609,6 +682,17 @@ Parameters:
     Description: >-
       When set, AppSamPhysicalSecurityStack5 uses this existing DynamoDB table instead of creating
       rapid-cortex-physical-security-${stage}.
+  ExistingMilestoneConnectionsTableName:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, AppSamMilestoneStack5 reuses this DynamoDB table instead of creating
+      rapid-cortex-milestone-connections-${stage}.
+  MilestoneBridgeCredentialsSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Secrets Manager ARN for on-prem Milestone Bridge HMAC credentials (optional; mock path when empty).
   PhysicalSecurityWebhookSecret:
     Type: String
     Default: ""
@@ -616,29 +700,6 @@ Parameters:
     Description: >-
       Shared secret for POST /api/physical-security/events (X-RC-Token or HMAC). Empty with mock off returns 503.
       Do not commit the value. Commands remain 501 regardless of this secret.
-  FlatDataLayerRingCredentialsSecretArn:
-    Type: String
-    Default: ""
-    Description: >-
-      When IncludeDataLayerNestedStack is false (dev legacy): full ARN of the existing Ring credentials secret
-      (rapid-cortex/connect/ring-credentials-*). Ignored when the nested data layer is enabled.
-  RingCredentialsSecretArnOverride:
-    Type: String
-    Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials-D3f1sN"
-    Description: >-
-      When set, passes this ARN to AppSamStackV2 instead of the data-layer RingCredentialsSecret output
-      (use for manually created rapid-cortex/connect/ring-credentials secrets).
-  RingRedirectUri:
-    Type: String
-    Default: "https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com/api/integrations/ring/callback"
-    Description: Ring OAuth callback URL (must reach AppSam4Stack HTTP API).
-  RingEnabled:
-    Type: String
-    Default: "false"
-    AllowedValues: ["true", "false"]
-    Description: >-
-      RING_DISABLED 2026-09-11. When false, AppSam4Stack omits Ring Lambdas and HttpApi routes.
-      DynamoDB Ring tables are retained. To reactivate: true plus RING_INTEGRATION_ENABLED=true.
   WyzeEnabled:
     Type: String
     Default: "false"
@@ -649,12 +710,12 @@ Parameters:
   WyzeApiKeysSecretArn:
     Type: String
     Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/wyze-api-keys-YIoY3S"
-    Description: Secrets Manager ARN for Rapid Cortex Wyze developer API credentials (RC-owned test devices).
+    Description: Secrets Manager ARN for NexCort iQ Wyze developer API credentials (RC-owned test devices).
   NestRcOauthSecretArn:
     Type: String
     Default: ""
     Description: >
-      Secrets Manager ARN for Rapid Cortex's own Google Device Access credentials
+      Secrets Manager ARN for NexCort iQ's own Google Device Access credentials
       (JSON clientId, clientSecret, projectId). Empty until Device Access approval;
       citizen enrollment at /connect/nest then returns 503. Agency Nest OAuth does not need this.
   NestConsentHmacSecretValue:
@@ -678,20 +739,6 @@ Parameters:
     Type: String
     Default: ""
     Description: When set, AppSam4Stack reuses leftover rapid-cortex-nest-citizen-accounts-${stage} instead of creating it.
-  EnableConnectRing:
-    Type: String
-    Default: "false"
-    AllowedValues: ["true", "false"]
-    Description: RING_DISABLED 2026-09-11. Env flag passed to AppSam4Stack Ring Lambdas.
-  RingPartnershipEnabled:
-    Type: String
-    Default: "false"
-    AllowedValues: ["true", "false"]
-    Description: RING_DISABLED 2026-09-11. Partnership env flag for AppSam4Stack.
-  RingAccountLinkUrl:
-    Type: String
-    Default: "https://www.rapidcortex.us/connect/ring/link"
-    Description: Post-OAuth browser redirect for Ring account linking (public marketing page).
   IncludeAppSamAlarmsNestedStack:
     Type: String
     Default: "true"
@@ -707,7 +754,8 @@ Conditions:
   HasAppSamAlarmsNestedStack: !Equals [!Ref IncludeAppSamAlarmsNestedStack, "true"]
   HasAppSamTransitNestedStack: !Equals [!Ref IncludeAppSamTransitNestedStack, "true"]
   HasAppSamBillingNestedStack: !Equals [!Ref IncludeAppSamBillingNestedStack, "true"]
-  HasRingCredentialsSecretArnOverride: !Not [!Equals [!Ref RingCredentialsSecretArnOverride, ""]]
+  HasAppSamCadMeshNestedStack: !Equals [!Ref IncludeAppSamCadMeshNestedStack, "true"]
+  HasAppSamFeaturesNestedStack: !Equals [!Ref IncludeAppSamFeaturesNestedStack, "true"]
   PilotTestFeaturesOn:
     Fn::Or:
       - !Equals [!Ref PilotTestFeaturesEnabled, "true"]
@@ -796,7 +844,6 @@ Resources:
         EnableCloudTrailLambdaDataEvents: !Ref EnableCloudTrailLambdaDataEvents
         EnableCloudTrailS3DataEvents: !Ref EnableCloudTrailS3DataEvents
         EnableLiveVideoResources: !Ref EnableLiveVideoResources
-        ExistingRingCredentialsSecretArn: !Ref RingCredentialsSecretArnOverride
         ExistingBillingPaymentInstructionsSecretArn: !Ref ExistingBillingPaymentInstructionsSecretArn
         ExistingBillingSesCredentialsSecretArn: !Ref ExistingBillingSesCredentialsSecretArn
         ExistingQRLocationsTableName: !Sub "${DynamoTableNamePrefix}-qr-locations-${DeploymentStage}"
@@ -852,6 +899,24 @@ Resources:
         SnsEmailSubscription: !Ref SnsEmailSubscription
         SnsSmsSubscription: !Ref SnsSmsSubscription
         WwwCnameTarget: !Ref WwwCnameTarget
+
+  LoadoutDataStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-data-layer-loadout.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        DynamoTableNamePrefix: !Ref DynamoTableNamePrefix
+
+  GrantsDataStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-data-layer-grants.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        DynamoTableNamePrefix: !Ref DynamoTableNamePrefix
 
   AppSamStackV2:
     Type: AWS::CloudFormation::Stack
@@ -955,14 +1020,6 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.BillingWebhookEventsTable
             - !Sub "${DynamoTableNamePrefix}-billing-webhook-events-${DeploymentStage}"
-        RingCredentialsSecretArn:
-          Fn::If:
-            - HasRingCredentialsSecretArnOverride
-            - !Ref RingCredentialsSecretArnOverride
-            - Fn::If:
-                - HasDataLayerNestedStack
-                - !GetAtt DataLayerStack.Outputs.RingCredentialsSecretArn
-                - !Ref FlatDataLayerRingCredentialsSecretArn
         ConnectAccessSessionsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -1014,7 +1071,6 @@ Resources:
         VenueBridgeTaskDefinition: ""
         BridgeSubnetIds: ""
         BridgeSecurityGroupIds: ""
-        RingApiBaseUrl: ""
         PilotTestFeaturesEnabled: !Ref PilotTestFeaturesEnabled
         CadIncidentsRawTable:
           Fn::If:
@@ -2363,6 +2419,7 @@ Resources:
         RapidIqApolloApiKeySecretArn: !Ref RapidIqApolloApiKeySecretArn
         RapidIqOpenstatesApiKeySecretArn: ""
         RapidIqLegiscanApiKeySecretArn: ""
+        RapidIqWatchIngestApiKeySecretArn: !Ref RapidIqWatchIngestApiKeySecretArn
         OpenAiApiKeySecretArn: !Ref OpenAiApiKeySecretArn
         OpenAiWebSearchEnabled: !Ref OpenAiWebSearchEnabled
         EnableRapidIqNewHttpRoutes: !Ref EnableRapidIqNewHttpRoutes
@@ -2870,9 +2927,6 @@ Resources:
             - !GetAtt DataLayerStack.Outputs.WebhooksTable
             - !Sub "${DynamoTableNamePrefix}-webhooks-${DeploymentStage}"
         WwwCnameTarget: !Ref WwwCnameTarget
-        EnableConnectRing: !Ref EnableConnectRing
-        RingPartnershipEnabled: !Ref RingPartnershipEnabled
-        RingEnabled: !Ref RingEnabled
         WyzeEnabled: !Ref WyzeEnabled
         WyzeApiKeysSecretArn: !Ref WyzeApiKeysSecretArn
         NestRcOauthSecretArn: !Ref NestRcOauthSecretArn
@@ -2881,8 +2935,6 @@ Resources:
         ExistingNestTokensTableName: !Ref ExistingNestTokensTableName
         ExistingNestConsentTableName: !Ref ExistingNestConsentTableName
         ExistingNestCitizenAccountsTableName: !Ref ExistingNestCitizenAccountsTableName
-        RingRedirectUri: !Ref RingRedirectUri
-        RingAccountLinkUrl: !Ref RingAccountLinkUrl
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ImportedCognitoNativeClientId: !GetAtt AppSamStackV2.Outputs.NativeUserPoolClientId
@@ -2931,7 +2983,7 @@ Resources:
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ManagedPolicyNamePrefix: !Ref AWS::StackName
-        FromEmail: billing@rapidcortex.us
+        FromEmail: billing@nexcortiq.us
         AutoSendInvoices: "false"
         EnableAutomatedInvoices: "true"
 
@@ -3038,14 +3090,6 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.BillingWebhookEventsTable
             - !Sub "${DynamoTableNamePrefix}-billing-webhook-events-${DeploymentStage}"
-        RingCredentialsSecretArn:
-          Fn::If:
-            - HasRingCredentialsSecretArnOverride
-            - !Ref RingCredentialsSecretArnOverride
-            - Fn::If:
-                - HasDataLayerNestedStack
-                - !GetAtt DataLayerStack.Outputs.RingCredentialsSecretArn
-                - !Ref FlatDataLayerRingCredentialsSecretArn
         ConnectAccessSessionsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -3129,7 +3173,6 @@ Resources:
         VenueBridgeTaskDefinition: ""
         BridgeSubnetIds: ""
         BridgeSecurityGroupIds: ""
-        RingApiBaseUrl: ""
         PilotTestFeaturesEnabled: !Ref PilotTestFeaturesEnabled
         CadIncidentsRawTable:
           Fn::If:
@@ -3587,6 +3630,70 @@ Resources:
         WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
         AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
 
+  LoadoutAppStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - LoadoutDataStack
+      - AppSam3Stack
+      - AppSamStackV2
+    Properties:
+      TimeoutInMinutes: 90
+      TemplateURL: nested/stack-app-sam-loadout.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam3Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: ""
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        LoadoutSubscriptionsTable: !GetAtt LoadoutDataStack.Outputs.LoadoutSubscriptionsTable
+        LoadoutApiKeysTable: !GetAtt LoadoutDataStack.Outputs.LoadoutApiKeysTable
+        LoadoutUsageTable: !GetAtt LoadoutDataStack.Outputs.LoadoutUsageTable
+        LoadoutSwapHistoryTable: !GetAtt LoadoutDataStack.Outputs.LoadoutSwapHistoryTable
+        LoadoutInvoicesTable: !GetAtt LoadoutDataStack.Outputs.LoadoutInvoicesTable
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        FromEmail: billing@rapidcortex.us
+        AdminEmail: ops@rapidcortex.us
+        AlertEmail: ""
+        OpsSnsTopicArn: ""
+
+  AppSamGrantsStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - GrantsDataStack
+      - AppSamStackV2
+    Properties:
+      TimeoutInMinutes: 90
+      TemplateURL: nested/stack-app-sam-grants.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        GrantsTable: !GetAtt GrantsDataStack.Outputs.GrantsTableName
+        GrantMatchesTable: !GetAtt GrantsDataStack.Outputs.GrantMatchesTableName
+        GrantRunsTable: !GetAtt GrantsDataStack.Outputs.GrantRunsTableName
+        SalesLeadsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SalesLeadsTable
+            - !Sub "${DynamoTableNamePrefix}-sales-leads-${DeploymentStage}"
+        SamGovApiKeySecretArn: ""
+        BedrockModelId: anthropic.claude-3-haiku-20240307-v1:0
+        GrantAlertFromEmail: noreply@rapidcortex.us
+        BedrockMock: "false"
+
   AppSamNg911Stack2:
     Type: AWS::CloudFormation::Stack
     Metadata:
@@ -3847,6 +3954,103 @@ Resources:
         VpcSecurityGroupId: !Ref CadBridgeVpcSecurityGroupId
         ReuseExistingCadBridgeRetainedTables: !Ref ReuseExistingCadBridgeRetainedTables
 
+  AppSamCadMeshStack:
+    Type: AWS::CloudFormation::Stack
+    Condition: HasAppSamCadMeshNestedStack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - AppSam2Stack
+      - AppSamRealtime2Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-cad-mesh.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: "3ui9q4"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        WebSocketApiEndpoint: !Sub
+          - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+          - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        WebSocketConnectionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+        OpsAlertsTopicArn: !GetAtt AppSam2Stack.Outputs.OpsAlertsTopicArn
+        NormalizedIncidentsStreamArn: ""
+        CadWritebackEnabled: "false"
+
+  AppSamFeaturesStack:
+    Type: AWS::CloudFormation::Stack
+    Condition: HasAppSamFeaturesNestedStack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - AppSam2Stack
+      - AppSamRealtime2Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-features.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        # Same HttpApi as CAD mesh / location (AppSam2), not AppSam5.
+        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: "3ui9q4"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+        WebUrl: ""
+        OpsAlertsTopicArn: !GetAtt AppSam2Stack.Outputs.OpsAlertsTopicArn
+        BedrockModelArn: ""
+        ActiveAgencyIds: !Ref FeaturesActiveAgencyIds
+        SocialAgencyConfigs: !Ref FeaturesSocialAgencyConfigs
+        RingNeighborsWebhookSecretArn: !Ref FeaturesRingNeighborsWebhookSecretArn
+        WebSocketConnectionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        WebSocketApiEndpoint: !Sub
+          - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+          - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        AgencyKMSKeyArn: !Ref AgencyKMSKeyArn
+        SIEMEnabled: !Ref SIEMEnabled
+        SIEMEndpointUrl: !Ref SIEMEndpointUrl
+
   AppSamLocationStack2:
     Type: AWS::CloudFormation::Stack
     Metadata:
@@ -3889,6 +4093,7 @@ Resources:
     DependsOn:
       - AppSam2Stack
       - AppSamRealtime2Stack
+      - AppSamLocationStack2
     Properties:
       TimeoutInMinutes: 60
       TemplateURL: nested/stack-app-sam-vertical-alerts.yaml
@@ -3945,6 +4150,9 @@ Resources:
           - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
           - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
         WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        AlsGeofenceCollectionName: !GetAtt AppSamLocationStack2.Outputs.GeofenceCollectionName
+        ExistingFourWindsSecretArn: !Ref ExistingFourWindsSecretArn
+        FourWindsMock: !Ref FourWindsMock
 
   AppSamCleryActStack5:
     Type: AWS::CloudFormation::Stack
@@ -4041,6 +4249,49 @@ Resources:
           - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
         WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
 
+  AppSamMilestoneStack5:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - AppSam5Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-milestone.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam5Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: ""
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        CampusCameraRegistryTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CampusCameraRegistryTable
+            - !Sub "${DynamoTableNamePrefix}-campus-camera-registry-${DeploymentStage}"
+        CampusIncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CampusIncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-campus-incidents-${DeploymentStage}"
+        ExistingMilestoneConnectionsTableName: !Ref ExistingMilestoneConnectionsTableName
+        MilestoneBridgeCredentialsSecretArn: !Ref MilestoneBridgeCredentialsSecretArn
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
   AppSamRealtime2Stack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -4078,6 +4329,7 @@ Resources:
             - !GetAtt DataLayerStack.Outputs.AgenciesTable
             - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
         ManagedPolicyNamePrefix: !Ref AWS::StackName
+        GuestAssistSessionSecret: !Ref GuestAssistSessionSecret
 
   AppSamAlarmsStack:
     Condition: HasAppSamAlarmsNestedStack
@@ -4131,6 +4383,15 @@ Outputs:
   HttpApi3Id:
     Description: Tertiary HTTP API ID (stack-app-sam-3)
     Value: !GetAtt AppSam3Stack.Outputs.HttpApiId
+  LoadoutApiEndpoint:
+    Description: Loadout external REST API base URL (/v1/*)
+    Value: !GetAtt LoadoutAppStack.Outputs.LoadoutApiEndpoint
+  LoadoutAuthorizerArn:
+    Description: Loadout REQUEST authorizer Lambda ARN
+    Value: !GetAtt LoadoutAppStack.Outputs.LoadoutAuthorizerArn
+  LoadoutInvoiceGeneratorFunctionName:
+    Description: Loadout monthly invoice generator function name
+    Value: !GetAtt LoadoutAppStack.Outputs.LoadoutInvoiceGeneratorFunctionName
   RapidIqIntelWatchWorkerFunctionName:
     Description: Opportunity Intelligence watch worker (web search + collect)
     Value: !GetAtt AppSamRapidIqPipelineStack.Outputs.IntelWatchWorkerFunctionName
@@ -4188,6 +4449,9 @@ Outputs:
     Value: !GetAtt AppSamLocationStack2.Outputs.RouteCalculatorName
   AlsGeofenceCollectionName:
     Value: !GetAtt AppSamLocationStack2.Outputs.GeofenceCollectionName
+  FourWindsSecretArn:
+    Description: Four Winds REST API secret (SOC-024/025)
+    Value: !GetAtt AppSamVerticalAlertsStack2.Outputs.FourWindsSecretArn
   AlsTrackerName:
     Value: !GetAtt AppSamLocationStack2.Outputs.TrackerName
   NativeUserPoolClientId:

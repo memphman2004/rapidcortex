@@ -256,7 +256,7 @@ export async function createCrmLeadFromPipelineSignal(
   const email =
     primaryContact?.email ||
     override?.email ||
-    `rapid-iq+${leadId.slice(0, 8)}@rapidcortex.us`;
+    `rapid-iq+${leadId.slice(0, 8)}@nexcortiq.us`;
   const phone = primaryContact?.phone;
   const role = primaryContact?.title || override?.title;
 

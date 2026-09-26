@@ -201,7 +201,7 @@ export function buildRaceSignal(race: RunSignUpRace, daysUntilRace: number): str
     `Description: ${race.description?.slice(0, 500)}`,
     `Signal: This is an upcoming large-scale public event that requires real-time`,
     `incident reporting, medical coordination, and crowd safety management.`,
-    `Rapid Cortex Venue's QR-based incident reporting, live camera integration,`,
+    `NexCort iQ Venue's QR-based incident reporting, live camera integration,`,
     `and operations dashboard directly address race day safety coordination needs.`,
   ].join("\n");
 }

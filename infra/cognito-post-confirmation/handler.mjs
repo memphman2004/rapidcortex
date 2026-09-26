@@ -6,7 +6,7 @@ import {
 
 const client = new CognitoIdentityProviderClient({});
 
-const RING_REVIEWER_EMAIL = "ring-reviewer@rapidcortex.us";
+const RING_REVIEWER_EMAIL = "ring-reviewer@nexcortiq.us";
 
 /** Keep in sync with packages/shared/src/auth/cognito-vertical-group.ts */
 function cognitoVerticalGroupFromUser({ agencyId, role, email }) {

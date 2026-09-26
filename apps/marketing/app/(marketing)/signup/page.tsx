@@ -14,7 +14,7 @@ export default function MarketingSignupRedirectPage() {
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center bg-slate-950 px-6 text-center text-slate-100">
-      <p className="text-lg font-medium">Redirecting to Rapid Cortex sign up…</p>
+      <p className="text-lg font-medium">Redirecting to NexCort iQ sign up…</p>
       <p className="mt-4 text-sm text-slate-400">
         <Link href={signupHref} className="text-sky-400 underline-offset-4 hover:underline">
           Continue to create your account

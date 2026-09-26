@@ -30,6 +30,7 @@ export async function getCamerasForTransitPlace(
     vehicleId?: string | null;
     stationId?: string | null;
     routeId?: string | null;
+    qrRcli?: string | null;
     assignedCameraIds?: string[] | null;
   },
   limit = 2,
@@ -41,11 +42,43 @@ export async function getCamerasForTransitPlace(
       vehicleId: place.vehicleId,
       stationId: place.stationId,
       routeId: place.routeId,
+      qrRcli: place.qrRcli,
     },
     limit,
     isEligibleFallback: (camera) => isCameraProducerOnline(camera),
   });
   return selected.map(toTransitCameraSummary);
+}
+
+/**
+ * Bidirectional inprocessing bind: QR record owns `cameraIds`; matching cameras
+ * receive `qrRcli` when they are not already tagged to a different code.
+ */
+export async function bindTransitCamerasToQrRcli(opts: {
+  agencyId: string;
+  qrId: string;
+  nextCameraIds: string[];
+  previousCameraIds?: string[];
+}): Promise<void> {
+  const next = new Set(opts.nextCameraIds.map((id) => id.trim()).filter(Boolean));
+  const previous = new Set((opts.previousCameraIds ?? []).map((id) => id.trim()).filter(Boolean));
+  const toClear = [...previous].filter((id) => !next.has(id));
+
+  for (const cameraId of toClear) {
+    const camera = await repo.get(opts.agencyId, cameraId);
+    if (!camera) continue;
+    if ((camera.qrRcli ?? "").trim().toUpperCase() !== opts.qrId.trim().toUpperCase()) continue;
+    const { qrRcli: _removed, ...rest } = camera;
+    await repo.put(rest as VenueCamera);
+  }
+
+  for (const cameraId of next) {
+    const camera = await repo.get(opts.agencyId, cameraId);
+    if (!camera) continue;
+    const existing = camera.qrRcli?.trim();
+    if (existing && existing.toUpperCase() !== opts.qrId.trim().toUpperCase()) continue;
+    await repo.put({ ...camera, qrRcli: opts.qrId });
+  }
 }
 
 export async function listTransitCameras(agencyId: string): Promise<VenueCamera[]> {
@@ -211,7 +244,7 @@ export function buildTransitProducerConfigYaml(agencyId: string, cameras: VenueC
   const rtspCameras = cameras.filter((c) => isRtspProducerVendor(c.vendor) && c.rtspUrl?.trim());
 
   const lines: string[] = [
-    `# Rapid Cortex KVS Producer Agent configuration (transit)`,
+    `# NexCort iQ KVS Producer Agent configuration (transit)`,
     `# Agency: ${agencyId}`,
     `# Generated: ${new Date().toISOString()}`,
     ``,

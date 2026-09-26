@@ -25,14 +25,14 @@ export type SubscriptionPlanDefinition = {
   catalogItemSku: string;
   /** Feature narrative for procurement decks (not legal terms). */
   summary: string;
-  /** Dashboard vs API-only — RC Lite must never grant dashboard entitlements. */
+  /** Dashboard vs API-only — NexCort Lite must never grant dashboard entitlements. */
   productLine: "rapid_cortex_dashboard" | "rc_lite_api";
 };
 
 export const SUBSCRIPTION_PLANS: readonly SubscriptionPlanDefinition[] = [
   {
     id: "essential",
-    name: "Rapid Cortex Essential",
+    name: "NexiQ Essential",
     priceCentsMonthly: 1_999_00,
     displayHint: "Contact for quote or enable public pricing",
     catalogItemSku: "RC-ESSENTIAL-M",
@@ -41,7 +41,7 @@ export const SUBSCRIPTION_PLANS: readonly SubscriptionPlanDefinition[] = [
   },
   {
     id: "command",
-    name: "Rapid Cortex Command",
+    name: "NexiQ Command",
     priceCentsMonthly: 4_999_00,
     displayHint: "Contact for quote or enable public pricing",
     catalogItemSku: "RC-COMMAND-M",
@@ -50,7 +50,7 @@ export const SUBSCRIPTION_PLANS: readonly SubscriptionPlanDefinition[] = [
   },
   {
     id: "enterprise_statewide",
-    name: "Rapid Cortex Enterprise / Statewide",
+    name: "NexiQ Enterprise / Statewide",
     priceCentsMonthly: null,
     startingPriceCentsMonthly: 12_999_00,
     displayHint: "Quote-based / manual contract",
@@ -60,7 +60,7 @@ export const SUBSCRIPTION_PLANS: readonly SubscriptionPlanDefinition[] = [
   },
   {
     id: "rc_lite",
-    name: "RC Lite API Access",
+    name: "NexCort Lite API Access",
     priceCentsMonthly: 499_00,
     displayHint: "API-only — no dispatch console",
     catalogItemSku: "RC-LITE-API-M",

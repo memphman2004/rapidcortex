@@ -1,4 +1,4 @@
-# Rapid Cortex — Enterprise PSAP & Incident Command Master Plan
+# NexCort iQ — Enterprise PSAP & Incident Command Master Plan
 
 **Status:** Architecture + implementation blueprint (does not replace [MVP_SCOPE.md](./MVP_SCOPE.md) / [NON_GOALS.md](./NON_GOALS.md) until product governance adopts it).  
 **Audience:** Engineering, security, PSAP operations, implementation partners.  
@@ -6,7 +6,7 @@
 
 ---
 
-## 0. How this extends Rapid Cortex (single platform)
+## 0. How this extends NexCort iQ (single platform)
 
 | Principle | Enforcement |
 |-----------|-------------|
@@ -126,7 +126,7 @@
 | A5 | **Caller media** | Secure link, photo upload, custody log, supervisor view | Livestream (WebRTC), redaction, retention policies | Cross-agency handoff | `rc-media`, KMS, legal copy | Scene intel without app install |
 | A6 | **One-screen shell** | Workspace shell + keyboard map + saved layouts | Role templates, second monitor profile | Full PSAP “desk” certification UX | All modules | Speed under stress |
 
-\*Telephony: partner CPaaS or CPE — Rapid Cortex owns **session + policy**, not the PSTN itself ([NON_GOALS](./NON_GOALS.md) alignment).
+\*Telephony: partner CPaaS or CPE — NexCort iQ owns **session + policy**, not the PSTN itself ([NON_GOALS](./NON_GOALS.md) alignment).
 
 ### B — Xurrent-like
 

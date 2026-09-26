@@ -196,7 +196,7 @@ function CadFlowDiagram({ phase }: { phase: Phase }) {
         <title>CAD-to-CAD intelligence bridge</title>
         <desc>
           Diagram showing incident data flowing from four agency CAD systems — PremierOne, New World,
-          CentralSquare, and Hexagon — through the Rapid Cortex intelligence bridge. The platform supports
+          CentralSquare, and Hexagon — through the NexCort iQ intelligence bridge. The platform supports
           up to eight CAD systems on one bridge.
         </desc>
 
@@ -244,7 +244,7 @@ function CadFlowDiagram({ phase }: { phase: Phase }) {
           strokeWidth={1.5}
         />
         <text x={190} y={HUB.y + 22} textAnchor="middle" fill={c} fontSize={10} fontWeight={700}>
-          RAPID CORTEX
+          NEXCORT IQ
         </text>
         <text x={190} y={HUB.y + 34} textAnchor="middle" fill="#6A7B9D" fontSize={7}>
           Intelligence Bridge
@@ -272,7 +272,7 @@ function CadFlowDiagram({ phase }: { phase: Phase }) {
         </text>
       </svg>
       <p className="mt-3 text-center text-[11px] text-[#6A7B9D]">
-        Four of up to eight CAD systems on one Rapid Cortex bridge
+        Four of up to eight CAD systems on one NexCort iQ bridge
       </p>
     </div>
   );
@@ -311,7 +311,7 @@ export function FeatureCadInterop() {
             Incident data crosses jurisdictions when mutual aid activates
           </h2>
           <p className="text-base leading-relaxed text-[#6A7B9D] md:text-lg">
-            Rapid Cortex bridges separate agency CAD environments in real time — so intelligence flows across
+            NexCort iQ bridges separate agency CAD environments in real time — so intelligence flows across
             jurisdictions as fast as the incident itself. One bridge supports up to eight CAD systems. No
             manual re-entry. No version conflicts. No lag.
           </p>

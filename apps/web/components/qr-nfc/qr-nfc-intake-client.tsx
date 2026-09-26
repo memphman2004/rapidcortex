@@ -8,6 +8,7 @@ import {
   useReportLanguage,
 } from "@/components/intake/report-language";
 import { intakePageBackgroundStyle } from "@/components/intake/vertical-theme";
+import { isGuestAssistEnabled } from "@/lib/runtime-flags";
 import {
   EmergencyCallCard,
   ReportDivider,
@@ -15,6 +16,7 @@ import {
   ReportSuccessState,
   SafetyHeader,
   SafetyHeroCard,
+  ScanIntentChooser,
   StickyEmergencyFooter,
   SAFETY_BRAND,
   safetyConfigForVertical,
@@ -50,6 +52,7 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [screen, setScreen] = useState<"chooser" | "report">("chooser");
   const [referenceCode, setReferenceCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -144,6 +147,24 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
     );
   }
 
+  const reportingPointName = record.name?.trim() || record.agencyName;
+  const locationDetails = record.zoneName?.trim() || undefined;
+
+  if (screen === "chooser") {
+    return (
+      <ScanIntentChooser
+        productLabel={productLabel}
+        contextLabel={contextLabel}
+        reportingPointName={reportingPointName}
+        locationDetails={locationDetails}
+        vertical={record.vertical}
+        agencyId={record.agencyId}
+        guestAssistEnabled={isGuestAssistEnabled()}
+        onPoliceSecurity={() => setScreen("report")}
+      />
+    );
+  }
+
   return (
     <div
       className="flex min-h-[100dvh] flex-col"
@@ -152,12 +173,22 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
       style={pageBackground}
     >
       <SafetyHeader productLabel={productLabel} />
+      <div className="mx-auto w-full max-w-lg px-4 pt-3">
+        <button
+          type="button"
+          onClick={() => setScreen("chooser")}
+          className="min-h-11 text-sm font-semibold"
+          style={{ color: SAFETY_BRAND.deepBlue }}
+        >
+          ← {t("scanChooserBack")}
+        </button>
+      </div>
 
       <main className="mx-auto w-full max-w-lg flex-1 space-y-4 px-4 pb-28 pt-4">
         <SafetyHeroCard
           contextLabel={contextLabel}
-          agencyName={record.agencyName}
-          zoneName={record.zoneName}
+          reportingPointName={reportingPointName}
+          locationDetails={locationDetails}
           headline={headline}
           supporting={supporting}
         />

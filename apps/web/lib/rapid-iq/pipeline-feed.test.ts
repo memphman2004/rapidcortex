@@ -72,7 +72,7 @@ describe("classifyPipelineFeedTab", () => {
 });
 
 describe("inbox vs pipeline queue", () => {
-  it("treats collector new as inbox, Rapid IQ new as queued", () => {
+  it("treats collector new as inbox, NexiQ new as queued", () => {
     expect(isPipelineInboxSignal(stub({ status: "new", sourceId: "openlegislative" }))).toBe(true);
     expect(isPipelineQueueSignal(stub({ status: "new", sourceId: "openlegislative" }))).toBe(false);
     expect(isPipelineInboxSignal(stub({ status: "new", sourceId: "rapid-iq" }))).toBe(false);

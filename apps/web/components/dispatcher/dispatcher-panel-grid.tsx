@@ -52,7 +52,7 @@ const PANEL_META: Record<
   intelligence: { title: "INTELLIGENCE", accentColor: "#8b5cf6", badge: "AI SUGGESTED", badgeColor: "#8b5cf6" },
   caller_mobile: { title: "CALLER MOBILE", accentColor: "#10b981", helpTopic: "live-video" },
   silent_text: { title: "SILENT TEXT LINK", accentColor: "#10b981", helpTopic: "silent-text" },
-  pinpoint: { title: "RAPID CORTEX PINPOINT", accentColor: "#3b82f6", helpTopic: "pinpoint" },
+  pinpoint: { title: "NEXCORT IQ PINPOINT", accentColor: "#3b82f6", helpTopic: "pinpoint" },
   location: { title: "LOCATION", accentColor: "#8b5cf6" },
   premise_notes: { title: "PREMISE NOTES", accentColor: "#f59e0b" },
   ng911_assist: { title: "NG9-1-1 ASSIST", accentColor: "#0ea5e9", badge: "CRISIS / EIDO", badgeColor: "#f59e0b" },

@@ -16,6 +16,7 @@ export function CallAssistRouteGate({ children }: { children: React.ReactNode })
   const search = useSearchParams();
   const enabled = Boolean(user && isCallAssistEnabled() && ready);
   const isSetup = pathname?.includes("/call-assist/setup");
+  const isRcAdminSurface = Boolean(pathname?.startsWith("/rc-admin/call-assist"));
   const reconfigure = search.get("reconfigure") === "1";
   const complete = config?.onboardingComplete !== false;
   const canSetup = canSetupCallAssist(user?.role);
@@ -24,12 +25,13 @@ export function CallAssistRouteGate({ children }: { children: React.ReactNode })
     return <p className="p-6 text-sm text-slate-400">Loading Call Assist…</p>;
   }
 
+  // RC Admin stays under /rc-admin/call-assist — never bounce to /{agencyId}/call-assist/setup.
   if (enabled && config && canSetup && !complete && !isSetup) {
-    router.replace(to("/call-assist/setup"));
+    router.replace(isRcAdminSurface ? "/rc-admin/call-assist/setup" : to("/call-assist/setup"));
     return <p className="p-6 text-sm text-slate-400">Opening Call Assist setup…</p>;
   }
   if (enabled && config && isSetup && complete && !reconfigure) {
-    router.replace(to("/call-assist"));
+    router.replace(isRcAdminSurface ? "/rc-admin/call-assist" : to("/call-assist"));
     return <p className="p-6 text-sm text-slate-400">Call Assist is already configured.</p>;
   }
 

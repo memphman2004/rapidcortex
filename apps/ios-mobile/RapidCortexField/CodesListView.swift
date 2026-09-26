@@ -108,14 +108,14 @@ struct CodesListView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("QR & NFC Codes")
+            Text("Reporting Points")
                 .font(.system(size: 34, weight: .bold))
                 .foregroundColor(RCTheme.textPrimary)
 
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(RCTheme.textMuted)
-                TextField("Search by name or zone", text: $vm.search)
+                TextField("Search by name or location", text: $vm.search)
                     .foregroundColor(RCTheme.textPrimary)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
@@ -126,7 +126,9 @@ struct CodesListView: View {
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .overlay(RoundedRectangle(cornerRadius: 10).stroke(RCTheme.border, lineWidth: 1))
 
-            Text("Tap a code for QR details, or Program NFC Tag on the card.")
+            Text(NFCHardware.isAvailable
+                 ? "Tap a code for QR details, or Program NFC Tag on the card."
+                 : "Tap a code for QR details. NFC programming needs an iPhone.")
                 .font(.system(size: 13))
                 .foregroundColor(RCTheme.textSecondary)
 
@@ -135,7 +137,7 @@ struct CodesListView: View {
                     SiteQrNfcView()
                 } label: {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Rapid Cortex site QR & NFC")
+                        Text("NexCort iQ site QR & NFC")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(RCTheme.amber)
                         Text("Writes www.rapidcortex.us or /demo/ for booth visitors")
@@ -273,18 +275,25 @@ struct CodeCardView: View {
             }
             .buttonStyle(.plain)
 
-            Button(action: onProgramNfc) {
-                Text("Program NFC Tag")
-                    .font(.system(size: 15, weight: .semibold))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 44)
-                    .foregroundColor(RCTheme.amber)
-                    .background(RCTheme.surface2)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(RCTheme.amber, lineWidth: 1))
+            if NFCHardware.isAvailable {
+                Button(action: onProgramNfc) {
+                    Text("Program NFC Tag")
+                        .font(.system(size: 15, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .foregroundColor(RCTheme.amber)
+                        .background(RCTheme.surface2)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(RCTheme.amber, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Program NFC tag for \(code.name)")
+            } else {
+                Text(NFCHardware.unavailableMessage)
+                    .font(.system(size: 12))
+                    .foregroundColor(RCTheme.textMuted)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Program NFC tag for \(code.name)")
         }
         .padding(16)
         .background(RCTheme.surface1)
@@ -298,7 +307,7 @@ struct EmptyCodesView: View {
         VStack(spacing: 12) {
             Text("🏷️")
                 .font(.system(size: 48))
-            Text("No codes match your filters yet.")
+            Text("No reporting points match your filters yet.")
                 .font(.system(size: 15))
                 .foregroundColor(RCTheme.textSecondary)
                 .multilineTextAlignment(.center)

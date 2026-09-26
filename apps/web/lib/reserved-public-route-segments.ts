@@ -24,6 +24,8 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "careers",
   "support",
   "training",
+  /** Authenticated campus/venue/transit knowledge base (not 911 Help). */
+  "staff-guide",
   "signup",
   "logout",
   "desktop",
@@ -48,19 +50,23 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "report",
   /** Public Call Assist SMS self-service (`/call-assist/report/{token}`). Not a jurisdiction slug. */
   "call-assist",
-  /** Tracked Rapid Cortex site QR / NFC click-through (`/go/site/{home|demo}`). */
-  "go",
+  /** QR/NFC Guest Assist (`/rc-guest-assist.html`) — not a jurisdiction slug. */
+  "rc-guest-assist.html",
   /** Public SMS GPS location share — no auth (`/locate/{token}`). */
   "locate",
   /** Public non-emergency diversion IVR/web flow (`/diversion/{agencyId}`). */
   "diversion",
   /** Detachable incident map window (pop-out to second monitor). */
   "map-preview",
+  /** Sales contractor portal + public ROI / free registration. */
+  "sales",
+  "roi",
+  "register",
   /** Legacy RCLI intake (`/r/{rcli}`). */
   "r",
   /** Public escalation viewer (`/e/{token}`). */
   "e",
-  /** RC Translate officer SMS deep link (`/translate/{sessionId}`) — not a jurisdiction slug. */
+  /** Translate officer SMS deep link (`/translate/{sessionId}`) — not a jurisdiction slug. */
   "translate",
 ];
 

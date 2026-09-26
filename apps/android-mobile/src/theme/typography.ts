@@ -1,5 +1,5 @@
 /**
- * Typography tokens for Rapid Cortex mobile.
+ * Typography tokens for NexCort iQ mobile.
  * Load Inter via @expo-google-fonts/inter and expo-font at app root.
  *
  * @example

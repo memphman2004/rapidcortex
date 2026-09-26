@@ -13,10 +13,8 @@ import {
   marketingDemoRequestPath,
   marketingHomePath,
   marketingPricingPath,
-  marketingRingCustomersPath,
   marketingSignupPath,
 } from "@/lib/marketing-links";
-import { RING_TM } from "@/lib/brand-marks";
 import { postAuthRedirect, hardNavigateTo } from "@/lib/auth/postAuthRedirect";
 import {
   resolvePostLoginNavigationHref,
@@ -78,7 +76,7 @@ export function LoginForm({
   const jurisdictionSlug = useJurisdictionSlug();
   const { user, isLoading, refresh } = useSession();
   const signupEnabled = isPublicSignupUiEnabled();
-  const requestAccessHref = marketingDemoRequestPath("ring_connect");
+  const requestAccessHref = marketingDemoRequestPath("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -560,7 +558,7 @@ export function LoginForm({
           <h1 className="rc-login-card__title">Sign-in is not available on this host yet</h1>
         </div>
         <p className="rc-login-note">
-          Ask your deployment operator or Rapid Cortex administrator to finish secure sign-in configuration. If you need
+          Ask your deployment operator or NexCort iQ administrator to finish secure sign-in configuration. If you need
           access or a pilot workspace, reach out and we will help route you to the correct environment.
         </p>
         <div className="rc-login-card__footer">
@@ -663,13 +661,13 @@ export function LoginForm({
       ) : null}
       {sessionNotice === "dashboard_required" ? (
         <p className="rc-login-banner-warn">
-          Your account does not currently have Rapid Cortex dashboard access. Contact your agency administrator or Rapid
+          Your account does not currently have NexCort iQ dashboard access. Contact your agency administrator or Rapid
           Cortex support.
         </p>
       ) : null}
       {sessionNotice === "rc_lite_portal" ? (
         <p className="rc-login-banner-info">
-          Your account has RC Lite API access. Use the RC Lite portal to manage API clients, usage, webhooks, and
+          Your account has NexCort Lite API access. Use the NexCort Lite portal to manage API clients, usage, webhooks, and
           documentation.
         </p>
       ) : null}
@@ -946,12 +944,12 @@ export function LoginForm({
         {!activeChallenge && !inForgotRequest && !inForgotConfirm ? (
           <div className="rc-login-card__footer">
             <p className="rc-login-card__account-note">
-              Already a Rapid Cortex customer? Sign in with the form above.
+              Already a NexCort iQ customer? Sign in with the form above.
             </p>
             <div className="rc-login-card__request-access">
-              <h2>New to Rapid Cortex?</h2>
+              <h2>New to NexCort iQ?</h2>
               <p>
-                Rapid Cortex is an AI-powered platform for verified 911 dispatch centers and public
+                NexCort iQ is an AI-powered platform for verified 911 dispatch centers and public
                 safety agencies.
               </p>
               <a href={requestAccessHref}>Request Access for Your Agency</a>
@@ -967,12 +965,6 @@ export function LoginForm({
                 ·
               </span>
               <Link href={marketingHomePath()}>Home</Link>
-              <span className="rc-login-card__links-sep" aria-hidden>
-                ·
-              </span>
-              <a href={marketingRingCustomersPath()} target="_blank" rel="noopener noreferrer">
-                {RING_TM} customers
-              </a>
             </div>
           </div>
         ) : null}

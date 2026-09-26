@@ -72,7 +72,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (error instanceof TranslationUnavailableError) {
       return jsonStatus(
         {
-          error: "Translation is temporarily unavailable. Contact Rapid Cortex support.",
+          error: "Translation is temporarily unavailable. Contact NexCort iQ support.",
           code: "translation_unavailable",
         },
         503,

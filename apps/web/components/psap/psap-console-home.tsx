@@ -38,6 +38,8 @@ import {
 import type { Incident, UrgencyLevel } from "rapid-cortex-shared";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatHeaderClock } from "@/lib/clock-format";
 import { SiteSquareMark } from "@/components/brand/site-logo-link";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -45,6 +47,7 @@ import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
 import { loadMapTheme, saveMapTheme } from "@/lib/maps/persisted-map-prefs";
 import { psapIncidentsToMap } from "@/components/maps/map-incident-adapters";
 import {
+  fetchDispatcherActiveCalls,
   fetchSupervisorActiveCalls,
   fetchSupervisorOperators,
   isApiConfigured,
@@ -342,25 +345,6 @@ function formatTimeAgo(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function formatClock(now: Date): { dateLine: string; timeMain: string; ampm: string } {
-  const dateLine = now.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-  const timeParts = now.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-  const match = timeParts.match(/^(.+)\s+(AM|PM)$/i);
-  return {
-    dateLine,
-    timeMain: match?.[1] ?? timeParts,
-    ampm: match?.[2] ?? "",
-  };
-}
 
 function shortIncidentId(id: string): string {
   const digits = id.replace(/\D/g, "");
@@ -531,6 +515,7 @@ function PsapConsoleHomeInner({
   userRole,
   userId = "",
 }: PsapConsoleHomeProps) {
+  const { hour12 } = useClockPreference();
   const pathname = usePathname() ?? "";
   const abbr = agencyAbbr(agencyName, jurisdiction);
   const canCad = canEditCadPhase(userRole);
@@ -560,8 +545,8 @@ function PsapConsoleHomeInner({
   });
 
   const activeCallsQuery = useQuery({
-    queryKey: ["supervisor-active-calls", "psap-console", agencyId],
-    queryFn: fetchSupervisorActiveCalls,
+    queryKey: ["supervisor-active-calls", "psap-console", agencyId, isDispatcher],
+    queryFn: isDispatcher ? fetchDispatcherActiveCalls : fetchSupervisorActiveCalls,
     enabled: apiLive && canCad,
     refetchInterval: 15_000,
   });
@@ -638,7 +623,7 @@ function PsapConsoleHomeInner({
 
   const currentBg = customBg ?? DEFAULT_PSAP_BG;
   const hasCustomBg = Boolean(customBg);
-  const clock = formatClock(now);
+  const clock = formatHeaderClock(now, hour12);
   const cadInfo = CAD_PHASES[cadPhase] ?? CAD_PHASES[1]!;
 
   const applyBg = useCallback(
@@ -999,7 +984,7 @@ function PsapConsoleHomeInner({
                     lineHeight: 1,
                   }}
                 >
-                  RAPID <span style={{ color: C.blue }}>CORTEX</span>
+                  NexCort <span style={{ color: C.blue }}>iQ</span>
                 </div>
                 <div
                   style={{
@@ -1010,7 +995,7 @@ function PsapConsoleHomeInner({
                     marginTop: 2,
                   }}
                 >
-                  9-1-1
+                  911
                 </div>
               </div>
             </div>
@@ -1351,7 +1336,7 @@ function PsapConsoleHomeInner({
                   />
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>
-                      Rapid Cortex Network
+                      NexCort iQ Network
                     </div>
                     <div style={{ fontSize: 10, color: C.green }}>All Systems Operational</div>
                   </div>
@@ -2245,7 +2230,7 @@ function PsapConsoleHomeInner({
                         link: "View Training",
                         color: C.purple,
                         rgb: "139,92,246",
-                        href: "mailto:support@rapidcortex.us?subject=RC%20911%20training",
+                        href: "mailto:support@nexcortiq.us?subject=RC%20911%20training",
                       },
                     ] as const
                   ).map((u) => {

@@ -406,7 +406,7 @@ export function CadIntegrationWizard({ agencyId, onComplete, onClose }: WizardPr
               <div style={{ background: V.greenBg, border: `1px solid ${V.greenBorder}`, borderRadius: 10, padding: "20px 18px", textAlign: "center" }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: "#86efac" }}>Integration is live</div>
                 <div style={{ fontSize: 12, color: "#4ade80", marginTop: 6 }}>
-                  {vendor?.label} CAD incidents are flowing into Rapid Cortex.
+                  {vendor?.label} CAD incidents are flowing into NexCort iQ.
                 </div>
               </div>
             ) : (

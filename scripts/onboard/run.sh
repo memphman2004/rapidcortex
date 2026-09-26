@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Day-0 Rapid Cortex tenant provision. Usage:
+# Day-0 NexCort iQ tenant provision. Usage:
 #   bash scripts/onboard/<vertical>.sh scripts/onboard/vars/<vertical>.env
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"

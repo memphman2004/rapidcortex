@@ -26,10 +26,12 @@ import {
 import { CreateTransitIncidentModal, TransitBroadcastModal } from "./transit-ops-modals";
 import { useTransitOpsData } from "./use-transit-ops-data";
 import { T } from "./transit-theme";
+import { StaffGuidePortal } from "@/components/staff-guide/staff-guide-portal";
 import { QRNFCManager } from "@/components/qr-nfc/qr-nfc-manager";
 import { TransitUsersClient } from "./transit-users-client";
 import { VideoWallClient } from "@/components/video/video-wall-client";
-import { isRcVideoEnabled } from "@/lib/runtime-flags";
+import { isRcVideoEnabled, isTransitCamerasUiEnabled } from "@/lib/runtime-flags";
+import { IncidentCameraPanel } from "@/components/venue/IncidentCameraPanel";
 
 export function TransitConsoleHome(props: {
   agencyId: string;
@@ -38,6 +40,7 @@ export function TransitConsoleHome(props: {
   userEmail: string;
   userRole: string;
   userId: string;
+  staffGuideArticles: Record<string, string>;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -55,6 +58,7 @@ export function TransitConsoleHome(props: {
   }, [pathname]);
 
   const view = useMemo(() => {
+    if (pathname.includes("/staff-guide")) return "staff-guide";
     if (pathname.includes("/video-wall")) return "video-wall";
     if (pathname.includes("/cameras")) return "cameras";
     if (pathname.includes("/qr-codes")) return "qr-codes";
@@ -98,7 +102,16 @@ export function TransitConsoleHome(props: {
         <p style={{ fontSize: 11, color: T.textSecondary, margin: "0 0 12px" }}>
           Not a 911 PSAP console. Transit operations only.
         </p>
-        {view === "qr-codes" ? (
+        {view === "staff-guide" ? (
+          <Suspense fallback={<p style={{ color: T.textSecondary, fontSize: 13 }}>Loading staff guide…</p>}>
+            <StaffGuidePortal
+              vertical="transit"
+              role={props.userRole}
+              basePath={`${linkBase}/staff-guide`}
+              articles={props.staffGuideArticles}
+            />
+          </Suspense>
+        ) : view === "qr-codes" ? (
           canSupervisor ? (
             <QRNFCManager
               agencyId={props.agencyId}
@@ -107,7 +120,7 @@ export function TransitConsoleHome(props: {
               canCreate={canSupervisor}
               canDeactivate={canSupervisor}
               canDownload={canSupervisor}
-              zoneLabel="Route / Vehicle / Station"
+              zoneLabel="Location Details"
             />
           ) : (
             <p style={{ color: T.textSecondary, fontSize: 13 }}>
@@ -215,7 +228,6 @@ export function TransitConsoleHome(props: {
               <TransitSettingsCamerasPanel
                 agencyId={props.agencyId}
                 transitCode={props.transitCode}
-                userId={props.userId}
                 userRole={props.userRole}
                 vehicles={data.vehicles}
               />
@@ -227,7 +239,7 @@ export function TransitConsoleHome(props: {
                 </Suspense>
               ) : (
                 <p style={{ color: T.textSecondary, fontSize: 13 }}>
-                  Rapid Cortex Video is disabled.
+                  NexiQ Video is disabled.
                 </p>
               )
             ) : null}
@@ -252,6 +264,17 @@ export function TransitConsoleHome(props: {
         onClose={() => setBroadcastOpen(false)}
         onSubmit={ops.broadcast}
       />
+      {isTransitCamerasUiEnabled() && ops.activeCameraIncident ? (
+        <IncidentCameraPanel
+          agencyId={props.agencyId}
+          incident={ops.activeCameraIncident}
+          canDispatch={canDispatch}
+          onClose={ops.clearActiveCameraIncident}
+          apiVertical="transit"
+          locationNoun="Vehicle / station"
+          enableDispatchControls={false}
+        />
+      ) : null}
     </TransitOperationsShell>
   );
 }

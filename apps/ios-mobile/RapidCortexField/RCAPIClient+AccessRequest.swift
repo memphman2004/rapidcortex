@@ -29,7 +29,7 @@ struct AccessRequestResponse: Decodable {
 
 // MARK: - Role → destination (lockstep with RCRouter / packages/shared field workspaces)
 //
-// Destination is derived from JWT only. `director` is not a Rapid Cortex role.
+// Destination is derived from JWT only. `director` is not a NexCort iQ role.
 // Leftover `commsupervisor` JWT values canonicalize to supervisor.
 //
 // Role                  Destination

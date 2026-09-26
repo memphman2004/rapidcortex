@@ -1,7 +1,7 @@
 import type { NgSecControlEvidence } from "./metrics.js";
 
 /**
- * Static NG-SEC / NIST-CSF themed control catalog for Rapid Cortex evidence exports.
+ * Static NG-SEC / NIST-CSF themed control catalog for NexCort iQ evidence exports.
  * Statuses reflect product design defaults; runtime pack may override with agency context.
  */
 export const NG_SEC_CONTROL_CATALOG: NgSecControlEvidence[] = [

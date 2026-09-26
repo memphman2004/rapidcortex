@@ -218,7 +218,7 @@ export async function runVenueCollector(): Promise<{ signalsFound: number }> {
           intentStage: "awareness",
           scoreContrib: 10,
           aiHeadline: `${ocr.name} operates 100+ events annually requiring real-time incident reporting`,
-          aiSummary: `${ocr.name} is a national OCR company running large-scale outdoor events with thousands of participants. Each event requires medical coordination, incident reporting, and safety communications across remote terrain. Rapid Cortex Venue's QR incident reporting, camera integration, and operations dashboard directly addresses these needs at scale. A single corporate deal covers all their US events.`,
+          aiSummary: `${ocr.name} is a national OCR company running large-scale outdoor events with thousands of participants. Each event requires medical coordination, incident reporting, and safety communications across remote terrain. NexCort iQ Venue's QR incident reporting, camera integration, and operations dashboard directly addresses these needs at scale. A single corporate deal covers all their US events.`,
           tags: ["OPPORTUNITY", "OBSTACLE COURSE", "CORPORATE ACCOUNT"],
         }),
         ocr.url,

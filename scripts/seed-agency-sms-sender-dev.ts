@@ -19,7 +19,7 @@ const REGION = process.env.AWS_REGION?.trim() || "us-east-1";
 const STAGE = process.env.STAGE?.trim() || "dev";
 const TABLE = process.env.SMS_ROUTING_TABLE?.trim() || `rapid-cortex-sms-routing-${STAGE}`;
 const AGENCY_ID = process.env.AGENCY_ID?.trim() || "test-agency";
-const AGENCY_NAME = process.env.AGENCY_NAME?.trim() || "Rapid Cortex Test Agency";
+const AGENCY_NAME = process.env.AGENCY_NAME?.trim() || "NexCort iQ Test Agency";
 const PHONE_NUMBER = process.env.PHONE_NUMBER?.trim() || "+13198358230";
 const LABEL = process.env.LABEL?.trim() || "Primary 10DLC sender";
 

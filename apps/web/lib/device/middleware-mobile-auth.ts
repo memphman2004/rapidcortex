@@ -32,7 +32,7 @@ export function getMobileOperationalAuthMiddlewareResponse(request: NextRequest)
     return NextResponse.json(
       {
         error: "mobile_auth_blocked",
-        message: "Rapid Cortex console login is restricted to approved desktop workstations.",
+        message: "NexCort iQ console login is restricted to approved desktop workstations.",
       },
       { status: 403 },
     );

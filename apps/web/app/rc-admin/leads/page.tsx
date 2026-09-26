@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { canAccessRcFinancePortal } from "rapid-cortex-shared";
+import { canAccessSalesLeadsCrm } from "rapid-cortex-shared";
 import { LeadsCrmPage } from "@/components/rc-admin/leads/leads-crm-page";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { marketingLoginPath } from "@/lib/marketing-links";
@@ -12,7 +12,7 @@ export const metadata = {
 
 export default async function RcAdminLeadsPage() {
   const user = await getDashboardSessionUser();
-  if (!user || !canAccessRcFinancePortal(user.role) || !isSalesLeadsUiEnabled()) {
+  if (!user || !canAccessSalesLeadsCrm(user.role) || !isSalesLeadsUiEnabled()) {
     redirect(`${marketingLoginPath()}?from=/rc-admin/leads`);
   }
 

@@ -9,7 +9,7 @@ async function proxyConsent(request: NextRequest, token: string, action: string)
   const base = resolveUpstreamApiBase(upstreamPath);
   if (!base) {
     return NextResponse.json(
-      { error: "API_UPSTREAM_BASE_2 is not configured for Rapid Vision™ public routes" },
+      { error: "API_UPSTREAM_BASE_2 is not configured for NexiQ Vision™ public routes" },
       { status: 503 },
     );
   }

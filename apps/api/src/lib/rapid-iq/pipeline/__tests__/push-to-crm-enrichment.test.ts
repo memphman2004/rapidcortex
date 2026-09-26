@@ -72,7 +72,7 @@ describe("createCrmLeadFromPipelineSignal credit exhaustion", () => {
       ],
     };
 
-    const result = await createCrmLeadFromPipelineSignal(signal, {}, "tester@rapidcortex.us");
+    const result = await createCrmLeadFromPipelineSignal(signal, {}, "tester@nexcortiq.us");
 
     expect(result.leadId).toBeTruthy();
     expect(result.enrichment.apolloCreditsUsed).toBe(0);

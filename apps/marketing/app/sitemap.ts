@@ -5,7 +5,7 @@ import { absoluteUrl } from "@/lib/seo";
 export const dynamic = "force-static";
 
 /** Bumped when the public route set changes (forces crawlers to re-fetch). */
-const STABLE_LAST_MODIFIED = new Date("2026-09-13T00:00:00.000Z");
+const STABLE_LAST_MODIFIED = new Date("2026-09-25T00:00:00.000Z");
 
 type RouteEntry = {
   path: string;
@@ -21,6 +21,7 @@ type RouteEntry = {
 const PUBLIC_ROUTES: RouteEntry[] = [
   // Core
   { path: "/", changeFrequency: "weekly", priority: 1 },
+  { path: "/rapid-cortex", changeFrequency: "monthly", priority: 0.85 },
   { path: "/blog", changeFrequency: "weekly", priority: 0.8 },
   { path: "/about", changeFrequency: "monthly", priority: 0.65 },
   { path: "/careers", changeFrequency: "weekly", priority: 0.7 },
@@ -51,11 +52,9 @@ const PUBLIC_ROUTES: RouteEntry[] = [
   { path: "/solutions/agencies", changeFrequency: "weekly", priority: 0.75 },
   { path: "/solutions/vendors", changeFrequency: "weekly", priority: 0.75 },
   { path: "/integrations", changeFrequency: "weekly", priority: 0.75 },
-  { path: "/integrations/ring-review", changeFrequency: "monthly", priority: 0.55 },
   { path: "/cad", changeFrequency: "weekly", priority: 0.7 },
   { path: "/cad-integration", changeFrequency: "weekly", priority: 0.7 },
   { path: "/supervisor-dashboard", changeFrequency: "monthly", priority: 0.55 },
-  { path: "/connect/ring/start", changeFrequency: "weekly", priority: 0.7 },
   { path: "/connect/nest", changeFrequency: "weekly", priority: 0.7 },
   { path: "/connect/wyze/start", changeFrequency: "weekly", priority: 0.7 },
 
@@ -80,6 +79,7 @@ const PUBLIC_ROUTES: RouteEntry[] = [
   { path: "/developers/pricing", changeFrequency: "monthly", priority: 0.55 },
   { path: "/developers/roi", changeFrequency: "monthly", priority: 0.5 },
   { path: "/developers/status", changeFrequency: "weekly", priority: 0.45 },
+  { path: "/status", changeFrequency: "weekly", priority: 0.45 },
 
   // Legal / compliance
   { path: "/legal/dpa", changeFrequency: "monthly", priority: 0.4 },

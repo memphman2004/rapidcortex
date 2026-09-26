@@ -47,7 +47,7 @@ private func buildAuthCookies(
     return list
 }
 
-/// Removes Rapid Cortex auth cookies from the default data store (call on sign-out).
+/// Removes NexCort iQ auth cookies from the default data store (call on sign-out).
 func clearDesktopWebAuthCookies(completion: (() -> Void)? = nil) {
     let store = WKWebsiteDataStore.default().httpCookieStore
     let names: Set<String> = [cookieIdToken, cookieAccessToken, cookieRefreshToken]
@@ -80,7 +80,7 @@ struct WorkspaceWebShellView: NSViewRepresentable {
     func makeNSView(context: Context) -> WKWebView {
         let wv = WKWebView(frame: .zero, configuration: context.coordinator.configuration)
         wv.navigationDelegate = context.coordinator
-        wv.customUserAgent = "RapidCortexDesktop/1.0.3 (macOS; WKWebView) RapidCortexWebShell"
+        wv.customUserAgent = "NexCortiQDesktop/1.0.3 (macOS; WKWebView) NexCortiQWebShell"
         context.coordinator.webView = wv
         context.coordinator.apply(
             webAppBaseURL: webAppBaseURL,

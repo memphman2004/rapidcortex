@@ -1,20 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
-import { marketingNestConnectPath, marketingRingCustomersPath, marketingWyzeConnectPath } from "@/lib/marketing-links";
+import { marketingWyzeConnectPath } from "@/lib/marketing-links";
 import { buildPublicPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Campus, Venue & Public Safety Integrations | Rapid Cortex",
+  title: "Campus, Venue & Public Safety Integrations | NexCort iQ",
   description:
-    "Rapid Cortex integrations for campus safety, venue and stadium operations, CAD-friendly public safety adapters, and consent-based Ring, Nest, and Wyze Connect — validated per contract, not a rip-and-replace.",
+    "NexCort iQ integrations for campus safety, venue and stadium operations, CAD-friendly public safety adapters, and consent-based Nest and Wyze Connect — validated per contract, not a rip-and-replace.",
   path: "/integrations",
   keywords: [
     "campus safety integrations",
     "venue safety integrations",
     "stadium camera integrations",
     "CAD integration",
-    "Ring Connect public safety",
     "Nest camera integration",
     "Wyze camera integration",
   ],
@@ -25,7 +24,6 @@ const CAMPUS_ITEMS = [
     href: "/campus-safety-integrations",
     label: "Campus safety integrations overview",
   },
-  { href: "/connect/ring/start", label: "Ring Connect — consent-based emergency video" },
   { href: "/connect/nest", label: "Google Nest SDM — agency-linked + consent requests" },
   { href: "/connect/wyze/start", label: "Wyze Connect — homeowner API key + SMS consent" },
   { href: "/campus-safety-software", label: "QR / NFC / SMS campus reporting" },
@@ -39,14 +37,13 @@ const VENUE_ITEMS = [
   },
   { href: "/venue-safety-software", label: "QR / SMS guest reporting for events" },
   { href: "/stadium-security-software", label: "Stadium SOC dashboard + camera references" },
-  { href: "/connect/ring/start", label: "Ring Connect for venue perimeters" },
   { href: "/connect/nest", label: "Nest Connect for facility cameras" },
   { href: "/connect/wyze/start", label: "Wyze Connect for nearby homeowners" },
 ];
 
 const PUBLIC_SAFETY_ITEMS = [
   { href: "/cad-integration", label: "CAD-friendly integration (not a CAD replacement)" },
-  { href: "/product/core", label: "Rapid Cortex Core for 911 / PSAP intelligence" },
+  { href: "/product/core", label: "911 Centers/PSAPs for 911 / PSAP intelligence" },
   { href: "/ng911-software", label: "NG911 decision-support layer" },
   { href: "/psap-software", label: "PSAP operational awareness" },
 ];
@@ -59,7 +56,7 @@ export default function IntegrationsLandingPage() {
       sectionLabel="Partners"
     >
       <p className="leading-relaxed text-slate-200">
-        Rapid Cortex connects reporting channels, consent-based cameras, and CAD-friendly adapters to
+        NexCort iQ connects reporting channels, consent-based cameras, and CAD-friendly adapters to
         the consoles your teams already use. We publish ingestion contracts first, then enable
         adapters that are validated per agency or venue contract. Maturity varies by stack — we do
         not claim a universal plug-and-play marketplace.
@@ -68,7 +65,7 @@ export default function IntegrationsLandingPage() {
       <section className="mt-12 space-y-4">
         <h2 className="text-xl font-semibold text-white">Campus safety integrations</h2>
         <p className="text-sm leading-relaxed text-slate-300">
-          Universities and K-12 teams use Rapid Cortex Campus to bring QR/NFC/SMS reports and
+          Universities and K-12 teams use NexCort iQ Campus to bring QR/NFC/SMS reports and
           optional camera consent flows onto one incident. These adapters enhance campus police and
           emergency-management workflows. They do not replace campus police, 911, or medical
           direction.
@@ -87,8 +84,8 @@ export default function IntegrationsLandingPage() {
       <section className="mt-12 space-y-4">
         <h2 className="text-xl font-semibold text-white">Venue and stadium integrations</h2>
         <p className="text-sm leading-relaxed text-slate-300">
-          Stadiums, arenas, and large events use Rapid Cortex Venue so guest reports land on the SOC
-          dashboard with zone and camera context. Rapid Cortex is not a 911 emergency dispatch
+          Stadiums, arenas, and large events use NexCort iQ Venue so guest reports land on the SOC
+          dashboard with zone and camera context. NexCort iQ is not a 911 emergency dispatch
           system and does not replace radios or existing CCTV control rooms.
         </p>
         <ul className="list-disc space-y-2 pl-5 text-sm text-slate-300">
@@ -105,7 +102,7 @@ export default function IntegrationsLandingPage() {
       <section className="mt-12 space-y-4">
         <h2 className="text-xl font-semibold text-white">Public safety and CAD adapters</h2>
         <p className="text-sm leading-relaxed text-slate-300">
-          Rapid Cortex Core is an intelligence layer for 911 centers and PSAPs. CAD write-back is
+          911 Centers/PSAPs is an intelligence layer for 911 centers and PSAPs. CAD write-back is
           off by default and only enabled when an agency has completed legal and operational
           go/no-go. Telephony, RMS, GIS, and collaboration bridges are scoped per contract.
         </p>
@@ -121,26 +118,16 @@ export default function IntegrationsLandingPage() {
       </section>
 
       <section className="mt-12 space-y-4">
-        <h2 className="text-xl font-semibold text-white">Ring, Nest, and Wyze Connect</h2>
+        <h2 className="text-xl font-semibold text-white">Wyze Connect</h2>
         <p className="text-sm leading-relaxed text-slate-300">
-          Ring™, Google Nest™, and Wyze™ Connect are consent-based video paths for public safety,
-          campus, and venue teams. Device owners opt in; Rapid Cortex does not silently access
-          residential cameras. Agency-owned Nest devices can be linked; resident Ring, Nest, and
-          Wyze devices require an explicit request during an incident.
+          Wyze™ Connect is a consent-based video path for public safety, campus, and venue
+          teams. Device owners opt in; NexCort iQ does not silently access residential
+          cameras. Each emergency live-share requires an explicit request during an incident.
         </p>
         <div className="flex flex-wrap gap-6 text-sm">
-          <a href={marketingRingCustomersPath()} className="text-sky-300 hover:text-sky-200">
-            Ring Connect enrollment →
-          </a>
-          <a href={marketingNestConnectPath()} className="text-sky-300 hover:text-sky-200">
-            Nest Connect →
-          </a>
           <a href={marketingWyzeConnectPath()} className="text-sky-300 hover:text-sky-200">
             Wyze Connect →
           </a>
-          <Link href="/integrations/ring-review" className="text-sky-300 hover:text-sky-200">
-            Ring review notes →
-          </Link>
         </div>
       </section>
 
@@ -153,7 +140,7 @@ export default function IntegrationsLandingPage() {
         </p>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row">
           <Link
-            href="https://www.rapidcortex.us/contact-sales?interest=demo"
+            href="https://www.nexcortiq.us/contact-sales?interest=demo"
             className="inline-flex min-h-11 items-center justify-center rounded-md bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-500"
           >
             Talk to integrations
@@ -169,10 +156,10 @@ export default function IntegrationsLandingPage() {
 
       <div className="mt-14 flex flex-wrap gap-8 text-xs text-slate-400">
         <Link href="/product/campus" className="hover:text-white">
-          RC Campus →
+          Campus →
         </Link>
         <Link href="/product/venue" className="hover:text-white">
-          RC Venue →
+          Venue →
         </Link>
         <Link href="/developers" className="hover:text-white">
           Developers hub →

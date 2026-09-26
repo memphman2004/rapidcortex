@@ -155,7 +155,7 @@ export function getMockDashboardPayload(
       reports: [],
       complianceNotes: [
         ...baseCompliance(),
-        "RC Admin actions are fully logged for accountability across tenants.",
+        "NexCort Admin actions are fully logged for accountability across tenants.",
       ],
     }),
     "agency-admin": () => ({

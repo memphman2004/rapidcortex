@@ -1,5 +1,5 @@
 /**
- * Rapid IQ procurement-pipeline types (master prompt).
+ * NexiQ procurement-pipeline types (master prompt).
  * Opportunity-linked `RapidIqSignal` lives in `./schemas.ts` — do not collide.
  * These aliases match the pipeline Zod schemas in `./pipeline-schemas.ts`.
  */

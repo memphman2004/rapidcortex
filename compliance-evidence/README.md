@@ -1,4 +1,4 @@
-# Rapid Cortex Compliance Evidence Bundle
+# NexCort iQ Compliance Evidence Bundle
 
 Generated: 2026-04-29  
 Environment target: `dev/us-east-1` (based on available stack outputs and credentials)

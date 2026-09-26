@@ -6,6 +6,7 @@ import {
   fetchAuditEvents,
   fetchIncidents,
   fetchQaSessions,
+  fetchDispatcherActiveCalls,
   fetchSupervisorActiveCalls,
 } from "@/lib/api";
 import { fetchReports } from "@/lib/reports-api";
@@ -36,7 +37,11 @@ export async function fetchDashboardActiveCalls(): Promise<ActiveCallRecord[]> {
   try {
     return await fetchSupervisorActiveCalls();
   } catch {
-    return [];
+    try {
+      return await fetchDispatcherActiveCalls();
+    } catch {
+      return [];
+    }
   }
 }
 

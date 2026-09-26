@@ -132,7 +132,7 @@ function parseBody(raw: string | undefined): unknown {
 }
 
 /**
- * Rapid Cortex Video HTTP — command video wall + DVR + PTZ catch-all.
+ * NexCort iQ Video HTTP — command video wall + DVR + PTZ catch-all.
  * Routes: GET/PUT /api/video/{agencyId}/wall/config
  *         GET /api/video/{agencyId}/cameras/health
  *         DVR: playback-session, fragments, recording, clips
@@ -141,7 +141,7 @@ function parseBody(raw: string | undefined): unknown {
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     if (!env.enableRcVideo) {
-      return withCorrelationHeaders(event, serviceUnavailable("Rapid Cortex Video is disabled"));
+      return withCorrelationHeaders(event, serviceUnavailable("NexCort iQ Video is disabled"));
     }
 
     const parts = pathTail(event);
@@ -243,7 +243,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       error instanceof Error &&
       (error.message.includes("VIDEO_WALL_CONFIGS_TABLE") || error.message.includes("VIDEO_CLIPS_TABLE"))
     ) {
-      return withCorrelationHeaders(event, serviceUnavailable("Rapid Cortex Video storage is not configured"));
+      return withCorrelationHeaders(event, serviceUnavailable("NexCort iQ Video storage is not configured"));
     }
     return withCorrelationHeaders(event, serverError());
   }

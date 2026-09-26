@@ -6,7 +6,7 @@ import type { AgencyBillingConfig, MonthlyUsageSnapshot } from "./invoice-types.
 function baseConfig(overrides: Partial<AgencyBillingConfig> = {}): AgencyBillingConfig {
   return {
     agencyId: "test-agency",
-    agencyName: "Rapid Cortex Test Agency",
+    agencyName: "NexCort iQ Test Agency",
     planId: "professional",
     billingCycle: "monthly",
     contractTermYears: 1,

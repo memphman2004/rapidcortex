@@ -13,7 +13,7 @@ export default function CampusTranslatePage() {
   return (
     <TranslateHomeClient
       vertical="campus"
-      heading="RC Translate"
+      heading="Translate"
       campusCode={code}
       allowStart={allowStart}
       sessionHref={(id) =>

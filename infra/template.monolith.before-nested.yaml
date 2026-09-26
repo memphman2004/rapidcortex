@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >-
-  Rapid Cortex API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks
+  NexCort iQ API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks
   use least-privilege actions, ARNs for Bedrock foundation models (AiBedrockFoundationModelId + QaBedrockModelId),
   stack Secrets prefix rapidcortex/<stage>/*, and regional Conditions where AWS control-plane APIs require Resource=*.
   Verify with npm run validate:iam and sam validate --lint.
@@ -660,8 +660,9 @@ Resources:
       Name: !Sub rapidcortex/${DeploymentStage}/multilingual/google-service-account
       Description: >-
         Full Google Cloud service account JSON for Speech + Translate. Replace entire SecretString after deploy
-        (GCP console → IAM → Service accounts → Keys → JSON).
-      SecretString: '{"type":"service_account","project_id":"REPLACE_ME","private_key_id":"REPLACE","private_key":"-----BEGIN PRIVATE KEY-----\\nREPLACE\\n-----END PRIVATE KEY-----\\n","client_email":"replace-me@project.iam.gserviceaccount.com"}'
+        (GCP console → IAM → Service accounts → Keys → JSON). Placeholder only — not a real private key.
+      # Intentionally avoids PEM BEGIN markers so secret scanners do not false-positive on this archive template.
+      SecretString: '{"type":"service_account","project_id":"REPLACE_ME","private_key_id":"REPLACE","private_key":"<GCP_SERVICE_ACCOUNT_PRIVATE_KEY_PEM_PLACEHOLDER>","client_email":"replace-me@project.iam.gserviceaccount.com"}'
 
   BillingPaymentInstructionsSecret:
     Type: AWS::SecretsManager::Secret
@@ -679,7 +680,7 @@ Resources:
       Description: >-
         SES SMTP credentials (when used) plus billing notification recipients. Replace placeholders post-deploy.
       SecretString: >-
-        {"smtpUsername":"REPLACE_ME","smtpPassword":"REPLACE_ME","billingNotificationEmails":["billing@rapidcortex.us","finance@rapidcortex.us"]}
+        {"smtpUsername":"REPLACE_ME","smtpPassword":"REPLACE_ME","billingNotificationEmails":["billing@nexcortiq.us","finance@nexcortiq.us"]}
 
   CognitoPostConfirmationFunction:
     Type: AWS::Serverless::Function
@@ -838,7 +839,7 @@ Resources:
     Type: AWS::Cognito::UserPoolGroup
     Properties:
       GroupName: rc_admin
-      Description: Rapid Cortex internal RC Admin (rc_admin).
+      Description: NexCort iQ internal RC Admin (rc_admin).
       UserPoolId: !Ref CognitoUserPool
 
   CognitoGroupAgencyAdmin:
@@ -910,7 +911,7 @@ Resources:
     Condition: HasApiWaf
     Properties:
       Name: !Sub "${AppName}-httpapi-waf-${DeploymentStage}"
-      Description: Managed rules + per-IP rate limit for Rapid Cortex API Gateway
+      Description: Managed rules + per-IP rate limit for NexCort iQ API Gateway
       Scope: REGIONAL
       DefaultAction:
         Allow: {}
@@ -5794,7 +5795,7 @@ Resources:
     Properties:
       Template:
         TemplateName: invoice-sent
-        SubjectPart: "Rapid Cortex invoice {{invoiceNumber}} is ready"
+        SubjectPart: "NexCort iQ invoice {{invoiceNumber}} is ready"
         HtmlPart: "<p>Hello {{customerName}},</p><p>Your invoice <strong>{{invoiceNumber}}</strong> is ready.</p><p>Total: {{currency}} {{total}}</p><p>Due date: {{dueDate}}</p><p><a href='{{invoiceUrl}}'>View invoice</a></p>"
         TextPart: "Hello {{customerName}}, your invoice {{invoiceNumber}} is ready. Total: {{currency}} {{total}}. Due: {{dueDate}}. View: {{invoiceUrl}}"
 
@@ -6496,7 +6497,7 @@ Outputs:
     Description: Logical environment (dev / staging / prod)
     Value: !Ref DeploymentStage
   RootDomainName:
-    Description: Primary public-facing domain for Rapid Cortex.
+    Description: Primary public-facing domain for NexCort iQ.
     Value: !Ref RootDomainName
   ApiWebAclArn:
     Condition: HasApiWaf

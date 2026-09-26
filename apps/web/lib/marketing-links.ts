@@ -51,12 +51,10 @@ export function marketingHomePath(): string {
 export function marketingSiteOrigin(): string {
   const explicit = process.env.NEXT_PUBLIC_MARKETING_SITE_URL?.trim().replace(/\/$/, "");
   if (explicit) return explicit;
-  return "https://www.rapidcortex.us";
-}
-
-/** Ring Device Owners — public Connect enrollment (not agency login). */
-export function marketingRingCustomersPath(): string {
-  return `${marketingSiteOrigin()}/connect/ring/start`;
+  const fromSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
+  // App host (app.*) is not the marketing origin.
+  if (fromSiteUrl && !fromSiteUrl.includes("://app.")) return fromSiteUrl;
+  return "https://www.nexcortiq.us";
 }
 
 /** Google Nest™ Connect — agency + citizen consent camera overview.
@@ -202,12 +200,12 @@ export function marketingAcceptableUsePath(): string {
   return "/acceptable-use";
 }
 
-/** Public SMS consent disclosure (marketing host: rapidcortex.us / www). */
+/** Public SMS consent disclosure (marketing host: nexcortiq.us / www). */
 export function marketingSmsConsentPath(): string {
   return "/sms-consent";
 }
 
-/** RC Lite developer guides — app host, session required (middleware). */
+/** NexCort Lite developer guides — app host, session required (middleware). */
 export function marketingDevelopersDocsPath(suffix = ""): string {
   const path = suffix ? `/developers/docs/${suffix.replace(/^\//, "")}` : "/developers/docs";
   return withAppOrigin(path);

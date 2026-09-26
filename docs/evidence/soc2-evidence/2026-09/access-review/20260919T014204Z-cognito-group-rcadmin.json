@@ -1,0 +1,177 @@
+{
+    "Users": [
+        {
+            "Username": "f498c478-2061-70cb-9e96-bbeeae6a5191",
+            "Attributes": [
+                {
+                    "Name": "email",
+                    "Value": "teri@nexcortiq.us"
+                },
+                {
+                    "Name": "email_verified",
+                    "Value": "true"
+                },
+                {
+                    "Name": "custom:status",
+                    "Value": "active"
+                },
+                {
+                    "Name": "custom:agencyId",
+                    "Value": "__platform__"
+                },
+                {
+                    "Name": "custom:role",
+                    "Value": "rcadmin"
+                },
+                {
+                    "Name": "sub",
+                    "Value": "f498c478-2061-70cb-9e96-bbeeae6a5191"
+                }
+            ],
+            "UserCreateDate": "2026-08-05T18:03:44.567000-04:00",
+            "UserLastModifiedDate": "2026-09-02T15:26:20.388000-04:00",
+            "Enabled": true,
+            "UserStatus": "CONFIRMED"
+        },
+        {
+            "Username": "24a85488-8001-7009-b273-a919053d4064",
+            "Attributes": [
+                {
+                    "Name": "email",
+                    "Value": "Don@nexcortiq.us"
+                },
+                {
+                    "Name": "email_verified",
+                    "Value": "true"
+                },
+                {
+                    "Name": "custom:status",
+                    "Value": "active"
+                },
+                {
+                    "Name": "custom:agencyId",
+                    "Value": "__platform__"
+                },
+                {
+                    "Name": "custom:role",
+                    "Value": "rcadmin"
+                },
+                {
+                    "Name": "sub",
+                    "Value": "24a85488-8001-7009-b273-a919053d4064"
+                }
+            ],
+            "UserCreateDate": "2026-09-02T15:23:31.097000-04:00",
+            "UserLastModifiedDate": "2026-09-02T15:26:23.103000-04:00",
+            "Enabled": true,
+            "UserStatus": "CONFIRMED"
+        },
+        {
+            "Username": "0468a468-0061-708e-24f0-4d3b64ed6502",
+            "Attributes": [
+                {
+                    "Name": "email",
+                    "Value": "Tamara@nexcortiq.us"
+                },
+                {
+                    "Name": "email_verified",
+                    "Value": "true"
+                },
+                {
+                    "Name": "custom:status",
+                    "Value": "active"
+                },
+                {
+                    "Name": "custom:agencyId",
+                    "Value": "__platform__"
+                },
+                {
+                    "Name": "custom:role",
+                    "Value": "rcadmin"
+                },
+                {
+                    "Name": "sub",
+                    "Value": "0468a468-0061-708e-24f0-4d3b64ed6502"
+                }
+            ],
+            "UserCreateDate": "2026-09-02T15:23:35.059000-04:00",
+            "UserLastModifiedDate": "2026-09-02T15:26:19.922000-04:00",
+            "Enabled": true,
+            "UserStatus": "CONFIRMED"
+        },
+        {
+            "Username": "848894b8-d091-7072-8f75-0266da279955",
+            "Attributes": [
+                {
+                    "Name": "email",
+                    "Value": "rcadmin@appsondemand.net"
+                },
+                {
+                    "Name": "email_verified",
+                    "Value": "true"
+                },
+                {
+                    "Name": "custom:status",
+                    "Value": "active"
+                },
+                {
+                    "Name": "custom:pwdChangedAt",
+                    "Value": "2026-08-05T22:08:31.092Z"
+                },
+                {
+                    "Name": "custom:pwdChangeReq",
+                    "Value": "false"
+                },
+                {
+                    "Name": "custom:agencyId",
+                    "Value": "__platform__"
+                },
+                {
+                    "Name": "custom:role",
+                    "Value": "rcadmin"
+                },
+                {
+                    "Name": "sub",
+                    "Value": "848894b8-d091-7072-8f75-0266da279955"
+                }
+            ],
+            "UserCreateDate": "2026-05-23T11:59:14.848000-04:00",
+            "UserLastModifiedDate": "2026-09-02T15:26:27.212000-04:00",
+            "Enabled": true,
+            "UserStatus": "CONFIRMED"
+        },
+        {
+            "Username": "e4c8a458-d001-70d2-a52d-8d2c64469948",
+            "Attributes": [
+                {
+                    "Name": "email",
+                    "Value": "Kevin@nexcortiq.us"
+                },
+                {
+                    "Name": "email_verified",
+                    "Value": "true"
+                },
+                {
+                    "Name": "custom:status",
+                    "Value": "active"
+                },
+                {
+                    "Name": "custom:agencyId",
+                    "Value": "__platform__"
+                },
+                {
+                    "Name": "custom:role",
+                    "Value": "rcadmin"
+                },
+                {
+                    "Name": "sub",
+                    "Value": "e4c8a458-d001-70d2-a52d-8d2c64469948"
+                }
+            ],
+            "UserCreateDate": "2026-09-02T15:23:33.209000-04:00",
+            "UserLastModifiedDate": "2026-09-02T15:26:17.211000-04:00",
+            "Enabled": true,
+            "UserStatus": "CONFIRMED"
+        }
+    ]
+}

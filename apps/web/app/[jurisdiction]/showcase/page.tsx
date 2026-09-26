@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { RapidCortexShowcaseDashboard } from "@/components/showcase/rapid-cortex-showcase-dashboard";
 
 export const metadata: Metadata = {
-  title: "Showcase · Rapid Cortex",
+  title: "Showcase · NexCort iQ",
   description: "Public sales and UX validation dashboard (demo scenarios, no sign-in).",
 };
 

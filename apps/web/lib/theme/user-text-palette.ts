@@ -31,7 +31,7 @@ export const USER_TEXT_ROLE_HELP: Record<UserTextRole, string> = {
   transcript: "Normal caller and dispatcher transcription.",
 };
 
-/** Factory Rapid Cortex tokens — Default / Reset restore these (no override). */
+/** Factory NexCort iQ tokens — Default / Reset restore these (no override). */
 export const USER_TEXT_FACTORY: Record<UserTextMode, Record<UserTextRole, string>> = {
   dark: {
     primary: "#e4dff5",
@@ -97,7 +97,7 @@ export type PaletteSwatch = {
 };
 
 /**
- * Curated Rapid Cortex accessibility palette (~60 shades).
+ * Curated NexCort iQ accessibility palette (~60 shades).
  * Rows follow the iOS-style family grouping; contrast filtering hides
  * unreadable shades per Light / Dark background.
  */

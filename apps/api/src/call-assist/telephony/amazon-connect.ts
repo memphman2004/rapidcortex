@@ -23,7 +23,7 @@ function connectClient(): ConnectClient {
  * keeps those slots and elicits the next missing field (see barge-in.ts).
  *
  * KVS StartMediaStreaming is an optional media fork for Contact Lens / recording,
- * not the barge-in control path. Rapid Cortex does not operate a second 911 SIP switch.
+ * not the barge-in control path. NexCort iQ does not operate a second 911 SIP switch.
  */
 export class AmazonConnectProvider implements TelephonyProvider {
   readonly name = "amazon-connect";

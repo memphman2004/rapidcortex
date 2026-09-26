@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { absoluteUrl, buildOgShareImage } from "@/lib/seo";
-import { SITE_NAME, SITE_OPERATOR_NAME, SITE_OPERATOR_URL } from "@/lib/site";
+import { SITE_NAME, SITE_NAME_WITH_FORMER, SITE_OPERATOR_NAME, SITE_OPERATOR_URL } from "@/lib/site";
 
-const PRESS_EMAIL = "info@rapidcortex.us";
+const PRESS_EMAIL = "info@nexcortiq.us";
 const FOUNDED_YEAR = 2025;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: `About | ${SITE_NAME}`,
     description: `${SITE_NAME} is a product of ${SITE_OPERATOR_NAME}, founded in ${FOUNDED_YEAR}. Decision-support software for emergency communications, 911 dispatch, campus safety, and venue operations.`,
     keywords: [
-      "rapid cortex",
+      "nexcort iq",
       "apps on demand",
       "public safety technology",
       "emergency communications",
@@ -45,7 +45,7 @@ export default function AboutPage() {
         </p>
         <h1 className="text-3xl font-semibold text-white sm:text-4xl">About {SITE_NAME}</h1>
         <p className="max-w-2xl text-sm leading-relaxed text-slate-300">
-          {SITE_NAME} is a product of{" "}
+          {SITE_NAME_WITH_FORMER} is a product of{" "}
           <a
             href={SITE_OPERATOR_URL}
             target="_blank"

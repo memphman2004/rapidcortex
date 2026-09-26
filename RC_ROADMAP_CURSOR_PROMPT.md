@@ -1,4 +1,4 @@
-# Rapid Cortex — Feature Roadmap Cursor Prompt
+# NexCort iQ — Feature Roadmap Cursor Prompt
 ## F6 through F17 · Stepped Implementation Guide
 
 Drop this file in the repo root. Open it in Cursor alongside:

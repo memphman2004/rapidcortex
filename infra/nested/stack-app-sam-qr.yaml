@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Rapid Cortex — QR location + venue incidents HTTP routes (attach to stack 1 HttpApi via ApiGatewayV2)
+Description: NexCort iQ — QR location + venue incidents HTTP routes (attach to stack 1 HttpApi via ApiGatewayV2)
 
 Parameters:
   AppName:

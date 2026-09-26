@@ -54,7 +54,7 @@ function verticalRolePalette(
   });
 }
 
-/** Canonical palettes aligned to Rapid Cortex role dashboard color spec. */
+/** Canonical palettes aligned to NexCort iQ role dashboard color spec. */
 export const ROLE_DASHBOARD_PALETTE_BY_ROLE: Record<UserRole, RoleDashboardIdentity> = {
   rcsuperadmin: withAccents({
     identityTitle: "Platform Command",
@@ -79,6 +79,14 @@ export const ROLE_DASHBOARD_PALETTE_BY_ROLE: Record<UserRole, RoleDashboardIdent
     dim: "#164E63",
     badgeBg: "#0E7490",
     textColor: "#CFFAFE",
+  }),
+  salescontractor: withAccents({
+    identityTitle: "Sales Portal",
+    identitySubtitle: "Pipeline & enablement",
+    accent: "#38BDF8",
+    dim: "#0C4A6E",
+    badgeBg: "#0369A1",
+    textColor: "#E0F2FE",
   }),
   agencyadmin: withAccents({
     identityTitle: "Agency Management",
@@ -254,12 +262,6 @@ export const ROLE_DASHBOARD_PALETTE_BY_ROLE: Record<UserRole, RoleDashboardIdent
     "Call Assist Operator",
     "Non-emergency monitor",
     "#0D9488",
-  ),
-  homeowner: verticalRolePalette(
-    "homeowner",
-    "Ring™ Device Owner",
-    "Connect enrollment only",
-    roleBandColor("homeowner"),
   ),
 };
 

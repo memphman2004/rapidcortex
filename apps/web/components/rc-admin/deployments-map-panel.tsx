@@ -2,14 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import maplibregl from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpDown, Map as MapIcon, X } from "lucide-react";
-import {
-  PSAP_OUTREACH_STATUS_CONFIG,
-  type PsapMapPin,
-} from "rapid-cortex-shared";
+import { psapPinsToGeoJSON } from "rapid-cortex-shared";
 import { RapidCortexMap } from "rapid-cortex-maps";
 import {
   fetchPlatformDeploymentsMap,
@@ -18,6 +15,12 @@ import {
 import { getPsapMapPins } from "@/lib/psap/psap-api";
 import { isDeploymentsMapEnabled, isPsapProspectsUiEnabled } from "@/lib/runtime-flags";
 import { MapFourColorLegend } from "@/components/maps/MapFourColorLegend";
+import {
+  applyPsapOverlayVisibility,
+  bindPsapOverlayInteractions,
+  ensurePsapOverlayLayers,
+  setPsapOverlayData,
+} from "@/components/maps/psap-overlay";
 import { DeploymentsCoverageLayer } from "@/components/rc-admin/deployments-coverage-layer";
 
 type Marker = AgencyDeploymentsMapPayload["markers"][number];
@@ -187,78 +190,12 @@ function useFitBounds(
 }
 
 export type DeploymentsMapPanelProps = {
-  /** Compact preview for the RC Admin dashboard home. */
+  /** Compact preview for the NexCort Admin dashboard home. */
   compact?: boolean;
   className?: string;
   /** Show PSAP Prospects overlay toggle (finance-portal roles + feature flag). */
   showPsapProspectsLayer?: boolean;
 };
-
-function PsapProspectPin({
-  map,
-  pin,
-}: {
-  map: maplibregl.Map | null;
-  pin: PsapMapPin;
-}) {
-  const markerRef = useRef<maplibregl.Marker | null>(null);
-  const popupRef = useRef<maplibregl.Popup | null>(null);
-
-  useEffect(() => {
-    if (!map) return;
-    if (pin.status === "UNCONTACTED") return;
-
-    const fill = PSAP_OUTREACH_STATUS_CONFIG[pin.status].mapPinColor;
-    const mount = () => {
-      const el = document.createElement("div");
-      el.style.cssText = `
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: ${fill};
-        border: 1px solid #0f1117;
-        opacity: 0.9;
-        cursor: default;
-      `;
-      const popup = new maplibregl.Popup({
-        offset: 10,
-        closeButton: false,
-        closeOnClick: false,
-        maxWidth: "220px",
-        className: "rc-map-popup",
-      }).setHTML(`
-        <div style="background:#0f1117;border:1px solid #1e1b2e;border-radius:6px;padding:8px 10px;font-size:11px;color:#e2e8f0;">
-          <div style="font-weight:700;margin-bottom:2px;">${escapeHtml(pin.psapName)}</div>
-          <div style="color:#94a3b8;">${escapeHtml(pin.state)} · ${escapeHtml(PSAP_OUTREACH_STATUS_CONFIG[pin.status].label)}</div>
-        </div>
-      `);
-      el.addEventListener("mouseenter", () => {
-        popup.setLngLat([pin.lon, pin.lat]).addTo(map);
-      });
-      el.addEventListener("mouseleave", () => popup.remove());
-      const next = new maplibregl.Marker({ element: el })
-        .setLngLat([pin.lon, pin.lat])
-        .addTo(map);
-      markerRef.current?.remove();
-      popupRef.current?.remove();
-      markerRef.current = next;
-      popupRef.current = popup;
-    };
-
-    if (map.isStyleLoaded()) mount();
-    else map.once("load", mount);
-
-    return () => {
-      map.off("load", mount);
-      popupRef.current?.remove();
-      markerRef.current?.remove();
-      popupRef.current = null;
-      markerRef.current = null;
-    };
-  }, [map, pin]);
-
-  return null;
-}
 
 export function DeploymentsMapPanel({
   compact = false,
@@ -295,6 +232,25 @@ export function DeploymentsMapPanel({
     () => (psapPinsQuery.data ?? []).filter((p) => p.status !== "UNCONTACTED"),
     [psapPinsQuery.data],
   );
+
+  useEffect(() => {
+    if (!map) return;
+    if (!psapLayerOn) {
+      applyPsapOverlayVisibility(map, false);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      await ensurePsapOverlayLayers(map);
+      if (cancelled) return;
+      bindPsapOverlayInteractions(map, maplibregl);
+      setPsapOverlayData(map, psapPinsToGeoJSON(psapPins));
+      applyPsapOverlayVisibility(map, true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [map, psapLayerOn, psapPins]);
 
   const markers = query.data?.markers ?? [];
   const missing = query.data?.missingCoordinatesCount ?? 0;
@@ -436,8 +392,6 @@ export function DeploymentsMapPanel({
               onSelect={onSelect}
             />
           ))}
-          {psapLayerOn &&
-            psapPins.map((p) => <PsapProspectPin key={p.psapId} map={map} pin={p} />)}
         </RapidCortexMap>
         {!compact ? <MapFourColorLegend /> : null}
       </>

@@ -1,10 +1,10 @@
-# Rapid Cortex — Cursor Rules
+# NexCort iQ — Cursor Rules
 # Real-Time AI Intelligence for Emergency Response
 # Senior Full-Stack Engineer, AWS Architect, and UI/UX Design standards
 
 ## PROJECT OVERVIEW
 
-Rapid Cortex is a production public safety intelligence platform for:
+NexCort iQ is a production public safety intelligence platform for:
 - 911 dispatch centers / PSAPs
 - Emergency communications centers
 - Law enforcement, fire, EMS
@@ -28,13 +28,13 @@ It enhances operations but does NOT replace CAD, telephony, dispatchers, or medi
 │   ├── web/              # Next.js 14 App Router (TypeScript, Tailwind)
 │   ├── marketing/        # Next.js static marketing site
 │   ├── android-mobile/   # Expo/React Native Android (Play)
-│   ├── ios-mobile/       # Native Swift Rapid Cortex Mobile (Xcode / TestFlight)
+│   ├── ios-mobile/       # Native Swift NexCort iQ Mobile (Xcode / TestFlight)
 │   ├── desktop-macos/    # Swift WKWebView wrapper
 │   └── desktop-windows/  # WPF WebView2 wrapper (C#)
 ├── packages/
 │   ├── shared/           # Canonical types, roles, auth helpers
 │   ├── security/         # AuthorizationService, RBAC, audit logger
-│   ├── integrations/     # CAD, Ring, external adapters
+│   ├── integrations/     # CAD, Nest/Wyze, external adapters
 │   └── protocols/        # Emergency protocol packs
 ├── infra/
 │   ├── template.yaml     # Root CloudFormation stack
@@ -43,7 +43,7 @@ It enhances operations but does NOT replace CAD, telephony, dispatchers, or medi
 │       ├── stack-app-sam.yaml      # Primary Lambda stack (~70 functions)
 │       ├── stack-app-sam-2.yaml    # Stack 2: language, analytics, retention
 │       ├── stack-app-sam-3.yaml    # Stack 3: media/video, agency admin, RC admin
-│       ├── stack-app-sam-4.yaml    # Stack 4: billing/payments, Ring Connect
+│       ├── stack-app-sam-4.yaml    # Stack 4: billing/payments
 │       └── stack-app-sam-qr.yaml  # Stack QR: QR location management
 └── scripts/              # Deploy, migration, and operational scripts
 ```
@@ -361,7 +361,7 @@ Stack deploy order (automatic via CloudFormation dependencies):
 3. AppSam2Stack (language, analytics, retention, comms)
 4. AppSamHospital2Stack + AppSamTransitStack (hospital + transit APIs on stack 2 HttpApi)
 5. AppSam3Stack (video/media, agency admin, RC admin/desktop)
-6. AppSam4Stack (billing/payments, Ring Connect)
+6. AppSam4Stack (billing/payments)
 7. AppSamQrStack (QR location management)
 
 ---
@@ -383,11 +383,10 @@ Stack deploy order (automatic via CloudFormation dependencies):
 API_UPSTREAM_BASE          # Stack 1 API (incidents, CAD, QA, campus, venue)
 API_UPSTREAM_BASE_2        # Stack 2 API (language, analytics, hospital, transit)
 API_UPSTREAM_BASE_3        # Stack 3 API (media/video, agency admin)
-API_UPSTREAM_BASE_4        # Stack 4 API (billing, Ring Connect)
+API_UPSTREAM_BASE_4        # Stack 4 API (billing)
 
 # Web BFF routing prefix mapping
 /api/billing/*             → API_UPSTREAM_BASE_4
-/api/integrations/ring/*   → API_UPSTREAM_BASE_4
 /api/languages/*           → API_UPSTREAM_BASE_2
 /api/transit/*             → API_UPSTREAM_BASE_2
 /api/video-assist/*        → API_UPSTREAM_BASE_3

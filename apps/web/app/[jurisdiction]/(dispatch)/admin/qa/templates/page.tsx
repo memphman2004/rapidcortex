@@ -113,7 +113,7 @@ export default function AdminQaTemplatesPage() {
   if (!isApiConfigured()) {
     return (
       <div className="p-6 text-sm text-slate-400">
-        Platform connection isn’t configured. Contact Rapid Cortex support.
+        Platform connection isn’t configured. Contact NexCort iQ support.
       </div>
     );
   }

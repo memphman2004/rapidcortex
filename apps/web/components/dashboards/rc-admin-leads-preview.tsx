@@ -19,7 +19,7 @@ function displayName(row: LeadRow): string {
   return row.name?.trim() || row.email;
 }
 
-/** Compact new-leads inbox strip for RC Admin home dashboards (all RC roles). */
+/** Compact new-leads inbox strip for NexCort Admin home dashboards (all RC roles). */
 export function RcAdminLeadsPreview() {
   if (!isSalesLeadsUiEnabled()) return null;
 

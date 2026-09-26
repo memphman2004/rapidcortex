@@ -22,7 +22,7 @@ export default async function TransitAdminQrCodesPage() {
         canCreate={perms.canCreate}
         canDeactivate={perms.canDeactivate}
         canDownload={perms.canDownload}
-        zoneLabel="Route / Vehicle / Station"
+        zoneLabel="Location Details"
       />
     </div>
   );

@@ -25,7 +25,7 @@ export type AgencyRole = AgencyAssignableRole;
 /** @deprecated Prefer `AgencyAssignableRole`; kept for transitional imports. */
 export type FutureAgencyRole = "analyst" | "auditor";
 
-/** Rapid Cortex internal full platform operator. */
+/** NexCort iQ internal full platform operator. */
 export type PlatformPrincipalRole = "rcsuperadmin";
 
 /** All assignable roles for agency admins (never RC-internal roles). */
@@ -127,7 +127,7 @@ export interface Incident {
   source: "demo" | "manual" | "stream" | "cad";
   /** CAD vendor key when `source` is `cad` or when incident is linked to CAD data. */
   cadSystem?: "motorola" | "tyler" | "centralsquare" | "hexagon" | "generic";
-  /** CAD system incident / call identifier (not necessarily Rapid Cortex `incidentId`). */
+  /** CAD system incident / call identifier (not necessarily NexCort iQ `incidentId`). */
   cadIncidentId?: string;
   /** Monotonic CAD update sequence for idempotent merges / conflict detection. */
   cadRevision?: number;
@@ -145,9 +145,9 @@ export interface Incident {
   cadPriorityModifier?: string | null;
   /** CAD nature / type code. */
   cadNatureCode?: string;
-  /** Agency mapping: Rapid Cortex incident type id when a nature-code mapping hits. */
+  /** Agency mapping: NexCort iQ incident type id when a nature-code mapping hits. */
   cadMappedIncidentTypeId?: string | null;
-  /** CAD-owned close / disposition code (Rapid Cortex does not own CFS closure). */
+  /** CAD-owned close / disposition code (NexCort iQ does not own CFS closure). */
   cadDisposition?: string | null;
   /** CAD-formatted location string from the vendor. */
   cadLocation?: string;
@@ -176,7 +176,7 @@ export interface Incident {
   cadRelatedCadNumbers?: string[];
   /** CAD-declared duplicate of another CAD number. */
   cadDuplicateOfCadNumber?: string | null;
-  /** Rapid Cortex incident ids resolved from related CAD numbers (same agency). */
+  /** NexCort iQ incident ids resolved from related CAD numbers (same agency). */
   cadLinkedIncidentIds?: string[];
   cadAlerts?: CadAlert[];
   /** Model-estimated confidence for latest triage; normalized 0–1 (UI may display as %). */
@@ -245,7 +245,7 @@ export type SopProtocolOverlayState = {
  * Single immutable utterance in the incident transcript chain.
  * Used for storage, replay, and protocol/AI inputs — keep field names stable for Dynamo and APIs.
  *
- * **`text` is always English (analysis-ready)** for the Rapid Cortex AI pipeline when multilingual
+ * **`text` is always English (analysis-ready)** for the NexCort iQ AI pipeline when multilingual
  * processing is enabled; `originalTranscript` preserves the caller/source language when different.
  */
 export interface TranscriptSegment {

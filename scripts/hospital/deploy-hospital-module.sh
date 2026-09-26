@@ -5,7 +5,7 @@ ENVIRONMENT="${1:?Usage: $0 <env: dev|staging|prod>}"
 REGION="${AWS_REGION:-us-east-1}"
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "🏥 Deploying Rapid Cortex Hospital Module"
+echo "🏥 Deploying NexCort iQ Hospital Module"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Environment: ${ENVIRONMENT}"
 echo "Region:      ${REGION}"

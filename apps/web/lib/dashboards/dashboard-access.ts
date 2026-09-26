@@ -24,6 +24,7 @@ export const DASHBOARD_PREFIX_BY_ROLE: Record<UserRole, DashboardPrefix | null> 
   rcsuperadmin: "rc-admin",
   rcadmin: "rc-admin",
   rcitadmin: "rc-admin",
+  salescontractor: null,
   agencyadmin: "agency-admin",
   dispatcher: "dispatcher",
   supervisor: "supervisor",
@@ -53,7 +54,6 @@ export const DASHBOARD_PREFIX_BY_ROLE: Record<UserRole, DashboardPrefix | null> 
   call_assist_admin: null,
   call_assist_supervisor: null,
   call_assist_operator: null,
-  homeowner: null,
 };
 
 export const ROLES_BY_DASHBOARD_PREFIX: Record<DashboardPrefix, readonly UserRole[]> = {
@@ -98,6 +98,8 @@ export function userMayAccessDashboardPrefix(
   if (prefix === "hospital-admin" && isHospitalAdminPortalRole(user.role)) return true;
   if (prefix === "hospital-staff" && isHospitalStaffPortalRole(user.role)) return true;
   const effectiveRole = migrateLegacyRapidCortexRoleTokenValue(user.role) ?? user.role;
+  // Sales contractors use RoleDashboardLayout for allowlisted /rc-admin tools; page + middleware enforce scope.
+  if (prefix === "rc-admin" && effectiveRole === "salescontractor") return true;
   const base = (ROLES_BY_DASHBOARD_PREFIX[prefix] as readonly string[]).includes(effectiveRole);
   if (base) return true;
   const fullUser = user as UserContext;

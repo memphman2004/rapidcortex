@@ -23,7 +23,7 @@ function attr(attributes: Record<string, string> | undefined, keys: string[]): s
 /**
  * Amazon Connect is the live telephony path. ANI is the customer endpoint.
  * ALI, when present, arrives as contact attributes from the Connect flow,
- * RapidSOS, or a PSAP ALI lookup Lambda — Rapid Cortex does not host a 911 ALI database.
+ * RapidSOS, or a PSAP ALI lookup Lambda — NexCort iQ does not host a 911 ALI database.
  */
 export function ingestConnectCallerIdentity(opts: {
   ani?: string;

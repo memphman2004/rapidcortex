@@ -1,6 +1,6 @@
 # Campus inbound security events (SOC-001 / SOC-022 / SOC-028 / SOC-040)
 
-Rapid Cortex already publishes **outbound** webhooks. This endpoint is a signed **inbound** queue so IU (and later vendors) can dump VMS, ALPR, alarm, and sensor events before native connectors exist.
+NexCort iQ already publishes **outbound** webhooks. This endpoint is a signed **inbound** queue so IU (and later vendors) can dump VMS, ALPR, alarm, and sensor events before native connectors exist.
 
 ## Endpoint
 

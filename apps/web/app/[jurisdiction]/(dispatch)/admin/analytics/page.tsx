@@ -58,7 +58,7 @@ export default function AdminAnalyticsPage() {
       </p>
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col text-xs text-slate-400">
-          Agency override (RC Admin only)
+          Agency override (NexCort Admin only)
           <input
             value={agencyId}
             onChange={(e) => setAgencyId(e.target.value)}

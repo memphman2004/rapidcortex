@@ -19,6 +19,7 @@ import { makeId } from "../lib/ids.js";
 import { broadcastToAgency } from "../lib/websocket/send-message.js";
 import { alertsStore } from "./store.js";
 import { isStartKeyword, isStopKeyword } from "./sms-keywords.js";
+import { getFourwindsClient } from "./fourwinds-config.js";
 
 const HOURLY_OCCUPANT_LIMIT = 3;
 const CRITICAL_COOLDOWN_MS = 5 * 60 * 1000;
@@ -77,24 +78,26 @@ export async function ensureSystemCatalog(
     }
   }
   const templates = await alertsStore.listTemplates(agencyId);
-  if (!templates.some((t) => t.vertical === vertical && t.system)) {
-    for (const seed of systemTemplateSeeds(vertical)) {
-      const tpl: AlertTemplate = {
-        templateId: makeId("tpl"),
-        organizationId: org.organizationId,
-        agencyId,
-        vertical,
-        type: seed.type,
-        title: seed.title,
-        body: seed.body,
-        smsBody: seed.smsBody,
-        severity: seed.severity,
-        system: true,
-        createdAt: nowIso(),
-        updatedAt: nowIso(),
-      };
-      await alertsStore.putTemplate(tpl);
-    }
+  const existingTypes = new Set(
+    templates.filter((t) => t.vertical === vertical && t.system).map((t) => t.type),
+  );
+  for (const seed of systemTemplateSeeds(vertical)) {
+    if (existingTypes.has(seed.type)) continue;
+    const tpl: AlertTemplate = {
+      templateId: makeId("tpl"),
+      organizationId: org.organizationId,
+      agencyId,
+      vertical,
+      type: seed.type,
+      title: seed.title,
+      body: seed.body,
+      smsBody: seed.smsBody,
+      severity: seed.severity,
+      system: true,
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    };
+    await alertsStore.putTemplate(tpl);
   }
 }
 
@@ -172,6 +175,8 @@ export async function dispatchOccupantAlert(params: {
   displayName: string;
   body: AlertDispatchBody;
   canCritical: boolean;
+  isEnsTest?: boolean;
+  ensTestRunId?: string;
 }): Promise<AlertDispatchJob> {
   const org = params.body.organizationId
     ? (await alertsStore.getOrganization(params.agencyId, params.body.organizationId)) ??
@@ -207,9 +212,11 @@ export async function dispatchOccupantAlert(params: {
     }
   }
 
-  const hourly = await alertsStore.incrementHourlyDispatch(org.organizationId, params.agencyId);
-  if (hourly > HOURLY_OCCUPANT_LIMIT) {
-    throw Object.assign(new Error("HOURLY_RATE_LIMIT"), { statusCode: 429 });
+  if (!params.isEnsTest) {
+    const hourly = await alertsStore.incrementHourlyDispatch(org.organizationId, params.agencyId);
+    if (hourly > HOURLY_OCCUPANT_LIMIT) {
+      throw Object.assign(new Error("HOURLY_RATE_LIMIT"), { statusCode: 429 });
+    }
   }
 
   const groups = await alertsStore.listGroups(params.agencyId);
@@ -238,6 +245,8 @@ export async function dispatchOccupantAlert(params: {
     actorId: params.actorId,
     estimatedRecipients: recipients.length,
     channelSummary,
+    ensTestKind: params.body.ensTestKind,
+    ensTestRunId: params.ensTestRunId,
   };
   await alertsStore.putJob(job);
 
@@ -271,6 +280,8 @@ export async function dispatchOccupantAlert(params: {
   const emailWanted = channels.includes("EMAIL");
   const pushWanted = channels.includes("WEB_PUSH");
   const dashWanted = channels.includes("WEB_DASHBOARD");
+  const displayWanted = channels.includes("DISPLAY_TAKEOVER");
+  const paWanted = channels.includes("PA_SIREN");
 
   const shortCode = smsWanted ? await resolveShortCode(params.agencyId) : null;
 
@@ -420,6 +431,103 @@ export async function dispatchOccupantAlert(params: {
           failed: 0,
           skipped: recipients.length,
           skipReason: "Web push ships in a later phase. Not sent.",
+        });
+      })(),
+    );
+  }
+
+  if (displayWanted) {
+    channelWork.push(
+      (async () => {
+        const fw = await getFourwindsClient();
+        if (!env.enableFourwinds || !fw) {
+          await alertsStore.putDelivery({
+            agencyId: params.agencyId,
+            organizationId: org.organizationId,
+            jobId,
+            recipientId: "fourwinds-all",
+            channel: "DISPLAY_TAKEOVER",
+            status: "skipped",
+            reason: "CHANNEL_NOT_ENABLED",
+          });
+          channelSummary.push({
+            channel: "DISPLAY_TAKEOVER",
+            queued: 0,
+            sent: 0,
+            delivered: 0,
+            failed: 0,
+            skipped: 1,
+            skipReason: "Four Winds integration disabled or not configured.",
+          });
+          return;
+        }
+        const scopes =
+          params.body.fourwindsScopes && params.body.fourwindsScopes.length > 0
+            ? params.body.fourwindsScopes
+            : [{ scopeType: "campus" as const, scopeId: params.agencyId, label: params.displayName }];
+        const isAllClear = template.type === "ALL_CLEAR";
+        const result = isAllClear
+          ? await fw.clearEmergency({
+              incidentId: jobId,
+              title: job.title,
+              body: bodyText,
+              severity: template.severity,
+              scopes,
+            })
+          : await fw.activateEmergency({
+              incidentId: jobId,
+              title: job.title,
+              body: bodyText,
+              severity: template.severity,
+              scopes,
+              html5FallbackUrl: params.body.html5FallbackUrl,
+            });
+        await alertsStore.putDelivery({
+          agencyId: params.agencyId,
+          organizationId: org.organizationId,
+          jobId,
+          recipientId: "fourwinds-all",
+          channel: "DISPLAY_TAKEOVER",
+          status: result.ok ? "sent" : "failed",
+          reason: result.error,
+        });
+        channelSummary.push({
+          channel: "DISPLAY_TAKEOVER",
+          queued: result.ok ? 1 : 0,
+          sent: result.ok ? 1 : 0,
+          delivered: result.ok ? 1 : 0,
+          failed: result.ok ? 0 : 1,
+          skipped: 0,
+          skipReason: result.error,
+        });
+      })(),
+    );
+  }
+
+  if (paWanted) {
+    channelWork.push(
+      (async () => {
+        const commandsOn = env.physicalSecurityCommandsEnabled;
+        const status = commandsOn || env.physicalSecurityIngestMock ? "queued" : "skipped";
+        await alertsStore.putDelivery({
+          agencyId: params.agencyId,
+          organizationId: org.organizationId,
+          jobId,
+          recipientId: "pa-siren-all",
+          channel: "PA_SIREN",
+          status,
+          reason: commandsOn ? "PA_BRIDGE_QUEUE" : "PHYSICAL_COMMANDS_DISABLED",
+        });
+        channelSummary.push({
+          channel: "PA_SIREN",
+          queued: status === "queued" ? 1 : 0,
+          sent: 0,
+          delivered: 0,
+          failed: 0,
+          skipped: status === "skipped" ? 1 : 0,
+          skipReason: commandsOn
+            ? undefined
+            : "PA/siren commands require physical security command bridge (enable in agency IT settings).",
         });
       })(),
     );

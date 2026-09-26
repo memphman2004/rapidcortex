@@ -12,7 +12,7 @@ export function isPlatformAdmin(role: UserRole | string): boolean {
 }
 
 /**
- * True for Rapid Cortex full platform operators (`rcsuperadmin`) or sentinel platform tenant JWTs
+ * True for NexCort iQ full platform operators (`rcsuperadmin`) or sentinel platform tenant JWTs
  * on `__platform__` (legacy pools).
  */
 export function isRcsuperadmin(user: Pick<UserContext, "role" | "agencyId">): boolean {
@@ -34,6 +34,12 @@ export function isRcInternalOperator(role: UserRole | string): boolean {
 export function canAccessRcFinancePortal(role: UserRole | string): boolean {
   const e = effective(role);
   return e === "rcadmin" || e === "rcsuperadmin" || e === "rcitadmin";
+}
+
+/** Leads CRM — RC finance operators plus sales contractors (portal Pipeline tab). */
+export function canAccessSalesLeadsCrm(role: UserRole | string): boolean {
+  const e = effective(role);
+  return canAccessRcFinancePortal(e) || e === "salescontractor";
 }
 
 /** Revenue / MRR totals — rcsuperadmin only (Role Access Matrix v2). */

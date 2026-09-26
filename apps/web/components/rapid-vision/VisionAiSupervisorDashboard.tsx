@@ -5,6 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import type { VisionSceneAlert } from "rapid-cortex-shared";
 import { CameraAiAlertsPanel } from "./CameraAiAlertsPanel";
 import { isRapidVisionSceneIntelEnabled } from "@/lib/runtime-flags";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 
 type Stats = {
   totalAlerts: number;
@@ -19,6 +21,7 @@ type Stats = {
 
 export function VisionAiSupervisorDashboard() {
   const enabled = isRapidVisionSceneIntelEnabled();
+  const { hour12 } = useClockPreference();
   const [severity, setSeverity] = useState<string>("all");
 
   const statsQuery = useQuery({
@@ -116,7 +119,7 @@ export function VisionAiSupervisorDashboard() {
               <tbody>
                 {filtered.map((alert) => (
                   <tr key={alert.eventId} className="border-t border-slate-800">
-                    <td className="py-2 font-mono">{new Date(alert.timestamp).toLocaleTimeString()}</td>
+                    <td className="py-2 font-mono">{formatClockTime(alert.timestamp, hour12, { second: "2-digit" })}</td>
                     <td className="py-2">{alert.cameraName}</td>
                     <td className="py-2">{alert.shortLabel}</td>
                     <td className="py-2 uppercase">{alert.status.replace("_", " ")}</td>

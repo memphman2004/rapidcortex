@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — Physical security ingest (one-way). Commands stay 501 / fail-closed.
+  NexCort iQ — Physical security ingest (one-way). Commands stay 501 / fail-closed.
   Nested so stack-app-sam-5.yaml stays under size limits.
 
 Parameters:

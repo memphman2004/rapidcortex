@@ -1,4 +1,6 @@
-export function emptyFeatureCollection(): GeoJSON.FeatureCollection {
+import type { Feature, FeatureCollection, LineString, Polygon } from "geojson";
+
+export function emptyFeatureCollection(): FeatureCollection {
   return {
     type: "FeatureCollection",
     features: [],
@@ -6,7 +8,11 @@ export function emptyFeatureCollection(): GeoJSON.FeatureCollection {
 }
 
 /** Approximate meters → lon/lat ring (adequate for sub-km GPS accuracy rings). */
-export function createAccuracyCirclePolygon(lat: number, lon: number, radiusMeters: number): GeoJSON.Feature<GeoJSON.Polygon> {
+export function createAccuracyCirclePolygon(
+  lat: number,
+  lon: number,
+  radiusMeters: number,
+): Feature<Polygon> {
   const points = 64;
   const coords: [number, number][] = [];
   const km = radiusMeters / 1000;
@@ -35,7 +41,7 @@ export function createAccuracyCirclePolygon(lat: number, lon: number, radiusMete
   };
 }
 
-export function lineStringFeature(coordinates: [number, number][]): GeoJSON.Feature<GeoJSON.LineString> {
+export function lineStringFeature(coordinates: [number, number][]): Feature<LineString> {
   return {
     type: "Feature",
     properties: {},

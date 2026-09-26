@@ -11,6 +11,10 @@ resolve_als_map_env() {
   export NEXT_PUBLIC_ALS_REGION="${NEXT_PUBLIC_ALS_REGION:-${region}}"
   export NEXT_PUBLIC_ALS_MAP_NAME="${NEXT_PUBLIC_ALS_MAP_NAME:-rc-map-${stage}}"
   export NEXT_PUBLIC_ALS_MAP_NAME_DARK="${NEXT_PUBLIC_ALS_MAP_NAME_DARK:-rc-map-dark-${stage}}"
+  # Maps V2 style descriptors include live traffic (`traffic=All`). Unset or `v1`
+  # keeps named Esri/HERE maps (no traffic on Esri `rc-map-{stage}`).
+  export NEXT_PUBLIC_ALS_MAP_API_VERSION="${NEXT_PUBLIC_ALS_MAP_API_VERSION:-v2}"
+  export NEXT_PUBLIC_ALS_MAP_STYLE="${NEXT_PUBLIC_ALS_MAP_STYLE:-Standard}"
   export NEXT_PUBLIC_ALS_PLACE_INDEX_NAME="${NEXT_PUBLIC_ALS_PLACE_INDEX_NAME:-rc-places-${stage}}"
   export NEXT_PUBLIC_ALS_ROUTE_CALCULATOR_NAME="${NEXT_PUBLIC_ALS_ROUTE_CALCULATOR_NAME:-rc-routes-${stage}}"
   export NEXT_PUBLIC_ALS_GEOFENCE_COLLECTION="${NEXT_PUBLIC_ALS_GEOFENCE_COLLECTION:-rc-geofences-${stage}}"

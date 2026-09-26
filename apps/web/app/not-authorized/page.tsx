@@ -14,7 +14,7 @@ export default function NotAuthorizedPage() {
       <main className="mx-auto max-w-3xl px-6 py-16">
         <h1 className="text-3xl font-semibold tracking-tight text-slate-100">Access not available</h1>
         <p className="mt-6 text-slate-300">
-          Your account role does not have access to this page. Contact your administrator or Rapid Cortex
+          Your account role does not have access to this page. Contact your administrator or NexCort iQ
           support.
         </p>
         <p className="mt-8">

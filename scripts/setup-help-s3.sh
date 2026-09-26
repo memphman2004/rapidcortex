@@ -19,7 +19,7 @@ if [[ -n "${AWS_PROFILE:-}" ]]; then
 fi
 
 echo ""
-echo "=== Rapid Cortex Help Content S3 Setup ==="
+echo "=== NexCort iQ Help Content S3 Setup ==="
 echo "Bucket : s3://${BUCKET}"
 echo "Region : ${REGION}"
 echo "Profile: ${AWS_PROFILE:-default}"

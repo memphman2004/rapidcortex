@@ -1,4 +1,4 @@
-# Rapid Cortex HL7 Listener
+# NexCort iQ HL7 Listener
 
 Receives **HL7 v2 ADT** messages over **MLLP/TCP** (port 2575), aggregates occupied beds by department, and writes **`HospitalCapacity`** rows to DynamoDB (tenant-scoped `AGENCY#` / `CAPACITY#` keys — same shape as the API).
 
@@ -20,7 +20,7 @@ HOSPITAL_CAPACITY_TABLE=rapid-cortex-hospital-capacity-dev npm run start -w rapi
 
 ## Facility mapping
 
-Map hospital EMR sending facility codes to Rapid Cortex `agencyId` + `hospitalId`:
+Map hospital EMR sending facility codes to NexCort iQ `agencyId` + `hospitalId`:
 
 ```bash
 export HL7_FACILITY_MAP_JSON='{"SARASOTA_MEM":{"agencyId":"agency-1","hospitalId":"hosp-1","bedTotals":{"er":25,"icu":12,"trauma":4}}}'

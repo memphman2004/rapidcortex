@@ -8,18 +8,18 @@ AWS documents **Kinesis Video Streams with WebRTC** as the managed capability fo
 
 For **optional cloud ingestion/recording**, AWS documents a flow where you also use a **Kinesis video stream** (media storage) alongside the signaling channel, with APIs such as `UpdateMediaStorageConfiguration` / storage session patterns as applicable.
 
-**In Rapid Cortex (runtime, not manual console):**
+**In NexCort iQ (runtime, not manual console):**
 
 | Product mode | What the API creates per session |
 | --- | --- |
 | **Live-only WebRTC** | **Signaling channel** only. Set `LIVE_VIDEO_STORAGE_MODE=off`. Caller = master, dispatcher = viewer (plain peer connection). |
 | **Live + cloud ingest (production default)** | Signaling channel **and** a Kinesis **video** stream (`CreateStream`). `LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL` defaults **on**: `UpdateMediaStorageConfiguration` maps the channel to the stream. Browsers **must** call `JoinStorageSession` (caller) / `JoinStorageSessionAsViewer` (dispatcher). |
 
-**Console vs app:** In production, Rapid Cortex **creates and deletes** resources **via the API** when a dispatcher requests live video—you do **not** need to click **Create signaling channel** or **Create video stream** in the console for each incident. Manual resources in the console are **not** wired into sessions unless you change the product to use a fixed pool of names.
+**Console vs app:** In production, NexCort iQ **creates and deletes** resources **via the API** when a dispatcher requests live video—you do **not** need to click **Create signaling channel** or **Create video stream** in the console for each incident. Manual resources in the console are **not** wired into sessions unless you change the product to use a fixed pool of names.
 
 **If you still want to use the console (e.g. smoke-test IAM or the KVS UI):**
 
-1. **Signaling channel** — In **Kinesis Video Streams** → **Signaling channels** → **Create signaling channel**. Any legal test name is fine (e.g. `rc-manual-test-1`). Type **SINGLE_MASTER** matches the app. This channel is **only** for your own console/SDK experiments; live sessions from Rapid Cortex will create names like **`rc-live-{sessionId}`** (see `kvsWebRtcService.ts`).
+1. **Signaling channel** — In **Kinesis Video Streams** → **Signaling channels** → **Create signaling channel**. Any legal test name is fine (e.g. `rc-manual-test-1`). Type **SINGLE_MASTER** matches the app. This channel is **only** for your own console/SDK experiments; live sessions from NexCort iQ will create names like **`rc-live-{sessionId}`** (see `kvsWebRtcService.ts`).
 2. **Video stream** — **Video streams** → **Create video stream**. Pick a test name (e.g. `rc-manual-storage-1`) and a retention period. App-created storage streams use **`rc-lvsv-{sessionId}`** (see `kvsStorageService.ts`) when `LIVE_VIDEO_STORAGE_MODE` is `kvs-ingestion`.
 
 After a real **Request live video** from the app, refresh **Signaling channels** and **Video streams** in the **same region** as `AWS_REGION`; you should see new `rc-live-*` and (with storage on) `rc-lvsv-*` rows created automatically.
@@ -35,7 +35,7 @@ That creates **`rc-bootstrap-signaling`** (SINGLE_MASTER, 60s message TTL) and *
 
 ## Region alignment (important)
 
-**Keep KVS in the same AWS Region as your Rapid Cortex backend** (same `AWS_REGION` on Lambdas / API as where you expect channels and streams to exist).
+**Keep KVS in the same AWS Region as your NexCort iQ backend** (same `AWS_REGION` on Lambdas / API as where you expect channels and streams to exist).
 
 If your console is open in **us-east-2 (Ohio)** but the stack runs in **us-east-1**, you will see an empty dashboard in one region while the app creates resources in another. That split is only intentional if you **designed** multi-region; otherwise align deploy region, `AWS_REGION`, and where you review KVS in the console.
 

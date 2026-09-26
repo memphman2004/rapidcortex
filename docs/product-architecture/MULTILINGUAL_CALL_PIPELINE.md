@@ -1,6 +1,6 @@
 # Multilingual call pipeline
 
-Rapid Cortex models a **911-style call** as an **incident** (v1: `callId` ≈ `incidentId`). Production multilingual processing uses a **fixed vendor stack** with deterministic fallbacks:
+NexCort iQ models a **911-style call** as an **incident** (v1: `callId` ≈ `incidentId`). Production multilingual processing uses a **fixed vendor stack** with deterministic fallbacks:
 
 | Tier | Speech-to-text | Text language ID | Translation to English |
 | --- | --- | --- | --- |

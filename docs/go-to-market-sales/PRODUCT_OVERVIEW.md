@@ -1,8 +1,8 @@
 # Product overview (sales- and buyer-safe)
 
-**Purpose:** explain Rapid Cortex **truthfully** to agencies, procurement, and executives without duplicating authoritative scope. When anything conflicts, **[MVP_SCOPE.md](./MVP_SCOPE.md)** and **[NON_GOALS.md](./NON_GOALS.md)** win.
+**Purpose:** explain NexCort iQ **truthfully** to agencies, procurement, and executives without duplicating authoritative scope. When anything conflicts, **[MVP_SCOPE.md](./MVP_SCOPE.md)** and **[NON_GOALS.md](./NON_GOALS.md)** win.
 
-## What Rapid Cortex is
+## What NexCort iQ is
 
 A **browser-based co-pilot** for public-safety communications staff: **agency-scoped incidents**, **transcripts** (including multilingual segments when the deployment enables that pipeline), **structured AI-assisted analysis** (classification, summary, suggested questions, escalation signals—**not** dispatch authority), and **protocol-aligned coaching** where approved packs are configured. It runs **alongside** CAD, telephony, and radio—not as a replacement for those systems of record ([NON_GOALS.md](./NON_GOALS.md)).
 
@@ -11,7 +11,7 @@ A **browser-based co-pilot** for public-safety communications staff: **agency-sc
 - **911 / ECC dispatchers** and call-takers using the product as **decision support** next to existing tools.
 - **Supervisors** doing second-line review and escalation alignment with agency SOPs.
 - **Agency administrators** provisioning users and reviewing audit and integration health surfaces.
-- **Rapid Cortex platform operators** (`platform_superadmin`) for cross-agency tasks where deployed—not a general agency end-user role ([MVP_SCOPE.md](./MVP_SCOPE.md)).
+- **NexCort iQ platform operators** (`platform_superadmin`) for cross-agency tasks where deployed—not a general agency end-user role ([MVP_SCOPE.md](./MVP_SCOPE.md)).
 
 See **[IDEAL_CUSTOMER_PROFILE.md](./IDEAL_CUSTOMER_PROFILE.md)** for fit / non-fit.
 

@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
-  Rapid Cortex API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks
+  NexCort iQ API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks
   use least-privilege actions, ARNs for Bedrock foundation models (AiBedrockFoundationModelId + QaBedrockModelId),
   stack Secrets prefix rapidcortex/<stage>/*, and regional Conditions where AWS control-plane APIs require Resource=*.
   Verify with npm run validate:iam and sam validate --lint.
@@ -518,7 +518,7 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       Name: "rapid-cortex/connect/ring-credentials"
-      Description: "Ring API partner credentials for Rapid Cortex Connect"
+      Description: "Ring API partner credentials for NexCort iQ Connect"
       Tags:
         - Key: app
           Value: !Ref AppName
@@ -533,7 +533,7 @@ Resources:
       Description: >-
         SES SMTP credentials (when used) plus billing notification recipients. Replace placeholders post-deploy.
       SecretString: >-
-        {"smtpUsername":"REPLACE_ME","smtpPassword":"REPLACE_ME","billingNotificationEmails":["billing@rapidcortex.us","finance@rapidcortex.us"]}
+        {"smtpUsername":"REPLACE_ME","smtpPassword":"REPLACE_ME","billingNotificationEmails":["billing@nexcortiq.us","finance@nexcortiq.us"]}
 
   AgenciesTable:
     Type: AWS::DynamoDB::Table

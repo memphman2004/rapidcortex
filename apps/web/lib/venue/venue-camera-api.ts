@@ -22,6 +22,7 @@ export async function fetchVenueSectionCameras(
     zone?: string;
     qrRcli?: string;
     cameraIds?: string[];
+    vehicleId?: string;
     stationId?: string;
     routeId?: string;
   },
@@ -39,8 +40,12 @@ export async function fetchVenueSectionCameras(
     if (place?.cameraIds?.length) qs.set("cameraIds", place.cameraIds.join(","));
   }
   if (vertical === "transit") {
+    qs.delete("vehicle");
+    const vehicle = place?.vehicleId ?? (!place?.stationId && !place?.routeId ? sectionId : undefined);
+    if (vehicle) qs.set("vehicle", vehicle);
     if (place?.stationId) qs.set("station", place.stationId);
     if (place?.routeId) qs.set("route", place.routeId);
+    if (place?.qrRcli) qs.set("qrRcli", place.qrRcli);
     if (place?.cameraIds?.length) qs.set("cameraIds", place.cameraIds.join(","));
   }
   const res = await fetch(`${camerasBase(vertical, agencyId)}?${qs}`, {

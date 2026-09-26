@@ -287,7 +287,7 @@ root_desc = <<~YAML
         ignore_checks:
           - W3002
   Description: >-
-    Rapid Cortex nested root stack. Delegates DynamoDB/S3/multilingual billing secrets to stack-data-layer
+    NexCort iQ nested root stack. Delegates DynamoDB/S3/multilingual billing secrets to stack-data-layer
     and SAM runtime to stack-app-sam. Regenerate via scripts/generate-two-stack-infra.rb.
 YAML
 

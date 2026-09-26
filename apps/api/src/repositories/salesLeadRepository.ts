@@ -37,25 +37,7 @@ export type SalesLeadRecord = ContactSalesLeadBody & {
   activities?: LeadActivity[];
 };
 
-export type RingWaitlistLeadRecord = {
-  leadId: string;
-  email: string;
-  source: string;
-  requestedState?: string | null;
-  requestedCity?: string | null;
-  createdAt: string;
-  status?: SalesLeadStatus;
-  packageSold?: SalesLeadPackageSold;
-  notes?: string | LeadNote[];
-  assignee?: string;
-  updatedAt?: string;
-  updatedBy?: string;
-  pipelineStage?: PipelineStage;
-  attribution?: LeadAttribution;
-  activities?: LeadActivity[];
-};
-
-export type AnySalesLeadRecord = SalesLeadRecord | RingWaitlistLeadRecord;
+export type AnySalesLeadRecord = SalesLeadRecord;
 
 function table(): string {
   const t = env.salesLeadsTable?.trim();
@@ -96,30 +78,6 @@ export class SalesLeadRepository {
     );
   }
 
-  async putRingWaitlistLead(lead: RingWaitlistLeadRecord): Promise<void> {
-    const now = lead.createdAt || new Date().toISOString();
-    await ddb.send(
-      new PutCommand({
-        TableName: table(),
-        Item: {
-          ...lead,
-          status: lead.status ?? "new",
-          pipelineStage: lead.pipelineStage ?? "NEW",
-          notes: Array.isArray(lead.notes) ? lead.notes : [],
-          activities: lead.activities ?? [
-            {
-              activityId: randomUUID(),
-              type: "created",
-              description: "Lead created · Source: Ring Waitlist",
-              createdAt: now,
-            },
-          ],
-        },
-      }),
-    );
-  }
-
-  /** Deterministic Cortex dual-write — fails quietly if leadId already exists [CR-5]. */
   async putCortexLeadIfAbsent(item: Record<string, unknown>): Promise<"created" | "exists" | "error"> {
     try {
       await ddb.send(
@@ -229,6 +187,8 @@ export class SalesLeadRepository {
     assign("nextAction", patch.nextAction, "nextAction");
     assign("nextActionDate", patch.nextActionDate, "nextActionDate");
     assign("lostReason", patch.lostReason, "lostReason");
+    assign("selectedFeatureIds", patch.selectedFeatureIds, "selectedFeatureIds");
+    assign("freeOfferings", patch.freeOfferings, "freeOfferings");
 
     const assignee = patch.assignedTo ?? patch.assignee;
     if (assignee !== undefined) {
@@ -268,6 +228,39 @@ export class SalesLeadRepository {
       }),
     );
 
+    return this.getNormalized(leadId);
+  }
+
+  /** Append/replace signals + hot score (system path — grant/signal processors). */
+  async updateSignalsMeta(
+    leadId: string,
+    opts: {
+      signals: import("rapid-cortex-shared").LeadSignal[];
+      signalCount: number;
+      lastSignalAt: string;
+      hotScore: number;
+    },
+  ): Promise<SalesLeadCrmRecord | null> {
+    const existing = await this.getById(leadId);
+    if (!existing) return null;
+    const now = new Date().toISOString();
+    await ddb.send(
+      new UpdateCommand({
+        TableName: table(),
+        Key: { leadId },
+        UpdateExpression:
+          "SET signals = :signals, signalCount = :signalCount, lastSignalAt = :lastSignalAt, hotScore = :hotScore, updatedAt = :updatedAt, updatedBy = :updatedBy",
+        ExpressionAttributeValues: {
+          ":signals": opts.signals,
+          ":signalCount": opts.signalCount,
+          ":lastSignalAt": opts.lastSignalAt,
+          ":hotScore": opts.hotScore,
+          ":updatedAt": now,
+          ":updatedBy": "system:grant-matcher",
+        },
+        ConditionExpression: "attribute_exists(leadId)",
+      }),
+    );
     return this.getNormalized(leadId);
   }
 

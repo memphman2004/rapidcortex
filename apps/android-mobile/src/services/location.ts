@@ -154,7 +154,7 @@ export async function startGuardianTracking(deviceId: string): Promise<void> {
     timeInterval: 30_000,
     showsBackgroundLocationIndicator: true,
     foregroundService: {
-      notificationTitle: 'Rapid Cortex Guardian',
+      notificationTitle: 'NexCort iQ Guardian',
       notificationBody: 'Sharing location for emergency detection',
       notificationColor: '#1B4FD8',
     },

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Rapid Cortex — ship the web container without local Docker.
+# NexCort iQ — ship the web container without local Docker.
 #
 # Vs. scripts/deploy-web-ssr.sh:
 #   • deploy-web-ssr.sh provisions/updates SSR infrastructure (VPC, ECS, CloudFront, …) via
@@ -101,7 +101,7 @@ SERVICE_NAME="${ECS_SERVICE_NAME:-${_ECS_SERVICE_DEFAULT}}"
 unset _SSR_STACK_DEFAULT _ECS_CLUSTER_DEFAULT _ECS_SERVICE_DEFAULT
 
 echo "════════════════════════════════════════════════════════"
-echo " Rapid Cortex web deploy (no local Docker)"
+echo " NexCort iQ web deploy (no local Docker)"
 echo "════════════════════════════════════════════════════════"
 echo " Environment:     ${ENVIRONMENT}"
 echo " Region:          ${AWS_REGION}"
@@ -217,15 +217,14 @@ for _var_name in \
   NEXT_PUBLIC_ALS_REGION \
   NEXT_PUBLIC_ALS_MAP_NAME \
   NEXT_PUBLIC_ALS_MAP_NAME_DARK \
+  NEXT_PUBLIC_ALS_MAP_API_VERSION \
+  NEXT_PUBLIC_ALS_MAP_STYLE \
   NEXT_PUBLIC_ALS_IDENTITY_POOL_ID \
   NEXT_PUBLIC_ALS_PLACE_INDEX_NAME \
   NEXT_PUBLIC_ALS_ROUTE_CALCULATOR_NAME \
   NEXT_PUBLIC_ALS_GEOFENCE_COLLECTION \
   NEXT_PUBLIC_ALS_TRACKER_NAME \
   NEXT_PUBLIC_ENABLE_LOCATION_MAP \
-  NEXT_PUBLIC_ENABLE_CONNECT_RING \
-  NEXT_PUBLIC_ENABLE_CONNECT_RING_AVAILABLE_CAMERAS \
-  NEXT_PUBLIC_ENABLE_CONNECT_RING_EMERGENCY_REQUESTS \
   NEXT_PUBLIC_ENABLE_QR_NFC \
   NEXT_PUBLIC_ENABLE_CALLER_CARD \
   NEXT_PUBLIC_ENABLE_BILLING \

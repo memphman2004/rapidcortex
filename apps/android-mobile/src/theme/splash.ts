@@ -1,4 +1,4 @@
-/** Matches marketing `/enter` (Enter the Cortex) splash. */
+/** Matches marketing `/enter` (Enter NexCort) splash. */
 export const SplashColors = {
   background: '#00040e',
   blue: [59, 130, 246] as const,

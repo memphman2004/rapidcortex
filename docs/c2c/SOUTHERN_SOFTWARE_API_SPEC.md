@@ -1,17 +1,17 @@
-# Southern Software CAD — API Requirements for Rapid Cortex C2C Integration
+# Southern Software CAD — API Requirements for NexCort iQ C2C Integration
 
 **Document purpose:** Exact API endpoints and fields required from Southern Software
-to complete the Rapid Cortex C2C hub integration for Berkeley County (v21.2.238)
+to complete the NexCort iQ C2C hub integration for Berkeley County (v21.2.238)
 and Dorchester County (v25.2.241.32).
 
-**Rapid Cortex contact:** api@rapidcortex.com
+**NexCort iQ contact:** api@nexcortiq.us
 **Status:** Pending partner API agreement with Southern Software
 
 ---
 
 ## What we've built
 
-The Rapid Cortex C2C hub is fully implemented:
+The NexCort iQ C2C hub is fully implemented:
 
 - NENA EIDO JSON message format (APCO/NENA 2.105.1-2017)
 - N-agency hub router with auto-transfer rules
@@ -247,6 +247,6 @@ Do both support the create incident endpoint (v25 is more recent)?
 
 1. Southern Software provides API documentation
 2. Southern Software provisions API keys for dev environment
-3. Rapid Cortex wires live HTTP calls into `SouthernSoftwareApiClient`
+3. NexCort iQ wires live HTTP calls into `SouthernSoftwareApiClient`
 4. Integration test with non-production SS environment
 5. Production deployment

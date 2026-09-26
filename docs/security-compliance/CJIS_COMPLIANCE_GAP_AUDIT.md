@@ -1,8 +1,8 @@
-# Rapid Cortex CJIS Compliance Gap Audit
+# NexCort iQ CJIS Compliance Gap Audit
 
 ## Executive Summary
 
-Rapid Cortex shows a strong CJIS-aligned foundation in core IAM/RBAC concepts, tenant-aware authorization helpers, Cognito MFA/password controls in IaC, and documented security operations intent. However, the repository evidence also shows critical gaps that prevent CJIS-sensitive pilot readiness today: incomplete enforceable retention/deletion controls, missing explicit immutable audit evidence, incomplete client-side hardening controls (notably explicit CSP/CSRF strategy), and multiple items that require AWS account-level validation (CloudTrail, WAF enablement by environment, KMS policy posture, alarm routing, and deployment-time settings).
+NexCort iQ shows a strong CJIS-aligned foundation in core IAM/RBAC concepts, tenant-aware authorization helpers, Cognito MFA/password controls in IaC, and documented security operations intent. However, the repository evidence also shows critical gaps that prevent CJIS-sensitive pilot readiness today: incomplete enforceable retention/deletion controls, missing explicit immutable audit evidence, incomplete client-side hardening controls (notably explicit CSP/CSRF strategy), and multiple items that require AWS account-level validation (CloudTrail, WAF enablement by environment, KMS policy posture, alarm routing, and deployment-time settings).
 
 This report is strict and evidence-based from repository artifacts only. It does not assume out-of-band controls exist unless they are encoded or documented with verifiable implementation detail.
 

@@ -4,6 +4,7 @@ export type TransitCameraPlace = {
   vehicleId?: string | null;
   stationId?: string | null;
   routeId?: string | null;
+  qrRcli?: string | null;
 };
 
 function norm(value: string | null | undefined): string {
@@ -28,6 +29,12 @@ function cameraCoversVehicle(camera: VenueCamera, vehicleId: string): boolean {
  * plus inverse priorityRank.
  */
 export function scoreTransitCameraForPlace(camera: VenueCamera, place: TransitCameraPlace): number {
+  const placeQr = norm(place.qrRcli);
+  const camQr = norm(camera.qrRcli);
+  if (placeQr && camQr && placeQr === camQr) {
+    return 1000 + Math.max(0, 100 - camera.priorityRank);
+  }
+
   const vehicle = norm(place.vehicleId);
   const station = norm(place.stationId);
   const route = norm(place.routeId);

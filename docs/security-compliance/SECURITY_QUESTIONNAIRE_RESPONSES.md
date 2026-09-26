@@ -14,7 +14,7 @@
 | Service description | Cloud SaaS **assistive** intelligence for emergency communications — transcription, translation, AI summaries, supervisor QA, optional CAD-adjacent workflows. Does **not** replace CAD, 911, or dispatch authority. |
 | Primary hosting | Amazon Web Services (Lambda, API Gateway, DynamoDB, S3, Cognito, etc.) — see [SUBPROCESSOR_LIST.md](./SUBPROCESSOR_LIST.md). |
 | CJIS certification claim? | **No.** We provide **alignment** documentation; agency maps controls to their CJIS program. |
-| SOC 2 Type II report? | **Not in repo.** Alignment statement available; formal report via sales when available. |
+| SOC 2 Type II report? | **Not issued.** In-repo control pack: [soc2/README.md](./soc2/README.md). Observation target 2026-10-01. Do not claim Type II until a CPA firm signs the report. |
 
 ---
 
@@ -34,7 +34,7 @@
 | Question | Response |
 |----------|----------|
 | Identity provider | AWS **Cognito** User Pool; JWT validated server-side (JWKS). |
-| MFA | Cognito MFA-capable; **agency policy** enables requirement. |
+| MFA | **Required** on production Cognito pool `us-east-1_0z6tA6WBs` (`MfaConfiguration=ON`, evidence 2026-09-17). Agencies still own TOTP device possession (CUEC). Staging pools may differ. |
 | RBAC | Role strings in `custom:role`; enforced via `AuthorizationService` in API — [AUTH_OPERATIONS.md](../product-architecture/AUTH_OPERATIONS.md). |
 | Session / tokens | httpOnly cookies when auth proxy enabled; no long-lived API keys in browser for standard users. |
 | Service accounts | Lambda IAM roles per function; Secrets Manager ARNs for provider keys — no keys in git. |
@@ -57,7 +57,7 @@
 |----------|----------|
 | Application logging | Structured logs to CloudWatch; **policy:** no raw transcripts, passwords, or refresh tokens in logs — [PRIVACY_RETENTION_DECISIONS.md](./PRIVACY_RETENTION_DECISIONS.md). |
 | Audit trail | Agency-scoped audit events in DynamoDB — [AUDIT_EVENT_MATRIX.md](./AUDIT_EVENT_MATRIX.md). |
-| Infrastructure audit | CloudTrail recommended; template may include trail bucket — verify stack outputs. |
+| Infrastructure audit | CloudTrail trail **`rapid-cortex-cloudtrail-prod`** (`IsLogging=true`, log-file validation on). SAM `EnableCloudTrail` stays **false** on `rapid-cortex-dev` so CloudFormation does not create a second Object Lock COMPLIANCE bucket. |
 | Alerting | CloudWatch alarms + SNS ops topic; customer paging is operator responsibility (PLT-025). |
 
 ---
@@ -88,8 +88,8 @@
 
 | Question | Response |
 |----------|----------|
-| DynamoDB backup | PITR available per stage in template; verify enabled for pilot/prod. |
-| Restore testing | GA-005 — restore drill required before production SLA claims — [BACKUP_AND_RECOVERY.md](../operations-runbooks/BACKUP_AND_RECOVERY.md). |
+| DynamoDB backup | **PITR ENABLED** on live production (`DeploymentStage=dev` / `rapid-cortex-dev`; 182/182 NexCort iQ/Ring tables as of 2026-09-17). Next `deploy.sh dev` forces `DDB_ENABLE_PITR=true`. |
+| Restore testing | Internal SOP — restore to a **new** table; do not claim contractual RTO until Exhibit C — [BACKUP_AND_RECOVERY.md](../operations-runbooks/BACKUP_AND_RECOVERY.md), [restore-drill](./soc2/processes/restore-drill.md). |
 | RTO / RPO | **Not guaranteed** in pilot unless Exhibit C SLA executed with numbers. |
 
 ---
@@ -101,12 +101,13 @@
 | CJIS Security Policy | Control **alignment** documented — not FBI approval |
 | HIPAA / BAA | **BAA not in repo** — hospital vertical requires separate legal package |
 | FedRAMP | **Not claimed** |
-| SOC 2 | Readiness-oriented practices; formal report separate |
+| SOC 2 | Control descriptions + technical snapshots in repo; **no Type II report** until CPA firm |
 
 ---
 
 ## Attachments checklist for RFP response
 
+- [ ] [SOC 2 control pack](./soc2/README.md) (policies/SOPs — **not** a Type II report)
 - [ ] [RFP pack README](../rfp/README.md) + [cybersecurity-controls.md](../rfp/cybersecurity-controls.md) + [implementation-and-transition.md](../rfp/implementation-and-transition.md)
 - [ ] [SUBPROCESSOR_LIST.md](./SUBPROCESSOR_LIST.md)
 - [ ] Data flow diagram PDF (Internal Product requirements)
@@ -122,4 +123,4 @@
 | Version | Date | Notes |
 |---------|------|-------|
 | 0.1 | 2026-07-09 | Initial draft for pilot procurement |
-| 0.2 | 2026-08-21 | Link complete RFP cybersecurity + implementation pack |
+| 0.3 | 2026-09-19 | Production MFA ON; live PITR; Option B CloudTrail; SOC 2 pack link |

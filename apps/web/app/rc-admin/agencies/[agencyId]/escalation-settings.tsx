@@ -94,7 +94,7 @@ export function EscalationSettingsPanel({ agencyId }: { agencyId: string }) {
             value={psapType}
             onChange={(e) => setPsapType(e.target.value as "rc-core" | "external")}
           >
-            <option value="rc-core">RC Core</option>
+            <option value="rc-core">911 Centers/PSAPs</option>
             <option value="external">External PSAP</option>
           </select>
         </label>

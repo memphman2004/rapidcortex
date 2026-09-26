@@ -104,7 +104,7 @@ const admin: UserContext = {
   userId: "u-admin",
   agencyId: "platform",
   role: "rcadmin",
-  email: "admin@rapidcortex.us",
+  email: "admin@nexcortiq.us",
 };
 
 const dispatcher: UserContext = {

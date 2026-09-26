@@ -10,18 +10,23 @@ type Tab = "access" | "generator";
 export function RcAdminGrantsTabsClient({
   initialUser,
   showGrantSuccessProgram,
+  hideAccessGrants = false,
 }: {
   initialUser: UserContext;
   showGrantSuccessProgram: boolean;
+  /** Sales contractors see Grant Success Program only — no Access Overrides. */
+  hideAccessGrants?: boolean;
 }) {
-  const [tab, setTab] = useState<Tab>("access");
+  const [tab, setTab] = useState<Tab>(hideAccessGrants ? "generator" : "access");
 
   return (
     <div>
       <div className="mb-6 flex gap-1 border-b border-slate-800">
-        <TabButton active={tab === "access"} onClick={() => setTab("access")}>
-          Access grants
-        </TabButton>
+        {!hideAccessGrants ? (
+          <TabButton active={tab === "access"} onClick={() => setTab("access")}>
+            Access grants
+          </TabButton>
+        ) : null}
         {showGrantSuccessProgram && (
           <TabButton active={tab === "generator"} onClick={() => setTab("generator")}>
             Grant Success Program
@@ -29,8 +34,10 @@ export function RcAdminGrantsTabsClient({
         )}
       </div>
 
-      {tab === "access" && <AccessOverridesManager initialUser={initialUser} />}
-      {tab === "generator" && showGrantSuccessProgram && <GrantSuccessProgram />}
+      {!hideAccessGrants && tab === "access" ? (
+        <AccessOverridesManager initialUser={initialUser} />
+      ) : null}
+      {tab === "generator" && showGrantSuccessProgram ? <GrantSuccessProgram /> : null}
     </div>
   );
 }
@@ -39,12 +46,10 @@ function TabButton({
   children,
   active,
   onClick,
-  badge,
 }: {
   children: React.ReactNode;
   active: boolean;
   onClick: () => void;
-  badge?: string;
 }) {
   return (
     <button
@@ -57,11 +62,6 @@ function TabButton({
       }`}
     >
       {children}
-      {badge && (
-        <span className="rounded border border-sky-700 bg-sky-950/50 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-sky-300">
-          {badge}
-        </span>
-      )}
     </button>
   );
 }

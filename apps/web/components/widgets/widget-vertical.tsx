@@ -18,8 +18,11 @@ import { fetchVenueIncidents } from "@/lib/venue/venue-incidents-api";
 import {
   backendGet, EmptyState, WidgetError, WidgetShell, WidgetSkeleton, type WidgetProps,
 } from "./widget-primitives";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 
 export function CampusIncidentQueueWidget({ agencyId }: WidgetProps) {
+  const { hour12 } = useClockPreference();
   const campusCode = campusOrgCodeFromAgencyId(agencyId);
   const q = useQuery({
     queryKey: ["campus-incidents", campusCode],
@@ -54,7 +57,7 @@ export function CampusIncidentQueueWidget({ agencyId }: WidgetProps) {
                 <td className="px-4 py-2.5 text-xs text-slate-400">{incident.zoneCode ?? incident.roomCode ?? "—"}</td>
                 <td className="px-4 py-2.5 text-xs text-slate-400">{incident.status}</td>
                 <td className="px-4 py-2.5 text-xs text-slate-500">
-                  {new Date(incident.createdAt).toLocaleTimeString()}
+                  {formatClockTime(incident.createdAt, hour12)}
                 </td>
               </tr>
             ))}

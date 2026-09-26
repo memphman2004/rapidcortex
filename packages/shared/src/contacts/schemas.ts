@@ -122,8 +122,8 @@ export type CreateContactBody = z.infer<typeof createContactBodySchema>;
 export const updateContactBodySchema = createContactBodySchema.partial();
 export type UpdateContactBody = z.infer<typeof updateContactBodySchema>;
 
-/** RC Admin Contacts address book — rcsuperadmin and rcadmin only. */
+/** NexCort Admin Contacts address book — RC admins + sales contractors. */
 export function canAccessContactsModule(role: string | undefined | null): boolean {
   const r = String(role ?? "").trim().toLowerCase();
-  return r === "rcsuperadmin" || r === "rcadmin";
+  return r === "rcsuperadmin" || r === "rcadmin" || r === "salescontractor";
 }

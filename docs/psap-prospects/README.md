@@ -6,7 +6,7 @@ National outbound prospect database for US PSAPs (Public Safety Answering Points
 
 - Roles: `rcsuperadmin` | `rcadmin` | `rcitadmin` (`canAccessRcFinancePortal`)
 - UI flag: `NEXT_PUBLIC_ENABLE_PSAP_PROSPECTS` (default **on** when unset)
-- Nav: RC Admin → Business → **PSAP Prospects** (`/rc-admin/psap-prospects`)
+- Nav: NC Admin → Business → **PSAP Prospects** (`/rc-admin/psap-prospects`)
 
 ## Stack
 
@@ -31,7 +31,7 @@ PSAP_PROSPECTS_TABLE=rapid-cortex-psap-prospects-dev \
   npx tsx scripts/seed-psap-prospects.ts ./file.xlsx --insert-only
 ```
 
-Requires `xlsx` (`npm i -D xlsx`). Columns accepted include `NAME` / `psap_name`, `County`, `State`, `City`, `Phone number` / `phone`, `FIPS`, and optional `latitude` / `longitude`.
+Requires `exceljs` (`npm i -D exceljs`). Columns accepted include `NAME` / `psap_name`, `County`, `State`, `City`, `Phone number` / `phone`, `FIPS`, and optional `latitude` / `longitude`.
 
 **Match order:** phone → FIPS + PSAP name → insert. FIPS alone is not unique (many PSAPs share a county). Upserts preserve outreach, activities, contacts, and `mailingAddress`. Coords are only overwritten when the sheet includes lat/lng.
 

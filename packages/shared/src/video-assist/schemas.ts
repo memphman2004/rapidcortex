@@ -18,6 +18,10 @@ export const videoAssistSessionStatusSchema = z.enum([
 
 export type VideoAssistSessionStatus = z.infer<typeof videoAssistSessionStatusSchema>;
 
+/** Dispatcher copy when AWS/mock SMS did not go out. HTTP 200 on GET still returns the failed session. */
+export const VIDEO_ASSIST_SMS_NOT_RECEIVED_MESSAGE =
+  "The SMS was not sent. The caller did not receive a message.";
+
 export const videoAssistEventTypeSchema = z.enum([
   "session.created",
   "token.issued",

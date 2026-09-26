@@ -28,7 +28,7 @@ type WhisperSegment = {
 
 /**
  * Whisper returns language as full English name in `verbose_json`. Map back to
- * ISO 639-1 for the canonical Rapid Cortex call-language space. Unknown names
+ * ISO 639-1 for the canonical NexCort iQ call-language space. Unknown names
  * fall back to `und`, which `normalizeCallLanguageCode` handles as unknown.
  */
 const WHISPER_LANGUAGE_NAME_TO_ISO: Record<string, string> = {

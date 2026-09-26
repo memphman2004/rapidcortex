@@ -9,7 +9,6 @@ import {
   fetchAgencies,
   fetchAgencyBillingInvoices,
   fetchPlatformSummary,
-  fetchSupervisorActiveCalls,
   type IntegrationStatusPayload,
 } from "@/lib/api";
 import {
@@ -18,6 +17,7 @@ import {
 } from "@/lib/integration-health-rows";
 import {
   fetchDashboardOpenIncidents,
+  fetchDashboardActiveCalls,
   fetchDashboardQaQueue,
   fetchDashboardSlaBacklog,
   fetchDashboardVenueStats,
@@ -62,7 +62,7 @@ export function StatOpenIncidentsWidget({ agencyId }: WidgetProps) {
 
 export function StatActiveCallsWidget({ agencyId }: WidgetProps) {
   const q = useStatQuery("active-calls", agencyId, async () => {
-    const calls = await fetchSupervisorActiveCalls().catch(() => []);
+    const calls = await fetchDashboardActiveCalls();
     return calls.length;
   }, 15_000);
   if (q.isLoading) return <WidgetSkeleton />;

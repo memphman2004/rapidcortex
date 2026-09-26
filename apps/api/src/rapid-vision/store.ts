@@ -350,7 +350,7 @@ export const visionStore = {
     const defaults: VisionAgencySettings = {
       agencyId,
       enabled: true,
-      enabledProviders: ["ring", "caller_video", "demo"],
+      enabledProviders: ["caller_video", "demo"],
       enableCallerVideoAnalysis: true,
       cameraSearchRadiusMeters: 500,
       defaultAccessDurationMinutes: 15,

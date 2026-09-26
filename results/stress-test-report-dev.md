@@ -1,4 +1,4 @@
-# Rapid Cortex Dev — Stress Test Report
+# NexCort iQ Dev — Stress Test Report
 **Date:** 2026-08-17  
 **Stack:** `rapid-cortex-dev` (confirmed CREATE/UPDATE_COMPLETE family; parent status `UPDATE_COMPLETE`)  
 **Environment:** Development (live) — DeploymentStage=`dev` in AWS account `158961537080` (`us-east-1`, profile `rapid-cortex`)  

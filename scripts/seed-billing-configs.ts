@@ -23,7 +23,7 @@ const now = new Date().toISOString();
 const configs: AgencyBillingConfig[] = [
   {
     agencyId: "test-agency",
-    agencyName: "Rapid Cortex Test Agency",
+    agencyName: "NexCort iQ Test Agency",
     planId: "professional",
     billingCycle: "monthly",
     contractTermYears: 1,

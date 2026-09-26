@@ -156,14 +156,14 @@ export const campusIntegrationQuestionnaireSchema = z
     if (!value.lockdownOperatorConfirmUnderstood) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Confirm Rapid Cortex never auto-locks doors — operators confirm every lockdown",
+        message: "Confirm NexCort iQ never auto-locks doors — operators confirm every lockdown",
         path: ["lockdownOperatorConfirmUnderstood"],
       });
     }
     if (!value.clerySuggestionOnlyAcknowledged) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Confirm Clery stays suggestion-only — Rapid Cortex never auto-files or issues Timely Warnings",
+        message: "Confirm Clery stays suggestion-only — NexCort iQ never auto-files or issues Timely Warnings",
         path: ["clerySuggestionOnlyAcknowledged"],
       });
     }

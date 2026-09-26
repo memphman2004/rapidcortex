@@ -16,6 +16,8 @@ import {
 import { DEFAULT_SLA_THRESHOLDS } from "rapid-cortex-shared/sla-types";
 import type { SlaPriority, SlaThreshold } from "rapid-cortex-shared/sla-types";
 import { useSession } from "@/components/auth/session-context";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import {
   fetchSlaHistory,
@@ -30,9 +32,8 @@ function isAdmin(role: string | undefined): boolean {
   return role === "agencyadmin" || role === "agencyit" || role === "rcsuperadmin";
 }
 
-function chartTime(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+function chartTime(iso: string, hour12: boolean): string {
+  return formatClockTime(iso, hour12);
 }
 
 const compactTick = new Intl.NumberFormat(undefined, {
@@ -47,6 +48,7 @@ function formatYAxisTick(value: number): string {
 
 export function SlaSupervisorPanel() {
   const { user } = useSession();
+  const { hour12 } = useClockPreference();
   const qc = useQueryClient();
   const to = useJurisdictionLink();
   const [editOpen, setEditOpen] = useState(false);
@@ -79,12 +81,12 @@ export function SlaSupervisorPanel() {
   const chartData = useMemo(
     () =>
       (historyQuery.data ?? []).map((s) => ({
-        time: chartTime(s.snapshotAt),
+        time: chartTime(s.snapshotAt, hour12),
         queueDepth: s.queueDepth,
         breaches: s.slaBreachCount,
         avgWait: s.avgWaitSeconds,
       })),
-    [historyQuery.data],
+    [historyQuery.data, hour12],
   );
 
   const breaches = useMemo(

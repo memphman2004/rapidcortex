@@ -1,8 +1,8 @@
 # Cognito account provisioning model (AWS)
 
-Rapid Cortex uses an **admin-controlled** onboarding model by default:
+NexCort iQ uses an **admin-controlled** onboarding model by default:
 
-- Rapid Cortex platform staff creates the municipality tenant and first admin account.
+- NexCort iQ platform staff creates the municipality tenant and first admin account.
 - Municipality admins create additional users for their own agency.
 - Public self-service sign-up is disabled in both Cognito and web UI by default.
 
@@ -60,9 +60,9 @@ By default Cognito sends verification email from **Cognito** (limited for produc
 - [ ] Keep web flags set to disable public signup:
   - `NEXT_PUBLIC_ENABLE_PUBLIC_SIGNUP=0`
   - `ENABLE_PUBLIC_SIGNUP=false`
-- [ ] Rapid Cortex platform staff creates first municipality admin with explicit:
+- [ ] NexCort iQ platform staff creates first municipality admin with explicit:
   - `custom:agencyId=<tenant-agency-id>`
-  - `custom:role=admin` (or `platform_superadmin` for Rapid Cortex internal staff only)
+  - `custom:role=admin` (or `platform_superadmin` for NexCort iQ internal staff only)
 - [ ] Municipality admins create additional users in-app (agency-scoped RBAC enforced).
 
 ### Controlled internal self-signup testing (optional)

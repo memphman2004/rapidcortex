@@ -1,10 +1,10 @@
-# Universal CAD Integration Strategy for Rapid Cortex
+# Universal CAD Integration Strategy for NexCort iQ
 
 ## Executive Summary
 
-To position Rapid Cortex as the AI layer for 911, we need a **universal CAD integration architecture** that works with all major vendors plus a long-tail of smaller systems.
+To position NexCort iQ as the AI layer for 911, we need a **universal CAD integration architecture** that works with all major vendors plus a long-tail of smaller systems.
 
-**Strategic goal:** Rapid Cortex is CAD-agnostic AI intelligence  
+**Strategic goal:** NexCort iQ is CAD-agnostic AI intelligence  
 **Tagline:** "Works with your CAD system - no replacement required"  
 **Value proposition:** Agencies keep their CAD investment and add AI capabilities.
 
@@ -12,7 +12,7 @@ To position Rapid Cortex as the AI layer for 911, we need a **universal CAD inte
 
 ## Strategic Vision
 
-Rapid Cortex becomes the intelligence layer above CAD systems, not a CAD replacement:
+NexCort iQ becomes the intelligence layer above CAD systems, not a CAD replacement:
 
 - Read from CAD where possible
 - Normalize and enrich with AI

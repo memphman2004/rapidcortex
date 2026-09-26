@@ -1,17 +1,17 @@
 # Support model (pilot)
 
-This document defines **who handles what** so pilot agencies and Rapid Cortex operators share the same vocabulary. It does **not** replace your contract’s support SLAs. **Severity and handoffs:** [ESCALATION_PATHS.md](./ESCALATION_PATHS.md) · **Evidence checklist:** [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md) · **Internal L1/L2 playbook:** [ADMIN_TEAM_TROUBLESHOOTING_GUIDE.md](./ADMIN_TEAM_TROUBLESHOOTING_GUIDE.md) · **Contacts template:** [OPS_CONTACT_MATRIX.md](./OPS_CONTACT_MATRIX.md).
+This document defines **who handles what** so pilot agencies and NexCort iQ operators share the same vocabulary. It does **not** replace your contract’s support SLAs. **Severity and handoffs:** [ESCALATION_PATHS.md](./ESCALATION_PATHS.md) · **Evidence checklist:** [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md) · **Internal L1/L2 playbook:** [ADMIN_TEAM_TROUBLESHOOTING_GUIDE.md](./ADMIN_TEAM_TROUBLESHOOTING_GUIDE.md) · **Contacts template:** [OPS_CONTACT_MATRIX.md](./OPS_CONTACT_MATRIX.md).
 
 ## Terminology
 
 | Term | Meaning |
 | --- | --- |
-| **Agency** | The public-safety organization using Rapid Cortex (tenant). |
+| **Agency** | The public-safety organization using NexCort iQ (tenant). |
 | **Tenant** | Same as agency for data isolation (`custom:agencyId` in JWT). |
 | **Jurisdiction slug** | First URL path segment after the host (e.g. `columbus`); **not** the security boundary. |
-| **Rapid Cortex API** | API Gateway + Lambda stack ([`infra/template.yaml`](../infra/template.yaml)). |
+| **NexCort iQ API** | API Gateway + Lambda stack ([`infra/template.yaml`](../infra/template.yaml)). |
 | **Web app** | Next.js product (`apps/web`), often at `www.rapidcortex.us`. |
-| **Pilot operator** | Rapid Cortex staff or partner with platform access (where granted). |
+| **Pilot operator** | NexCort iQ staff or partner with platform access (where granted). |
 
 ## Support ownership (first response)
 
@@ -20,11 +20,11 @@ This document defines **who handles what** so pilot agencies and Rapid Cortex op
 | **Agency admin** (user create, wrong role on JWT, agency id typos) | **Agency admin** + Cognito IT | In-app **Users** for standard roles; see [USER_PROVISIONING_GUIDE.md](./USER_PROVISIONING_GUIDE.md) for UI limits. |
 | **User login / MFA / password** | **Agency IT** (Cognito) | Pool, app client, hosted UI, MFA policy. |
 | **403 / RBAC confusion** | **Agency admin** (expected 403 for dispatchers on admin APIs) | [ROLE_MAPPING_GUIDE.md](./ROLE_MAPPING_GUIDE.md). |
-| **AI analysis** (Refresh AI errors, structured codes) | **Rapid Cortex platform** | Logs, quotas, IAM — [RUNBOOK.md](./RUNBOOK.md). |
-| **Multilingual** (STT/translation/LID, `MULTILINGUAL_CONFIG_INVALID`) | **Rapid Cortex platform** | Secrets, strict mode — [RUNBOOK_MULTILINGUAL_CALLS.md](./RUNBOOK_MULTILINGUAL_CALLS.md). |
-| **Vendor / provider outages** (hyperscaler or model API) | **Rapid Cortex platform** + vendor TAM | Agency notified per comms plan; Rapid Cortex does not “fix” AWS us-east-1 from the ECC floor. |
+| **AI analysis** (Refresh AI errors, structured codes) | **NexCort iQ platform** | Logs, quotas, IAM — [RUNBOOK.md](./RUNBOOK.md). |
+| **Multilingual** (STT/translation/LID, `MULTILINGUAL_CONFIG_INVALID`) | **NexCort iQ platform** | Secrets, strict mode — [RUNBOOK_MULTILINGUAL_CALLS.md](./RUNBOOK_MULTILINGUAL_CALLS.md). |
+| **Vendor / provider outages** (hyperscaler or model API) | **NexCort iQ platform** + vendor TAM | Agency notified per comms plan; NexCort iQ does not “fix” AWS us-east-1 from the ECC floor. |
 | **Deployment / web or API config** (CORS, wrong URL, env drift) | **DevOps / platform** | [DEPLOYMENT.md](./DEPLOYMENT.md), [ENVIRONMENT_MATRIX.md](./ENVIRONMENT_MATRIX.md). |
-| **CAD / 911 CPE / radio vendor** | **That vendor’s support** | [NON_GOALS.md](./NON_GOALS.md) — Rapid Cortex is not those systems. |
+| **CAD / 911 CPE / radio vendor** | **That vendor’s support** | [NON_GOALS.md](./NON_GOALS.md) — NexCort iQ is not those systems. |
 | **Wrong data / legal hold** | **Agency supervision + counsel** | [PRIVACY_RETENTION_DECISIONS.md](./PRIVACY_RETENTION_DECISIONS.md). |
 
 ## Severity (summary)
@@ -40,12 +40,12 @@ Full routing: [ESCALATION_PATHS.md](./ESCALATION_PATHS.md).
 ## Escalation tiers (suggested)
 
 1. **L1 — Agency desk** — Confirm URL, browser, role, reproduce with a second account if safe ([COMMON_TASKS.md](./COMMON_TASKS.md)).
-2. **L2 — Agency IT / Rapid Cortex pilot channel** — Logs, HAR, timestamps, `requestId` from API error JSON when present ([TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md)).
+2. **L2 — Agency IT / NexCort iQ pilot channel** — Logs, HAR, timestamps, `requestId` from API error JSON when present ([TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md)).
 3. **L3 — Engineering on-call** — Template rollback, PITR restore consideration, vendor cases (AWS) — [RUNBOOK.md](./RUNBOOK.md).
 
 ## Operator-visible fallback
 
-- When Rapid Cortex is **degraded or unavailable**, floor procedures **without** the co-pilot remain authoritative ([NON_GOALS.md](./NON_GOALS.md)).
+- When NexCort iQ is **degraded or unavailable**, floor procedures **without** the co-pilot remain authoritative ([NON_GOALS.md](./NON_GOALS.md)).
 - Do not instruct users to bypass MFA or share passwords.
 
 ## Communication expectations (pilot)

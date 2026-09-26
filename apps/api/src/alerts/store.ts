@@ -13,6 +13,9 @@ import type {
   AlertRecipientGroup,
   AlertTemplate,
   AlertVertical,
+  EnsSiteBoundary,
+  EnsTestProgram,
+  EnsTestRun,
 } from "rapid-cortex-shared";
 import { ddb } from "../repositories/baseRepository.js";
 import { env } from "../lib/env.js";
@@ -36,6 +39,9 @@ export const ALERT_SK = {
   ack: (jobId: string, userId: string) => `ACK#${jobId}#${userId}`,
   dispatchHour: (organizationId: string, hourKey: string) => `RATE#${organizationId}#${hourKey}`,
   criticalLock: (organizationId: string) => `CRITLOCK#${organizationId}`,
+  ensProgram: (vertical: AlertVertical) => `ENS#PROGRAM#${vertical}`,
+  ensBoundary: (vertical: AlertVertical) => `ENS#BOUNDARY#${vertical}`,
+  ensRun: (runId: string) => `ENS#RUN#${runId}`,
 };
 
 type BaseItem = {
@@ -300,6 +306,51 @@ export const alertsStore = {
       if (hit) return hit;
     }
     return null;
+  },
+
+  async putEnsProgram(program: EnsTestProgram): Promise<void> {
+    await put(
+      withKeys(program.agencyId, program.agencyId, ALERT_SK.ensProgram(program.vertical), {
+        entityType: "ENS_PROGRAM",
+        ...program,
+      }),
+    );
+  },
+
+  async getEnsProgram(agencyId: string, vertical: AlertVertical): Promise<EnsTestProgram | null> {
+    return getItem<EnsTestProgram>(agencyId, ALERT_SK.ensProgram(vertical));
+  },
+
+  async putEnsBoundary(boundary: EnsSiteBoundary): Promise<void> {
+    await put(
+      withKeys(boundary.agencyId, boundary.agencyId, ALERT_SK.ensBoundary(boundary.vertical), {
+        entityType: "ENS_BOUNDARY",
+        ...boundary,
+      }),
+    );
+  },
+
+  async getEnsBoundary(agencyId: string, vertical: AlertVertical): Promise<EnsSiteBoundary | null> {
+    return getItem<EnsSiteBoundary>(agencyId, ALERT_SK.ensBoundary(vertical));
+  },
+
+  async putEnsRun(run: EnsTestRun): Promise<void> {
+    await put(
+      withKeys(run.agencyId, run.agencyId, ALERT_SK.ensRun(run.runId), {
+        entityType: "ENS_RUN",
+        ...run,
+      }),
+    );
+  },
+
+  async getEnsRun(agencyId: string, runId: string): Promise<EnsTestRun | null> {
+    return getItem<EnsTestRun>(agencyId, ALERT_SK.ensRun(runId));
+  },
+
+  async listEnsRuns(agencyId: string, vertical?: AlertVertical): Promise<EnsTestRun[]> {
+    const runs = await queryPrefix<EnsTestRun>(agencyId, "ENS#RUN#");
+    const filtered = vertical ? runs.filter((r) => r.vertical === vertical) : runs;
+    return filtered.sort((a, b) => b.initiatedAt.localeCompare(a.initiatedAt));
   },
 };
 

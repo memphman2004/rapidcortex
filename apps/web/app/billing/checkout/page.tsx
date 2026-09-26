@@ -12,9 +12,9 @@ export default async function BillingCheckoutPage() {
   return (
     <main className="min-h-dvh bg-slate-950 px-4 py-8 sm:px-8">
       <BillingSelfServeNotice
-        headline="Rapid Cortex billing"
-        subheadline="Your agency’s purchase is finalized through contracts, pilots, invoices, purchase orders, and Rapid Cortex procurement support."
-        planName="Rapid Cortex Command"
+        headline="NexCort iQ billing"
+        subheadline="Your agency’s purchase is finalized through contracts, pilots, invoices, purchase orders, and NexCort iQ procurement support."
+        planName="NexiQ Command"
         billingFrequency="monthly"
         includedFeatures={[
           "dispatcher + supervisor dashboard access",

@@ -5,7 +5,7 @@ import { buildPublicPageMetadata } from "@/lib/seo";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Privacy Policy | Rapid Cortex Public Safety Platform",
+  title: "Privacy Policy | NexCort iQ Public Safety Platform",
   description: `Learn how ${SITE_NAME} manages personal and operational information for public safety agencies, emergency communications teams, and platform users.`,
   path: "/privacy",
 });
@@ -36,8 +36,8 @@ export default function PrivacyPolicyPage() {
         in connection with the product and marketing sites. It is not a substitute for your agency’s
         own privacy program, public records rules, or counsel review. For A2P 10DLC and SMS compliance,
         this page at{" "}
-        <a href="https://www.rapidcortex.us/privacy">https://www.rapidcortex.us/privacy</a> is the
-        single controlling privacy policy for Apps on Demand LLC d/b/a Rapid Cortex. See also the{" "}
+        <a href="https://www.nexcortiq.us/privacy">https://www.nexcortiq.us/privacy</a> is the
+        single controlling privacy policy for Apps on Demand LLC d/b/a NexCort iQ. See also the{" "}
         <Link href="/sms-consent">SMS Consent</Link> disclosure.
       </p>
 
@@ -52,14 +52,14 @@ export default function PrivacyPolicyPage() {
           </strong>
         </p>
         <p className="text-slate-400">
-          Mobile phone numbers and SMS opt-in/consent data collected for the Rapid Cortex SMS messaging
-          program (including Rapid Vision™ camera-consent texts and dispatcher-initiated incident
+          Mobile phone numbers and SMS opt-in/consent data collected for the NexCort iQ SMS messaging
+          program (including NexiQ Vision™ camera-consent texts and dispatcher-initiated incident
           texts) are used only to deliver those transactional messages, honor STOP/HELP requests, and
           operate, secure, and audit the service. Message frequency varies.{" "}
           <strong className="font-medium text-slate-200">Message and data rates may apply.</strong> Reply{" "}
           <strong className="font-medium text-slate-200">STOP</strong> to opt out or{" "}
           <strong className="font-medium text-slate-200">HELP</strong> for help (
-          <a href="mailto:support@rapidcortex.us">support@rapidcortex.us</a>).
+          <a href="mailto:support@nexcortiq.us">support@nexcortiq.us</a>).
         </p>
       </section>
 
@@ -67,7 +67,7 @@ export default function PrivacyPolicyPage() {
         <h2 className="text-base font-semibold text-white">Who this applies to</h2>
         <p>
           Visitors to our public website, account holders, agency personnel who access the operational application on
-          behalf of a municipality, PSAP, or regional center, and Ring™ Device Owners who enroll in Rapid Vision™
+          behalf of a municipality, PSAP, or regional center, and Ring™ Device Owners who enroll in NexiQ Vision™
           through the Ring™ Appstore.
         </p>
       </section>
@@ -81,8 +81,8 @@ export default function PrivacyPolicyPage() {
           </li>
           <li>
             <span className="text-slate-300">Mobile and SMS data:</span> mobile phone numbers, SMS
-            opt-in/opt-out status, message delivery metadata, and consent records related to Rapid Cortex
-            SMS programs (including Rapid Vision™ camera-consent texts and dispatcher-initiated
+            opt-in/opt-out status, message delivery metadata, and consent records related to NexCort iQ
+            SMS programs (including NexiQ Vision™ camera-consent texts and dispatcher-initiated
             incident texts).
           </li>
           <li>
@@ -130,7 +130,7 @@ export default function PrivacyPolicyPage() {
           purposes.
         </p>
         <p>
-          Rapid Cortex shares data with the following categories of sub-processors to deliver the
+          NexCort iQ shares data with the following categories of sub-processors to deliver the
           service:
         </p>
         <ul className="ml-4 list-disc space-y-1 text-slate-400">
@@ -152,19 +152,19 @@ export default function PrivacyPolicyPage() {
           </li>
         </ul>
         <p>
-          Rapid Cortex does not sell, rent, or share personal data with third parties for advertising,
+          NexCort iQ does not sell, rent, or share personal data with third parties for advertising,
           marketing, or any purpose other than delivering the contracted services. A complete list of
           sub-processors is published at{" "}
-          <Link href="/legal/sub-processors">rapidcortex.us/legal/sub-processors/</Link>.
+          <Link href="/legal/sub-processors">nexcortiq.us/legal/sub-processors/</Link>.
         </p>
       </section>
 
       <section id="sms" className="space-y-3">
         <h2 className="text-base font-semibold text-white">SMS and mobile messaging</h2>
         <p>
-          Rapid Cortex (operated by Apps on Demand LLC) may send transactional SMS under the{" "}
-          <strong className="font-medium text-slate-200">Rapid Cortex SMS</strong> messaging program,
-          including Rapid Vision™ camera-consent requests to enrolled Ring™ or Nest™ device owners
+          NexCort iQ (operated by Apps on Demand LLC) may send transactional SMS under the{" "}
+          <strong className="font-medium text-slate-200">NexCort iQ SMS</strong> messaging program,
+          including NexiQ Vision™ camera-consent requests to enrolled Ring™ or Nest™ device owners
           and dispatcher-initiated, incident-specific texts authorized by a participating public safety
           agency. Message frequency varies based on incident activity and enrolled-device proximity; many
           recipients will receive no messages unless a nearby emergency or authorized workflow requires
@@ -174,7 +174,7 @@ export default function PrivacyPolicyPage() {
           You may reply <strong className="font-medium text-slate-200">STOP</strong> to opt out of further
           SMS from that program, or <strong className="font-medium text-slate-200">HELP</strong> for
           assistance. Support:{" "}
-          <a href="mailto:support@rapidcortex.us?subject=SMS%20help">support@rapidcortex.us</a>.
+          <a href="mailto:support@nexcortiq.us?subject=SMS%20help">support@nexcortiq.us</a>.
           Additional program details appear in our <Link href="/terms">Terms of use</Link> and on the{" "}
           <Link href="/sms-consent">SMS Consent</Link> page.
         </p>
@@ -183,8 +183,8 @@ export default function PrivacyPolicyPage() {
       <section id="ring" className="space-y-3">
         <h2 className="text-base font-semibold text-white">Ring™ integration and live video handling</h2>
         <p>
-          For Ring™-connected workflows (Rapid Vision™), Rapid Cortex is designed for live operational viewing
-          only. We do not record, retain, or store Ring™ video in Rapid Cortex systems (retention period: 0 days).{" "}
+          For Ring™-connected workflows (NexiQ Vision™), NexCort iQ is designed for live operational viewing
+          only. We do not record, retain, or store Ring™ video in NexCort iQ systems (retention period: 0 days).{" "}
           <strong className="font-medium text-slate-200">Ring™ Device Owners</strong> enroll by enabling Rapid
           Vision™ in the Ring™ Appstore and completing device-owner sign-in when Ring™ shows Pending. Linking uses
           Ring™&apos;s Appstore / OAuth authorization and can be revoked anytime in Ring™ (for example My Apps). When a
@@ -201,10 +201,10 @@ export default function PrivacyPolicyPage() {
           camera access tokens are deleted immediately upon account unlinking or subscription
           termination. Audit logs are retained for 7 years in compliance with public safety
           recordkeeping requirements. Users may request data deletion by contacting{" "}
-          <a href="mailto:privacy@rapidcortex.us">privacy@rapidcortex.us</a>.
+          <a href="mailto:privacy@nexcortiq.us">privacy@nexcortiq.us</a>.
         </p>
         <p>
-          Ring™ video is not stored in Rapid Cortex systems (retention period: 0 days). Control of Ring™
+          Ring™ video is not stored in NexCort iQ systems (retention period: 0 days). Control of Ring™
           video history remains with Ring™ and the Ring™ Device Owner.
         </p>
       </section>
@@ -215,14 +215,14 @@ export default function PrivacyPolicyPage() {
           Depending on your location and role, you may have rights to access, correct, export, or delete
           certain information. Many requests for operational records are handled through your agency
           administrator. For general privacy questions, contact us at{" "}
-          <a href="mailto:privacy@rapidcortex.us?subject=Privacy%20inquiry">privacy@rapidcortex.us</a>{" "}
+          <a href="mailto:privacy@nexcortiq.us?subject=Privacy%20inquiry">privacy@nexcortiq.us</a>{" "}
           (or the address in your order documentation).
         </p>
         <p>
           Data Subject Access Requests (DSAR) and deletion requests can also be submitted to{" "}
-          <a href="mailto:support@rapidcortex.us?subject=Privacy%20request">support@rapidcortex.us</a>. We acknowledge
+          <a href="mailto:support@nexcortiq.us?subject=Privacy%20request">support@nexcortiq.us</a>. We acknowledge
           requests within 5 business days and target fulfillment within 30 days. DSAR responses include data held in
-          Rapid Cortex systems for the requestor; Ring™ video is not included because it is not stored by Rapid Cortex.
+          NexCort iQ systems for the requestor; Ring™ video is not included because it is not stored by NexCort iQ.
         </p>
         <p>
           Account deletion requests are processed within 30 days. Agencies may request deletion through their
@@ -237,7 +237,7 @@ export default function PrivacyPolicyPage() {
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-white">Consent, opt-out, and withdrawal</h2>
         <p>
-          Ring™ Device Owners manage enrollment through the Ring™ Appstore and may disconnect Rapid Vision™ in
+          Ring™ Device Owners manage enrollment through the Ring™ Appstore and may disconnect NexiQ Vision™ in
           Ring™ at any time. Per-incident video sharing requires a separate Allow on each SMS request; owners may
           Decline or Stop Sharing without disconnecting the app. Agency users provide consent through account
           onboarding terms and can opt out of non-essential data processing through account settings or support
@@ -253,7 +253,7 @@ export default function PrivacyPolicyPage() {
         <h2 className="text-base font-semibold text-white">Human access and user controls</h2>
         <p>
           Authorized agency operators may view live operational data, including live camera streams when enabled for an
-          incident workflow. Rapid Cortex support or security personnel may access limited customer data only when
+          incident workflow. NexCort iQ support or security personnel may access limited customer data only when
           necessary for troubleshooting, incident response, legal compliance, or approved support requests.
         </p>
         <p>
@@ -268,9 +268,9 @@ export default function PrivacyPolicyPage() {
           Use of customer data for AI model training
         </h2>
         <p>
-          Rapid Cortex does not use customer data, incident data, call recordings, transcripts, or any
+          NexCort iQ does not use customer data, incident data, call recordings, transcripts, or any
           personally identifiable information to train, fine-tune, or develop AI or machine learning
-          models. AI functionality within Rapid Cortex is provided by third-party AI providers operating
+          models. AI functionality within NexCort iQ is provided by third-party AI providers operating
           under data processing agreements that explicitly prohibit the use of customer data for model
           training purposes.
         </p>

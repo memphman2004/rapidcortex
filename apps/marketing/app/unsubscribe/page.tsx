@@ -6,7 +6,7 @@
  * Reads ?token= from the URL, POSTs to the unsubscribe Lambda,
  * and shows a confirmation. Works as a static export (client-side only).
  *
- * URL format: https://www.rapidcortex.us/unsubscribe?token={uuid}
+ * URL format: https://www.nexcortiq.us/unsubscribe?token={uuid}
  */
 
 import { useState, useEffect } from "react";
@@ -146,7 +146,7 @@ export default function UnsubscribePage() {
 
         {/* Header */}
         <div style={S.header}>
-          <span style={S.logo}>RAPID CORTEX</span>
+          <span style={S.logo}>NEXCORT IQ</span>
           <span style={{ fontSize: "10px", color: "#334466", letterSpacing: "0.05em" }}>
             Inside the Cortex
           </span>
@@ -172,10 +172,10 @@ export default function UnsubscribePage() {
               <h1 style={S.title}>Unsubscribe from Inside the Cortex?</h1>
               <p style={S.sub}>
                 You won&apos;t receive any more updates from us. You can always sign up again
-                at rapidcortex.us if you change your mind.
+                at nexcortiq.us if you change your mind.
               </p>
               <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
-                <a href="https://www.rapidcortex.us" style={{ textDecoration: "none" }}>
+                <a href="https://www.nexcortiq.us" style={{ textDecoration: "none" }}>
                   <button style={S.btn("ghost")}>Keep me in</button>
                 </a>
                 <button onClick={() => void handleUnsubscribe()} style={S.btn("primary")}>
@@ -205,8 +205,8 @@ export default function UnsubscribePage() {
                 you sign up at the site and we hope one day you will.{" "}
                 Thank you for the time you gave us.
               </p>
-              <a href="https://www.rapidcortex.us" style={{ textDecoration: "none" }}>
-                <button style={S.btn("ghost")}>Back to rapidcortex.us</button>
+              <a href="https://www.nexcortiq.us" style={{ textDecoration: "none" }}>
+                <button style={S.btn("ghost")}>Back to nexcortiq.us</button>
               </a>
             </>
           )}
@@ -221,13 +221,13 @@ export default function UnsubscribePage() {
               <p style={S.sub}>
                 This unsubscribe link may have expired or already been used.
                 If you still want to unsubscribe, email us at{" "}
-                <a href="mailto:hello@rapidcortex.us" style={{ color: "#3b82f6" }}>
-                  hello@rapidcortex.us
+                <a href="mailto:hello@nexcortiq.us" style={{ color: "#3b82f6" }}>
+                  hello@nexcortiq.us
                 </a>{" "}
                 and we'll take care of it right away.
               </p>
-              <a href="https://www.rapidcortex.us" style={{ textDecoration: "none" }}>
-                <button style={S.btn("ghost")}>Back to rapidcortex.us</button>
+              <a href="https://www.nexcortiq.us" style={{ textDecoration: "none" }}>
+                <button style={S.btn("ghost")}>Back to nexcortiq.us</button>
               </a>
             </>
           )}

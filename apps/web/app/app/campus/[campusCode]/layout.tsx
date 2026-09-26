@@ -38,15 +38,17 @@ export default async function CampusShellLayout({
               agencyId={user?.agencyId}
               leadingSlot={<ThemeToggle variant="inline" />}
             />
-            <CampusNav campusCode={campusCode} role={role} />
-            <div
-              className="mt-4 flex-1 rounded-[10px] p-4"
-              style={{
-                background: SHELL.surface,
-                border: `1px solid ${SHELL.border}`,
-              }}
-            >
-              {children}
+            <div className="mt-4 flex flex-col gap-4 lg:flex-row">
+              <CampusNav campusCode={campusCode} role={role} />
+              <div
+                className="min-w-0 flex-1 rounded-[10px] p-4"
+                style={{
+                  background: SHELL.surface,
+                  border: `1px solid ${SHELL.border}`,
+                }}
+              >
+                {children}
+              </div>
             </div>
           </div>
         </CampusSiteScopeProvider>

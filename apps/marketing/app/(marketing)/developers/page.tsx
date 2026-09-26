@@ -5,12 +5,12 @@ import { marketingDevelopersDocsPath } from "@/lib/marketing-links";
 import { buildPublicPageMetadata } from "@/lib/seo";
 import { SITE_NAME, SITE_OPERATOR_NAME, SITE_OPERATOR_URL } from "@/lib/site";
 
-const PRESS_EMAIL = "info@rapidcortex.us";
+const PRESS_EMAIL = "info@nexcortiq.us";
 const FOUNDED_YEAR = 2025;
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Developers — RC Lite API | Rapid Cortex",
-  description: `RC Lite APIs from ${SITE_NAME}, a product of ${SITE_OPERATOR_NAME} (founded ${FOUNDED_YEAR}). Documentation, sandbox, webhooks, authentication, and API plans for CAD and dispatch platforms.`,
+  title: "Developers — NexCort Lite API | NexCort iQ",
+  description: `NexCort Lite APIs from ${SITE_NAME}, a product of ${SITE_OPERATOR_NAME} (founded ${FOUNDED_YEAR}). Documentation, sandbox, webhooks, authentication, and API plans for CAD and dispatch platforms.`,
   path: "/developers",
 });
 
@@ -29,14 +29,14 @@ const LINKS = [
   { href: "/status", label: "Platform status" },
   { href: "/trust", label: "Trust disclosures" },
   { href: "/integrations", label: "Partner integrations" },
-  { href: "/rc-lite", label: "RC Lite product overview" },
+  { href: "/rc-lite", label: "NexCort Lite product overview" },
 ] as const;
 
 export default function DevelopersHubPage() {
   return (
-    <MarketingArticleShell eyebrow="RC Lite · API" title="Developer portal" sectionLabel="Developers">
+    <MarketingArticleShell eyebrow="NexCort Lite · API" title="Developer portal" sectionLabel="Developers">
       <p className="text-lg leading-relaxed text-slate-200">
-        RC Lite exposes {SITE_NAME} intelligence over versioned HTTPS APIs for CAD vendors, dispatch
+        NexCort Lite exposes {SITE_NAME} intelligence over versioned HTTPS APIs for CAD vendors, dispatch
         stacks, emergency platforms, and partner software — separate from the full {SITE_NAME}{" "}
         dashboards used in the web and desktop apps.
       </p>
@@ -59,7 +59,7 @@ export default function DevelopersHubPage() {
         <div>
           <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Product</dt>
           <dd className="mt-1 text-slate-200">
-            {SITE_NAME} · RC Lite API
+            {SITE_NAME} · NexCort Lite API
           </dd>
         </div>
         <div>
@@ -85,7 +85,7 @@ export default function DevelopersHubPage() {
         <Link href="/desktop" className="text-sky-400 hover:text-sky-300">
           desktop apps
         </Link>{" "}
-        and in the browser — RC Lite is the API-only path for partners embedding intelligence in their
+        and in the browser — NexCort Lite is the API-only path for partners embedding intelligence in their
         own products.
       </p>
 

@@ -1,5 +1,6 @@
 import { sendIncidentMediaLinkSms } from "../services/sms/smsProviderFactory.js";
 import { buildSmsFactoryEnvForAgency } from "./smsFactoryEnv.js";
+import { VIDEO_ASSIST_SMS_NOT_RECEIVED_MESSAGE } from "rapid-cortex-shared";
 
 /**
  * Outcome of a Caller Video Assist SMS send. `ok=true` requires the shared AWS/mock
@@ -13,6 +14,13 @@ export type VideoAssistSmsResult = {
   errorCode?: string;
   errorMessage?: string;
 };
+
+export { VIDEO_ASSIST_SMS_NOT_RECEIVED_MESSAGE };
+
+export function videoAssistSmsFailureMessage(sms: Pick<VideoAssistSmsResult, "errorCode" | "errorMessage">): string {
+  const detail = [sms.errorCode, sms.errorMessage].filter(Boolean).join(": ");
+  return detail ? `${VIDEO_ASSIST_SMS_NOT_RECEIVED_MESSAGE} (${detail})` : VIDEO_ASSIST_SMS_NOT_RECEIVED_MESSAGE;
+}
 
 /**
  * SMS for Caller Video Assist links. Same AWS End User Messaging path as Silent Text,

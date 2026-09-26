@@ -1,7 +1,7 @@
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
 
 export const metadata = {
-  title: "Solutions | Rapid Cortex",
+  title: "Solutions | NexCort iQ",
   description:
     "Operational intelligence solutions for agencies and OEM/integration partners across dispatch, supervisor, QA, reporting, and integration workflows.",
 };
@@ -12,7 +12,7 @@ export default function SolutionsPage() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold text-white">Agencies</h2>
         <p>
-          Rapid Cortex brings modern dispatch workstations, supervisory overview, QA and learning loops, responder
+          NexCort iQ brings modern dispatch workstations, supervisory overview, QA and learning loops, responder
           awareness, and executive dashboards into one agency-scoped tenancy with audit-ready instrumentation.
         </p>
         <ul>
@@ -26,7 +26,7 @@ export default function SolutionsPage() {
       <section className="mt-10 space-y-3">
         <h2 className="text-xl font-semibold text-white">Vendors and OEM partners</h2>
         <p>
-          CAD vendors, RMS partners, GIS integrators, and municipal IT collaborators can certify against Rapid Cortex
+          CAD vendors, RMS partners, GIS integrators, and municipal IT collaborators can certify against NexCort iQ
           APIs, webhook delivery, telemetry, and onboarding paths while preserving tenant-scoped guardrails.
         </p>
         <ul>

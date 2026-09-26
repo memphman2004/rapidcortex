@@ -22,7 +22,7 @@ export function ReportHeader() {
   return (
     <header className="flex items-start justify-between gap-3 border-b border-slate-200 pb-3">
       <div>
-        <p className="text-xs uppercase tracking-wide text-slate-500">Rapid Cortex</p>
+        <p className="text-xs uppercase tracking-wide text-slate-500">NexCort iQ</p>
         {venueName ? <p className="mt-1 text-sm font-medium text-slate-700">{venueName}</p> : null}
       </div>
       <LanguageSelector />

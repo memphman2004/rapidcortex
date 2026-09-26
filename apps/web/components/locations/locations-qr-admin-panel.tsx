@@ -33,7 +33,7 @@ export function LocationsQrAdminPanel({
   defaultOrgCode?: string;
   /** When false, list/download only — no create, bulk import, or deactivate. */
   canManage?: boolean;
-  /** RC Admin cross-tenant scope — overrides session `agencyId`. */
+  /** NexCort Admin cross-tenant scope — overrides session `agencyId`. */
   scopedAgencyId?: string;
 }) {
   const queryClient = useQueryClient();

@@ -1,4 +1,4 @@
-export const metadata = { title: "RC Lite — webhooks", robots: { index: false, follow: false } };
+export const metadata = { title: "NexCort Lite — webhooks", robots: { index: false, follow: false } };
 
 export default function RcLitePortalWebhooksPage() {
   return (

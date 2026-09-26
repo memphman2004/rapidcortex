@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — Rapid Vision™ (AI visual intelligence).
+  NexCort iQ — Rapid Vision™ (AI visual intelligence).
   HTTP routes attach to stack 2 HttpApi. Scheduled AI Writer streams Claude tokens to dispatchers.
 
 Parameters:
@@ -357,7 +357,7 @@ Resources:
     Properties:
       QueueName: !Sub "rapid-cortex-vision-scene-classify-dlq-${DeploymentStage}"
       MessageRetentionPeriod: 1209600
-      SqsManagedSseEnabled: true
+      KmsMasterKeyId: alias/aws/sqs
 
   VisionSceneClassifyQueue:
     Type: AWS::SQS::Queue
@@ -365,7 +365,7 @@ Resources:
       QueueName: !Sub "rapid-cortex-vision-scene-classify-${DeploymentStage}"
       VisibilityTimeout: 90
       MessageRetentionPeriod: 86400
-      SqsManagedSseEnabled: true
+      KmsMasterKeyId: alias/aws/sqs
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt VisionSceneClassifyDlq.Arn
         maxReceiveCount: 3
@@ -375,7 +375,7 @@ Resources:
     Properties:
       QueueName: !Sub "rapid-cortex-vision-scene-describe-dlq-${DeploymentStage}"
       MessageRetentionPeriod: 1209600
-      SqsManagedSseEnabled: true
+      KmsMasterKeyId: alias/aws/sqs
 
   VisionSceneDescribeQueue:
     Type: AWS::SQS::Queue
@@ -383,7 +383,7 @@ Resources:
       QueueName: !Sub "rapid-cortex-vision-scene-describe-${DeploymentStage}"
       VisibilityTimeout: 90
       MessageRetentionPeriod: 86400
-      SqsManagedSseEnabled: true
+      KmsMasterKeyId: alias/aws/sqs
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt VisionSceneDescribeDlq.Arn
         maxReceiveCount: 3
@@ -391,6 +391,7 @@ Resources:
   VisionSceneSupervisorTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       TopicName: !Sub "rapid-cortex-vision-scene-supervisor-${DeploymentStage}"
       DisplayName: Rapid Vision Scene Intelligence supervisor alerts
 
@@ -400,6 +401,8 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
+      VersioningConfiguration:
+        Status: Enabled
       BucketName: !Sub "rapid-cortex-vision-artifacts-${DeploymentStage}-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true

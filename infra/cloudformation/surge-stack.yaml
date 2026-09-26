@@ -3,7 +3,7 @@
 
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Rapid Cortex Surge API (standalone SAM stack).
+Description: NexCort iQ Surge API (standalone SAM stack).
 
 Parameters:
   Environment:

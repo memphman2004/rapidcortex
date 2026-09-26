@@ -259,7 +259,7 @@ export function InsideTheCortexPopup() {
                 lineHeight: 1.2, marginBottom: "6px",
               }}>
                 Welcome to{" "}
-                <span style={{ color: "#3b82f6" }}>Rapid Cortex</span>
+                <span style={{ color: "#3b82f6" }}>NexCort iQ</span>
               </h2>
               <p style={{ fontSize: "13px", color: "#6b83a8", margin: 0 }}>
                 Intelligence at the speed of response.

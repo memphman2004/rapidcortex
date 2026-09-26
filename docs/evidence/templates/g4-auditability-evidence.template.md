@@ -11,7 +11,7 @@ For each scenario, record **request ID**, **actor**, **expected event types**, a
 2. CAD read (or staging CAD proxy)  
 3. Failed authentication  
 4. Supervisor / privileged action (if in scope)  
-5. External API / RC Lite call (if in scope)
+5. External API / NC Lite call (if in scope)
 
 ## Retention & export
 

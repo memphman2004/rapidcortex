@@ -1,8 +1,9 @@
 # Data Processing Addendum (DPA) — DRAFT
 
 > **STATUS: DRAFT — COUNSEL REVIEW REQUIRED**  
+> **Last reviewed:** 2026-09-19 (60-day refresh — markdown only; still not executable).  
 > **Not executable.** Do not send to customers until legal approves and entity naming is finalized (see [DOCUMENT_GAPS.md](../DOCUMENT_GAPS.md) LEG-007).  
-> **Governs:** processing of personal data and operational content when Rapid Cortex is provided as a hosted service.
+> **Governs:** processing of personal data and operational content when NexCort iQ is provided as a hosted service.
 
 ---
 
@@ -11,7 +12,7 @@
 | Party | Role |
 |-------|------|
 | **[AGENCY LEGAL NAME]** (“**Customer**” or “**Controller**”) | Determines purposes and means of processing agency operational data |
-| **[CONTRACTING ENTITY — TBD]** (“**Rapid Cortex**” or “**Processor**”) | Processes data on Customer’s instructions per this DPA and the Master Services Agreement (“**MSA**”) |
+| **[CONTRACTING ENTITY — TBD]** (“**NexCort iQ**” or “**Processor**”) | Processes data on Customer’s instructions per this DPA and the Master Services Agreement (“**MSA**”) |
 
 **Effective date:** [DATE]  
 **Incorporation:** This DPA is incorporated into and forms part of the MSA, pilot scope agreement, or order form between the Parties.
@@ -22,7 +23,7 @@
 
 - **Personal Data** — information relating to an identified or identifiable natural person processed through the Service (e.g. caller phone numbers, names in transcripts, user account identifiers).
 - **Operational Data** — incident metadata, transcripts, AI analyses, audit logs, and media linked to incidents, whether or not they contain Personal Data.
-- **Service** — Rapid Cortex cloud platform and related support as described in the applicable Statement of Work.
+- **Service** — NexCort iQ cloud platform and related support as described in the applicable Statement of Work.
 - **Subprocessor** — third party engaged by Processor to process data — see [SUBPROCESSOR_LIST.md](../../security-compliance/SUBPROCESSOR_LIST.md).
 
 Capitalized terms not defined here have meanings in the MSA.
@@ -31,7 +32,7 @@ Capitalized terms not defined here have meanings in the MSA.
 
 ## 2. Roles and scope
 
-2.1 **Customer** is the **Controller** (or equivalent) for agency operational and personal data submitted to the Service, except where Customer acts as Processor for its own end users and Rapid Cortex processes only on Customer instructions.
+2.1 **Customer** is the **Controller** (or equivalent) for agency operational and personal data submitted to the Service, except where Customer acts as Processor for its own end users and NexCort iQ processes only on Customer instructions.
 
 2.2 **Processor** processes Personal Data and Operational Data **only** to:
 - Provide the Service per the MSA and Statement of Work;
@@ -57,9 +58,9 @@ Capitalized terms not defined here have meanings in the MSA.
 - [SECURITY_MODEL.md](../../security-compliance/SECURITY_MODEL.md)
 - [TENANT_ISOLATION_MODEL.md](../../security-compliance/TENANT_ISOLATION_MODEL.md)
 
-4.2 Measures include, at minimum: tenant isolation by `agencyId`, encryption in transit, access controls via Cognito JWT and RBAC, secrets in AWS Secrets Manager, and audit logging.
+4.2 Measures include, at minimum: tenant isolation by `agencyId`, encryption in transit, access controls via Cognito JWT and RBAC, **MFA required** on the production Cognito user pool, secrets in AWS Secrets Manager, and audit logging.
 
-4.3 Processor does **not** represent CJIS, HIPAA, SOC 2, or FedRAMP certification unless a separate executed attestation exists.
+4.3 Processor does **not** represent CJIS, HIPAA, SOC 2 Type II, or FedRAMP certification unless a separate executed attestation exists. An in-repo control pack and observation calendar are internal operating documents, not a CPA report.
 
 ---
 
@@ -127,7 +128,7 @@ If processing involves transfers outside Customer’s jurisdiction, Parties will
 
 11.1 Customer may audit Processor’s compliance **once per 12 months** on **30 days’ notice**, during business hours, without disrupting other customers.
 
-11.2 Processor may satisfy audit with **third-party reports** (e.g. SOC 2) when available.
+11.2 Processor may satisfy audit with **third-party reports** (e.g. SOC 2 Type II) **when a CPA firm has issued them**. Until then, Processor may share the in-repo control descriptions and technical snapshots without claiming Type II.
 
 ---
 
@@ -145,7 +146,7 @@ This DPA remains in effect for the MSA term and until all Customer data is delet
 
 ## Signatures
 
-| **Customer** | **Rapid Cortex** |
+| **Customer** | **NexCort iQ** |
 |--------------|------------------|
 | Name: | Name: |
 | Title: | Title: |

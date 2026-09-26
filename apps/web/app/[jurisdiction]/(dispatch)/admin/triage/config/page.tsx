@@ -66,7 +66,7 @@ export default function AdminTriageConfigPage() {
       <div className="space-y-4 p-4 md:p-6">
         <h1 className="text-lg font-semibold text-white">Non-emergency triage</h1>
         <p className="max-w-xl text-sm text-slate-400">
-          Non-emergency triage isn’t enabled for this agency. Contact Rapid Cortex support.
+          Non-emergency triage isn’t enabled for this agency. Contact NexCort iQ support.
         </p>
         <Link href={to("/admin")} className="text-sm text-sky-400 hover:underline">
           ← Admin overview

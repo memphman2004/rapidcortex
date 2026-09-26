@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#090C11" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>RC Guest Assist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:             #090C11;
+      --surface:        #111720;
+      --surface-raised: #192231;
+      --border:         #1F2D3D;
+      --accent:         #1A6CF0;
+      --accent-dim:     rgba(26,108,240,0.12);
+      --accent-glow:    rgba(26,108,240,0.24);
+      --accent-text:    #5B9FFF;
+      --red:            #DC2040;
+      --red-dim:        rgba(220,32,64,0.10);
+      --green:          #10B86A;
+      --green-dim:      rgba(16,184,106,0.12);
+      --text-primary:   #EDF2FA;
+      --text-secondary: #7A8999;
+      --text-muted:     #3A4A5C;
+      --radius-tile:    14px;
+      --ic-green:  #0FA860;
+      --ic-amber:  #D48B00;
+      --ic-purple: #7350E8;
+      --ic-sky:    #0899D4;
+      --ic-rose:   #D93055;
+      --staff-color: #1A6CF0;
+    }
+    body.v-campus {
+      --accent:       #0DBF7E;
+      --accent-dim:   rgba(13,191,126,0.12);
+      --accent-glow:  rgba(13,191,126,0.24);
+      --accent-text:  #2DDAA0;
+    }
+    body.v-transit {
+      --accent:       #D48B00;
+      --accent-dim:   rgba(212,139,0,0.12);
+      --accent-glow:  rgba(212,139,0,0.24);
+      --accent-text:  #F5B800;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.58;
+      color: var(--text-primary);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      overflow: hidden;
+    }
+    button, textarea, input { font-family: inherit; }
+    button { cursor: pointer; }
+    .gone { display: none !important; }
+
+    .demo-switcher {
+      position: relative;
+      top: 0;
+      z-index: 40;
+      flex-shrink: 0;
+      display: flex;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(9,12,17,0.92);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+    .demo-switcher button {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 6px;
+    }
+    .demo-switcher button.active {
+      border-color: var(--accent);
+      color: var(--text-primary);
+      background: var(--accent-dim);
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .screen {
+      height: 100%;
+      min-height: 0;
+      opacity: 0;
+      transform: translateX(14px);
+      pointer-events: none;
+      visibility: hidden;
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .screen.active {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+      visibility: visible;
+      z-index: 2;
+    }
+
+    /* ---- Picker ---- */
+    .venue-header {
+      position: relative;
+      padding: 48px 22px 20px;
+      overflow: hidden;
+    }
+    .picker-back {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      margin: 0 0 8px;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--accent-text);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .picker-back.gone { display: none !important; }
+    .venue-header::before {
+      content: "";
+      position: absolute;
+      top: -40px;
+      right: -30px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
+      filter: blur(42px);
+      pointer-events: none;
+    }
+    .rc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px 5px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--accent);
+      background: var(--accent-dim);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-text);
+      letter-spacing: 0.02em;
+    }
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: blink 2.4s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+    .venue-name {
+      margin-top: 14px;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      line-height: 1.2;
+    }
+    .venue-sub {
+      margin-top: 4px;
+      font-size: 12.5px;
+      font-weight: 400;
+      color: var(--text-secondary);
+    }
+    .loc-chip {
+      margin-top: 10px;
+      display: inline-block;
+      font-size: 11px;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 10px;
+      background: var(--surface);
+    }
+
+    .grid-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 0 14px;
+    }
+    .opt-tile {
+      border-radius: var(--radius-tile);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: inherit;
+      text-align: left;
+      transition: border-color 0.18s, box-shadow 0.18s, transform 0.12s;
+    }
+    .opt-tile:hover {
+      border-color: #2C3F55;
+      box-shadow: 0 2px 12px rgba(0,0,0,.25);
+    }
+    .opt-tile:active { transform: scale(0.965); }
+    .tile-visual {
+      height: 72px;
+      width: 100%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .tile-visual img, .h-visual img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+    .tile-visual::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.42) 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .tile-visual svg { filter: drop-shadow(0 1px 3px rgba(0,0,0,0.35)); position: relative; z-index: 2; }
+    .tile-visual.v-accent {
+      background: linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 60%, #000) 100%);
+    }
+    .tile-visual.v-green { background: linear-gradient(135deg, #0FA860 0%, #076B3C 100%); }
+    .tile-visual.v-amber { background: linear-gradient(135deg, #D48B00 0%, #8A5800 100%); }
+    .tile-visual.v-purple { background: linear-gradient(135deg, #7350E8 0%, #4424A0 100%); }
+    .tile-visual.v-sky { background: linear-gradient(135deg, #0899D4 0%, #045C82 100%); }
+    .tile-visual.v-rose { background: linear-gradient(135deg, #D93055 0%, #8C1530 100%); }
+    .tile-text { padding: 11px 12px 13px; }
+    .tile-text strong { display: block; font-size: 13px; font-weight: 700; }
+    .tile-text span { display: block; margin-top: 2px; font-size: 10.5px; color: var(--text-secondary); }
+
+    .staff-section, .emergency-section { padding: 8px 14px 0; }
+    .staff-tile, .emrg-tile {
+      width: 100%;
+      display: flex;
+      align-items: stretch;
+      border-radius: var(--radius-tile);
+      overflow: hidden;
+      text-align: left;
+      color: inherit;
+      position: relative;
+      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s, transform 0.12s;
+    }
+    .staff-tile:active, .emrg-tile:active { transform: scale(0.965); }
+
+    .staff-tile {
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .staff-tile::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, var(--accent-dim) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .staff-tile:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-glow);
+    }
+    .h-visual {
+      width: 64px;
+      flex-shrink: 0;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .h-visual::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.45) 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .h-visual svg { position: relative; z-index: 2; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.45)); }
+    .staff-tile .h-visual {
+      background: linear-gradient(135deg, var(--staff-color) 0%, color-mix(in srgb, var(--staff-color) 60%, #000) 100%);
+    }
+    .online-dot {
+      position: absolute;
+      right: 7px;
+      bottom: 7px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      border: 2px solid var(--surface);
+      animation: blink 2.4s ease-in-out infinite;
+      z-index: 3;
+    }
+    .h-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 12px 12px 12px 14px;
+      position: relative;
+      z-index: 1;
+    }
+    .h-body strong { display: block; font-size: 14px; font-weight: 700; }
+    .h-body span { display: block; font-size: 11px; color: var(--text-secondary); }
+
+    .emrg-tile {
+      background: rgba(220,32,64,0.07);
+      border: 1px solid rgba(220,32,64,0.22);
+    }
+    .emrg-tile .h-visual { background: var(--red); }
+    .emrg-tile .h-body strong { color: #FF7080; }
+    .emrg-tile .h-body span { color: rgba(255,112,128,0.6); }
+    .emrg-tile:hover {
+      background: rgba(220,32,64,0.13);
+      border-color: rgba(220,32,64,0.4);
+    }
+
+    .picker-footer {
+      padding: 18px 22px 28px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .picker-footer .disclaimer {
+      margin-top: 6px;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    /* ---- Chat ---- */
+    #screen-chat {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+    #screen-chat.active { display: flex; }
+    .chat-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .chat-header.staff-mode {
+      background: rgba(16,184,106,0.07);
+      border-bottom-color: rgba(16,184,106,0.2);
+    }
+    .chat-header.staff-mode .icon-wrap { background: #0A9057; }
+    .back-btn, .icon-wrap {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .back-btn {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-primary);
+    }
+    .icon-wrap { background: var(--accent); }
+    .header-meta { flex: 1; min-width: 0; }
+    .header-kicker {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .header-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .live-ind {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--green);
+      opacity: 0;
+    }
+    .chat-header.staff-mode .live-ind { opacity: 1; }
+    .emrg-pill {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid rgba(220,32,64,0.35);
+      background: var(--red-dim);
+      color: #FF7080;
+      border-radius: 20px;
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .staff-banner {
+      height: 0;
+      opacity: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: rgba(16,184,106,0.08);
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 500;
+      transition: height 0.2s ease, opacity 0.2s ease;
+      flex-shrink: 0;
+    }
+    .staff-banner.on { height: 34px; opacity: 1; }
+
+    .msgs {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 14px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      max-width: 92%;
+    }
+    .row.user { margin-left: auto; flex-direction: row-reverse; }
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .avatar.ai { background: var(--accent); }
+    .avatar.staff { background: #0A9057; }
+    .avatar.user {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+    }
+    .bubble {
+      padding: 9px 12px;
+      border-radius: 14px;
+      font-size: 13.5px;
+      line-height: 1.5;
+    }
+    .bubble.ai {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-top-left-radius: 4px;
+    }
+    .bubble.staff {
+      background: rgba(16,184,106,0.09);
+      border: 1px solid rgba(16,184,106,0.2);
+      border-top-left-radius: 4px;
+    }
+    .bubble.user {
+      background: var(--accent);
+      color: #fff;
+      border-top-right-radius: 4px;
+    }
+    .sys-msg {
+      width: 100%;
+      max-width: 100%;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-secondary);
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-left: 36px;
+    }
+    .chip {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+    }
+    .chip:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+      background: var(--accent-dim);
+    }
+    .tdots { display: flex; gap: 4px; padding: 4px 2px; }
+    .tdot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      animation: tdot 1.2s ease-in-out infinite;
+    }
+    .tdot:nth-child(2) { animation-delay: .16s; }
+    .tdot:nth-child(3) { animation-delay: .32s; }
+    @keyframes tdot {
+      0%, 100% { transform: none; opacity: .45; }
+      50% { transform: translateY(-3px); opacity: 1; }
+    }
+
+    .input-area {
+      flex-shrink: 0;
+      padding: 8px 12px calc(12px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .esc-bar, .leave-bar {
+      margin-bottom: 8px;
+    }
+    .esc-bar button, .leave-bar button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-primary);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .leave-bar button {
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    .composer {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+    #input {
+      flex: 1;
+      resize: none;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-primary);
+      padding: 10px 12px;
+      font-size: 14px;
+      line-height: 1.4;
+      max-height: 110px;
+      min-height: 42px;
+      outline: none;
+    }
+    #screen-chat.staff-mode #input:focus { border-color: var(--green); }
+    #input:focus { border-color: var(--accent); }
+    .send-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      border: none;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    #screen-chat.staff-mode .send-btn { background: #0A9057; }
+    .send-btn:disabled { opacity: 0.45; }
+
+    /* ---- Emergency modal ---- */
+    .modal-root {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+    }
+    .modal-sheet {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      border-radius: 22px 22px 0 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 22px 20px calc(22px + env(safe-area-inset-bottom));
+      transform: translateY(24px);
+      animation: sheetIn 0.3s cubic-bezier(0.34, 1.1, 0.64, 1) forwards;
+    }
+    @keyframes sheetIn {
+      to { transform: translateY(0); }
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #FF7080;
+      letter-spacing: -0.3px;
+    }
+    .modal-body {
+      margin: 10px 0 18px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    .contact-security-btn {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--accent-dim);
+      border: 1.5px solid var(--accent);
+      color: var(--text-primary);
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 12px;
+      padding: 13px 14px;
+    }
+    .call-911-btn {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--red);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 12px;
+      padding: 13px 14px;
+      text-decoration: none;
+      border: none;
+    }
+    .cpnum-btn {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      margin-top: 8px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 12px;
+      padding: 12px;
+      text-decoration: none;
+    }
+    .modal-note {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+    .dismiss-btn {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="demo-switcher" class="demo-switcher gone" aria-label="Vertical preview">
+    <button type="button" data-v="venue">Venue</button>
+    <button type="button" data-v="campus">Campus</button>
+    <button type="button" data-v="transit">Transit</button>
+  </div>
+
+  <div class="app">
+    <section id="screen-picker" class="screen active">
+      <header class="venue-header">
+        <a class="picker-back gone" id="picker-back" href="/">← Back</a>
+        <div class="rc-badge"><span class="live-dot" aria-hidden="true"></span><span id="badge-text"></span></div>
+        <h1 class="venue-name" id="venue-name"></h1>
+        <p class="venue-sub" id="venue-sub"></p>
+        <p class="loc-chip" id="loc-chip"></p>
+      </header>
+      <div class="grid-section" id="topic-grid"></div>
+      <div class="staff-section" id="staff-section"></div>
+      <div class="emergency-section" id="emergency-section"></div>
+      <footer class="picker-footer">
+        NexCort iQ Guest Assist
+        <div class="disclaimer">Not a 911 emergency dispatch system</div>
+      </footer>
+    </section>
+
+    <section id="screen-chat" class="screen">
+      <header class="chat-header" id="chat-header">
+        <button type="button" class="back-btn" id="chat-back" aria-label="Back"></button>
+        <div class="icon-wrap" id="chat-icon"></div>
+        <div class="header-meta">
+          <div class="header-kicker" id="chat-kicker"></div>
+          <div class="header-title" id="chat-title"></div>
+        </div>
+        <div class="live-ind"><span class="live-dot"></span>Live</div>
+        <button type="button" class="emrg-pill" id="chat-emrg">Emergency</button>
+      </header>
+      <div class="staff-banner" id="staff-banner"></div>
+      <div class="msgs" id="msgs"></div>
+      <div class="input-area">
+        <div class="esc-bar" id="esc-bar">
+          <button type="button" id="esc-btn"></button>
+        </div>
+        <div class="leave-bar gone" id="leave-bar">
+          <button type="button" id="leave-btn">← Back to AI assistant</button>
+        </div>
+        <div class="composer">
+          <textarea id="input" rows="1" placeholder="Type a message…" autocomplete="off"></textarea>
+          <button type="button" class="send-btn" id="send-btn" aria-label="Send"></button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="emrg-modal" class="modal-root gone" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-sheet">
+      <div id="modal-s1">
+        <h2 class="modal-title" id="modal-title">🚨 Emergency</h2>
+        <p class="modal-body" id="modal-body-s1"></p>
+        <button type="button" class="contact-security-btn" id="contact-security-btn"></button>
+        <a class="cpnum-btn gone" id="cpnum-btn" href="tel:"></a>
+        <button type="button" class="dismiss-btn" data-dismiss>This is not an emergency</button>
+      </div>
+      <div id="modal-s2" class="gone">
+        <h2 class="modal-title">🚨 Call 911?</h2>
+        <p class="modal-body">Security has been notified and is responding. If there is immediate danger to life, call 911 now.</p>
+        <a class="call-911-btn" id="call-911-btn" href="tel:911"></a>
+        <p class="modal-note" id="modal-note"></p>
+        <button type="button" class="dismiss-btn" data-dismiss>This is not an emergency</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  const ICONS = {
+    map: `<path d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317.159.69.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"/>`,
+    clipboard: `<path d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/>`,
+    users: `<path d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>`,
+    search: `<path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 15.803 7.5 7.5 0 0 0 15.803 15.803Z"/>`,
+    wrench: `<path d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z"/>`,
+    chat: `<path d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"/>`,
+    gradcap: `<path d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.627 48.627 0 0 1 12 20.904a48.627 48.627 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.57 50.57 0 0 0-2.658-.813A59.905 59.905 0 0 1 12 3.493a59.902 59.905 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"/>`,
+    shield: `<path d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/>`,
+    calendar: `<path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z"/>`,
+    clock: `<path d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>`,
+    card: `<path d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/>`,
+    access: `<path d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/>`,
+    alert: `<path d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/>`,
+    signal: `<path d="M9.348 14.651a3.75 3.75 0 0 1 0-5.303m5.304 0a3.75 3.75 0 0 1 0 5.303m-7.425 2.122a6.75 6.75 0 0 1 0-9.546m9.546 0a6.75 6.75 0 0 1 0 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.789M12 12h.008v.008H12V12Z"/>`,
+    radio: `<path d="M3.75 7.5l16.5-4.125M12 6.75c-2.708 0-5.363.224-7.948.655C2.999 7.58 2.25 8.507 2.25 9.574v9.176A2.25 2.25 0 0 0 4.5 21h15a2.25 2.25 0 0 0 2.25-2.25V9.574c0-1.067-.75-1.994-1.802-2.169A48.329 48.329 0 0 0 12 6.75Zm-1.683 6.443-.005.005-.006-.005.006-.005.005.005Zm-.005 2.127-.005-.006.005-.005.005.005-.005.006Zm-2.116-.006-.005.006-.006-.006.005-.005.006.005Zm-.005-2.116-.006-.005.006-.005.005.005-.005.005Zm6.939 2.116-.005.006-.006-.006.005-.005.006.005Zm-.005-2.116-.006-.005.006-.005.005.005-.005.005Zm2.116-.005-.005.005-.006-.005.006-.005.005.005Z"/>`,
+    badge: `<path d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z"/>`,
+    warning: `<path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>`,
+    send: `<path d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/>`,
+    chevron: `<path d="m9 18 6-6-6-6"/>`,
+    phone: `<path d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6.75Z"/>`,
+  };
+
+  function mkIcon(name, size = 26, color = '#fff') {
+    return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"
+      stroke="${color}" stroke-width="1.75" stroke-linecap="round"
+      stroke-linejoin="round">${ICONS[name]}</svg>`;
+  }
+
+  const V = {
+    venue: {
+      cls: 'v-venue',
+      badge: 'Venue Intelligence',
+      subKey: 'Scan · Tap · Get Help',
+      staffIcon: 'radio',
+      staffVisualColor: '#1A6CF0',
+      staffTileLabel: 'Contact Venue Security',
+      staffTileDesc: 'Text directly with a staff member now',
+      staffName: 'Venue Security',
+      staffPersona: (c) => `You are a venue security and guest services staff member at ${c.name}, stationed near ${c.location}. A guest has initiated a live text chat. Respond as a real, professional staff member: helpful, calm, concise. You can assist with guest concerns, incidents, service requests, lost items, ADA needs, or escalating to supervisors. For emergencies, immediately tell them to call 911. Sign messages as "Staff". Keep responses brief like real chat. Do not break character.`,
+      staffGreeting: (c) => `Hi, this is Venue Security at ${c.name}. How can I help you?`,
+      emrgLabel: 'Emergency',
+      emrgDesc: 'Alert security · Immediate danger',
+      securityIcon: 'shield',
+      securityLabel: (c) => `Contact ${c.name} Security`,
+      securityBody: (c) => `Tap below to alert ${c.name} security. They're on-site and will respond right away.`,
+      securityNote: (c) => `${c.name} Security has been alerted to your location`,
+      topics: {
+        directions: {
+          label: 'Directions', icon: 'map', vis: 'v-accent',
+          desc: 'Gates, restrooms, parking, exits',
+          chips: ['Nearest restroom', 'My seat', 'Parking', 'First aid', 'Exit'],
+          greeting: (c) => `I can help you navigate ${c.name}. You're near ${c.location}. Where are you headed?`,
+          sys: (c) => `You are a wayfinding assistant for ${c.name}. The guest is near ${c.location} attending ${c.event}. Give complete, specific directions with numbered steps and landmarks. Include what to look for and what to do if they cannot find it. 4–8 sentences is fine. Never handle emergencies — refer to 911 only if the guest describes danger.`
+        },
+        'venue-info': {
+          label: 'Venue Info', icon: 'clipboard', vis: 'v-purple',
+          desc: 'Schedule, policies, re-entry',
+          chips: ['Re-entry policy', 'Bag rules', 'Event schedule', 'Prohibited items'],
+          greeting: (c) => `What would you like to know about ${c.name}?`,
+          sys: (c) => `You are a venue info assistant for ${c.name}. Answer questions about policies, schedules, re-entry, bag rules, and prohibited items with complete details (sizes, exceptions, where to go). If unsure, say so and direct them to guest services. Never handle emergencies — refer to 911 only if the guest describes danger.`
+        },
+        'guest-svc': {
+          label: 'Guest Services', icon: 'users', vis: 'v-green',
+          desc: 'Accessibility, strollers, will call',
+          chips: ['Wheelchair access', 'Stroller check', 'Will call', 'Sensory needs'],
+          greeting: () => `Guest Services here. How can I help — accessibility, will call, strollers?`,
+          sys: (c) => `You are a guest services assistant for ${c.name}. Help with accessibility accommodations, stroller check-in, will call tickets, and sensory accommodations. Give complete steps and where to go from ${c.location}. Never handle emergencies — refer to 911 only if the guest describes danger.`
+        },
+        'lost-found': {
+          label: 'Lost & Found', icon: 'search', vis: 'v-amber',
+          desc: 'Report or locate a lost item',
+          chips: ['I lost something', 'I found something', 'Lost a child'],
+          greeting: () => `Lost and Found — describe what was lost, where, and when.`,
+          sys: (c) => `You are a lost and found assistant for ${c.name}. Collect: item description, location last seen, approximate time, and a callback number. For lost children, immediately direct them to the nearest security staff — this is time-critical. Never handle other emergencies — refer to 911.`
+        },
+        issue: {
+          label: 'Report an Issue', icon: 'wrench', vis: 'v-sky',
+          desc: 'Spill, seat, maintenance',
+          chips: ['Spill / wet floor', 'Broken seat', 'Restroom issue', 'Lighting'],
+          greeting: (c) => `I can log a service request for ${c.location}. What's the issue?`,
+          sys: (c) => `You are a venue operations assistant for ${c.name}. Log non-emergency facility issues. Confirm location (${c.location}) and issue type, then confirm it's been routed to operations staff. Never handle emergencies — refer to 911.`
+        },
+        general: {
+          label: 'General Help', icon: 'chat', vis: 'v-purple',
+          desc: 'Anything else we can help with',
+          chips: ['Food & drinks', 'ATM nearby', 'Merchandise', 'Rideshare pickup'],
+          greeting: (c) => `I'm here to help at ${c.name}. What can I assist with?`,
+          sys: (c) => `You are a guest assistant for ${c.name}. Answer venue-related questions: concessions, ATMs, merchandise, rideshare pickup. Give complete locations and steps from ${c.location}. Never handle emergencies — refer to 911 only if the guest describes danger.`
+        }
+      }
+    },
+    campus: {
+      cls: 'v-campus',
+      badge: 'Campus Safety & Services',
+      subKey: 'Your campus guide — always on',
+      staffIcon: 'badge',
+      staffVisualColor: '#0DBF7E',
+      staffTileLabel: 'Contact Campus Safety',
+      staffTileDesc: 'Text directly with a campus officer now',
+      staffName: 'Campus Safety',
+      staffPersona: (c) => `You are a campus safety officer at ${c.name}, patrolling near ${c.location}. A student or visitor has initiated a live text chat. Respond professionally, calmly, and helpfully. You can assist with safety concerns, suspicious activity reports, safe walk requests, welfare checks, non-emergency incidents, and directing to campus resources. For emergencies, immediately tell them to call 911. Sign messages as "Officer". Keep messages brief.`,
+      staffGreeting: (c) => `Hi, this is Campus Safety at ${c.name}. What can I help you with?`,
+      emrgLabel: 'Emergency & Safety',
+      emrgDesc: 'Alert Campus Safety · Call 911',
+      securityIcon: 'shield',
+      securityLabel: () => `Contact Campus Safety`,
+      securityBody: (c) => `Tap below to alert Campus Safety at ${c.name}. Officers are on-site and will respond immediately.`,
+      securityNote: (c) => `Campus Safety at ${c.name} has been alerted`,
+      topics: {
+        directions: {
+          label: 'Directions', icon: 'map', vis: 'v-accent',
+          desc: 'Buildings, parking, transit stops',
+          chips: ['Main library', 'Student union', 'Parking', 'Bus stop', 'My class'],
+          greeting: (c) => `I can help you find your way around ${c.name}. You're near ${c.location}. Where are you headed?`,
+          sys: (c) => `You are a wayfinding assistant for ${c.name} campus. The user is near ${c.location}. Give complete directions with numbered steps and campus landmarks. Never handle emergencies — refer to campus police or 911 only if the guest describes danger.`
+        },
+        'student-svc': {
+          label: 'Student Services', icon: 'gradcap', vis: 'v-green',
+          desc: 'Registrar, financial aid, health',
+          chips: ['Registrar', 'Financial aid', 'Health center', 'Counseling', 'Disability services'],
+          greeting: () => `Student Services here. What do you need — registrar, financial aid, health, counseling?`,
+          sys: (c) => `You are a student services assistant for ${c.name}. Help students find the right office: registrar, financial aid, health services, counseling, disability services, housing. Be helpful and non-judgmental. Never handle emergencies — refer to campus police or 911.`
+        },
+        safety: {
+          label: 'Safety & Security', icon: 'shield', vis: 'v-rose',
+          desc: 'Safe walk, alerts, concerns',
+          chips: ['Request safe walk', 'Report suspicious', 'Campus alerts', 'Parking enforcement'],
+          greeting: (c) => `Campus Safety help for ${c.name}. Safe walk, reporting, or alerts — what do you need?`,
+          sys: (c) => `You are a campus safety assistant for ${c.name}. Help with safe walk requests, suspicious activity reporting, campus safety alerts, and non-emergency police contact. For immediate danger, always instruct them to call 911 immediately. Be calm and professional.`
+        },
+        issue: {
+          label: 'Report an Issue', icon: 'wrench', vis: 'v-sky',
+          desc: 'Maintenance, hazards, facilities',
+          chips: ['Broken equipment', 'Spill / hazard', 'Lighting outage', 'Accessibility barrier'],
+          greeting: (c) => `I can log a facilities report for ${c.location}. What's the issue?`,
+          sys: (c) => `You are a facilities reporting assistant for ${c.name} campus. Log non-emergency issues: broken equipment, spills, lighting, vandalism, accessibility barriers at ${c.location}. Confirm it's been logged for facilities management. Never handle emergencies — refer to 911.`
+        },
+        events: {
+          label: 'Campus Events', icon: 'calendar', vis: 'v-amber',
+          desc: "What's happening today",
+          chips: ["Today's events", 'Free food', 'Athletic schedule', 'Speaker series'],
+          greeting: (c) => `Campus events at ${c.name} — what are you looking for?`,
+          sys: (c) => `You are a campus events assistant for ${c.name}. Help find events, activities, athletic schedules, speaker series, and student org events. Direct to the campus events calendar if you don't have specifics. Never handle emergencies.`
+        },
+        'lost-found': {
+          label: 'Lost & Found', icon: 'search', vis: 'v-purple',
+          desc: 'Report or locate a lost item',
+          chips: ['I lost something', 'I found something', 'Lost ID / card'],
+          greeting: () => `I can help with a lost item on campus. Describe what was lost, where, and when.`,
+          sys: (c) => `You are a lost and found assistant for ${c.name} campus. Collect item description, last known location, and contact info. For lost ID cards, direct to the ID office immediately. Never handle emergencies.`
+        }
+      }
+    },
+    transit: {
+      cls: 'v-transit',
+      badge: 'Transit Rider Services',
+      subKey: 'Trip help · At your stop · Right now',
+      staffIcon: 'radio',
+      staffVisualColor: '#D48B00',
+      staffTileLabel: 'Contact Transit Control',
+      staffTileDesc: 'Text directly with transit staff now',
+      staffName: 'Transit Control',
+      staffPersona: (c) => `You are a transit control officer at ${c.name}, monitoring ${c.location}. A rider has initiated a live text chat. Respond professionally and helpfully. You can assist with real-time service info, platform issues, safety concerns, accessibility needs, and fare disputes. For emergencies or suspicious items, immediately tell them to call 911 and move to a safe area. Sign messages as "Transit Control". Keep responses brief.`,
+      staffGreeting: (c) => `Hi, this is Transit Control at ${c.name}. What can I help you with?`,
+      emrgLabel: 'Emergency',
+      emrgDesc: 'Alert Transit Control · Call 911',
+      securityIcon: 'badge',
+      securityLabel: () => `Contact Transit Security`,
+      securityBody: (c) => `Tap below to alert Transit Security at ${c.location}. Stay in a visible public area — they will respond immediately.`,
+      securityNote: (c) => `Transit Security has been alerted to ${c.location}`,
+      topics: {
+        'trip-plan': {
+          label: 'Trip Planning', icon: 'map', vis: 'v-accent',
+          desc: 'Routes, transfers, destinations',
+          chips: ['Best route downtown', 'Transfer options', 'Last train tonight', 'Express vs local'],
+          greeting: (c) => `Trip planning — you're at ${c.location} on ${c.name}. Where are you going?`,
+          sys: (c) => `You are a trip planning assistant for the ${c.name} transit system. The rider is at ${c.location}. Help plan trips, suggest routes, identify transfers, and give travel times. If no live data, direct to the transit app. Never handle emergencies — refer to 911.`
+        },
+        schedules: {
+          label: 'Schedules', icon: 'clock', vis: 'v-green',
+          desc: 'Next departure, real-time status',
+          chips: ['Next departure', 'Weekend schedule', 'Holiday service', 'First/last train'],
+          greeting: (c) => `Schedule help — you're at ${c.location}. Which route do you need?`,
+          sys: (c) => `You are a schedules assistant for ${c.name}. The rider is at ${c.location}. Provide schedule info, next departures, and service hours. If no live data, direct to departure boards or the official app. Never handle emergencies — refer to 911.`
+        },
+        fares: {
+          label: 'Fares & Passes', icon: 'card', vis: 'v-amber',
+          desc: 'Pricing, passes, how to pay',
+          chips: ['Single ride cost', 'Monthly pass', 'How to pay', 'Reduced fare'],
+          greeting: (c) => `Fare help for ${c.name}. What do you need to know?`,
+          sys: (c) => `You are a fares assistant for ${c.name}. Answer questions about prices, passes, payment methods, and reduced fare programs. If pricing may have changed, direct to the official website. Never handle emergencies — refer to 911.`
+        },
+        access: {
+          label: 'Accessibility', icon: 'access', vis: 'v-sky',
+          desc: 'Elevators, ADA, paratransit',
+          chips: ['Elevator status', 'Wheelchair boarding', 'Paratransit', 'Assistance request'],
+          greeting: (c) => `Accessibility services — you're at ${c.location}. How can I help?`,
+          sys: (c) => `You are an accessibility assistant for ${c.name}. Help with elevator status, ADA boarding procedures, paratransit scheduling, and accommodation requests at ${c.location}. Direct to the accessibility hotline for specific needs. Never handle emergencies — refer to 911.`
+        },
+        issue: {
+          label: 'Report an Issue', icon: 'alert', vis: 'v-rose',
+          desc: 'Hazard, equipment, service problem',
+          chips: ['Broken elevator', 'Platform hazard', 'Overcrowded car', 'Service problem'],
+          greeting: (c) => `I can log a service report from ${c.location}. What's the issue?`,
+          sys: (c) => `You are a transit issue reporting assistant for ${c.name}. The rider is at ${c.location}. Log non-emergency issues: broken equipment, platform hazards, service problems. For suspicious items or immediate danger, tell them to call 911 and move away. Never minimize safety reports.`
+        },
+        alerts: {
+          label: 'Service Alerts', icon: 'signal', vis: 'v-purple',
+          desc: 'Delays, detours, disruptions',
+          chips: ['Current delays', 'Line detours', 'Planned outages', 'System status'],
+          greeting: (c) => `Service alerts for ${c.name}. Which line or station?`,
+          sys: (c) => `You are a service alerts assistant for ${c.name}. Summarize current delays, detours, and planned disruptions. If no live data, direct to official alerts page or app. Be clear about confirmed vs uncertain. Never handle emergencies — refer to 911.`
+        }
+      }
+    }
+  };
+
+  const DEFAULTS = {
+    venue:  { name: 'Stadium Assist',    location: 'Main Concourse',  event: "today's event" },
+    campus: { name: 'University Assist', location: 'Main Quad',       event: 'campus' },
+    transit:{ name: 'Metro Assist',      location: 'Central Station', event: 'transit' },
+  };
+
+  const PHOTOS = {
+    venue: {
+      directions: 'ga-stadium-concourse.png',
+      'venue-info': 'ga-venue-board.png',
+      'guest-svc': 'ga-guest-desk.png',
+      'lost-found': 'ga-lost-found.png',
+      issue: 'ga-maintenance.png',
+      general: 'ga-guest-desk.png',
+      staff: 'ga-venue-security.png',
+      emergency: 'ga-emergency-kiosk.png',
+    },
+    campus: {
+      directions: 'ga-campus-quad.png',
+      'student-svc': 'ga-student-union.png',
+      safety: 'ga-campus-officer.png',
+      issue: 'ga-maintenance.png',
+      events: 'ga-campus-event.png',
+      'lost-found': 'ga-lost-found.png',
+      staff: 'ga-campus-officer.png',
+      emergency: 'ga-emergency-kiosk.png',
+    },
+    transit: {
+      'trip-plan': 'ga-transit-platform.png',
+      schedules: 'ga-transit-platform.png',
+      fares: 'ga-fares-access.png',
+      access: 'ga-fares-access.png',
+      issue: 'ga-maintenance.png',
+      alerts: 'ga-transit-control.png',
+      staff: 'ga-transit-control.png',
+      emergency: 'ga-emergency-kiosk.png',
+    },
+  };
+
+  function photoTag(key) {
+    const file = (PHOTOS[VERT] || {})[key];
+    return file ? `<img src="images/guest-assist/${file}" alt="" />` : '';
+  }
+
+  const CONNECT_ERROR = 'Having trouble connecting. Ask a nearby staff member — or call 911 if this is an emergency.';
+
+  const params = new URLSearchParams(location.search);
+  const rawV = params.get('v');
+  const hasVParam = rawV === 'venue' || rawV === 'campus' || rawV === 'transit';
+  const topicsOnly = params.get('topics') === '1';
+  let VERT = hasVParam ? rawV : 'venue';
+  let cfg = resolveCfg();
+  let vert = V[VERT];
+
+  let mode = 'ai';
+  let topic = null;
+  let history = [];
+  let busy = false;
+  let lastTopic = null;
+  let staffWs = null;
+  let staffSessionId = null;
+  let staffWaitTimer = null;
+
+  function resolveCfg() {
+    const d = DEFAULTS[VERT];
+    return {
+      name: params.get('name') || d.name,
+      location: params.get('loc') || d.location,
+      event: params.get('event') || d.event,
+      cpnum: params.get('cpnum') || '',
+      agency: params.get('agency') || '',
+    };
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  }
+  function nl(s) { return esc(s).replace(/\n/g, '<br>'); }
+
+  function safeBackHref() {
+    const back = params.get('back') || '';
+    if (!back.startsWith('/') || back.startsWith('//') || back.includes('://') || back.includes('\\')) {
+      return '';
+    }
+    if (!(back.startsWith('/report/') || back.startsWith('/r/'))) return '';
+    return back;
+  }
+
+  function showPicker() {
+    document.getElementById('screen-chat').classList.remove('active', 'staff-mode');
+    document.getElementById('screen-picker').classList.add('active');
+    document.getElementById('chat-header').classList.remove('staff-mode');
+  }
+  function showChat() {
+    document.getElementById('screen-picker').classList.remove('active');
+    document.getElementById('screen-chat').classList.add('active');
+  }
+
+  function renderPicker() {
+    document.body.className = vert.cls;
+    document.documentElement.style.setProperty('--staff-color', vert.staffVisualColor);
+    document.getElementById('badge-text').textContent = vert.badge;
+    document.getElementById('venue-name').textContent = cfg.name;
+    document.getElementById('venue-sub').textContent = vert.subKey;
+    document.getElementById('loc-chip').textContent = cfg.location + (cfg.event && VERT !== 'transit' ? ' · ' + cfg.event : '');
+
+    const backEl = document.getElementById('picker-back');
+    const backHref = safeBackHref();
+    if (backHref) {
+      backEl.href = backHref;
+      backEl.classList.remove('gone');
+    } else {
+      backEl.classList.add('gone');
+    }
+
+    const grid = document.getElementById('topic-grid');
+    grid.innerHTML = Object.entries(vert.topics).map(([key, t]) => `
+      <button type="button" class="opt-tile" data-topic="${key}">
+        <div class="tile-visual ${t.vis}">${photoTag(key)}${mkIcon(t.icon, 30)}</div>
+        <div class="tile-text"><strong>${esc(t.label)}</strong><span>${esc(t.desc)}</span></div>
+      </button>`).join('');
+
+    grid.querySelectorAll('[data-topic]').forEach((btn) => {
+      btn.addEventListener('click', () => startAI(btn.getAttribute('data-topic')));
+    });
+
+    if (topicsOnly) {
+      document.getElementById('staff-section').innerHTML = '';
+      document.getElementById('emergency-section').innerHTML = '';
+      return;
+    }
+
+    document.getElementById('staff-section').innerHTML = `
+      <button type="button" class="staff-tile" id="staff-tile">
+        <div class="h-visual">${photoTag('staff')}${mkIcon(vert.staffIcon, 26)}<span class="online-dot"></span></div>
+        <div class="h-body">
+          <div><strong>${esc(vert.staffTileLabel)}</strong><span>${esc(vert.staffTileDesc)}</span></div>
+          ${mkIcon('chevron', 18, '#7A8999')}
+        </div>
+      </button>`;
+
+    document.getElementById('emergency-section').innerHTML = `
+      <button type="button" class="emrg-tile" id="emrg-tile">
+        <div class="h-visual">${photoTag('emergency')}${mkIcon('warning', 28)}</div>
+        <div class="h-body">
+          <div><strong>${esc(vert.emrgLabel)}</strong><span>${esc(vert.emrgDesc)}</span></div>
+        </div>
+      </button>`;
+
+    document.getElementById('staff-tile').addEventListener('click', startStaffChat);
+    document.getElementById('emrg-tile').addEventListener('click', openEmergency);
+  }
+
+  function setChatChrome({ staff, icon, kicker, title }) {
+    const header = document.getElementById('chat-header');
+    const screen = document.getElementById('screen-chat');
+    header.classList.toggle('staff-mode', staff);
+    screen.classList.toggle('staff-mode', staff);
+    document.getElementById('chat-icon').innerHTML = mkIcon(icon, 18);
+    document.getElementById('chat-kicker').textContent = kicker;
+    document.getElementById('chat-title').textContent = title;
+    document.getElementById('esc-bar').classList.toggle('gone', staff);
+    document.getElementById('leave-bar').classList.toggle('gone', !staff);
+    document.getElementById('staff-banner').classList.toggle('on', staff);
+    document.getElementById('staff-banner').innerHTML = staff
+      ? `<span class="live-dot"></span> Connected to ${esc(vert.staffName)} — a real person is responding`
+      : '';
+    document.getElementById('esc-btn').innerHTML = `${mkIcon('radio', 14, 'currentColor')} Connect to ${esc(vert.staffName)}`;
+  }
+
+  function clearMsgs() { document.getElementById('msgs').innerHTML = ''; }
+
+  function addBubble(kind, text) {
+    const el = document.createElement('div');
+    if (kind === 'sys') {
+      el.className = 'sys-msg';
+      el.innerHTML = nl(text);
+    } else {
+      el.className = 'row ' + (kind === 'user' ? 'user' : 'ai');
+      const av = kind === 'user' ? 'user' : (kind === 'staff' ? 'staff' : 'ai');
+      const icon = kind === 'user' ? mkIcon('users', 13, '#7A8999')
+        : kind === 'staff' ? mkIcon(vert.staffIcon, 14)
+        : mkIcon('badge', 14);
+      el.innerHTML = `<div class="avatar ${av}">${icon}</div><div class="bubble ${kind === 'user' ? 'user' : kind}">${nl(text)}</div>`;
+    }
+    document.getElementById('msgs').appendChild(el);
+    el.scrollIntoView({ block: 'end' });
+  }
+
+  function showChips(labels) {
+    const wrap = document.createElement('div');
+    wrap.className = 'chips';
+    wrap.id = 'chips';
+    labels.forEach((label) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = label;
+      b.addEventListener('click', () => sendMessage(label));
+      wrap.appendChild(b);
+    });
+    document.getElementById('msgs').appendChild(wrap);
+  }
+  function hideChips() { document.getElementById('chips')?.remove(); }
+
+  function typingOn() {
+    if (document.getElementById('typing')) return;
+    const el = document.createElement('div');
+    el.className = 'row ai';
+    el.id = 'typing';
+    const av = mode === 'staff' ? 'staff' : 'ai';
+    const icon = mode === 'staff' ? mkIcon(vert.staffIcon, 14) : mkIcon('badge', 14);
+    el.innerHTML = `<div class="avatar ${av}">${icon}</div><div class="bubble ${av}"><div class="tdots"><span class="tdot"></span><span class="tdot"></span><span class="tdot"></span></div></div>`;
+    document.getElementById('msgs').appendChild(el);
+    el.scrollIntoView({ block: 'end' });
+  }
+  function typingOff() { document.getElementById('typing')?.remove(); }
+
+  function startAI(key) {
+    const t = vert.topics[key];
+    if (!t) return;
+    mode = 'ai';
+    topic = key;
+    lastTopic = key;
+    history = [];
+    busy = false;
+    showChat();
+    setChatChrome({ staff: false, icon: t.icon, kicker: cfg.name, title: t.label });
+    clearMsgs();
+    const greet = t.greeting(cfg);
+    addBubble('ai', greet);
+    history.push({ role: 'assistant', content: greet });
+    showChips(t.chips);
+  }
+
+  function startStaffChat() {
+    mode = 'staff';
+    topic = null;
+    history = [];
+    busy = true;
+    showChat();
+    setChatChrome({ staff: true, icon: vert.staffIcon, kicker: cfg.location, title: vert.staffName });
+    clearMsgs();
+    addBubble('sys', 'Connecting to ' + vert.staffName + '…');
+    openStaffChannel();
+  }
+
+  function escalateToStaff() {
+    const prior = history.slice(-4).map((m) => `${m.role}: ${m.content}`).join(' | ');
+    const ctx = `[Context: guest was in ${topic || 'assistant'}. Prior messages: ${prior}]`;
+    mode = 'staff';
+    lastTopic = topic;
+    topic = null;
+    history = [{ role: 'user', content: ctx }];
+    busy = true;
+    setChatChrome({ staff: true, icon: vert.staffIcon, kicker: cfg.location, title: vert.staffName });
+    addBubble('sys', 'Connecting you to ' + vert.staffName + '…');
+    hideChips();
+    openStaffChannel(ctx);
+  }
+
+  function closeStaffWs() {
+    if (staffWaitTimer) {
+      clearTimeout(staffWaitTimer);
+      staffWaitTimer = null;
+    }
+    if (staffWs) {
+      try { staffWs.close(); } catch { /* ignore */ }
+      staffWs = null;
+    }
+    staffSessionId = null;
+  }
+
+  function finishMockStaffGreeting() {
+    setTimeout(() => {
+      addBubble('staff', vert.staffGreeting(cfg));
+      history.push({ role: 'assistant', content: vert.staffGreeting(cfg) });
+      busy = false;
+    }, 1400);
+  }
+
+  async function openStaffChannel(handoffText) {
+    const session = await connectStaffSession();
+    if (session.mode !== 'live') {
+      finishMockStaffGreeting();
+      return;
+    }
+    addBubble('staff', vert.staffGreeting(cfg));
+    history.push({ role: 'assistant', content: vert.staffGreeting(cfg) });
+    busy = false;
+    if (handoffText && staffWs && staffWs.readyState === WebSocket.OPEN) {
+      staffWs.send(JSON.stringify({
+        type: 'guest-assist.staff.send',
+        data: { text: handoffText },
+      }));
+    }
+  }
+
+  async function connectStaffSession() {
+    closeStaffWs();
+    let data;
+    try {
+      const res = await fetch('/api/public/guest-assist/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vertical: VERT,
+          name: cfg.name,
+          location: cfg.location,
+          agencyId: cfg.agency || undefined,
+        }),
+      });
+      data = await res.json();
+    } catch {
+      return { mode: 'mock' };
+    }
+    if (!data || data.mode !== 'live' || !data.websocketUrl) {
+      return { mode: 'mock' };
+    }
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = (mode) => {
+        if (done) return;
+        done = true;
+        resolve({ mode });
+      };
+      const ws = new WebSocket(data.websocketUrl);
+      const timer = setTimeout(() => {
+        try { ws.close(); } catch { /* ignore */ }
+        finish('mock');
+      }, 8000);
+      ws.addEventListener('open', () => {
+        clearTimeout(timer);
+        staffWs = ws;
+        staffSessionId = data.sessionId;
+        finish('live');
+      });
+      ws.addEventListener('message', (ev) => {
+        let msg;
+        try { msg = JSON.parse(ev.data); } catch { return; }
+        const text = msg && msg.data && msg.data.text;
+        if (msg.type === 'guest-assist.staff.message' && text) {
+          if (staffWaitTimer) {
+            clearTimeout(staffWaitTimer);
+            staffWaitTimer = null;
+          }
+          typingOff();
+          addBubble('staff', text);
+          history.push({ role: 'assistant', content: text });
+          busy = false;
+        }
+      });
+      ws.addEventListener('error', () => {
+        clearTimeout(timer);
+        finish('mock');
+      });
+      ws.addEventListener('close', () => {
+        if (staffWs === ws) staffWs = null;
+      });
+    });
+  }
+
+  function leaveStaffChat() {
+    closeStaffWs();
+    if (lastTopic && vert.topics[lastTopic]) startAI(lastTopic);
+    else showPicker();
+  }
+
+  function goBack() {
+    closeStaffWs();
+    showPicker();
+  }
+
+  async function callClaude(systemPrompt, messages) {
+    try {
+      const res = await fetch('/api/public/guest-assist/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system: systemPrompt,
+          messages: messages,
+          vertical: VERT,
+          name: cfg.name,
+          location: cfg.location,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data && data.text) return data.text;
+      const isJson = (res.headers.get('content-type') || '').includes('application/json');
+      if (isJson && res.status >= 500) throw new Error('upstream');
+      return mockClaude(systemPrompt, messages);
+    } catch (err) {
+      if (err && err.message === 'upstream') throw err;
+      return mockClaude(systemPrompt, messages);
+    }
+  }
+
+  function mockClaude(_systemPrompt, messages) {
+    const last = messages.filter((m) => m.role === 'user').pop()?.content || '';
+    const q = last.toLowerCase();
+    const danger = /\b(911|stab|stabb|shot|shoot|gun|knife|weapon|unconscious|overdose|fire|assault|attack|dying)\b/.test(q);
+    if (danger) {
+      return Promise.resolve(
+        `If anyone is in immediate danger, call 911 now and stay on the line. Tell them you are at ${cfg.name}, ${cfg.location}. Move to a safe area if you can. Do not approach a person with a weapon. You can also alert on-site security from the Emergency button on this page.`,
+      );
+    }
+    if (/\b(restroom|bathroom|toilet|wc)\b/.test(q)) {
+      return Promise.resolve(
+        `Restrooms at ${cfg.name} are on this concourse level, usually every 40–60 yards along the walkway.\n\nFrom ${cfg.location}: face the seating bowl, then walk toward the nearest Restroom / Family / ADA sign. Family and accessible restrooms are beside the main restrooms.\n\nIf you do not see a sign within a minute, ask an usher in a venue shirt — they can walk you there.`,
+      );
+    }
+    if (mode === 'staff') {
+      return Promise.resolve(
+        `Got it — we have you at ${cfg.location}${last ? ' (“' + last.slice(0, 80) + '”)' : ''}. Stay where it is safe. A teammate can meet you there. Call 911 if anyone is in immediate danger.`,
+      );
+    }
+    return Promise.resolve(
+      `I can help at ${cfg.name} near ${cfg.location}${last ? ' with “' + last.slice(0, 120) + '”' : ''}.\n\nTell me the place or service you need (restroom, seat, first aid, exit, parking, bag policy, food, lost & found) and I will give complete step-by-step directions from ${cfg.location}.`,
+    );
+  }
+
+  async function sendMessage(text) {
+    const msg = (text || document.getElementById('input').value || '').trim();
+    if (!msg || busy) return;
+    document.getElementById('input').value = '';
+    resizeInput();
+    hideChips();
+    addBubble('user', msg);
+    history.push({ role: 'user', content: msg });
+    busy = true;
+    typingOn();
+    if (mode === 'staff' && staffWs && staffWs.readyState === WebSocket.OPEN) {
+      staffWs.send(JSON.stringify({
+        type: 'guest-assist.staff.send',
+        data: { text: msg },
+      }));
+      if (staffWaitTimer) clearTimeout(staffWaitTimer);
+      staffWaitTimer = setTimeout(() => {
+        staffWaitTimer = null;
+        if (mode !== 'staff' || !busy) return;
+        typingOff();
+        addBubble('sys', 'Staff is reviewing your message — they will reply here.');
+        busy = false;
+      }, 20000);
+      return;
+    }
+    try {
+      const systemPrompt = mode === 'staff'
+        ? vert.staffPersona(cfg)
+        : vert.topics[topic].sys(cfg);
+      const reply = await callClaude(systemPrompt, history);
+      typingOff();
+      if (!reply) throw new Error('empty');
+      addBubble(mode === 'staff' ? 'staff' : 'ai', reply);
+      history.push({ role: 'assistant', content: reply });
+    } catch {
+      typingOff();
+      addBubble('sys', CONNECT_ERROR);
+    } finally {
+      busy = false;
+    }
+  }
+
+  function openEmergency() {
+    document.getElementById('modal-s1').classList.remove('gone');
+    document.getElementById('modal-s2').classList.add('gone');
+    document.getElementById('modal-body-s1').textContent = vert.securityBody(cfg);
+    document.getElementById('contact-security-btn').innerHTML =
+      mkIcon(vert.securityIcon, 20, 'currentColor') + ' ' + esc(vert.securityLabel(cfg));
+    document.getElementById('modal-note').textContent = vert.securityNote(cfg);
+    const cp = document.getElementById('cpnum-btn');
+    if (VERT === 'campus' && cfg.cpnum) {
+      cp.classList.remove('gone');
+      cp.href = 'tel:' + cfg.cpnum.replace(/[^\d+]/g, '');
+      cp.textContent = 'Call Campus Police · ' + cfg.cpnum;
+    } else {
+      cp.classList.add('gone');
+    }
+    document.getElementById('emrg-modal').classList.remove('gone');
+  }
+
+  async function contactSecurity() {
+    try {
+      await fetch('/api/public/guest-assist/alert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vertical: VERT,
+          name: cfg.name,
+          location: cfg.location,
+          agencyId: cfg.agency || undefined,
+        }),
+      });
+    } catch { /* never block the 911 sheet */ }
+    document.getElementById('modal-s1').classList.add('gone');
+    document.getElementById('modal-s2').classList.remove('gone');
+  }
+
+  function closeEmergency() {
+    document.getElementById('emrg-modal').classList.add('gone');
+  }
+
+  function resizeInput() {
+    const el = document.getElementById('input');
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+  }
+
+  document.getElementById('chat-back').innerHTML = mkIcon('chevron', 16, '#EDF2FA').replace(
+    '<svg',
+    '<svg style="transform:rotate(180deg)"',
+  );
+  document.getElementById('send-btn').innerHTML = mkIcon('send', 18);
+  document.getElementById('call-911-btn').innerHTML = mkIcon('phone', 18) + ' Call 911';
+  document.getElementById('chat-emrg').innerHTML = mkIcon('warning', 12, '#FF7080') + ' Emergency';
+
+  document.getElementById('chat-back').addEventListener('click', goBack);
+  document.getElementById('chat-emrg').addEventListener('click', openEmergency);
+  document.getElementById('esc-btn').addEventListener('click', escalateToStaff);
+  document.getElementById('leave-btn').addEventListener('click', leaveStaffChat);
+  document.getElementById('send-btn').addEventListener('click', () => sendMessage());
+  document.getElementById('input').addEventListener('input', resizeInput);
+  document.getElementById('input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+  document.getElementById('contact-security-btn').addEventListener('click', contactSecurity);
+  document.getElementById('modal-backdrop').addEventListener('click', closeEmergency);
+  document.querySelectorAll('[data-dismiss]').forEach((b) => b.addEventListener('click', closeEmergency));
+
+  const switcher = document.getElementById('demo-switcher');
+  if (!hasVParam && !topicsOnly) {
+    switcher.classList.remove('gone');
+    switcher.querySelectorAll('button').forEach((btn) => {
+      if (btn.getAttribute('data-v') === VERT) btn.classList.add('active');
+      btn.addEventListener('click', () => {
+        const next = new URL(location.href);
+        next.searchParams.set('v', btn.getAttribute('data-v'));
+        location.href = next.toString();
+      });
+    });
+  }
+
+  renderPicker();
+  </script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 # Promise control (internal)
 
-**Audience:** sales, solutions engineering, product, legal, and anyone who speaks externally about Rapid Cortex during a **pilot**.  
+**Last reviewed:** 2026-09-19 (60-day refresh) · **Owner:** Jeff Coleman  
+**Audience:** sales, solutions engineering, product, legal, and anyone who speaks externally about NexCort iQ during a **pilot**.  
 **Purpose:** keep language **truthful and operational** so pilots do not start with contractual or reputational debt.
 
 If this document conflicts with [MVP_SCOPE.md](./MVP_SCOPE.md) or [NON_GOALS.md](./NON_GOALS.md), **MVP_SCOPE + NON_GOALS win**.
@@ -11,12 +12,13 @@ If this document conflicts with [MVP_SCOPE.md](./MVP_SCOPE.md) or [NON_GOALS.md]
 
 | Claim type | Must be verified against |
 |------------|---------------------------|
-| Any capability in a deck, SOW, or email | [SALES_SCOPE_MATRIX.md](./SALES_SCOPE_MATRIX.md), [FEATURE_MATRIX.md](./FEATURE_MATRIX.md) (maturity column) |
+| Any capability in a deck, SOW, or email | [SALES_SCOPE_MATRIX.md](./SALES_SCOPE_MATRIX.md), [FEATURE_MATRIX.md](../product-architecture/FEATURE_MATRIX.md) (maturity column) |
 | “We do / we will / we guarantee” | [NON_GOALS.md](./NON_GOALS.md), [PILOT_NON_GOALS.md](./PILOT_NON_GOALS.md) |
-| Compliance or certification | [SECURITY_MODEL.md](./SECURITY_MODEL.md) — **no certification claims** without completed assessment |
-| CAD / RMS / CPE / radio | [INTEGRATIONS_CAD_AND_MOTOROLA.md](./INTEGRATIONS_CAD_AND_MOTOROLA.md) — vendor program, not product default |
-| Multilingual accuracy or coverage | [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md), agency env + `GET /api/integration/status` |
-| AI behavior | [PILOT_GOVERNANCE.md](./PILOT_GOVERNANCE.md), [PROTOCOL_REVIEW_REQUIREMENTS.md](./PROTOCOL_REVIEW_REQUIREMENTS.md) |
+| Compliance or certification | [SECURITY_MODEL.md](../security-compliance/SECURITY_MODEL.md), [soc2/README.md](../security-compliance/soc2/README.md) — **no Type II / certified claims** without a CPA report |
+| CAD / RMS / CPE / radio | [INTEGRATIONS_CAD_AND_MOTOROLA.md](../product-architecture/INTEGRATIONS_CAD_AND_MOTOROLA.md) — vendor program, not product default |
+| Multilingual accuracy or coverage | [KNOWN_LIMITATIONS.md](../product-architecture/KNOWN_LIMITATIONS.md), agency env + `GET /api/integration/status` |
+| AI behavior | [PILOT_GOVERNANCE.md](./PILOT_GOVERNANCE.md), [PROTOCOL_REVIEW_REQUIREMENTS.md](../security-compliance/PROTOCOL_REVIEW_REQUIREMENTS.md) |
+| MFA / access | [AUTH_OPERATIONS.md](../product-architecture/AUTH_OPERATIONS.md) — production pool MFA is **ON**; do not describe it as optional |
 
 **Rule:** If it is not in code + docs for this release branch, treat it as **roadmap** and label it explicitly as “planned / not in pilot build.”
 
@@ -24,7 +26,7 @@ If this document conflicts with [MVP_SCOPE.md](./MVP_SCOPE.md) or [NON_GOALS.md]
 
 ## 2. Phrases that must **not** appear in pilot-facing materials without legal + product sign-off
 
-- “Certified for CJIS / HIPAA / SOC 2 / FedRAMP” (use **aligned controls** or **assessment in progress** only if true and approved).
+- “Certified for CJIS / HIPAA / SOC 2 / FedRAMP” or “SOC 2 Type II” (use **aligned controls** or **observation period targeted** only if true and approved).
 - “Replaces CAD / 911 CPE / radio / RMS as system of record.”
 - “Autonomous dispatch” or “AI dispatches units.”
 - “Guaranteed” latency, accuracy, or availability numbers unless tied to a **signed** SLA with defined measurement.
@@ -57,7 +59,7 @@ These are **not** solved by product code alone; they belong in the joint project
 | **Legal / compliance** | Retention, discovery, AI use, recording consent — signed policy or explicit “agency owns” | Agency legal + RC legal/PM |
 | **Policy decisions** | When to trust AI, interpreter escalation, supervisor sampling rate | Agency ops + supervision |
 | **Interpreter workflow maturity** | Staff know how to use `needsInterpreterReview` / low-confidence paths; SOPs updated | Training + supervision |
-| **Identity and tenancy** | Cognito app, `custom:agencyId` / `custom:role` conventions enforced | Agency admin + RC DevOps |
+| **Identity and tenancy** | Cognito app, `custom:agencyId` / `custom:role` conventions enforced, **MFA enrolled** | Agency admin + RC DevOps |
 
 ---
 
@@ -66,14 +68,16 @@ These are **not** solved by product code alone; they belong in the joint project
 | When | Action |
 |------|--------|
 | Before each customer meeting | Skim [SALES_SCOPE_MATRIX.md](./SALES_SCOPE_MATRIX.md) + [FAQ_INTERNAL.md](./FAQ_INTERNAL.md) for the agenda topics |
-| After scope slides change | Diff against [FEATURE_MATRIX.md](./FEATURE_MATRIX.md) |
-| Weekly during active pilot | Note new boundaries in [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md) or backlog |
+| After scope slides change | Diff against [FEATURE_MATRIX.md](../product-architecture/FEATURE_MATRIX.md) |
+| Weekly during active pilot | Note new boundaries in [KNOWN_LIMITATIONS.md](../product-architecture/KNOWN_LIMITATIONS.md) or backlog |
 | Fortnightly | Use [PILOT_REVIEW_TEMPLATE.md](./PILOT_REVIEW_TEMPLATE.md) and [FEEDBACK_LOOP.md](./FEEDBACK_LOOP.md) |
+| Every 60 days | [Document review SOP](../security-compliance/soc2/processes/document-review.md) for MFA, contracts, and pilot docs |
 
 ---
 
 ## 6. Related
 
-- [SALES_BOUNDARIES.md](./SALES_BOUNDARIES.md) — roles and escalation when asked for out-of-scope items  
-- [PILOT_NON_GOALS.md](./PILOT_NON_GOALS.md) — pilot conversation quick reference  
-- [PILOT_SUCCESS_METRICS.md](./PILOT_SUCCESS_METRICS.md) — how success is measured without over-claiming  
+- [SALES_BOUNDARIES.md](./SALES_BOUNDARIES.md) — roles and escalation when asked for out-of-scope items
+- [PILOT_NON_GOALS.md](./PILOT_NON_GOALS.md) — pilot conversation quick reference
+- [PILOT_SUCCESS_METRICS.md](./PILOT_SUCCESS_METRICS.md) — how success is measured without over-claiming
+- [CONTRACT_PACKAGE_INDEX.md](./CONTRACT_PACKAGE_INDEX.md) — what to send when

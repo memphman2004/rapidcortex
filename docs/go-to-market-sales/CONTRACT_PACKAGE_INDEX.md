@@ -1,8 +1,9 @@
 # Contract & commercial package index
 
 **Audience:** sales, solutions, legal ops, implementation leads.  
-**Status:** Internal — paths and filenames reflect repo layout as of 2026-07.  
-**Not legal advice.** Marked **DRAFT** items require counsel and/or Finance before customer send.
+**Status:** Internal — paths and filenames reflect repo layout as of **2026-09-20** (MSA Word operational review).  
+**Not legal advice.** Marked **DRAFT** items require counsel and/or Finance before customer send.  
+**SOC 2:** send the [control pack](../security-compliance/soc2/README.md) as **alignment / observation** only — never as a Type II report.
 
 ---
 
@@ -13,10 +14,10 @@
 | **Discovery / NDA** | NDA (if needed) | Before sharing architecture or live tenant access |
 | **Pilot evaluation** | Pilot offer + scope agreement + trust packet | Before floor time on live incidents |
 | **Production subscription** | MSA + Order Form (Exhibit A SOW) + Pricing (Exhibit B) + SLA (Exhibit C) | Before production go-live and recurring billing |
-| **RC Lite API only** | RC Lite API Agreement + API pricing guide | Before API key issuance |
+| **NC Lite API only** | NC Lite API Agreement + API pricing guide | Before API key issuance |
 | **CAD integration** | Per-vendor SOW addendum + [CAD_CONNECTION_PLAYBOOK.md](../product-architecture/CAD_CONNECTION_PLAYBOOK.md) | Only when CAD scope is in contract |
 
-Keep **signed** copies outside git (CRM, Adobe Sign ledger, agency secure share). RC Admin → **Agreements** tracks Adobe Sign completions when connected.
+Keep **signed** copies outside git (CRM, Adobe Sign ledger, agency secure share). NC Admin → **Agreements** tracks Adobe Sign completions when connected.
 
 ---
 
@@ -24,11 +25,12 @@ Keep **signed** copies outside git (CRM, Adobe Sign ledger, agency secure share)
 
 | Document | Location | Status | Notes |
 |----------|----------|--------|-------|
-| Pilot offer (commercial narrative) | `Rapid Cortex Internal Docs/Sales_Marketing/Rapid_Cortex_Pilot_Offer_Professional.docx` | Sales-ready | Marketing copy; not a contract |
-| **Agency pilot scope agreement** | `Rapid Cortex Internal Docs/Internal Product requirements/04_Rapid_Cortex_Agency_Pilot_Scope_Agreement_Draft.pdf` | **DRAFT** | Remove “Draft”; legal review; assistive-use language |
-| Agency onboarding checklist (PDF) | `Rapid Cortex Internal Docs/Internal Product requirements/05_Rapid_Cortex_Agency_Onboarding_Checklist.pdf` | Internal | Companion to scope agreement |
-| Data flow overview | `Rapid Cortex Internal Docs/Internal Product requirements/03_Rapid_Cortex_Data_Flow_and_Architecture_Overview.pdf` | Internal | Security / IT reviewers |
-| CJIS / SOC2 alignment statement | `Rapid Cortex Internal Docs/Internal Product requirements/02_Rapid_Cortex_Security_CJIS_SOC2_Alignment_Statement.pdf` | Alignment only | **Not** certification |
+| Pilot offer (commercial narrative) | `NexCort iQ Internal Docs/Sales_Marketing/Rapid_Cortex_Pilot_Offer_Professional.docx` | Sales-ready | Marketing copy; not a contract |
+| **Agency pilot scope agreement** | `NexCort iQ Internal Docs/Internal Product requirements/04_Rapid_Cortex_Agency_Pilot_Scope_Agreement_Draft.pdf` | **DRAFT / ARCHIVE PDF (2026-05)** | Remove “Draft”; legal review; assistive-use language. Operating markdown: [PILOT_OVERVIEW.md](./PILOT_OVERVIEW.md), [PILOT_GOVERNANCE.md](./PILOT_GOVERNANCE.md) until LEG-001 closes |
+| Agency onboarding checklist (PDF) | `NexCort iQ Internal Docs/Internal Product requirements/05_Rapid_Cortex_Agency_Onboarding_Checklist.pdf` | Archive PDF (2026-05) | Use [training/PILOT_AGENCY_ADMIN_CHECKLIST.md](../training/PILOT_AGENCY_ADMIN_CHECKLIST.md) + [AGENCY_SETUP_CHECKLIST.md](../admin-user-management/AGENCY_SETUP_CHECKLIST.md) |
+| Data flow overview | `NexCort iQ Internal Docs/Internal Product requirements/03_Rapid_Cortex_Data_Flow_and_Architecture_Overview.pdf` | Archive PDF (2026-05) | Prefer [SECURITY_MODEL.md](../security-compliance/SECURITY_MODEL.md) + [SYSTEM-BOUNDARY.md](../security-compliance/soc2/SYSTEM-BOUNDARY.md) |
+| CJIS / SOC2 alignment statement | `NexCort iQ Internal Docs/Internal Product requirements/02_Rapid_Cortex_Security_CJIS_SOC2_Alignment_Statement.pdf` | Archive PDF (2026-05) | **Not** certification. Current: [CJIS_ALIGNMENT_NOTES.md](../security-compliance/CJIS_ALIGNMENT_NOTES.md), [soc2/README.md](../security-compliance/soc2/README.md) |
+| SOC 2 control pack (repo) | [soc2/README.md](../security-compliance/soc2/README.md) | Internal | Policies/SOPs/evidence ledgers — **not** a Type II report |
 | **DPA** | [DPA_DRAFT.md](./legal-drafts/DPA_DRAFT.md) (draft) + marketing stub | **DRAFT** | PLT-003; counsel before execution |
 | **Security review sign-off** | Per agency process | **GAP** | PLT-002 |
 | Implementation workbook | [IMPLEMENTATION_WORKBOOK_TEMPLATE.md](./IMPLEMENTATION_WORKBOOK_TEMPLATE.md) | Template | Copy per agency |
@@ -42,24 +44,24 @@ Keep **signed** copies outside git (CRM, Adobe Sign ledger, agency secure share)
 
 | Document | Location | Status | Notes |
 |----------|----------|--------|-------|
-| **Master Services Agreement** | `Rapid Cortex Internal Docs/Contract_legal stuff/COMPLETE_MSA_MASTER_DOCUMENT.docx` | Template | Apps on Demand LLC d/b/a Rapid Cortex — reconcile entity with Platform Agreement |
-| Public MSA copy | `apps/web/public/docs/MASTER SERVICES AGREEMENT.docx` | Template | Same family as complete MSA |
-| **Platform Services Agreement** | `Rapid Cortex Internal Docs/Contract_legal stuff/RC_Platform_Services_Agreement.docx` | v1.0 template | Adobe Sign path; Exhibit A has `$TBD` pricing |
+| **Master Services Agreement** | `NexCort iQ Internal Docs/COMPLETE_MSA_MASTER_DOCUMENT_updated.docx` (operational review **2026-09-20**) and `Contract_legal stuff/COMPLETE_MSA_MASTER_DOCUMENT.docx` | Template — **counsel** | Apps on Demand LLC d/b/a NexCort iQ — reconcile entity with Platform Agreement (LEG-007). Word updated 2026-09-20: not CPE/CAD-of-record; no autonomous dispatch; SOC 2 program not Type II certification; MFA required in production; CAD write-back SOW-gated. **Counsel still required before customer send.** Exhibit B pricing not rewritten (LEG-008). |
+| Public MSA copy | `apps/web/public/docs/MASTER SERVICES AGREEMENT.docx` | Template | Same family as complete MSA; operational review 2026-09-20 |
+| **Platform Services Agreement** | `NexCort iQ Internal Docs/Contract_legal stuff/RC_Platform_Services_Agreement.docx` | v1.0 template | Adobe Sign path; Exhibit A has `$TBD` pricing |
 | Exhibit A — Statement of Work | Inside MSA / Platform Agreement | Template | Populate from [SALES_SCOPE_MATRIX.md](./SALES_SCOPE_MATRIX.md) |
 | Exhibit B — Pricing | Inside MSA | **TBD amounts** | Finance + `RC_Pricing_Master_Guide_v4.xlsx` |
 | Exhibit C — SLA | Inside MSA | Template | Do not promise public SLA until executed |
 | **Order Form** | [ORDER_FORM_DRAFT.md](./legal-drafts/ORDER_FORM_DRAFT.md) | **DRAFT** | Counsel + Finance; references MSA |
 | **Change Order** | [CHANGE_ORDER_DRAFT.md](./legal-drafts/CHANGE_ORDER_DRAFT.md) | **DRAFT** | Scope/fee amendments |
 | **DPA (draft markdown)** | [DPA_DRAFT.md](./legal-drafts/DPA_DRAFT.md) | **DRAFT** | Counsel review before Adobe Sign |
-| Go / no-go checklist | `Rapid Cortex Internal Docs/Internal Product requirements/06_Rapid_Cortex_Production_Go_No_Go_Checklist.pdf` | Internal | Pre-GA gate |
+| Go / no-go checklist | `NexCort iQ Internal Docs/Internal Product requirements/06_Rapid_Cortex_Production_Go_No_Go_Checklist.pdf` | Archive PDF (2026-05) | Prefer [PILOT_READINESS_CHECKLIST.md](../deployment-infrastructure/PILOT_READINESS_CHECKLIST.md) + [PILOT_VALIDATION_CHECKLIST.md](./PILOT_VALIDATION_CHECKLIST.md) |
 
 ---
 
-## 3. RC Lite API (partners / developers)
+## 3. NC Lite API (partners / developers)
 
 | Document | Location | Status |
 |----------|----------|--------|
-| RC Lite API Agreement | `Rapid Cortex Internal Docs/Contract_legal stuff/RC_Lite_API_Agreement.docx` | v1.0 template |
+| NC Lite API Agreement | `NexCort iQ Internal Docs/Contract_legal stuff/RC_Lite_API_Agreement.docx` | v1.0 template |
 | API pricing (internal) | [RC_Lite_API_Pricing.md](../pricing-billing/RC_Lite_API_Pricing.md) | Internal — align with agreement before send |
 
 Adobe Sign `agreement_type: rc_lite` auto-provisions tenants when webhooks are wired ([`packages/shared/src/adobe-sign/schemas.ts`](../../packages/shared/src/adobe-sign/schemas.ts)).
@@ -92,8 +94,8 @@ Send as a zip or secure link when security/legal asks before signature:
 | Venue operations guide | [VENUE_OPERATIONS_GUIDE.md](../admin-user-management/VENUE_OPERATIONS_GUIDE.md) | Customer markdown |
 | Campus operations guide | [CAMPUS_OPERATIONS_GUIDE.md](../admin-user-management/CAMPUS_OPERATIONS_GUIDE.md) | Customer markdown |
 | Hospital operations guide | [HOSPITAL_OPERATIONS_GUIDE.md](../admin-user-management/HOSPITAL_OPERATIONS_GUIDE.md) | Customer markdown |
-| Campus / venue onboarding (internal) | `Rapid Cortex Internal Docs/RC_Campus_Venue_Onboarding_Guide-2.docx` | Internal — SMS/Twilio depth |
-| Role access matrix | `Rapid Cortex Internal Docs/Internal Product requirements/RapidCortex_Role_Access_Matrix_v2.pdf` | Internal |
+| Campus / venue onboarding (internal) | `NexCort iQ Internal Docs/RC_Campus_Venue_Onboarding_Guide-2.docx` | Internal — SMS/Twilio depth |
+| Role access matrix | `NexCort iQ Internal Docs/Internal Product requirements/RapidCortex_Role_Access_Matrix_v2.pdf` | Internal |
 | Product role spec | [role-dashboard-spec.md](../role-dashboard-spec.md) | Engineering / SE |
 | Example filled playbook | [EXAMPLE_agency-pilot-2026.md](../admin-user-management/playbooks/EXAMPLE_agency-pilot-2026.md) | Fictional example |
 
@@ -105,7 +107,7 @@ Transit-specific customer onboarding remains a gap until `/app/transit` ships.
 
 | Issue | Files affected |
 |-------|----------------|
-| **Apps on Demand LLC** vs **Rapid Cortex, LLC** | `COMPLETE_MSA_MASTER_DOCUMENT.docx` vs `RC_Platform_Services_Agreement.docx` |
+| **Apps on Demand LLC** vs **NexCort iQ, LLC** | `COMPLETE_MSA_MASTER_DOCUMENT.docx` vs `RC_Platform_Services_Agreement.docx` |
 | Counsel must pick **one** contracting entity and amend all templates | Before first production signature |
 
 ---

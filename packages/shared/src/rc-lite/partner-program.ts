@@ -1,5 +1,5 @@
 /**
- * CAD / RMS vendor cohort packaging — commercially layered on RC Lite bundles.
+ * CAD / RMS vendor cohort packaging — commercially layered on NexCort Lite bundles.
  */
 
 export type RcLiteCadPartnerCapability =

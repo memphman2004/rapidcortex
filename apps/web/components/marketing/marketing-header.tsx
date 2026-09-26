@@ -26,7 +26,7 @@ import {
   marketingSolutionsAgenciesPath,
 } from "@/lib/marketing-links";
 
-const DRAWER_TITLE = "Rapid Cortex";
+const DRAWER_TITLE = "NexCort iQ";
 const DRAWER_SLOGAN = "Intelligence at the speed of response.";
 const MOBILE_BOOKING_NOTE =
   "Request a demo — tell us about your agency and we’ll follow up to schedule a walkthrough.";
@@ -168,7 +168,7 @@ export function MarketingHeader() {
               className="relative z-10 inline-flex max-w-[9.5rem] justify-self-start sm:max-w-[10rem] md:max-w-[11.5rem] lg:max-w-[12.5rem] [-webkit-tap-highlight-color:transparent]"
               onClick={() => mobileOpen && closeMobileMenu()}
             >
-              <SiteLogoMark heightClass="h-9 sm:h-10 md:h-11 lg:h-12" priority />
+              <SiteLogoMark heightClass="h-14 sm:h-16 md:h-20 lg:h-24" priority />
             </Link>
 
             <div className="hidden justify-self-center md:block">

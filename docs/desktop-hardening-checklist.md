@@ -1,6 +1,6 @@
 # Desktop Hardening Checklist — macOS vs Windows
 
-Rapid Cortex may ship Electron / native wrappers under `apps/desktop-macos/` and related workspaces. Treat this checklist as readiness guidance; **presence in-repo does not automatically mean every item is satisfied**.
+NexCort iQ may ship Electron / native wrappers under `apps/desktop-macos/` and related workspaces. Treat this checklist as readiness guidance; **presence in-repo does not automatically mean every item is satisfied**.
 
 ## Pilot stance
 

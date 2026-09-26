@@ -39,6 +39,8 @@ export const createIncidentSchema = z.object({
   /** Cameras assigned to the scanned QR / area during inprocessing. */
   cameraIds: z.array(z.string().min(1).max(64)).max(8).optional(),
   siteCode: z.string().trim().max(20).optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
 });
 
 export const updateIncidentSchema = z.object({

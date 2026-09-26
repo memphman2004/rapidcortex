@@ -4,9 +4,9 @@ import { buildPublicPageMetadata } from "@/lib/seo";
 import { ContactSalesMarketingPage } from "./contact-sales-marketing-page";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Contact Support | Rapid Cortex Public Safety Intelligence Platform",
+  title: "Contact Support | NexCort iQ Public Safety Intelligence Platform",
   description:
-    "Talk with Rapid Cortex about Venue, Campus, 911 dispatch intelligence pilots, PSAP software deployment, CAD-friendly integration, procurement-ready quotes, and emergency communications operations.",
+    "Talk with NexCort iQ about Venue, Campus, 911 dispatch intelligence pilots, PSAP software deployment, CAD-friendly integration, procurement-ready quotes, and emergency communications operations.",
   path: "/contact-sales",
 });
 

@@ -36,8 +36,8 @@ vi.mock("../../lib/env.js", () => ({
   env: {
     enableSupportForm: true,
     ticketsTable: "rc-support-tickets-test",
-    supportEmail: "support@rapidcortex.us",
-    supportFromEmail: "noreply@rapidcortex.us",
+    supportEmail: "support@nexcortiq.us",
+    supportFromEmail: "noreply@nexcortiq.us",
     supportPhone: "+1 404-555-0100",
     sesMock: true,
     auditTable: "audit-test",
@@ -112,7 +112,7 @@ const rcadmin: UserContext = {
   userId: "rc-1",
   agencyId: "platform",
   role: "rcadmin",
-  email: "rc@rapidcortex.us",
+  email: "rc@nexcortiq.us",
   displayName: "RC Admin",
 };
 

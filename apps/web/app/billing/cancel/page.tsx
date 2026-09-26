@@ -11,8 +11,8 @@ export default function BillingCancelPage() {
       <div className="w-full max-w-xl rounded-3xl border border-slate-800 bg-slate-900/50 p-8 text-center">
         <h1 className="text-3xl font-semibold text-white">Request not completed</h1>
         <p className="mt-3 text-sm text-slate-300">
-          Rapid Cortex does not process public self-service card payments. Continue with your agency procurement lead or
-          contact Rapid Cortex for invoice, pilot, and purchase-order options.
+          NexCort iQ does not process public self-service card payments. Continue with your agency procurement lead or
+          contact NexCort iQ for invoice, pilot, and purchase-order options.
         </p>
         <div className="mt-6 flex justify-center gap-3">
           <Link href="/billing/checkout" className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500">

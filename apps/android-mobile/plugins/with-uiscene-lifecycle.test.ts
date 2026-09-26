@@ -163,7 +163,7 @@ static UIWindowScene *RCPendingWindowScene;
 
 static void RCUncaughtExceptionHandler(NSException *exception)
 {
-  NSLog(@"[RapidCortex] uncaught %@: %@", exception.name, exception.reason);
+  NSLog(@"[NexCortiQ] uncaught %@: %@", exception.name, exception.reason);
 }
 
 static void RCInstallFatalGuards(void)
@@ -172,10 +172,10 @@ static void RCInstallFatalGuards(void)
   dispatch_once(&onceToken, ^{
     NSSetUncaughtExceptionHandler(&RCUncaughtExceptionHandler);
     RCTSetFatalHandler(^(NSError *error) {
-      NSLog(@"[RapidCortex] RCTFatal: %@", error.localizedDescription);
+      NSLog(@"[NexCortiQ] RCTFatal: %@", error.localizedDescription);
     });
     RCTSetFatalExceptionHandler(^(NSException *exception) {
-      NSLog(@"[RapidCortex] RCTFatalException %@: %@", exception.name, exception.reason);
+      NSLog(@"[NexCortiQ] RCTFatalException %@: %@", exception.name, exception.reason);
     });
   });
 }

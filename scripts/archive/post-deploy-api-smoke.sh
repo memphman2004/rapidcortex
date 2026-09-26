@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Post-deploy API smoke checks for Rapid Cortex SAM stack (HttpApiUrl / Cognito auth).
+# Post-deploy API smoke checks for NexCort iQ SAM stack (HttpApiUrl / Cognito auth).
 # Archived from scripts/post-deploy-smoke.sh — use for backend/API validation after sam deploy.
 # Web curl smoke: scripts/smoke-web.sh or scripts/post-deploy-smoke.sh
 #

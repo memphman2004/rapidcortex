@@ -40395,7 +40395,7 @@ var ADDON_CATALOG = [
     key: "cad.vendor_coordination",
     name: "CAD Vendor Coordination",
     category: "CAD Integration",
-    description: "Rapid Cortex-led coordination with agency CAD vendor for API access and sandbox setup.",
+    description: "NexCort iQ-led coordination with agency CAD vendor for API access and sandbox setup.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 1e4,
@@ -40405,7 +40405,7 @@ var ADDON_CATALOG = [
     key: "cad.readonly",
     name: "CAD Read-Only Integration",
     category: "CAD Integration",
-    description: "One-way read integration from agency CAD into Rapid Cortex context panel. No write-back.",
+    description: "One-way read integration from agency CAD into NexCort iQ context panel. No write-back.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 22e3,
@@ -40426,7 +40426,7 @@ var ADDON_CATALOG = [
     key: "cad.writeback_automated",
     name: "CAD Automated Write-Back",
     category: "CAD Integration",
-    description: "Full bidirectional sync between Rapid Cortex and CAD with automated field mapping.",
+    description: "Full bidirectional sync between NexCort iQ and CAD with automated field mapping.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 62e3,
@@ -40481,7 +40481,7 @@ var ADDON_CATALOG = [
     key: "cad.writeback_automated.tier1",
     name: "CAD Automated Write-Back - T1 Micro",
     category: "CAD Integration",
-    description: "Tiered automated CAD write-back pricing for T1 Micro agencies (1-3 dispatchers, up to 500 calls/month). Full bidirectional sync between Rapid Cortex and CAD with automated field mapping.",
+    description: "Tiered automated CAD write-back pricing for T1 Micro agencies (1-3 dispatchers, up to 500 calls/month). Full bidirectional sync between NexCort iQ and CAD with automated field mapping.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 46e3,
@@ -40492,7 +40492,7 @@ var ADDON_CATALOG = [
     key: "cad.writeback_automated.tier2",
     name: "CAD Automated Write-Back - T2 Small",
     category: "CAD Integration",
-    description: "Tiered automated CAD write-back pricing for T2 Small agencies (4-8 dispatchers, up to 1,500 calls/month). Full bidirectional sync between Rapid Cortex and CAD with automated field mapping.",
+    description: "Tiered automated CAD write-back pricing for T2 Small agencies (4-8 dispatchers, up to 1,500 calls/month). Full bidirectional sync between NexCort iQ and CAD with automated field mapping.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 58e3,
@@ -40503,7 +40503,7 @@ var ADDON_CATALOG = [
     key: "cad.writeback_automated.tier3",
     name: "CAD Automated Write-Back - T3 Medium",
     category: "CAD Integration",
-    description: "Tiered automated CAD write-back pricing for T3 Medium agencies (9-15 dispatchers, up to 3,500 calls/month). Full bidirectional sync between Rapid Cortex and CAD with automated field mapping.",
+    description: "Tiered automated CAD write-back pricing for T3 Medium agencies (9-15 dispatchers, up to 3,500 calls/month). Full bidirectional sync between NexCort iQ and CAD with automated field mapping.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 67e3,
@@ -40524,7 +40524,7 @@ var ADDON_CATALOG = [
     key: "cad.field_mapping",
     name: "CAD Field Mapping Document",
     category: "CAD Integration",
-    description: "Formal field mapping specification between Rapid Cortex and agency CAD data model.",
+    description: "Formal field mapping specification between NexCort iQ and agency CAD data model.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 5500,
@@ -41352,7 +41352,7 @@ var ADDON_CATALOG = [
     key: "reliability.monitoring_integrations",
     name: "Monitoring Integrations",
     category: "Reliability / Technical Ops",
-    description: "Connect Rapid Cortex operational health to PagerDuty, OpsGenie, Datadog, or custom endpoints.",
+    description: "Connect NexCort iQ operational health to PagerDuty, OpsGenie, Datadog, or custom endpoints.",
     billingType: "monthly",
     monthlyPrice: 2500,
     oneTimePrice: 0,
@@ -41653,7 +41653,7 @@ var ADDON_CATALOG = [
     key: "platform_security.api_keys_webhooks",
     name: "API Keys & Webhooks",
     category: "Platform Security & Administration",
-    description: "Scoped outbound integration credentials for connecting Rapid Cortex to external agency systems, plus webhook subscriptions for real-time event delivery.",
+    description: "Scoped outbound integration credentials for connecting NexCort iQ to external agency systems, plus webhook subscriptions for real-time event delivery.",
     billingType: "monthly",
     monthlyPrice: 500,
     oneTimePrice: 0,
@@ -45286,14 +45286,14 @@ var campusIntegrationQuestionnaireSchema = external_exports.object({
   if (!value.lockdownOperatorConfirmUnderstood) {
     ctx.addIssue({
       code: external_exports.ZodIssueCode.custom,
-      message: "Confirm Rapid Cortex never auto-locks doors \u2014 operators confirm every lockdown",
+      message: "Confirm NexCort iQ never auto-locks doors \u2014 operators confirm every lockdown",
       path: ["lockdownOperatorConfirmUnderstood"]
     });
   }
   if (!value.clerySuggestionOnlyAcknowledged) {
     ctx.addIssue({
       code: external_exports.ZodIssueCode.custom,
-      message: "Confirm Clery stays suggestion-only \u2014 Rapid Cortex never auto-files or issues Timely Warnings",
+      message: "Confirm Clery stays suggestion-only \u2014 NexCort iQ never auto-files or issues Timely Warnings",
       path: ["clerySuggestionOnlyAcknowledged"]
     });
   }
@@ -45388,9 +45388,9 @@ var onboardingPacketDownloadBodySchema = external_exports.object({
 function mdFile(fileName, title, markdown) {
   return { fileName, title, contentType: "text/markdown; charset=utf-8", markdown };
 }
-var CAMPUS_OVERVIEW = `# Rapid Cortex \u2014 Campus Safety
+var CAMPUS_OVERVIEW = `# NexCort iQ \u2014 Campus Safety
 
-Rapid Cortex is **campus public-safety intelligence**. It helps campus safety, dispatch, counseling, and administrators see incidents, buildings, QR locations, and cameras across **every campus in the same tenant**.
+NexCort iQ is **campus public-safety intelligence**. It helps campus safety, dispatch, counseling, and administrators see incidents, buildings, QR locations, and cameras across **every campus in the same tenant**.
 
 ## This is not
 
@@ -45401,7 +45401,7 @@ Rapid Cortex is **campus public-safety intelligence**. It helps campus safety, d
 
 ## Multi-campus
 
-One Rapid Cortex tenant holds every campus (for example Bloomington, Indianapolis, South Bend). Operators use **All campuses** by default and can filter to one location. Buildings, QR codes, cameras, and incidents are tagged to a campus.
+One NexCort iQ tenant holds every campus (for example Bloomington, Indianapolis, South Bend). Operators use **All campuses** by default and can filter to one location. Buildings, QR codes, cameras, and incidents are tagged to a campus.
 
 ## Who this packet is for
 
@@ -45409,7 +45409,7 @@ Share these files with the campus implementation lead, public-safety leadership,
 `;
 var CAMPUS_WHAT_WE_NEED = `# Campus \u2014 information we need
 
-Complete **Onboarding Intake** and the **Integration Questionnaire** in Rapid Cortex (Campus Admin \u2192 Configuration). Saving the questionnaire publishes the campus list used by every dashboard. It does **not** turn on CAD write-back.
+Complete **Onboarding Intake** and the **Integration Questionnaire** in NexCort iQ (Campus Admin \u2192 Configuration). Saving the questionnaire publishes the campus list used by every dashboard. It does **not** turn on CAD write-back.
 
 ## Campuses and locations
 
@@ -45428,7 +45428,7 @@ Complete **Onboarding Intake** and the **Integration Questionnaire** in Rapid Co
 
 - VMS of record (Milestone, Hanwha, Genetec, Avigilon, other) and version
 - Estimated camera count; who owns privacy masks in the VMS
-- Rapid Cortex connects to your VMS. We do not replace it.
+- NexCort iQ connects to your VMS. We do not replace it.
 
 ## Access control, ALPR, CAD/RMS
 
@@ -45466,11 +45466,11 @@ var CAMPUS_INTEGRATIONS = `# Campus integrations and hard limits
 
 ## Lockdown
 
-Rapid Cortex **never auto-locks doors**. Every lockdown requires an on-duty operator to confirm.
+NexCort iQ **never auto-locks doors**. Every lockdown requires an on-duty operator to confirm.
 
 ## Clery
 
-Keyword categories are **suggestions only**. A CSA must review. Rapid Cortex never auto-files Clery determinations and never issues Timely Warnings.
+Keyword categories are **suggestions only**. A CSA must review. NexCort iQ never auto-files Clery determinations and never issues Timely Warnings.
 
 ## CAD write-back
 
@@ -45490,19 +45490,19 @@ var CAMPUS_GO_LIVE = `# Campus go-live checklist
 6. EAP library owner and Clery coordinator named
 7. Firewall / webhook allowlist in place
 8. Tabletop: create a test incident, switch campuses, scan a QR, confirm counseling routing
-9. Go-live window agreed; Rapid Cortex implementation lead on standby
+9. Go-live window agreed; NexCort iQ implementation lead on standby
 `;
-var VENUE_OVERVIEW = `# Rapid Cortex \u2014 Venue Operations
+var VENUE_OVERVIEW = `# NexCort iQ \u2014 Venue Operations
 
-Rapid Cortex Venue is **event and facility operations intelligence** for arenas, stadiums, and similar sites.
+NexCort iQ Venue is **event and facility operations intelligence** for arenas, stadiums, and similar sites.
 
 **Every venue page must make clear this is not a 911 emergency dispatch system.** Guest Services especially: guest reports are hospitality/operations, not CAD.
 
-Rapid Cortex does not replace the venue\u2019s VMS, access control, or public-safety CAD.
+NexCort iQ does not replace the venue\u2019s VMS, access control, or public-safety CAD.
 `;
 var VENUE_WHAT_WE_NEED = `# Venue \u2014 information we need
 
-Complete **Venue Onboarding Intake** in Rapid Cortex.
+Complete **Venue Onboarding Intake** in NexCort iQ.
 
 - Venue legal name, code, city, typical event types and capacity
 - Zones / sections map; guest-services vs security org chart
@@ -45525,11 +45525,11 @@ var VENUE_GO_LIVE = `# Venue go-live checklist
 5. Escalation path to public safety agreed
 6. Event-day tabletop before first gated event
 `;
-var HOSPITAL_OVERVIEW = `# Rapid Cortex \u2014 Hospital Routing
+var HOSPITAL_OVERVIEW = `# NexCort iQ \u2014 Hospital Routing
 
 Hospital Admin and Staff use a **capacity and routing portal**. This is not a 911 dispatch workspace and not medical direction.
 
-Rapid Cortex can share inbound EMS awareness with participating hospitals. It does not replace the hospital\u2019s EHR, bed-management system, or medical control.
+NexCort iQ can share inbound EMS awareness with participating hospitals. It does not replace the hospital\u2019s EHR, bed-management system, or medical control.
 `;
 var HOSPITAL_WHAT_WE_NEED = `# Hospital \u2014 information we need
 
@@ -45547,7 +45547,7 @@ var HOSPITAL_GO_LIVE = `# Hospital go-live checklist
 3. Routing / regional map contacts confirmed
 4. Tabletop with a partner PSAP or EMS agency
 `;
-var TRANSIT_OVERVIEW = `# Rapid Cortex \u2014 Transit Operations
+var TRANSIT_OVERVIEW = `# NexCort iQ \u2014 Transit Operations
 
 Transit Admin, Supervisor, Security, and Operator consoles cover fleet, routes, and on-system incidents.
 
@@ -45568,9 +45568,9 @@ var TRANSIT_GO_LIVE = `# Transit go-live checklist
 3. Camera plan for stations / fleet
 4. Tabletop: in-service incident \u2192 security \u2192 public safety
 `;
-var PSAP_OVERVIEW = `# Rapid Cortex \u2014 PSAP / 911
+var PSAP_OVERVIEW = `# NexCort iQ \u2014 PSAP / 911
 
-Rapid Cortex **enhances** emergency communications. It does **not** replace CAD, telephony, dispatchers, or medical direction.
+NexCort iQ **enhances** emergency communications. It does **not** replace CAD, telephony, dispatchers, or medical direction.
 
 CAD write-back is **off by default** everywhere and stays off until a signed addendum and an explicit production go/no-go.
 `;
@@ -45600,11 +45600,11 @@ function getBundledOnboardingPackets() {
     {
       vertical: "campus",
       title: "Campus Safety",
-      summary: "Customer packet for university and school public-safety programs: what Rapid Cortex is, what to collect, integrations, and go-live.",
+      summary: "Customer packet for university and school public-safety programs: what NexCort iQ is, what to collect, integrations, and go-live.",
       files: [
         mdFile(
           "00-overview.md",
-          "Campus overview \u2014 what Rapid Cortex is and is not",
+          "Campus overview \u2014 what NexCort iQ is and is not",
           CAMPUS_OVERVIEW
         ),
         mdFile("01-what-we-need.md", "Information we need to integrate you", CAMPUS_WHAT_WE_NEED),
@@ -45618,7 +45618,7 @@ function getBundledOnboardingPackets() {
       title: "Venue Operations",
       summary: "Customer packet for arenas, stadiums, and campuses-of-events: guest reporting, cameras, QR, and the 911 disclaimer.",
       files: [
-        mdFile("00-overview.md", "Venue overview \u2014 what Rapid Cortex is and is not", VENUE_OVERVIEW),
+        mdFile("00-overview.md", "Venue overview \u2014 what NexCort iQ is and is not", VENUE_OVERVIEW),
         mdFile("01-what-we-need.md", "Information we need to integrate you", VENUE_WHAT_WE_NEED),
         mdFile("02-roles-and-operations.md", "Roles and operations", VENUE_ROLES),
         mdFile("03-go-live.md", "Go-live checklist", VENUE_GO_LIVE)
@@ -45647,7 +45647,7 @@ function getBundledOnboardingPackets() {
     {
       vertical: "psap",
       title: "PSAP / 911 Dispatch",
-      summary: "Customer packet for PSAPs and emergency communications centers. Rapid Cortex assists dispatchers; it does not replace CAD, telephony, or medical direction.",
+      summary: "Customer packet for PSAPs and emergency communications centers. NexCort iQ assists dispatchers; it does not replace CAD, telephony, or medical direction.",
       files: [
         mdFile("00-overview.md", "PSAP overview \u2014 assistive posture", PSAP_OVERVIEW),
         mdFile("01-what-we-need.md", "Information we need to integrate you", PSAP_WHAT_WE_NEED),
@@ -47261,7 +47261,7 @@ var ngSecEvidencePackSchema = external_exports.object({
   packVersion: external_exports.string().default("RC-NG-SEC-1.0"),
   generatedAt: external_exports.string().min(20),
   disclaimer: external_exports.string().default(
-    "This pack maps Rapid Cortex controls to NG-SEC themes for RFP evidence. It does not claim NENA NG-SEC certification or CJIS accreditation."
+    "This pack maps NexCort iQ controls to NG-SEC themes for RFP evidence. It does not claim NENA NG-SEC certification or CJIS accreditation."
   ),
   controls: external_exports.array(ngSecControlEvidenceSchema).min(1),
   metricsSnapshot: ng911CallProcessingMetricsSchema.optional()

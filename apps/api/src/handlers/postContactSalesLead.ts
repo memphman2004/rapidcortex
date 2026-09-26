@@ -19,7 +19,7 @@ const cors = {
 };
 
 /** In-app sales notifications — must match a verified SES identity (and IAM `ses:SendEmail` resource). */
-const CONTACT_SALES_INTERNAL_TO = "support@rapidcortex.us";
+const CONTACT_SALES_INTERNAL_TO = "support@nexcortiq.us";
 
 /**
  * Sends internal + confirmation mail via SES when `CONTACT_FROM_EMAIL` is set.
@@ -54,7 +54,7 @@ async function publishSalesLeadSns(lead: SalesLeadRecord): Promise<void> {
   await sns.send(
     new PublishCommand({
       TopicArn: topicArn,
-      Subject: "New Rapid Cortex Sales Lead",
+      Subject: "New NexCort iQ Sales Lead",
       Message: `New sales lead: ${lead.name} from ${lead.agencyCompany} - ${lead.email} - ${phone}`,
     }),
   );
@@ -90,19 +90,19 @@ async function sendSalesLeadEmails(lead: SalesLeadRecord): Promise<void> {
       Source: from,
       Destination: { ToAddresses: [lead.email] },
       Message: {
-        Subject: { Charset: "UTF-8", Data: "Thanks for contacting Rapid Cortex" },
+        Subject: { Charset: "UTF-8", Data: "Thanks for contacting NexCort iQ" },
         Body: {
           Text: {
             Charset: "UTF-8",
             Data: [
               `Hi ${lead.name},`,
               "",
-              "Thank you for reaching out to Rapid Cortex. We received your request and will follow up within one business day.",
+              "Thank you for reaching out to NexCort iQ. We received your request and will follow up within one business day.",
               "",
               "If your matter is urgent, please reply to this email and reference the details you already shared.",
               "",
               "Best regards,",
-              "Rapid Cortex",
+              "NexCort iQ",
             ].join("\n"),
           },
         },

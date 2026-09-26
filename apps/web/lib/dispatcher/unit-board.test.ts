@@ -9,6 +9,7 @@ import {
   mergeUnitBoard,
   unitsFromCadRecords,
   unitsFromIncidents,
+  UNIT_BOARD_ELEMENT_ID,
 } from "./unit-board";
 
 function incident(partial: Partial<Incident> & Pick<Incident, "incidentId" | "status">): Incident {
@@ -28,6 +29,10 @@ function incident(partial: Partial<Incident> & Pick<Incident, "incidentId" | "st
 }
 
 describe("unit board", () => {
+  it("keeps Unit Status on the live unit board, not CAD entry", () => {
+    expect(UNIT_BOARD_ELEMENT_ID).toBe("ws-unit-board");
+  });
+
   it("maps CAD vendor status strings", () => {
     expect(mapCadStatus("available")).toBe("AVAILABLE");
     expect(mapCadStatus("EN ROUTE")).toBe("EN_ROUTE");

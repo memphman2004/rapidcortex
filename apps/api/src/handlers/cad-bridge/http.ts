@@ -103,7 +103,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         ok({
           config,
           brokerNotice:
-            "Rapid Cortex is the broker, not the source of truth. If RC is unavailable, both CADs keep operating independently and only stop syncing until RC recovers.",
+            "NexCort iQ is the broker, not the source of truth. If RC is unavailable, both CADs keep operating independently and only stop syncing until RC recovers.",
           writebackEnabled: env.cadWritebackEnabled,
           mockMode: env.cadBridgeMock,
         }),
@@ -199,7 +199,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           mockMode: env.cadBridgeMock,
           writebackEnabled: env.cadWritebackEnabled,
           brokerNotice:
-            "Rapid Cortex is the broker, not the source of truth. Connected CADs remain independently operational if RC is unavailable.",
+            "NexCort iQ is the broker, not the source of truth. Connected CADs remain independently operational if RC is unavailable.",
           participantCount: circuits.length,
           maxParticipants: 8,
           cadA: cadA

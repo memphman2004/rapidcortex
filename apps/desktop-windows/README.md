@@ -1,4 +1,4 @@
-# Rapid Cortex Desktop (Windows)
+# NexCort iQ Desktop (Windows)
 
 WPF on **.NET 8**: Cognito **Hosted UI** (PKCE), **`/oauth2/token`** exchange via **loopback** redirect, DPAPI-backed session store, API client with `Authorization: Bearer <id_token>`, environment-based config, dashboard health ping, and incidents preview. **Release** builds hide manual token paste; use sign-in or Debug smoke tests.
 

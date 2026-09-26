@@ -23,7 +23,7 @@ export function ContactSalesPageBody({ interestFromSearch = null }: ContactSales
   useEffect(() => {
     if (!completion) return;
     const previousTitle = document.title;
-    document.title = "Request received | Rapid Cortex";
+    document.title = "Request received | NexCort iQ";
     const t = window.setTimeout(() => pageTitleRef.current?.focus(), reduceMotion ? 0 : 100);
     return () => {
       window.clearTimeout(t);

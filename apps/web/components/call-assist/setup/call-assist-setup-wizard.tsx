@@ -301,7 +301,7 @@ export function CallAssistSetupWizard() {
             <div className="space-y-3">
               <h2 className="text-sm font-semibold text-white">Operational profile</h2>
               <p className="text-[12px] text-slate-500">
-                Internal Rapid Cortex configuration. This screen is never shown to the agency.
+                Internal NexCort iQ configuration. This screen is never shown to the agency.
               </p>
               {(["911", "campus", "venue"] as const).map((v) => (
                 <label key={v} className="flex items-center gap-2 text-sm text-slate-200">

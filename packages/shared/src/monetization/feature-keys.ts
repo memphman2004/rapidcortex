@@ -7,10 +7,10 @@ export const MONETIZATION_FEATURE_KEYS = [
   "executive_dashboard",
   "it_security_dashboard",
   "responder_dashboard",
-  /** Explicit gate for Rapid Cortex web consoles (never granted to RC Lite API-only). */
+  /** Explicit gate for NexCort iQ web consoles (never granted to NexCort Lite API-only). */
   "dashboard_access",
 
-  /** Full-platform console surfaces (RC Lite must never receive these). */
+  /** Full-platform console surfaces (NexCort Lite must never receive these). */
   "advanced_reports_dashboard",
   "full_incident_console",
   "command_center_ui",
@@ -39,7 +39,7 @@ export const MONETIZATION_FEATURE_KEYS = [
   "production_api_access",
   "developer_docs",
 
-  /** RC Lite — standalone API product modules (public-safety intelligence APIs). */
+  /** NexCort Lite — standalone API product modules (public-safety intelligence APIs). */
   "incident_intelligence_api",
   "transcription_api",
   "translation_api",

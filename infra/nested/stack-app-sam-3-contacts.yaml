@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — Contacts address book (companies + persons) on AppSam3 HttpApi.
+  NexCort iQ — Contacts address book (companies + persons) on AppSam3 HttpApi.
   Creates DynamoDB tables and /api/contacts/* routes without a full AppSam3 deploy.
 
 Parameters:

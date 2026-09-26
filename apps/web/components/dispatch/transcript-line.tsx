@@ -1,16 +1,18 @@
 "use client";
 
 import type { TranscriptSegment } from "rapid-cortex-shared";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
 import { formatTime } from "@/lib/format";
 
 export function TranscriptLine({ segment }: { segment: TranscriptSegment }) {
+  const { hour12 } = useClockPreference();
   return (
     <li className="flex gap-3">
       <time
         className="w-20 shrink-0 text-[11px] text-slate-500 tabular-nums"
         dateTime={segment.timestamp}
       >
-        {formatTime(segment.timestamp)}
+        {formatTime(segment.timestamp, hour12)}
       </time>
       <div className="min-w-0 flex-1">
         <span

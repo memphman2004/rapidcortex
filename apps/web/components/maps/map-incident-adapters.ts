@@ -116,11 +116,36 @@ function psapStatus(status: Incident["status"]): IncidentStatus {
 }
 
 function psapSeverity(inc: Incident): IncidentSeverity {
+  if (inc.status === "completed" || inc.status === "archived") return "resolved";
   if (inc.escalationFlag || inc.urgency === "critical") return "critical";
   if (inc.urgency === "high") return "high";
   if (inc.urgency === "moderate") return "medium";
-  if (inc.status === "completed" || inc.status === "archived") return "resolved";
-  return "low";
+  if (inc.urgency === "low") return "low";
+  // Unset urgency on an open 911 call still needs a red map marker.
+  return "high";
+}
+
+/** CAD / reported location pin for a dispatcher incident map (no live GPS). */
+export function reportLocationToMapIncident(opts: {
+  id?: string;
+  latitude: number;
+  longitude: number;
+  locationLabel: string;
+  createdAt?: string;
+  type?: string;
+  status?: IncidentStatus;
+  severity?: IncidentSeverity;
+}): RCIncident {
+  return {
+    id: opts.id?.trim() || `loc:${opts.latitude.toFixed(5)},${opts.longitude.toFixed(5)}`,
+    status: opts.status ?? "active",
+    severity: opts.severity ?? "high",
+    type: opts.type ?? "incident",
+    locationLabel: opts.locationLabel,
+    latitude: opts.latitude,
+    longitude: opts.longitude,
+    createdAt: opts.createdAt ?? new Date().toISOString(),
+  };
 }
 
 export function psapIncidentsToMap(incidents: Incident[]): RCIncident[] {

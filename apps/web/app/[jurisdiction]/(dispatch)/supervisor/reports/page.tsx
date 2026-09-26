@@ -28,7 +28,7 @@ export default function SupervisorReportsPage() {
         <ReportsDashboard />
       ) : (
         <p className="text-sm text-slate-500">
-          Reporting isn’t enabled yet. Contact Rapid Cortex support.
+          Reporting isn’t enabled yet. Contact NexCort iQ support.
         </p>
       )}
     </div>

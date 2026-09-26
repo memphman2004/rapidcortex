@@ -82,6 +82,7 @@ import type {
   ScenarioResult,
   ScenarioVertical,
 } from "rapid-cortex-shared";
+import { VIDEO_ASSIST_SMS_NOT_RECEIVED_MESSAGE } from "rapid-cortex-shared";
 
 function normalizeApiOrigin(raw: string | undefined): string {
   const s = raw?.trim();
@@ -259,6 +260,50 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
   const text = await res.text();
   const body = text ? (JSON.parse(text) as unknown) : null;
+  if (!res.ok) {
+    throw new Error(formatJsonErrorMessage(body, res.status));
+  }
+  return body as T;
+}
+
+export class VideoAssistSmsNotSentError extends Error {
+  readonly session: VideoAssistDispatcherSession;
+
+  constructor(session: VideoAssistDispatcherSession, message: string) {
+    super(message);
+    this.name = "VideoAssistSmsNotSentError";
+    this.session = session;
+  }
+}
+
+function throwIfVideoAssistSmsNotSent(status: number, body: unknown): void {
+  if (status !== 502 || !body || typeof body !== "object") return;
+  const rec = body as Record<string, unknown>;
+  if (rec.error !== "sms_not_sent") return;
+  const session = rec.session;
+  if (!session || typeof session !== "object") return;
+  const sessionId = (session as { sessionId?: unknown }).sessionId;
+  if (typeof sessionId !== "string" || !sessionId) return;
+  const message =
+    typeof rec.message === "string" && rec.message.trim()
+      ? rec.message
+      : VIDEO_ASSIST_SMS_NOT_RECEIVED_MESSAGE;
+  throw new VideoAssistSmsNotSentError(session as VideoAssistDispatcherSession, message);
+}
+
+async function requestVideoAssist<T>(path: string, init?: RequestInit): Promise<T> {
+  const API_BASE = resolveApiBaseForPath(path);
+  if (!API_BASE) {
+    throw new Error("API base URL not configured");
+  }
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...init,
+    credentials: usesCookieBackedBff() ? "include" : (init?.credentials ?? "same-origin"),
+    headers: { ...jsonHeaders, ...init?.headers },
+  });
+  const text = await res.text();
+  const body = text ? (JSON.parse(text) as unknown) : null;
+  throwIfVideoAssistSmsNotSent(res.status, body);
   if (!res.ok) {
     throw new Error(formatJsonErrorMessage(body, res.status));
   }
@@ -475,7 +520,7 @@ export async function fetchIntegrationStatus(): Promise<IntegrationStatusPayload
   return request("/api/integration/status");
 }
 
-/** RC Admin — cross-tenant command center (GET /api/platform/summary). */
+/** NexCort Admin — cross-tenant command center (GET /api/platform/summary). */
 export type PlatformSummaryPayload = {
   generatedAt: string;
   totals: {
@@ -496,7 +541,7 @@ export async function fetchPlatformSummary(): Promise<PlatformSummaryPayload> {
   return request<PlatformSummaryPayload>("/api/platform/summary");
 }
 
-/** RC Admin — national HQ pins for cross-agency deployments map. */
+/** NexCort Admin — national HQ pins for cross-agency deployments map. */
 export type AgencyDeploymentsMapPayload = {
   markers: Array<{
     agencyId: string;
@@ -527,7 +572,7 @@ export type FetchPlatformAuditParams = {
   to?: string;
 };
 
-/** RC Admin — merged audit across tenants. */
+/** NexCort Admin — merged audit across tenants. */
 export async function fetchPlatformAuditEvents(
   params: FetchPlatformAuditParams = {},
 ): Promise<AuditEvent[]> {
@@ -901,7 +946,7 @@ export async function postVideoAssistSession(
   incidentId: string,
   body: CreateVideoAssistSessionBody,
 ): Promise<{ session: VideoAssistDispatcherSession; token: string; publicUrl: string }> {
-  return request(`/api/incidents/${encodeURIComponent(incidentId)}/video-assist/sessions`, {
+  return requestVideoAssist(`/api/incidents/${encodeURIComponent(incidentId)}/video-assist/sessions`, {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -917,7 +962,7 @@ export async function fetchVideoAssistSession(
 }
 
 export async function postVideoAssistResend(incidentId: string, sessionId: string): Promise<VideoAssistDispatcherSession> {
-  return request(
+  return requestVideoAssist(
     `/api/incidents/${encodeURIComponent(incidentId)}/video-assist/sessions/${encodeURIComponent(sessionId)}/resend`,
     { method: "POST", body: JSON.stringify({}) },
   );
@@ -973,8 +1018,14 @@ export async function postLiveVideoRequest(
   });
 }
 
-export async function fetchLiveVideoSession(incidentId: string): Promise<LiveVideoSessionView> {
-  return request(`/api/incidents/${encodeURIComponent(incidentId)}/live-video`);
+export async function fetchLiveVideoSession(incidentId: string): Promise<LiveVideoSessionView | null> {
+  try {
+    return await request(`/api/incidents/${encodeURIComponent(incidentId)}/live-video`);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "";
+    if (/not found/i.test(message) || /\b404\b/.test(message)) return null;
+    throw err;
+  }
 }
 
 /** Same join bundle as GET — explicit POST for clients that prefer a join verb. */
@@ -1672,7 +1723,7 @@ export async function postAgencyAdminWebhook(body: Record<string, unknown>): Pro
   return request(`/api/agency-admin/webhooks`, { method: "POST", body: JSON.stringify(body) });
 }
 
-/** RC Admin — cross-tenant API client oversight (GET /api/rc-admin/api-clients). */
+/** NexCort Admin — cross-tenant API client oversight (GET /api/rc-admin/api-clients). */
 export async function fetchRcAdminApiClients(qs?: { agencyId?: string; status?: string }): Promise<unknown[]> {
   const sp = new URLSearchParams();
   if (qs?.agencyId) sp.set("agencyId", qs.agencyId);

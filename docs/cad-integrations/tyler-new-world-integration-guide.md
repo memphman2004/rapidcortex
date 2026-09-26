@@ -1,17 +1,17 @@
-# Tyler New World + Rapid Cortex Integration Guide
+# Tyler New World + NexCort iQ Integration Guide
 
-**Version 1.0** | Rapid Cortex Public Safety AI Platform
+**Version 1.0** | NexCort iQ Public Safety AI Platform
 
 ---
 
 ## Overview
 
-This guide covers connecting **Tyler Technologies New World CAD** (and related Tyler public safety suites) to **Rapid Cortex** for secure incident and status delivery. Many Tyler deployments require **Tyler professional services** or support tickets to enable outbound HTTP or API features.
+This guide covers connecting **Tyler Technologies New World CAD** (and related Tyler public safety suites) to **NexCort iQ** for secure incident and status delivery. Many Tyler deployments require **Tyler professional services** or support tickets to enable outbound HTTP or API features.
 
 **What this integration does**
 
-- Brings Tyler incident data into Rapid Cortex for AI-assisted workflows and dispatcher overlays.
-- May use **HTTP push** (webhook-style) where enabled, or an **agency-managed poller** that reads Tyler’s CAD API and forwards normalized events to Rapid Cortex (architecture depends on your contract and Tyler’s supported interfaces).
+- Brings Tyler incident data into NexCort iQ for AI-assisted workflows and dispatcher overlays.
+- May use **HTTP push** (webhook-style) where enabled, or an **agency-managed poller** that reads Tyler’s CAD API and forwards normalized events to NexCort iQ (architecture depends on your contract and Tyler’s supported interfaces).
 
 **Data flow (ASCII)**
 
@@ -28,8 +28,8 @@ This guide covers connecting **Tyler Technologies New World CAD** (and related T
 
 - New World CAD **11.0+** (confirm with Tyler for your licensed modules).
 - **Tyler support** or PS engagement is often **required** for interface work.
-- Rapid Cortex **admin** for integration credentials.
-- Outbound **HTTPS** from the integration host to Rapid Cortex.
+- NexCort iQ **admin** for integration credentials.
+- Outbound **HTTPS** from the integration host to NexCort iQ.
 
 **Estimated setup time:** **4–8 hours** (often multi-day if PS queue applies).
 
@@ -39,14 +39,14 @@ This guide covers connecting **Tyler Technologies New World CAD** (and related T
 | --- | --- |
 | Tyler Technologies support / PS | Enable API or HTTP push, confirm payload schema |
 | Agency IT | Firewall, identity, secrets handling |
-| Rapid Cortex admin | Integration lifecycle, testing, go-live |
+| NexCort iQ admin | Integration lifecycle, testing, go-live |
 | Compliance | CJIS / data flow sign-off |
 
 ---
 
 ## Prerequisites checklist
 
-- [ ] Rapid Cortex **Admin** access.
+- [ ] NexCort iQ **Admin** access.
 - [ ] New World CAD **11.0+** documented in change record.
 - [ ] **Tyler support ticket** opened (recommended template: “Outbound HTTPS incident feed to partner API”).
 - [ ] CAD admin credentials for **Agency Setup** / interface areas.
@@ -55,7 +55,7 @@ This guide covers connecting **Tyler Technologies New World CAD** (and related T
 
 ---
 
-## Step 1: Generate integration credentials in Rapid Cortex
+## Step 1: Generate integration credentials in NexCort iQ
 
 1. Log in at **https://www.rapidcortex.us**.
 2. **Admin → CAD Integrations**.
@@ -77,18 +77,18 @@ This guide covers connecting **Tyler Technologies New World CAD** (and related T
 
 1. **System Setup → Agency Setup → Interface Configuration → HTTP Push Notifications** (or **External Interfaces** on some builds).
 2. Create a **new outbound endpoint**:
-   - **URL:** Rapid Cortex webhook from Step 1.
+   - **URL:** NexCort iQ webhook from Step 1.
    - **Method:** `POST`
    - **Format:** `application/json`
 3. **Authentication**
-   - Preferred: **Bearer token** *or* **custom header** matching Rapid Cortex (e.g. `X-RC-Token: <token>`) per your Rapid Cortex admin panel instructions.
+   - Preferred: **Bearer token** *or* **custom header** matching NexCort iQ (e.g. `X-RC-Token: <token>`) per your NexCort iQ admin panel instructions.
 4. **Events:** incident create/update/close; unit status if available.
 5. **Save** and run Tyler’s **test** tool if present.
 
 **If HTTP push is not available**
 
 - Work with Tyler to enable **CAD Query API** or supported export path.
-- Place a **broker** in your DMZ that polls Tyler and `POST`s normalized JSON to Rapid Cortex (agency-owned component + change control).
+- Place a **broker** in your DMZ that polls Tyler and `POST`s normalized JSON to NexCort iQ (agency-owned component + change control).
 
 ---
 
@@ -105,7 +105,7 @@ This guide covers connecting **Tyler Technologies New World CAD** (and related T
 
 ## Step 4: Test the connection
 
-1. Rapid Cortex **Admin → CAD Integrations** → your integration → **Send test incident**.
+1. NexCort iQ **Admin → CAD Integrations** → your integration → **Send test incident**.
 2. Confirm receipt in **dispatcher workspace** and integration **logs**.
 3. Optionally trigger a **sandbox incident** in Tyler training CAD.
 
@@ -113,7 +113,7 @@ This guide covers connecting **Tyler Technologies New World CAD** (and related T
 
 ## Step 5: Validate data mapping
 
-| Tyler (example) | Rapid Cortex |
+| Tyler (example) | NexCort iQ |
 | --- | --- |
 | `CADCallNumber` / call id | CAD incident linkage |
 | `CallType` / `ProblemType` | Type / nature |
@@ -130,7 +130,7 @@ This guide covers connecting **Tyler Technologies New World CAD** (and related T
 ## Step 6: Go live
 
 - [ ] Tyler PS / support sign-off on payload stability.
-- [ ] Pilot real incidents; compare CAD vs Rapid Cortex fields.
+- [ ] Pilot real incidents; compare CAD vs NexCort iQ fields.
 - [ ] Dispatcher briefing completed.
 
 ---
@@ -140,7 +140,7 @@ This guide covers connecting **Tyler Technologies New World CAD** (and related T
 | Issue | Likely cause | Fix |
 | --- | --- | --- |
 | Tyler cannot enable push | License / module | Open Tyler ticket; consider broker + API |
-| 401 from Rapid Cortex | Token mismatch | Regenerate token; update Tyler header |
+| 401 from NexCort iQ | Token mismatch | Regenerate token; update Tyler header |
 | Wrong coordinates | Projection / datum | Align with Tyler PS on CRS |
 | Missing units | Event filter | Enable unit / assignment events |
 
@@ -148,7 +148,7 @@ This guide covers connecting **Tyler Technologies New World CAD** (and related T
 
 ## Data security & compliance
 
-Same baseline as other guides: **TLS 1.2+**, encryption at rest in Rapid Cortex, **tenant isolation**, **audit logging**, treat payloads as **CJI**.
+Same baseline as other guides: **TLS 1.2+**, encryption at rest in NexCort iQ, **tenant isolation**, **audit logging**, treat payloads as **CJI**.
 
 ---
 
@@ -156,7 +156,7 @@ Same baseline as other guides: **TLS 1.2+**, encryption at rest in Rapid Cortex,
 
 | Channel | Detail |
 | --- | --- |
-| Rapid Cortex | [support@rapidcortex.us](mailto:support@rapidcortex.us) |
+| NexCort iQ | [support@nexcortiq.us](mailto:support@nexcortiq.us) |
 | Tyler public safety support | **publicsafety.support@tylertech.com** (confirm on [tylertech.com](https://www.tylertech.com/) for your region) |
 
 ---
@@ -183,7 +183,7 @@ Same baseline as other guides: **TLS 1.2+**, encryption at rest in Rapid Cortex,
 
 ## Appendix B: Field mapping reference
 
-| Tyler field (examples) | Rapid Cortex usage |
+| Tyler field (examples) | NexCort iQ usage |
 | --- | --- |
 | `CADCallNumber` | CAD incident id |
 | `CallType` / `ProblemType` | Incident type / nature |

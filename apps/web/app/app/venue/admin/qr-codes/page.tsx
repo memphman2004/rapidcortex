@@ -22,7 +22,7 @@ export default async function VenueAdminQrCodesPage() {
         canCreate={perms.canCreate}
         canDeactivate={perms.canDeactivate}
         canDownload={perms.canDownload}
-        zoneLabel="Section / Gate / Level"
+        zoneLabel="Location Details"
       />
     </div>
   );

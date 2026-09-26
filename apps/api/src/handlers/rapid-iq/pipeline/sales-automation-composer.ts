@@ -40,7 +40,7 @@ async function composeNewsletter(weekOf: string) {
     ? top.map((r) => `- [${r.market}] ${r.title} — ${r.agency}`).join("\n")
     : "No high-fit intel this week. Write a short industry pulse.";
 
-  let bodyText = `Inside the Cortex — week of ${weekOf}\n\n${signalLines}\n\nRapid Cortex continues to watch procurement and board activity across 911, campus, and venue. We'll send a fuller brief when the feed warrants it.\n\n— The Rapid Cortex team`;
+  let bodyText = `Inside the Cortex — week of ${weekOf}\n\n${signalLines}\n\nNexCort iQ continues to watch procurement and board activity across 911, campus, and venue. We'll send a fuller brief when the feed warrants it.\n\n— The NexCort iQ team`;
   let linkedinText: string | undefined;
   let subject = `Inside the Cortex — ${weekOf}`;
 
@@ -48,7 +48,7 @@ async function composeNewsletter(weekOf: string) {
     const raw = await createJsonResponse({
       model: rapidIqModelStrategy(),
       system:
-        'You write "Inside the Cortex", a weekly note for 911 directors and campus/venue safety leaders. Practitioner tone, not ads. 350–450 words. Sign off as The Rapid Cortex team. Return JSON.',
+        'You write "Inside the Cortex", a weekly note for 911 directors and campus/venue safety leaders. Practitioner tone, not ads. 350–450 words. Sign off as The NexCort iQ team. Return JSON.',
       jsonSchemaName: "rapid_iq_newsletter",
       jsonSchema: {
         type: "object",

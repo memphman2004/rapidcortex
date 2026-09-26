@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Rapid Cortex — RC Transit ops API (routes attach to stack 2 HttpApi)
+Description: NexCort iQ — RC Transit ops API (routes attach to stack 2 HttpApi)
 
 Parameters:
   DeploymentStage:
@@ -462,6 +462,12 @@ Resources:
   RouteTransitCameraHeartbeat:
     Type: AWS::ApiGatewayV2::Route
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/cameras/{cameraId}/heartbeat", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitOnboardingIntakeGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/onboarding/intake", Target: !Sub "integrations/${TransitHttpIntegration}" }
+  RouteTransitOnboardingIntakePut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/onboarding/intake", Target: !Sub "integrations/${TransitHttpIntegration}" }
 
 Outputs:
   TransitHttpFunctionArn:

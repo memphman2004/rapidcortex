@@ -1,7 +1,7 @@
 import { redirectDevelopersDocsToSignIn } from "@/lib/redirect-developers-docs-to-sign-in";
 
 export const metadata = {
-  title: "RC Lite API — Error catalogue",
+  title: "NexCort Lite API — Error catalogue",
   robots: { index: false, follow: false },
 };
 

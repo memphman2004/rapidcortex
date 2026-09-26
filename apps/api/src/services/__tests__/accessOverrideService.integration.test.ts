@@ -116,7 +116,7 @@ describe("AccessOverrideService (integration with mocked persistence)", () => {
     userId: "rc-sub",
     agencyId: "__platform__",
     role: "rcsuperadmin",
-    email: "rc@rapidcortex.us",
+    email: "rc@nexcortiq.us",
   } satisfies UserContext;
 
   beforeEach(() => {
@@ -442,7 +442,7 @@ describe("AccessOverrideService (integration with mocked persistence)", () => {
         userId: "rca-sub",
         agencyId: "__platform__",
         role: "rcadmin",
-        email: "rcadmin@rapidcortex.us",
+        email: "rcadmin@nexcortiq.us",
       },
       { status: "active" },
     );

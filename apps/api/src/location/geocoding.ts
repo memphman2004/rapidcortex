@@ -4,8 +4,7 @@ import {
 } from "@aws-sdk/client-location";
 import type { AlsGeocodeResult } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
-import { alsLocationMockEnabled, getLocationClient } from "./client.js";
-import { mockGeocodeAddress, mockReverseGeocode } from "./mock-data.js";
+import { getLocationClient } from "./client.js";
 
 export interface GeocodeOptions {
   biasLat?: number;
@@ -51,9 +50,7 @@ export async function geocodeAddress(
 ): Promise<AlsGeocodeResult[]> {
   const trimmed = address.trim();
   if (!trimmed) return [];
-  if (alsLocationMockEnabled() || !env.alsPlaceIndexName) {
-    return mockGeocodeAddress(trimmed);
-  }
+  if (!env.alsPlaceIndexName) return [];
   try {
     const resp = await getLocationClient().send(
       new SearchPlaceIndexForTextCommand({
@@ -80,9 +77,7 @@ export async function reverseGeocode(
   latitude: number,
   maxResults = 1,
 ): Promise<AlsGeocodeResult[]> {
-  if (alsLocationMockEnabled() || !env.alsPlaceIndexName) {
-    return mockReverseGeocode(longitude, latitude);
-  }
+  if (!env.alsPlaceIndexName) return [];
   try {
     const resp = await getLocationClient().send(
       new SearchPlaceIndexForPositionCommand({

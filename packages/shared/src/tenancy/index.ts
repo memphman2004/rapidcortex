@@ -6,6 +6,7 @@ export {
   isPlatformAdmin,
   isRcInternalOperator,
   canAccessRcFinancePortal,
+  canAccessSalesLeadsCrm,
   canAccessRcRevenuePortal,
   canAccessRcUsagePortal,
 } from "./principal.js";

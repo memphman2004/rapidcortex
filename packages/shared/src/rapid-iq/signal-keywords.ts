@@ -1,6 +1,6 @@
 /**
- * Shared Rapid IQ keyword library, procurement-stage classification, and fit scoring.
- * Used by pipeline ingest Lambdas and the Rapid IQ UI (stage badges / filters).
+ * Shared NexiQ keyword library, procurement-stage classification, and fit scoring.
+ * Used by pipeline ingest Lambdas and the NexiQ UI (stage badges / filters).
  */
 
 export const KEYWORDS = {
@@ -363,6 +363,7 @@ export const RAPID_IQ_PROCUREMENT_STAGE_FILTERS = [
   { id: "funded", label: "Funded" },
   { id: "early", label: "Early Signal" },
   { id: "competitor", label: "Competitor Intel" },
+  { id: "watch", label: "Watch Feed" },
 ] as const;
 export type RapidIqProcurementStageFilterId =
   (typeof RAPID_IQ_PROCUREMENT_STAGE_FILTERS)[number]["id"];
@@ -375,6 +376,8 @@ const FILTER_STAGES: Record<RapidIqProcurementStageFilterId, readonly RapidIqPro
     funded: ["budget-funded", "funding-available"],
     early: ["early-awareness"],
     competitor: ["competitor-win", "future-opportunity"],
+    /** Source filter — use {@link matchesWatchFeedFilter} / client sourceId check. */
+    watch: null,
   };
 
 const regexCache = new Map<string, RegExp>();
@@ -520,10 +523,20 @@ export function matchesProcurementStageFilter(
   stage: RapidIqProcurementStage | undefined,
   filterId: RapidIqProcurementStageFilterId,
 ): boolean {
+  if (filterId === "watch") return true; // source filter handled separately
   const allowed = FILTER_STAGES[filterId];
   if (!allowed) return true;
   if (!stage) return false;
   return (allowed as readonly string[]).includes(stage);
+}
+
+/** True when the Inbox "Watch Feed" tab should include this pipeline signal. */
+export function matchesWatchFeedFilter(
+  sourceId: string | undefined,
+  filterId: RapidIqProcurementStageFilterId,
+): boolean {
+  if (filterId !== "watch") return true;
+  return sourceId === "chatgpt-watch";
 }
 
 export function inferCompetitorName(text: string): string | undefined {

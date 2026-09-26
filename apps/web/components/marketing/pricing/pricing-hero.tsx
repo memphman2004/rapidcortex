@@ -18,7 +18,7 @@ export function PricingHero() {
             Flexible Plans for Public Safety Agencies
           </h1>
           <p className="mt-5 max-w-2xl text-pretty text-base leading-relaxed text-slate-300/95 drop-shadow-sm sm:text-lg">
-            Choose Rapid Cortex as a full command platform, RC Lite (API-only or add-on), or an enterprise deployment
+            Choose NexCort iQ as a full command platform, NexCort Lite (API-only or add-on), or an enterprise deployment
             built around your agency’s needs. Pricing is based on agency size, usage, integrations, support level,
             and deployment requirements—monthly, annual, pilot, and government invoice options are available.
           </p>

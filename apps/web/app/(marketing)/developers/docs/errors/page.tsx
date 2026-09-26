@@ -3,7 +3,7 @@ import { MarketingArticleShell } from "@/components/marketing/marketing-article-
 import { RC_LITE_ERROR_CATALOG } from "rapid-cortex-shared";
 
 export const metadata = {
-  title: "RC Lite API — Error catalogue",
+  title: "NexCort Lite API — Error catalogue",
   robots: { index: false, follow: false },
 };
 
@@ -11,7 +11,7 @@ export default function DevelopersErrorCatalogPage() {
   return (
     <MarketingArticleShell eyebrow="Diagnostics" title="Structured error envelopes" sectionLabel="Docs">
       <p className="leading-relaxed text-slate-300">
-        Every RC Lite HTTPS response uses the same disciplined envelope pattern as mainstream REST APIs: deterministic{" "}
+        Every NexCort Lite HTTPS response uses the same disciplined envelope pattern as mainstream REST APIs: deterministic{" "}
         <code className="text-sky-200">code</code>, human{" "}
         <code className="text-sky-200">message</code>, <code className="text-sky-200">retryable</code> guidance, propagated{" "}
         <code className="text-sky-200">requestId</code>, optional <code className="text-sky-200">details</code>, plus deep-linked{" "}

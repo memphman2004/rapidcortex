@@ -1,10 +1,10 @@
-# CentralSquare Enterprise CAD — API Requirements for Rapid Cortex C2C Integration
+# CentralSquare Enterprise CAD — API Requirements for NexCort iQ C2C Integration
 
 **Document purpose:** Exact API endpoints required from CentralSquare to complete
-the Rapid Cortex C2C hub integration for Charleston County Consolidated ECC
+the NexCort iQ C2C hub integration for Charleston County Consolidated ECC
 (CentralSquare Enterprise CAD v21.1.2 Patch 4).
 
-**Rapid Cortex contact:** api@rapidcortex.com
+**NexCort iQ contact:** api@nexcortiq.us
 **Reference:** CentralSquare Open Platform / External Interface program
 
 ---
@@ -277,7 +277,7 @@ our own hub because:
 1. It connects to Southern Software agencies (Berkeley + Dorchester) that Unify
    may not cover
 2. It uses NENA EIDO standards as the neutral wire format
-3. It connects to the Rapid Cortex intelligence platform
+3. It connects to the NexCort iQ intelligence platform
 
 We are not competing with Unify. We are building a standards-based hub that
 uses CS's published API. If CentralSquare prefers, the hub could be built as a
@@ -290,6 +290,6 @@ to discussing both paths.
 
 1. CentralSquare confirms API availability under Open Platform program
 2. CentralSquare provisions OAuth2 client credentials (non-production)
-3. Rapid Cortex confirms field names against actual CS API response
+3. NexCort iQ confirms field names against actual CS API response
 4. Integration test in CS sandbox/dev environment
 5. Production deployment with Charleston County approval

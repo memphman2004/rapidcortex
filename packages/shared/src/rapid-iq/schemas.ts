@@ -218,8 +218,14 @@ export const searchContactsBodySchema = z.object({
 });
 export type SearchContactsBody = z.infer<typeof searchContactsBodySchema>;
 
-/** RC Admin Rapid IQ — rcsuperadmin and rcadmin only (not rcitadmin). */
+/** NexCort Admin NexiQ — rcsuperadmin and rcadmin only (not rcitadmin). */
 export function canAccessRapidIq(role: string | undefined | null): boolean {
   const r = String(role ?? "").trim().toLowerCase();
   return r === "rcsuperadmin" || r === "rcadmin";
+}
+
+/** Email campaigns — Rapid IQ operators plus sales contractors (portal Campaigns tab). */
+export function canAccessSalesAutomation(role: string | undefined | null): boolean {
+  const r = String(role ?? "").trim().toLowerCase();
+  return canAccessRapidIq(r) || r === "salescontractor";
 }

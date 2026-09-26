@@ -90,7 +90,7 @@ export function PinpointPanel({
     <section className={rootClass}>
       {!embedded ? (
         <>
-          <div className="text-[10px] font-semibold tracking-wide text-sky-400">Rapid Cortex Pinpoint</div>
+          <div className="text-[10px] font-semibold tracking-wide text-sky-400">NexiQ Pinpoint</div>
           <p className="mt-1 text-[11px] leading-snug text-slate-500">
             Send a secure SMS link for live GPS — accuracy radius, movement, and location history on this incident.
           </p>

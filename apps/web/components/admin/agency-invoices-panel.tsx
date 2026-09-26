@@ -60,7 +60,7 @@ export function AgencyInvoicesPanel() {
       <div>
         <h1 className="text-lg font-semibold text-white">Invoices</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">
-          Your billing history. Contact your Rapid Cortex account manager with questions about payment
+          Your billing history. Contact your NexCort iQ account manager with questions about payment
           terms or procurement references.
         </p>
       </div>

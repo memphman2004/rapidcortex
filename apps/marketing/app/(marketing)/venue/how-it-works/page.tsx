@@ -2,26 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { buildPublicPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  ...buildPublicPageMetadata({
-    title: "How Rapid Cortex Venue Works | QR & SMS Venue Safety Reporting",
-    description:
-      "Guests scan a QR code or text a venue code to report incidents. Rapid Cortex routes the report to security with location, media, and nearby camera references — and can escalate to 911 dispatch if needed.",
-    path: "/venue/how-it-works",
-  }),
-  alternates: {
-    canonical: "https://www.rapidcortex.us/venue/how-it-works",
-  },
-};
+export const metadata: Metadata = buildPublicPageMetadata({
+  title: "How NexCort iQ Venue Works | QR & SMS Venue Safety Reporting",
+  description:
+    "Guests scan a QR code or text a venue code to report incidents. NexCort iQ routes the report to security with location, media, and nearby camera references — and can escalate to 911 dispatch if needed.",
+  path: "/venue/how-it-works",
+});
 
 const workflowSteps = [
   "Guest scans a QR code posted at their zone or section OR texts their venue code to 723389 (SAFETY)",
-  "Rapid Cortex receives the report and creates a tracked incident",
+  "NexCort iQ receives the report and creates a tracked incident",
   "Venue, location, and any attached media are automatically linked",
   "Nearby camera references are attached based on zone mapping",
   "Security dashboard is notified immediately",
   "Security assigns personnel and responds",
-  "If needed: escalate to Rapid Cortex Core for emergency communications coordination — no automatic 911 call, human decision always in the loop",
+  "If needed: escalate to 911 Centers/PSAPs for emergency communications coordination — no automatic 911 call, human decision always in the loop",
 ] as const;
 
 export default function VenueHowItWorksPage() {
@@ -38,8 +33,8 @@ export default function VenueHowItWorksPage() {
       </ol>
 
       <p className="mt-8 text-sm leading-relaxed text-slate-500">
-        Rapid Cortex is not a replacement for venue security, camera systems, radios, CAD systems, or 911.
-        Rapid Cortex is a force multiplier that improves operational awareness, communication, and incident
+        NexCort iQ is not a replacement for venue security, camera systems, radios, CAD systems, or 911.
+        NexCort iQ is a force multiplier that improves operational awareness, communication, and incident
         coordination.
       </p>
 

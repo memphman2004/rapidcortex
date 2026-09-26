@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { consumePtzRateLimit, ptzRateLimitKey, resetPtzRateLimitForTests } from "./videoPtzRateLimit.js";
 import { signVideoGatewayBody } from "./videoGatewayHmac.js";
 
-describe("Rapid Cortex Video PTZ gateway helpers", () => {
+describe("NexCort iQ Video PTZ gateway helpers", () => {
   it("signs the relay body with HMAC-SHA256 hex", () => {
     const body = JSON.stringify({ cameraId: "cam-1", command: "Stop" });
     const sig = signVideoGatewayBody("test-secret", body);

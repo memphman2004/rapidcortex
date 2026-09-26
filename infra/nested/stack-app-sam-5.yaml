@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >-
-  Rapid Cortex API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks
+  NexCort iQ API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks
   use least-privilege actions, ARNs for Bedrock foundation models (AiBedrockFoundationModelId + QaBedrockModelId),
   stack Secrets prefix rapidcortex/<stage>/*, and regional Conditions where AWS control-plane APIs require Resource=*.
   Verify with npm run validate:iam and sam validate --lint.
@@ -435,68 +435,6 @@ Parameters:
     Description: >-
       When true, Pinpoint (LiveLocation) dispatcher + public token routes are active. Requires the
       same AWS End User Messaging SMS configuration as Silent Text + incident media.
-  EnableConnectRing:
-    Type: String
-    Default: "false"
-    AllowedValues: ["true", "false"]
-    Description: When true, Ring Connect OAuth and device linking routes are active.
-  RingPartnershipEnabled:
-    Type: String
-    Default: "true"
-    AllowedValues: ["true", "false"]
-    Description: When true, Ring partnership credentials and Connect integration are active.
-  RingClientId:
-    Type: String
-    Default: ""
-    Description: Deprecated — Ring OAuth client id is loaded from RingCredentialsSecretArn at runtime.
-  RingClientSecret:
-    Type: String
-    Default: ""
-    NoEcho: true
-    Description: Deprecated — Ring OAuth client secret is loaded from RingCredentialsSecretArn at runtime.
-  RingCredentialsSecretArn:
-    Type: String
-    Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials-D3f1sN"
-    Description: Ring API credentials secret ARN (clientId, clientSecret, hmacKey JSON).
-  RingRedirectUri:
-    Type: String
-    Default: "https://api.rapidcortex.us/api/integrations/ring/callback"
-  RingAccountLinkUrl:
-    Type: String
-    Default: "https://www.rapidcortex.us/connect/ring/link"
-  RingSecretsPrefix:
-    Type: String
-    Default: "rapid-cortex/connect/ring"
-  RingAccountsTable:
-    Type: String
-    Default: ""
-    Description: Physical DynamoDB table for linked Ring accounts (RapidCortexRingAccounts-{stage}).
-  RingDevicesTable:
-    Type: String
-    Default: ""
-    Description: Physical DynamoDB table for Ring devices (RapidCortexRingDevices-{stage}).
-  RingRequestsTable:
-    Type: String
-    Default: ""
-    Description: Physical DynamoDB table for Ring emergency camera requests.
-  RingSessionsTable:
-    Type: String
-    Default: ""
-    Description: Physical DynamoDB table for Ring emergency camera sessions.
-  EnableConnectRingAvailableCameras:
-    Type: String
-    Default: "false"
-    AllowedValues: ["true", "false"]
-    Description: When true, Ring available-cameras metadata route is active (requires EnableConnectRing).
-  EnableConnectRingEmergencyRequests:
-    Type: String
-    Default: "false"
-    AllowedValues: ["true", "false"]
-    Description: When true, Ring emergency camera request/consent/revoke routes are active.
-  RingPublicApiBaseUrl:
-    Type: String
-    Default: "https://api.rapidcortex.us"
-    Description: Public API base URL for Ring owner consent links (no trailing slash).
   ConnectAccessSessionsTable:
     Type: String
     Default: ""
@@ -548,15 +486,15 @@ Parameters:
   VideoWallConfigsTable:
     Type: String
     Default: ""
-    Description: Per-user Rapid Cortex Video wall layouts (agencyId HASH, userId RANGE).
+    Description: Per-user NexCort iQ Video wall layouts (agencyId HASH, userId RANGE).
   VideoClipsTable:
     Type: String
     Default: ""
-    Description: Rapid Cortex Video DVR clips (agencyId HASH, clipId RANGE).
+    Description: NexCort iQ Video DVR clips (agencyId HASH, clipId RANGE).
   VideoGatewayUrl:
     Type: String
     Default: ""
-    Description: On-prem Rapid Cortex Video PTZ gateway base URL (e.g. https://gateway.agency.local:8787). Empty = mock relay.
+    Description: On-prem NexCort iQ Video PTZ gateway base URL (e.g. https://gateway.agency.local:8787). Empty = mock relay.
   VideoGatewaySecretArn:
     Type: String
     Default: ""
@@ -597,15 +535,11 @@ Parameters:
     Type: String
     Default: ""
     Description: Comma-separated security group IDs for bridge Fargate tasks.
-  RingApiBaseUrl:
-    Type: String
-    Default: ""
-    Description: Ring partner API base URL (empty when partnership inactive).
   InternalServiceKey:
     Type: String
     Default: ""
     NoEcho: true
-    Description: Shared secret for internal Ring refresh-token route (X-Internal-Service-Key).
+    Description: Shared secret for internal service-to-service routes (X-Internal-Service-Key).
   AppPublicBaseUrl:
     Type: String
     Default: "https://www.rapidcortex.us"
@@ -747,7 +681,7 @@ Parameters:
     AllowedValues: [auto, "true", "false"]
     Description: >-
       When auto, enables pilot-test API feature flags for DeploymentStage=dev (QA scoring, Surge, SOP AI,
-      Ring emergency cameras, incident media, etc.). Pass from root stack or set true/false explicitly.
+      emergency cameras, incident media, etc.). Pass from root stack or set true/false explicitly.
 
 Rules:
   PilotProdNoCorsWildcard:
@@ -782,8 +716,12 @@ Conditions:
   HasWwwCnameTarget: !Not [!Equals [!Ref WwwCnameTarget, ""]]
   UseManagedMultilingualSecrets: !Equals [!Ref MultilingualSecretProvisioning, "managed"]
   MultilingualSecretsBroadPolicy: !Equals [!Ref MultilingualSecretsPolicyMode, "broad"]
+  # Live production is DeploymentStage=dev (app.rapidcortex.us). PITR must stay on.
   EnablePilotGradeBackups:
     Fn::Or:
+      - Fn::Equals:
+          - !Ref DeploymentStage
+          - dev
       - Fn::Equals:
           - !Ref DeploymentStage
           - staging
@@ -794,10 +732,6 @@ Conditions:
           - !Ref DeploymentStage
           - pilot
   HasIncidentMediaTwilioSecretArn: !Not [!Equals [!Ref IncidentMediaTwilioSecretArn, ""]]
-  HasRingAccountsTable: !Not [!Equals [!Ref RingAccountsTable, ""]]
-  HasRingDevicesTable: !Not [!Equals [!Ref RingDevicesTable, ""]]
-  HasRingRequestsTable: !Not [!Equals [!Ref RingRequestsTable, ""]]
-  HasRingSessionsTable: !Not [!Equals [!Ref RingSessionsTable, ""]]
   HasVenueFacilitiesTable: !Not [!Equals [!Ref VenueFacilitiesTable, ""]]
   HasVenueCameraAccessLogTable: !Not [!Equals [!Ref VenueCameraAccessLogTable, ""]]
   HasVenueConfigTable: !Not [!Equals [!Ref VenueConfigTable, ""]]
@@ -820,7 +754,6 @@ Conditions:
       - !Not [!Equals [!Ref WebSocketApiId, ""]]
   HasQRLocationsTable: !Not [!Equals [!Ref QRLocationsTable, ""]]
   HasVenueBridgeCluster: !Not [!Equals [!Ref VenueBridgeClusterArn, ""]]
-  HasRingCredentialsSecretArn: !Not [!Equals [!Ref RingCredentialsSecretArn, ""]]
   HasExternalApiJwtSecretArn: !Not [!Equals [!Ref ExternalApiJwtSecretArn, ""]]
   HasExternalApiEncryptionKeyArn: !Not [!Equals [!Ref ExternalApiEncryptionKeyArn, ""]]
   HasDynamoTablePrefix: !Not [!Equals [!Ref DynamoTableNamePrefix, ""]]
@@ -971,10 +904,11 @@ Mappings:
       Tr3: "off"
   SmsEnvironmentDefaults:
     dev:
-      SmsProvider: mock
+      # DeploymentStage=dev is live production (app.rapidcortex.us).
+      SmsProvider: aws
       SmsPrimaryProvider: aws
-      MockSmsProvider: "true"
-      AwsSmsUseSimulator: "true"
+      MockSmsProvider: "false"
+      AwsSmsUseSimulator: "false"
     staging:
       SmsProvider: aws
       SmsPrimaryProvider: aws
@@ -1002,13 +936,6 @@ Globals:
       - !Ref NodeDepsLayer
     Environment:
       Variables:
-        RING_CREDENTIALS_SECRET_ARN: !Ref RingCredentialsSecretArn
-        RING_PARTNER_TOKEN_SECRET_ARN: !Ref RingCredentialsSecretArn
-        RING_PARTNERSHIP_ENABLED: !Ref RingPartnershipEnabled
-        RING_API_BASE_URL: !Ref RingApiBaseUrl
-        ENABLE_CONNECT_RING: !Ref EnableConnectRing
-        ENABLE_CONNECT_RING_AVAILABLE_CAMERAS: !If [PilotTestFeaturesOn, "true", !Ref EnableConnectRingAvailableCameras]
-        ENABLE_CONNECT_RING_EMERGENCY_REQUESTS: !If [PilotTestFeaturesOn, "true", !Ref EnableConnectRingEmergencyRequests]
         CONNECT_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable
         VENUE_CAMERA_SESSIONS_TABLE: !Ref ConnectAccessSessionsTable
         VENUE_FACILITIES_TABLE: !Ref VenueFacilitiesTable
@@ -1242,38 +1169,6 @@ Resources:
             Resource:
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PremiseNotesTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PremiseNotesTable}/index/*
-                - !If
-                  - HasRingAccountsTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingAccountsTable}
-                  - !Ref AWS::NoValue
-                - !If
-                  - HasRingAccountsTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingAccountsTable}/index/*
-                  - !Ref AWS::NoValue
-                - !If
-                  - HasRingDevicesTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingDevicesTable}
-                  - !Ref AWS::NoValue
-                - !If
-                  - HasRingDevicesTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingDevicesTable}/index/*
-                  - !Ref AWS::NoValue
-                - !If
-                  - HasRingRequestsTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}
-                  - !Ref AWS::NoValue
-                - !If
-                  - HasRingRequestsTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingRequestsTable}/index/*
-                  - !Ref AWS::NoValue
-                - !If
-                  - HasRingSessionsTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingSessionsTable}
-                  - !Ref AWS::NoValue
-                - !If
-                  - HasRingSessionsTable
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RingSessionsTable}/index/*
-                  - !Ref AWS::NoValue
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QASessionsTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QASessionsTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QATemplatesTable}
@@ -1647,6 +1542,7 @@ Resources:
   OpsAlertsTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       DisplayName: !Sub "${AppName} ops (${DeploymentStage})"
 
   OpsAlertsEmailSubscription:
@@ -1669,8 +1565,9 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       DefaultRouteSettings:
-        ThrottlingBurstLimit: 1000
-        ThrottlingRateLimit: 500
+        # Major-incident floor: 150+ concurrent PSAP consoles.
+        ThrottlingBurstLimit: 5000
+        ThrottlingRateLimit: 2000
       CorsConfiguration:
         AllowOrigins: !Split [",", !Ref HttpApiCorsAllowedOrigins]
         AllowHeaders:
@@ -1713,7 +1610,7 @@ Resources:
     Condition: HasApiWaf
     Properties:
       Name: !Sub "${AppName}-httpapi5-waf-${DeploymentStage}"
-      Description: Rapid Cortex API security - agency allowlist, US/CA geo block, anonymous/VPN monitor count.
+      Description: NexCort iQ API security - agency allowlist, US/CA geo block, anonymous/VPN monitor count.
       Scope: REGIONAL
       DefaultAction:
         Allow: {}
@@ -1892,6 +1789,7 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       RepositoryName: !Sub "${AppName}-sam5-r2-connect-bridge-${DeploymentStage}"
+      ImageTagMutability: IMMUTABLE
       ImageScanningConfiguration:
         ScanOnPush: true
       LifecyclePolicy:
@@ -1904,6 +1802,7 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       RepositoryName: !Sub "${AppName}-sam5-r2-venue-bridge-${DeploymentStage}"
+      ImageTagMutability: IMMUTABLE
       ImageScanningConfiguration:
         ScanOnPush: true
       LifecyclePolicy:
@@ -3423,6 +3322,7 @@ Resources:
   UnroutedSmsDlq:
     Type: AWS::SQS::Queue
     Properties:
+      KmsMasterKeyId: alias/aws/sqs
       QueueName: !Sub "${AppName}-unrouted-sms-${DeploymentStage}"
       MessageRetentionPeriod: 1209600
 
@@ -3430,11 +3330,13 @@ Resources:
   AwsSmsInboundTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       TopicName: !Sub "${AppName}-aws-sms-inbound-${DeploymentStage}"
 
   AwsSmsDeliveryEventsTopic:
     Type: AWS::SNS::Topic
     Properties:
+      KmsMasterKeyId: alias/aws/sns
       TopicName: !Sub "${AppName}-aws-sms-delivery-events-${DeploymentStage}"
 
   AwsSmsInboundTopicPolicy:
@@ -3665,9 +3567,21 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/campus/handlers/post-campus-incident.handler
       Timeout: 30
+      Environment:
+        Variables:
+          ENABLE_MILESTONE_XPROTECT: "true"
+          MILESTONE_CONNECTIONS_TABLE: !Sub "rapid-cortex-milestone-connections-${DeploymentStage}"
+          MILESTONE_MOCK: ""
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - Statement:
+            - Sid: MilestoneOutboundConnectionRead
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-milestone-connections-${DeploymentStage}"
       Events:
         Route:
           Type: HttpApi
@@ -3960,10 +3874,20 @@ Resources:
         Variables:
           ENABLE_CAMPUS_SECURITY_EVENTS: ""
           ENABLE_CAMPUS_SECURITY_EVENTS_MOCK: ""
+          ENABLE_MILESTONE_XPROTECT: "true"
+          MILESTONE_CONNECTIONS_TABLE: !Sub "rapid-cortex-milestone-connections-${DeploymentStage}"
+          MILESTONE_MOCK: ""
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - Statement:
+            - Sid: MilestoneOutboundConnectionRead
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-milestone-connections-${DeploymentStage}"
       Events:
         Route:
           Type: HttpApi
@@ -5213,7 +5137,7 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/rapid-cortex-video/http.handler
       Timeout: 30
-      Description: Rapid Cortex Video — command video wall, DVR playback, clip export, and PTZ gateway relay
+      Description: NexCort iQ Video — command video wall, DVR playback, clip export, and PTZ gateway relay
       Environment:
         Variables:
           ENABLE_RC_VIDEO: "true"
@@ -5344,7 +5268,7 @@ Resources:
       Timeout: 120
       MemorySize: 1024
       ReservedConcurrentExecutions: 3
-      Description: GetClip export of Rapid Cortex Video DVR clips to the assets bucket (max 5 minutes).
+      Description: GetClip export of NexCort iQ Video DVR clips to the assets bucket (max 5 minutes).
       Environment:
         Variables:
           DEPLOYMENT_STAGE: !Ref DeploymentStage
@@ -5400,8 +5324,8 @@ Resources:
         Service: rc-support-tickets
       Environment:
         Variables:
-          SUPPORT_EMAIL: support@rapidcortex.us
-          FROM_EMAIL: !If [CreateSesIdentity, !Ref SesIdentityValue, "noreply@rapidcortex.us"]
+          SUPPORT_EMAIL: support@nexcortiq.us
+          FROM_EMAIL: !If [CreateSesIdentity, !Ref SesIdentityValue, "noreply@nexcortiq.us"]
           SUPPORT_PHONE: ""
       Policies:
         - DynamoDBCrudPolicy:

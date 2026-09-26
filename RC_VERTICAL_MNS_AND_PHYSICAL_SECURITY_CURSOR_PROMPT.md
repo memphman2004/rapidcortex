@@ -1,4 +1,4 @@
-# Rapid Cortex — Vertical Mass Notification + Bidirectional Physical Security
+# NexCort iQ — Vertical Mass Notification + Bidirectional Physical Security
 ## Cursor Implementation Prompt
 ### Campus · Venue · Transit
 
@@ -438,4 +438,4 @@ BFF: `apps/web/app/api/alerts/[...path]/route.ts` and `.../physical-security/[..
 >
 > After each phase: files, tables, env, routes, manual steps (short code, vendor addendum), tests passing. Do not break existing RC tests.
 >
-> *Rapid Cortex — Intelligence at the speed of response. RC enhances operations; it does not replace CAD, FACP life-safety, or 911.*
+> *NexCort iQ — Intelligence at the speed of response. RC enhances operations; it does not replace CAD, FACP life-safety, or 911.*

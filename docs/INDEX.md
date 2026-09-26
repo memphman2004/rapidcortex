@@ -16,7 +16,7 @@ Paths below are **canonical** — prefer these over flat `docs/FOO.md` links in 
 | Sales scope matrix | [go-to-market-sales/SALES_SCOPE_MATRIX.md](./go-to-market-sales/SALES_SCOPE_MATRIX.md) |
 | Promise control | [go-to-market-sales/PROMISE_CONTROL.md](./go-to-market-sales/PROMISE_CONTROL.md) |
 | Known limitations | [product-architecture/KNOWN_LIMITATIONS.md](./product-architecture/KNOWN_LIMITATIONS.md) |
-| Feature matrix | [go-to-market-sales/FEATURE_MATRIX.md](./go-to-market-sales/FEATURE_MATRIX.md) |
+| Feature matrix | [product-architecture/FEATURE_MATRIX.md](./product-architecture/FEATURE_MATRIX.md) |
 | Role dashboard spec | [role-dashboard-spec.md](./role-dashboard-spec.md) |
 
 ---
@@ -101,12 +101,20 @@ Paths below are **canonical** — prefer these over flat `docs/FOO.md` links in 
 | RFP cybersecurity controls | [rfp/cybersecurity-controls.md](./rfp/cybersecurity-controls.md) |
 | RFP implementation & transition | [rfp/implementation-and-transition.md](./rfp/implementation-and-transition.md) |
 | Security model | [security-compliance/SECURITY_MODEL.md](./security-compliance/SECURITY_MODEL.md) |
+| Auth operations (MFA / RBAC) | [product-architecture/AUTH_OPERATIONS.md](./product-architecture/AUTH_OPERATIONS.md) |
+| Native desktop auth | [native-auth-flow.md](./native-auth-flow.md) |
+| Production security checklist | [security-compliance/PRODUCTION_SECURITY_CHECKLIST.md](./security-compliance/PRODUCTION_SECURITY_CHECKLIST.md) |
+| 60-day document review SOP | [security-compliance/soc2/processes/document-review.md](./security-compliance/soc2/processes/document-review.md) |
+| SOC 2 control pack (not a Type II report) | [security-compliance/soc2/README.md](./security-compliance/soc2/README.md) |
+| SOC 2 system boundary | [security-compliance/soc2/SYSTEM-BOUNDARY.md](./security-compliance/soc2/SYSTEM-BOUNDARY.md) |
+| SOC 2 TSC matrix | [security-compliance/soc2/CONTROL-MATRIX.md](./security-compliance/soc2/CONTROL-MATRIX.md) |
 | Security questionnaire (draft) | [security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md](./security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md) |
 | Subprocessor list (draft) | [security-compliance/SUBPROCESSOR_LIST.md](./security-compliance/SUBPROCESSOR_LIST.md) |
 | Privacy & retention | [security-compliance/PRIVACY_RETENTION_DECISIONS.md](./security-compliance/PRIVACY_RETENTION_DECISIONS.md) |
 | CJIS alignment notes | [security-compliance/CJIS_ALIGNMENT_NOTES.md](./security-compliance/CJIS_ALIGNMENT_NOTES.md) |
 | Audit event matrix | [security-compliance/AUDIT_EVENT_MATRIX.md](./security-compliance/AUDIT_EVENT_MATRIX.md) |
 | Incident response | [operations-runbooks/INCIDENT_RESPONSE.md](./operations-runbooks/INCIDENT_RESPONSE.md) |
+| Backup and recovery | [operations-runbooks/BACKUP_AND_RECOVERY.md](./operations-runbooks/BACKUP_AND_RECOVERY.md) |
 
 ## Legal drafts (counsel review)
 
@@ -143,6 +151,17 @@ Paths below are **canonical** — prefer these over flat `docs/FOO.md` links in 
 | Phase 0 | [phase-0/README.md](./phase-0/README.md) |
 | Phase 1 | [phase-1/README.md](./phase-1/README.md) |
 | Phase 2–7 | [phase-2/README.md](./phase-2/README.md) … [phase-7/README.md](./phase-7/README.md) |
+
+---
+
+## Marketing, SEO & analytics
+
+| Document | Path |
+|----------|------|
+| Google Analytics 4 property & page index | [seo/GOOGLE_ANALYTICS_INDEX.md](./seo/GOOGLE_ANALYTICS_INDEX.md) |
+| Marketing site map (current pages) | [seo/SITE_MAP.md](./seo/SITE_MAP.md) |
+| NexCort iQ cutover (keep Rapid Cortex live) | [seo/NEXCORTIQ_CUTOVER.md](./seo/NEXCORTIQ_CUTOVER.md) |
+| Cortex SEO intelligence notes | [seo/CORTEX_SEO_INTELLIGENCE.md](./seo/CORTEX_SEO_INTELLIGENCE.md) |
 
 ---
 

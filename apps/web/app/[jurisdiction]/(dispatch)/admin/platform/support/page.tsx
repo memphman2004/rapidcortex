@@ -66,7 +66,7 @@ export default function PlatformSupportPage() {
         <h1 className="text-lg font-semibold text-white">Support & operations</h1>
         <p className="text-sm text-slate-400">
           Internal run queue derived from live platform metrics. This does not replace customer ticketing —
-          it centralizes what Rapid Cortex operators should look at first.
+          it centralizes what NexCort iQ operators should look at first.
         </p>
       </div>
 

@@ -106,7 +106,7 @@ export function ReturnToAppContent() {
         <h1 className="mt-8 text-xl font-semibold text-white">Missing sign-in parameters</h1>
         <p className="mt-3 max-w-md text-sm text-slate-400">
           This page should only open after Cognito redirects back with an authorization code. Close this tab and start
-          sign-in from the Rapid Cortex app again.
+          sign-in from the NexCort iQ app again.
         </p>
       </div>
     );
@@ -115,9 +115,9 @@ export function ReturnToAppContent() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 px-6 text-center text-slate-200">
       <SiteLogoMark heightClass="h-20" priority />
-      <h1 className="mt-10 text-2xl font-semibold text-white">Rapid Cortex</h1>
+      <h1 className="mt-10 text-2xl font-semibold text-white">NexCort iQ</h1>
       <p className="mt-4 max-w-lg text-base text-slate-300">
-        You are signed in. Return to Rapid Cortex to continue.
+        You are signed in. Return to NexCort iQ to continue.
       </p>
       {autoTried ? (
         <p className="mt-2 text-xs text-slate-500">Attempted to open the app automatically…</p>
@@ -126,10 +126,10 @@ export function ReturnToAppContent() {
         href={deepLink}
         className="mt-10 inline-flex min-w-[220px] items-center justify-center rounded-lg bg-sky-600 px-6 py-3 text-sm font-semibold text-white shadow hover:bg-sky-500"
       >
-        Open Rapid Cortex
+        Open NexCort iQ
       </a>
       <p className="mt-8 max-w-lg text-xs leading-relaxed text-slate-500">
-        If the app does not open automatically, click the button above. If you do not have Rapid Cortex installed,
+        If the app does not open automatically, click the button above. If you do not have NexCort iQ installed,
         contact your agency administrator.
       </p>
     </div>

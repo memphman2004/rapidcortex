@@ -37,15 +37,15 @@ describe("outlook-graph campaign OAuth helpers", () => {
     expect(url).toContain("Mail.Send");
     expect(url).toContain("offline_access");
     expect(url).toContain("outlook-callback");
-    expect(url).toContain(encodeURIComponent("hello@rapidcortex.us"));
+    expect(url).toContain(encodeURIComponent("hello@nexcortiq.us"));
     expect(url).toContain("login_hint");
   });
 
-  it("only allows hello@rapidcortex.us as the campaign mailbox", async () => {
+  it("only allows hello@nexcortiq.us as the campaign mailbox", async () => {
     const { isAllowedSalesMailbox, salesOutlookMailbox } = await import("./outlook-graph.js");
-    expect(salesOutlookMailbox()).toBe("hello@rapidcortex.us");
-    expect(isAllowedSalesMailbox("Hello@rapidcortex.us")).toBe(true);
-    expect(isAllowedSalesMailbox("jeff@rapidcortex.us")).toBe(false);
+    expect(salesOutlookMailbox()).toBe("hello@nexcortiq.us");
+    expect(isAllowedSalesMailbox("Hello@nexcortiq.us")).toBe(true);
+    expect(isAllowedSalesMailbox("jeff@nexcortiq.us")).toBe(false);
   });
 
   it("round-trips signed OAuth state", () => {
@@ -74,8 +74,8 @@ describe("sendOutlookMail Graph envelope", () => {
     const body = JSON.parse(String(init.body));
     expect(body.saveToSentItems).toBe(true);
     expect(body.message.toRecipients[0].emailAddress.address).toBe("director@example.gov");
-    expect(body.message.from.emailAddress.address).toBe("hello@rapidcortex.us");
-    expect(body.message.replyTo[0].emailAddress.address).toBe("hello@rapidcortex.us");
+    expect(body.message.from.emailAddress.address).toBe("hello@nexcortiq.us");
+    expect(body.message.replyTo[0].emailAddress.address).toBe("hello@nexcortiq.us");
     vi.unstubAllGlobals();
   });
 

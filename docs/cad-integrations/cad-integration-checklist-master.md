@@ -1,6 +1,6 @@
 # CAD integration master checklist
 
-**Version 1.0** | Rapid Cortex Public Safety AI Platform  
+**Version 1.0** | NexCort iQ Public Safety AI Platform  
 **Use with:** Motorola PremierOne · Tyler New World · CentralSquare · Hexagon I/CAD · Generic webhook
 
 > 💡 **Tip:** Print this page and attach the **vendor-specific** guide from [README.md](README.md) to your change ticket.
@@ -12,13 +12,13 @@
 - [ ] **Identify CAD vendor** and exact **version / build** (screenshot from CAD About screen).
 - [ ] **Agency IT owner** named (primary + backup).
 - [ ] **CAD vendor support contact** / ticket queue identified.
-- [ ] **Rapid Cortex admin** access confirmed (role documented).
+- [ ] **NexCort iQ admin** access confirmed (role documented).
 - [ ] **Maintenance window** scheduled (if CAD admin changes are sensitive).
 - [ ] **Data classification** agreed (payloads treated as **CJI** unless agency policy states otherwise).
 
 ---
 
-## Rapid Cortex setup
+## NexCort iQ setup
 
 - [ ] **Admin → CAD Integrations** → **Add integration** completed.
 - [ ] **Webhook URL** saved: `https://api.rapidcortex.us/api/cad/webhook/{agencyId}/{integrationId}`
@@ -46,8 +46,8 @@
 ## CAD system configuration
 
 - [ ] Outbound **POST** (or approved broker) configured per **vendor guide**.
-- [ ] **Rapid Cortex webhook URL** pasted **exactly** (no accidental spaces).
-- [ ] **Security header / token** matches Rapid Cortex (name + value).
+- [ ] **NexCort iQ webhook URL** pasted **exactly** (no accidental spaces).
+- [ ] **Security header / token** matches NexCort iQ (name + value).
 - [ ] **Events** enabled: at minimum **create + update + close** (and **units** if required by ops).
 - [ ] **Save** + **activate** in CAD admin UI.
 - [ ] **SSL/TLS** errors cleared in CAD test tool.
@@ -56,7 +56,7 @@
 
 ## Testing
 
-- [ ] **Rapid Cortex:** “Send test incident” from integration detail → **success**.
+- [ ] **NexCort iQ:** “Send test incident” from integration detail → **success**.
 - [ ] **Dispatcher workspace:** test incident visible with expected fields.
 - [ ] **Raw webhook log** (or equivalent): HTTP **200**, no auth failures.
 - [ ] **Live / staging CAD:** **3** controlled test incidents (or vendor sandbox) processed end-to-end.
@@ -66,10 +66,10 @@
 
 ## Go live
 
-- [ ] Integration set to **active** in Rapid Cortex.
+- [ ] Integration set to **active** in NexCort iQ.
 - [ ] **First operational shift:** monitor **15–30 minutes** with IT + comms floor POC.
 - [ ] **Error log** reviewed in **Admin → CAD Integrations** (no sustained 4xx/5xx).
-- [ ] **Dispatcher briefing** completed (Rapid Cortex is **supplemental**; CAD is **system of record**).
+- [ ] **Dispatcher briefing** completed (NexCort iQ is **supplemental**; CAD is **system of record**).
 - [ ] **Go-live date/time** and **on-call** names recorded.
 
 ---
@@ -97,7 +97,7 @@
 
 ## Support
 
-- **Rapid Cortex:** [support@rapidcortex.us](mailto:support@rapidcortex.us)
+- **NexCort iQ:** [support@nexcortiq.us](mailto:support@nexcortiq.us)
 
 ---
 
@@ -107,5 +107,5 @@
 | --- | --- | --- | --- |
 | Agency IT | | | |
 | CAD admin | | | |
-| Rapid Cortex admin | | | |
+| NexCort iQ admin | | | |
 | Communications / dispatch supervisor | | | |

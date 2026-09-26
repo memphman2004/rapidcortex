@@ -105,7 +105,7 @@ export default async function RcAdminBillingPage() {
             <code className="rounded bg-slate-900 px-1.5 py-0.5 text-xs text-sky-200">410 Gone</code>.
           </li>
           <li>
-            Keep Rapid Cortex platform rows distinct from RC Lite API-only plans via{" "}
+            Keep NexCort iQ platform rows distinct from NexCort Lite API-only plans via{" "}
             <code className="rounded bg-slate-900 px-1.5 py-0.5 text-xs text-sky-200">productLine</code>.
           </li>
         </ul>

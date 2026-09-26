@@ -5,6 +5,8 @@ import type {
   CampusIntegrationQuestionnaireRecord,
   OnboardingChecklistPatch,
   OnboardingChecklistState,
+  TransitIntake,
+  TransitIntakeRecord,
   VenueIntake,
   VenueIntakeRecord,
 } from "rapid-cortex-shared";
@@ -138,6 +140,44 @@ export async function saveVenueIntake(query: Query, body: VenueIntake): Promise<
     throw new Error((err as { error?: string }).error ?? `Save failed (${res.status})`);
   }
   const data = (await res.json()) as { intake: VenueIntakeRecord };
+  return data.intake;
+}
+
+export async function fetchTransitIntake(query: Query): Promise<TransitIntakeRecord | null> {
+  if (!query.agencyId?.trim()) {
+    throw new Error("Transit intake requires agencyId");
+  }
+  const res = await fetch(
+    `/api/transit/${encodeURIComponent(query.agencyId.trim())}/onboarding/intake`,
+    { credentials: "include" },
+  );
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Failed to load transit intake (${res.status})`);
+  const data = (await res.json()) as { intake: TransitIntakeRecord | null };
+  return data.intake ?? null;
+}
+
+export async function saveTransitIntake(
+  query: Query,
+  body: TransitIntake,
+): Promise<TransitIntakeRecord> {
+  if (!query.agencyId?.trim()) {
+    throw new Error("Transit intake requires agencyId");
+  }
+  const res = await fetch(
+    `/api/transit/${encodeURIComponent(query.agencyId.trim())}/onboarding/intake`,
+    {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error ?? `Save failed (${res.status})`);
+  }
+  const data = (await res.json()) as { intake: TransitIntakeRecord };
   return data.intake;
 }
 

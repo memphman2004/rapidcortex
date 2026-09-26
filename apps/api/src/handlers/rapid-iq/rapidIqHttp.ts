@@ -2,7 +2,7 @@ import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { randomUUID } from "node:crypto";
 import {
-  canAccessRapidIq,
+  canAccessRapidIqWorkspace,
   convertToLeadBodySchema,
   outreachBodySchema,
   agencyProfileBodySchema,
@@ -25,6 +25,7 @@ import {
   generateRfpResponseOutline,
   generateTalkingPoints,
   researchAgency,
+  ResearchUnavailableError,
   signalChat,
 } from "../../lib/rapid-iq/claude-classifier.js";
 import { findAgencyContacts } from "../../lib/rapid-iq/agency-contact-finder.js";
@@ -67,7 +68,7 @@ async function requireRapidIqAdmin(
   if (!user) return { error: unauthorized() };
   if (!isUserAccountActive(user)) return { error: unauthorized(ACCOUNT_INACTIVE_MESSAGE) };
   if (!env.enableRapidIq) return { error: serviceUnavailable("Rapid IQ is not enabled") };
-  if (!canAccessRapidIq(user.role)) return { error: forbidden() };
+  if (!canAccessRapidIqWorkspace(user.role)) return { error: forbidden() };
   return { user };
 }
 
@@ -300,7 +301,15 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
       const opp = await oppRepo.get(parsed.data.opportunityId);
       if (!opp) return withCorrelationHeaders(event, notFound("Opportunity not found"));
-      const research = await researchAgency(opp.agencyName, opp.city, opp.state);
+      let research: string;
+      try {
+        research = await researchAgency(opp.agencyName, opp.city, opp.state);
+      } catch (err) {
+        if (err instanceof ResearchUnavailableError) {
+          return withCorrelationHeaders(event, serviceUnavailable(err.message));
+        }
+        throw err;
+      }
       await auditRepo.create({
         eventId: makeId("audit"),
         agencyId: "platform",
@@ -442,7 +451,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       await leadsRepo.putLead({
         leadId,
         name: opp.agencyName,
-        email: `rapid-iq+${leadId.slice(0, 8)}@rapidcortex.us`,
+        email: `rapid-iq+${leadId.slice(0, 8)}@nexcortiq.us`,
         agencyCompany: opp.agencyName,
         customerType:
           opp.vertical === "campus" ? "campus" : opp.vertical === "venue" ? "venue" : "agency",

@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useMemo } from "react";
-import maplibregl from "maplibre-gl";
+import type { FeatureCollection, MultiPolygon, Polygon } from "geojson";
+import * as maplibregl from "maplibre-gl";
 
 export interface EventZonesProps {
   map: maplibregl.Map | null;
-  zones: GeoJSON.FeatureCollection<GeoJSON.Polygon | GeoJSON.MultiPolygon>;
+  zones: FeatureCollection<Polygon | MultiPolygon>;
   fillColor?: string;
   fillOpacity?: number;
   lineColor?: string;

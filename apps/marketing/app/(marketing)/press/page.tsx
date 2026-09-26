@@ -21,27 +21,27 @@ import { marketingContactPath, marketingPressPath } from "@/lib/marketing-links"
 import { buildPublicPageMetadata } from "@/lib/seo";
 
 const PRESS_PATH = marketingPressPath();
-const PRESS_EMAIL = "info@rapidcortex.us";
-const SUPPORT_EMAIL = "support@rapidcortex.us";
+const PRESS_EMAIL = "info@nexcortiq.us";
+const SUPPORT_EMAIL = "support@nexcortiq.us";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Press & Media | Rapid Cortex Public Safety Intelligence Platform",
+  title: "Press & Media | NexCort iQ Public Safety Intelligence Platform",
   description:
-    "Press resources, media assets, and company background for journalists covering emergency communications, public safety intelligence, and 911 dispatch decision support.",
+    "Press resources for NexCort iQ, formerly Rapid Cortex — media assets and company background for journalists covering emergency communications and 911 dispatch decision support.",
   path: PRESS_PATH,
 });
 
 const mediaAssets: PressAssetItem[] = [
   {
     id: "logo-light",
-    title: "Rapid Cortex Logo (Light)",
+    title: "NexCort iQ Logo (Light)",
     formats: "PNG, SVG — white / light backgrounds",
     href: "/press/assets/rapid-cortex-logo-light.png",
     secondaryLabel: "SVG",
   },
   {
     id: "logo-dark",
-    title: "Rapid Cortex Logo (Dark)",
+    title: "NexCort iQ Logo (Dark)",
     formats: "PNG, SVG — dark backgrounds",
     href: "/press/assets/rapid-cortex-logo-dark.png",
     secondaryLabel: "SVG",
@@ -58,7 +58,7 @@ const mediaAssets: PressAssetItem[] = [
   },
   {
     id: "shot-admin",
-    title: "Platform Screenshot — RC Admin Dashboard",
+    title: "Platform Screenshot — NexCort Admin Dashboard",
     formats: "2560×1600 PNG",
   },
   {
@@ -135,7 +135,7 @@ export default function MarketingPressPage() {
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-400/90">Press &amp; media</p>
           <h1 className="mt-5 text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
-            Rapid Cortex in the News
+            NexCort iQ in the News
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-pretty text-base leading-relaxed text-slate-300 sm:text-lg">
             Resources for journalists, analysts, and media covering public safety technology and AI innovation.
@@ -159,11 +159,11 @@ export default function MarketingPressPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
-        <h2 className="text-xl font-semibold text-white sm:text-2xl">About Rapid Cortex</h2>
+        <h2 className="text-xl font-semibold text-white sm:text-2xl">About NexCort iQ</h2>
         <div className="mt-10 grid gap-10 lg:grid-cols-2 lg:gap-12">
           <div className="space-y-5 text-sm leading-relaxed text-slate-300 sm:text-base">
             <p>
-              Rapid Cortex is a product of Apps on Demand, founded in 2025. It is a Real-Time AI
+              NexCort iQ is a product of Apps on Demand, founded in 2025. It is a Real-Time AI
               Intelligence platform built for public safety agencies. We help 911 dispatchers,
               supervisors, and emergency response teams make faster, clearer decisions during active
               incidents — without replacing the systems they already trust.
@@ -174,7 +174,7 @@ export default function MarketingPressPage() {
               designed to the security standards required for law enforcement and public safety.
             </p>
             <p>
-              Rapid Cortex is CJIS-aligned, built on AWS enterprise infrastructure, and designed from the ground up for
+              NexCort iQ is CJIS-aligned, built on AWS enterprise infrastructure, and designed from the ground up for
               the unique demands of emergency communications centers. Press contact:{" "}
               <a href={`mailto:${PRESS_EMAIL}`} className="text-sky-300 hover:text-sky-200">
                 {PRESS_EMAIL}
@@ -193,7 +193,8 @@ export default function MarketingPressPage() {
                   ["Industry", "Public Safety Technology / AI"],
                   ["Platform", "SaaS — Web, Desktop, API"],
                   ["Security", "CJIS-Aligned, SOC2 in progress"],
-                  ["Website", "rapidcortex.us"],
+                  ["Website", "nexcortiq.us"],
+                  ["Formerly", "Rapid Cortex"],
                   ["Press contact", PRESS_EMAIL],
                 ] as const
               ).map(([k, v]) => (
@@ -257,7 +258,7 @@ export default function MarketingPressPage() {
           <div className="mt-6 rounded-xl border border-slate-700/80 bg-gradient-to-br from-slate-900/80 to-slate-950 p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-sky-400/90">Coming soon</p>
-              <p className="mt-2 text-base font-semibold text-white">Rapid Cortex Platform Launch</p>
+              <p className="mt-2 text-base font-semibold text-white">NexCort iQ Platform Launch</p>
               <p className="mt-1 text-sm text-slate-400">Official launch materials and executive quotes.</p>
             </div>
             <button
@@ -289,7 +290,7 @@ export default function MarketingPressPage() {
         <div className="mx-auto max-w-3xl">
           <h2 className="text-xl font-semibold text-white sm:text-2xl">Approved Boilerplate</h2>
           <p className="mt-3 text-sm leading-relaxed text-slate-400 sm:text-base">
-            Use the following description when referencing Rapid Cortex in articles, reports, and publications.
+            Use the following description when referencing NexCort iQ in articles, reports, and publications.
           </p>
           <div className="mt-8">
             <PressBoilerplateCopy />

@@ -81,7 +81,7 @@ export function DashboardIntegrationHealth({
         >
           {allOk
             ? "All checks passed for this dashboard."
-            : "One or more checks failed — contact Rapid Cortex support if this continues."}
+            : "One or more checks failed — contact NexCort iQ support if this continues."}
         </p>
       ) : null}
     </section>

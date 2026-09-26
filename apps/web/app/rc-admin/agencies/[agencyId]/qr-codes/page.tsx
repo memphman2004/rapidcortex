@@ -10,7 +10,7 @@ import { reportVerticalForAgency } from "@/lib/qr-nfc/report-vertical";
 import { deriveVerticalFromAgencyId } from "@/lib/vertical";
 
 export const metadata = {
-  title: "QR Codes (RC Admin)",
+  title: "QR Codes (NexCort Admin)",
   robots: { index: false, follow: false },
 };
 
@@ -73,7 +73,7 @@ export default async function RcAdminAgencyQrCodesPage({ params }: Props) {
         canCreate={perms.canCreate}
         canDeactivate={perms.canDeactivate}
         canDownload={perms.canDownload}
-        zoneLabel="Zone / Location"
+        zoneLabel="Location Details"
         showSiteQr
       />
     </div>

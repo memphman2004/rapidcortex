@@ -182,7 +182,7 @@ export default function NewAgencyPage() {
             HQ map pin (optional)
           </legend>
           <p className="text-[11px] text-slate-500">
-            Shown on the RC Admin national deployments map. Geocode from city/state or enter
+            Shown on the NexCort Admin national deployments map. Geocode from city/state or enter
             manually.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -248,7 +248,7 @@ export default function NewAgencyPage() {
             }}
             className="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
           >
-            <option value="core">PSAP / RC Core</option>
+            <option value="core">PSAP / 911 Centers/PSAPs</option>
             <option value="campus">Campus</option>
             <option value="venue">Venue</option>
             <option value="hospital">Hospital</option>

@@ -26,7 +26,7 @@ const TEMPLATE_DOCS: { label: string; type: string; href: string }[] = [
 ];
 
 function agreementTypeLabel(type: AdobeSignAgreementType): string {
-  if (type === "rc_lite") return "RC Lite API";
+  if (type === "rc_lite") return "NexCort Lite API";
   return "Platform MSA";
 }
 

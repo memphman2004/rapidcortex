@@ -44,10 +44,8 @@ enum KeychainManager {
     }
 
     static func deleteAll() {
-        let query: [CFString: Any] = [
-            kSecClass: kSecClassGenericPassword,
-            kSecAttrService: service
-        ]
-        SecItemDelete(query as CFDictionary)
+        delete(key: "rc_access_token")
+        delete(key: "rc_id_token")
+        delete(key: "rc_refresh_token")
     }
 }

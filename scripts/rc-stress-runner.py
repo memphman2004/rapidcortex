@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Rapid Cortex — Stress Test Runner  (rc-stress-runner.py)
+NexCort iQ — Stress Test Runner  (rc-stress-runner.py)
 
 k6 engine: scripts/perf/rc-stress-v2.js (ramping-arrival-rate, 400/700 RPS).
 This runner: preflight, API GW ID lookup, CloudWatch poll, SIGTERM on SLA
@@ -560,7 +560,7 @@ def write_report(
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="Rapid Cortex Stress Test Runner — k6 v2 + CloudWatch",
+        description="NexCort iQ Stress Test Runner — k6 v2 + CloudWatch",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     p.add_argument("--api-url", default=os.environ.get("API_URL") or os.environ.get("API_BASE", ""))
@@ -617,7 +617,7 @@ def main() -> None:
     k6_version = check_k6() if not args.dry_run else "k6 (dry-run — not checked)"
 
     print("╔══════════════════════════════════════════════════════════╗")
-    print("║  Rapid Cortex — Stress Test Runner                      ║")
+    print("║  NexCort iQ — Stress Test Runner                      ║")
     print("║  k6 v2 (500 RPS / 1000 burst) + CloudWatch SLA          ║")
     print("╚══════════════════════════════════════════════════════════╝")
     print(f"  k6 version : {k6_version}")

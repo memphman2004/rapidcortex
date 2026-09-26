@@ -213,7 +213,7 @@ export default function CodesListScreen() {
                     { color: palette.textSecondary, textAlign: 'center' },
                   ]}
                 >
-                  No codes match your filters yet.
+                  No reporting points match your filters yet.
                 </Text>
               </View>
             ) : (

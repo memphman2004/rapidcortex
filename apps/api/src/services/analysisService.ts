@@ -22,6 +22,7 @@ import { FieldConfidenceService } from "./fieldConfidenceService.js";
 import { env } from "../lib/env.js";
 import { buildAnalysisDedupe, buildRetentionFields } from "../lib/retentionPolicy.js";
 import { incidentTimelineLogger } from "../lib/incidentTimelineLogger.js";
+import { maybeEvaluateAltResponseAfterAnalysis } from "../feature-suite/integrations.js";
 
 const transcriptService = new TranscriptService();
 const qaService = new QAService();
@@ -347,6 +348,19 @@ export class AnalysisService {
           );
         }
       }
+
+      const transcriptText = transcript
+        .map((seg) => ("text" in seg ? String((seg as { text?: string }).text ?? "") : ""))
+        .filter(Boolean)
+        .join("\n");
+      maybeEvaluateAltResponseAfterAnalysis({
+        agencyId: user.agencyId,
+        incidentId,
+        transcriptText,
+        confidence: analysis.confidence ?? 0,
+        callType: analysis.category,
+        actorId: user.userId,
+      });
 
       return analysis;
     } finally {

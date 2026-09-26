@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useRef } from "react";
-import maplibregl from "maplibre-gl";
+import type { Feature, LineString } from "geojson";
+import * as maplibregl from "maplibre-gl";
 
 import type { LocationConfidence } from "../types/map-types";
 import { createAccuracyCirclePolygon } from "../utils/geojson-helpers";
@@ -131,7 +132,7 @@ export function LocationMarker({
       const endLat = lat + (vectorLength / 111_000) * Math.cos((heading * Math.PI) / 180);
       const endLon = lon + (vectorLength / (111_000 * Math.cos((lat * Math.PI) / 180))) * Math.sin((heading * Math.PI) / 180);
 
-      const line: GeoJSON.Feature<GeoJSON.LineString> = {
+      const line: Feature<LineString> = {
         type: "Feature",
         properties: {},
         geometry: {

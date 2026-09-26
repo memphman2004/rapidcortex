@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Rapid Cortex production AWS identifiers (account 158961537080).
+# NexCort iQ production AWS identifiers (account 158961537080).
 set -euo pipefail
 
 export RAPID_CORTEX_AWS_ACCOUNT_ID="${RAPID_CORTEX_AWS_ACCOUNT_ID:-158961537080}"
@@ -22,7 +22,7 @@ rapid_cortex_assert_aws_account() {
   if [[ "${current}" != "${expected}" ]]; then
     echo "ERROR: AWS account mismatch." >&2
     echo "  Current:  ${current}" >&2
-    echo "  Expected: ${expected} (Rapid Cortex prod)" >&2
+    echo "  Expected: ${expected} (NexCort iQ prod)" >&2
     echo "  Fix: export AWS_PROFILE=rapid-cortex" >&2
     return 1
   fi

@@ -11,7 +11,7 @@ const superadmin: UserContext = {
   userId: "u1",
   role: "rcsuperadmin",
   agencyId: PLATFORM_AGENCY_ID,
-  email: "ops@rapidcortex.us",
+  email: "ops@nexcortiq.us",
 };
 
 describe("resolveDashboardHubRedirectHref", () => {

@@ -16,7 +16,7 @@ function senderEmail(): string | null {
 function brandedHtml(content: string): string {
   const origin = env.publicMarketingSiteOrigin.replace(/\/$/, "");
   return `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#172b4d;padding:24px;">
-    <p><strong>Rapid Cortex</strong> — network access</p>
+    <p><strong>NexCort iQ</strong> — network access</p>
     ${content}
     <p style="font-size:12px;color:#64748b;margin-top:24px;">Manage policies at ${origin}</p>
   </body></html>`;

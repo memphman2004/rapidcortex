@@ -1,4 +1,4 @@
-# Rapid Cortex Billing Audit — 2026-07-02
+# NexCort iQ Billing Audit — 2026-07-02
 
 ## Executive Summary
 
@@ -96,7 +96,7 @@ The secret must exist in `us-east-1` under the ARN configured in the SAM stack p
   "WIRE_ACCOUNT_NUMBER": "wire account number",
   "WIRE_INSTRUCTIONS": "SWIFT: XXXX / Account: XXXX",
   "CHECK_MAIL_TO": "Apps on Demand LLC, [mailing address]",
-  "BANK_CONTACT": "billing@rapidcortex.us"
+  "BANK_CONTACT": "billing@nexcortiq.us"
 }
 ```
 After populating: run `aws secretsmanager get-secret-value --secret-id <ARN> --profile rapid-cortex` to verify.
@@ -184,6 +184,6 @@ curl -s "${API}/api/billing/audit?invoiceId=<invoiceId>" \
 
 # 6. SES identity verification
 aws ses get-identity-verification-attributes \
-  --identities billing@rapidcortex.us rapidcortex.us \
+  --identities billing@nexcortiq.us rapidcortex.us \
   --region us-east-1 ${PROFILE}
 ```

@@ -22,7 +22,7 @@ export default function GlobalError({
           <p className="text-sm leading-relaxed text-slate-400">
             {error.digest
               ? "A server error occurred while loading this page. Try a full reload, or sign in again."
-              : "Something went wrong while loading Rapid Cortex. A full page reload usually fixes this after sign-in."}
+              : "Something went wrong while loading NexCort iQ. A full page reload usually fixes this after sign-in."}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <button

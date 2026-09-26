@@ -1,6 +1,6 @@
 # Jurisdiction operations guide — install, setup, maintenance & troubleshooting
 
-**Audience:** **County, city, and municipal** communications centers — **agency IT**, **911 / ECC administrators**, **supervisors**, and **training leads** responsible for Rapid Cortex **after** your environment is live.  
+**Audience:** **County, city, and municipal** communications centers — **agency IT**, **911 / ECC administrators**, **supervisors**, and **training leads** responsible for NexCort iQ **after** your environment is live.  
 **Scope:** What happens **on your networks and screens**: access, first-time setup, day‑2 care, and fault finding. **Not** a substitute for procurement, legal, or CAD vendor contracts.
 
 **Canonical product scope:** [MVP_SCOPE.md](./MVP_SCOPE.md) · **What we do not promise:** [NON_GOALS.md](./NON_GOALS.md) · **Honest limits:** [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md).
@@ -9,7 +9,7 @@
 
 ## 1. Roles: who does what
 
-| Responsibility | Typical role | Rapid Cortex doc |
+| Responsibility | Typical role | NexCort iQ doc |
 |------------------|--------------|------------------|
 | Browser access, URLs, first login, MFA | **Agency IT** + identity admin | This guide §2–3, [AUTH_OPERATIONS.md](./AUTH_OPERATIONS.md) |
 | User accounts, roles, agency id on users | **Agency admin** (in-app + Cognito) | [USER_PROVISIONING_GUIDE.md](./USER_PROVISIONING_GUIDE.md), [ADMIN_SETUP_GUIDE.md](./ADMIN_SETUP_GUIDE.md) |
@@ -17,13 +17,13 @@
 | AWS stack, Lambda, secrets, CORS, domains | **RC or hosting DevOps** (or your MSP) | [INSTALLATION.md](./INSTALLATION.md), [AWS_SETUP.md](./AWS_SETUP.md) |
 | Pilot governance, escalations to RC | **Agency champion** + RC pilot lead | [SUPPORT_MODEL.md](./SUPPORT_MODEL.md), [AGENCY_ONBOARDING_RUNBOOK.md](./AGENCY_ONBOARDING_RUNBOOK.md) |
 
-Rapid Cortex is **assistive** software in a **browser tab**. It does **not** replace CAD, CPE, radio, or logging as the system of record.
+NexCort iQ is **assistive** software in a **browser tab**. It does **not** replace CAD, CPE, radio, or logging as the system of record.
 
 ---
 
-## 2. Install — getting Rapid Cortex on your screens
+## 2. Install — getting NexCort iQ on your screens
 
-There is **nothing to compile** on agency workstations. “Install” means **secure access** to the web app your operator already hosts (or Rapid Cortex hosts for you).
+There is **nothing to compile** on agency workstations. “Install” means **secure access** to the web app your operator already hosts (or NexCort iQ hosts for you).
 
 ### 2.1 Before anyone logs in
 
@@ -106,7 +106,7 @@ Collect **once** before escalating: full **URL**, **UTC time**, **role**, **inci
 | **503 on audio / voice** | Integration panel; `MULTILINGUAL_CONFIG_INVALID` body | [RUNBOOK_MULTILINGUAL_CALLS.md](./RUNBOOK_MULTILINGUAL_CALLS.md) |
 | **AI analyze fails** | Copy `requestId`; transcript changed? | [RUNBOOK.md](./RUNBOOK.md) |
 
-**Continue 911 operations without Rapid Cortex** if the co‑pilot is unavailable — the product is not the system of record ([NON_GOALS.md](./NON_GOALS.md)).
+**Continue 911 operations without NexCort iQ** if the co‑pilot is unavailable — the product is not the system of record ([NON_GOALS.md](./NON_GOALS.md)).
 
 **Escalation:** [ESCALATION_PATHS.md](./ESCALATION_PATHS.md) and [SUPPORT_MODEL.md](./SUPPORT_MODEL.md). **Security / breach:** [INCIDENT_RESPONSE.md](./INCIDENT_RESPONSE.md).
 
@@ -138,8 +138,7 @@ When you ship documentation to each jurisdiction, bundle **this file** as the co
 | [ADMIN_GUIDE.md](./ADMIN_GUIDE.md) · [ADMIN_SETUP_GUIDE.md](./ADMIN_SETUP_GUIDE.md) · [USER_PROVISIONING_GUIDE.md](./USER_PROVISIONING_GUIDE.md) | Admins. |
 | [AUTH_OPERATIONS.md](./AUTH_OPERATIONS.md) | IT identity integration. |
 | [RapidCortex-CAD-Integration-Guide-1.0.pdf](./RapidCortex-CAD-Integration-Guide-1.0.pdf) | **CAD inbound integration** — webhooks, vendor IT, agency firewall / URL checklist (v1.0). |
-| [COMMON_TASKS.md](../operations-runbooks/COMMON_TASKS.md) | Day-to-day dispatcher tasks (includes Ring Connect). |
-| [RING_CONNECT_CAMERA_ACCESS.md](../product-architecture/RING_CONNECT_CAMERA_ACCESS.md) | **Ring doorbell / camera emergency video** — owner consent, per-device workflow, limits. |
+| [COMMON_TASKS.md](../operations-runbooks/COMMON_TASKS.md) | Day-to-day dispatcher tasks. |
 | [TROUBLESHOOTING_GUIDE.md](../operations-runbooks/TROUBLESHOOTING_GUIDE.md) · [SUPPORT_MODEL.md](../operations-runbooks/SUPPORT_MODEL.md) · [ESCALATION_PATHS.md](../operations-runbooks/ESCALATION_PATHS.md) | Break/fix and routing. |
 | [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md) · [NON_GOALS.md](./NON_GOALS.md) | Truth in advertising for leadership. |
 | [TRAINING_QUICKSTART.md](./TRAINING_QUICKSTART.md) · [FIRST_DAY_CHECKLIST.md](./FIRST_DAY_CHECKLIST.md) | Training org. |

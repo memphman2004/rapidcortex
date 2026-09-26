@@ -1,5 +1,5 @@
 /**
- * Rapid Cortex — Enhanced Lambda Authorizer
+ * NexCort iQ — Enhanced Lambda Authorizer
  * 
  * Layered security checks on every authenticated API request:
  *   1. JWT signature + expiry (Cognito)

@@ -352,7 +352,7 @@ export function FeatureNonEmergency() {
             </h2>
 
             <p className="mb-10 text-base leading-relaxed text-[#6A7B9D] md:text-lg">
-              Rapid Cortex&apos;s AI handler manages non-emergency volume around the clock — classifying,
+              NexCort iQ&apos;s AI handler manages non-emergency volume around the clock — classifying,
               routing, and resolving calls without dispatcher intervention. When urgency signals appear, the
               call transfers live. No caller falls through.
             </p>

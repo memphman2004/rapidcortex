@@ -18,11 +18,11 @@ const ALL_DASH_KEYS: MonetizationFeatureKey[] = [
   "agency_admin_dashboard",
 ];
 
-/** SaaS dashboards + explicit product gate flag (RC Lite intentionally omits `dashboard_access`). */
+/** SaaS dashboards + explicit product gate flag (NexCort Lite intentionally omits `dashboard_access`). */
 const PLATFORM_DASH_GATE: MonetizationFeatureKey[] = [...ALL_DASH_KEYS, "dashboard_access"];
 
 /**
- * RC Lite = standalone API product (secure intelligence for CAD vendors, dispatch stacks, emergency platforms).
+ * NexCort Lite = standalone API product (secure intelligence for CAD vendors, dispatch stacks, emergency platforms).
  * Not a smaller dashboard plan — no dispatcher/supervisor/incident console entitlement.
  */
 export const RC_LITE_API_ONLY_FEATURES: readonly MonetizationFeatureKey[] = [
@@ -189,12 +189,12 @@ export function featureEntitled(
   return resolveFeatureEntitlements(input).has(feature);
 }
 
-/** Full platform CAD workflow / console surfaces (RC Lite uses `cad_export_api` only). */
+/** Full platform CAD workflow / console surfaces (NexCort Lite uses `cad_export_api` only). */
 export function cadExportDashboardWorkflowEntitled(input: EntitlementResolutionInput): boolean {
   return resolveFeatureEntitlements(input).has("cad_export");
 }
 
-/** CAD export through approved external API routes (RC Lite or platform API add-on). */
+/** CAD export through approved external API routes (NexCort Lite or platform API add-on). */
 export function cadExportApiEntitled(input: EntitlementResolutionInput): boolean {
   return resolveFeatureEntitlements(input).has("cad_export_api");
 }

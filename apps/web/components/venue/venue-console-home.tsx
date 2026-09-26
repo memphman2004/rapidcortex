@@ -38,6 +38,8 @@ import {
 } from "lucide-react";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime, formatHeaderClock } from "@/lib/clock-format";
 import { SiteSquareMark } from "@/components/brand/site-logo-link";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -270,31 +272,8 @@ function incidentSeverity(type: VenueIncident["type"]): "HIGH" | "MEDIUM" | "LOW
   return "LOW";
 }
 
-function formatClock(now: Date): { dateLine: string; timeMain: string; ampm: string } {
-  const dateLine = now.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-  const timeParts = now.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-  const match = timeParts.match(/^(.+)\s+(AM|PM)$/i);
-  return {
-    dateLine,
-    timeMain: match?.[1] ?? timeParts,
-    ampm: match?.[2] ?? "",
-  };
-}
-
-function formatReportedTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+function formatReportedTime(iso: string, hour12: boolean): string {
+  return formatClockTime(iso, hour12);
 }
 
 type SectionMapStatus = "clear" | "active" | "multiple";
@@ -615,6 +594,7 @@ function VenueConsoleHomeInner({
   userRole,
   userId = "",
 }: VenueConsoleHomeProps) {
+  const { hour12 } = useClockPreference();
   const pathname = usePathname() ?? "";
   const codeUpper = venueCode.toUpperCase();
   const abbr = venueAbbr(codeUpper);
@@ -696,7 +676,7 @@ function VenueConsoleHomeInner({
 
   const currentBg = customBg ?? DEFAULT_VENUE_BG;
   const hasCustomBg = Boolean(customBg);
-  const clock = formatClock(now);
+  const clock = formatHeaderClock(now, hour12);
 
   const applyBg = useCallback(
     (url: string) => {
@@ -1101,7 +1081,7 @@ function VenueConsoleHomeInner({
                     lineHeight: 1,
                   }}
                 >
-                  RAPID <span style={{ color: C.orange }}>CORTEX</span>
+                  NexCort <span style={{ color: C.orange }}>iQ</span>
                 </div>
                 <div
                   style={{
@@ -1466,7 +1446,7 @@ function VenueConsoleHomeInner({
                   />
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>
-                      Rapid Cortex Network
+                      NexCort iQ Network
                     </div>
                     <div style={{ fontSize: 10, color: C.green }}>All Systems Operational</div>
                   </div>
@@ -1859,7 +1839,7 @@ function VenueConsoleHomeInner({
                                 }}
                               >
                                 <span style={{ fontSize: 10.5, color: C.textMuted }}>
-                                  Reported: {formatReportedTime(inc.createdAt)} ·{" "}
+                                  Reported: {formatReportedTime(inc.createdAt, hour12)} ·{" "}
                                   {formatVenueTimeAgo(inc.updatedAt || inc.createdAt)}
                                 </span>
                               </div>
@@ -2243,7 +2223,7 @@ function VenueConsoleHomeInner({
                         link: "Get Support",
                         color: C.orange,
                         rgb: "249,115,22",
-                        href: "mailto:support@rapidcortex.us",
+                        href: "mailto:support@nexcortiq.us",
                       },
                     ] as const
                   ).map((u) => {

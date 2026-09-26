@@ -8,7 +8,7 @@ import { SITE_NAME } from "@/lib/site";
  * so this URL is a real page, not a client-side redirect stub.
  */
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Terms of use | Rapid Cortex",
+  title: "Terms of use | NexCort iQ",
   description: `Terms governing use of the ${SITE_NAME} product and public websites.`,
   path: "/legal/terms",
 });

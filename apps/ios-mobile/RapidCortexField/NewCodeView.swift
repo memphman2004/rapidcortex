@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 @MainActor
 final class NewCodeViewModel: ObservableObject {
@@ -26,7 +27,7 @@ final class NewCodeViewModel: ObservableObject {
         if !trimmedSms.isEmpty {
             let digits = trimmedSms.filter(\.isNumber)
             if digits.count < 10 {
-                error = "Enter a valid SMS phone number."
+                error = "Enter a valid text reporting number."
                 return
             }
             sms = digits
@@ -57,16 +58,17 @@ struct NewCodeView: View {
     let agencyId: String
     var defaultVertical: String = "venue"
     var onCreated: ((QRNFCCode) -> Void)?
+    var onBack: (() -> Void)?
 
     @StateObject private var vm = NewCodeViewModel()
     @State private var nfcCode: QRNFCCode?
 
     private var namePlaceholder: String {
-        "e.g. Building — Floor 3"
+        "e.g. Gate A, Student Center, Bus 2145"
     }
 
     private var zonePlaceholder: String {
-        "e.g. Zone or area"
+        "e.g. Section 112, East Entrance, Platform 3"
     }
 
     var body: some View {
@@ -90,15 +92,31 @@ struct NewCodeView: View {
     private var form: some View {
         ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Text("Create Code")
-                        .font(.system(size: 34, weight: .bold))
-                        .foregroundColor(RCTheme.textPrimary)
+                    Button(action: goBack) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                            Text("Back")
+                        }
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(RCTheme.amber)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Back")
 
-                    RCField(label: "Code Name", placeholder: namePlaceholder, text: $vm.name)
-                    RCField(label: "Zone / Location", placeholder: zonePlaceholder, text: $vm.zone)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Create Reporting Point")
+                            .font(.system(size: 34, weight: .bold))
+                            .foregroundColor(RCTheme.textPrimary)
+                        Text("Set up a QR code and/or NFC tag for a certainlocation.")
+                            .font(.system(size: 15))
+                            .foregroundColor(RCTheme.textSecondary)
+                    }
+
+                    RCField(label: "Reporting Point Name", placeholder: namePlaceholder, text: $vm.name)
+                    RCField(label: "Location Details", placeholder: zonePlaceholder, text: $vm.zone)
 
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Report Type")
+                        Text("Reporting Options")
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(RCTheme.textPrimary)
                         HStack(spacing: 8) {
@@ -117,11 +135,11 @@ struct NewCodeView: View {
                     }
 
                     RCField(
-                        label: "SMS Phone Number",
+                        label: "Text Reporting Number",
                         placeholder: "(555) 000-0000",
                         text: $vm.smsNumber,
                         keyboard: .phonePad,
-                        helper: "The phone number visitors text to report an incident. Appears on the physical sign."
+                        helper: "Optional. Shown on the printed sign."
                     )
 
                     if let error = vm.error {
@@ -131,7 +149,7 @@ struct NewCodeView: View {
                     }
 
                     RCPrimaryButton(
-                        title: "Create Code",
+                        title: "Create Reporting Point",
                         enabled: vm.isValid,
                         loading: vm.isSaving
                     ) {
@@ -143,10 +161,17 @@ struct NewCodeView: View {
             }
     }
 
+    private func goBack() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        onBack?()
+    }
+
     private func create() async {
         await vm.save(agencyId: agencyId, vertical: defaultVertical == "911" ? "venue" : defaultVertical)
         guard let code = vm.createdCode else { return }
         onCreated?(code)
-        nfcCode = code
+        if NFCHardware.isAvailable {
+            nfcCode = code
+        }
     }
 }

@@ -15,7 +15,7 @@ export function PublicWebConfigurationPanel() {
     <div className="space-y-4 text-sm text-slate-300">
       <p className="text-xs leading-relaxed text-slate-500">
         Browser feature flags for this deployment. Server secrets and upstream API settings are not
-        shown here — contact Rapid Cortex support for infrastructure changes.
+        shown here — contact NexCort iQ support for infrastructure changes.
       </p>
       <div className="overflow-x-auto rounded-md border border-slate-800 bg-slate-950/50">
         <table className="min-w-full text-left text-xs text-slate-300">

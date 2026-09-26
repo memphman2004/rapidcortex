@@ -292,7 +292,7 @@ export function CadIntegrationsPage() {
           <Plug className="h-12 w-12 text-slate-600" aria-hidden />
           <p className="mt-4 text-lg font-medium text-white">No CAD integrations configured</p>
           <p className="mt-2 max-w-md text-sm text-slate-400">
-            Connect your agency&apos;s CAD system to receive live incident data in Rapid Cortex.
+            Connect your agency&apos;s CAD system to receive live incident data in NexCort iQ.
           </p>
           <button
             type="button"

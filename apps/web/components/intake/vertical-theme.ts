@@ -69,7 +69,7 @@ export const VERTICAL_THEME = {
     labelText: "#374151",
     categoryStyle: "pill" as const,
 
-    headerTitle: "Rapid Cortex Campus",
+    headerTitle: "NexCort iQ Campus",
     secureLabel: "Secure reporting",
     agencyLabel: "Campus Safety Reporting",
     pageTitle: "Report a safety concern",
@@ -128,7 +128,7 @@ export const VERTICAL_THEME = {
     labelText: "#cbd5e1",
     categoryStyle: "card" as const,
 
-    headerTitle: "Rapid Cortex Venue",
+    headerTitle: "NexCort iQ Venue",
     secureLabel: "Secure reporting",
     agencyLabel: "Venue Security",
     pageTitle: "Get help now",

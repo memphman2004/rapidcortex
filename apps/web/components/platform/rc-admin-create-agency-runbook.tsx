@@ -13,14 +13,14 @@ const AGENCY_TYPE_GUIDE: Record<CreateAgencyInput["type"], string> = {
 };
 
 /**
- * In-app runbook for Rapid Cortex internal operators (`rcsuperadmin`, `rcadmin`). Shown on Platform → Agencies.
+ * In-app runbook for NexCort iQ internal operators (`rcsuperadmin`, `rcadmin`). Shown on Platform → Agencies.
  * Copy aligns with onboarding docs; field names match the create-agency form.
  */
 export function RcAdminCreateAgencyRunbook() {
   return (
     <section className="rounded-lg border border-slate-700/80 bg-slate-900/60 p-4 md:p-5">
       <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-rose-400/90">
-        Section A — Rapid Cortex staff
+        Section A — NexCort iQ staff
       </p>
       <h2 className="mt-1 text-base font-semibold text-white">A1. Create a new agency account</h2>
       <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-400">
@@ -96,7 +96,7 @@ export function RcAdminCreateAgencyRunbook() {
           should appear in the product.
         </li>
         <li>
-          Select <span className="text-slate-200">Product vertical</span> — PSAP / RC Core for dispatch centers; Campus,
+          Select <span className="text-slate-200">Product vertical</span> — PSAP / 911 Centers/PSAPs for dispatch centers; Campus,
           Venue, Hospital, or Transit for those tenant types (sets dashboard routing at{" "}
           <span className="font-mono text-slate-200">/{`{agencyId}`}</span>).
         </li>

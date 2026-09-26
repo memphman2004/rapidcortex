@@ -1,4 +1,4 @@
-# Rapid Cortex — Role Dashboard UI/UX Specification
+# NexCort iQ — Role Dashboard UI/UX Specification
 
 **All active roles — permissions, layout, and design**
 
@@ -9,7 +9,7 @@
 
 Sections are ordered by risk and frequency of change:
 
-1. **RC Internal** — platform operators (`rcsuperadmin`, `rcadmin`, `rcitadmin`)
+1. **NC Internal** — platform operators (`rcsuperadmin`, `rcadmin`, `rcitadmin`)
 2. **PSAP / Dispatch** — jurisdiction-scoped 911 workflows
 3. **Campus** — school safety vertical (not PSAP)
 4. **Hospital** — capacity/routing portal
@@ -27,8 +27,8 @@ Sections are ordered by risk and frequency of change:
 
 1. **VENUE_GUEST_SERVICES** — Show explicit **"NOT A 911 EMERGENCY DISPATCH SYSTEM"** disclaimer on every page (liability, not optional UX).
 2. **agencyadmin** — Must **not** have a live call workspace; landing on dispatcher view is an operational separation failure.
-3. **rcsuperadmin Grants** — Time-boxed permission grants section is **roadmap only**; all other RC Admin sections exist today.
-4. **RC Admin sidebar parity** — Implemented in `apps/web/lib/dashboards/rc-admin-role-nav.ts` (per-role nav, home redirect, route RBAC). **Campus users/settings nav** is next.
+3. **rcsuperadmin Grants** — Time-boxed permission grants section is **roadmap only**; all other NC Admin sections exist today.
+4. **NC Admin sidebar parity** — Implemented in `apps/web/lib/dashboards/rc-admin-role-nav.ts` (per-role nav, home redirect, route RBAC). **Campus users/settings nav** is next.
 
 ### Maintenance
 
@@ -41,7 +41,7 @@ Sections are ordered by risk and frequency of change:
 
 # SECTION 1 — RC INTERNAL ROLES
 
-These roles operate the Rapid Cortex platform itself. They never see PSAP dispatch workspaces, venue operations, or campus consoles. Their dashboards are administration and business intelligence surfaces.
+These roles operate the NexCort iQ platform itself. They never see PSAP dispatch workspaces, venue operations, or campus consoles. Their dashboards are administration and business intelligence surfaces.
 
 ---
 
@@ -49,7 +49,7 @@ These roles operate the Rapid Cortex platform itself. They never see PSAP dispat
 
 **Implementation:** Sidebar nav from `rcAdminNavForRole("rcsuperadmin")` — home `/rc-admin/dashboard`; Feature flags at `/rc-admin/access` (superadmin-only); Settings at `/rc-admin/operations`. Grants nav item omitted until roadmap ships.
 
-**Real-world identity:** CTO or senior platform engineer at Rapid Cortex. Owns the infrastructure, holds immutable permissions, and can grant any permission to any user for a time-boxed period with a mandatory reason.
+**Real-world identity:** CTO or senior platform engineer at NexCort iQ. Owns the infrastructure, holds immutable permissions, and can grant any permission to any user for a time-boxed period with a mandatory reason.
 
 **Dashboard URL:** `/rc-admin/dashboard`
 
@@ -65,7 +65,7 @@ These roles operate the Rapid Cortex platform itself. They never see PSAP dispat
 - Grants (time-boxed permission grants — superadmin only) **← roadmap**
 - Platform Notices (broadcast to agencies)
 - Feature Flags (system-wide toggles)
-- Developer Portal (API clients, RC Lite keys)
+- Developer Portal (API clients, NC Lite keys)
 - **Location QR Codes** (create, edit, bulk-import, download — all venues and campuses cross-tenant)
 - Settings (immutable platform config)
 
@@ -94,7 +94,7 @@ These roles operate the Rapid Cortex platform itself. They never see PSAP dispat
 
 **Implementation:** Sidebar nav from `rcAdminNavForRole("rcadmin")` — home `/rc-admin/dashboard`; Service catalog `/rc-admin/billing/services`; Reports `/rc-admin/usage`; no Infrastructure, Feature flags, or Settings links. Agreements nav deferred until Adobe Sign surface ships.
 
-**Real-world identity:** Account executive, customer success manager, or operations lead at Rapid Cortex. Creates agencies, manages billing, sends platform notices, manages agreements.
+**Real-world identity:** Account executive, customer success manager, or operations lead at NexCort iQ. Creates agencies, manages billing, sends platform notices, manages agreements.
 
 **Dashboard URL:** `/rc-admin/dashboard`
 
@@ -145,7 +145,7 @@ These roles operate the Rapid Cortex platform itself. They never see PSAP dispat
 
 **Implementation:** Sidebar nav from `rcAdminNavForRole("rcitadmin")` — home `/rc-admin/infrastructure` (index + dashboard redirect); System settings `/rc-admin/system-settings`; Security `/rc-admin/security`; CAD administration shares `/rc-admin/integrations`. No billing surfaces in sidebar.
 
-**Real-world identity:** Platform DevOps engineer or infrastructure lead at Rapid Cortex. Manages technical operations, system settings, integration health, and provides technical user support across all tenants.
+**Real-world identity:** Platform DevOps engineer or infrastructure lead at NexCort iQ. Manages technical operations, system settings, integration health, and provides technical user support across all tenants.
 
 **Dashboard URL:** `/rc-admin/infrastructure`
 
@@ -315,7 +315,7 @@ These roles operate inside a specific agency's jurisdiction workspace. Agency co
 - Create or deactivate users
 - Manage integrations
 - View billing
-- Access RC Admin area
+- Access NC Admin area
 
 ---
 
@@ -369,7 +369,7 @@ These roles operate inside a specific agency's jurisdiction workspace. Agency co
 ### Cannot
 - **Access live call workspace (operational separation — redirect if landed on dispatcher URL)**
 - Approve CAD writeback (that's supervisor's job)
-- Access RC Admin or any cross-tenant data
+- Access NC Admin or any cross-tenant data
 - Modify platform feature flags
 
 ---
@@ -872,7 +872,7 @@ This role is the most restricted. The UI should feel like a customer service inb
   - Orange = Venue actions
   - Slate = Campus actions
   - Teal = Hospital actions
-  - Violet = RC Admin actions
+  - Violet = NC Admin actions
 - **Role badge** — always visible in the top-right header, adjacent to username. Makes it immediately clear what role is signed in.
 - **Agency/vertical context** — always visible in the header. Dispatchers see agency name + PROD/DEV badge. Venue users see venue name + event name. Campus users see campus code.
 - **No action buttons the role can't use** — if a button would return 403 for this role, it must not appear at all. Grayed-out buttons are acceptable only when the action is temporarily unavailable (e.g., no incident selected), never for permanent permission restrictions.
@@ -885,7 +885,7 @@ This role is the most restricted. The UI should feel like a customer service inb
 - Third monitor (if available): maps, analytics, admin tools
 
 ## Mobile responsiveness
-- RC Admin, agencyadmin, analyst, auditor: responsive — these users often review from laptops or tablets
+- NC Admin, agencyadmin, analyst, auditor: responsive — these users often review from laptops or tablets
 - Dispatcher and supervisor: desktop-first — command center environment, not mobile
 - Venue guest services, campus security: tablet-compatible — staff may be on floor with iPads
 - Hospital staff: tablet-optimized — capacity update from bedside device
@@ -896,9 +896,9 @@ This role is the most restricted. The UI should feel like a customer service inb
 
 | # | Role | Section |
 |---|------|---------|
-| 1 | rcsuperadmin | RC Internal |
-| 2 | rcadmin | RC Internal |
-| 3 | rcitadmin | RC Internal |
+| 1 | rcsuperadmin | NC Internal |
+| 2 | rcadmin | NC Internal |
+| 3 | rcitadmin | NC Internal |
 | 4 | dispatcher | PSAP |
 | 5 | supervisor | PSAP |
 | 6 | agencyadmin | PSAP |
@@ -1021,7 +1021,7 @@ RC internal roles manage QR codes cross-tenant via `packages/security/src/qr-loc
 |---|---|---|---|---|---|---|---|
 | `locations.qrcodes.manage` | **o** (immutable) | Y | Y | Y | Y | Y | Y |
 
-**RC Admin UI:** `/rc-admin/location-qr-codes` — agency picker (venue/campus tenants only) scopes all API calls. Empty state: "Select an agency" until a tenant is chosen.
+**NC Admin UI:** `/rc-admin/location-qr-codes` — agency picker (venue/campus tenants only) scopes all API calls. Empty state: "Select an agency" until a tenant is chosen.
 
 **Implementation files:**
 - `packages/security/src/qr-locations-access.ts` — `rcInternalMayManageQr()` cross-tenant bypass

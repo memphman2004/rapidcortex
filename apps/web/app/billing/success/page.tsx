@@ -15,18 +15,18 @@ export default function BillingSuccessPage() {
         </div>
         <h1 className="text-3xl font-semibold text-white">Request received</h1>
         <p className="mt-3 text-sm text-slate-300">
-          Rapid Cortex will align entitlements with your agency contract, pilot, or purchase order. You will receive next
-          steps from your Rapid Cortex liaison.
+          NexCort iQ will align entitlements with your agency contract, pilot, or purchase order. You will receive next
+          steps from your NexCort iQ liaison.
         </p>
         <p className="mt-2 text-xs text-slate-400">
-          Rapid Cortex does not process public self-service card payments. Billing follows approved procurement workflows.
+          NexCort iQ does not process public self-service card payments. Billing follows approved procurement workflows.
         </p>
         <div className="mt-6 flex justify-center gap-3">
           <Link href="/agency-admin/billing" className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500">
             Agency billing
           </Link>
           <Link href="/rc-lite/portal/billing" className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">
-            RC Lite billing
+            NexCort Lite billing
           </Link>
         </div>
       </div>

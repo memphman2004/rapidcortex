@@ -28,6 +28,8 @@ if (!TABLE) {
 }
 const SEED_USER_EMAIL = process.env.SEED_USER_EMAIL ?? "seed@system";
 const FORCE_RESEED = process.env.FORCE_RESEED === "true";
+/** When true, skip the CONFIG#META guard and Put only items that are not already present (additive). */
+const UPSERT_MISSING = process.env.UPSERT_MISSING === "true";
 
 const client = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
   marshallOptions: { removeUndefinedValues: true },
@@ -284,12 +286,14 @@ async function main() {
   const now = new Date().toISOString();
 
   // Guard against accidental re-seed
-  if (!FORCE_RESEED) {
+  if (!FORCE_RESEED && !UPSERT_MISSING) {
     const existing = await client.send(
       new GetCommand({ TableName: TABLE, Key: { pk: PK_GLOBAL, sk: "CONFIG#META" } }),
     );
     if (existing.Item) {
-      console.log("CONFIG#META already exists — skipping (set FORCE_RESEED=true to override)");
+      console.log(
+        "CONFIG#META already exists — skipping (set FORCE_RESEED=true or UPSERT_MISSING=true)",
+      );
       return;
     }
   }
@@ -348,7 +352,7 @@ async function main() {
     // ADD-ONS — CAD Integration
     // -------------------------------------------------------------------------
     addon("addon-cad-module", "CAD Integration Module", "CAD Integration",
-      "Bidirectional CAD data feed: receive incident data from your CAD and surface it in Rapid Cortex.",
+      "Bidirectional CAD data feed: receive incident data from your CAD and surface it in NexCort iQ.",
       30_000, null, null, "fixed", "monthly", "agency/month", 200, now,
       ["cad"], "Requires CAD vendor API access. Setup included."),
     addon("addon-cad-writeback", "CAD Write-Back", "CAD Integration",
@@ -448,7 +452,7 @@ async function main() {
       "Extended analytics: rolling SLA reports, call volume trends, and CSV/JSON exports.",
       8_000, null, null, "fixed", "monthly", "agency/month", 263, now, ["analytics"]),
     addon("addon-ops-desktop", "Desktop App Distribution", "Reliability & Tech Ops",
-      "Signed macOS and Windows desktop app with auto-update (Rapid Cortex Desktop).",
+      "Signed macOS and Windows desktop app with auto-update (NexCort iQ Desktop).",
       5_000, null, null, "fixed", "monthly", "agency/month", 264, now, ["desktop"]),
 
     // -------------------------------------------------------------------------
@@ -473,7 +477,7 @@ async function main() {
       null, 500_000, 2_000_000, "range", "one_time", "engagement", false, 320, now,
       "Scoped after technical discovery call. Fixed-fee contract issued after scoping."),
     professional("ps-data-migration", "Historical Data Migration", "Implementation",
-      "Migration of historical call data and incident records into Rapid Cortex.",
+      "Migration of historical call data and incident records into NexCort iQ.",
       null, 200_000, 600_000, "range", "one_time", "engagement", false, 321, now),
 
     // -------------------------------------------------------------------------
@@ -522,6 +526,43 @@ async function main() {
     vertical("vert-transit", "Transit Authority Package", "transit",
       "Transit-specific incident management, GPS routing, and cross-jurisdiction coordination.",
       null, 150_000, 350_000, "range", "monthly", "per-authority", 603, now),
+
+    // -------------------------------------------------------------------------
+    // ADD-ONS — Call Assist, Vision, Rapid IQ, Translate, Mesh (product gaps)
+    // -------------------------------------------------------------------------
+    addon("addon-call-assist", "Call Assist (Non-Emergency)", "Call Assist",
+      "AI-assisted non-emergency intake, greeting configuration, callbacks, and operator console.",
+      25_000, null, null, "fixed", "monthly", "agency/month", 270, now, ["call-assist"]),
+    addon("addon-rapid-vision", "NexIQ Vision™", "Vision & Cameras",
+      "Live camera assist (Ring, Nest, Wyze, Milestone), scene intelligence, and vision transcripts.",
+      35_000, null, null, "fixed", "monthly", "agency/month", 271, now, ["vision", "cameras"]),
+    addon("addon-connect-nest-wyze", "Nest / Wyze Connect", "Vision & Cameras",
+      "Citizen Nest and Wyze camera share flows (consent-based) alongside Ring Connect.",
+      10_000, null, null, "fixed", "monthly", "agency/month", 272, now, ["connect", "nest", "wyze"]),
+    addon("addon-rc-translate", "NexCort Translate", "Language",
+      "Field / venue / campus / clinical voice translation sessions outside the 911 console.",
+      15_000, null, null, "fixed", "monthly", "agency/month", 273, now, ["translate"]),
+    addon("addon-cad-mesh", "CAD-to-CAD Mesh", "CAD Integration",
+      "Cross-agency CAD mesh sharing for mutual aid and regional partners.",
+      40_000, null, null, "fixed", "monthly", "agency/month", 274, now, ["cad", "mesh"]),
+    addon("addon-mutual-aid-mci", "Mutual Aid & MCI Command", "Incident Command",
+      "Mutual aid coordination and multi-casualty incident command tooling.",
+      22_000, null, null, "fixed", "monthly", "agency/month", 275, now, ["command", "mci"]),
+    addon("addon-ng911-assist", "NG911 Assist Pack", "AI & Call Intelligence",
+      "Diversion, EIDO, Additional Data, and NG911 metrics assist.",
+      18_000, null, null, "fixed", "monthly", "agency/month", 276, now, ["ng911"]),
+    addon("addon-rapid-iq", "Rapid IQ Sales Intelligence", "Sales Intelligence",
+      "PSAP/RFP signal pipeline and opportunity scoring for NexCort internal sales (RC Admin).",
+      null, null, null, "custom", "monthly", "agency/month", 277, now, ["rapid-iq"]),
+    addon("addon-tip-console-full", "Security / Tip Console (Full)", "Campus & Venue",
+      "Full tip inbox with two-way chat, assignment, and status (beyond free Community Connect).",
+      12_000, null, null, "fixed", "monthly", "agency/month", 278, now, ["tips", "campus"]),
+    addon("addon-venue-guest", "Venue Guest Services Console", "Campus & Venue",
+      "Non-911 venue guest-services ops console — separate from PSAP dispatch.",
+      15_000, null, null, "fixed", "monthly", "agency/month", 279, now, ["venue"]),
+    vertical("vert-call-assist", "Call Assist Vertical Bundle", "call_assist",
+      "Stand-alone Call Assist product package for non-emergency centers and campus/venue ops.",
+      null, 80_000, 250_000, "range", "monthly", "per-site", 604, now),
   ];
 
   // Fix Enterprise core plan — custom pricing
@@ -535,9 +576,41 @@ async function main() {
     };
   }
 
-  console.log(`Seeding ${items.length} catalog items to ${TABLE}...`);
+  console.log(
+    `${UPSERT_MISSING ? "Upserting missing" : "Seeding"} ${items.length} catalog items to ${TABLE}...`,
+  );
 
-  // BatchWrite in 25-item chunks
+  // BatchWrite in 25-item chunks (or per-item Get+Put when UPSERT_MISSING)
+  if (UPSERT_MISSING) {
+    let written = 0;
+    let skipped = 0;
+    for (const item of items) {
+      const sk = skForItem(item);
+      const existing = await client.send(
+        new GetCommand({ TableName: TABLE, Key: { pk: PK_GLOBAL, sk } }),
+      );
+      if (existing.Item) {
+        skipped += 1;
+        continue;
+      }
+      await client.send(
+        new PutCommand({
+          TableName: TABLE,
+          Item: {
+            pk: PK_GLOBAL,
+            sk,
+            item,
+            updatedAt: now,
+          },
+        }),
+      );
+      written += 1;
+      console.log(`  + ${item.id}`);
+    }
+    console.log(`UPSERT_MISSING complete: wrote ${written}, skipped ${skipped}`);
+    return;
+  }
+
   const CHUNK = 25;
   for (let i = 0; i < items.length; i += CHUNK) {
     const chunk = items.slice(i, i + CHUNK);

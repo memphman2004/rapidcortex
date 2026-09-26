@@ -207,8 +207,8 @@ export function heuristicClassifyProcurementSignal(
     preRfpSignal: stage > 0 && stage < 8,
     estimatedFit: Math.min(10, estimatedFit),
     reason: relevant
-      ? "Keyword overlap with Rapid Cortex public-safety / transit capabilities."
-      : "Limited Rapid Cortex product overlap.",
+      ? "Keyword overlap with NexCort iQ public-safety / transit capabilities."
+      : "Limited NexCort iQ product overlap.",
   };
 }
 
@@ -421,7 +421,7 @@ export async function generateOutreach(
   if (!useLiveAi()) {
     return {
       model: "heuristic",
-      text: `Regarding ${opportunity.title} at ${opportunity.agency}: Rapid Cortex can complement existing ${opportunity.incumbentTechnology?.join(", ") || "operations"} with incident intelligence and interoperability. Recommended next step: ${opportunity.recommendedAction}`,
+      text: `Regarding ${opportunity.title} at ${opportunity.agency}: NexCort iQ can complement existing ${opportunity.incumbentTechnology?.join(", ") || "operations"} with incident intelligence and interoperability. Recommended next step: ${opportunity.recommendedAction}`,
     };
   }
   const raw = await createJsonResponse({

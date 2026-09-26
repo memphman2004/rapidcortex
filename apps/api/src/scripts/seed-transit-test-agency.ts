@@ -40,7 +40,7 @@ async function main(): Promise<void> {
     centerName: "Hoover Valley Transit",
     region: "Southeast",
     primaryContactName: "Transit Admin",
-    primaryContactEmail: "transit-admin@rapidcortex.us",
+    primaryContactEmail: "transit-admin@nexcortiq.us",
     deploymentMode: "side_by_side",
     protocolPackId: "default",
     retentionPolicyId: "cjis-default-v1",
@@ -146,7 +146,7 @@ async function main(): Promise<void> {
     };
     if (i === 0) {
       operator.userId =
-        process.env.TRANSIT_OPERATOR_USER_ID?.trim() || "transit-operator@rapidcortex.us";
+        process.env.TRANSIT_OPERATOR_USER_ID?.trim() || "transit-operator@nexcortiq.us";
     }
     await put(TABLES.operators, operator);
   }

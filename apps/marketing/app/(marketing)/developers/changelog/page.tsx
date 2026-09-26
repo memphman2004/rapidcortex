@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
 
-export const metadata = { title: "RC Lite — API Changelog" };
+export const metadata = { title: "NexCort Lite — API Changelog" };
 
 export default function DevelopersChangelogPage() {
   return (
@@ -24,7 +24,7 @@ export default function DevelopersChangelogPage() {
             </Link>{" "}
             areas of this portal, plus{" "}
             <Link href="/openapi/rc-lite-v1.openapi.yaml" className="text-sky-400 hover:text-sky-300">
-              RC Lite OpenAPI
+              NexCort Lite OpenAPI
             </Link>
             .
           </dd>
@@ -32,7 +32,7 @@ export default function DevelopersChangelogPage() {
         <div>
           <dt className="font-semibold text-white">2026-04-28 · v1 scaffold</dt>
           <dd className="mt-2 text-slate-400">
-            Introduces the RC Lite routing surface, metering hooks, hashed API key flows, onboarding-oriented developer hub
+            Introduces the NexCort Lite routing surface, metering hooks, hashed API key flows, onboarding-oriented developer hub
             content, commercial SKU tiers presented to partners, and separation between API-first SKUs and full dispatcher /
             supervisor consoles.
           </dd>

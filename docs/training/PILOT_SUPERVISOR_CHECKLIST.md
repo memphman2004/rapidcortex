@@ -1,5 +1,7 @@
 # Pilot checklist — supervisor
 
+**Last reviewed:** 2026-09-19 (60-day refresh)
+
 Use with [TRAINING_SUPERVISOR.md](../operations-runbooks/TRAINING_SUPERVISOR.md), [USER_GUIDE.md](../admin-user-management/USER_GUIDE.md), and the agency’s completed [AGENCY_PLAYBOOK_TEMPLATE.md](../admin-user-management/AGENCY_PLAYBOOK_TEMPLATE.md).
 
 Supervisors **monitor and review**; they do not replace dispatch authority or CAD. AI output is **assistive** — [PILOT_GOVERNANCE.md](../go-to-market-sales/PILOT_GOVERNANCE.md).
@@ -9,6 +11,7 @@ Supervisors **monitor and review**; they do not replace dispatch authority or CA
 ## Before go-live
 
 - [ ] Confirm supervisor accounts use role **`supervisor`** (not deprecated `commsupervisor`) with correct **`custom:agencyId`**.
+- [ ] Confirm **MFA** is enrolled for every supervisor account on the production pool.
 - [ ] Walk [KNOWN_LIMITATIONS.md](../product-architecture/KNOWN_LIMITATIONS.md) with dispatch leadership — especially transcript simulator vs live audio, CAD read-only boundaries, and multilingual config requirements.
 - [ ] Agree agency SOP for when dispatchers must **ignore** AI suggestions (document in playbook §D).
 - [ ] Verify **Admin → Integrations** shows no blockers for modules in the pilot SOW.
@@ -42,7 +45,7 @@ Supervisors **monitor and review**; they do not replace dispatch authority or CA
 
 ---
 
-## Escalation to Rapid Cortex
+## Escalation to NexCort iQ
 
 When opening a support thread, include:
 

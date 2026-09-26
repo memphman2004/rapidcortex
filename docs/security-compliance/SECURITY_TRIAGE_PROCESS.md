@@ -1,7 +1,7 @@
 # Security Triage Process
 
 ## Purpose
-This process defines how Rapid Cortex handles findings from CI security gates:
+This process defines how NexCort iQ handles findings from CI security gates:
 - CodeQL (SAST + code scanning)
 - npm audit (dependency vulnerabilities)
 - Semgrep (custom appsec patterns)

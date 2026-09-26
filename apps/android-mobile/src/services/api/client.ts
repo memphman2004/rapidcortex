@@ -39,7 +39,7 @@ function normalizePath(path: string): string {
 }
 
 /**
- * Routes mobile API calls to the correct Rapid Cortex API Gateway base.
+ * Routes mobile API calls to the correct NexCort iQ API Gateway base.
  * Stack 2 (comms / call-intelligence) when configured; otherwise primary base.
  */
 export function resolveApiBase(path: string): string {

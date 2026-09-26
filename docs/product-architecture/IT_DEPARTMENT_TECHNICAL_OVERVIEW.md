@@ -1,19 +1,19 @@
-# Rapid Cortex — IT Department Technical Overview
+# NexCort iQ — IT Department Technical Overview
 
-This document is designed for agency and enterprise IT teams evaluating Rapid Cortex for pilot or production use. It summarizes platform architecture, security controls, deployment options, operational responsibilities, and implementation requirements.
+This document is designed for agency and enterprise IT teams evaluating NexCort iQ for pilot or production use. It summarizes platform architecture, security controls, deployment options, operational responsibilities, and implementation requirements.
 
 ---
 
-## 1) What Rapid Cortex Is
+## 1) What NexCort iQ Is
 
-Rapid Cortex is a browser-based operational co-pilot for emergency communications environments. It is designed to assist dispatchers, supervisors, and administrators with:
+NexCort iQ is a browser-based operational co-pilot for emergency communications environments. It is designed to assist dispatchers, supervisors, and administrators with:
 
 - Live incident workspace and transcript operations
 - AI-assisted analysis and protocol guidance
 - Multilingual language support workflows
 - Operational oversight (audit, admin, readiness, billing surfaces)
 
-Rapid Cortex is intended to augment existing systems and workflows; it does not claim to replace CAD, telephony, or agency systems of record.
+NexCort iQ is intended to augment existing systems and workflows; it does not claim to replace CAD, telephony, or agency systems of record.
 
 ---
 
@@ -59,7 +59,7 @@ Rapid Cortex is intended to augment existing systems and workflows; it does not 
 
 ## 4) Security Model (Technical)
 
-Rapid Cortex documents pilot-grade technical controls; this is not a formal certification claim.
+NexCort iQ documents pilot-grade technical controls; this is not a formal certification claim.
 
 ### Identity and Access
 
@@ -116,7 +116,7 @@ Rapid Cortex documents pilot-grade technical controls; this is not a formal cert
 
 ## 7) Integrations and External Dependencies
 
-Rapid Cortex supports optional integration paths including:
+NexCort iQ supports optional integration paths including:
 
 - AI provider invocation (config-driven, secret-backed)
 - Language services (AWS and optional external provider paths)
@@ -154,7 +154,7 @@ For implementation and run operations, IT teams should align on:
 
 ## 10) Responsibilities Matrix (Practical)
 
-### Rapid Cortex / Implementation Team
+### NexCort iQ / Implementation Team
 
 - Application code, IaC templates, deployment tooling
 - Shared schema and RBAC model maintenance

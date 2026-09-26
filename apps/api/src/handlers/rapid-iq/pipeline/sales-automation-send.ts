@@ -40,7 +40,7 @@ function salesAutomationEnabled(): boolean {
 }
 
 function fromAddress(): string {
-  return process.env.SES_FROM_EMAIL?.trim() || env.sesFromEmail || "noreply@rapidcortex.us";
+  return process.env.SES_FROM_EMAIL?.trim() || env.sesFromEmail || "noreply@nexcortiq.us";
 }
 
 export type CampaignSendChannel = "outlook" | "outlook_mock" | "ses" | "log";

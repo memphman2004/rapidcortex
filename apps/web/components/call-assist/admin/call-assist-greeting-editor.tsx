@@ -21,7 +21,7 @@ type Props = {
 
 const MODE_LABELS: { id: GreetingMode; label: string; hint: string }[] = [
   { id: "hang_up", label: "Hang up and call 911", hint: "Required phrasing in some jurisdictions." },
-  { id: "stay_on_line", label: "Stay on the line", hint: "Recommended when Rapid Cortex can detect and escalate." },
+  { id: "stay_on_line", label: "Stay on the line", hint: "Recommended when NexCort iQ can detect and escalate." },
   { id: "custom", label: "Custom", hint: "Full text. Use {cityName} and {agencyName}." },
 ];
 

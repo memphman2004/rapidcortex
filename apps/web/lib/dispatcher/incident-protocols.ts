@@ -1,5 +1,5 @@
 /**
- * Canonical incident type definitions for Rapid Cortex dispatcher workspace.
+ * Canonical incident type definitions for NexCort iQ dispatcher workspace.
  * Each type maps to a CAD nature code, default priority, and inline protocol hints.
  *
  * UI hints only — protocol enforcement and CAD write-back validation are server-side.

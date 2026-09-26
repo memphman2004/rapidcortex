@@ -2,7 +2,7 @@
 
 ## Summary
 
-- **Public visitors** can read **`/desktop`** on the marketing site to learn that Rapid Cortex Desktop exists for Mac and Windows. That page **does not** link to installers, S3, CloudFront, or any `.dmg` / `.exe` / `.msi` URL.
+- **Public visitors** can read **`/desktop`** on the marketing site to learn that NexCort iQ Desktop exists for Mac and Windows. That page **does not** link to installers, S3, CloudFront, or any `.dmg` / `.exe` / `.msi` URL.
 - **Authorized administrators** download installers only after signing into the web app: **Settings → Downloads → Desktop Apps**. The browser calls authenticated API routes; the API returns **short-lived presigned HTTPS URLs** for objects in **private S3** (`ASSETS_BUCKET`). Each signed-url request is **audited**.
 
 ## Public page (`/desktop`)

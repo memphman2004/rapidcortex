@@ -17,23 +17,23 @@ type SiteLogoMarkProps = {
   priority?: boolean;
 };
 
-/** Rapid Cortex mark — image only (`SITE_LOGO_PATH`, Rapid 911 brand asset). */
+/** NexCort iQ mark — image only (`SITE_LOGO_PATH`). */
 export function SiteLogoMark({
-  heightClass = "h-10",
+  heightClass = "h-14",
   className = "",
   priority = false,
 }: SiteLogoMarkProps) {
   return (
     <Image
       src={SITE_LOGO_PATH}
-      alt={SITE_NAME}
+      alt={`${SITE_NAME} logo`}
       width={SITE_LOGO_WIDTH}
       height={SITE_LOGO_HEIGHT}
       priority={priority}
       loading={priority ? "eager" : "lazy"}
       decoding="async"
       unoptimized
-      sizes="(max-width: 1024px) 160px, 200px"
+      sizes="(max-width: 1024px) 220px, 320px"
       className={[
         "inline-block w-auto max-w-full shrink-0 object-contain object-left",
         heightClass,
@@ -54,7 +54,7 @@ type SiteSquareMarkProps = {
   borderRadius?: number;
 };
 
-/** Compact square Rapid Cortex icon for dashboard sidebars / chrome. */
+/** Compact square NexCort iQ icon for dashboard sidebars / chrome. */
 export function SiteSquareMark({
   size = 34,
   className = "",
@@ -68,7 +68,7 @@ export function SiteSquareMark({
     >
       <Image
         src={SITE_SQUARE_ICON_PATH}
-        alt={SITE_NAME}
+        alt={`${SITE_NAME} logo`}
         width={SITE_SQUARE_ICON_WIDTH}
         height={SITE_SQUARE_ICON_HEIGHT}
         priority={priority}
@@ -94,7 +94,7 @@ type SiteLogoLinkProps = SiteLogoMarkProps & {
 /** Logo wrapped in a link (e.g. home or marketing root). */
 export function SiteLogoLink({
   href,
-  heightClass = "h-10",
+  heightClass = "h-14",
   className,
   linkClassName = "inline-flex shrink-0 items-center",
   priority = false,

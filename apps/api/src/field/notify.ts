@@ -6,7 +6,7 @@ import type { FieldAccessRequestRecord } from "./store.js";
 
 const sns = new SNSClient({});
 const ses = new SESClient({});
-const OPS_TO = "support@rapidcortex.us";
+const OPS_TO = "support@nexcortiq.us";
 
 function bodyText(row: FieldAccessRequestRecord): string {
   return [

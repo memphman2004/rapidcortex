@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { VenueIncidentCameraSummary } from "rapid-cortex-shared";
 import { EscalateTo911Modal } from "@/components/venue/escalate-to-911-modal";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 import { isEscalationUiEnabled } from "@/lib/runtime-flags";
 import { KVSWebRTCPlayer } from "./KVSWebRTCPlayer";
 import {
@@ -22,15 +24,16 @@ export type VenueActiveIncidentPanel = {
   location: string;
   cameras: VenueIncidentCameraSummary[];
   createdAt?: string;
+  vehicleId?: string;
+  stationId?: string;
+  routeId?: string;
+  cameraIds?: string[];
+  qrRcli?: string;
 };
 
 
-function formatClock(iso: string): string {
-  try {
-    return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  } catch {
-    return iso;
-  }
+function formatClock(iso: string, hour12: boolean): string {
+  return formatClockTime(iso, hour12);
 }
 
 export function IncidentCameraPanel({
@@ -59,6 +62,7 @@ export function IncidentCameraPanel({
   /** When false, hides venue incident update/status APIs (campus uses campus incident APIs). */
   enableDispatchControls?: boolean;
 }) {
+  const { hour12 } = useClockPreference();
   const [streamCameras, setStreamCameras] = useState<VenueIncidentCameraSummary[]>(incident.cameras);
   const [sectionCameras, setSectionCameras] = useState<VenueIncidentCameraSummary[]>([]);
   const [showAllSection, setShowAllSection] = useState(false);
@@ -79,12 +83,27 @@ export function IncidentCameraPanel({
 
   const loadSectionCameras = useCallback(async () => {
     try {
-      const rows = await fetchVenueSectionCameras(agencyId, incident.section, 20, apiVertical);
+      const rows = await fetchVenueSectionCameras(agencyId, incident.section, 20, apiVertical, {
+        qrRcli: incident.qrRcli,
+        cameraIds: incident.cameraIds,
+        vehicleId: incident.vehicleId,
+        stationId: incident.stationId,
+        routeId: incident.routeId,
+      });
       setSectionCameras(rows);
     } catch {
       setSectionCameras([]);
     }
-  }, [agencyId, apiVertical, incident.section]);
+  }, [
+    agencyId,
+    apiVertical,
+    incident.cameraIds,
+    incident.qrRcli,
+    incident.routeId,
+    incident.section,
+    incident.stationId,
+    incident.vehicleId,
+  ]);
 
   useEffect(() => {
     void loadSectionCameras();
@@ -309,7 +328,7 @@ export function IncidentCameraPanel({
             ) : (
               updates.map((row) => (
                 <div key={row.updateId} style={{ fontSize: 11, color: "var(--rc-text-primary)", marginBottom: 6 }}>
-                  <span style={{ color: "var(--rc-text-secondary)" }}>{formatClock(row.createdAt)}</span> [{row.actorLabel}]{" "}
+                  <span style={{ color: "var(--rc-text-secondary)" }}>{formatClock(row.createdAt, hour12)}</span> [{row.actorLabel}]{" "}
                   {row.message}
                 </div>
               ))

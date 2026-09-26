@@ -144,6 +144,7 @@ function buildCspHeader(extraConnectOrigins) {
   const connectSrc = [
     "'self'",
     "blob:",
+    "wss:",
     ...extraConnectOrigins,
     ...FORM_EMBED_CONNECT_HOSTS,
     ...YOUTUBE_CONNECT_HOSTS,
@@ -174,11 +175,11 @@ function buildCspHeader(extraConnectOrigins) {
     "frame-ancestors 'none'",
     "form-action 'self'",
     `img-src ${imgSrc}`,
-    "font-src 'self' data:",
+    "font-src 'self' data: https://fonts.gstatic.com",
     "media-src 'self' https://www.youtube-nocookie.com https://youtube-nocookie.com https://www.youtube.com blob:",
     `connect-src ${connectSrc}`,
     `script-src ${scriptSrc}`,
-    "style-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "object-src 'none'",
     "worker-src 'self' blob:",
     `frame-src ${FORM_EMBED_FRAME_SRC}`,
@@ -237,6 +238,18 @@ const nextConfig = {
   },
   async rewrites() {
     return {
+      beforeFiles: [
+        // Live dispatcher still polls these aliases. beforeFiles avoids App Router HTML 404s
+        // when an optional catch-all is not treated as a filesystem match.
+        { source: "/api/geocode/forward", destination: "/api/location/geocode" },
+        { source: "/api/psap/continuity", destination: "/api/rcs/calls" },
+        { source: "/api/psap/continuity/:path*", destination: "/api/rcs/calls/:path*" },
+        { source: "/api/events/features", destination: "/api/features" },
+        {
+          source: "/api/incidents/:incidentId/intelligence",
+          destination: "/api/incidents/:incidentId/vision/intelligence",
+        },
+      ],
       afterFiles: [
         // Flat alias for aggregated readiness (same handler as `/api/health/chain`); avoids rare CDN/proxy confusion on nested paths.
         { source: "/api/health-chain", destination: "/api/health/chain" },

@@ -10,7 +10,7 @@ const CATEGORY_META: Record<string, { title: string; emoji: string }> = {
   addon: { title: "Add-On Services", emoji: "⚡" },
   professional: { title: "Professional Services", emoji: "🛠️" },
   support: { title: "Support Plans", emoji: "💬" },
-  rc_lite: { title: "RC Lite API", emoji: "🔌" },
+  rc_lite: { title: "NexCort Lite API", emoji: "🔌" },
   vertical: { title: "Vertical Packages", emoji: "🏢" },
 };
 
@@ -48,7 +48,14 @@ function isUsablePriceDate(raw?: string | null): raw is string {
   return t > 86_400_000;
 }
 
-export function ServiceCatalogDashboard() {
+export function ServiceCatalogDashboard({
+  hidePricing = false,
+  catalogApiPath = "/api/rc-admin/pricing/catalog",
+}: {
+  /** Sales-facing: hide unit prices, CSV price columns, and invoice builder. */
+  hidePricing?: boolean;
+  catalogApiPath?: string;
+} = {}) {
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [catalogUpdatedAt, setCatalogUpdatedAt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,7 +71,7 @@ export function ServiceCatalogDashboard() {
     async function load() {
       try {
         setIsLoading(true);
-        const res = await fetch("/api/rc-admin/pricing/catalog");
+        const res = await fetch(catalogApiPath);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = (await res.json()) as { items: CatalogItem[]; updatedAt?: string };
         setItems((data.items ?? []).filter((x) => x.enabled));
@@ -76,7 +83,7 @@ export function ServiceCatalogDashboard() {
       }
     }
     void load();
-  }, []);
+  }, [catalogApiPath]);
 
   const counts = useMemo(() => {
     const c = { core: 0, addon: 0, professional: 0, support: 0, rc_lite: 0, vertical: 0 };
@@ -112,16 +119,22 @@ export function ServiceCatalogDashboard() {
   );
 
   function exportCsv() {
-    const headers = ["ID", "Name", "Description", "Category", "Subcategory", "Unit Price (cents)", "Billing Period"];
-    const rows = items.map((s) => [
-      s.id,
-      s.name,
-      s.description,
-      s.category,
-      s.subcategory,
-      String(s.unitPrice ?? ""),
-      s.billingPeriod,
-    ]);
+    const headers = hidePricing
+      ? ["ID", "Name", "Description", "Category", "Subcategory", "Billing Period"]
+      : ["ID", "Name", "Description", "Category", "Subcategory", "Unit Price (cents)", "Billing Period"];
+    const rows = items.map((s) =>
+      hidePricing
+        ? [s.id, s.name, s.description, s.category, s.subcategory, s.billingPeriod]
+        : [
+            s.id,
+            s.name,
+            s.description,
+            s.category,
+            s.subcategory,
+            String(s.unitPrice ?? ""),
+            s.billingPeriod,
+          ],
+    );
     const csv = [headers, ...rows]
       .map((row) => row.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(","))
       .join("\n");
@@ -129,7 +142,9 @@ export function ServiceCatalogDashboard() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "rapid-cortex-pricing-catalog.csv";
+    link.download = hidePricing
+      ? "nexcort-iq-service-catalog.csv"
+      : "rapid-cortex-pricing-catalog.csv";
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -187,9 +202,13 @@ export function ServiceCatalogDashboard() {
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-slate-700 bg-gradient-to-r from-[#2E5090] to-[#1a3a6b] p-6">
-        <h1 className="text-2xl font-semibold text-white">Rapid Cortex Pricing Catalog</h1>
+        <h1 className="text-2xl font-semibold text-white">
+          {hidePricing ? "NexCort iQ Service Catalog" : "NexCort iQ Pricing Catalog"}
+        </h1>
         <p className="mt-1 text-sm text-slate-200">
-          Live pricing data — internal billing dashboard and invoice service selector.
+          {hidePricing
+            ? "Feature and service inventory for sales conversations — prices omitted."
+            : "Live pricing data — internal billing dashboard and invoice service selector."}
         </p>
       </div>
 
@@ -198,7 +217,7 @@ export function ServiceCatalogDashboard() {
         <StatCard label="Add-Ons" value={counts.addon} />
         <StatCard label="Prof. Services" value={counts.professional} />
         <StatCard label="Support" value={counts.support} />
-        <StatCard label="RC Lite" value={counts.rc_lite} />
+        <StatCard label="NexCort Lite" value={counts.rc_lite} />
         <StatCard label="Verticals" value={counts.vertical} />
       </div>
 
@@ -236,9 +255,13 @@ export function ServiceCatalogDashboard() {
         <div className="rounded-lg border border-rose-700 bg-rose-900/20 p-3 text-sm text-rose-200">{error}</div>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div className={`grid gap-6 ${hidePricing ? "" : "xl:grid-cols-2"}`}>
         <div className="space-y-6">
-          {isLoading ? <div className="text-sm text-slate-400">Loading pricing catalog...</div> : null}
+          {isLoading ? (
+            <div className="text-sm text-slate-400">
+              {hidePricing ? "Loading service catalog..." : "Loading pricing catalog..."}
+            </div>
+          ) : null}
           {!isLoading &&
             Object.entries(grouped).map(([cat, rows]) => {
               const meta = CATEGORY_META[cat] ?? { title: cat, emoji: "🧩" };
@@ -257,12 +280,15 @@ export function ServiceCatalogDashboard() {
                       const billingLabel =
                         BILLING_LABEL[item.billingPeriod] ??
                         (item.billingPeriod ? `/${item.billingPeriod}` : "");
+                      const ItemTag = hidePricing ? "div" : "button";
                       return (
-                        <button
+                        <ItemTag
                           key={item.id}
-                          onClick={() => toggleItem(item)}
+                          {...(!hidePricing
+                            ? { onClick: () => toggleItem(item), type: "button" as const }
+                            : {})}
                           className={`w-full rounded-xl border p-4 text-left transition ${
-                            selected
+                            !hidePricing && selected
                               ? "border-sky-500 bg-sky-950/30"
                               : "border-slate-800 bg-slate-900/60 hover:border-slate-600"
                           }`}
@@ -275,24 +301,30 @@ export function ServiceCatalogDashboard() {
                                 <p className="mt-1 text-xs text-slate-500">{item.subcategory}</p>
                               ) : null}
                             </div>
-                            <div className="shrink-0 text-right">
-                              {item.priceType === "custom" ? (
-                                <span className="text-sm font-semibold text-amber-300">Custom</span>
-                              ) : item.priceType === "included" ? (
-                                <span className="text-sm font-semibold text-emerald-300">Included</span>
-                              ) : item.priceType === "range" ? (
-                                <span className="text-sm font-semibold text-sky-200">
-                                  {asMoney(item.priceMin)}–{asMoney(item.priceMax)}
-                                </span>
-                              ) : (
-                                <span className="text-sm font-semibold text-sky-200">
-                                  {asMoney(item.unitPrice)}
-                                  <span className="text-xs font-normal text-slate-400">{billingLabel}</span>
-                                </span>
-                              )}
-                            </div>
+                            {!hidePricing ? (
+                              <div className="shrink-0 text-right">
+                                {item.priceType === "custom" ? (
+                                  <span className="text-sm font-semibold text-amber-300">Custom</span>
+                                ) : item.priceType === "included" ? (
+                                  <span className="text-sm font-semibold text-emerald-300">Included</span>
+                                ) : item.priceType === "range" ? (
+                                  <span className="text-sm font-semibold text-sky-200">
+                                    {asMoney(item.priceMin)}–{asMoney(item.priceMax)}
+                                  </span>
+                                ) : (
+                                  <span className="text-sm font-semibold text-sky-200">
+                                    {asMoney(item.unitPrice)}
+                                    <span className="text-xs font-normal text-slate-400">{billingLabel}</span>
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="shrink-0 text-right text-xs font-medium uppercase tracking-wide text-slate-500">
+                                {item.billingPeriod?.replaceAll("_", " ") || "Service"}
+                              </div>
+                            )}
                           </div>
-                        </button>
+                        </ItemTag>
                       );
                     })}
                   </div>
@@ -301,7 +333,8 @@ export function ServiceCatalogDashboard() {
             })}
         </div>
 
-        <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+        {!hidePricing ? (
+          <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/60 p-4">
           <h3 className="text-base font-semibold text-slate-100">Selected Services (Editable)</h3>
           {selectedItems.length === 0 ? (
             <p className="text-sm text-slate-400">Select items on the left to build an invoice.</p>
@@ -438,6 +471,7 @@ export function ServiceCatalogDashboard() {
             </div>
           </div>
         </div>
+        ) : null}
       </div>
     </div>
   );

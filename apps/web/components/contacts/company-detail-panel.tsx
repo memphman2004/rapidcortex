@@ -93,7 +93,7 @@ export function CompanyDetailPanel({
           Linked Signals ({company.linkedSignalIds.length})
         </h3>
         {company.linkedSignalIds.length === 0 ? (
-          <p className="mt-2 text-xs text-slate-500">No Rapid IQ signals linked yet.</p>
+          <p className="mt-2 text-xs text-slate-500">No NexiQ signals linked yet.</p>
         ) : (
           <ul className="mt-2 space-y-1 text-xs text-sky-400">
             {company.linkedSignalIds.map((id) => (

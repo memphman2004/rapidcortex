@@ -17,12 +17,15 @@ import { IncidentTimelineStrip } from "@/components/dispatch/incident-timeline-s
 import { CadReadyPanel } from "@/components/dashboards/dispatcher-workspace-panels";
 import { NonEmergencyQueuePanel } from "@/components/triage/non-emergency-queue-panel";
 import { useSession } from "@/components/auth/session-context";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 import { isApiConfigured, fetchTriage } from "@/lib/api";
 import {
   fetchCadUnitBoard,
   formatEta,
   formatStatusTimer,
   mergeUnitBoard,
+  UNIT_BOARD_ELEMENT_ID,
   UNIT_STATUS_LABEL,
   unitsFromCadRecords,
   unitsFromIncidents,
@@ -418,6 +421,7 @@ export function CadDispatcherWorkspaceLayout({
   const clock = useLiveClock();
   const shift = useShiftElapsedLabel();
   const { user } = useSession();
+  const { hour12 } = useClockPreference();
 
   const activeTable = useMemo(() => queueIncidents.filter((i) => i.status === "active"), [queueIncidents]);
   const pendingTable = useMemo(
@@ -456,11 +460,15 @@ export function CadDispatcherWorkspaceLayout({
       if (hash === "cad-transcript") prefs.openDockModule("transcript");
       if (hash === "cad-intelligence") prefs.openDockModule("incident_picture");
       if (hash === "cad-camera-ai") prefs.openDockModule("camera_ai");
+      if (hash === "cad-units" || hash === "unit-board") {
+        prefs.setMaximized(null);
+        document.getElementById(UNIT_BOARD_ELEMENT_ID)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
     };
     applyHash();
     window.addEventListener("hashchange", applyHash);
     return () => window.removeEventListener("hashchange", applyHash);
-  }, [prefs.openDockModule]);
+  }, [prefs.openDockModule, prefs.setMaximized]);
 
   const p1 = queueIncidents.filter((i) => i.urgency === "critical").length;
   const p2 = queueIncidents.filter((i) => i.urgency === "high").length;
@@ -498,7 +506,14 @@ export function CadDispatcherWorkspaceLayout({
           <CadActionBarButton onClick={() => prefs.openDockModule("incident_picture")} title="Review AI / BOLO context">
             BOLO
           </CadActionBarButton>
-          <CadActionBarButton href={cadEntryHref} title="Assign units on the selected incident (CAD entry)">
+          <CadActionBarButton
+            onClick={() => {
+              prefs.setMaximized(null);
+              const el = document.getElementById(UNIT_BOARD_ELEMENT_ID);
+              el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            }}
+            title="Unit board — available, en route, and on-scene units"
+          >
             Unit status
           </CadActionBarButton>
           <span className="ws-toolbar-sep" aria-hidden />
@@ -530,7 +545,7 @@ export function CadDispatcherWorkspaceLayout({
         </div>
         <div className="flex shrink-0 items-center gap-3 font-mono text-[11px]" style={{ color: CAD.muted }}>
           <time dateTime={clock.toISOString()} className="tabular-nums" style={{ color: CAD.text }}>
-            {clock.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+            {formatClockTime(clock, hour12, { second: "2-digit" })}
           </time>
           <span className="hidden sm:inline" title="Elapsed since this console was opened">
             Shift <span style={{ color: CAD.text }}>{shift}</span>
@@ -582,7 +597,7 @@ export function CadDispatcherWorkspaceLayout({
         }}
       >
         <div className="flex min-h-0 flex-col overflow-hidden" style={{ background: "var(--rc-panel-bg)", borderRight: "1px solid var(--rc-border)" }}>
-          <div className="ws-panel-header secondary shrink-0">
+          <div className="ws-panel-header secondary shrink-0" id={UNIT_BOARD_ELEMENT_ID}>
             Unit board
             <span className="ml-auto font-mono text-[9px]">
               {unitBoardSource ? `${unitBoardSource} · ` : null}

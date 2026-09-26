@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Update KCPD Rapid Cortex reply documents: accurate facts + 35% price cut."""
+"""Update KCPD NexCort iQ reply documents: accurate facts + 35% price cut."""
 
 from __future__ import annotations
 
@@ -52,7 +52,7 @@ YEAR2 = ANNUAL + CAD_MAINT + RMS_MAINT
 CMD_BASE = disc(480000)  # 312,000
 CALL_ASSIST = disc(168000)  # 109,200
 
-ENTITY = "Apps on Demand LLC d/b/a Rapid Cortex"
+ENTITY = "Apps on Demand LLC d/b/a NexCort iQ"
 CONTACT = "Dr. Jeffrey W. Coleman Jr., Founder & CEO"
 HQ = "Columbus, Georgia 31901"
 EMAIL = "press@rapidcortex.us"
@@ -89,7 +89,7 @@ LINE1_NOTE = (
 
 FOOTER_NOTES = (
     f"Notes: All pricing in U.S. dollars. A 35% strategic proposal discount is applied to "
-    f"every priced line item below Rapid Cortex list rates. Annual subscription rates locked "
+    f"every priced line item below NexCort iQ list rates. Annual subscription rates locked "
     f"for 36 months from contract execution. Year 4+ pricing subject to maximum 4% annual "
     f"CPI adjustment. Travel expenses for onsite services billed at cost per travel policy "
     f"in the MSA. CAD integration maintenance (${CAD_MAINT:,}/yr) and RMS maintenance "
@@ -150,7 +150,7 @@ def update_xlsx() -> None:
     ps["D13"] = P[7]
     ps["F13"] = (
         "Voice included in Line 1. SMS link generation. Caller video upload (async) attaches to "
-        "existing Rapid Cortex media. Live caller video streaming (WebRTC) available as a "
+        "existing NexCort iQ media. Live caller video streaming (WebRTC) available as a "
         "configured channel. All media logged with audit trail."
     )
     ps["D14"] = P[8]
@@ -180,7 +180,7 @@ def update_xlsx() -> None:
     ps["D22"] = P[16]
     ps["F22"] = (
         "CJIS Security Policy–aligned controls review and documentation package. MFA, TLS 1.2+, "
-        "AES-256 encryption, RBAC, and audit logging are included in the base platform. Rapid Cortex "
+        "AES-256 encryption, RBAC, and audit logging are included in the base platform. NexCort iQ "
         "does not issue FBI CJIS, SOC 2, or FedRAMP certification — KCPD maps controls to its CJIS program."
     )
     ps["F23"] = (
@@ -236,7 +236,7 @@ def update_xlsx() -> None:
     ref["D27"] = P[24]
     ref["D28"] = P[25]
     ref["A1"] = (
-        "RAPID CORTEX — BID LINE ENTRY REFERENCE  |  KCPD Line Item Tab  |  "
+        "NEXCORT IQ — BID LINE ENTRY REFERENCE  |  KCPD Line Item Tab  |  "
         "35% proposal discount applied  |  " + ENTITY
     )
 
@@ -324,43 +324,43 @@ def update_docx() -> None:
     pairs: list[tuple[str, str]] = [
         ("Sharen.Marquez@kcpd.org", "Sharene.Marquez@kcpd.org"),
         (
-            "Rapid Cortex is a public safety intelligence and decision-support technology company headquartered in the United States. We design, develop, and operate real-time AI-assisted platforms for 911 dispatch centers, emergency communications centers, law enforcement agencies, fire rescue, EMS, and emergency management organizations.",
-            f"{ENTITY} designs, develops, and operates Rapid Cortex — a real-time AI-assisted public safety intelligence platform for 911 dispatch centers, emergency communications centers, law enforcement, fire, EMS, and emergency management. The company is headquartered in {HQ}. Primary contact: {CONTACT} ({EMAIL}).",
+            "NexCort iQ is a public safety intelligence and decision-support technology company headquartered in the United States. We design, develop, and operate real-time AI-assisted platforms for 911 dispatch centers, emergency communications centers, law enforcement agencies, fire rescue, EMS, and emergency management organizations.",
+            f"{ENTITY} designs, develops, and operates NexCort iQ — a real-time AI-assisted public safety intelligence platform for 911 dispatch centers, emergency communications centers, law enforcement, fire, EMS, and emergency management. The company is headquartered in {HQ}. Primary contact: {CONTACT} ({EMAIL}).",
         ),
         (
-            "Our platform currently serves operational PSAP customers across multiple U.S. jurisdictions. All customer deployments remain active production systems — Rapid Cortex does not operate pilot-only programs counted as references.",
-            "Rapid Cortex is purpose-built for emergency communications. Call Assist, the module proposed here, answers and triages non-emergency calls, transfers emergencies immediately to a live telecommunicator, and never replaces CAD, 911 CPE, or dispatcher authority. References are provided in the Reference Information Sheet.",
+            "Our platform currently serves operational PSAP customers across multiple U.S. jurisdictions. All customer deployments remain active production systems — NexCort iQ does not operate pilot-only programs counted as references.",
+            "NexCort iQ is purpose-built for emergency communications. Call Assist, the module proposed here, answers and triages non-emergency calls, transfers emergencies immediately to a live telecommunicator, and never replaces CAD, 911 CPE, or dispatcher authority. References are provided in the Reference Information Sheet.",
         ),
         (
-            "Rapid Cortex operates exclusively in the public safety vertical. Our team includes former emergency communications directors, PSAP technology administrators, public safety software engineers, and compliance professionals with direct CJIS experience. We do not deploy consumer AI products and do not adapt general-purpose software for public safety use — our architecture is designed ground-up for the operational, legal, and compliance requirements of PSAPs and law enforcement agencies.",
-            f"Rapid Cortex operates exclusively in the public safety vertical. Architecture, RBAC, audit logging, and tenant isolation are designed ground-up for PSAP and law enforcement requirements. We do not deploy consumer AI products. Cybersecurity claims in this proposal are CJIS-aligned technical controls — not FBI CJIS, SOC 2 Type II, or FedRAMP certification.",
+            "NexCort iQ operates exclusively in the public safety vertical. Our team includes former emergency communications directors, PSAP technology administrators, public safety software engineers, and compliance professionals with direct CJIS experience. We do not deploy consumer AI products and do not adapt general-purpose software for public safety use — our architecture is designed ground-up for the operational, legal, and compliance requirements of PSAPs and law enforcement agencies.",
+            f"NexCort iQ operates exclusively in the public safety vertical. Architecture, RBAC, audit logging, and tenant isolation are designed ground-up for PSAP and law enforcement requirements. We do not deploy consumer AI products. Cybersecurity claims in this proposal are CJIS-aligned technical controls — not FBI CJIS, SOC 2 Type II, or FedRAMP certification.",
         ),
         (
-            "Currently certified connectors include: Motorola PremierOne, Tyler New World CAD, Hexagon I/CAD, Central Square CAD, and CommandAI. Should KCPD transition to a new CAD platform, Rapid Cortex migrates the integration without a full platform re-deployment, protecting KCPD's investment.",
-            f"The CAD abstraction layer includes adapters for {CAD_ADAPTERS}. KCPD's Motorola PremierOne deployment is a scoped integration project (discovery, sandbox, UAT) — not a checkbox. Should KCPD transition CAD platforms, Rapid Cortex migrates the adapter without a full platform re-deployment. Production write-back remains fail-closed until KCPD UAT.",
+            "Currently certified connectors include: Motorola PremierOne, Tyler New World CAD, Hexagon I/CAD, Central Square CAD, and CommandAI. Should KCPD transition to a new CAD platform, NexCort iQ migrates the integration without a full platform re-deployment, protecting KCPD's investment.",
+            f"The CAD abstraction layer includes adapters for {CAD_ADAPTERS}. KCPD's Motorola PremierOne deployment is a scoped integration project (discovery, sandbox, UAT) — not a checkbox. Should KCPD transition CAD platforms, NexCort iQ migrates the adapter without a full platform re-deployment. Production write-back remains fail-closed until KCPD UAT.",
         ),
         (
-            "Rapid Cortex uses a CAD abstraction layer supporting Motorola PremierOne, Tyler New World, Hexagon CAD, Central Square, and additional platforms. KCPD is not locked in to any single CAD vendor.",
-            f"Rapid Cortex uses a CAD abstraction layer with adapters for {CAD_ADAPTERS}. KCPD is not locked to a single CAD vendor. Live write-back requires write-back flags plus agency UAT.",
+            "NexCort iQ uses a CAD abstraction layer supporting Motorola PremierOne, Tyler New World, Hexagon CAD, Central Square, and additional platforms. KCPD is not locked in to any single CAD vendor.",
+            f"NexCort iQ uses a CAD abstraction layer with adapters for {CAD_ADAPTERS}. KCPD is not locked to a single CAD vendor. Live write-back requires write-back flags plus agency UAT.",
         ),
         (
             "SOC 2 Type II alignment, incident response procedures, security event monitoring, AWS security services integration (GuardDuty, Security Hub, CloudTrail), and contractual security SLAs.",
-            "AWS security services (GuardDuty, Security Hub, CloudTrail, WAF), incident-response procedures, and security-event monitoring. Rapid Cortex documents CJIS-aligned controls; it does not hold SOC 2 Type II, CJIS, or FedRAMP certification.",
+            "AWS security services (GuardDuty, Security Hub, CloudTrail, WAF), incident-response procedures, and security-event monitoring. NexCort iQ documents CJIS-aligned controls; it does not hold SOC 2 Type II, CJIS, or FedRAMP certification.",
         ),
         (
-            "Rapid Cortex operates its platform in alignment with the FBI CJIS Security Policy, Version 5.9. The following summary identifies key compliance elements relevant to KCPD's requirements:",
-            "Rapid Cortex operates with CJIS Security Policy–aligned technical controls (FBI CJIS Security Policy). The following summary identifies key control areas relevant to KCPD. Rapid Cortex does not issue FBI approval; KCPD maps these controls to its CJIS program.",
+            "NexCort iQ operates its platform in alignment with the FBI CJIS Security Policy, Version 5.9. The following summary identifies key compliance elements relevant to KCPD's requirements:",
+            "NexCort iQ operates with CJIS Security Policy–aligned technical controls (FBI CJIS Security Policy). The following summary identifies key control areas relevant to KCPD. NexCort iQ does not issue FBI approval; KCPD maps these controls to its CJIS program.",
         ),
         (
             "AWS GovCloud-compatible architecture; data residency within United States; no CJIS data leaves U.S. jurisdiction.",
             "AWS US-region architecture; data residency within the United States; no KCPD operational data leaves U.S. jurisdiction. GovCloud can be scoped by SOW if KCPD requires it.",
         ),
         (
-            "The following law enforcement and PSAP agency references are provided in support of Bid Line 26 (Vendor Qualifications). KCPD evaluators are welcome to contact any reference directly. All agencies listed operate Rapid Cortex in active production.",
+            "The following law enforcement and PSAP agency references are provided in support of Bid Line 26 (Vendor Qualifications). KCPD evaluators are welcome to contact any reference directly. All agencies listed operate NexCort iQ in active production.",
             "The following law enforcement and PSAP agency references are provided in support of Bid Line 26 (Vendor Qualifications). KCPD evaluators are welcome to contact any reference directly. Contact details are in the Reference Information Sheet submitted separately.",
         ),
         (
-            "Questions: Contact your Rapid Cortex Account Executive",
+            "Questions: Contact your NexCort iQ Account Executive",
             f"Questions: {CONTACT}  |  {EMAIL}  |  {WEB}",
         ),
         # Pricing — original strings
@@ -389,12 +389,12 @@ def update_docx() -> None:
             f"Discovery, mapping, Motorola coordination, sandbox, assisted write-back (human-reviewed), audit logging, rollback, and program management. Year 2+ maintenance {money(CAD_MAINT)}/yr. 35% proposal discount applied.",
         ),
         (
-            "The pricing schedule below maps directly to the 26 bid lines in RFP 2026-0010 Addendum 4. Annual subscription pricing reflects the full KCPD deployment on the Rapid Cortex Command Large T3 plan (51–65 telecommunicator seats). One-time fees are charged at contract execution. Year 2+ recurring reflects ongoing annual costs plus integration maintenance.",
-            f"The pricing schedule below maps directly to the 26 bid lines in RFP 2026-0010 Addendum 4. Annual subscription pricing reflects the full KCPD deployment on Rapid Cortex Command Large T3 (51–65 telecommunicator seats) plus Call Assist. A 35% strategic proposal discount is applied to every priced line. One-time fees are charged at contract execution. Year 2+ recurring reflects ongoing annual costs plus integration maintenance ({money(CAD_MAINT)} CAD + {money(RMS_MAINT)} RMS).",
+            "The pricing schedule below maps directly to the 26 bid lines in RFP 2026-0010 Addendum 4. Annual subscription pricing reflects the full KCPD deployment on the NexCort iQ Command Large T3 plan (51–65 telecommunicator seats). One-time fees are charged at contract execution. Year 2+ recurring reflects ongoing annual costs plus integration maintenance.",
+            f"The pricing schedule below maps directly to the 26 bid lines in RFP 2026-0010 Addendum 4. Annual subscription pricing reflects the full KCPD deployment on NexCort iQ Command Large T3 (51–65 telecommunicator seats) plus Call Assist. A 35% strategic proposal discount is applied to every priced line. One-time fees are charged at contract execution. Year 2+ recurring reflects ongoing annual costs plus integration maintenance ({money(CAD_MAINT)} CAD + {money(RMS_MAINT)} RMS).",
         ),
         (
             "All pricing is in U.S. dollars. Annual subscription rates are locked for 36 months from contract execution. Year 4+ pricing subject to a maximum annual CPI adjustment not to exceed 4%. Pricing does not include travel expenses for onsite services; travel is billed at cost per the travel policy included in the Master Service Agreement.",
-            f"All pricing is in U.S. dollars and reflects a 35% strategic proposal discount from Rapid Cortex list rates. Annual subscription rates are locked for 36 months from contract execution. Year 4+ pricing subject to a maximum annual CPI adjustment not to exceed 4%. Pricing does not include travel expenses for onsite services; travel is billed at cost per the travel policy included in the Master Service Agreement. Contracting entity: {ENTITY}.",
+            f"All pricing is in U.S. dollars and reflects a 35% strategic proposal discount from NexCort iQ list rates. Annual subscription rates are locked for 36 months from contract execution. Year 4+ pricing subject to a maximum annual CPI adjustment not to exceed 4%. Pricing does not include travel expenses for onsite services; travel is billed at cost per the travel policy included in the Master Service Agreement. Contracting entity: {ENTITY}.",
         ),
         (
             "Dedicated KCPD production environment — no resource sharing with other agencies during peak demand.",
@@ -432,7 +432,7 @@ def update_docx() -> None:
             elif label == "Proposed Solution":
                 set_cell_text(
                     row.cells[1],
-                    "Rapid Cortex Command + Call Assist — AI-Assisted Non-Emergency Call Management",
+                    "NexCort iQ Command + Call Assist — AI-Assisted Non-Emergency Call Management",
                 )
 
     # Qualifications table
@@ -445,11 +445,11 @@ def update_docx() -> None:
         updates = {
             "Minimum five years in public safety technology": (
                 f"Addressed — {ENTITY} (Columbus, Georgia) is a public safety technology company. "
-                f"The Rapid Cortex platform and Call Assist module are purpose-built for PSAP operations. "
+                f"The NexCort iQ platform and Call Assist module are purpose-built for PSAP operations. "
                 f"Live scenario demonstration is offered as part of evaluation."
             ),
             "Existing U.S. PSAP customers": (
-                "Addressed — Rapid Cortex will provide law enforcement / PSAP references via the "
+                "Addressed — NexCort iQ will provide law enforcement / PSAP references via the "
                 "Reference Information Sheet. Evaluation includes a live Call Assist demonstration "
                 "against KCPD-style scenarios."
             ),
@@ -464,7 +464,7 @@ def update_docx() -> None:
             ),
             "Proven AI deployments in public safety": (
                 "Addressed — AI-assisted intake, triage, summarization, and fail-closed CAD handoff "
-                "are implemented in the Rapid Cortex / Call Assist platform. Live demonstration uses "
+                "are implemented in the NexCort iQ / Call Assist platform. Live demonstration uses "
                 "the seeded scenario runner against the Safety / Triage / Intake pipeline."
             ),
             "CAD platform agnostic": (
@@ -553,20 +553,20 @@ def update_docx() -> None:
     # Bid Line 4 / 12 vs 13 leftover
     extra = [
         (
-            "Rapid Cortex automatically classifies each incoming call across all 12 categories specified in the RFP, plus additional configurable types:",
-            "Rapid Cortex automatically classifies each incoming call across all 12 categories specified in the RFP, plus additional configurable types:",
+            "NexCort iQ automatically classifies each incoming call across all 12 categories specified in the RFP, plus additional configurable types:",
+            "NexCort iQ automatically classifies each incoming call across all 12 categories specified in the RFP, plus additional configurable types:",
         ),
         (
             "Assisted write-back: AI-populated incident drafts (type, location, notes, priority) are presented to the call taker for one-click confirmation before writing to CAD. Dispatchers retain full control of every CAD entry.",
-            "Assisted write-back: AI-populated incident drafts (type, location, notes, priority) are presented to the call taker for confirmation before writing to CAD. Dispatchers retain full control of every CAD entry. Production write-back is fail-closed until KCPD UAT; Rapid Cortex does not auto-dispatch.",
+            "Assisted write-back: AI-populated incident drafts (type, location, notes, priority) are presented to the call taker for confirmation before writing to CAD. Dispatchers retain full control of every CAD entry. Production write-back is fail-closed until KCPD UAT; NexCort iQ does not auto-dispatch.",
         ),
         (
-            "Rapid Cortex connects to KCPD's non-emergency telephony via Amazon Connect, Rapid Cortex's preferred telephony backbone for PSAP deployments. The integration supports SIP trunk connection to KCPD's existing telephony infrastructure, with ANI/ALI passthrough preserved through the connection. No telephony hardware replacement is required.",
-            "Rapid Cortex connects to KCPD's non-emergency telephony via Amazon Connect. The integration supports SIP trunk connection to KCPD's existing telephony infrastructure, with ANI/ALI passthrough preserved. Call Assist does not replace KCPD's 911 CPE or phone system. No telephony hardware replacement is required.",
+            "NexCort iQ connects to KCPD's non-emergency telephony via Amazon Connect, NexCort iQ's preferred telephony backbone for PSAP deployments. The integration supports SIP trunk connection to KCPD's existing telephony infrastructure, with ANI/ALI passthrough preserved through the connection. No telephony hardware replacement is required.",
+            "NexCort iQ connects to KCPD's non-emergency telephony via Amazon Connect. The integration supports SIP trunk connection to KCPD's existing telephony infrastructure, with ANI/ALI passthrough preserved. Call Assist does not replace KCPD's 911 CPE or phone system. No telephony hardware replacement is required.",
         ),
         (
-            "Rapid Cortex's architecture is designed and operated in alignment with the FBI CJIS Security Policy. Compliance elements include:",
-            "Rapid Cortex is designed with CJIS Security Policy–aligned controls. Control elements include:",
+            "NexCort iQ's architecture is designed and operated in alignment with the FBI CJIS Security Policy. Compliance elements include:",
+            "NexCort iQ is designed with CJIS Security Policy–aligned controls. Control elements include:",
         ),
     ]
     n2 = replace_all(doc, extra)

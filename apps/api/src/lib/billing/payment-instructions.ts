@@ -45,7 +45,7 @@ export function normalizePaymentInstructions(secret: unknown): NormalizedPayment
       "checkMailingAddress",
       "checkMailAddress",
     ),
-    bankContact: pickString(s, "BANK_CONTACT", "bankContact") || "billing@rapidcortex.us",
+    bankContact: pickString(s, "BANK_CONTACT", "bankContact") || "billing@nexcortiq.us",
   };
 }
 

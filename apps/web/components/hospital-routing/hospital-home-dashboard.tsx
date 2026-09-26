@@ -76,7 +76,7 @@ export function HospitalHomeDashboard({
   if (!portalEnabled) {
     return (
       <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-6 text-sm text-slate-300">
-        Hospital portal isn’t enabled for this agency. Contact Rapid Cortex support.
+        Hospital portal isn’t enabled for this agency. Contact NexCort iQ support.
       </div>
     );
   }
@@ -174,7 +174,7 @@ export function HospitalHomeDashboard({
         </section>
       ) : (
         <section className="rounded-lg border border-slate-800 bg-slate-950/40 p-4 text-sm text-slate-400">
-          Regional routing map isn’t enabled for this agency. Contact Rapid Cortex support.
+          Regional routing map isn’t enabled for this agency. Contact NexCort iQ support.
         </section>
       )}
     </div>

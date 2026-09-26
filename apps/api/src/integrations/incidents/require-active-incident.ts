@@ -23,7 +23,7 @@ export type RCIncident = {
   agencyId: string;
   /** Raw status string stored in DynamoDB — normalised to uppercase before comparison. */
   status: string;
-  /** Canonical Rapid Cortex incident geocode (WGS84). */
+  /** Canonical NexCort iQ incident geocode (WGS84). */
   callerLocationLat?: number | null;
   callerLocationLng?: number | null;
   /** Top-level lat when stored flat (preferred for provider-agnostic records). */

@@ -42,7 +42,7 @@ struct EnterTheCortexView: View {
 
     private let statusMessages = [
         "NEURAL LINK ESTABLISHED",
-        "CORTEX ONLINE",
+        "NEXCORT ONLINE",
         "ROUTING...",
     ]
     private var statusColors: [Color] {
@@ -60,16 +60,16 @@ struct EnterTheCortexView: View {
             }
 
             VStack(spacing: 0) {
-                Text("RAPID CORTEX")
+                Text("NEXCORT IQ")
                     .font(.system(size: 10, weight: .medium))
                     .tracking(3.4)
                     .foregroundColor(SplashTheme.eyebrow)
 
-                Text("Enter the")
+                Text("Enter")
                     .font(.system(size: 42, weight: .bold))
                     .foregroundColor(.white)
                     .padding(.top, 18)
-                Text("Cortex")
+                Text("NexCort")
                     .font(.system(size: 42, weight: .bold))
                     .foregroundColor(SplashTheme.red)
 

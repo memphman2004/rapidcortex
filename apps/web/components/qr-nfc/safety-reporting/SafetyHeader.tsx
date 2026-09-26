@@ -28,7 +28,7 @@ export function SafetyHeader({ productLabel }: SafetyHeaderProps) {
         <div className="flex min-w-0 items-center gap-3">
           <Image
             src="/Logo/nowordslogo.png"
-            alt="Rapid Cortex"
+            alt="NexCort iQ"
             width={40}
             height={40}
             className="h-10 w-10 shrink-0 object-contain"

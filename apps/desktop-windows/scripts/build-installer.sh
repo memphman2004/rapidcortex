@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Build Rapid Cortex Windows publish output and compile the Inno Setup installer.
+# Build NexCort iQ Windows publish output and compile the Inno Setup installer.
 # Produces: apps/desktop-windows/dist/RapidCortexSetup.exe (when ISCC is available on Windows).
 #
 # Usage: ./apps/desktop-windows/scripts/build-installer.sh

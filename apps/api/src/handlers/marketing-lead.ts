@@ -201,15 +201,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
   const siteUrl = "https://www.rapidcortex.us";
   const unsubUrl = `${siteUrl}/unsubscribe?token=${unsubscribeToken}`;
-  const sesFrom = env.sesFromEmail || env.contactFromEmail || "noreply@rapidcortex.us";
-  const teamEmail = env.rcTeamNotifyEmail || "team@rapidcortex.us";
+  const sesFrom = env.sesFromEmail || env.contactFromEmail || "noreply@nexcortiq.us";
+  const teamEmail = env.rcTeamNotifyEmail || "team@nexcortiq.us";
 
   if (!env.sesMock && sesFrom) {
     try {
       await ses.send(
         new SendEmailCommand({
           ...sesConfigurationSetFields(),
-          Source: `Rapid Cortex <${sesFrom}>`,
+          Source: `NexCort iQ <${sesFrom}>`,
           Destination: { ToAddresses: [`${firstName} ${lastName} <${emailLower}>`] },
           Message: {
             Subject: { Data: `You're inside the Cortex, ${firstName}.` },
@@ -220,7 +220,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
                   "",
                   "Signal acquired. You're inside the Cortex.",
                   "",
-                  "Rapid Cortex exists for one reason: the people running toward the emergency",
+                  "NexCort iQ exists for one reason: the people running toward the emergency",
 "dispatchers, supervisors, first responders, the whole chain deserves technology",
 "that moves at their speed. Not enterprise software wearing a vest. Not AI that",
 "doesn't understand what's at stake. The actual thing, built for the actual work.",
@@ -232,7 +232,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 "",
 "Welcome to the frequency. We're glad you're receiving us.",
 "",
-"— The Rapid Cortex Team",
+"— The NexCort iQ Team",
 "Intelligence at the speed of response.",
 siteUrl,
 "",
@@ -259,7 +259,7 @@ siteUrl,
       await ses.send(
         new SendEmailCommand({
           ...sesConfigurationSetFields(),
-          Source: `Rapid Cortex <${sesFrom}>`,
+          Source: `NexCort iQ <${sesFrom}>`,
           Destination: { ToAddresses: [teamEmail] },
           Message: {
             Subject: { Data: `New Cortex signup — ${firstName} ${lastName} (${state})` },
@@ -323,7 +323,7 @@ function buildWelcomeEmail({
 <div style="max-width:520px;margin:0 auto;">
 
   <div style="background:#060c1a;border-radius:8px 8px 0 0;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1b2b47;">
-    <span style="font-size:11px;font-weight:600;color:#93c5fd;letter-spacing:0.12em;">RAPID CORTEX</span>
+    <span style="font-size:11px;font-weight:600;color:#93c5fd;letter-spacing:0.12em;">NEXCORT IQ</span>
     <span style="font-size:10px;color:#334466;letter-spacing:0.05em;">Intelligence at the speed of response.</span>
   </div>
 
@@ -335,12 +335,12 @@ function buildWelcomeEmail({
     <p style="font-size:13px;color:#6b83a8;margin:0 0 28px;">Welcome to the response.</p>
     <div style="border-top:1px solid #1b2b47;padding-top:24px;">
       <p style="font-size:14px;color:#a8bdd6;line-height:1.75;margin:0 0 18px;">Hey ${name}, thank you &mdash; genuinely &mdash; for signing up.</p>
-      <p style="font-size:14px;color:#a8bdd6;line-height:1.75;margin:0 0 18px;">We started Rapid Cortex because we believe the people who protect communities deserve technology that&apos;s actually built for them. Not retrofitted from enterprise software. Not watered down. Purpose-built for the speed and stakes of emergency response.</p>
+      <p style="font-size:14px;color:#a8bdd6;line-height:1.75;margin:0 0 18px;">We started NexCort iQ because we believe the people who protect communities deserve technology that&apos;s actually built for them. Not retrofitted from enterprise software. Not watered down. Purpose-built for the speed and stakes of emergency response.</p>
       <p style="font-size:14px;color:#a8bdd6;line-height:1.75;margin:0 0 18px;">Every signup like yours tells us this work matters. <strong style="color:#dce6f5;font-weight:500;">Inside the Cortex</strong> is how we stay connected &mdash; real updates, real progress, honest insight from the people building the platform. You&apos;ll hear from us when we have something worth saying.</p>
       <p style="font-size:14px;color:#dce6f5;line-height:1.75;margin:0 0 28px;font-weight:500;">Thank you for being here. We won&apos;t let you down.</p>
       <div style="background:#0f1e38;border:1px solid #1b2b47;border-radius:8px;padding:16px 20px;">
         <p style="font-size:12px;color:#6b83a8;margin:0 0 4px;">FROM</p>
-        <p style="font-size:14px;color:#dce6f5;margin:0 0 4px;font-weight:500;">The Rapid Cortex Team</p>
+        <p style="font-size:14px;color:#dce6f5;margin:0 0 4px;font-weight:500;">The NexCort iQ Team</p>
         <a href="${siteUrl}" style="font-size:12px;color:#3b82f6;text-decoration:none;">${siteUrl}</a>
       </div>
     </div>

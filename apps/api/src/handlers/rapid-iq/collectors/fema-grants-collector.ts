@@ -202,7 +202,7 @@ export async function runFemaGrantsCollector(): Promise<{ signalsFound: number }
           `FEMA ${grant.programName} approved funding for "${grant.projectTitle}" to ${grant.recipientName} in ${grant.recipientCity}, ${grant.recipientState}.`,
           `Federal share obligated: $${Number(grant.federalShareObligated || 0).toLocaleString()} (approved ${grant.dateApproved || "n/a"}).`,
           `Project description: ${grant.projectDescription || "emergency communications / public safety infrastructure"}.`,
-          `Rapid Cortex Core aligns with funded PSAP and emergency-communications modernization — engage while award funds are being obligated.`,
+          `NexCort iQ Core aligns with funded PSAP and emergency-communications modernization — engage while award funds are being obligated.`,
         ].join(" ");
       }
 

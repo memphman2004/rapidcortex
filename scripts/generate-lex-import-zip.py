@@ -273,7 +273,7 @@ def build_tree() -> Path:
         {
             "name": bot_name,
             "identifier": "IJIBJOJG2L",
-            "description": "Rapid Cortex non-emergency conversational AI. Multi-tenant. Safety gate is Lambda, not NLU.",
+            "description": "NexCort iQ non-emergency conversational AI. Multi-tenant. Safety gate is Lambda, not NLU.",
             "dataPrivacy": {"childDirected": False},
             "idleSessionTTLInSeconds": 300,
         },

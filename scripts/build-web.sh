@@ -4,6 +4,6 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-echo "Building Rapid Cortex web app workspace…"
+echo "Building NexCort iQ web app workspace…"
 npm run build -w rapid-cortex-web
 echo "✓ Web build complete"

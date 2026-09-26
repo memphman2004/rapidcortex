@@ -78,7 +78,7 @@ export class MockIntegrationHealthAdapter implements IntegrationHealthAdapter {
   async getSnapshot(): Promise<ConnectorHealthSnapshot[]> {
     const at = new Date().toISOString();
     return [
-      { connectorId: "api", label: "Rapid Cortex API", health: "up", checkedAt: at },
+      { connectorId: "api", label: "NexCort iQ API", health: "up", checkedAt: at },
       { connectorId: "audio", label: "Audio ingest", health: "planned", checkedAt: at },
       { connectorId: "transcript_stream", label: "Live transcript", health: "planned", checkedAt: at },
       { connectorId: "cad", label: "CAD / RMS", health: "planned", checkedAt: at },

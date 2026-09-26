@@ -69,7 +69,7 @@ function cameraAiNavItem(href: string): NavItem {
 function rcTranslateNavItem(href: string, feature: string, badge?: NavBadge): NavItem {
   return {
     id: "translate",
-    label: "RC Translate",
+    label: "Translate",
     href,
     icon: "Languages",
     feature,
@@ -86,6 +86,32 @@ function rcCallAssistNavItem(): NavItem {
     icon: "PhoneIncoming",
     feature: "callAssist",
     exact: true,
+  };
+}
+
+function staffGuideNavItem(href: string): NavItem {
+  return {
+    id: "staff-guide",
+    label: "Staff Guide",
+    href,
+    icon: "GraduationCap",
+    feature: "staffGuide",
+  };
+}
+
+/** Campus, venue, and transit knowledge base — not the 911 Help tab. */
+function appendStaffGuideNav(nav: RoleNav, href: string): RoleNav {
+  if (nav.sections.some((section) => section.id === "staff-resources")) return nav;
+  return {
+    ...nav,
+    sections: [
+      ...nav.sections,
+      {
+        id: "staff-resources",
+        label: "STAFF RESOURCES",
+        items: [staffGuideNavItem(href)],
+      },
+    ],
   };
 }
 
@@ -144,10 +170,12 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       id: "sales-crm",
       label: "SALES & CRM",
       items: [
+        { id: "sales-portal", label: "Sales Portal", href: "/sales", icon: "Briefcase" },
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
+        { id: "signal-feed", label: "Signal Feed", href: "/rc-admin/signal-feed", icon: "Activity", feature: "salesLeads" },
         { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
         { id: "contacts", label: "Contacts", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
-        { id: "rapid-iq", label: "Rapid IQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
+        { id: "rapid-iq", label: "NexiQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
         { id: "sales-automation", label: "Email Campaigns", href: "/rc-admin/sales-automation", icon: "Mail", feature: "salesAutomation" },
         { id: "conferences", label: "Conferences", href: "/rc-admin/conferences", icon: "CalendarDays", feature: "conferences" },
       ],
@@ -162,6 +190,7 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
         { id: "automated-invoices", label: "Monthly invoices", href: "/rc-admin/automated-invoices", icon: "CalendarClock", feature: "automatedInvoices" },
         { id: "agreements",label: "Agreements",        href: "/rc-admin/agreements",    icon: "FileSignature" },
         { id: "catalog",   label: "Service Catalog",   href: "/rc-admin/billing/services", icon: "Package" },
+        { id: "loadout", label: "Loadout Portal", href: "/loadout/dashboard", icon: "KeyRound", feature: "loadout" },
       ],
     },
     {
@@ -214,28 +243,35 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
         {
           id: "onboarding-campus-intake",
           label: "Campus Intake",
-          href: "/onboarding/campus/intake",
+          href: "/rc-admin/onboarding/campus/intake",
           icon: "ClipboardList",
           feature: "verticalOnboarding",
         },
         {
           id: "onboarding-campus-integrations",
           label: "Campus Integrations",
-          href: "/onboarding/campus/integrations",
+          href: "/rc-admin/onboarding/campus/integrations",
           icon: "Plug",
           feature: "verticalOnboarding",
         },
         {
           id: "onboarding-venue-intake",
           label: "Venue Intake",
-          href: "/onboarding/venue/intake",
+          href: "/rc-admin/onboarding/venue/intake",
+          icon: "ClipboardList",
+          feature: "verticalOnboarding",
+        },
+        {
+          id: "onboarding-transit-intake",
+          label: "Transit Intake",
+          href: "/rc-admin/onboarding/transit/intake",
           icon: "ClipboardList",
           feature: "verticalOnboarding",
         },
         {
           id: "onboarding-checklist",
           label: "Onboarding Checklist",
-          href: "/onboarding/checklist/campus",
+          href: "/rc-admin/onboarding/checklist/campus",
           icon: "ListChecks",
           feature: "verticalOnboarding",
         },
@@ -249,6 +285,93 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
         { id: "audit",     label: "Audit Log",         href: "/rc-admin/audit",         icon: "ScrollText" },
         { id: "reports",   label: "Reports",           href: "/rc-admin/usage",         icon: "BarChart3" },
         { id: "settings",  label: "Settings",          href: "/rc-admin/operations",    icon: "Settings" },
+      ],
+    },
+  ],
+};
+
+export const SALES_CONTRACTOR_NAV: RoleNav = {
+  accent: "sky",
+  roleBadge: "SALES",
+  sections: [
+    {
+      id: "home",
+      label: "SALES PORTAL",
+      items: [
+        { id: "sales-home", label: "Sales Portal", href: "/sales", icon: "Briefcase", exact: true },
+        {
+          id: "deployments-map",
+          label: "Deployment Maps",
+          href: "/rc-admin/deployments-map",
+          icon: "Map",
+          feature: "deploymentsMap",
+        },
+        { id: "leads", label: "Leads", href: "/rc-admin/leads", icon: "Inbox", feature: "salesLeads" },
+        {
+          id: "signal-feed",
+          label: "Signal Feed",
+          href: "/rc-admin/signal-feed",
+          icon: "Activity",
+          feature: "salesLeads",
+        },
+        {
+          id: "psap-prospects",
+          label: "PSAP Prospects",
+          href: "/rc-admin/psap-prospects",
+          icon: "RadioTower",
+          feature: "psapProspects",
+        },
+        {
+          id: "contacts",
+          label: "Contacts",
+          href: "/rc-admin/contacts",
+          icon: "Users",
+          feature: "contactsModule",
+        },
+        { id: "rapid-iq", label: "Nex iQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
+        {
+          id: "conferences",
+          label: "Conferences",
+          href: "/rc-admin/conferences",
+          icon: "CalendarDays",
+          feature: "conferences",
+        },
+      ],
+    },
+    {
+      id: "catalog",
+      label: "CATALOGS",
+      items: [
+        {
+          id: "pricing-catalog",
+          label: "Pricing Catalog",
+          href: "/sales/pricing-catalog",
+          icon: "Tag",
+          badge: { type: "label", text: "FEATURES", color: "slate" },
+        },
+        {
+          id: "service-catalog",
+          label: "Service Catalog",
+          href: "/sales/service-catalog",
+          icon: "Package",
+          badge: { type: "label", text: "NO PRICES", color: "slate" },
+        },
+      ],
+    },
+    {
+      id: "ops",
+      label: "PLATFORM",
+      items: [
+        { id: "notices", label: "Platform Notices", href: "/rc-admin/support", icon: "Megaphone" },
+        { id: "grants", label: "Grants", href: "/rc-admin/grants", icon: "ShieldCheck" },
+        {
+          id: "onboarding-packets",
+          label: "Onboarding Packets",
+          href: "/rc-admin/onboarding/packets",
+          icon: "ClipboardList",
+          feature: "verticalOnboarding",
+        },
+        { id: "system-health", label: "System Health", href: "/rc-admin/system-health", icon: "Activity" },
       ],
     },
   ],
@@ -297,10 +420,12 @@ export const RC_ADMIN_NAV: RoleNav = {
       id: "sales-crm",
       label: "SALES & CRM",
       items: [
+        { id: "sales-portal", label: "Sales Portal", href: "/sales", icon: "Briefcase" },
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
+        { id: "signal-feed", label: "Signal Feed", href: "/rc-admin/signal-feed", icon: "Activity", feature: "salesLeads" },
         { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
         { id: "contacts", label: "Contacts", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
-        { id: "rapid-iq", label: "Rapid IQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
+        { id: "rapid-iq", label: "NexiQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
         { id: "sales-automation", label: "Email Campaigns", href: "/rc-admin/sales-automation", icon: "Mail", feature: "salesAutomation" },
         { id: "conferences", label: "Conferences", href: "/rc-admin/conferences", icon: "CalendarDays", feature: "conferences" },
       ],
@@ -321,6 +446,7 @@ export const RC_ADMIN_NAV: RoleNav = {
         { id: "automated-invoices", label: "Monthly invoices", href: "/rc-admin/automated-invoices", icon: "CalendarClock", feature: "automatedInvoices" },
         { id: "agreements",label: "Agreements",        href: "/rc-admin/agreements",    icon: "FileSignature" },
         { id: "catalog",   label: "Service Catalog",   href: "/rc-admin/billing/services", icon: "Package" },
+        { id: "loadout", label: "Loadout Portal", href: "/loadout/dashboard", icon: "KeyRound", feature: "loadout" },
       ],
     },
     {
@@ -368,28 +494,35 @@ export const RC_ADMIN_NAV: RoleNav = {
           {
             id: "onboarding-campus-intake",
             label: "Campus Intake",
-            href: "/onboarding/campus/intake",
+            href: "/rc-admin/onboarding/campus/intake",
             icon: "ClipboardList",
             feature: "verticalOnboarding",
           },
           {
             id: "onboarding-campus-integrations",
             label: "Campus Integrations",
-            href: "/onboarding/campus/integrations",
+            href: "/rc-admin/onboarding/campus/integrations",
             icon: "Plug",
             feature: "verticalOnboarding",
           },
         {
           id: "onboarding-venue-intake",
           label: "Venue Intake",
-          href: "/onboarding/venue/intake",
+          href: "/rc-admin/onboarding/venue/intake",
+          icon: "ClipboardList",
+          feature: "verticalOnboarding",
+        },
+        {
+          id: "onboarding-transit-intake",
+          label: "Transit Intake",
+          href: "/rc-admin/onboarding/transit/intake",
           icon: "ClipboardList",
           feature: "verticalOnboarding",
         },
         {
           id: "onboarding-checklist",
           label: "Onboarding Checklist",
-          href: "/onboarding/checklist/campus",
+          href: "/rc-admin/onboarding/checklist/campus",
           icon: "ListChecks",
           feature: "verticalOnboarding",
         },
@@ -509,14 +642,18 @@ export function getDispatcherNav(jurisdiction: string): RoleNav {
             feature: "rcs" },
           { id: "cad-connector", label: "CAD Connector",   href: `${j}/cad/incidents`,  icon: "Radio",
             feature: "cadConnector" },
-          { id: "cad-bridge",    label: "CAD Bridge",      href: `${j}/admin/cad/bridge`, icon: "ArrowLeftRight",
-            feature: "cadBridge" },
-          { id: "c2c-hub",       label: "C2C Hub",         href: `${j}/admin/cad/c2c`, icon: "Share2",
-            feature: "c2cHub" },
           { id: "history",       label: "History",         href: `${j}/history`,        icon: "Clock" },
           { id: "media",         label: "Media",           href: `${j}/media`,          icon: "Video" },
-          { id: "rapid-vision",  label: "Rapid Vision™",   href: `${j}/media?vision=1`, icon: "Eye",
+          { id: "rapid-vision",  label: "NexiQ Vision™",   href: `${j}/media?vision=1`, icon: "Eye",
             feature: "rapidVision" },
+          { id: "mutual-aid",    label: "Mutual Aid",      href: `${j}/operations/mutual-aid`, icon: "Radio",
+            feature: "featuresSuite" },
+          { id: "mci-command",   label: "MCI Command",     href: `${j}/operations/mci`, icon: "AlertTriangle",
+            feature: "featuresSuite" },
+          { id: "check-in",      label: "Responder Safety", href: `${j}/operations/check-in`, icon: "Shield",
+            feature: "featuresSuite" },
+          { id: "evidence",      label: "Evidence",        href: `${j}/evidence`, icon: "FileText",
+            feature: "featuresSuite" },
         ],
       },
     ],
@@ -547,10 +684,14 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
             feature: "cadWriteback" },
           { id: "cad-connector", label: "CAD Connector",   href: `${j}/cad/incidents`,      icon: "Radio",
             feature: "cadConnector" },
-          { id: "cad-bridge",    label: "CAD Bridge",      href: `${j}/admin/cad/bridge`, icon: "ArrowLeftRight",
-            feature: "cadBridge" },
-          { id: "c2c-hub",       label: "C2C Hub",         href: `${j}/admin/cad/c2c`, icon: "Share2",
-            feature: "c2cHub" },
+          { id: "mutual-aid",    label: "Mutual Aid",      href: `${j}/operations/mutual-aid`, icon: "Radio",
+            feature: "featuresSuite" },
+          { id: "mci-command",   label: "MCI Command",     href: `${j}/operations/mci`, icon: "AlertTriangle",
+            feature: "featuresSuite" },
+          { id: "check-in",      label: "Responder Safety", href: `${j}/operations/check-in`, icon: "Shield",
+            feature: "featuresSuite" },
+          { id: "evidence",      label: "Evidence",        href: `${j}/evidence`, icon: "FileText",
+            feature: "featuresSuite" },
         ],
       },
       {
@@ -569,6 +710,14 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
           cameraAiNavItem(`${j}/supervisor/vision-ai`),
           { id: "ng911-metrics", label: "NG9-1-1 Metrics", href: `${j}/admin/ng911/metrics`, icon: "BarChart3",
             feature: "ng911Assist" },
+          { id: "learning",      label: "Learning Engine", href: `${j}/supervisor/learning`, icon: "Activity",
+            feature: "featuresSuite" },
+          { id: "event-prep",    label: "Event Prep",      href: `${j}/supervisor/events`, icon: "Calendar",
+            feature: "featuresSuite" },
+          { id: "social",        label: "Social Awareness", href: `${j}/supervisor/social`, icon: "Globe",
+            feature: "featuresSuite" },
+          { id: "language-access", label: "Language Access", href: `${j}/reports/language-access`, icon: "Globe",
+            feature: "featuresSuite" },
         ],
       },
       {
@@ -636,6 +785,18 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
             feature: "cadBridge" },
           { id: "c2c-hub",       label: "C2C Hub",         href: `${j}/admin/cad/c2c`, icon: "Share2",
             feature: "c2cHub" },
+          { id: "cad-mesh",      label: "Agency Network", href: `${j}/admin/cad/mesh`, icon: "Network",
+            feature: "cadMesh" },
+          { id: "citizen-registry", label: "Citizen Registry", href: `${j}/settings/citizen-registry`, icon: "Users",
+            feature: "featuresSuite" },
+          { id: "address-intel", label: "Address Intel", href: `${j}/settings/address-intelligence`, icon: "MapPin",
+            feature: "featuresSuite" },
+          { id: "alt-response",  label: "Alt Response", href: `${j}/settings/alt-response`, icon: "Zap",
+            feature: "featuresSuite" },
+          { id: "infrastructure", label: "Infrastructure", href: `${j}/settings/infrastructure`, icon: "Building2",
+            feature: "featuresSuite" },
+          { id: "assessments",   label: "Pre-Hire", href: `${j}/settings/assessments`, icon: "CheckCircle",
+            feature: "featuresSuite" },
           { id: "compliance",    label: "Compliance",      href: `${j}/admin/retention`,   icon: "Scale" },
           { id: "settings",      label: "Settings",        href: `${j}/admin/settings`,     icon: "Settings" },
           { id: "vision-ai",     label: "Camera AI monitoring", href: `${j}/admin/vision-ai`, icon: "Eye",
@@ -660,6 +821,7 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
           { id: "subscription",  label: "Subscription",    href: `${j}/admin/billing`,      icon: "CreditCard" },
           { id: "invoices",      label: "Invoices",        href: `${j}/admin/billing/invoices`, icon: "Receipt" },
           { id: "automated-invoices", label: "Monthly invoices", href: `${j}/admin/billing/automated-invoices`, icon: "CalendarClock", feature: "automatedInvoices" },
+          { id: "loadout", label: "Loadout Portal", href: "/loadout/dashboard", icon: "Package", feature: "loadout" },
         ],
       },
       {
@@ -710,6 +872,8 @@ export function getAgencyItNav(jurisdiction: string): RoleNav {
             feature: "cadBridge" },
           { id: "c2c-hub",       label: "C2C Hub",         href: `${j}/admin/cad/c2c`, icon: "Share2",
             feature: "c2cHub" },
+          { id: "cad-mesh",      label: "Agency Network", href: `${j}/admin/cad/mesh`, icon: "Network",
+            feature: "cadMesh" },
           { id: "channels",      label: "Channels & Talk Groups", href: `${j}/admin/settings/channels`, icon: "Radio",
             feature: "channelMonitoring" },
           { id: "api-keys",      label: "API Keys",        href: `${j}/admin/api-keys`,     icon: "Key" },
@@ -755,6 +919,13 @@ export function getAgencyItNav(jurisdiction: string): RoleNav {
             id: "onboarding-intake-venue",
             label: "Venue Onboarding",
             href: "/onboarding/venue/intake",
+            icon: "ClipboardList",
+            feature: "verticalOnboarding",
+          },
+          {
+            id: "onboarding-intake-transit",
+            label: "Transit Onboarding",
+            href: "/onboarding/transit/intake",
             icon: "ClipboardList",
             feature: "verticalOnboarding",
           },
@@ -890,6 +1061,13 @@ export function getCampusAdminNav(code: string): RoleNav {
             href: `${base}/alerts`,
             icon: "Megaphone",
             feature: "verticalAlerts",
+          },
+          {
+            id: "ens-tests",
+            label: "ENS Test Program",
+            href: `${base}/alerts/ens-tests`,
+            icon: "CalendarClock",
+            feature: "ensTestProgram",
           },
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,         icon: "Camera" },
           cameraAiNavItem(`${base}/vision-ai`),
@@ -1036,6 +1214,13 @@ export function getCampusSupervisorNav(code: string): RoleNav {
             href: `${base}/alerts`,
             icon: "Megaphone",
             feature: "verticalAlerts",
+          },
+          {
+            id: "ens-tests",
+            label: "ENS Test Program",
+            href: `${base}/alerts/ens-tests`,
+            icon: "CalendarClock",
+            feature: "ensTestProgram",
           },
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,         icon: "Camera" },
           cameraAiNavItem(`${base}/vision-ai`),
@@ -1321,6 +1506,13 @@ export function getVenueAdminNav(code: string): RoleNav {
             icon: "Megaphone",
             feature: "verticalAlerts",
           },
+          {
+            id: "ens-tests",
+            label: "ENS Test Program",
+            href: `${base}/alerts/ens-tests`,
+            icon: "CalendarClock",
+            feature: "ensTestProgram",
+          },
           { id: "guest",       label: "Guest Reports",     href: `${base}/reports`,          icon: "MessageSquare",
             badge: { type: "count", key: "openGuestReports" } },
           { id: "staff",       label: "Staff",             href: `${base}/staff`,            icon: "Users" },
@@ -1391,6 +1583,13 @@ export function getVenueSupervisorNav(code: string): RoleNav {
             href: `${base}/alerts`,
             icon: "Megaphone",
             feature: "verticalAlerts",
+          },
+          {
+            id: "ens-tests",
+            label: "ENS Test Program",
+            href: `${base}/alerts/ens-tests`,
+            icon: "CalendarClock",
+            feature: "ensTestProgram",
           },
           { id: "guest",       label: "Guest Reports",     href: `${base}/reports`,          icon: "MessageSquare",
             badge: { type: "count", key: "openGuestReports" } },
@@ -1518,6 +1717,13 @@ export function getTransitAdminNav(code: string): RoleNav {
             label: "Onboarding packet",
             href: "/onboarding/packets",
             icon: "FolderOpen",
+            feature: "verticalOnboarding",
+          },
+          {
+            id: "onboarding-intake",
+            label: "Onboarding Intake",
+            href: `/onboarding/transit/intake?orgCode=${encodeURIComponent(code)}`,
+            icon: "ClipboardList",
             feature: "verticalOnboarding",
           },
         ],
@@ -1700,10 +1906,11 @@ export function getRoleNav(role: string, ctx: NavContext): RoleNav {
   const resolved = resolveNavRole(role);
 
   switch (resolved) {
-    // RC Internal
+    // NexCort Internal
     case "rcsuperadmin":        return RC_SUPERADMIN_NAV;
     case "rcadmin":             return RC_ADMIN_NAV;
     case "rcitadmin":           return RC_IT_ADMIN_NAV;
+    case "salescontractor":     return SALES_CONTRACTOR_NAV;
     // PSAP
     case "dispatcher":          return getDispatcherNav(j);
     case "supervisor":          return getSupervisorNav(j);
@@ -1712,26 +1919,26 @@ export function getRoleNav(role: string, ctx: NavContext): RoleNav {
     case "analyst":             return getAnalystNav(j);
     case "auditor":             return getAuditorNav(j);
     // Campus
-    case "CAMPUS_ADMIN":        return getCampusAdminNav(c);
-    case "CAMPUS_SUPERVISOR":   return getCampusSupervisorNav(c);
-    case "CAMPUS_SECURITY":     return getCampusSecurityNav(c);
-    case "CAMPUS_DISPATCH":     return getCampusDispatchNav(c);
-    case "CAMPUS_COUNSELOR":    return getCampusCounselorNav(c);
-    case "CAMPUS_FACULTY":      return getCampusFacultyNav(c);
+    case "CAMPUS_ADMIN":        return appendStaffGuideNav(getCampusAdminNav(c), `/app/campus/${c}/staff-guide`);
+    case "CAMPUS_SUPERVISOR":   return appendStaffGuideNav(getCampusSupervisorNav(c), `/app/campus/${c}/staff-guide`);
+    case "CAMPUS_SECURITY":     return appendStaffGuideNav(getCampusSecurityNav(c), `/app/campus/${c}/staff-guide`);
+    case "CAMPUS_DISPATCH":     return appendStaffGuideNav(getCampusDispatchNav(c), `/app/campus/${c}/staff-guide`);
+    case "CAMPUS_COUNSELOR":    return appendStaffGuideNav(getCampusCounselorNav(c), `/app/campus/${c}/staff-guide`);
+    case "CAMPUS_FACULTY":      return appendStaffGuideNav(getCampusFacultyNav(c), `/app/campus/${c}/staff-guide`);
     // Hospital
     case "HOSPITAL_ADMIN":      return HOSPITAL_ADMIN_NAV;
     case "HOSPITAL_COORDINATOR":return HOSPITAL_COORDINATOR_NAV;
     case "HOSPITAL_STAFF":      return HOSPITAL_STAFF_NAV;
     // Venue
-    case "VENUE_ADMIN":         return getVenueAdminNav(v);
-    case "VENUE_SUPERVISOR":    return getVenueSupervisorNav(v);
-    case "VENUE_SECURITY":      return getVenueSecurityNav(v);
-    case "VENUE_OPERATOR":      return getVenueOperatorNav(v);
-    case "VENUE_GUEST_SERVICES":return getVenueGuestServicesNav(v);
-    case "TRANSIT_ADMIN":       return getTransitAdminNav(t);
-    case "TRANSIT_SUPERVISOR":  return getTransitSupervisorNav(t);
-    case "TRANSIT_SECURITY":    return getTransitSecurityNav(t);
-    case "TRANSIT_OPERATOR":    return getTransitOperatorNav(t);
+    case "VENUE_ADMIN":         return appendStaffGuideNav(getVenueAdminNav(v), `/app/venue/${v}/staff-guide`);
+    case "VENUE_SUPERVISOR":    return appendStaffGuideNav(getVenueSupervisorNav(v), `/app/venue/${v}/staff-guide`);
+    case "VENUE_SECURITY":      return appendStaffGuideNav(getVenueSecurityNav(v), `/app/venue/${v}/staff-guide`);
+    case "VENUE_OPERATOR":      return appendStaffGuideNav(getVenueOperatorNav(v), `/app/venue/${v}/staff-guide`);
+    case "VENUE_GUEST_SERVICES":return appendStaffGuideNav(getVenueGuestServicesNav(v), `/app/venue/${v}/staff-guide`);
+    case "TRANSIT_ADMIN":       return appendStaffGuideNav(getTransitAdminNav(t), `/transit/${t}/staff-guide`);
+    case "TRANSIT_SUPERVISOR":  return appendStaffGuideNav(getTransitSupervisorNav(t), `/transit/${t}/staff-guide`);
+    case "TRANSIT_SECURITY":    return appendStaffGuideNav(getTransitSecurityNav(t), `/transit/${t}/staff-guide`);
+    case "TRANSIT_OPERATOR":    return appendStaffGuideNav(getTransitOperatorNav(t), `/transit/${t}/staff-guide`);
     case "CALL_ASSIST_ADMIN":   return getCallAssistAdminNav();
     case "CALL_ASSIST_SUPERVISOR": return getCallAssistSupervisorNav();
     case "CALL_ASSIST_OPERATOR": return getCallAssistOperatorNav();

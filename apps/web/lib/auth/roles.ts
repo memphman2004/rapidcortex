@@ -12,7 +12,7 @@ function effectiveRole(role: UserRole | string): string {
   return migrateLegacyRapidCortexRoleTokenValue(String(role).trim()) ?? String(role).trim();
 }
 
-/** RC Admin dashboard access (all platform roles). */
+/** NexCort Admin dashboard access (all platform roles). */
 export function isPlatformAdmin(role: UserRole | string): boolean {
   return isRcInternalOperator(role);
 }

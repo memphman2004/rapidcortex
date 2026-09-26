@@ -49,7 +49,7 @@ if [[ -z "${current}" ]]; then
   exit 1
 fi
 if [[ "${current}" != "${RAPID_CORTEX_AWS_ACCOUNT_ID}" ]]; then
-  echo "ERROR: Admin credentials must target Rapid Cortex prod account ${RAPID_CORTEX_AWS_ACCOUNT_ID} (current: ${current})." >&2
+  echo "ERROR: Admin credentials must target NexCort iQ prod account ${RAPID_CORTEX_AWS_ACCOUNT_ID} (current: ${current})." >&2
   echo "Set ADMIN_AWS_PROFILE to an IAM user/role in account ${RAPID_CORTEX_AWS_ACCOUNT_ID}." >&2
   exit 1
 fi

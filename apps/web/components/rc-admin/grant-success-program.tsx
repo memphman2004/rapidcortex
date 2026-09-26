@@ -388,7 +388,7 @@ export function GrantSuccessProgram() {
                   <input
                     value={form.agencyCity}
                     onChange={(e) => set("agencyCity", e.target.value)}
-                    placeholder="e.g. Rapid Cortex"
+                    placeholder="e.g. NexCort iQ"
                     className={input}
                   />
                 </F>
@@ -510,7 +510,7 @@ export function GrantSuccessProgram() {
           <>
             <Section
               title="Project details"
-              subtitle="Describe what Rapid Cortex capabilities are being requested and why"
+              subtitle="Describe what NexCort iQ capabilities are being requested and why"
             >
               <div className="grid gap-4">
                 <F l="Project title">
@@ -568,7 +568,7 @@ export function GrantSuccessProgram() {
             </Section>
 
             <Section
-              title="Rapid Cortex modules being requested"
+              title="NexCort iQ modules being requested"
               subtitle="Select all modules included in this grant request"
             >
               <div className="grid grid-cols-2 gap-2">
@@ -650,7 +650,7 @@ export function GrantSuccessProgram() {
 
             <Section title="Project details">
               <ReviewRow label="Project title" value={form.projectTitle} />
-              <ReviewRow label="RC modules" value={form.rcModules.join(", ")} />
+              <ReviewRow label="product modules" value={form.rcModules.join(", ")} />
               <ReviewRow label="Existing technology" value={form.existingTechnology} />
               <ReviewRow label="Staffing challenge" value={form.staffingChallenge} />
             </Section>

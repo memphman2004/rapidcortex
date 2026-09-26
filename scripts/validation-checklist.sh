@@ -2,7 +2,7 @@
 set -euo pipefail
 
 echo "========================================="
-echo "RAPID CORTEX VALIDATION CHECKLIST"
+echo "NEXCORT IQ VALIDATION CHECKLIST"
 echo "========================================="
 echo "Date: $(date)"
 echo "Environment: ${STAGE:-staging}"

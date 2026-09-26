@@ -2,7 +2,7 @@ using Microsoft.Web.WebView2.Core;
 
 namespace RapidCortex.Desktop.Services;
 
-/// <summary>Injects Rapid Cortex session cookies and navigates within the embedded web workspace (mirrors macOS WKWebView shell).</summary>
+/// <summary>Injects NexCort iQ session cookies and navigates within the embedded web workspace (mirrors macOS WKWebView shell).</summary>
 public static class WorkspaceWebShellHost
 {
     private const string CookieIdToken = "rc_id_token";

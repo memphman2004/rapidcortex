@@ -1,4 +1,4 @@
-# RC Lite TypeScript SDK (scaffold)
+# NC Lite TypeScript SDK (scaffold)
 
 This directory will host a generated client from `docs/openapi/rc-lite-v1.openapi.yaml`.
 

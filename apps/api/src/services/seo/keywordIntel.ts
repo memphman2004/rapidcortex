@@ -77,7 +77,7 @@ export function buildKeywordSuggestions(
   placements: KeywordPlacement[],
 ): KeywordSuggestions {
   const primary = placements[0]?.keyword ?? "your primary keyword";
-  const brand = "Rapid Cortex";
+  const brand = "NexCort iQ";
   return {
     titleOptions: [
       `${primary} | ${brand}`,

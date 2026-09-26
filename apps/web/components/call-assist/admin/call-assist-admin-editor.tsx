@@ -848,7 +848,7 @@ function TaxonomyTable({
             <tr key={row.id} className="border-t border-slate-800">
               <td className="px-3 py-2">
                 {row.isEmergency ? (
-                  <span title="Emergency types are managed by Rapid Cortex and cannot be disabled.">
+                  <span title="Emergency types are managed by NexCort iQ and cannot be disabled.">
                     🔒 {row.label}
                   </span>
                 ) : (
@@ -970,7 +970,7 @@ function TaxonomyTable({
         </button>
       </div>
       <p className="mx-3 mb-3 text-[11px] text-slate-500">
-        Emergency types are managed by Rapid Cortex and cannot be disabled.
+        Emergency types are managed by NexCort iQ and cannot be disabled.
       </p>
     </div>
   );

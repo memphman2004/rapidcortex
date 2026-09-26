@@ -218,7 +218,7 @@ export class PsapProspectRepository {
   }
 
   async mapPins(): Promise<PsapMapPin[]> {
-    const items = await this.scanAll();
+    const items = await this.scanAllMapPinFields();
     return items
       .filter((p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude))
       .map((p) => ({
@@ -228,7 +228,57 @@ export class PsapProspectRepository {
         status: p.outreachStatus,
         psapName: p.psapName,
         state: p.state,
+        city: p.city,
+        county: p.county,
+        phone: p.phone,
       }));
+  }
+
+  /** Lean scan for map overlays — avoids pulling notes/contacts blobs. */
+  private async scanAllMapPinFields(): Promise<
+    Array<
+      Pick<
+        PsapProspect,
+        | "psapId"
+        | "latitude"
+        | "longitude"
+        | "outreachStatus"
+        | "psapName"
+        | "state"
+        | "city"
+        | "county"
+        | "phone"
+      >
+    >
+  > {
+    type PinRow = Pick<
+      PsapProspect,
+      | "psapId"
+      | "latitude"
+      | "longitude"
+      | "outreachStatus"
+      | "psapName"
+      | "state"
+      | "city"
+      | "county"
+      | "phone"
+    >;
+    const out: PinRow[] = [];
+    let ExclusiveStartKey: Record<string, unknown> | undefined;
+    do {
+      const r = await ddb.send(
+        new ScanCommand({
+          TableName: table(),
+          ExclusiveStartKey,
+          ProjectionExpression:
+            "psapId, psapName, #st, city, county, phone, latitude, longitude, outreachStatus",
+          ExpressionAttributeNames: { "#st": "state" },
+        }),
+      );
+      out.push(...((r.Items as PinRow[]) ?? []));
+      ExclusiveStartKey = r.LastEvaluatedKey as Record<string, unknown> | undefined;
+    } while (ExclusiveStartKey);
+    return out;
   }
 
   async patch(

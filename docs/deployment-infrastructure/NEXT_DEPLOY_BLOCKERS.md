@@ -51,7 +51,7 @@
 | ID | Area | Blocker | Why it matters | Required fix | Evidence needed | Owner | Status | Priority |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | PLT-001 | Governance | SOW / pilot agreement not confirmed | No authority to run live agency work | Execute agreement ([PILOT_GOVERNANCE.md](./PILOT_GOVERNANCE.md)) | Signed SOW or counsel email | NEEDS OWNER | NOT STARTED | P0 |
-| PLT-002 | Governance | Security review not formally signed off | Unknown control gaps | Complete review; track findings | Review record | NEEDS OWNER | NOT STARTED | P0 |
+| PLT-002 | Governance | Security review not formally signed off | Unknown control gaps | Complete review; track findings | Review record + [soc2 pack](../security-compliance/soc2/README.md) | NEEDS OWNER | IN PROGRESS | P0 |
 | PLT-003 | Governance | DPA / data processing terms not signed | Legal exposure | Legal execution | Signed DPA | NEEDS OWNER | NOT STARTED | P0 |
 | PLT-004 | Privacy | Privacy and retention sign-off incomplete | Retention disputes | [PRIVACY_RETENTION_DECISIONS.md](./PRIVACY_RETENTION_DECISIONS.md) acknowledged | Written agency acceptance | NEEDS OWNER | NOT STARTED | P0 |
 | PLT-005 | IAM | Agency roles / `custom:agencyId` not verified | Wrong tenant isolation | Cognito audit ([COGNITO_SELF_SIGNUP.md](./COGNITO_SELF_SIGNUP.md)) | User export redacted | NEEDS OWNER | NOT STARTED | P0 |
@@ -75,7 +75,7 @@
 | PLT-023 | API | Critical county workflow automation incomplete | Human cost / errors | Prioritize E2E ([PRODUCTION_READINESS_AUDIT.md](./PRODUCTION_READINESS_AUDIT.md) B6) | Automated test names + pass | NEEDS OWNER | NOT STARTED | P2 |
 | PLT-024 | API | JWT/RBAC behavior not end-to-end verified on target stack | Privilege bugs | Negative tests | Test evidence | NEEDS OWNER | NOT STARTED | P1 |
 | PLT-025 | Infra | Monitoring alarms exist but paging not wired | Silent failures | SNS/Slack/PagerDuty per org | On-call roster | NEEDS OWNER | NOT STARTED | P1 |
-| PLT-026 | Infra | Runbooks not exercised | Slow incident response | Tabletop + rollback drill | Dated drill notes | NEEDS OWNER | NOT STARTED | P1 |
+| PLT-026 | Infra | Runbooks not exercised | Slow incident response | Tabletop + rollback drill | Dated drill notes ([tabletop](../security-compliance/soc2/processes/incident-response-tabletop.md), [restore](../security-compliance/soc2/processes/restore-drill.md)) | NEEDS OWNER | IN PROGRESS | P1 |
 | PLT-027 | SEO | `NEXT_PUBLIC_SITE_URL` not verified for this host | Wrong canonicals/sitemap | Set env; verify | Fetch sitemap/robots | NEEDS OWNER | NOT STARTED | P2 |
 | PLT-028 | CAD | CAD vendor scope not approved (read-only vs write-back) | Vendor/legal breach | Agency + vendor sign ([CAD_CONNECTION_PLAYBOOK.md](./CAD_CONNECTION_PLAYBOOK.md)) | Written scope | NEEDS OWNER | NOT STARTED | P1 if CAD enabled |
 | PLT-029 | CAD | Sandbox credentials / adapter missing | CAD features non-functional | Provision per playbook | Adapter health | NEEDS OWNER | NOT STARTED | P1 if CAD enabled |
@@ -93,7 +93,7 @@ Conservative defaults: most rows **NOT STARTED** or **PARTIAL** until **stack-sp
 | GA-002 | Providers | Real (non-sandbox) providers not configured for **sold** modules | Contract breach / outage | Production keys + IAM | Provider console + change tickets | NEEDS OWNER | NOT STARTED | P0 |
 | GA-003 | Security | `ALLOW_UNAUTHENTICATED_API` not hardened for GA | Data exposure | `false` in prod-like posture ([PILOT_READINESS_CHECKLIST.md](./PILOT_READINESS_CHECKLIST.md) §6) | Env proof | NEEDS OWNER | NOT STARTED | P0 |
 | GA-004 | Edge | WAF / edge abuse protection not implemented as code or accepted exception | Security gap ([PRODUCTION_READINESS_AUDIT.md](./PRODUCTION_READINESS_AUDIT.md)) | WAF in `template.yaml` or linked stack | Terraform/SAM link + ruleset | NEEDS OWNER | NOT STARTED | P0 |
-| GA-005 | Data | Backup / restore not tested | RPO/RTO failure | Test restore | Drill log | NEEDS OWNER | NOT STARTED | P0 |
+| GA-005 | Data | Backup / restore not tested | RPO/RTO failure | Test restore | Drill log ([restore-drill](../security-compliance/soc2/processes/restore-drill.md)) | NEEDS OWNER | IN PROGRESS | P0 |
 | GA-006 | Product | Critical sold routes still generic 501/config-only | False advertising | Implement or re-tier sales | Route matrix signed by PM | NEEDS OWNER | NOT STARTED | P0 |
 | GA-007 | Readiness | Feature readiness not backed by monitoring + tests | Unknown production behavior | Tie alarms to features | Dashboard + on-call | NEEDS OWNER | NOT STARTED | P1 |
 | GA-008 | Training | Training incomplete for all roles in SKU | Unsafe operations | Complete programs | LMS / sign-in sheets | NEEDS OWNER | NOT STARTED | P0 |

@@ -10,3 +10,4 @@ export type { ReportFormValues } from "./ReportForm";
 export { TrustNote } from "./TrustNote";
 export { StickyEmergencyFooter } from "./StickyEmergencyFooter";
 export { ReportSuccessState } from "./ReportSuccessState";
+export { ScanIntentChooser } from "./ScanIntentChooser";

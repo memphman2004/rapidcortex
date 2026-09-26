@@ -1,0 +1,17 @@
+3976a1bd856a1f97f295590a61bc2c075bce58350ebac10c6cb3c6100bccb0de  ../2026-10/README.md
+364a0d2378df96acddbd3d0ddec1e7cc6b8451111a16078f2e495131545c9e19  ../2026-10/acm-expiry-alarm.json
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ../2026-10/auditor-attach-readonly.txt
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ../2026-10/auditor-attach-securityaudit.txt
+cdb79c196517e04970a243fb173086aae5f233951effce64b3f0093a46b7c3ff  ../2026-10/auditor-attached-policies.json
+9c6dd2f04373e6961d6d1f5548eb8fe56729338bc8ca06a3f7d1ac86eeae2e26  ../2026-10/auditor-role-evidence-readonly.json
+1c638ffd5354a3b3911f96a4c41f03591af0e66a03362468e1086dc8ce610bbe  ../2026-10/auditor-role.json
+84232f81469b2ac895e363e7e1e2512aba34b2d3e3e51da414a89a919bd724fa  ../2026-10/cloudtrail-describe.json
+fa6e45c5945e784b32f202e5e022cb762f4bbdc10aa9768c446c5f86cefe690d  ../2026-10/cloudtrail-event-selectors.json
+b06efec6300f9e6a68b1c6f460ae48ecba15bd8ceafea43a54cc804d60f4eccc  ../2026-10/cloudtrail-status.json
+1b6813c12e99ed650038de407916a3ee9b421e2bc5c18d9bb085097a8c70c909  ../2026-10/cognito-mfa-config.json
+8a83f41b7af00dc8227d5efc900cc1c04cac522775a4edb4acd444d1d9d6f7af  ../2026-10/dynamodb-pitr-post-fix.tsv
+6731e1ea0c22d1dec8df854173afd9cacc53dd0b1d4b95d5da29f647bb78cecb  ../2026-10/secrets-inventory.json
+45365080ba853ed282d67f310e67634f45450bcc9feb16d35b03b4bc7189dd5a  ../2026-10/secrets-rotation-sop.md
+3786a459d4a21b9d009bcd70b7f01b53a18b41ddf735847f582924174f5dd877  ../2026-10/waf-logging-config-api-edge.json
+ae5cd5d4b7770374d6da2ad867b4bc2c7b33fcac3f669c4f807c56812b9dbd9e  ../2026-10/waf-logging-config-web-cdn.json
+692500195d5236f9c408580bf3227574580a190888daf49244504eb1d9dd63de  ../2026-10/waf-logging-config.json

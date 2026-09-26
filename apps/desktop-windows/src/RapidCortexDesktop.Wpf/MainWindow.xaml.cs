@@ -81,7 +81,7 @@ public partial class MainWindow : Window
             MessageBox.Show(
                 this,
                 "No session token found. Please sign in again.",
-                "Rapid Cortex",
+                "NexCort iQ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
             await SignOutAndPromptLoginAsync().ConfigureAwait(true);
@@ -96,7 +96,7 @@ public partial class MainWindow : Window
             {
                 await WorkspaceWebView.EnsureCoreWebView2Async().ConfigureAwait(true);
                 WorkspaceWebView.CoreWebView2.Settings.UserAgent =
-                    "RapidCortexDesktop/1.0.3 (Windows; WebView2) RapidCortexWebShell";
+                    "NexCortiQDesktop/1.0.3 (Windows; WebView2) NexCortiQWebShell";
                 _webViewInitialized = true;
             }
 
@@ -121,7 +121,7 @@ public partial class MainWindow : Window
             MessageBox.Show(
                 this,
                 $"Unable to open the web workspace.\n\n{ex.Message}",
-                "Rapid Cortex",
+                "NexCort iQ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -270,7 +270,7 @@ public partial class MainWindow : Window
         var token = SmokeTestTokenBox.Password.Trim();
         if (string.IsNullOrWhiteSpace(token))
         {
-            MessageBox.Show(this, "Paste an id_token first.", "Rapid Cortex", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(this, "Paste an id_token first.", "NexCort iQ", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
@@ -278,12 +278,12 @@ public partial class MainWindow : Window
         {
             ProtectedTokenStore.SaveIdToken(token);
             SmokeTestTokenBox.Clear();
-            MessageBox.Show(this, "Stored id_token.", "Rapid Cortex", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(this, "Stored id_token.", "NexCort iQ", MessageBoxButton.OK, MessageBoxImage.Information);
             UpdateSessionRoleLabel();
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, ex.Message, "Rapid Cortex", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(this, ex.Message, "NexCort iQ", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

@@ -218,11 +218,11 @@ export async function generateInvoicePdfBuffer(
       .font("Helvetica")
       .fontSize(9)
       .fillColor(T2)
-      .text("d/b/a Rapid Cortex", ML, fromY, { width: C2X - ML - 10 });
+      .text("d/b/a NexCort iQ", ML, fromY, { width: C2X - ML - 10 });
     fromY += 13;
     doc.text("Columbus, GA 31901", ML, fromY, { width: C2X - ML - 10 });
     fromY += 13;
-    doc.fillColor(BLUE).text("billing@rapidcortex.us", ML, fromY, { width: C2X - ML - 10 });
+    doc.fillColor(BLUE).text("billing@nexcortiq.us", ML, fromY, { width: C2X - ML - 10 });
     fromY += 13;
 
     let billY = INFO_TOP;
@@ -413,7 +413,7 @@ export async function generateInvoicePdfBuffer(
     const achAccount = pi.achAccountNumber ?? "";
     const wire = pi.wireInstructions ?? "";
     const checkAddr = pi.checkMailingAddress ?? "";
-    const bankContact = pi.bankContact ?? "billing@rapidcortex.us";
+    const bankContact = pi.bankContact ?? "billing@nexcortiq.us";
 
     const PIW = Math.floor(CW / 3) - 8;
     const PI_BOX_H = 76;
@@ -496,7 +496,7 @@ export async function generateInvoicePdfBuffer(
       .fontSize(8)
       .fillColor(HDRSKY)
       .text(
-        "Apps on Demand LLC  d/b/a Rapid Cortex  ·  Columbus, GA 31901  ·  billing@rapidcortex.us  ·  rapidcortex.us",
+        "Apps on Demand LLC  d/b/a NexCort iQ  ·  Columbus, GA 31901  ·  billing@nexcortiq.us  ·  rapidcortex.us",
         0,
         FOOT_Y + 8,
         { width: PW, align: "center" },

@@ -44,7 +44,7 @@ export default function AdminSopProtocolsPage() {
       </div>
       {!isSopProtocolEnabled() ? (
         <p className="rounded-lg border border-amber-900/50 bg-amber-950/30 p-3 text-sm text-amber-100">
-          SOP protocol assist isn’t enabled for this agency. Contact Rapid Cortex support.
+          SOP protocol assist isn’t enabled for this agency. Contact NexCort iQ support.
         </p>
       ) : null}
       <section className="rounded-lg border border-slate-800 bg-slate-900/35 p-4">

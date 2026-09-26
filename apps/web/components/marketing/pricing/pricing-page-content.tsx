@@ -46,9 +46,9 @@ export function PricingPageContent() {
         </div>
 
         <div className="mt-10 hidden w-full rounded-xl border border-slate-700/70 bg-slate-900/35 p-6 text-center md:block sm:p-8">
-          <p className="text-sm font-medium text-white">Rapid Cortex (full dashboard) vs RC Lite (API‑only)</p>
+          <p className="text-sm font-medium text-white">NexCort iQ (full dashboard) vs NexCort Lite (API‑only)</p>
           <p className="mx-auto mt-2 max-w-2xl text-sm text-slate-400">
-            Platform ECC plans are procured separately from RC Lite intelligence API access. Rapid Cortex is sold through agency
+            Platform ECC plans are procured separately from NexCort Lite intelligence API access. NexCort iQ is sold through agency
             contracts, approved pilots, purchase orders, invoices, and authorized procurement workflows.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -62,7 +62,7 @@ export function PricingPageContent() {
               href="/rc-lite"
               className="inline-flex rounded-lg border border-slate-600 px-5 py-2.5 text-sm font-medium text-slate-100 hover:bg-slate-800/70"
             >
-              Request RC Lite Access
+              Request NexCort Lite Access
             </Link>
             <Link
               href="https://www.rapidcortex.us/contact-sales?interest=demo"
@@ -92,7 +92,7 @@ export function PricingPageContent() {
             available from the top bar after you sign in.
           </p>
           <p className="mt-4 text-xs text-slate-500 md:hidden">
-            Rapid Cortex console access is available from approved desktop workstations only.
+            NexCort iQ console access is available from approved desktop workstations only.
           </p>
           <div className="mt-5 hidden flex-wrap gap-3 md:flex">
             {signupEnabled ? (

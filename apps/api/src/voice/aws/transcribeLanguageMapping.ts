@@ -21,7 +21,7 @@ export function parseCommaSeparatedBcp47(raw: string): string[] {
 }
 
 /**
- * Map Rapid Cortex canonical call language (e.g. `es`, `zh`) to AWS Transcribe `LanguageCode`
+ * Map NexCort iQ canonical call language (e.g. `es`, `zh`) to AWS Transcribe `LanguageCode`
  * for batch jobs (`LanguageCode` on `StartTranscriptionJob`).
  */
 export function toAwsTranscribeLanguageCode(canonical: string | undefined): string {

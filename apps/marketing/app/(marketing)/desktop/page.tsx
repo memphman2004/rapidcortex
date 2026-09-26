@@ -8,11 +8,11 @@ import {
 import { buildPublicPageMetadata } from "@/lib/seo";
 import { SITE_NAME, SITE_OPERATOR_NAME, SITE_OPERATOR_URL } from "@/lib/site";
 
-const PRESS_EMAIL = "info@rapidcortex.us";
+const PRESS_EMAIL = "info@nexcortiq.us";
 const FOUNDED_YEAR = 2025;
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Desktop | Rapid Cortex Public Safety Workstations",
+  title: "Desktop | NexCort iQ Public Safety Workstations",
   description: `${SITE_NAME} Desktop for Mac and Windows — a product of ${SITE_OPERATOR_NAME}, founded in ${FOUNDED_YEAR}. Same role dashboards as the web app for seamless workstation access.`,
   path: "/desktop",
 });
@@ -50,7 +50,7 @@ export default function MarketingDesktopPage() {
       <section className="mt-10 rounded-xl border border-sky-800/40 bg-sky-950/20 p-5 sm:p-6">
         <h2 className="text-base font-semibold text-white">Same dashboards. Seamless experience.</h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-300">
-          Desktop loads the <strong className="font-medium text-slate-100">same Rapid Cortex web
+          Desktop loads the <strong className="font-medium text-slate-100">same NexCort iQ web
           workspace</strong> your team already uses in the browser — the same role dashboards,
           navigation, Media / Ring Connect, and Operations Manual. Sign in once on the workstation;
           what you see on desktop matches what you see on the web so training and muscle memory stay

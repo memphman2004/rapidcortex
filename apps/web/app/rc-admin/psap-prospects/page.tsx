@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { canAccessRcFinancePortal } from "rapid-cortex-shared";
+import { canAccessPsapProspectsCrm } from "rapid-cortex-shared";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { marketingLoginPath } from "@/lib/marketing-links";
 import { isPsapProspectsUiEnabled } from "@/lib/runtime-flags";
@@ -13,7 +13,7 @@ export const metadata = {
 
 export default async function RcAdminPsapProspectsPage() {
   const user = await getDashboardSessionUser();
-  if (!user || !canAccessRcFinancePortal(user.role) || !isPsapProspectsUiEnabled()) {
+  if (!user || !canAccessPsapProspectsCrm(user.role) || !isPsapProspectsUiEnabled()) {
     redirect(`${marketingLoginPath()}?from=/rc-admin/psap-prospects`);
   }
 

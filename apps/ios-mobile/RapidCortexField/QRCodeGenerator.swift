@@ -7,7 +7,11 @@ enum QRCodeGenerator {
 
     /// Print-ready QR (1024px). Uses error-correction H when a center logo is present so scanners still read.
     static func generate(url: URL, size: CGFloat = 1024, centerLogo: UIImage? = nil) -> UIImage? {
-        guard let data = url.absoluteString.data(using: .utf8) else { return nil }
+        generate(payload: url.absoluteString, size: size, centerLogo: centerLogo)
+    }
+
+    static func generate(payload: String, size: CGFloat = 1024, centerLogo: UIImage? = nil) -> UIImage? {
+        guard let data = payload.data(using: .utf8) else { return nil }
 
         let filter = CIFilter.qrCodeGenerator()
         filter.message = data
@@ -57,7 +61,7 @@ enum QRCodeGenerator {
         return "rc-qr-\(safeName)-\(shortId).png"
     }
 
-    /// Agency branding logo if available; otherwise the Rapid Cortex mark.
+    /// Agency branding logo if available; otherwise the NexCort iQ mark.
     static func fallbackLogo() -> UIImage? {
         UIImage(named: "RCLogo")
     }

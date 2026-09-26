@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import type { MciDistributionPlan, MciHospitalAllocation, MciPatient } from "rapid-cortex-shared";
 import { RapidCortexMap } from "rapid-cortex-maps";
-import type maplibregl from "maplibre-gl";
-import maplibreglLib from "maplibre-gl";
+import type * as maplibregl from "maplibre-gl";
+import * as maplibreglLib from "maplibre-gl";
 
 import { activateMciPlan } from "@/lib/hospital-routing/api";
 import { formatTraumaLevel } from "./hospital-utils";

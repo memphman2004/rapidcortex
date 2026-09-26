@@ -18,10 +18,12 @@ const ALLOWLIST_PATH_SUBSTRINGS = [
   "check-repo-secrets.mjs",
   "SECURITY_HARDENING_AUDIT.md",
   "CJIS_ALIGNMENT_NOTES.md",
+  // Redacted CloudTrail raw samples may still mention AKIA shape in docs about the pattern.
 ];
 
 const PATTERNS = [
-  { name: "AWS access key id", re: /\bAKIA[0-9A-Z]{16}\b/ },
+  // Allow AKIAXXXXXXXXXXXXXXXX-style redactions used in evidence packs.
+  { name: "AWS access key id", re: /\bAKIA(?!X{16})[0-9A-Z]{16}\b/ },
   { name: "Private key PEM", re: /-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----/ },
   { name: "GitHub PAT classic", re: /\bghp_[A-Za-z0-9]{20,}\b/ },
   { name: "Slack bot token", re: /\bxoxb-[0-9]+-[0-9]+-[A-Za-z0-9]+\b/ },

@@ -25,6 +25,15 @@ vi.mock("../../transit/transit-service.js", () => ({
   createIncident: vi.fn(async () => ({ incidentId: "tinc_1" })),
 }));
 
+vi.mock("../../onboarding/transit-onboarding-service.js", () => ({
+  getTransitIntake: vi.fn(async () => null),
+  saveTransitIntake: vi.fn(async () => ({
+    agencyName: "HVT",
+    orgCode: "HVT",
+    agencyId: "test-transit-hvt",
+  })),
+}));
+
 import { handler } from "./transitHttp.js";
 
 function makeEvent(
@@ -97,6 +106,36 @@ describe("transitHttp RBAC", () => {
       "/api/transit/test-transit-hvt/dashboard",
       { agencyId: "test-transit-hvt" },
       transitUser,
+    );
+    const result = await handler(event);
+    const res = result as { statusCode: number };
+    expect(res.statusCode).toBe(200);
+  });
+
+  it("returns 403 when transit_security reads onboarding intake", async () => {
+    const event = makeEvent(
+      "GET",
+      "/api/transit/test-transit-hvt/onboarding/intake",
+      { agencyId: "test-transit-hvt" },
+      transitUser,
+    );
+    const result = await handler(event);
+    const res = result as { statusCode: number };
+    expect(res.statusCode).toBe(403);
+  });
+
+  it("returns 200 when transit_admin reads onboarding intake", async () => {
+    const admin: UserContext = {
+      userId: "u-admin",
+      agencyId: "test-transit-hvt",
+      role: "transit_admin",
+      email: "admin@hvt.example",
+    };
+    const event = makeEvent(
+      "GET",
+      "/api/transit/test-transit-hvt/onboarding/intake",
+      { agencyId: "test-transit-hvt" },
+      admin,
     );
     const result = await handler(event);
     const res = result as { statusCode: number };

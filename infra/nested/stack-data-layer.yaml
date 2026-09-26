@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Rapid Cortex API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks use least-privilege actions, ARNs for Bedrock foundation models (AiBedrockFoundationModelId + QaBedrockModelId), stack Secrets prefix rapidcortex/<stage>/*, and regional Conditions where AWS control-plane APIs require Resource=*. Verify with npm run validate:iam and sam validate --lint.",
+  "Description": "NexCort iQ API. IAM: SAM built-in DynamoDB/S3 policies scope to named tables/buckets; explicit Statement blocks use least-privilege actions, ARNs for Bedrock foundation models (AiBedrockFoundationModelId + QaBedrockModelId), stack Secrets prefix rapidcortex/<stage>/*, and regional Conditions where AWS control-plane APIs require Resource=*. Verify with npm run validate:iam and sam validate --lint.",
   "Metadata": {
     "cfn-lint": {
       "config": {
@@ -170,11 +170,6 @@
       "Type": "String",
       "Default": "",
       "Description": "Optional S3 bucket for Google TTS objects; when empty, ASSETS_BUCKET is used."
-    },
-    "ExistingRingCredentialsSecretArn": {
-      "Type": "String",
-      "Default": "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/connect/ring-credentials",
-      "Description": "When set, skip creating RingCredentialsSecret (secret already exists outside this stack) and emit this ARN from RingCredentialsSecretArn output."
     },
     "ExistingBillingPaymentInstructionsSecretArn": {
       "Type": "String",
@@ -787,26 +782,6 @@
         }
       ]
     },
-    "HasExistingRingCredentialsSecretArn": {
-      "Fn::Not": [
-        {
-          "Fn::Equals": [
-            {
-              "Ref": "ExistingRingCredentialsSecretArn"
-            },
-            ""
-          ]
-        }
-      ]
-    },
-    "CreateRingCredentialsSecret": {
-      "Fn::Equals": [
-        {
-          "Ref": "ExistingRingCredentialsSecretArn"
-        },
-        ""
-      ]
-    },
     "CreateBillingPaymentInstructionsSecret": {
       "Fn::Equals": [
         {
@@ -1324,7 +1299,7 @@
           "Fn::Sub": "rapid-cortex/${DeploymentStage}/billing/ses-credentials"
         },
         "Description": "SES SMTP credentials (when used) plus billing notification recipients. Replace placeholders post-deploy.",
-        "SecretString": "{\"smtpUsername\":\"REPLACE_ME\",\"smtpPassword\":\"REPLACE_ME\",\"billingNotificationEmails\":[\"billing@rapidcortex.us\",\"finance@rapidcortex.us\"]}"
+        "SecretString": "{\"smtpUsername\":\"REPLACE_ME\",\"smtpPassword\":\"REPLACE_ME\",\"billingNotificationEmails\":[\"billing@nexcortiq.us\",\"finance@nexcortiq.us\"]}"
       }
     },
     "AgenciesTable": {
@@ -6015,6 +5990,9 @@
               ]
             }
           ]
+        },
+        "VersioningConfiguration": {
+          "Status": "Enabled"
         }
       }
     },
@@ -6132,6 +6110,183 @@
           ]
         }
       }
+    },
+    "SalesRoiSessionsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "TableName": {
+          "Fn::Sub": "rapid-cortex-sales-roi-sessions-${DeploymentStage}"
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "roiToken",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "roiToken",
+            "KeyType": "HASH"
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        },
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "rapid-cortex"
+          },
+          {
+            "Key": "Component",
+            "Value": "sales-roi"
+          }
+        ]
+      }
+    },
+    "SalesActivityReportsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "TableName": {
+          "Fn::Sub": "rapid-cortex-sales-activity-reports-${DeploymentStage}"
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "contractorEmail",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "weekOf",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "contractorEmail",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "weekOf",
+            "KeyType": "RANGE"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "rapid-cortex"
+          },
+          {
+            "Key": "Component",
+            "Value": "sales-activity"
+          }
+        ]
+      }
+    },
+    "SalesAccountClaimsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "TableName": {
+          "Fn::Sub": "rapid-cortex-sales-account-claims-${DeploymentStage}"
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "agencySlug",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "agencySlug",
+            "KeyType": "HASH"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "rapid-cortex"
+          },
+          {
+            "Key": "Component",
+            "Value": "sales-claims"
+          }
+        ]
+      }
+    },
+    "SalesRfpTrackerTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "TableName": {
+          "Fn::Sub": "rapid-cortex-sales-rfp-tracker-${DeploymentStage}"
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "rfpId",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "rfpId",
+            "KeyType": "HASH"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "rapid-cortex"
+          },
+          {
+            "Key": "Component",
+            "Value": "sales-rfp"
+          }
+        ]
+      }
+    },
+    "FreeTierRegistrationsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "TableName": {
+          "Fn::Sub": "rapid-cortex-free-tier-registrations-${DeploymentStage}"
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "registrationId",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "registrationId",
+            "KeyType": "HASH"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "rapid-cortex"
+          },
+          {
+            "Key": "Component",
+            "Value": "sales-free-tier"
+          }
+        ]
+      }
     }
   },
   "Outputs": {
@@ -6232,13 +6387,13 @@
       }
     },
     "VideoWallConfigsTable": {
-      "Description": "Per-user Rapid Cortex Video wall layouts (agencyId + userId)",
+      "Description": "Per-user NexCort iQ Video wall layouts (agencyId + userId)",
       "Value": {
         "Ref": "ExistingVideoWallConfigsTableName"
       }
     },
     "VideoClipsTable": {
-      "Description": "Rapid Cortex Video DVR clips (agencyId + clipId, TTL, incident GSI)",
+      "Description": "NexCort iQ Video DVR clips (agencyId + clipId, TTL, incident GSI)",
       "Value": {
         "Ref": "ExistingVideoClipsTableName"
       }
@@ -6793,20 +6948,6 @@
           },
           {
             "Ref": "ExistingBillingPaymentInstructionsSecretArn"
-          }
-        ]
-      }
-    },
-    "RingCredentialsSecretArn": {
-      "Description": "Ring API credentials secret ARN for Connect",
-      "Value": {
-        "Fn::If": [
-          "HasExistingRingCredentialsSecretArn",
-          {
-            "Ref": "ExistingRingCredentialsSecretArn"
-          },
-          {
-            "Ref": "ExistingRingCredentialsSecretArn"
           }
         ]
       }

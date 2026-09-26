@@ -371,7 +371,7 @@ export function DashboardWorkspace() {
             className="shrink-0 border-b border-slate-800 bg-slate-900/80 px-4 py-3 text-sm text-slate-300"
             role="status"
           >
-            No open incidents for your agency yet. When your workflow creates incidents in Rapid Cortex, they will
+            No open incidents for your agency yet. When your workflow creates incidents in NexCort iQ, they will
             appear here. The <strong>Connections</strong> strip should show API live.
           </div>
         ) : null

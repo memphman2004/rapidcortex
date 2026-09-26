@@ -47,7 +47,7 @@ export const DEMO_OPPORTUNITIES: RapidIqOpportunity[] = [
     dollarValueSource: "Board agenda line item",
     aiHeadline: "DeSoto County ECC soliciting next-gen CAD/911 platform replacement",
     aiSummary:
-      "Commission minutes authorize $850K for ECC modernization including CAD replacement and NG911-ready recording. Rapid Cortex core aligns with their stated need for AI-assisted call handling and supervisor visibility without full CAD rip-and-replace.",
+      "Commission minutes authorize $850K for ECC modernization including CAD replacement and NG911-ready recording. NexCort iQ core aligns with their stated need for AI-assisted call handling and supervisor visibility without full CAD rip-and-replace.",
     talkingPoints: [
       "Reference the $850K board authorization — position RC as AI layer that extends existing CAD investment.",
       "Hexagon contract expiry creates a 90-day evaluation window; offer parallel pilot on live traffic.",
@@ -85,7 +85,7 @@ export const DEMO_OPPORTUNITIES: RapidIqOpportunity[] = [
     dollarValueSource: "Budget workshop transcript",
     aiHeadline: "Upshur County evaluating NG911 recording and analytics stack",
     aiSummary:
-      "Budget workshop discusses $420K NG911 readiness including recording analytics and quality assurance. Rapid Cortex QA scoring and supervisor coaching map directly to their stated compliance goals.",
+      "Budget workshop discusses $420K NG911 readiness including recording analytics and quality assurance. NexCort iQ QA scoring and supervisor coaching map directly to their stated compliance goals.",
     talkingPoints: [
       "Lead with automated QA — Upshur explicitly mentioned recording review backlog.",
       "Motorola incumbent suggests integration-first pitch, not rip-and-replace.",
@@ -123,7 +123,7 @@ export const DEMO_OPPORTUNITIES: RapidIqOpportunity[] = [
     dollarValueSource: "Capital improvement plan",
     aiHeadline: "Fulton County CIP includes $2.4M public safety communications line",
     aiSummary:
-      "Five-year capital plan allocates $2.4M for ECC technology refresh. No RFP yet — early relationship window for Rapid Cortex AI intelligence layer ahead of formal solicitation.",
+      "Five-year capital plan allocates $2.4M for ECC technology refresh. No RFP yet — early relationship window for NexCort iQ AI intelligence layer ahead of formal solicitation.",
     talkingPoints: [
       "Fulton is Tier-0 market — prioritize executive briefing with ECC director.",
       "CentralSquare footprint suggests CAD-adjacent positioning.",
@@ -161,7 +161,7 @@ export const DEMO_OPPORTUNITIES: RapidIqOpportunity[] = [
     dollarValueSource: "RFP attachment estimate",
     aiHeadline: "Mobile County exploring CAD analytics and supervisor tools add-on",
     aiSummary:
-      "Procurement posting references CAD analytics module with $1.1M estimated value. Rapid Cortex supervisor performance and SLA backlog features address stated operational gaps.",
+      "Procurement posting references CAD analytics module with $1.1M estimated value. NexCort iQ supervisor performance and SLA backlog features address stated operational gaps.",
     talkingPoints: [
       "Tyler CAD write-back integration is a differentiator — emphasize read-only pilot first.",
       "Mobile's port logistics create surge-event use case for war rooms.",
@@ -199,7 +199,7 @@ export const DEMO_OPPORTUNITIES: RapidIqOpportunity[] = [
     dollarValueSource: "USG board minutes",
     aiHeadline: "UGA Public Safety reviewing unified campus dispatch intelligence platform",
     aiSummary:
-      "Board of Regents discussion cites $650K for campus safety technology including Clery reporting automation. Rapid Cortex Campus vertical covers dispatch assist, QR locations, and Clery ASR workspace.",
+      "Board of Regents discussion cites $650K for campus safety technology including Clery reporting automation. NexCort iQ Campus vertical covers dispatch assist, QR locations, and Clery ASR workspace.",
     talkingPoints: [
       "UGA is flagship GA campus — use as reference for USG system-wide deal.",
       "Clery ASR workspace is immediate wedge vs. generic mass notification vendors.",
@@ -237,7 +237,7 @@ export const DEMO_OPPORTUNITIES: RapidIqOpportunity[] = [
     dollarValueSource: "Budget request narrative",
     aiHeadline: "Georgia Tech capital request flags emergency comms modernization",
     aiSummary:
-      "Capital request mentions $380K for emergency communications modernization. Incumbent Rave contract renewal in 18 months — early displacement opportunity for Rapid Cortex campus console.",
+      "Capital request mentions $380K for emergency communications modernization. Incumbent Rave contract renewal in 18 months — early displacement opportunity for NexCort iQ campus console.",
     talkingPoints: [
       "Rave renewal timeline creates 12-month evaluation runway.",
       "Tech's urban campus needs CAD-adjacent situational awareness — not just alerts.",
@@ -275,7 +275,7 @@ export const DEMO_OPPORTUNITIES: RapidIqOpportunity[] = [
     dollarValueSource: "Grant application draft",
     aiHeadline: "Clemson pursuing COPS campus safety grant for dispatch assist technology",
     aiSummary:
-      "Grant draft references $290K for dispatch assist and location intelligence. Rapid Cortex grant success program can package narrative and budget justification.",
+      "Grant draft references $290K for dispatch assist and location intelligence. NexCort iQ grant success program can package narrative and budget justification.",
     talkingPoints: [
       "Offer Grant Success Program support for COPS application deadline.",
       "Football game-day coordination is Clemson's top operational pain point.",
@@ -313,7 +313,7 @@ export const DEMO_OPPORTUNITIES: RapidIqOpportunity[] = [
     dollarValueSource: "Operations RFP scope",
     aiHeadline: "Mercedes-Benz Stadium RFP includes unified security operations center platform",
     aiSummary:
-      "Venue operations RFP seeks $520K SOC platform integrating cameras, guest services, and emergency routing. Rapid Cortex Venue vertical with Ring Connect matches stated integration requirements.",
+      "Venue operations RFP seeks $520K SOC platform integrating cameras, guest services, and emergency routing. NexCort iQ Venue vertical with Ring Connect matches stated integration requirements.",
     talkingPoints: [
       "Genetec incumbent — position RC as intelligence layer atop VMS, not replacement.",
       "Falcons + Atlanta United dual-tenant complexity is key differentiator.",
@@ -389,7 +389,7 @@ export const DEMO_OPPORTUNITIES: RapidIqOpportunity[] = [
     dollarValueSource: "Procurement portal posting",
     aiHeadline: "Amway Center active RFP for event security coordination platform",
     aiSummary:
-      "City of Orlando procurement portal lists $475K RFP for event security coordination with AI-assisted incident routing. Rapid Cortex Venue Operator and Guest Services roles map to RFP functional requirements.",
+      "City of Orlando procurement portal lists $475K RFP for event security coordination with AI-assisted incident routing. NexCort iQ Venue Operator and Guest Services roles map to RFP functional requirements.",
     talkingPoints: [
       "RFP deadline within 30 days — prioritize proposal team assignment.",
       "Milestone VMS integration path — API-first architecture story.",
@@ -750,7 +750,7 @@ export function demoSignalChatReply(
   if (!opp) return "I don't have context for this opportunity in demo mode.";
   const lower = message.toLowerCase();
   if (lower.includes("competitor") || lower.includes("incumbent")) {
-    return `${opp.incumbentVendor ?? "No incumbent identified"} is the referenced vendor. Position Rapid Cortex as an AI intelligence layer that integrates with existing CAD/VMS rather than requiring full replacement.`;
+    return `${opp.incumbentVendor ?? "No incumbent identified"} is the referenced vendor. Position NexCort iQ as an AI intelligence layer that integrates with existing CAD/VMS rather than requiring full replacement.`;
   }
   if (lower.includes("dollar") || lower.includes("budget") || lower.includes("$")) {
     return `The estimated value is ${opp.estimatedDollarValue ? `$${opp.estimatedDollarValue.toLocaleString()}` : "not specified in source documents"}. Source: ${opp.dollarValueSource ?? "multiple signals"}.`;

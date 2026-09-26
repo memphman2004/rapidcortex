@@ -1,6 +1,6 @@
 # Admin setup guide
 
-**Audience:** agency `admin` users and Rapid Cortex operators helping them. RBAC: [ADMIN_GUIDE.md](./ADMIN_GUIDE.md), [API_SURFACE.md](./API_SURFACE.md).
+**Audience:** agency `admin` users and NexCort iQ operators helping them. RBAC: [ADMIN_GUIDE.md](./ADMIN_GUIDE.md), [API_SURFACE.md](./API_SURFACE.md).
 
 ## Where to work in the product
 

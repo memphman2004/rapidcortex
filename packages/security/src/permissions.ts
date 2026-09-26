@@ -7,7 +7,7 @@ import {
 } from "./role-access-matrix-v2.js";
 
 /**
- * Fine-grained permissions aligned with Rapid Cortex Role Access Matrix v2.0.
+ * Fine-grained permissions aligned with NexCort iQ Role Access Matrix v2.0.
  * `rcsuperadmin` rows are immutable at the API layer.
  */
 export const ALL_PERMISSIONS = [
@@ -248,6 +248,8 @@ export const ALL_PERMISSIONS = [
   "alerts.dispatch.critical",
   "alerts.history.view",
   "alerts.organization.manage",
+  "alerts.ens.manage",
+  "alerts.ens.run",
   "physical.event.view",
   "physical.command.propose",
   "physical.command.approve",
@@ -256,6 +258,32 @@ export const ALL_PERMISSIONS = [
   "vision.observations_view",
   "vision.observations_verify",
   "vision.admin",
+  "features.citizens.view",
+  "features.citizens.manage",
+  "features.address_intel.view",
+  "features.address_intel.manage",
+  "features.alt_response.view",
+  "features.alt_response.decide",
+  "features.mutual_aid.view",
+  "features.mutual_aid.manage",
+  "features.mci.view",
+  "features.mci.manage",
+  "features.infra.view",
+  "features.infra.manage",
+  "features.interpreter.view",
+  "features.interpreter.manage",
+  "features.evidence.view",
+  "features.evidence.manage",
+  "features.assessment.view",
+  "features.assessment.manage",
+  "features.learning.view",
+  "features.learning.manage",
+  "features.surge.view",
+  "features.surge.manage",
+  "features.checkin.view",
+  "features.checkin.manage",
+  "features.social.view",
+  "features.social.manage",
 ] as const;
 
 export type Permission = (typeof ALL_PERMISSIONS)[number];
@@ -299,6 +327,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, Record<Permission, boole
   rcsuperadmin: fullTrue(),
   rcadmin: buildMatrixRolePermissions("rcadmin"),
   rcitadmin: buildMatrixRolePermissions("rcitadmin"),
+  /** Sales portal only — no agency ops / CJIS permissions. */
+  salescontractor: maskFromList([]),
   agencyadmin: buildMatrixRolePermissions("agencyadmin"),
   agencyit: buildMatrixRolePermissions("agencyit"),
   supervisor: buildMatrixRolePermissions("supervisor"),
@@ -328,7 +358,6 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, Record<Permission, boole
   call_assist_admin: buildMatrixRolePermissions("call_assist_admin"),
   call_assist_supervisor: buildMatrixRolePermissions("call_assist_supervisor"),
   call_assist_operator: buildMatrixRolePermissions("call_assist_operator"),
-  homeowner: maskFromList([]),
 };
 
 export function defaultPermissionForRole(role: UserRole, permission: Permission): boolean {

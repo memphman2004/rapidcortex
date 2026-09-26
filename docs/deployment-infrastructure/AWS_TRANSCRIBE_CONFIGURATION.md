@@ -1,6 +1,6 @@
 # Amazon Transcribe (batch STT) — backend configuration
 
-Rapid Cortex uses **Amazon Transcribe batch jobs** (`StartTranscriptionJob` / `GetTranscriptionJob`) as an **`ISpeechToTextProvider`** implementation (`AwsTranscribeSttProvider`). Audio is staged on **S3** (`ASSETS_BUCKET` under `voice-stt/…`), then Transcribe reads the object via `MediaFileUri`.
+NexCort iQ uses **Amazon Transcribe batch jobs** (`StartTranscriptionJob` / `GetTranscriptionJob`) as an **`ISpeechToTextProvider`** implementation (`AwsTranscribeSttProvider`). Audio is staged on **S3** (`ASSETS_BUCKET` under `voice-stt/…`), then Transcribe reads the object via `MediaFileUri`.
 
 **Auth:** IAM role attached to the Lambda (no static AWS keys). **Least privilege** in `infra/template.yaml`: `transcribe:StartTranscriptionJob`, `GetTranscriptionJob`, `DeleteTranscriptionJob` (delete is permitted for ops; the provider cleans up staging objects with `s3:DeleteObject`).
 

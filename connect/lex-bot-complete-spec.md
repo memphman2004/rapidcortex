@@ -1297,4 +1297,4 @@ After entering all intents in the Lex V2 Console:
 ---
 
 *RCCallAssistBot — multi-agency non-emergency call handling template*
-*Rapid Cortex — Intelligence at the speed of response.*
+*NexCort iQ — Intelligence at the speed of response.*

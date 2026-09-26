@@ -198,6 +198,29 @@ fi
 if [[ -n "${ANTHROPIC_API_KEY_SECRET_ARN:-}" ]]; then
   DEPLOY_OVERRIDES+=( "AnthropicApiKeySecretArn=${ANTHROPIC_API_KEY_SECRET_ARN}" )
 fi
+if [[ -n "${GUEST_ASSIST_SESSION_SECRET:-}" ]]; then
+  DEPLOY_OVERRIDES+=( "GuestAssistSessionSecret=${GUEST_ASSIST_SESSION_SECRET}" )
+fi
+WS_URL="${NEXT_PUBLIC_WEBSOCKET_URL:-}"
+if [[ -z "$WS_URL" ]]; then
+  ROOT_STACK="${API_STACK_NAME:-rapid-cortex-${STAGE}}"
+  WS_URL="$(
+    aws cloudformation describe-stacks --region "$AWS_REGION" --stack-name "$ROOT_STACK" \
+      --query "Stacks[0].Outputs[?OutputKey=='WebSocketApiUrl'].OutputValue | [0]" \
+      --output text 2>/dev/null || true
+  )"
+  # Live API is rapid-cortex-dev even when the web SSR stack STAGE is prod.
+  if [[ -z "$WS_URL" || "$WS_URL" == "None" ]] && [[ "$ROOT_STACK" != "rapid-cortex-dev" ]]; then
+    WS_URL="$(
+      aws cloudformation describe-stacks --region "$AWS_REGION" --stack-name "rapid-cortex-dev" \
+        --query "Stacks[0].Outputs[?OutputKey=='WebSocketApiUrl'].OutputValue | [0]" \
+        --output text 2>/dev/null || true
+    )"
+  fi
+fi
+if [[ -n "$WS_URL" && "$WS_URL" != "None" ]]; then
+  DEPLOY_OVERRIDES+=( "WebSocketUrl=${WS_URL}" )
+fi
 
 aws cloudformation deploy \
   --region "$AWS_REGION" \

@@ -2,7 +2,7 @@
 
 **RFP:** 2026-0010 Addendum 4 — AI-Assisted Non-Emergency Call Management (Kansas City Missouri Police Department PSAP)  
 **Audience:** staff, commanders, and possibly the Chief — in the room **or over video** (see §2b)  
-**Product:** Rapid Cortex **Call Assist** (non-emergency line). Not 911 CPE. Not CAD. Not RapidSOS.  
+**Product:** NexCort iQ **Call Assist** (non-emergency line). Not 911 CPE. Not CAD. Not RapidSOS.  
 **KCPD told vendors to show:** system overview · multiple mock calls · language translation · non-emergency → emergency recognition and transfer · transcript accuracy · call-class accuracy · incident-type accuracy  
 
 They score: **accuracy, escalation decisions, CAD integration, caller experience, supervisor oversight.**
@@ -71,7 +71,7 @@ The product story does **not** change. The **method** does. Live Connect/Lex is 
 
 ### Setup (30 minutes before join)
 
-1. Clean Chrome profile. No Slack, no mail, no Rapid Cortex tickets, no other agencies in the switcher.
+1. Clean Chrome profile. No Slack, no mail, no NexCort iQ tickets, no other agencies in the switcher.
 2. Browser at 125%. Share **the window**, not the whole desktop.
 3. Pre-open and leave logged in:
    - Dispatcher: `/{jurisdiction}/call-assist`
@@ -139,7 +139,7 @@ All paths are under the **dispatcher / supervisor** left nav unless noted.
 | One call | Click a session row | `/{jurisdiction}/call-assist/sessions/{sessionId}` |
 | Scripted mock calls | Sign in as **agencyadmin** → Call Assist → demo (or paste URL) | `/{jurisdiction}/call-assist/demo` |
 | Live 911 workspace (contrast only) | OPERATIONS → **Dispatcher** | `/{jurisdiction}/dispatcher` |
-| RC Translate | OPERATIONS → **RC Translate** | `/{jurisdiction}/translate` |
+| Translate | OPERATIONS → **Translate** | `/{jurisdiction}/translate` |
 | CAD review queue | Supervisor → **CAD Queue** (only if write-back UI is on) | `/{jurisdiction}/review` |
 | Call Assist QA | SUPERVISOR → **Call Assist QA** | `/{jurisdiction}/call-assist/qa` |
 | Analytics | SUPERVISOR → **Call Assist Analytics** | `/{jurisdiction}/call-assist/analytics` |
@@ -206,7 +206,7 @@ Use the seeded KCPD scenarios. IDs in the product: `kcpd-01` … `kcpd-10`.
 **Run:** **Spanish noise**.  
 **Caller:** “Hay mucho ruido en mi vecindario” / “4500 Calle Broadway”.
 
-**Show:** language chip on the session (`es-US` / Spanish). Transcript in source language. If you also open **RC Translate** (`/{jurisdiction}/translate`), show assistive translation for the call taker — **human interpreter remains the backstop**.
+**Show:** language chip on the session (`es-US` / Spanish). Transcript in source language. If you also open **Translate** (`/{jurisdiction}/translate`), show assistive translation for the call taker — **human interpreter remains the backstop**.
 
 **Say:** *“English and Spanish are first-class. Other locales are configured per tenant. We do not claim every language is equal, and we do not remove Language Line from your SOP.”*
 
@@ -243,7 +243,7 @@ Use the seeded KCPD scenarios. IDs in the product: `kcpd-01` … `kcpd-10`.
 
 **Show:** classification **Code Enforcement**; **External transfer** directory on the session — **311 Kansas City**, Parks, Water. Warm-transfer script: summary goes with the caller.
 
-**Say:** *“Police non-emergency should not eat city-service demand. Routing is a directory you own, not a hardcoded Rapid Cortex phone book.”*
+**Say:** *“Police non-emergency should not eat city-service demand. Routing is a directory you own, not a hardcoded NexCort iQ phone book.”*
 
 **They will ask:** Who picks 311 vs Parks?  
 **Answer:** Triage class maps to the enabled external agency. Admins edit that under Call Assist Admin. Noise can route Parks; parking/code/info can route 311; public works can route Water.
@@ -348,7 +348,7 @@ Answer short. Then offer the screen if you have it.
 | **CJIS** | **CJIS-aligned** controls: MFA (Cognito), TLS in transit, encryption at rest, RBAC, audit logs. **Do not say CJIS certified.** Pen-test / vuln scanning are operational commitments, not a slide claim unless you have the report. |
 | **99.99% / 500 ms / 95% ASR** | Do not quote those numbers as guarantees in the room. Offer SLA discussion in the proposal, AWS architecture, and pilot measurement. |
 | **Continuous learning** | QA scores and prompt proposals. No silent training on production audio without legal sign-off. |
-| **Video / SMS** | Rapid Cortex has SMS and video-assist in the platform. This bid’s core demo is **voice Call Assist**. Offer a 60-second pointer to silent text / media if asked; do not derail. |
+| **Video / SMS** | NexCort iQ has SMS and video-assist in the platform. This bid’s core demo is **voice Call Assist**. Offer a 60-second pointer to silent text / media if asked; do not derail. |
 | **Callbacks** | Callback queue on the Call Assist monitor. Automated status callbacks are configured, not magic. |
 | **CarFax** | KCPD label for **online vehicle reporting**, not Carfax Inc. Eligible when historical vehicle crime, vehicle ID, location, no injury. SMS link to `kcpd.org/online-reporting`. In-progress or injury → human. |
 | **Five years / 500k population references** | Do not bluff. Offer current US PSAP/campus references you actually have. |
@@ -404,7 +404,7 @@ Answer short. Then offer the screen if you have it.
 | 3 Classification / duplicates / premise | Session chips + CAD card |
 | 4 Triage classes | Class badge + Call 1/4/optional theft |
 | 5 NLP / LLM / sentiment / summary | Transcript, confidence rows, QA score |
-| 6 Language | Call 2 + RC Translate |
+| 6 Language | Call 2 + Translate |
 | 7 Voice / SMS / video | Voice here; SMS/video only if asked |
 | 8 Callbacks | Monitor callback queue |
 | 9 Self-service / online reporting | CarFax / report-only scenario |

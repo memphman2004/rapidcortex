@@ -18,7 +18,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { venueCode } = await params;
   return {
-    title: `${venueCode} Operations | Rapid Cortex Venue`,
+    title: `${venueCode} Operations | NexCort iQ Venue`,
   };
 }
 

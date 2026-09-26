@@ -5,13 +5,13 @@ import { PostCard } from "@/components/blog/PostCard";
 import { SoroBlogEmbed } from "@/components/blog/SoroBlogEmbed";
 
 export const metadata: Metadata = {
-  title: "Blog | Rapid Cortex",
+  title: "Blog | NexCort iQ",
   description:
-    "Operational insight on 911 dispatch, campus safety, and venue operations — compliance and decision-support from the Rapid Cortex team",
+    "Operational insight on 911 dispatch, campus safety, and venue operations — compliance and decision-support from the NexCort iQ team",
   alternates: { canonical: `${SITE_URL}/blog` },
   openGraph: {
     type: "website",
-    title: "Rapid Cortex Blog",
+    title: "NexCort iQ Blog",
     description:
       "Operational insight on 911 dispatch, campus safety, and venue operations — compliance and decision-support.",
     url: `${SITE_URL}/blog`,
@@ -25,7 +25,7 @@ export default function BlogIndexPage() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Blog",
-    name: "Rapid Cortex Blog",
+    name: "NexCort iQ Blog",
     url: `${SITE_URL}/blog`,
     publisher: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
   };
@@ -40,7 +40,7 @@ export default function BlogIndexPage() {
       <section className="border-b border-slate-800 px-6 py-16 md:py-20">
         <div className="mx-auto max-w-5xl">
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-red-500">
-            Rapid Cortex / Insights
+            NexCort iQ / Insights
           </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-4xl">
             Field notes from the public safety frontline

@@ -1,6 +1,6 @@
 # macOS distribution — Option 1 (enterprise: Developer ID + notarization)
 
-This document describes **direct distribution** of the native macOS app **outside the Mac App Store**. The Rapid Cortex **Admin Portal** issues **short-lived presigned HTTPS URLs** for the DMG stored in **private S3** (`ASSETS_BUCKET`); there is **no** permanent public download URL.
+This document describes **direct distribution** of the native macOS app **outside the Mac App Store**. The NexCort iQ **Admin Portal** issues **short-lived presigned HTTPS URLs** for the DMG stored in **private S3** (`ASSETS_BUCKET`); there is **no** permanent public download URL.
 
 > **Scope:** The Swift/Xcode **project is not in this monorepo** (see `docs/DESKTOP_CONNECTION_AUDIT.md`). Steps below are what operators and CI must run where the macOS app **does** live.
 
@@ -51,14 +51,14 @@ xcrun notarytool submit RapidCortex-1.0.0.zip \
 After **Accepted**, staple the ticket to the **app bundle** (and optionally the DMG if Apple’s docs for your format require it):
 
 ```bash
-xcrun stapler staple "Rapid Cortex.app"
+xcrun stapler staple "NexCort iQ.app"
 ```
 
 Validate:
 
 ```bash
-xcrun stapler validate "Rapid Cortex.app"
-spctl --assess --verbose --type install "Rapid Cortex.app"
+xcrun stapler validate "NexCort iQ.app"
+spctl --assess --verbose --type install "NexCort iQ.app"
 ```
 
 ## 5. Create `RapidCortex-1.0.0.dmg`
@@ -66,7 +66,7 @@ spctl --assess --verbose --type install "Rapid Cortex.app"
 Example with `hdiutil` (adjust volume names and paths):
 
 ```bash
-hdiutil create -volname "Rapid Cortex" -srcfolder "Rapid Cortex.app" -ov -format UDZO "RapidCortex-1.0.0.dmg"
+hdiutil create -volname "NexCort iQ" -srcfolder "NexCort iQ.app" -ov -format UDZO "RapidCortex-1.0.0.dmg"
 ```
 
 Optional: run `notarytool submit` on the DMG as well if your packaging pipeline requires DMG notarization (follow current Apple guidance for your Xcode/macOS target).

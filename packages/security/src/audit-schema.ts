@@ -1,8 +1,11 @@
 import {
+  FEATURES_AUDIT_EVENT_TYPES,
+  MILESTONE_AUDIT_EVENT_TYPES,
   NEST_AUDIT_EVENT_TYPES,
-  RING_AUDIT_EVENT_TYPES,
   WYZE_AUDIT_EVENT_TYPES,
 } from "rapid-cortex-shared/audit-schema";
+
+export { FEATURES_AUDIT_EVENT_TYPES };
 
 /**
  * CJIS-aligned audit vocabulary — align API `AuditEvent.type` strings with these constants.
@@ -159,6 +162,7 @@ export const AUDIT_EVENT_TYPES = {
   AUTOMATED_INVOICE_RESENT: "billing.automated_invoice.resent",
   VIDEO_ASSIST_SESSION_CREATED: "video_assist.session.created",
   VIDEO_ASSIST_SMS_SENT: "video_assist.sms.sent",
+  VIDEO_ASSIST_SMS_FAILED: "video_assist.sms.failed",
   VIDEO_ASSIST_TOKEN_OPENED: "video_assist.token.opened",
   VIDEO_ASSIST_CONSENT: "video_assist.consent.recorded",
   VIDEO_ASSIST_STREAM_STARTED: "video_assist.stream.started",
@@ -223,6 +227,7 @@ export const AUDIT_EVENT_TYPES = {
   TRANSIT_GPS_INGESTED: "transit.vehicle.gps",
   TRANSIT_CAMERA_REGISTRY_UPDATED: "transit.camera_registry.updated",
   TRANSIT_CAMERA_SESSION_STARTED: "transit.camera.session_started",
+  TRANSIT_ONBOARDING_INTAKE_SAVED: "transit.onboarding.intake_saved",
   // ── Silent text ────────────────────────────────────────────────────────────
   SILENT_TEXT_SESSION_CREATED: "silent_text.session.created",
   SILENT_TEXT_SMS_SENT: "silent_text.sms.sent",
@@ -343,6 +348,14 @@ export const AUDIT_EVENT_TYPES = {
   CAD_INTEGRATION_TESTED: "cad.integration.tested",
   CAD_WEBHOOK_RECEIVED: "cad.webhook.received",
   CAD_INCIDENT_INGESTED: "cad.incident.ingested",
+  CAD_MESH_INVITE_SENT: "cad.mesh.invite_sent",
+  CAD_MESH_INVITE_ACCEPTED: "cad.mesh.invite_accepted",
+  CAD_MESH_RELATIONSHIP_REVOKED: "cad.mesh.relationship_revoked",
+  CAD_MESH_RELATIONSHIP_SUSPENDED: "cad.mesh.relationship_suspended",
+  CAD_MESH_RELATIONSHIP_RESUMED: "cad.mesh.relationship_resumed",
+  CAD_MESH_POLICY_UPDATED: "cad.mesh.policy_updated",
+  CAD_MESH_WRITEBACK_TOGGLED: "cad.mesh.writeback_toggled",
+  CAD_MESH_WRITEBACK_DECIDED: "cad.mesh.writeback_decided",
   CAD_WRITEBACK_SUBMITTED: "cad.writeback.submitted",
   CAD_WRITEBACK_APPROVED: "cad.writeback.approved",
   CAD_WRITEBACK_REJECTED: "cad.writeback.rejected",
@@ -481,6 +494,9 @@ export const AUDIT_EVENT_TYPES = {
   ALERT_ACKNOWLEDGED: "alerts.dispatch.acknowledged",
   ALERT_SMS_OPTED_OUT: "alerts.sms.opted_out",
   ALERT_ORGANIZATION_UPSERTED: "alerts.organization.upserted",
+  ALERT_ENS_PROGRAM_SAVED: "alerts.ens.program.saved",
+  ALERT_ENS_BOUNDARY_SAVED: "alerts.ens.boundary.saved",
+  ALERT_ENS_TEST_RUN: "alerts.ens.test.run",
 
   PHYSICAL_EVENT_INGESTED: "physical.event.ingested",
   PHYSICAL_COMMAND_PROPOSED: "physical.command.proposed",
@@ -518,9 +534,10 @@ export const AUDIT_EVENT_TYPES = {
   /** Supervisor loaded the live operator presence list. */
   SUPERVISOR_OPERATORS_VIEWED: "supervisor.operators.viewed",
 
-  ...RING_AUDIT_EVENT_TYPES,
   ...WYZE_AUDIT_EVENT_TYPES,
   ...NEST_AUDIT_EVENT_TYPES,
+  ...MILESTONE_AUDIT_EVENT_TYPES,
+  ...FEATURES_AUDIT_EVENT_TYPES,
 
   VISION_CAMERA_DISCOVERED: "vision.camera.discovered",
   VISION_CONSENT_REQUESTED: "vision.consent.requested",

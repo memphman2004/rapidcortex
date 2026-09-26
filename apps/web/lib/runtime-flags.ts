@@ -1,4 +1,3 @@
-import { RING_INTEGRATION_ENABLED } from "rapid-cortex-shared";
 import { isPilotTestModeEnabled } from "./pilot-test-mode";
 
 const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
@@ -19,7 +18,6 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_RC_TRANSLATE_CAMPUS: process.env.NEXT_PUBLIC_ENABLE_RC_TRANSLATE_CAMPUS,
   NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL: process.env.NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL,
   NEXT_PUBLIC_ENABLE_RAPID_VISION: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION,
-  NEXT_PUBLIC_ENABLE_RAPID_VISION_RING: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_RING,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_WYZE: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_WYZE,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO,
@@ -32,6 +30,8 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_VISION_AI_WS: process.env.NEXT_PUBLIC_ENABLE_VISION_AI_WS,
   NEXT_PUBLIC_ENABLE_VISION_AI_ADMIN: process.env.NEXT_PUBLIC_ENABLE_VISION_AI_ADMIN,
   NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS,
+  NEXT_PUBLIC_ENABLE_ENS_TEST_PROGRAM: process.env.NEXT_PUBLIC_ENABLE_ENS_TEST_PROGRAM,
+  NEXT_PUBLIC_ENABLE_FOURWINDS: process.env.NEXT_PUBLIC_ENABLE_FOURWINDS,
   NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST: process.env.NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_INGEST,
   NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS: process.env.NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS,
   NEXT_PUBLIC_ENABLE_FIELD_COMMAND: process.env.NEXT_PUBLIC_ENABLE_FIELD_COMMAND,
@@ -53,6 +53,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_STAKEHOLDER_PAGES: process.env.NEXT_PUBLIC_ENABLE_STAKEHOLDER_PAGES,
   NEXT_PUBLIC_ENABLE_POST_INCIDENT_REVIEWS: process.env.NEXT_PUBLIC_ENABLE_POST_INCIDENT_REVIEWS,
   NEXT_PUBLIC_ENABLE_PINPOINT: process.env.NEXT_PUBLIC_ENABLE_PINPOINT,
+  NEXT_PUBLIC_ENABLE_GUEST_ASSIST: process.env.NEXT_PUBLIC_ENABLE_GUEST_ASSIST,
   NEXT_PUBLIC_ENABLE_SMS_LOCATION: process.env.NEXT_PUBLIC_ENABLE_SMS_LOCATION,
   NEXT_PUBLIC_ENABLE_SILENT_TEXT: process.env.NEXT_PUBLIC_ENABLE_SILENT_TEXT,
   NEXT_PUBLIC_ENABLE_CALLER_TRANSLATION_REPLY: process.env.NEXT_PUBLIC_ENABLE_CALLER_TRANSLATION_REPLY,
@@ -70,6 +71,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_VENUE_INTELLIGENCE: process.env.NEXT_PUBLIC_ENABLE_VENUE_INTELLIGENCE,
   NEXT_PUBLIC_ENABLE_LOCATIONS_QR_ADMIN: process.env.NEXT_PUBLIC_ENABLE_LOCATIONS_QR_ADMIN,
   NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING: process.env.NEXT_PUBLIC_ENABLE_VERTICAL_ONBOARDING,
+  NEXT_PUBLIC_ENABLE_STAFF_GUIDE: process.env.NEXT_PUBLIC_ENABLE_STAFF_GUIDE,
   NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING: process.env.NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING,
   NEXT_PUBLIC_ENABLE_SALES_LEADS: process.env.NEXT_PUBLIC_ENABLE_SALES_LEADS,
   NEXT_PUBLIC_ENABLE_SUPPORT_FORM: process.env.NEXT_PUBLIC_ENABLE_SUPPORT_FORM,
@@ -81,12 +83,15 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_HOSTED_UI_SSO: process.env.NEXT_PUBLIC_ENABLE_HOSTED_UI_SSO,
   NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM: process.env.NEXT_PUBLIC_ENABLE_GRANT_SUCCESS_PROGRAM,
   NEXT_PUBLIC_ENABLE_LOCATION_MAP: process.env.NEXT_PUBLIC_ENABLE_LOCATION_MAP,
+  NEXT_PUBLIC_ENABLE_MAP_HOSPITALS: process.env.NEXT_PUBLIC_ENABLE_MAP_HOSPITALS,
+  NEXT_PUBLIC_ENABLE_MAP_EDUCATION: process.env.NEXT_PUBLIC_ENABLE_MAP_EDUCATION,
   NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP: process.env.NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP,
   NEXT_PUBLIC_ENABLE_VENUE_OPERATIONAL_AWARENESS: process.env.NEXT_PUBLIC_ENABLE_VENUE_OPERATIONAL_AWARENESS,
   NEXT_PUBLIC_ENABLE_CAMPUS_OPERATIONAL_MAP: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_OPERATIONAL_MAP,
   NEXT_PUBLIC_ENABLE_RCS: process.env.NEXT_PUBLIC_ENABLE_RCS,
   NEXT_PUBLIC_ENABLE_CONNECT_NEST: process.env.NEXT_PUBLIC_ENABLE_CONNECT_NEST,
   NEXT_PUBLIC_ENABLE_CONNECT_WYZE: process.env.NEXT_PUBLIC_ENABLE_CONNECT_WYZE,
+  NEXT_PUBLIC_ENABLE_MILESTONE_XPROTECT: process.env.NEXT_PUBLIC_ENABLE_MILESTONE_XPROTECT,
   NEXT_PUBLIC_ENABLE_RAPID_IQ: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ,
   NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE,
   NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL,
@@ -100,8 +105,12 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_CAD_CONNECTOR: process.env.NEXT_PUBLIC_ENABLE_CAD_CONNECTOR,
   NEXT_PUBLIC_ENABLE_CAD_BRIDGE: process.env.NEXT_PUBLIC_ENABLE_CAD_BRIDGE,
   NEXT_PUBLIC_ENABLE_C2C_HUB: process.env.NEXT_PUBLIC_ENABLE_C2C_HUB,
+  NEXT_PUBLIC_ENABLE_CAD_MESH: process.env.NEXT_PUBLIC_ENABLE_CAD_MESH,
+  NEXT_PUBLIC_ENABLE_FEATURES_SUITE: process.env.NEXT_PUBLIC_ENABLE_FEATURES_SUITE,
   NEXT_PUBLIC_ENABLE_CONTACTS_MODULE: process.env.NEXT_PUBLIC_ENABLE_CONTACTS_MODULE,
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
+  NEXT_PUBLIC_ENABLE_LOADOUT: process.env.NEXT_PUBLIC_ENABLE_LOADOUT,
+  NEXT_PUBLIC_ENABLE_LOADOUT_PORTAL: process.env.NEXT_PUBLIC_ENABLE_LOADOUT_PORTAL,
 };
 
 const CAD_WRITEBACK_FLAG = "NEXT_PUBLIC_ENABLE_CAD_WRITEBACK";
@@ -215,7 +224,7 @@ export function isCallAssistGreetingConfigEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CALL_ASSIST_GREETING_CONFIG");
 }
 
-/** RC Translate — field / venue / campus / clinical voice translation. Default on when unset. */
+/** Translate — field / venue / campus / clinical voice translation. Default on when unset. */
 export function isRcTranslateEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RC_TRANSLATE");
 }
@@ -232,32 +241,23 @@ export function isRcTranslateHospitalEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL");
 }
 
-/** Rapid Vision™ — AI visual intelligence. Default on when unset. */
+/** NexiQ Vision™ — AI visual intelligence. Default on when unset. */
 export function isRapidVisionEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION");
 }
 
-export function isRapidVisionRingEnabled(): boolean {
-  // RING_DISABLED — Rapid Vision Ring source follows the shared kill switch
-  return (
-    RING_INTEGRATION_ENABLED &&
-    isRapidVisionEnabled() &&
-    envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION_RING")
-  );
-}
-
 /**
- * Rapid Vision™ — Google Nest camera source.
+ * NexiQ Vision™ — Google Nest camera source.
  *
- * Guards any Rapid Vision UI surface that draws from a Nest WebRTC stream
+ * Guards any NexiQ Vision UI surface that draws from a Nest WebRTC stream
  * (dispatcher camera panel, incident media viewer, AI writer frame capture).
  *
- * Requires both the top-level Rapid Vision gate and the Nest Connect gate to
+ * Requires both the top-level NexiQ Vision gate and the Nest Connect gate to
  * be live — disabling either silently disables this sub-flag so no surface
  * ever shows a Nest stream without a valid SDM token.
  *
- * Defaults **on** when unset, matching the pattern of all other Rapid Vision
- * sub-flags except the (dead) Ring source.
+ * Defaults **on** when unset, matching the pattern of all other NexiQ Vision
+ * sub-flags.
  *
  * Env: NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST
  */
@@ -269,7 +269,7 @@ export function isRapidVisionNestEnabled(): boolean {
   );
 }
 
-/** Rapid Vision™ — Wyze camera source. Requires Vision + Wyze Connect. Default on when unset. */
+/** NexiQ Vision™ — Wyze camera source. Requires Vision + Wyze Connect. Default on when unset. */
 export function isRapidVisionWyzeEnabled(): boolean {
   return (
     isRapidVisionEnabled() &&
@@ -296,8 +296,8 @@ export function isRapidVisionTranscriptEnabled(): boolean {
 }
 
 /**
- * Rapid Vision™ AI Scene Intelligence — proactive camera alerts on the dispatcher board.
- * Spec flag `NEXT_PUBLIC_ENABLE_VISION_AI`. Nested under Rapid Vision. Default on when unset.
+ * NexiQ Vision™ AI Scene Intelligence — proactive camera alerts on the dispatcher board.
+ * Spec flag `NEXT_PUBLIC_ENABLE_VISION_AI`. Nested under NexiQ Vision. Default on when unset.
  */
 export function isRapidVisionSceneIntelEnabled(): boolean {
   return isRapidVisionEnabled() && envFlag("NEXT_PUBLIC_ENABLE_VISION_AI");
@@ -325,6 +325,16 @@ export function isRapidVisionSceneAdminEnabled(): boolean {
  */
 export function isVerticalAlertsEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_VERTICAL_ALERTS");
+}
+
+/** Clery-aligned ENS test program (campus/venue). Default on when unset. */
+export function isEnsTestProgramEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_ENS_TEST_PROGRAM");
+}
+
+/** Four Winds display takeover channel (SOC-024/025). Default on when unset. */
+export function isFourwindsEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_FOURWINDS");
 }
 
 /** Fire/access event ingest. Default on when unset. */
@@ -392,7 +402,7 @@ export function isCadAdminUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CAD_ADMIN");
 }
 
-/** Agency CAD nature-code → Rapid Cortex type/SOP mapping editor. Default on when unset. */
+/** Agency CAD nature-code → NexCort iQ type/SOP mapping editor. Default on when unset. */
 export function isCadNatureMappingUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CAD_NATURE_MAPPING");
 }
@@ -427,6 +437,16 @@ export function isC2cHubUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_C2C_HUB");
 }
 
+/** Agency CAD intelligence mesh. Default on when unset. Live CAD writes stay fail-closed. */
+export function isCadMeshUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CAD_MESH");
+}
+
+/** 13-feature suite (citizens, address intel, MCI, evidence, check-in, social, …). Default on. */
+export function isFeaturesSuiteUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_FEATURES_SUITE");
+}
+
 /** Call queue backlog + SLA monitoring (dispatcher/supervisor dashboards). */
 export function isSlaBacklogEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SLA_BACKLOG");
@@ -450,6 +470,11 @@ export function isPostIncidentReviewsEnabled(): boolean {
 /** LiveLocation (SMS GPS link) — API ENABLE_PINPOINT. */
 export function isPinpointEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_PINPOINT");
+}
+
+/** QR/NFC Guest Assist (static page + public Claude/staff chat). Default on when unset. */
+export function isGuestAssistEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_GUEST_ASSIST");
 }
 
 /** Campus/venue SMS auto-reply location links — API ENABLE_SMS_LOCATION. */
@@ -561,22 +586,22 @@ export function isChannelMonitoringEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING");
 }
 
-/** RC Admin Leads CRM inbox (Contact Sales + Ring waitlist). Default on when unset. */
+/** NexCort Admin Leads CRM inbox (Contact Sales). Default on when unset. */
 export function isSalesLeadsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SALES_LEADS");
 }
 
-/** Support form panel + RC Admin ticket board. Default on when unset. */
+/** Support form panel + NexCort Admin ticket board. Default on when unset. */
 export function isSupportFormUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SUPPORT_FORM");
 }
 
-/** RC Admin PSAP Prospect CRM (national outbound outreach). Default on when unset. */
+/** NexCort Admin PSAP Prospect CRM (national outbound outreach). Default on when unset. */
 export function isPsapProspectsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_PSAP_PROSPECTS");
 }
 
-/** RC Admin Hiring ATS (careers applications). Default on when unset. */
+/** NexCort Admin Hiring ATS (careers applications). Default on when unset. */
 export function isHiringUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_HIRING");
 }
@@ -622,7 +647,17 @@ export function isLocationMapEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_LOCATION_MAP");
 }
 
-/** RC Admin national cross-agency deployments map. Default on when unset. */
+/** Dispatcher hospital overlay (Places V2 SearchNearby). Default on when unset. */
+export function isMapHospitalsEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_MAP_HOSPITALS");
+}
+
+/** Dispatcher schools/campuses overlay (Places V2 SearchNearby). Default on when unset. */
+export function isMapEducationEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_MAP_EDUCATION");
+}
+
+/** NexCort Admin national cross-agency deployments map. Default on when unset. */
 export function isDeploymentsMapEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP");
 }
@@ -663,32 +698,37 @@ export function isConnectWyzeEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CONNECT_WYZE");
 }
 
-/** RC Admin Rapid IQ sales intelligence (procurement signals). Default on when unset. */
+/** Milestone XProtect via on-prem Bridge Protocol. Default on when unset. */
+export function isMilestoneXprotectEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_MILESTONE_XPROTECT");
+}
+
+/** NexCort Admin NexiQ sales intelligence (procurement signals). Default on when unset. */
 export function isRapidIqUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ");
 }
 
-/** RC Admin Rapid IQ Signal Intelligence Pipeline. Default on when unset. */
+/** NexCort Admin NexiQ Signal Intelligence Pipeline. Default on when unset. */
 export function isRapidIqPipelineUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE");
 }
 
-/** Rapid IQ Opportunity Intelligence (OpenAI). Default on when unset. */
+/** NexiQ Opportunity Intelligence (OpenAI). Default on when unset. */
 export function isRapidIqIntelUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL");
 }
 
-/** RC Admin Rapid IQ sales automation (campaign drafts + Outlook send after approval). Default on when unset. */
+/** NexCort Admin NexiQ sales automation (campaign drafts + Outlook send after approval). Default on when unset. */
 export function isSalesAutomationUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SALES_AUTOMATION");
 }
 
-/** RC Admin conference tracker (weekly website refresh). Default on when unset. */
+/** NexCort Admin conference tracker (weekly website refresh). Default on when unset. */
 export function isConferencesUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CONFERENCES");
 }
 
-/** RC Admin Contacts address book. Default on when unset. */
+/** NexCort Admin Contacts address book. Default on when unset. */
 export function isContactsModuleUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CONTACTS_MODULE");
 }
@@ -703,12 +743,30 @@ export function isRmsUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RMS");
 }
 
-/** Transit ONVIF/RTSP registry + Ring/Nest cameras (campus/venue parity). Default on when unset. */
+/** Transit ONVIF/RTSP registry + Nest cameras (campus/venue parity). Default on when unset. */
 export function isTransitCamerasUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_TRANSIT_CAMERAS");
 }
 
-/** Rapid Cortex Video — agency-owned camera wall / VMS. Default on when unset. Distinct from Rapid Vision. */
+/** NexiQ Video — agency-owned camera wall / VMS. Default on when unset. Distinct from NexiQ Vision. */
 export function isRcVideoEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RC_VIDEO");
+}
+
+/**
+ * Campus / venue / transit Staff Guide (knowledge base + unlimited training).
+ * Distinct from the 911 Help tab. Default on when unset.
+ */
+export function isStaffGuideEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_STAFF_GUIDE");
+}
+
+/** NexCortiQ Loadout — API provisioning, usage metering, and invoicing engine. Default on when unset. */
+export function isLoadoutEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_LOADOUT");
+}
+
+/** NexCortiQ Loadout — agency-facing portal (dashboard, catalog, invoices, API keys). Default on when unset. */
+export function isLoadoutPortalEnabled(): boolean {
+  return isLoadoutEnabled() && envFlag("NEXT_PUBLIC_ENABLE_LOADOUT_PORTAL");
 }

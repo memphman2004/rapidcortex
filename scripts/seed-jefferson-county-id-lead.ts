@@ -87,7 +87,7 @@ async function seedStage(stage: string): Promise<void> {
 
   const item = {
     leadId,
-    email: `rapid-iq+jefferson-id@rapidcortex.us`,
+    email: `rapid-iq+jefferson-id@nexcortiq.us`,
     name: "Jefferson County Sheriff's Office / 911",
     agencyCompany: "Jefferson County Sheriff's Office / 911",
     agencyName: "Jefferson County Sheriff's Office / 911",

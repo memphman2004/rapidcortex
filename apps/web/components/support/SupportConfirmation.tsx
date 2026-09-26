@@ -37,7 +37,7 @@ export function SupportConfirmation({
           {SLA_BY_SEVERITY[ticket.severity]}
         </p>
         <p className="mt-2 text-[11px] text-slate-500">
-          A confirmation has been sent to support@rapidcortex.us. Reference{" "}
+          A confirmation has been sent to support@nexcortiq.us. Reference{" "}
           <span className="font-mono text-sky-500">{ticket.ticketId}</span> in any follow-ups.
         </p>
       </div>

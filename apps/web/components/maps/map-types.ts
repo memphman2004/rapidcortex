@@ -1,5 +1,5 @@
 /**
- * Rapid Cortex — Map Type Definitions
+ * NexCort iQ — Map Type Definitions
  *
  * Shared interfaces for the RapidCortexMap component system.
  * Used by: RapidCortexMapCore, MapLayerControl, supervisor/incident/venue dashboards.
@@ -26,11 +26,47 @@ export interface RCIncident {
 
 // ─── Caller / report location pin ────────────────────────────────────────────
 
+export type LiveCallerSource = "gps" | "sms" | "pinpoint";
+export type LiveCallerFreshness = "live" | "stale" | "lost";
+
+export interface RCLiveCallerTrailPoint {
+  lat: number;
+  lng: number;
+  at?: string;
+}
+
+/** Concurrent caller-shared GPS session (Pinpoint / SMS locate). */
+export interface RCLiveCaller {
+  id: string;
+  lat: number;
+  lng: number;
+  updatedAt: string;
+  accuracyMeters?: number;
+  headingDeg?: number;
+  speedMps?: number;
+  incidentId?: string;
+  callId?: string;
+  label?: string;
+  source?: LiveCallerSource;
+  trail?: RCLiveCallerTrailPoint[];
+  /** When true the overlay must drop this caller (session closed / link revoked). */
+  sessionClosed?: boolean;
+}
+
 export interface RCCallerLocation {
   lat:    number;
   lng:    number;
   label?: string;  // e.g. "Section 118, Row 12" — shown in popup
-  source?: "gps" | "manual" | "qr" | "nfc" | "sms";
+  source?: "gps" | "manual" | "qr" | "nfc" | "sms" | "pinpoint";
+  /** Horizontal GPS accuracy in meters when the caller shared a fix. */
+  accuracyMeters?: number;
+  headingDeg?: number;
+  speedMps?: number;
+  /** ISO-8601 last GPS update. Required for LIVE/STALE/LOST aging. */
+  updatedAt?: string;
+  incidentId?: string;
+  callId?: string;
+  trail?: RCLiveCallerTrailPoint[];
 }
 
 // ─── Layer visibility state ───────────────────────────────────────────────────
@@ -45,10 +81,30 @@ export interface RCMapLayerVisibility {
   activeIncidents:     boolean;
   resolvedIncidents:   boolean;
   callerPin:           boolean;
+  /** Optional GPS breadcrumb for live callers (off by default). */
+  callerTrail:         boolean;
+  /** National PSAP directory icons (MapLibre overlay, not baked into the basemap). */
+  psaps:               boolean;
+  /** Live Places V2 hospitals near the current viewport. */
+  hospitals:           boolean;
+  /** Subset of hospital POIs tagged as emergency rooms. */
+  emergencyRooms:      boolean;
+  /** Live Places V2 schools and campuses near the current viewport. */
+  education:           boolean;
   /** Live traffic flow overlay when present in the style */
   liveTraffic:         boolean;
   /** Live traffic closures overlay when present in the style */
   liveTrafficClosures: boolean;
+  /** Maps V2 basemap: terrain hillshade */
+  basemapTerrain:      boolean;
+  /** Maps V2 basemap: 3D buildings */
+  basemapBuildings:    boolean;
+  /** Maps V2 basemap: contour density */
+  basemapContours:     boolean;
+  /** Maps V2 basemap: transit travel-modes */
+  basemapTransit:      boolean;
+  /** Maps V2 basemap: Hybrid satellite + labels */
+  basemapSatellite:    boolean;
 }
 
 export const DEFAULT_LAYER_VISIBILITY: RCMapLayerVisibility = {
@@ -61,8 +117,18 @@ export const DEFAULT_LAYER_VISIBILITY: RCMapLayerVisibility = {
   activeIncidents:     true,
   resolvedIncidents:   false,
   callerPin:           true,
-  liveTraffic:         false,
-  liveTrafficClosures: false,
+  callerTrail:         false,
+  psaps:               true,
+  hospitals:           true,
+  emergencyRooms:      true,
+  education:           true,
+  liveTraffic:         true,
+  liveTrafficClosures: true,
+  basemapTerrain:      false,
+  basemapBuildings:    false,
+  basemapContours:     false,
+  basemapTransit:      false,
+  basemapSatellite:    false,
 };
 
 // ─── Map component props ──────────────────────────────────────────────────────
@@ -91,6 +157,15 @@ export interface RCMapProps {
    * label as part of the incident locationLabel; do NOT fabricate coordinates.
    */
   callerLocation?: RCCallerLocation | null;
+
+  /**
+   * Concurrent live GPS sessions (Pinpoint / SMS locate).
+   * Restored from app state after Maps V2 `style.load`.
+   */
+  liveCallers?: RCLiveCaller[] | null;
+
+  /** Fired when a live caller overlay is clicked (opens the incident drawer). */
+  onLiveCallerClick?: (caller: RCLiveCaller) => void;
 
   /** Override initial layer visibility */
   defaultLayers?: Partial<RCMapLayerVisibility>;

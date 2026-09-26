@@ -1,6 +1,5 @@
 import type { ConnectSource } from "../connect-types.js";
 import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
-import { ringAdapter } from "../adapters/ring-adapter.js";
 import { resolveOnvifStreamUri } from "../onvif/onvif-resolver.js";
 import { BridgeSessionService } from "../../shared/bridge-session-service.js";
 import { KvsChannelService } from "../../shared/kvs-channel-service.js";
@@ -36,21 +35,7 @@ export async function resolveStreamForSource(
   incidentId: string,
 ): Promise<{ kvsChannelName: string; ecsTaskArn?: string }> {
   if (source.sourceType === "DOORBELL") {
-    if (ringAdapter.isAvailable()) {
-      try {
-        const rtspUrl = await ringAdapter.resolveStreamUrl(source);
-        return await bridge.startBridge({
-          sessionId,
-          incidentId,
-          rtspUrl,
-          product: "connect",
-          sessionsTableName: process.env.CONNECT_SESSIONS_TABLE?.trim() || "",
-        });
-      } catch (err) {
-        console.warn("[ring] API failed, trying RTSP fallback:", err);
-      }
-    }
-    if (ringAdapter.canUseRtspFallback(source) && source.rtspUrl) {
+    if (source.protocol === "RTSP" && source.rtspUrl) {
       const rtspUrl = await resolveRtspUrl(source);
       return await bridge.startBridge({
         sessionId,
@@ -61,7 +46,9 @@ export async function resolveStreamForSource(
         sessionsTableName: process.env.CONNECT_SESSIONS_TABLE?.trim() || "",
       });
     }
-    throw new Error("Ring device: partnership not enabled and no RTSP fallback configured");
+    throw new Error(
+      `Doorbell source ${source.sourceId} has no RTSP stream configured. Register the device with an rtspUrl.`,
+    );
   }
 
   if (source.protocol === "RTSP" || source.protocol === "ONVIF") {

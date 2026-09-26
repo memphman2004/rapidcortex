@@ -1,12 +1,12 @@
-# Rapid Cortex — User guide
+# NexCort iQ — User guide
 
 For **dispatchers**, **supervisors**, **agency administrators**, and **platform operators** using the web application (`apps/web`). Behavior matches **live API routes** documented in [API_SURFACE.md](./API_SURFACE.md) and [CORE_USER_FLOWS.md](./CORE_USER_FLOWS.md).
 
 **County / city / municipality IT and comms leadership:** use **[JURISDICTION_OPERATIONS_GUIDE.md](./JURISDICTION_OPERATIONS_GUIDE.md)** for install-on-screen, setup, maintenance, troubleshooting, and the recommended **download package** file list.
 
-## What Rapid Cortex does
+## What NexCort iQ does
 
-Rapid Cortex is a **browser-based co-pilot** for emergency communications workflows: **incidents**, **transcripts** (including **multilingual** segments when enabled), **AI-assisted analysis**, and **protocol-aligned coaching**. It sits **alongside** CAD, telephony, and radio—not as a replacement ([KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md)).
+NexCort iQ is a **browser-based co-pilot** for emergency communications workflows: **incidents**, **transcripts** (including **multilingual** segments when enabled), **AI-assisted analysis**, and **protocol-aligned coaching**. It sits **alongside** CAD, telephony, and radio—not as a replacement ([KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md)).
 
 ## URLs (jurisdiction slug)
 
@@ -55,7 +55,7 @@ Agency **admin** users should start from **`/{slug}/admin/pilot`** (**Pilot hub*
 
 The **Connections** bar summarizes configuration:
 
-- **Rapid Cortex API — Live backend** when `NEXT_PUBLIC_AUTH_PROXY=1` (cookie proxy to `API_UPSTREAM_BASE`) or `NEXT_PUBLIC_API_BASE` is set.
+- **NexCort iQ API — Live backend** when `NEXT_PUBLIC_AUTH_PROXY=1` (cookie proxy to `API_UPSTREAM_BASE`) or `NEXT_PUBLIC_API_BASE` is set.
 - **Offline / training** when neither is set: the **incident queue is empty** (no fake incidents) unless an engineer explicitly sets **`NEXT_PUBLIC_OFFLINE_DEMO_MODE=1`** for local demos ([ENVIRONMENT_MATRIX.md](./ENVIRONMENT_MATRIX.md)).
 
 ## Dispatcher workspace (`/<slug>/dashboard`)
@@ -81,17 +81,17 @@ Scripted **demo scenarios** (`GET /api/demo/scenarios`, `POST /api/demo/start`) 
 
 ## Media workspace (`/<slug>/media`)
 
-When enabled for your agency, the **Media** page combines caller video, facility cameras, silent text, and **Ring Connect**:
+When enabled for your agency, the **Media** page combines caller video, facility cameras, silent text, and citizen camera Connect (Nest / Wyze):
 
 | Area | Behavior |
 | --- | --- |
 | **Incident Context** | Select the active incident used for camera search and requests. |
 | **Caller Video** | WebRTC caller video assist (separate consent path). |
-| **Live Camera — Ring** | Link Ring account, manage linked devices, view nearby Ring doorbells/cameras, send **owner-consented** emergency video requests, view approved live streams. |
+| **Live Camera — Nest / Wyze** | View nearby citizen cameras, send **owner-consented** emergency video requests, view approved live streams. |
 | **Live Camera — Facility** | Facility / KVS live video when live video is enabled. |
 | **Text to Caller** | Silent Text panel when enabled. |
 
-**Ring Connect** requires owner approval for every device request. Doorbells and cameras share the same workflow. Step-by-step: [RING_CONNECT_CAMERA_ACCESS.md](../product-architecture/RING_CONNECT_CAMERA_ACCESS.md) · [COMMON_TASKS.md](../operations-runbooks/COMMON_TASKS.md).
+Citizen camera Connect requires owner approval for every device request. Step-by-step: [COMMON_TASKS.md](../operations-runbooks/COMMON_TASKS.md).
 
 ## Supervisor review (`/<slug>/review`)
 
@@ -113,7 +113,7 @@ Billing UIs depend on environment (e.g. Square). Treat as **production-sensitive
 | API offline / empty live data | Operations — [RUNBOOK.md](./RUNBOOK.md), [MONITORING_AND_OPS.md](./MONITORING_AND_OPS.md). |
 | Wrong role or agency | Agency admin or platform operator ([ADMIN_GUIDE.md](./ADMIN_GUIDE.md)). |
 | Outage or suspected breach | [INCIDENT_RESPONSE.md](./INCIDENT_RESPONSE.md). |
-| CAD / radio / 911 vendor | **That vendor** — Rapid Cortex does not operate those systems. |
+| CAD / radio / 911 vendor | **That vendor** — NexCort iQ does not operate those systems. |
 
 ## Training and limitations
 

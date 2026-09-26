@@ -12,7 +12,7 @@ import { listAgencyProfiles, listAllSignals } from "./rapid-iq-pipeline-db.js";
 const ses = new SESClient({});
 
 function fromAddress(): string {
-  return process.env.SES_FROM_EMAIL?.trim() || env.sesFromEmail || "noreply@rapidcortex.us";
+  return process.env.SES_FROM_EMAIL?.trim() || env.sesFromEmail || "noreply@nexcortiq.us";
 }
 
 function toAddresses(): string[] {

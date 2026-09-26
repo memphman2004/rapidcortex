@@ -38,6 +38,13 @@ import {
   isStopKeyword,
 } from "../../alerts/service.js";
 import { alertsStore } from "../../alerts/store.js";
+import {
+  getOrCreateEnsProgram,
+  runEnsTest,
+  saveEnsBoundary,
+  saveEnsProgram,
+} from "../../alerts/ens-service.js";
+import { buildEnsTestReportPdf } from "../../alerts/ens-test-pdf.js";
 
 const authz = new AuthorizationService();
 const auditRepo = new AuditRepository();
@@ -92,6 +99,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (!env.enableVerticalAlerts || !env.verticalAlertsTable) {
       return withCorrelationHeaders(event, serviceUnavailable("Vertical alerts are not enabled"));
     }
+    const ensEnabled = env.enableEnsTestProgram;
 
     const method = event.requestContext.http.method.toUpperCase();
     const path = event.rawPath ?? "";
@@ -380,6 +388,117 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         );
       }
       return withCorrelationHeaders(event, ok({ job }));
+    }
+
+    if (ensEnabled && parts[0] === "ens" && parts[1] === "program") {
+      const vertical = verticalFromQuery(event);
+      if (vertical === "transit") {
+        return withCorrelationHeaders(event, badRequest("ENS test program is campus/venue only"));
+      }
+      if (method === "GET") {
+        requirePerm(user, "alerts.history.view");
+        const org = await ensureDefaultOrganization(agencyId, vertical);
+        await ensureSystemCatalog(agencyId, vertical, org);
+        const program = await getOrCreateEnsProgram(agencyId, vertical, agencyId);
+        return withCorrelationHeaders(event, ok({ program }));
+      }
+      if (method === "PUT") {
+        requirePerm(user, "alerts.ens.manage");
+        try {
+          const program = await saveEnsProgram(agencyId, { ...(body as object), vertical });
+          await audit({
+            agencyId,
+            actorId: user.userId,
+            type: AUDIT_EVENT_TYPES.ALERT_ENS_PROGRAM_SAVED,
+            details: { vertical },
+          });
+          return withCorrelationHeaders(event, ok({ program }));
+        } catch (err) {
+          const status = (err as { statusCode?: number }).statusCode;
+          if (status === 400) return withCorrelationHeaders(event, badRequest("Invalid ENS program"));
+          throw err;
+        }
+      }
+    }
+
+    if (ensEnabled && parts[0] === "ens" && parts[1] === "boundary") {
+      const vertical = verticalFromQuery(event);
+      if (vertical === "transit") {
+        return withCorrelationHeaders(event, badRequest("ENS boundary is campus/venue only"));
+      }
+      if (method === "GET") {
+        requirePerm(user, "alerts.history.view");
+        const boundary = await alertsStore.getEnsBoundary(agencyId, vertical);
+        return withCorrelationHeaders(event, ok({ boundary }));
+      }
+      if (method === "PUT") {
+        requirePerm(user, "alerts.ens.manage");
+        try {
+          const boundary = await saveEnsBoundary(agencyId, { ...(body as object), vertical });
+          await audit({
+            agencyId,
+            actorId: user.userId,
+            type: AUDIT_EVENT_TYPES.ALERT_ENS_BOUNDARY_SAVED,
+            details: { vertical, points: boundary.boundaryPolygon.length },
+          });
+          return withCorrelationHeaders(event, ok({ boundary }));
+        } catch (err) {
+          const status = (err as { statusCode?: number }).statusCode;
+          if (status === 400) return withCorrelationHeaders(event, badRequest("Invalid boundary"));
+          throw err;
+        }
+      }
+    }
+
+    if (ensEnabled && parts[0] === "ens" && parts[1] === "runs" && !parts[2] && method === "GET") {
+      requirePerm(user, "alerts.history.view");
+      const vertical = verticalFromQuery(event);
+      const runs = await alertsStore.listEnsRuns(agencyId, vertical);
+      return withCorrelationHeaders(event, ok({ runs }));
+    }
+
+    if (ensEnabled && parts[0] === "ens" && parts[1] === "runs" && parts[2] && parts[3] === "report" && method === "GET") {
+      requirePerm(user, "alerts.history.view");
+      const run = await alertsStore.getEnsRun(agencyId, parts[2]);
+      if (!run) return withCorrelationHeaders(event, notFound("Run not found"));
+      const program = await getOrCreateEnsProgram(agencyId, run.vertical, agencyId);
+      const pdf = await buildEnsTestReportPdf({ program, run });
+      return withCorrelationHeaders(event, {
+        statusCode: 200,
+        headers: {
+          "content-type": "application/pdf",
+          "content-disposition": `attachment; filename="ens-test-${run.runId}.pdf"`,
+        },
+        body: pdf.toString("base64"),
+        isBase64Encoded: true,
+      });
+    }
+
+    if (ensEnabled && parts[0] === "ens" && parts[1] === "run" && method === "POST") {
+      requirePerm(user, "alerts.ens.run");
+      try {
+        const result = await runEnsTest({
+          agencyId,
+          actorId: user.userId,
+          displayName: agencyId,
+          body,
+          canCritical: authz.canPerform(user, "alerts.dispatch.critical"),
+        });
+        await audit({
+          agencyId,
+          actorId: user.userId,
+          type: AUDIT_EVENT_TYPES.ALERT_ENS_TEST_RUN,
+          details: { runId: result.run.runId, kind: result.run.kind, jobId: result.jobId },
+          resourceId: result.run.runId,
+        });
+        return withCorrelationHeaders(event, ok(result, 202));
+      } catch (err) {
+        const status = (err as { statusCode?: number }).statusCode;
+        const message = err instanceof Error ? err.message : "ENS_RUN_FAILED";
+        if (status === 400) return withCorrelationHeaders(event, badRequest(message));
+        if (status === 503) return withCorrelationHeaders(event, serviceUnavailable(message));
+        throw err;
+      }
     }
 
     if (parts[0] === "dispatch" && parts[1] && parts[2] === "acknowledge" && method === "POST") {

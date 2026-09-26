@@ -64,6 +64,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (routeKey === "POST /api/incidents/{id}/video-assist/sessions") {
       const body = JSON.parse(event.body ?? "{}");
       const out = await service.createSession(incidentId, user, body);
+      if (out.session.status === "failed") {
+        return jsonStatus(
+          {
+            error: "sms_not_sent",
+            message: out.session.lastError ?? "The SMS was not sent. The caller did not receive a message.",
+            session: out.session,
+            token: out.token,
+            publicUrl: out.publicUrl,
+          },
+          502,
+        );
+      }
       return ok(out, 201);
     }
 
@@ -81,6 +93,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     if (routeKey === "POST /api/incidents/{id}/video-assist/sessions/{sessionId}/resend") {
       const s = await service.resendSms(incidentId, sessionId, user);
+      if (s.status === "failed") {
+        return jsonStatus(
+          {
+            error: "sms_not_sent",
+            message: s.lastError ?? "The SMS was not sent. The caller did not receive a message.",
+            session: s,
+          },
+          502,
+        );
+      }
       return ok(s);
     }
 

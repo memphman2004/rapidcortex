@@ -10,6 +10,6 @@ export const metadata = {
 
 export default async function RcAdminOnboardingPacketsPage() {
   if (!isVerticalOnboardingEnabled()) notFound();
-  await requireRole(["rcsuperadmin", "rcadmin", "rcitadmin"]);
+  await requireRole(["rcsuperadmin", "rcadmin", "rcitadmin", "salescontractor"]);
   return <OnboardingPacketsClient heading="Vertical onboarding packets" />;
 }

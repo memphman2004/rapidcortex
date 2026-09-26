@@ -5,7 +5,7 @@ import { useTheme } from "@/lib/theme/theme-context";
 
 /**
  * variant="inline" — shells using CSS var / inline styles (Venue, Campus, Dispatcher)
- * variant="tailwind" — RC Admin / Tailwind shells
+ * variant="tailwind" — NexCort Admin / Tailwind shells
  */
 export function ThemeToggle({
   variant = "inline",

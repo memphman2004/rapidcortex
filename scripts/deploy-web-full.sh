@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Rapid Cortex — full local-Docker path: build Dockerfile.web, push to ECR, roll ECS, smoke.
+# NexCort iQ — full local-Docker path: build Dockerfile.web, push to ECR, roll ECS, smoke.
 # For CodeBuild/S3 (no local Docker), use scripts/deploy-web-no-docker.sh instead.
 #
 # Prerequisites: Docker, AWS CLI, ECR repo rapid-cortex-web-${ENV} (see infra/web-ecr.yaml).
@@ -37,7 +37,7 @@ NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL:-https://api.rapidcortex.us
 APP_ENV="${APP_ENV:-production}"
 
 echo "════════════════════════════════════════════════════════"
-echo " Rapid Cortex web — local Docker → ECR → ECS"
+echo " NexCort iQ web — local Docker → ECR → ECS"
 echo "════════════════════════════════════════════════════════"
 echo " Environment:  ${ENVIRONMENT}"
 echo " Region:       ${AWS_REGION}"

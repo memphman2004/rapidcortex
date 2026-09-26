@@ -17,16 +17,14 @@ const REPORT_TYPES: ReportType[] = ['anonymous', 'identified', 'both'];
 
 export default function CreateCodeScreen() {
   const router = useRouter();
-  const { href, vertical, product } = useFieldProduct();
+  const { href, vertical } = useFieldProduct();
   const { agencyId } = useAuth();
   const { colors, typography, spacing } = useTheme();
   const palette = colors as { background: string; textPrimary: string; textSecondary: string; amber: string; red: string };
   const createNewCode = useCodesStore((state) => state.createNewCode);
 
-  const namePlaceholder =
-    product === 'campus' ? 'e.g. McKinley Hall — 3rd Floor' : Strings.venue.createCode.codeNamePlaceholder;
-  const zonePlaceholder =
-    product === 'campus' ? 'e.g. Building C, Floor 3' : Strings.venue.createCode.zonePlaceholder;
+  const namePlaceholder = Strings.venue.createCode.codeNamePlaceholder;
+  const zonePlaceholder = Strings.venue.createCode.zonePlaceholder;
 
   const [name, setName] = useState('');
   const [zone, setZone] = useState('');
@@ -46,7 +44,7 @@ export default function CreateCodeScreen() {
     if (smsNumber.trim()) {
       normalizedSms = normalizePhoneToE164(smsNumber);
       if (!normalizedSms) {
-        setError('Enter a valid SMS phone number.');
+        setError('Enter a valid text reporting number.');
         return;
       }
     }
@@ -91,8 +89,16 @@ export default function CreateCodeScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }} edges={['top']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ padding: spacing['5'], paddingBottom: spacing['10'] }} keyboardShouldPersistTaps="handled">
-          <Text style={[typography.h1, { color: palette.textPrimary, marginBottom: spacing['5'] }]}>
-            {Strings.venue.createCode.createButton}
+          <Text style={[typography.h1, { color: palette.textPrimary }]}>
+            {Strings.venue.createCode.title}
+          </Text>
+          <Text
+            style={[
+              typography.body,
+              { color: palette.textSecondary, marginTop: spacing['2'], marginBottom: spacing['5'] },
+            ]}
+          >
+            {Strings.venue.createCode.subtitle}
           </Text>
 
           <View style={{ gap: spacing['4'] }}>

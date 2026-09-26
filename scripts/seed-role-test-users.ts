@@ -1,6 +1,6 @@
 /**
- * Create or update fixed Rapid Cortex test accounts in Cognito (one password from env, never logged).
- * Intended for QA plus the App Store review login (`apple-review@rapidcortex.us`).
+ * Create or update fixed NexCort iQ test accounts in Cognito (one password from env, never logged).
+ * Intended for QA plus the App Store review login (`apple-review@nexcortiq.us`).
  * Run against the pool the iOS app uses (`us-east-1_0z6tA6WBs` in production).
  */
 import {
@@ -35,7 +35,11 @@ type TestRow = {
   cognitoGroup?: string;
   /** Optional `custom:agencyVertical` (campus / venue / transit / pilot). */
   agencyVertical?: string;
-  /** App Store review accounts must not prompt for TOTP. */
+  /**
+   * Clear per-user TOTP preference. The pool `MfaConfiguration` is `ON`, so Cognito
+   * still issues `MFA_SETUP` until a token is enrolled. NexCort iQ Mobile
+   * auto-completes that challenge so field users and App Review only type a password.
+   */
   disableMfa?: boolean;
 };
 
@@ -95,13 +99,7 @@ const ACCOUNTS: TestRow[] = [
     cognitoGroup: "agencyit",
   },
   {
-    email: "ring-reviewer@rapidcortex.us",
-    customRole: "dispatcher",
-    agencyId: TEST_AGENCY,
-    cognitoGroup: "dispatcher",
-  },
-  {
-    email: "apple-review@rapidcortex.us",
+    email: "apple-review@nexcortiq.us",
     customRole: "campus_admin",
     agencyId: "test-campus-uga",
     cognitoGroup: "campus_admin",
@@ -109,7 +107,29 @@ const ACCOUNTS: TestRow[] = [
     disableMfa: true,
   },
   {
+    email: "appreviewer@nexcortiq.us",
+    customRole: "venue_admin",
+    agencyId: "test-venue-mbs",
+    cognitoGroup: "venue_admin",
+    agencyVertical: "venue",
+    disableMfa: true,
+  },
+  {
+    /**
+     * Canonical App Store Connect demo account (Guideline 2.1).
+     * Sign-In Information: appreviewer@rapidcortex.us — keep MFA cleared between devices.
+     * Switch ASC to appreviewer@nexcortiq.us only when we cut the review mailbox to that domain.
+     */
     email: "appreviewer@rapidcortex.us",
+    customRole: "venue_admin",
+    agencyId: "test-venue-mbs",
+    cognitoGroup: "venue_admin",
+    agencyVertical: "venue",
+    disableMfa: true,
+  },
+  {
+    /** Alias only — not the ASC Sign-In Information username. Same silent-MFA path as .us. */
+    email: "appreviewer@rapidcortex.ai",
     customRole: "venue_admin",
     agencyId: "test-venue-mbs",
     cognitoGroup: "venue_admin",
@@ -444,16 +464,24 @@ async function main() {
     }
 
     if (row.disableMfa) {
-      await client.send(
-        new AdminSetUserMFAPreferenceCommand({
-          UserPoolId: pool,
-          Username: username,
-          SMSMfaSettings: { Enabled: false, PreferredMfa: false },
-          SoftwareTokenMfaSettings: { Enabled: false, PreferredMfa: false },
-        }),
-      );
-      // eslint-disable-next-line no-console
-      console.log(`[seed-role-test-users] MFA disabled for ${row.email}.`);
+      try {
+        await client.send(
+          new AdminSetUserMFAPreferenceCommand({
+            UserPoolId: pool,
+            Username: username,
+            SMSMfaSettings: { Enabled: false, PreferredMfa: false },
+            SoftwareTokenMfaSettings: { Enabled: false, PreferredMfa: false },
+          }),
+        );
+        // eslint-disable-next-line no-console
+        console.log(
+          `[seed-role-test-users] MFA preference cleared for ${row.email}. iOS auto-completes MFA_SETUP for all Mobile users; pool MFA stays ON.`,
+        );
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        // eslint-disable-next-line no-console
+        console.warn(`[seed-role-test-users] Could not clear MFA preference for ${row.email}: ${message}`);
+      }
     }
 
     if (row.cognitoGroup) {

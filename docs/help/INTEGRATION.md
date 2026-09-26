@@ -1,4 +1,4 @@
-# Rapid Cortex — Help Panel Integration Guide
+# NexCort iQ — Help Panel Integration Guide
 
 ## Files
 
@@ -66,7 +66,7 @@ import { ContextualHelp } from "@/components/help/help-button";
 <div>CALLER VIDEO ASSIST <ContextualHelp topic="live-video" /></div>
 
 // In the pinpoint section:
-<div>RAPID CORTEX PINPOINT <ContextualHelp topic="pinpoint" /></div>
+<div>NEXCORT IQ PINPOINT <ContextualHelp topic="pinpoint" /></div>
 
 // In the CAD entry form:
 <label>CAD ENTRY <ContextualHelp topic="cad-entry" /></label>

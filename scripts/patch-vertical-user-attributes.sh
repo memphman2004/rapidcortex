@@ -2,7 +2,7 @@
 # patch-vertical-user-attributes.sh
 #
 # Sets custom:role and custom:agencyId on all 12 vertical test users.
-# Run from the Rapid Cortex repo root:
+# Run from the NexCort iQ repo root:
 #
 #   USER_POOL_ID=us-east-1_QgqAYyRwg \
 #   REGION=us-east-1 \

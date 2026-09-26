@@ -1,4 +1,4 @@
-# Rapid Cortex — Admin guide
+# NexCort iQ — Admin guide
 
 For **agency administrators** and **platform operators** who manage users, review audit trails, and verify integration health. Dispatchers and supervisors should start with [USER_GUIDE.md](./USER_GUIDE.md).
 

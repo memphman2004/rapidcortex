@@ -10,7 +10,7 @@ Copy [AGENCY_PLAYBOOK_TEMPLATE.md](./AGENCY_PLAYBOOK_TEMPLATE.md) per agency and
 
 A **controlled pilot** is **not** general availability. The following boundaries apply unless explicitly waived in writing:
 
-- **CAD:** Pilot may use **read-only** CAD, **no** CAD integration, or a **vendor-specific** adapter per [CAD_CONNECTION_PLAYBOOK.md](./CAD_CONNECTION_PLAYBOOK.md) and [INTEGRATIONS_CAD_AND_MOTOROLA.md](./INTEGRATIONS_CAD_AND_MOTOROLA.md). Rapid Cortex **enhances** CAD; it **does not replace CAD**.
+- **CAD:** Pilot may use **read-only** CAD, **no** CAD integration, or a **vendor-specific** adapter per [CAD_CONNECTION_PLAYBOOK.md](./CAD_CONNECTION_PLAYBOOK.md) and [INTEGRATIONS_CAD_AND_MOTOROLA.md](./INTEGRATIONS_CAD_AND_MOTOROLA.md). NexCort iQ **enhances** CAD; it **does not replace CAD**.
 - **Sandbox / demo behavior:** Allowed **only** if **clearly labeled** in the UI and **acknowledged** by the agency (see [NON_GOALS.md](./NON_GOALS.md) §5, [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md)).
 - **AI:** Output is **decision support** only; **manual dispatcher/supervisor review** is required ([PILOT_GOVERNANCE.md](./PILOT_GOVERNANCE.md), [MVP_SCOPE.md](./MVP_SCOPE.md)).
 - **Known limitations:** Agency acknowledges [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md) and [NON_GOALS.md](./NON_GOALS.md) as part of onboarding.

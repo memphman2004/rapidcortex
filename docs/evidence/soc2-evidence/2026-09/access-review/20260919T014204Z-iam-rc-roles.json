@@ -1,0 +1,1870 @@
+[
+    {
+        "RoleName": "rapid-cortex-api-pipeline-staging-BuildRole-AyRy0JDqssak",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-api-pipeline-staging-BuildRole-AyRy0JDqssak"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-als-map-auth-dev",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-als-map-auth-dev"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-als-map-unauth-dev",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-als-map-unauth-dev"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-AcknowledgeTraumaFlagFunc-h7ZD2gi0i2Rn",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-AcknowledgeTraumaFlagFunc-h7ZD2gi0i2Rn"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-AggregateAnalyticsFunctio-oC72lDa1tl0A",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-AggregateAnalyticsFunctio-oC72lDa1tl0A"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-CadWritebackHttpFunctionR-mkhaXMC6z3Zn",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-CadWritebackHttpFunctionR-mkhaXMC6z3Zn"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-CallerMediaHttpFunctionRo-bMQb88GPSHcE",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-CallerMediaHttpFunctionRo-bMQb88GPSHcE"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-CallIntelligenceLanguages-RXFK9DyzGTLd",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-CallIntelligenceLanguages-RXFK9DyzGTLd"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-CallQualityTrendsHttpFunc-qhydD7iROo8K",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-CallQualityTrendsHttpFunc-qhydD7iROo8K"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-CoachingNotesHttpFunction-shATKatKSsLt",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-CoachingNotesHttpFunction-shATKatKSsLt"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-CreatePremiseNoteFunction-RdL6DnFRXzun",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-CreatePremiseNoteFunction-RdL6DnFRXzun"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-DemoScenariosFunctionRole-aPuJT1GVYwtO",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-DemoScenariosFunctionRole-aPuJT1GVYwtO"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-ExternalV1HttpFunctionRol-dCHdNfY3yJIH",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-ExternalV1HttpFunctionRol-dCHdNfY3yJIH"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-FinalizeLanguageSessionFu-4FFOeZVIl38t",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-FinalizeLanguageSessionFu-4FFOeZVIl38t"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-GetAdminAnalyticsCsvFunct-ivEnf8HcXEIs",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-GetAdminAnalyticsCsvFunct-ivEnf8HcXEIs"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-GetAdminAnalyticsFunction-0SFotfc46Asx",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-GetAdminAnalyticsFunction-0SFotfc46Asx"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-GetCallerCardFunctionRole-PGZNN9gCRvAs",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-GetCallerCardFunctionRole-PGZNN9gCRvAs"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-GetDispatcherPerformanceD-r6zFOy7AZX8W",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-GetDispatcherPerformanceD-r6zFOy7AZX8W"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-GetLanguageSessionStatusF-WghREwqE7nub",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-GetLanguageSessionStatusF-WghREwqE7nub"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-GetSupervisorPerformanceM-FjUhiToHRP2I",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-GetSupervisorPerformanceM-FjUhiToHRP2I"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-IncidentTimelineHttpFunct-DTUBklXEdEaQ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-IncidentTimelineHttpFunct-DTUBklXEdEaQ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-ListAuditEventsFunctionRo-9qN7nmAeZt8M",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-ListAuditEventsFunctionRo-9qN7nmAeZt8M"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-ListWellnessFlagsFunction-QdeW4ZQvuFwK",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-ListWellnessFlagsFunction-QdeW4ZQvuFwK"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-PatchPremiseNoteFunctionR-X5gfVYCGnmqn",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-PatchPremiseNoteFunctionR-X5gfVYCGnmqn"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-PlatformNoticesActiveFunc-hic8qZzZHjL4",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-PlatformNoticesActiveFunc-hic8qZzZHjL4"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-PlatformNoticesAdminFunct-UaHcqtJtfWJ1",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-PlatformNoticesAdminFunct-UaHcqtJtfWJ1"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-PostAdminAnalyticsRefresh-krTfHlCAUzJw",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-PostAdminAnalyticsRefresh-krTfHlCAUzJw"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-PostDispatcherCoachingNot-xAsNGluYdanL",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-PostDispatcherCoachingNot-xAsNGluYdanL"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-PostIncidentReviewHttpFun-JpcrmRIR6k0N",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-PostIncidentReviewHttpFun-JpcrmRIR6k0N"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-PostVoiceBridgeOutboundFu-Cw1QbglJMxda",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-PostVoiceBridgeOutboundFu-Cw1QbglJMxda"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-QaScorecardHttpFunctionRo-OXWnPVsAXvnv",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-QaScorecardHttpFunctionRo-OXWnPVsAXvnv"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-RcAdminExportUsageFunctio-H4kV0NAqivuZ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-RcAdminExportUsageFunctio-H4kV0NAqivuZ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-RcAdminGetUsageFunctionRo-pCtU1m4ERtsj",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-RcAdminGetUsageFunctionRo-pCtU1m4ERtsj"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-RetentionExecutorFunction-f8tATSteDMhH",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-RetentionExecutorFunction-f8tATSteDMhH"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-RetentionSchedulerInvokeR-mwK0FLMrABt5",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-RetentionSchedulerInvokeR-mwK0FLMrABt5"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-SesNotificationHandlerFun-WJImL31bP7A3",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-SesNotificationHandlerFun-WJImL31bP7A3"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-StakeholderHttpFunctionRo-5GCoO4s3q2vk",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-StakeholderHttpFunctionRo-5GCoO4s3q2vk"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-StartDemoScenarioFunction-64AjamC2u6A6",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-StartDemoScenarioFunction-64AjamC2u6A6"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-StartLanguageSessionFunct-Vlx7aMJXOIzy",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-StartLanguageSessionFunct-Vlx7aMJXOIzy"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-SurgeIncidentsHttpFunctio-k2WQANavRH1e",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-SurgeIncidentsHttpFunctio-k2WQANavRH1e"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2S-TranslateLanguageSessionF-cpFELSXtQx6T",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2S-TranslateLanguageSessionF-cpFELSXtQx6T"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2St-ManageAddonsFunctionRole-9IcQc9VJAWvc",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2St-ManageAddonsFunctionRole-9IcQc9VJAWvc"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2St-RcLiteV1HttpFunctionRole-JuqkxrcxYINT",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2St-RcLiteV1HttpFunctionRole-JuqkxrcxYINT"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2Sta-ReportsHttpFunctionRole-oMkOIkM9uyod",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2Sta-ReportsHttpFunctionRole-oMkOIkM9uyod"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2Sta-WarRoomHttpFunctionRole-oLPXGoeLGe23",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2Sta-WarRoomHttpFunctionRole-oLPXGoeLGe23"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2Stack-1-SlaHttpFunctionRole-E8wYN4aFdtRf",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2Stack-1-SlaHttpFunctionRole-E8wYN4aFdtRf"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam2Stack-1U-HealthFunctionRole-asgpjTxVIlJ2",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam2Stack-1U-HealthFunctionRole-asgpjTxVIlJ2"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-AgencyAdminGetAccessOverr-Nayas1iDvhw3",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-AgencyAdminGetAccessOverr-Nayas1iDvhw3"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-AgencyAdminListAccessOver-aaQlPCahDzV5",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-AgencyAdminListAccessOver-aaQlPCahDzV5"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-AgencyAdminListApiClients-TpARDQUdPms4",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-AgencyAdminListApiClients-TpARDQUdPms4"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-AgencyAdminListUserAccess-xS0WIQgBzk7o",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-AgencyAdminListUserAccess-xS0WIQgBzk7o"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-AgencyAdminListWebhooksFu-hFeNKXd3t9kP",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-AgencyAdminListWebhooksFu-hFeNKXd3t9kP"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-AgencyAdminPatchAccessOve-ValCb36b0YUG",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-AgencyAdminPatchAccessOve-ValCb36b0YUG"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-AgencyAdminPatchApiClient-dmDdDfBWwqxi",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-AgencyAdminPatchApiClient-dmDdDfBWwqxi"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-AgencyAdminPostAccessOver-Vcq1J3TrPJlj",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-AgencyAdminPostAccessOver-Vcq1J3TrPJlj"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-AgencyAdminPostApiClients-u4N9ggXvJlic",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-AgencyAdminPostApiClients-u4N9ggXvJlic"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-AgencyAdminPostWebhooksFu-c6ZHgfxb2BlQ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-AgencyAdminPostWebhooksFu-c6ZHgfxb2BlQ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-AgencyAdminRotateApiClien-hr00KNqgHeYa",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-AgencyAdminRotateApiClien-hr00KNqgHeYa"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-GenerateGrantPackageFunct-jMGouuqxa1gU",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-GenerateGrantPackageFunct-jMGouuqxa1gU"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-GetDesktopReleasesOvervie-dFeybqzzQKP1",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-GetDesktopReleasesOvervie-dFeybqzzQKP1"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-GetPlatformAuditEventsFun-etZTRybHedKK",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-GetPlatformAuditEventsFun-etZTRybHedKK"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-GetPlatformDeploymentsMap-35UVoPU5xM4G",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-GetPlatformDeploymentsMap-35UVoPU5xM4G"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-GetPlatformSummaryFunctio-GCvlTeBIAKxX",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-GetPlatformSummaryFunctio-GCvlTeBIAKxX"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-GrantWriterHttpFunctionRo-xSMHFu23ltN7",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-GrantWriterHttpFunctionRo-xSMHFu23ltN7"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-ListRcAdminAgreementsFunc-z1CSqWMMtopY",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-ListRcAdminAgreementsFunc-z1CSqWMMtopY"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-ListRcAdminLeadsFunctionR-pm1oHcA84WMP",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-ListRcAdminLeadsFunctionR-pm1oHcA84WMP"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-MarketingLeadFunctionRole-C3QAL0df3hwK",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-MarketingLeadFunctionRole-C3QAL0df3hwK"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-MarketingUnsubscribeFunct-4f5m5uRg0zuo",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-MarketingUnsubscribeFunct-4f5m5uRg0zuo"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-OnboardingPacketsFunction-AKICKmK7WKgc",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-OnboardingPacketsFunction-AKICKmK7WKgc"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-PatchRcAdminLeadFunctionR-Zd6EZDmLz2AZ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-PatchRcAdminLeadFunctionR-Zd6EZDmLz2AZ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-PostAgencySharePartnerFun-AScazVWdPwdg",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-PostAgencySharePartnerFun-AScazVWdPwdg"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-PostContactSalesLeadFunct-mFVWQn6OKykW",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-PostContactSalesLeadFunct-mFVWQn6OKykW"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-PostDesktopReleaseSignedU-2ouR3ZNirk9K",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-PostDesktopReleaseSignedU-2ouR3ZNirk9K"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-PricingAgencyOverrideFunc-HBurRbfBoNWw",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-PricingAgencyOverrideFunc-HBurRbfBoNWw"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-PricingCatalogFunctionRol-fZzyRLI4gHjc",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-PricingCatalogFunctionRol-fZzyRLI4gHjc"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-PricingConfigAuditFunctio-e8CSUGzozkIY",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-PricingConfigAuditFunctio-e8CSUGzozkIY"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-PricingConfigGetFunctionR-ognUFrhz2QoT",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-PricingConfigGetFunctionR-ognUFrhz2QoT"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-PricingConfigPatchFunctio-762E4isJqMip",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-PricingConfigPatchFunctio-762E4isJqMip"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-PricingConfigPutFunctionR-SfvULPKPpYgb",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-PricingConfigPutFunctionR-SfvULPKPpYgb"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-RcAdminLeadsCrmFunctionRo-etfRnnzA0ivG",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-RcAdminLeadsCrmFunctionRo-etfRnnzA0ivG"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-RcAdminListApiClientsFunc-jvg6PB96ANVF",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-RcAdminListApiClientsFunc-jvg6PB96ANVF"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-VideoAssistIncidentsHttpF-BQ5pkhTD3ERX",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-VideoAssistIncidentsHttpF-BQ5pkhTD3ERX"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3S-VideoAssistPublicHttpFunc-hSVSDm4TPmTU",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3S-VideoAssistPublicHttpFunc-hSVSDm4TPmTU"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam3Stack-64-HealthFunctionRole-0OXJoUmZLX7Z",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam3Stack-64-HealthFunctionRole-0OXJoUmZLX7Z"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-AdminInvoicesHttpFunction-m6UaaJHjQSpQ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-AdminInvoicesHttpFunction-m6UaaJHjQSpQ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-AgencyNetworkPolicyHttpFu-TRLenjE8rBsC",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-AgencyNetworkPolicyHttpFu-TRLenjE8rBsC"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-BillingCustomersHttpFunct-A0XThznYG06k",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-BillingCustomersHttpFunct-A0XThznYG06k"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-BillingInvoicesHttpFuncti-g4YHPBXwZCq5",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-BillingInvoicesHttpFuncti-g4YHPBXwZCq5"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-BillingPaymentsDisabledCa-yoSB0QAruQLJ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-BillingPaymentsDisabledCa-yoSB0QAruQLJ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-BillingPaymentsHttpFuncti-jzUK45cskaS1",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-BillingPaymentsHttpFuncti-jzUK45cskaS1"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-BillingSchedulerFunctionR-6jExuJxqqlrE",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-BillingSchedulerFunctionR-6jExuJxqqlrE"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-BillingSchedulesHttpFunct-wWtonl4M9xEA",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-BillingSchedulesHttpFunct-wWtonl4M9xEA"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-BillingServicesHttpFuncti-f8M08TVPVMIo",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-BillingServicesHttpFuncti-f8M08TVPVMIo"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-BillingTenantHttpFunction-PDEOqvput0hJ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-BillingTenantHttpFunction-PDEOqvput0hJ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-BulkDraftInvoicesHttpFunc-mvp81iavK3wq",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-BulkDraftInvoicesHttpFunc-mvp81iavK3wq"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-CleanupOrphanedHomeowners-cyDYlGdgfK8b",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-CleanupOrphanedHomeowners-cyDYlGdgfK8b"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-DeleteAccountFunctionRole-XSxOpUxZmrk2",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-DeleteAccountFunctionRole-XSxOpUxZmrk2"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-DelinquencyEscalationFunc-qpejdEChnIhk",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-DelinquencyEscalationFunc-qpejdEChnIhk"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-GetAgencyBillingProfileFu-0klSpBMfKzYA",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-GetAgencyBillingProfileFu-0klSpBMfKzYA"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-ListAgencyBillingInvoices-c2Y8jp5AYuAQ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-ListAgencyBillingInvoices-c2Y8jp5AYuAQ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-ListAgencyBillingPaymentM-o2fN8H5L5fiJ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-ListAgencyBillingPaymentM-o2fN8H5L5fiJ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-ListBillingPlansFunctionR-4qg7XcNdhNtY",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-ListBillingPlansFunctionR-4qg7XcNdhNtY"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-NestCamerasProvidersHttpF-dA2QytQWCrmv",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-NestCamerasProvidersHttpF-dA2QytQWCrmv"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-PatchAgencyBillingProfile-CjZZmbRxgZvx",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-PatchAgencyBillingProfile-CjZZmbRxgZvx"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-PostAgencyBillingInvoiceF-JCGZrxI3ZWGX",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-PostAgencyBillingInvoiceF-JCGZrxI3ZWGX"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-PostAgencyBillingPaymentM-3S1vcbnjaLjB",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-PostAgencyBillingPaymentM-3S1vcbnjaLjB"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-PostAgencyBillingPaymentM-YE2quQuJxP21",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-PostAgencyBillingPaymentM-YE2quQuJxP21"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-PostBillingSubscriptionCa-k3eolUyH8jCz",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-PostBillingSubscriptionCa-k3eolUyH8jCz"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-PostBillingSubscriptionCh-8CDUlh5GNxth",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-PostBillingSubscriptionCh-8CDUlh5GNxth"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-PricingAdminHttpFunctionR-g5sdrsyZFMBN",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-PricingAdminHttpFunctionR-g5sdrsyZFMBN"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingConnectAvailableCamer-ba9CtVt2WZbC",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingConnectAvailableCamer-ba9CtVt2WZbC"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingConnectCallbackFuncti-M9uB3Ol2uSgy",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingConnectCallbackFuncti-M9uB3Ol2uSgy"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingConnectCameraConsentA-ZJr8u64aIrEa",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingConnectCameraConsentA-ZJr8u64aIrEa"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingConnectCameraConsentD-jWOeSu0HTADe",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingConnectCameraConsentD-jWOeSu0HTADe"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingConnectCameraConsentL-tKTOvEn5BVuN",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingConnectCameraConsentL-tKTOvEn5BVuN"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingConnectCameraConsentS-CmjblYyQjDHL",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingConnectCameraConsentS-CmjblYyQjDHL"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingConnectDevicesFunctio-pMnPaGi3mBtq",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingConnectDevicesFunctio-pMnPaGi3mBtq"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingConnectDevicesRefresh-Hp9QqgBJ14Yh",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingConnectDevicesRefresh-Hp9QqgBJ14Yh"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingConnectDeviceToggleFu-SEdxQfag4ere",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingConnectDeviceToggleFu-SEdxQfag4ere"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingConnectLoginFunctionR-udmmOPyzKLvy",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingConnectLoginFunctionR-udmmOPyzKLvy"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingConnectRefreshTokenFu-V6ux3JVv2xwO",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingConnectRefreshTokenFu-V6ux3JVv2xwO"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingConnectRequestCameraA-JH5hDs5dmNgb",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingConnectRequestCameraA-JH5hDs5dmNgb"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingConnectRevokeCameraAc-fBGMFjmKpicw",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingConnectRevokeCameraAc-fBGMFjmKpicw"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingHomeownerLinkFunction-ksWAYHxjZ2D1",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingHomeownerLinkFunction-ksWAYHxjZ2D1"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingHomeownerPasswordRese-nFpQBEWyWF25",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingHomeownerPasswordRese-nFpQBEWyWF25"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingPublicAgenciesByState-tKBSqV1Dq0al",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingPublicAgenciesByState-tKBSqV1Dq0al"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingPublicLeadsFunctionRo-suHvy36Kkzz0",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingPublicLeadsFunctionRo-suHvy36Kkzz0"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingPublicManageDisconnec-Q6SXqKkOndAO",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingPublicManageDisconnec-Q6SXqKkOndAO"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingPublicManageStartFunc-mDcjbvFsvjcj",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingPublicManageStartFunc-mDcjbvFsvjcj"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingPublicOauthCallbackFu-JfRbmpHLhaZG",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingPublicOauthCallbackFu-JfRbmpHLhaZG"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingPublicOauthStartFunct-zRDjK4tWTcXA",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingPublicOauthStartFunct-zRDjK4tWTcXA"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingStreamViewerTokenFunc-RK09TgnuLLku",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingStreamViewerTokenFunc-RK09TgnuLLku"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-RingTokenExchangeFunction-fkjpudKkRpUp",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-RingTokenExchangeFunction-fkjpudKkRpUp"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-Sam4RingKvsBrowserTokenRo-FXRQ8xM2cDy3",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-Sam4RingKvsBrowserTokenRo-FXRQ8xM2cDy3"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-TenantAddonsHttpFunctionR-UpXwBjNlgKpD",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-TenantAddonsHttpFunctionR-UpXwBjNlgKpD"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4S-WafNetworkPolicySyncFunct-5U6VNoYA7lSV",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4S-WafNetworkPolicySyncFunct-5U6VNoYA7lSV"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4Sta-RingWebhookFunctionRole-3rxYiCgGyKza",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4Sta-RingWebhookFunctionRole-3rxYiCgGyKza"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam4Stack-QV-HealthFunctionRole-740Ocg83giYq",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam4Stack-QV-HealthFunctionRole-740Ocg83giYq"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-AddSupportTicketNoteFunct-YQph7XJWRjBx",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-AddSupportTicketNoteFunct-YQph7XJWRjBx"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-AwsSmsDeliveryEventsFunct-oSVZS7lcHlIF",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-AwsSmsDeliveryEventsFunct-oSVZS7lcHlIF"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-AwsSmsInboundFunctionRole-hbKZI8plJrFo",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-AwsSmsInboundFunctionRole-hbKZI8plJrFo"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-BridgeHealthMonitorFuncti-XKodDhLwsf3G",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-BridgeHealthMonitorFuncti-XKodDhLwsf3G"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-CameraHeartbeatFunctionRo-aSdYLkrmeTuJ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-CameraHeartbeatFunctionRo-aSdYLkrmeTuJ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-CampusCameraAgentHeartbea-JGKDHLLahC7i",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-CampusCameraAgentHeartbea-JGKDHLLahC7i"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-CampusCameraDiscoverFunct-lKl6sHT8kU8E",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-CampusCameraDiscoverFunct-lKl6sHT8kU8E"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-CampusCameraProducerConfi-cB0JWkF7n5E3",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-CampusCameraProducerConfi-cB0JWkF7n5E3"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-CampusCameraPtzFunctionRo-ElLfIc9T6CGA",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-CampusCameraPtzFunctionRo-ElLfIc9T6CGA"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-CampusCameraRegistryListC-4I2Nn6qynxMZ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-CampusCameraRegistryListC-4I2Nn6qynxMZ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-CampusCameraRegistryMutat-LZeMxKn4NCar",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-CampusCameraRegistryMutat-LZeMxKn4NCar"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-CampusCleryHttpFunctionRo-Rordmz6LLgpL",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-CampusCleryHttpFunctionRo-Rordmz6LLgpL"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-CampusEapHttpFunctionRole-Bc37jE4pnSwB",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-CampusEapHttpFunctionRole-Bc37jE4pnSwB"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-DeleteVenueSectionFunctio-1kTk2d6FavLb",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-DeleteVenueSectionFunctio-1kTk2d6FavLb"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetCampusAnalyticsFunctio-lgZOzWEi9VNy",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetCampusAnalyticsFunctio-lgZOzWEi9VNy"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetCampusBuildingsDashboa-yiT7WCtLXyg9",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetCampusBuildingsDashboa-yiT7WCtLXyg9"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetCampusBuildingsFunctio-KJpwQ9DfqS1u",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetCampusBuildingsFunctio-KJpwQ9DfqS1u"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetCampusCamerasFunctionR-HrvFXd4Rf3wN",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetCampusCamerasFunctionR-HrvFXd4Rf3wN"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetCampusIncidentFunction-l0icmtzMjo7i",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetCampusIncidentFunction-l0icmtzMjo7i"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetCampusIncidentsFunctio-4TDYYQ2Dxpbf",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetCampusIncidentsFunctio-4TDYYQ2Dxpbf"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetCampusOnboardingCheckl-jtm48gtOovFI",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetCampusOnboardingCheckl-jtm48gtOovFI"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetCampusOnboardingIntake-XSZoIxsDIYvr",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetCampusOnboardingIntake-XSZoIxsDIYvr"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetCampusOnboardingIntegr-jtIVlTcLiFFP",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetCampusOnboardingIntegr-jtIVlTcLiFFP"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetCampusOnDutyFunctionRo-aWl93gPXqevZ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetCampusOnDutyFunctionRo-aWl93gPXqevZ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetCampusStatsFunctionRol-VSGJqYYAAkRv",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetCampusStatsFunctionRol-VSGJqYYAAkRv"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetCampusThreatLevelFunct-Xe2t3EIo5vS5",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetCampusThreatLevelFunct-Xe2t3EIo5vS5"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetCampusZonesFunctionRol-EyxDZ4cZB5v6",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetCampusZonesFunctionRol-EyxDZ4cZB5v6"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetIncidentVenueIntellige-M9Gn6WXUmH4u",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetIncidentVenueIntellige-M9Gn6WXUmH4u"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetSupportTicketBoardFunc-VbUJH4WEu3Gl",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetSupportTicketBoardFunc-VbUJH4WEu3Gl"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetVenueCamerasFunctionRo-1xAntSoivRQl",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetVenueCamerasFunctionRo-1xAntSoivRQl"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetVenueEventsFunctionRol-WTDANUqtCXaE",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetVenueEventsFunctionRol-WTDANUqtCXaE"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetVenueIncidentFunctionR-vWT34uftos1w",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetVenueIncidentFunctionR-vWT34uftos1w"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetVenueIncidentsFunction-TQAOSBVOjxIE",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetVenueIncidentsFunction-TQAOSBVOjxIE"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetVenueIntelligenceFunct-CS0p05VK3YYr",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetVenueIntelligenceFunct-CS0p05VK3YYr"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetVenueOnboardingCheckli-GqZiab42W5uz",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetVenueOnboardingCheckli-GqZiab42W5uz"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetVenueOnboardingIntakeF-XEMt3PG2ne84",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetVenueOnboardingIntakeF-XEMt3PG2ne84"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetVenueOnDutyFunctionRol-1QalgB93k28i",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetVenueOnDutyFunctionRol-1QalgB93k28i"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetVenueProfileFunctionRo-x1PflIaLf0RC",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetVenueProfileFunctionRo-x1PflIaLf0RC"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetVenueSectionsDashboard-ei9SLMs7Z75e",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetVenueSectionsDashboard-ei9SLMs7Z75e"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetVenueSectionsFunctionR-gtOIlvzdUxCK",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetVenueSectionsFunctionR-gtOIlvzdUxCK"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-GetVenueStatsFunctionRole-Quv2oEGh0gC9",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-GetVenueStatsFunctionRole-Quv2oEGh0gC9"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-IncidentMediaHttpFunction-sQAuMiuw1nzT",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-IncidentMediaHttpFunction-sQAuMiuw1nzT"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-KvsWebRtcBrowserTokenRole-esxxVotf1zW5",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-KvsWebRtcBrowserTokenRole-esxxVotf1zW5"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-LocatePublicHttpFunctionR-VvIS9QHY09Iy",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-LocatePublicHttpFunctionR-VvIS9QHY09Iy"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PatchCampusIncidentFuncti-0Lrs4UCRW6Dl",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PatchCampusIncidentFuncti-0Lrs4UCRW6Dl"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PatchCampusOnboardingChec-5Q5PTZcNQhOe",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PatchCampusOnboardingChec-5Q5PTZcNQhOe"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PatchCampusThreatLevelFun-YNR9E6pKJ052",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PatchCampusThreatLevelFun-YNR9E6pKJ052"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PatchVenueOnboardingCheck-bvSfqvu0VIoK",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PatchVenueOnboardingCheck-bvSfqvu0VIoK"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PatchVenueProfileFunction-zudZ5FOuymYG",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PatchVenueProfileFunction-zudZ5FOuymYG"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PatchVenueSectionStatusFu-nRUhgUQjJF6t",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PatchVenueSectionStatusFu-nRUhgUQjJF6t"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PinpointIncidentsHttpFunc-toT9n6oQWeS2",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PinpointIncidentsHttpFunc-toT9n6oQWeS2"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PinpointPublicHttpFunctio-vBSCmT9bzWoQ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PinpointPublicHttpFunctio-vBSCmT9bzWoQ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PostCampusBroadcastFuncti-pnBpsvh2SGeb",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PostCampusBroadcastFuncti-pnBpsvh2SGeb"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PostCampusIncidentEscalat-q0UMJvwYUsFm",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PostCampusIncidentEscalat-q0UMJvwYUsFm"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PostCampusIncidentFunctio-tx4gAXDZAZ7I",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PostCampusIncidentFunctio-tx4gAXDZAZ7I"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PostCampusIncidentNoteFun-rkzQoKWlRhQI",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PostCampusIncidentNoteFun-rkzQoKWlRhQI"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PostCampusNotificationFun-bHdx0OHTTrtI",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PostCampusNotificationFun-bHdx0OHTTrtI"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PostCampusPublicReportFun-Y1bJmNgTauKx",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PostCampusPublicReportFun-Y1bJmNgTauKx"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PostCampusSecurityEventFu-7YW5kCIbwlMr",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PostCampusSecurityEventFu-7YW5kCIbwlMr"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PostVenueNotificationFunc-2xJ8Ks7F8wBA",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PostVenueNotificationFunc-2xJ8Ks7F8wBA"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PublicIncidentMediaHttpFu-sHw53uiYrZ5C",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PublicIncidentMediaHttpFu-sHw53uiYrZ5C"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PutCampusOnboardingIntake-SG7YZwE65meD",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PutCampusOnboardingIntake-SG7YZwE65meD"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PutCampusOnboardingIntegr-ShBvEt5smXPO",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PutCampusOnboardingIntegr-ShBvEt5smXPO"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PutVenueOnboardingIntakeF-t7xC6Btth5Zc",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PutVenueOnboardingIntakeF-t7xC6Btth5Zc"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-PutVenueSectionFunctionRo-N2HbqKAsqtwk",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-PutVenueSectionFunctionRo-N2HbqKAsqtwk"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-SilentTextIncidentsHttpFu-E6piweh5APuC",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-SilentTextIncidentsHttpFu-E6piweh5APuC"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-SilentTextPublicHttpFunct-ajmqU14WkNEo",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-SilentTextPublicHttpFunct-ajmqU14WkNEo"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-SmsRoutingHttpFunctionRol-iAgDIG5FU596",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-SmsRoutingHttpFunctionRol-iAgDIG5FU596"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-StreamSessionStatusFuncti-0g8X8IdwdvSK",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-StreamSessionStatusFuncti-0g8X8IdwdvSK"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-SubmitSupportTicketFuncti-HENwvYbUJy5b",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-SubmitSupportTicketFuncti-HENwvYbUJy5b"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-UpdateSupportTicketFuncti-a5KqBeei3Ki3",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-UpdateSupportTicketFuncti-a5KqBeei3Ki3"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-VenueCameraAgentHeartbeat-WZjDLU0T37TL",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-VenueCameraAgentHeartbeat-WZjDLU0T37TL"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-VenueCameraDiscoverFuncti-fnr8f9TTLBkp",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-VenueCameraDiscoverFuncti-fnr8f9TTLBkp"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-VenueCameraProducerConfig-NqrrO7HRpf2L",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-VenueCameraProducerConfig-NqrrO7HRpf2L"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-VenueCameraPtzFunctionRol-LYWi7j7FxO2c",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-VenueCameraPtzFunctionRol-LYWi7j7FxO2c"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-VenueCameraRegistryListCr-4GPWlixuRGa8",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-VenueCameraRegistryListCr-4GPWlixuRGa8"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-VenueCameraRegistryMutate-rB9eECQirk75",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-VenueCameraRegistryMutate-rB9eECQirk75"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-VenueCameraRequestFunctio-fVqXhJEG2c67",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-VenueCameraRequestFunctio-fVqXhJEG2c67"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-VenueIncidentStatusFuncti-PXzGSVPbQKWH",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-VenueIncidentStatusFuncti-PXzGSVPbQKWH"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-VenueIncidentUpdatesFunct-a4lxotJkleNY",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-VenueIncidentUpdatesFunct-a4lxotJkleNY"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-VenueSmsInboundFunctionRo-SoGBPjVhRrIo",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-VenueSmsInboundFunctionRo-SoGBPjVhRrIo"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-VideoClipExporterFunction-DcXOnVd7F6WW",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-VideoClipExporterFunction-DcXOnVd7F6WW"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5S-VideoWallHttpFunctionRole-Oe39uD1zLCCy",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5S-VideoWallHttpFunctionRole-Oe39uD1zLCCy"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5Sta-BridgeTaskExecutionRole-MY8VOJYMbiBn",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5Sta-BridgeTaskExecutionRole-MY8VOJYMbiBn"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5Sta-CampusSitesFunctionRole-aWNkcyteQBId",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5Sta-CampusSitesFunctionRole-aWNkcyteQBId"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5Stack-1T-HealthFunctionRole-OruTXX8yc31O",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5Stack-1T-HealthFunctionRole-OruTXX8yc31O"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam5Stack-1T38GG-BridgeTaskRole-CO32RYUDZeyj",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam5Stack-1T38GG-BridgeTaskRole-CO32RYUDZeyj"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam6S-VisionAiWriterFunctionRol-7Nm3LEvoj4ol",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam6S-VisionAiWriterFunctionRol-7Nm3LEvoj4ol"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam6S-VisionConsentFunctionRole-HFIJREPmLxOt",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam6S-VisionConsentFunctionRole-HFIJREPmLxOt"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam6S-VisionKvsBrowserTokenRole-UF0tLrSB7jzd",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam6S-VisionKvsBrowserTokenRole-UF0tLrSB7jzd"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam6S-VisionSceneClassifyFuncti-m3g66lhwuA5L",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam6S-VisionSceneClassifyFuncti-m3g66lhwuA5L"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam6S-VisionSceneDescribeFuncti-mCihiGy46wLw",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam6S-VisionSceneDescribeFuncti-mCihiGy46wLw"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam6S-VisionSceneSamplerFunctio-nviCYReZRudg",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam6S-VisionSceneSamplerFunctio-nviCYReZRudg"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam6S-VisionTranscriptWorkerFun-UUBIfbJWBw1S",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam6S-VisionTranscriptWorkerFun-UUBIfbJWBw1S"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSam6Stac-VisionHttpFunctionRole-UlwOZuRa1I8T",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSam6Stac-VisionHttpFunctionRole-UlwOZuRa1I8T"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamBi-AutomatedBillingHttpFunct-UZPWx3m1ponm",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamBi-AutomatedBillingHttpFunct-UZPWx3m1ponm"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamBi-BillingOrchestratorFuncti-vVaRjvLmFRQf",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamBi-BillingOrchestratorFuncti-vVaRjvLmFRQf"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamBi-InvoiceGeneratorFunctionR-vP5zDW4YP5fR",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamBi-InvoiceGeneratorFunctionR-vP5zDW4YP5fR"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamBilli-SchedulerExecutionRole-NZSeJmldjytO",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamBilli-SchedulerExecutionRole-NZSeJmldjytO"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamC2c-C2cHeartbeatFunctionRole-xVZx0fgLohOG",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamC2c-C2cHeartbeatFunctionRole-xVZx0fgLohOG"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamC2cSt-C2cWebhookFunctionRole-MaSS8o8l2QZk",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamC2cSt-C2cWebhookFunctionRole-MaSS8o8l2QZk"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamC2cSta-C2cBridgeFunctionRole-xR8eMIBTp1Ql",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamC2cSta-C2cBridgeFunctionRole-xR8eMIBTp1Ql"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamC2cStack-C2cHttpFunctionRole-Mo02gVjm5RXA",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamC2cStack-C2cHttpFunctionRole-Mo02gVjm5RXA"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCa-CadBridgeBufferReplayFunc-3x62dOBZvFQB",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCa-CadBridgeBufferReplayFunc-3x62dOBZvFQB"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCa-CadBridgeHttpFunctionRole-p6EO2m1GPC5v",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCa-CadBridgeHttpFunctionRole-p6EO2m1GPC5v"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCa-CadBridgePollerFunctionRo-Fv4LICWUSRmz",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCa-CadBridgePollerFunctionRo-Fv4LICWUSRmz"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCa-CadBridgeRouterFunctionRo-VuFENxIlK3d8",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCa-CadBridgeRouterFunctionRo-VuFENxIlK3d8"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCa-CadBridgeTransferTimeoutF-FDDzcZgc2mLR",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCa-CadBridgeTransferTimeoutF-FDDzcZgc2mLR"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCa-CadBridgeWebhookFunctionR-ztdJThb1QLQ9",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCa-CadBridgeWebhookFunctionR-ztdJThb1QLQ9"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCa-CadConnectorHttpFunctionR-pOR6ppTXR197",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCa-CadConnectorHttpFunctionR-pOR6ppTXR197"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCa-CadHealthMonitorFunctionR-qyST5rz4qLav",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCa-CadHealthMonitorFunctionR-qyST5rz4qLav"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCa-CadIngestionPollingFuncti-woY4OkZWUZZb",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCa-CadIngestionPollingFuncti-woY4OkZWUZZb"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCa-CallAssistBotRebuildFunct-diVu8oytDdjl",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCa-CallAssistBotRebuildFunct-diVu8oytDdjl"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCa-CallAssistCallbackWorkerF-jLHDyOzzNlPJ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCa-CallAssistCallbackWorkerF-jLHDyOzzNlPJ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCa-CallAssistConnectWebhookF-Smp5RRlpp9Ic",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCa-CallAssistConnectWebhookF-Smp5RRlpp9Ic"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCa-CallAssistHttpFunctionRol-coSMTeguNVTu",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCa-CallAssistHttpFunctionRol-coSMTeguNVTu"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCa-CallAssistRetentionFuncti-RkWiZZPG9Ojl",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCa-CallAssistRetentionFuncti-RkWiZZPG9Ojl"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCl-PublicCrimeLogFunctionRol-MuQnCd7WghpT",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCl-PublicCrimeLogFunctionRol-MuQnCd7WghpT"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCle-CleryActHttpFunctionRole-v0kryCjdtoD9",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCle-CleryActHttpFunctionRole-v0kryCjdtoD9"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamCon-ContactsHttpFunctionRole-BYTYOP6V7fiZ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamCon-ContactsHttpFunctionRole-BYTYOP6V7fiZ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamDe-GetPlatformDeploymentsMap-yL91OLhSdYnd",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamDe-GetPlatformDeploymentsMap-yL91OLhSdYnd"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamEs-EscalationHttpFunctionRol-45I0AZlIYHlh",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamEs-EscalationHttpFunctionRol-45I0AZlIYHlh"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamFi-FieldCommandHttpFunctionR-zA0XSIeYMAcu",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamFi-FieldCommandHttpFunctionR-zA0XSIeYMAcu"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamHi-CareersPostingsFunctionRo-bRlo8tzuudRA",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamHi-CareersPostingsFunctionRo-bRlo8tzuudRA"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamHi-CareersPresignedUploadFun-0LHCSkDQVfgJ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamHi-CareersPresignedUploadFun-0LHCSkDQVfgJ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamHi-RcAdminApplicationsHttpFu-KMatjRlv9ztQ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamHi-RcAdminApplicationsHttpFu-KMatjRlv9ztQ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamHi-RcAdminHiringBookingsHttp-fT7oZNvCafFz",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamHi-RcAdminHiringBookingsHttp-fT7oZNvCafFz"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamHi-RcAdminJobPostingsHttpFun-YS5eYmuhRSZc",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamHi-RcAdminJobPostingsHttpFun-YS5eYmuhRSZc"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamHir-CareersApplyFunctionRole-Jvj7AN6v6wAf",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamHir-CareersApplyFunctionRole-Jvj7AN6v6wAf"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamHo-EmergencyConnectHttpFunct-sTlfQOoyavwh",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamHo-EmergencyConnectHttpFunct-sTlfQOoyavwh"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamHo-HospitalPortalHttpFunctio-UebQgvzJO0fE",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamHo-HospitalPortalHttpFunctio-UebQgvzJO0fE"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamHo-HospitalRoutingHttpFuncti-194vuS81fZsA",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamHo-HospitalRoutingHttpFuncti-194vuS81fZsA"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamLe-RcAdminLeadsCrmFunctionRo-kEsKSTJ82UT5",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamLe-RcAdminLeadsCrmFunctionRo-kEsKSTJ82UT5"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamLo-LocationGeofenceEventFunc-1UuU6Huceydv",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamLo-LocationGeofenceEventFunc-1UuU6Huceydv"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamLoc-LocationHttpFunctionRole-w6IdBe0sJ8hb",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamLoc-LocationHttpFunctionRole-w6IdBe0sJ8hb"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamMa-MarketingLeadFunctionRole-PAFNw2I7Yzgo",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamMa-MarketingLeadFunctionRole-PAFNw2I7Yzgo"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamMa-MarketingOgShareFunctionR-EoCxkC4sVnnZ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamMa-MarketingOgShareFunctionR-EoCxkC4sVnnZ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamMa-MarketingUnsubscribeFunct-hta5LN853DtD",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamMa-MarketingUnsubscribeFunct-hta5LN853DtD"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamNg-Ng911CrisisDiversionHttpF-EYdTfh7riE98",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamNg-Ng911CrisisDiversionHttpF-EYdTfh7riE98"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamNg-Ng911CrisisDiversionHttpF-nayMkvstnVLY",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamNg-Ng911CrisisDiversionHttpF-nayMkvstnVLY"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamNg-Ng911DiversionAdminHttpFu-muhg2EFtnezy",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamNg-Ng911DiversionAdminHttpFu-muhg2EFtnezy"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamNg-Ng911DiversionAdminHttpFu-qGl05pvZBISg",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamNg-Ng911DiversionAdminHttpFu-qGl05pvZBISg"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamNg-Ng911DiversionPublicHttpF-KLhnPug0m0y4",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamNg-Ng911DiversionPublicHttpF-KLhnPug0m0y4"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamNg-Ng911DiversionPublicHttpF-wjfZDJmk2pjy",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamNg-Ng911DiversionPublicHttpF-wjfZDJmk2pjy"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamNg-Ng911IncidentAssistHttpFu-qhQC6KTnOIt5",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamNg-Ng911IncidentAssistHttpFu-qhQC6KTnOIt5"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamNg-Ng911IncidentAssistHttpFu-XogYC3USImoj",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamNg-Ng911IncidentAssistHttpFu-XogYC3USImoj"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamNg-Ng911MetricsHttpFunctionR-i7YzZXF8Bz4C",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamNg-Ng911MetricsHttpFunctionR-i7YzZXF8Bz4C"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamNg-Ng911MetricsHttpFunctionR-LIVdvQgEq7FQ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamNg-Ng911MetricsHttpFunctionR-LIVdvQgEq7FQ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamPh-PhysicalSecurityHttpFunct-7LvYJh4atBDD",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamPh-PhysicalSecurityHttpFunct-7LvYJh4atBDD"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamPs-PsapProspectsHttpFunction-9gGfFNZAeZph",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamPs-PsapProspectsHttpFunction-9gGfFNZAeZph"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamPs-PsapProspectsHttpFunction-OmxZYfcxylHD",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamPs-PsapProspectsHttpFunction-OmxZYfcxylHD"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamQr-GetVenueIncidentsFunction-lHxW1X5vRANC",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamQr-GetVenueIncidentsFunction-lHxW1X5vRANC"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamQr-GuardianEventsHttpFunctio-HRFjT6oQmom4",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamQr-GuardianEventsHttpFunctio-HRFjT6oQmom4"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamQr-LocationIntakeFunctionRol-jpF13Q9QwQXt",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamQr-LocationIntakeFunctionRol-jpF13Q9QwQXt"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamQr-LocationMediaUploadFuncti-ukOd7Q9HD6wy",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamQr-LocationMediaUploadFuncti-ukOd7Q9HD6wy"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamQr-LocationResolveFunctionRo-m82awekSwdrP",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamQr-LocationResolveFunctionRo-m82awekSwdrP"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamQr-LocationsAdminFunctionRol-Mqsgs92tOJA7",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamQr-LocationsAdminFunctionRol-Mqsgs92tOJA7"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamQr-MobileCodesHttpFunctionRo-V7KTLXQ1c9KI",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamQr-MobileCodesHttpFunctionRo-V7KTLXQ1c9KI"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamQr-PublicReportSubmitFunctio-R7xx5nzdDkQS",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamQr-PublicReportSubmitFunctio-R7xx5nzdDkQS"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamQr-SafeSoundContactsHttpFunc-np19cGsfbyIR",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamQr-SafeSoundContactsHttpFunc-np19cGsfbyIR"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamQr-SafeSoundDevicesHttpFunct-5mYmqHFl3dI4",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamQr-SafeSoundDevicesHttpFunct-5mYmqHFl3dI4"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamQr-SafeSoundGeofencesHttpFun-3nPdGvpvriXG",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamQr-SafeSoundGeofencesHttpFun-3nPdGvpvriXG"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamQr-SafeSoundSubscriptionsHtt-6yYgKRRe7Hsw",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamQr-SafeSoundSubscriptionsHtt-6yYgKRRe7Hsw"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamQrSt-QrNfcEngageFunctionRole-xrAk54lMqxrf",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamQrSt-QrNfcEngageFunctionRole-xrAk54lMqxrf"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamQrSta-LocationQrFunctionRole-fUizozdrYuVb",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamQrSta-LocationQrFunctionRole-fUizozdrYuVb"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamQrStac-QrNfcHttpFunctionRole-q7uSeVna7ELQ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamQrStac-QrNfcHttpFunctionRole-q7uSeVna7ELQ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-ConferencesHttpFunctionRo-ydQgyTDPP56v",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-ConferencesHttpFunctionRo-ydQgyTDPP56v"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestApcoNenaFunctionRol-64F6ScX3PcUG",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestApcoNenaFunctionRol-64F6ScX3PcUG"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestBoardDocsFunctionRo-doQfKhlqR9EP",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestBoardDocsFunctionRo-doQfKhlqR9EP"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestCivicClerkFunctionR-OL4aOfYxPXyc",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestCivicClerkFunctionR-OL4aOfYxPXyc"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestCompetitorIntelFunc-w8gzadKngWpo",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestCompetitorIntelFunc-w8gzadKngWpo"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestCountyProcurementFu-WPkPCODygATt",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestCountyProcurementFu-WPkPCODygATt"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestGrantsGovFunctionRo-WqIHGwsJFKK0",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestGrantsGovFunctionRo-WqIHGwsJFKK0"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestLegistarBulkFunctio-jRdUX8XVwnsA",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestLegistarBulkFunctio-jRdUX8XVwnsA"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestLegistarBulkFunctio-mcq70W104EtI",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestLegistarBulkFunctio-mcq70W104EtI"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestNewsRssFunctionRole-B45lMH1tkyAp",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestNewsRssFunctionRole-B45lMH1tkyAp"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestNewsRssFunctionRole-EueKeGfW2Fi6",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestNewsRssFunctionRole-EueKeGfW2Fi6"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestNineOneOneGovFuncti-oGjTC6nJE0ze",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestNineOneOneGovFuncti-oGjTC6nJE0ze"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestOpenLegislativeFunc-jW9mfgrMvo7T",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestOpenLegislativeFunc-jW9mfgrMvo7T"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestOpenLegislativeFunc-N1zbZ5Ne3AhP",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestOpenLegislativeFunc-N1zbZ5Ne3AhP"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestSocrataFunctionRole-tLDfiKWYtqeQ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestSocrataFunctionRole-tLDfiKWYtqeQ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestSocrataFunctionRole-ukFwI2tn34iV",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestSocrataFunctionRole-ukFwI2tn34iV"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestSourcewellFunctionR-Jny1hAQcJjc9",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestSourcewellFunctionR-Jny1hAQcJjc9"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestState911BoardsFunct-AqMJc7x3IAvY",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestState911BoardsFunct-AqMJc7x3IAvY"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestState911BoardsFunct-OEyvbPJckUpe",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestState911BoardsFunct-OEyvbPJckUpe"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestStateArpaFunctionRo-BK6pNlH11MOu",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestStateArpaFunctionRo-BK6pNlH11MOu"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestStateArpaFunctionRo-kTZR8CQ2bGP5",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestStateArpaFunctionRo-kTZR8CQ2bGP5"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestUniversityProcureme-xOPHLM1Bx1xf",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestUniversityProcureme-xOPHLM1Bx1xf"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestUsaSpendingFunction-8qyXYzHSD8jK",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestUsaSpendingFunction-8qyXYzHSD8jK"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IngestUsaSpendingFunction-kRHvNYFSshOQ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IngestUsaSpendingFunction-kRHvNYFSshOQ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IntelWatchOrchestratorFun-pDF1xqUQ6hwE",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IntelWatchOrchestratorFun-pDF1xqUQ6hwE"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-IntelWatchWorkerFunctionR-QKDX5SOsaChH",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-IntelWatchWorkerFunctionR-QKDX5SOsaChH"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-ProcessSignalFunctionRole-wgcGDlGUcCQG",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-ProcessSignalFunctionRole-wgcGDlGUcCQG"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-ProcessSignalFunctionRole-xR0YLRF45zy1",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-ProcessSignalFunctionRole-xR0YLRF45zy1"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-RapidIqHighIntentAlertFun-PpEENdTGMsRh",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-RapidIqHighIntentAlertFun-PpEENdTGMsRh"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-RapidIqOrchestratorFuncti-ax9gZSp2HSda",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-RapidIqOrchestratorFuncti-ax9gZSp2HSda"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-RapidIqOrchestratorFuncti-UBSh6onofSrT",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-RapidIqOrchestratorFuncti-UBSh6onofSrT"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-RapidIqWeeklyDigestFuncti-akKeiyZcNHjJ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-RapidIqWeeklyDigestFuncti-akKeiyZcNHjJ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-RefreshConferencesFunctio-2iOW1eoeWaiY",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-RefreshConferencesFunctio-2iOW1eoeWaiY"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-RfpUnifiedCounterFunction-Ow6EsI7VBo7Z",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-RfpUnifiedCounterFunction-Ow6EsI7VBo7Z"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-SalesAutomationComposerFu-z7C25owZCJeb",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-SalesAutomationComposerFu-z7C25owZCJeb"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRa-SalesAutomationSendFuncti-hIZBx6T7twYF",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRa-SalesAutomationSendFuncti-hIZBx6T7twYF"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRap-IngestSamGovFunctionRole-PA2ZE0YQgeW7",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRap-IngestSamGovFunctionRole-PA2ZE0YQgeW7"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRap-IngestSamGovFunctionRole-TV66ReVvP9Oq",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRap-IngestSamGovFunctionRole-TV66ReVvP9Oq"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRapi-RapidIqHttpFunctionRole-AQAyLmsiWhQk",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRapi-RapidIqHttpFunctionRole-AQAyLmsiWhQk"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRapi-RapidIqHttpFunctionRole-ByHFHXObu9hV",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRapi-RapidIqHttpFunctionRole-ByHFHXObu9hV"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRapid-SignalHttpFunctionRole-BKB3wKmGznTg",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRapid-SignalHttpFunctionRole-BKB3wKmGznTg"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRapid-SignalHttpFunctionRole-mFqkXdNvbCTl",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRapid-SignalHttpFunctionRole-mFqkXdNvbCTl"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsAiSummarizerFunctionRo-2AHGlj98C4vs",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsAiSummarizerFunctionRo-2AHGlj98C4vs"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsAiSummarizerFunctionRo-ha558913KSpD",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsAiSummarizerFunctionRo-ha558913KSpD"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsAudioAlertFunctionRole-8eTJQOfyq4I3",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsAudioAlertFunctionRole-8eTJQOfyq4I3"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsAudioAlertFunctionRole-FPVsrePzv8jv",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsAudioAlertFunctionRole-FPVsrePzv8jv"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsCallHandoffFunctionRol-kA5J5MrBleTM",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsCallHandoffFunctionRol-kA5J5MrBleTM"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsCallHandoffFunctionRol-ZoGPo8ASoBKe",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsCallHandoffFunctionRol-ZoGPo8ASoBKe"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsCallSummaryFunctionRol-PtF6VemAxbdV",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsCallSummaryFunctionRol-PtF6VemAxbdV"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsCallSummaryFunctionRol-yOrUWjvPLnYk",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsCallSummaryFunctionRol-yOrUWjvPLnYk"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsEscalationRulesFunctio-DVcjInr9FBlV",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsEscalationRulesFunctio-DVcjInr9FBlV"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsEscalationRulesFunctio-y6d6VeTxIQGc",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsEscalationRulesFunctio-y6d6VeTxIQGc"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsEscalationTriggerFunct-IvAd7d3e6FSu",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsEscalationTriggerFunct-IvAd7d3e6FSu"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsEscalationTriggerFunct-rSv5LP7wJ7SH",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsEscalationTriggerFunct-rSv5LP7wJ7SH"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsEscalationWatchdogFunc-vbnRjeBE5LUp",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsEscalationWatchdogFunc-vbnRjeBE5LUp"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsEscalationWatchdogFunc-z6r4lw8V26I6",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsEscalationWatchdogFunc-z6r4lw8V26I6"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsFloorHealthFunctionRol-62OhStwcLhO3",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsFloorHealthFunctionRol-62OhStwcLhO3"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsFloorHealthFunctionRol-elwmJqizbJrB",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsFloorHealthFunctionRol-elwmJqizbJrB"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsFloorHealthPushFunctio-2upeyuJiR37a",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsFloorHealthPushFunctio-2upeyuJiR37a"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsFloorHealthPushFunctio-xGuVdzJ1bnWq",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsFloorHealthPushFunctio-xGuVdzJ1bnWq"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsSupervisorAckFunctionR-BeQ5v4nmX1Bc",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsSupervisorAckFunctionR-BeQ5v4nmX1Bc"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsSupervisorAckFunctionR-N2QFMo9fa9ys",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsSupervisorAckFunctionR-N2QFMo9fa9ys"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsUnitPositionFunctionRo-YNOI9QgI8ml8",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsUnitPositionFunctionRo-YNOI9QgI8ml8"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRc-RcsUnitPositionFunctionRo-YUgz7LDHbDe6",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRc-RcsUnitPositionFunctionRo-YUgz7LDHbDe6"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRcs-RcsCallCloseFunctionRole-NFpYnSBuNTo0",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRcs-RcsCallCloseFunctionRole-NFpYnSBuNTo0"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRcs-RcsCallCloseFunctionRole-PEz7f9uYFUhn",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRcs-RcsCallCloseFunctionRole-PEz7f9uYFUhn"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRcs-RcsCallsListFunctionRole-CW04E1joUR0r",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRcs-RcsCallsListFunctionRole-CW04E1joUR0r"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRcs-RcsCallsListFunctionRole-oE3wS5cpHywN",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRcs-RcsCallsListFunctionRole-oE3wS5cpHywN"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRcs-RcsCallStartFunctionRole-AbMHvq3FqjAJ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRcs-RcsCallStartFunctionRole-AbMHvq3FqjAJ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRcs-RcsCallStartFunctionRole-s9iOzRxU2F1k",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRcs-RcsCallStartFunctionRole-s9iOzRxU2F1k"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRcs-RcsCallStateFunctionRole-defVMw7xRGpK",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRcs-RcsCallStateFunctionRole-defVMw7xRGpK"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRcs-RcsCallStateFunctionRole-YYzjmCR4AELo",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRcs-RcsCallStateFunctionRole-YYzjmCR4AELo"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRcsSt-RcsSchedulerInvokeRole-uSK1HDfzZ0Su",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRcsSt-RcsSchedulerInvokeRole-uSK1HDfzZ0Su"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRe-DispatcherAcceptTransferF-lPqdL2EAi9mc",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRe-DispatcherAcceptTransferF-lPqdL2EAi9mc"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRe-DispatcherDeclineTransfer-nwCejFSDIRio",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRe-DispatcherDeclineTransfer-nwCejFSDIRio"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRe-DispatcherListActiveCalls-dJtcTxMnsvlS",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRe-DispatcherListActiveCalls-dJtcTxMnsvlS"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRe-SupervisorListActiveCalls-ud6GtPTxoHfZ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRe-SupervisorListActiveCalls-ud6GtPTxoHfZ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRe-SupervisorListOperatorsFu-NoS3LG9IdClh",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRe-SupervisorListOperatorsFu-NoS3LG9IdClh"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRe-SupervisorTakeoverCallFun-n6YKoalV5oLg",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRe-SupervisorTakeoverCallFun-n6YKoalV5oLg"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRe-SupervisorTransferCallFun-r90jOrsjPEQQ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRe-SupervisorTransferCallFun-r90jOrsjPEQQ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRe-SupervisorWatchingFunctio-yYAo4m00bkkW",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRe-SupervisorWatchingFunctio-yYAo4m00bkkW"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRe-WebSocketConnectFunctionR-fwzd9hCH8ppV",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRe-WebSocketConnectFunctionR-fwzd9hCH8ppV"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRe-WebSocketDefaultFunctionR-mgCJUneEtXBR",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRe-WebSocketDefaultFunctionR-mgCJUneEtXBR"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRe-WebSocketDisconnectFuncti-Awt3j5IaqDXn",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRe-WebSocketDisconnectFuncti-Awt3j5IaqDXn"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRm-RmsGenerateReportFunction-gqgzMkJuNQkJ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRm-RmsGenerateReportFunction-gqgzMkJuNQkJ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamRmsStack-RmsHttpFunctionRole-xyNTIvBugqc1",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamRmsStack-RmsHttpFunctionRole-xyNTIvBugqc1"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSo-SopIntelligenceHttpFuncti-hoIGSnCREDz6",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSo-SopIntelligenceHttpFuncti-hoIGSnCREDz6"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSo-SopIntelligencePatternAna-m2JvokbZBOte",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSo-SopIntelligencePatternAna-m2JvokbZBOte"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-AddTranscriptChunkFunctio-JTWKA8zRth5T",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-AddTranscriptChunkFunctio-JTWKA8zRth5T"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-AdminActivateUserFunction-9tx7o5eqZynp",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-AdminActivateUserFunction-9tx7o5eqZynp"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-AdminCreateUserFunctionRo-VvWYyAsJGTBZ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-AdminCreateUserFunctionRo-VvWYyAsJGTBZ"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-AdminDeactivateUserFuncti-BPE9bStBmuio",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-AdminDeactivateUserFuncti-BPE9bStBmuio"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-AdminListUsersFunctionRol-XT804MaZBZh0",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-AdminListUsersFunctionRol-XT804MaZBZh0"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-AdminUpdateUserFunctionRo-7AlfjlZwKFqM",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-AdminUpdateUserFunctionRo-7AlfjlZwKFqM"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-AnalyzeIncidentFunctionRo-23pWmesTuTQI",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-AnalyzeIncidentFunctionRo-23pWmesTuTQI"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-AuthPasswordRenewalSyncFu-q61mc7OvLGXF",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-AuthPasswordRenewalSyncFu-q61mc7OvLGXF"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-CadWebhookHttpFunctionRol-ULsU6JdRMwLo",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-CadWebhookHttpFunctionRol-ULsU6JdRMwLo"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-CadWebhookWorkerFunctionR-dynoqiqOx5sy",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-CadWebhookWorkerFunctionR-dynoqiqOx5sy"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-CognitoPostConfirmationFu-2tmewCY0yr5u",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-CognitoPostConfirmationFu-2tmewCY0yr5u"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-CreateIncidentFunctionRol-ukY96A7KDXXh",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-CreateIncidentFunctionRol-ukY96A7KDXXh"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-DeceptionDecoyHttpFunctio-MujrMcOJZFd1",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-DeceptionDecoyHttpFunctio-MujrMcOJZFd1"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-DeceptionEventsAdminHttpF-9BNqXzzqwSLr",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-DeceptionEventsAdminHttpF-9BNqXzzqwSLr"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-DetectIncidentTypeFunctio-MUSMwRNKwYho",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-DetectIncidentTypeFunctio-MUSMwRNKwYho"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-GetAgencyProfileFunctionR-TtmyHnAj0p47",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-GetAgencyProfileFunctionR-TtmyHnAj0p47"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-GetIncidentAnalysisFuncti-LCIOXD1OsfEA",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-GetIncidentAnalysisFuncti-LCIOXD1OsfEA"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-GetTriageResultFunctionRo-TKMXSFEiHAj6",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-GetTriageResultFunctionRo-TKMXSFEiHAj6"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-IntegrationStatusFunction-RKwPDdS1Up9c",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-IntegrationStatusFunction-RKwPDdS1Up9c"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-ListAgencyInvitesFunction-7M87uXm8OrEH",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-ListAgencyInvitesFunction-7M87uXm8OrEH"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-ListIncidentsFunctionRole-F5YGg2rsnioh",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-ListIncidentsFunctionRole-F5YGg2rsnioh"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-ListIncidentSharesFunctio-9ZH86srfSR10",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-ListIncidentSharesFunctio-9ZH86srfSR10"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-ListIncomingIncidentShare-ird36rJQxTf6",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-ListIncomingIncidentShare-ird36rJQxTf6"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-ListTranscriptFunctionRol-a2eaXoMaqs3i",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-ListTranscriptFunctionRol-a2eaXoMaqs3i"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-OverrideTriageFunctionRol-Wk1eP89JSrKU",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-OverrideTriageFunctionRol-Wk1eP89JSrKU"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-PatchIncidentFunctionRole-BJ1WWP2qzWCl",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-PatchIncidentFunctionRole-BJ1WWP2qzWCl"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-PatchIncidentLegalHoldFun-R0EfwE0mhldW",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-PatchIncidentLegalHoldFun-R0EfwE0mhldW"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-PostAgencyInviteFunctionR-9YTlaiWGdDwk",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-PostAgencyInviteFunctionR-9YTlaiWGdDwk"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-PostAgencySopUploadUrlFun-yJobRKXo6TpE",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-PostAgencySopUploadUrlFun-yJobRKXo6TpE"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-PostCadWritebackBlockedFu-AcdXQ64YECQU",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-PostCadWritebackBlockedFu-AcdXQ64YECQU"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-PostIncidentAudioChunkFun-PSKrzTIsXZs2",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-PostIncidentAudioChunkFun-PSKrzTIsXZs2"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-PostIncidentShareFunction-A3qHhtAyGMWN",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-PostIncidentShareFunction-A3qHhtAyGMWN"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-RevokeIncidentShareFuncti-RtBiGGXSkU1V",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-RevokeIncidentShareFuncti-RtBiGGXSkU1V"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-SeoIntelligenceHttpFuncti-SRfgPn5fi0xm",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-SeoIntelligenceHttpFuncti-SRfgPn5fi0xm"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-StaffingForecastFunctionR-rhD9aQOL0vzV",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-StaffingForecastFunctionR-rhD9aQOL0vzV"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSt-TriageOverrideQueueFuncti-nrq7IGPACpmr",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSt-TriageOverrideQueueFuncti-nrq7IGPACpmr"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSta-CadAdminHttpFunctionRole-cjtSP5cjTrX2",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSta-CadAdminHttpFunctionRole-cjtSP5cjTrX2"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSta-CadApiPollerFunctionRole-qkMcQygD8l7C",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSta-CadApiPollerFunctionRole-qkMcQygD8l7C"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSta-CadCapIngestFunctionRole-69t8jKThMGh2",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSta-CadCapIngestFunctionRole-69t8jKThMGh2"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSta-CreateAgencyFunctionRole-KhG39KQ4ZW8x",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSta-CreateAgencyFunctionRole-KhG39KQ4ZW8x"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamSta-ListAgenciesFunctionRole-hnURxmy4nuRE",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamSta-ListAgenciesFunctionRole-hnURxmy4nuRE"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamStac-ChannelHttpFunctionRole-uAFHHLQk6knN",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamStac-ChannelHttpFunctionRole-uAFHHLQk6knN"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamStac-GetIncidentFunctionRole-4FThfUm4WltD",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamStac-GetIncidentFunctionRole-4FThfUm4WltD"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamStac-PatchAgencyFunctionRole-twlHaIsMHG1g",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamStac-PatchAgencyFunctionRole-twlHaIsMHG1g"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamStac-TriageQueueFunctionRole-dLS2WQXLxA2L",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamStac-TriageQueueFunctionRole-dLS2WQXLxA2L"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamStackV-GetAgencyFunctionRole-ZzvYXGb7zsf7",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamStackV-GetAgencyFunctionRole-ZzvYXGb7zsf7"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamStackV-QaScoringFunctionRole-IS0f99u6f8X9",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamStackV-QaScoringFunctionRole-IS0f99u6f8X9"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamStackV2-1-HealthFunctionRole-xXAUqk4XS5rd",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamStackV2-1-HealthFunctionRole-xXAUqk4XS5rd"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamStackV2-1-QaHttpFunctionRole-5CeamGl22aeH",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamStackV2-1-QaHttpFunctionRole-5CeamGl22aeH"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamStackV2-1B-GetMeFunctionRole-GpmZTvHAX9PO",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamStackV2-1B-GetMeFunctionRole-GpmZTvHAX9PO"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamTr-TransitKvsBrowserTokenRol-yu5pPDyBCBtH",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamTr-TransitKvsBrowserTokenRol-yu5pPDyBCBtH"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamTr-TranslateHttpFunctionRole-oPNtj1UXN78S",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamTr-TranslateHttpFunctionRole-oPNtj1UXN78S"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamTran-TransitHttpFunctionRole-zsK71UD9jpCW",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamTran-TransitHttpFunctionRole-zsK71UD9jpCW"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamTran-TranslateWsFunctionRole-guP08pvz20nk",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamTran-TranslateWsFunctionRole-guP08pvz20nk"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-AppSamVe-VerticalAlertsHttpFunctio-mXW082xLUloU",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-AppSamVe-VerticalAlertsHttpFunctio-mXW082xLUloU"
+    },
+    {
+        "RoleName": "rapid-cortex-dev-rcs-sched-invoke-dev",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-dev-rcs-sched-invoke-dev"
+    },
+    {
+        "RoleName": "rapid-cortex-lex-dev-GetAgencyConfigForNumberFuncti-A0p6bOzqbCdb",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-lex-dev-GetAgencyConfigForNumberFuncti-A0p6bOzqbCdb"
+    },
+    {
+        "RoleName": "rapid-cortex-lex-dev-LexDialogHookFunctionRole-9bbbATkoviQJ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-lex-dev-LexDialogHookFunctionRole-9bbbATkoviQJ"
+    },
+    {
+        "RoleName": "rapid-cortex-lex-dev-LexFulfillmentHookFunctionRole-a2CceXwM3rfk",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-lex-dev-LexFulfillmentHookFunctionRole-a2CceXwM3rfk"
+    },
+    {
+        "RoleName": "rapid-cortex-lex-dev-LexSessionStartFunctionRole-GcEKICpCUJFq",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-lex-dev-LexSessionStartFunctionRole-GcEKICpCUJFq"
+    },
+    {
+        "RoleName": "rapid-cortex-lex-service-role-dev",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-lex-service-role-dev"
+    },
+    {
+        "RoleName": "rapid-cortex-LiveVideoHttpFunctionRole-ccv-dev",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-LiveVideoHttpFunctionRole-ccv-dev"
+    },
+    {
+        "RoleName": "rapid-cortex-LiveVideoHttpFunctionRole-inc-dev",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-LiveVideoHttpFunctionRole-inc-dev"
+    },
+    {
+        "RoleName": "rapid-cortex-LiveVideoHttpFunctionRole-pub-dev",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-LiveVideoHttpFunctionRole-pub-dev"
+    },
+    {
+        "RoleName": "rapid-cortex-LiveVideoHttpFunctionRole-svt-dev",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-LiveVideoHttpFunctionRole-svt-dev"
+    },
+    {
+        "RoleName": "rapid-cortex-LiveVideoHttpFunctionRole-vcv-dev",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-LiveVideoHttpFunctionRole-vcv-dev"
+    },
+    {
+        "RoleName": "rapid-cortex-lv-kvs-dev",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-lv-kvs-dev"
+    },
+    {
+        "RoleName": "rapid-cortex-sam-deploy-role",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-sam-deploy-role"
+    },
+    {
+        "RoleName": "rapid-cortex-soc2-auditor",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-soc2-auditor"
+    },
+    {
+        "RoleName": "rapid-cortex-soc2-evidence-readonly",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-soc2-evidence-readonly"
+    },
+    {
+        "RoleName": "rapid-cortex-venue-bridge-task-role-dev",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-venue-bridge-task-role-dev"
+    },
+    {
+        "RoleName": "rapid-cortex-web-pipeline-dev-BuildRole-Oou7eVrYJ6sJ",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-web-pipeline-dev-BuildRole-Oou7eVrYJ6sJ"
+    },
+    {
+        "RoleName": "rapid-cortex-web-pipeline-prod-BuildRole-TLtaIeo2Rnu5",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-web-pipeline-prod-BuildRole-TLtaIeo2Rnu5"
+    },
+    {
+        "RoleName": "rapid-cortex-web-ssr-prod-v2-EcsTaskExecutionRole-fLmZfcaOWicS",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-web-ssr-prod-v2-EcsTaskExecutionRole-fLmZfcaOWicS"
+    },
+    {
+        "RoleName": "rapid-cortex-web-ssr-prod-v2-EcsTaskRole-bQOXwTZ1TEz6",
+        "Arn": "arn:aws:iam::158961537080:role/rapid-cortex-web-ssr-prod-v2-EcsTaskRole-bQOXwTZ1TEz6"
+    }
+]

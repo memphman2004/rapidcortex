@@ -3,6 +3,8 @@ import {
   isCadConnectorUiEnabled,
   isCadBridgeUiEnabled,
   isC2cHubUiEnabled,
+  isCadMeshUiEnabled,
+  isFeaturesSuiteUiEnabled,
   isCampusCleryEnabled,
   isCleryModuleEnabled,
   isCampusEapEnabled,
@@ -19,6 +21,7 @@ import {
   isRapidVisionSceneIntelEnabled,
   isRcTranslateVenueEnabled,
   isVerticalAlertsEnabled,
+  isEnsTestProgramEnabled,
   isQaScoringEnabled,
   isRcsEnabled,
   isHiringUiEnabled,
@@ -37,6 +40,8 @@ import {
   isVerticalOnboardingEnabled,
   isWarRoomsEnabled,
   isScenarioCenterUiEnabled,
+  isStaffGuideEnabled,
+  isLoadoutPortalEnabled,
 } from "@/lib/runtime-flags";
 import { isVerticalEnabled } from "@/lib/features";
 
@@ -51,6 +56,10 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isCadBridgeUiEnabled();
     case "c2cHub":
       return isC2cHubUiEnabled();
+    case "cadMesh":
+      return isCadMeshUiEnabled();
+    case "featuresSuite":
+      return isFeaturesSuiteUiEnabled();
     case "qaScoringEnabled":
       return isQaScoringEnabled();
     case "slaBacklog":
@@ -77,6 +86,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isRapidVisionSceneIntelEnabled();
     case "verticalAlerts":
       return isVerticalAlertsEnabled();
+    case "ensTestProgram":
+      return isVerticalAlertsEnabled() && isEnsTestProgramEnabled();
     case "channelMonitoring":
       return isChannelMonitoringEnabled();
     case "verticalOnboarding":
@@ -121,6 +132,10 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isAutomatedInvoicesEnabled();
     case "scenarioCenter":
       return isScenarioCenterUiEnabled();
+    case "staffGuide":
+      return isStaffGuideEnabled();
+    case "loadout":
+      return isLoadoutPortalEnabled();
     default:
       return true;
   }

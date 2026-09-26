@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       {
         qrId: "site-home",
         destinationId: "home",
-        name: "Rapid Cortex site — Home",
+        name: "NexCort iQ site — Home",
         url: "https://www.rapidcortex.us",
         scanCount: 0,
         nfcTapCount: 0,
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       {
         qrId: "site-demo",
         destinationId: "demo",
-        name: "Rapid Cortex site — Demo",
+        name: "NexCort iQ site — Demo",
         url: "https://www.rapidcortex.us/demo/",
         scanCount: 0,
         nfcTapCount: 0,

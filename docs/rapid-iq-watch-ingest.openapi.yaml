@@ -1,0 +1,132 @@
+openapi: 3.1.0
+info:
+  title: NexCort iQ Watch Ingest
+  version: 1.0.0
+  description: >
+    Upsert ChatGPT Watch findings into the NexiQ Inbox.
+    Does not create CRM Leads — operators use + Pipeline in the UI.
+servers:
+  - url: https://tbr4zvjlk5.execute-api.us-east-1.amazonaws.com
+    description: Live HttpApi3 (Rapid IQ SignalHttp) — required for watch-ingest
+  - url: https://api.rapidcortex.us
+    description: HttpApi1 custom domain (does not serve watch-ingest as of 2026-09-25)
+paths:
+  /api/rapid-iq/pipeline/watch-ingest:
+    post:
+      operationId: ingestWatchSignals
+      summary: Upsert ChatGPT Watch findings into NexiQ Inbox
+      parameters:
+        - in: header
+          name: x-nexcort-watch-key
+          required: true
+          schema:
+            type: string
+          description: Ingest API key from Secrets Manager rapid-cortex/rapid-iq/watch-ingest-api-key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/WatchIngestBody"
+                - type: array
+                  minItems: 1
+                  maxItems: 25
+                  items:
+                    $ref: "#/components/schemas/WatchIngestBody"
+      responses:
+        "200":
+          description: Upsert results (created | updated | unchanged per item)
+        "400":
+          description: Invalid payload
+        "401":
+          description: Invalid or missing API key
+        "503":
+          description: Ingest not configured or pipeline disabled
+components:
+  schemas:
+    WatchIngestBody:
+      type: object
+      required:
+        - watch
+        - external_key
+        - signal_type
+        - vertical
+        - agency
+        - opportunity
+      properties:
+        source:
+          type: string
+          enum: [chatgpt_watch]
+          default: chatgpt_watch
+        watch:
+          type: string
+          description: Watch id (psap_rfp, campus_safety, venue_safety, transit_safety, competitor_intel)
+        external_key:
+          type: string
+          minLength: 3
+          maxLength: 300
+          description: Deterministic key STATE|AgencySlug|SolicitationOrTitleFY
+        signal_type:
+          type: string
+          enum: [rfp, planning, funded, early_signal, competitor]
+        vertical:
+          type: string
+          enum: [911_psap, campus, venue, transit, competitors]
+        agency:
+          type: object
+          required: [name, state]
+          properties:
+            name: { type: string }
+            city: { type: string, nullable: true }
+            state: { type: string, minLength: 2, maxLength: 2 }
+        opportunity:
+          type: object
+          required: [title, procurement_url]
+          properties:
+            title: { type: string }
+            solicitation_number: { type: string, nullable: true }
+            posted_date: { type: string, nullable: true }
+            due_date: { type: string, nullable: true }
+            estimated_value: { type: number, nullable: true }
+            procurement_url: { type: string, format: uri }
+            status:
+              type: string
+              enum: [open, updated, cancelled, awarded, unknown]
+              default: open
+        qualification:
+          type: object
+          properties:
+            fit: { type: string, enum: [high, medium, low] }
+            strategy: { type: string, enum: [direct, partner, monitor] }
+            reason: { type: string }
+        next_action: { type: string }
+        lifecycle:
+          type: object
+          properties:
+            change_type:
+              type: string
+              enum:
+                [
+                  new,
+                  deadline_change,
+                  addendum,
+                  qa,
+                  cancel,
+                  award,
+                  contact_change,
+                  budget_change,
+                  none,
+                ]
+            summary: { type: string }
+        evidence:
+          type: array
+          maxItems: 20
+          items:
+            type: object
+            required: [url]
+            properties:
+              url: { type: string, format: uri }
+              source_type:
+                type: string
+                enum: [official_procurement, board_agenda, news, other]

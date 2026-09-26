@@ -1,13 +1,8 @@
-export function formatTime(iso: string): string {
+import { formatClockTime, getActiveClockHour12 } from "./clock-format";
+
+export function formatTime(iso: string, hour12: boolean = getActiveClockHour12()): string {
   try {
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return "—";
-    return d.toLocaleTimeString(undefined, {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    });
+    return formatClockTime(iso, hour12, { second: "2-digit" });
   } catch {
     return "—";
   }

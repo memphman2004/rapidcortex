@@ -1,4 +1,4 @@
-# Complete AWS setup (Rapid Cortex)
+# Complete AWS setup (NexCort iQ)
 
 This guide ties together **SAM** (`infra/template.yaml`), **scripts**, and **downstream configuration** so the API, Cognito, multilingual voice, and the Next.js app are ready in AWS. For stage isolation and CORS rules, see **[DEPLOYMENT.md](./DEPLOYMENT.md)** and **[ENVIRONMENT_MATRIX.md](./ENVIRONMENT_MATRIX.md)**.
 
@@ -40,9 +40,9 @@ Optional **deploy** environment variables (see [`infra/README.md`](../infra/READ
 
 ### User onboarding model (recommended)
 
-Rapid Cortex production/pilot environments should use **staff/admin-led provisioning**:
+NexCort iQ production/pilot environments should use **staff/admin-led provisioning**:
 
-- Rapid Cortex staff creates the first municipality admin.
+- NexCort iQ staff creates the first municipality admin.
 - Municipality admin creates additional users from the in-app admin tools.
 - Public self-signup stays disabled by default in `apps/web`.
 
@@ -109,16 +109,16 @@ export AWS_REGION=us-east-1
 export USER_POOL_ID="<your-user-pool-id>"
 ```
 
-1) **Seed first Rapid Cortex platform superadmin** (internal staff only):
+1) **Seed first NexCort iQ platform superadmin** (internal staff only):
 
 ```bash
 aws cognito-idp admin-create-user \
   --profile "$AWS_PROFILE" \
   --region "$AWS_REGION" \
   --user-pool-id "$USER_POOL_ID" \
-  --username "platform.admin@rapidcortex.us" \
+  --username "platform.admin@nexcortiq.us" \
   --user-attributes \
-    Name=email,Value=platform.admin@rapidcortex.us \
+    Name=email,Value=platform.admin@nexcortiq.us \
     Name=email_verified,Value=true \
     Name=custom:agencyId,Value=__platform__ \
     Name=custom:role,Value=platform_superadmin \

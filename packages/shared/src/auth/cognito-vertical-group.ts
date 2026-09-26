@@ -9,22 +9,18 @@ export const COGNITO_VERTICAL_GROUPS = [
   "vertical_transit",
   "vertical_hospital",
   "vertical_call_assist",
-  "vertical_ring",
 ] as const;
 
 export type CognitoVerticalGroup = (typeof COGNITO_VERTICAL_GROUPS)[number];
 
-export const RING_REVIEWER_EMAIL = "ring-reviewer@rapidcortex.us";
-
 export const COGNITO_VERTICAL_GROUP_DESCRIPTIONS: Record<CognitoVerticalGroup, string> = {
-  vertical_platform: "Platform — Rapid Cortex internal admin accounts",
+  vertical_platform: "Platform — NexCort iQ internal admin accounts",
   vertical_911: "911 PSAP — dispatchers, supervisors, agency admins, analysts",
   vertical_campus: "Campus safety — campus admins, security, dispatch, faculty",
   vertical_venue: "Venue security — venue admins, operators, supervisors",
   vertical_transit: "Transit security — transit safety personnel",
   vertical_hospital: "Hospital — hospital coordinators and staff",
   vertical_call_assist: "Call Assist — non-emergency AI intake (no 911 dispatcher console)",
-  vertical_ring: "Ring — homeowners and Ring integration reviewer accounts",
 };
 
 /**
@@ -43,9 +39,6 @@ export function cognitoVerticalGroupFromUser(input: {
 
   if (agencyId === PLATFORM_AGENCY_ID || role.startsWith("rc")) {
     return "vertical_platform";
-  }
-  if (role === "homeowner" || email === RING_REVIEWER_EMAIL) {
-    return "vertical_ring";
   }
   if (agencyLc.includes("campus") || role.startsWith("campus_")) {
     return "vertical_campus";

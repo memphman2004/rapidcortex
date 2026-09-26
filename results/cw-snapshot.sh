@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-shot CloudWatch snapshot for Rapid Cortex stress-test report.
+# One-shot CloudWatch snapshot for NexCort iQ stress-test report.
 set -euo pipefail
 PROFILE="${AWS_PROFILE:-rapid-cortex}"
 REGION="${AWS_REGION:-us-east-1}"

@@ -1,8 +1,8 @@
-# Rapid Cortex production deployment — corrected guide
+# NexCort iQ production deployment — corrected guide
 
 ## Context
 
-Deploy Rapid Cortex emergency services to AWS production. Infrastructure uses **AWS SAM** with **nested CloudFormation stacks**. The SAM transformed-template **~1 MB** limit issue is remediated via a **2-nested-stack** split.
+Deploy NexCort iQ emergency services to AWS production. Infrastructure uses **AWS SAM** with **nested CloudFormation stacks**. The SAM transformed-template **~1 MB** limit issue is remediated via a **2-nested-stack** split.
 
 ## Current state
 
@@ -194,7 +194,7 @@ aws ecs describe-services \
 Use this when the **web pipeline stack** and **CodeBuild project** already exist (created with the SSR/pipeline infra). The script zips the repo → uploads to the pipeline S3 bucket → starts CodeBuild (image build + push in AWS) → forces an ECS deployment → optional CloudFront invalidation → **`scripts/smoke-web.sh`**.
 
 ```bash
-cd "/path/to/Rapid Cortex" && ./scripts/deploy-web-no-docker.sh prod
+cd "/path/to/NexCort iQ" && ./scripts/deploy-web-no-docker.sh prod
 ```
 
 **Prerequisites:** ECR repo **`rapid-cortex-web-prod`**, CodeBuild **`rapid-cortex-web-build-prod`**, pipeline stack **`rapid-cortex-web-pipeline-prod`** (defaults for `prod` in **`us-east-1`**; override with env vars below if yours differ).
@@ -345,7 +345,7 @@ aws elbv2 describe-target-health \
 
 | Symptom | Check |
 |---------|--------|
-| **`Target.ResponseCodeMismatch`** / health checks **`[500]`** | App returns 500 on the health path. In CloudWatch, **`Cannot find module 'node:crypto'`** in **`.next/server/edge`** usually means **Next.js middleware (Edge)** pulled **`rapid-cortex-shared`** via the **package root** export (which includes RC Lite server code). Middleware and its imports must use **subpath** imports only (e.g. **`rapid-cortex-shared/types`**, **`rapid-cortex-shared/auth/rapid-cortex-roles`**, **`rapid-cortex-shared/auth/session-product`**) — never **`from "rapid-cortex-shared"`** in the middleware graph. |
+| **`Target.ResponseCodeMismatch`** / health checks **`[500]`** | App returns 500 on the health path. In CloudWatch, **`Cannot find module 'node:crypto'`** in **`.next/server/edge`** usually means **Next.js middleware (Edge)** pulled **`rapid-cortex-shared`** via the **package root** export (which includes NC Lite server code). Middleware and its imports must use **subpath** imports only (e.g. **`rapid-cortex-shared/types`**, **`rapid-cortex-shared/auth/rapid-cortex-roles`**, **`rapid-cortex-shared/auth/session-product`**) — never **`from "rapid-cortex-shared"`** in the middleware graph. |
 | Deploy script exits on ECS wait | The script polls **`running` / `desired` / `pending`** and **`PRIMARY.failedTasks`** (see env table). Increase **`ECS_WAIT_MINUTES`** for slow rollouts. If the heuristic passes but AWS still shows churn, inspect **`describe-services` events** and **`describe-target-health`** — the built-in **`aws ecs wait services-stable`** condition is stricter than **`running==desired && pending==0`**. |
 | **`failed container health checks`** / **`Task failed ELB health checks`** | Same as 500 / wrong port / crash at boot — correlate **target health** + **task logs**. |
 

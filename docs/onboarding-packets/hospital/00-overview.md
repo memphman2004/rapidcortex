@@ -1,4 +1,4 @@
-# Rapid Cortex — Hospital Routing
+# NexCort iQ — Hospital Routing
 
 Hospital Admin and Staff use a capacity and routing portal. This is not a 911 dispatch workspace and not medical direction.
 

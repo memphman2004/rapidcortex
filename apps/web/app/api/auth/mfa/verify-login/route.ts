@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { enforceCsrfProtection } from "@/lib/csrf";
 import { applyCognitoAuthCookies } from "@/lib/auth/apply-auth-cookies";
 import { getCognitoClientId, getCognitoRegion } from "@/lib/auth/cognito-config";
+import { mapRespondToAuthChallengeFailure } from "@/lib/auth/cognito-route-errors";
 import { optionalCognitoSecretHash } from "@/lib/auth/cognito-secret-hash";
 import { blockMobileAuthRequest } from "@/lib/auth/guards/blockMobileAuth";
 
@@ -86,7 +87,30 @@ export async function POST(request: Request) {
       ExpiresIn: auth.ExpiresIn,
     });
     return res;
-  } catch {
-    return NextResponse.json({ error: "Invalid MFA code" }, { status: 401 });
+  } catch (err: unknown) {
+    const name =
+      err && typeof err === "object" && "name" in err && typeof (err as { name: unknown }).name === "string"
+        ? (err as { name: string }).name
+        : "Unknown";
+    console.warn("[mfa/verify-login] Cognito challenge failed", name);
+    if (name === "CodeMismatchException" || name === "EnableSoftwareTokenMFAException") {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid MFA code. Use the current code from Google Authenticator for this account, or ask an admin to reset MFA so you can re-enroll.",
+          code: name,
+        },
+        { status: 401 },
+      );
+    }
+    const mapped = mapRespondToAuthChallengeFailure(err);
+    return NextResponse.json(
+      {
+        error:
+          typeof mapped.body.error === "string" ? mapped.body.error : "MFA verification failed",
+        code: mapped.body.code ?? name,
+      },
+      { status: mapped.status },
+    );
   }
 }

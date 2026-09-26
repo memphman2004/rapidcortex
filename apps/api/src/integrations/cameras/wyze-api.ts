@@ -1,11 +1,11 @@
 /**
  * Wyze Developer API client.
  *
- * Per-homeowner Key ID + API Key (Apikey / Keyid headers). Rapid Cortex developer
+ * Per-homeowner Key ID + API Key (Apikey / Keyid headers). NexCort iQ developer
  * credentials in Secrets Manager are for RC-owned test devices only — never used
  * for homeowner streams.
  *
- * Set WYZE_MOCK=1 to skip the live API (CI / local).
+ * WYZE_MOCK does not invent cameras or signaling URLs.
  *
  * @module integrations/cameras/wyze-api
  */
@@ -41,11 +41,6 @@ const STREAMABLE_MODEL_PREFIXES = [
   "AN_RSCW",
 ];
 
-function wyzeMockEnabled(): boolean {
-  const v = process.env.WYZE_MOCK?.trim().toLowerCase();
-  return v === "1" || v === "true";
-}
-
 function authHeaders(creds: WyzeCreds): Record<string, string> {
   return {
     "Content-Type": "application/json",
@@ -75,33 +70,8 @@ export function isStreamableCamera(model: string): boolean {
   return STREAMABLE_MODEL_PREFIXES.some((p) => upper.startsWith(p));
 }
 
-function mockCameras(): WyzeCamera[] {
-  return [
-    {
-      mac: "AA:BB:CC:DD:EE:FF",
-      model: "WYZEC3",
-      name: "Mock Wyze camera",
-      isOnline: true,
-      hasLiveStream: true,
-    },
-  ];
-}
-
-function mockStreamInfo(mac: string): WyzeStreamInfo {
-  const clientId = generateClientId(mac);
-  return {
-    signalingUrl: `wss://mock-kvs.rapidcortex.local/v1/signaling?X-Amz-ClientId=${encodeURIComponent(clientId)}`,
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-    authToken: "mock-wyze-kvs-token",
-    clientId,
-    expiresAt: Date.now() + 5 * 60 * 1000,
-  };
-}
-
 export class WyzeApiClient {
   async listCameras(creds: WyzeCreds): Promise<WyzeCamera[]> {
-    if (wyzeMockEnabled()) return mockCameras();
-
     const res = await fetch(`${WYZE_API_BASE}/v2/home_page/get_object_list`, {
       method: "POST",
       headers: authHeaders(creds),
@@ -151,8 +121,6 @@ export class WyzeApiClient {
   }
 
   async getStreamInfo(mac: string, model: string, creds: WyzeCreds): Promise<WyzeStreamInfo> {
-    if (wyzeMockEnabled()) return mockStreamInfo(mac);
-
     const clientId = generateClientId(mac);
     const res = await fetch(`${WYZE_API_BASE}/v2/cameraservice/get_webrtc_conn_info`, {
       method: "POST",

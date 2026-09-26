@@ -16,6 +16,7 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_PUBLIC_ICON_PATHS } from "@/lib/site"
 import { absoluteUrl, getSiteUrl, SEO_IMAGE_PATH } from "@/lib/seo";
 import { getWorkspaceBuildProbe } from "@/lib/phase1-workspace";
 import { Providers } from "@/app/providers";
+import { ClockPreferenceProvider } from "@/components/providers/clock-preference-provider";
 import { FontPreferenceProvider } from "@/components/providers/font-preference-provider";
 import { TypographyPreferenceProvider } from "@/components/providers/typography-preference-provider";
 import "./globals.css";
@@ -95,7 +96,7 @@ const sourceSans = Source_Sans_3({
 
 const siteUrl = getSiteUrl();
 const defaultOgImage = absoluteUrl(SEO_IMAGE_PATH);
-const defaultGaId = "G-S83NHMBHRD";
+const defaultGaId = "G-NGT17QK1LW";
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || defaultGaId;
 const gaEnabled = GA_MEASUREMENT_ID.length > 0;
 
@@ -105,7 +106,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "RC Venue",
+    title: "Venue",
     statusBarStyle: "black-translucent",
   },
   title: {
@@ -211,7 +212,9 @@ export default function RootLayout({
       <body className="min-h-full min-h-dvh text-slate-100">
         <Providers>
           <FontPreferenceProvider>
-            <TypographyPreferenceProvider>{children}</TypographyPreferenceProvider>
+            <TypographyPreferenceProvider>
+              <ClockPreferenceProvider>{children}</ClockPreferenceProvider>
+            </TypographyPreferenceProvider>
           </FontPreferenceProvider>
         </Providers>
       </body>

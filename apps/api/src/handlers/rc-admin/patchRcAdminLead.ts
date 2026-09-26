@@ -1,5 +1,5 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { canAccessRcFinancePortal, patchSalesLeadBodySchema } from "rapid-cortex-shared";
+import { canAccessSalesLeadsCrm, patchSalesLeadBodySchema } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { makeId } from "../../lib/ids.js";
@@ -14,7 +14,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   const user = await getUserContext(event);
   if (!user) return unauthorized();
   if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
-  if (!canAccessRcFinancePortal(user.role)) return ok({ error: "Forbidden" }, 403);
+  if (!canAccessSalesLeadsCrm(user.role)) return ok({ error: "Forbidden" }, 403);
 
   const leadId = event.pathParameters?.leadId?.trim();
   if (!leadId) return ok({ error: "leadId is required" }, 400);

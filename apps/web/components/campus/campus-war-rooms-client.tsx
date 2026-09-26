@@ -47,7 +47,7 @@ export function CampusWarRoomsClient({ campusCode }: { campusCode: string }) {
   if (!isWarRoomsEnabled()) {
     return (
       <p className="text-sm text-slate-400">
-        War rooms aren’t enabled for this agency. Contact Rapid Cortex support.
+        War rooms aren’t enabled for this agency. Contact NexCort iQ support.
       </p>
     );
   }

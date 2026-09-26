@@ -2,8 +2,9 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { VenueIntake } from "rapid-cortex-shared";
-import { venueIntakeSchema } from "rapid-cortex-shared";
+import { emptyVenueGuestAssistKnowledge, mergeVenueGuestAssistKnowledge, venueIntakeSchema } from "rapid-cortex-shared";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import {
@@ -16,7 +17,9 @@ import {
   TextInput,
   CheckboxGroup,
 } from "@/components/onboarding/intake-form-primitives";
+import { GuestAssistKnowledgeFields } from "@/components/onboarding/guest-assist-knowledge-fields";
 import { fetchVenueIntake, saveVenueIntake } from "@/lib/onboarding/onboarding-api";
+import { verticalOnboardingContinueHref } from "@/lib/onboarding/continue-href";
 
 const EMPTY: VenueIntake = {
   venueName: "",
@@ -38,6 +41,7 @@ const EMPTY: VenueIntake = {
   signInstaller: "venue_ops",
   eventCodesAutoExpire: false,
   dataRetentionPreference: "3yr",
+  guestAssistKnowledge: emptyVenueGuestAssistKnowledge(),
   notes: "",
 };
 
@@ -47,6 +51,7 @@ type Props = {
 };
 
 export function VenueIntakeForm({ orgCode, agencyId }: Props) {
+  const pathname = usePathname();
   const qc = useQueryClient();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<VenueIntake>(EMPTY);
@@ -62,7 +67,11 @@ export function VenueIntakeForm({ orgCode, agencyId }: Props) {
       if (intake) {
         const { orgCode: _o, agencyId: _a, submittedAt: _s, submittedBy: _b, updatedAt: _u, ...rest } =
           intake;
-        setForm(rest);
+        setForm({
+          ...EMPTY,
+          ...rest,
+          guestAssistKnowledge: mergeVenueGuestAssistKnowledge(rest.guestAssistKnowledge),
+        });
       }
       return intake;
     },
@@ -234,7 +243,7 @@ export function VenueIntakeForm({ orgCode, agencyId }: Props) {
                 options={[
                   { value: "venue_ops", label: "Venue ops" },
                   { value: "vendor", label: "Vendor" },
-                  { value: "rc", label: "Rapid Cortex" },
+                  { value: "rc", label: "NexCort iQ" },
                 ]}
               />
             </Field>
@@ -275,6 +284,23 @@ export function VenueIntakeForm({ orgCode, agencyId }: Props) {
           </div>
         ),
       },
+      {
+        title: "Guest Assist knowledge",
+        description:
+          "Facts Claude uses for this venue’s scan-page categories (Directions, Venue Info, Guest Services, and the rest).",
+        content: (
+          <GuestAssistKnowledgeFields
+            vertical="venue"
+            value={form.guestAssistKnowledge}
+            onChange={(guestAssistKnowledge) =>
+              setForm({
+                ...form,
+                guestAssistKnowledge: mergeVenueGuestAssistKnowledge(guestAssistKnowledge),
+              })
+            }
+          />
+        ),
+      },
     ],
     [form],
   );
@@ -288,7 +314,10 @@ export function VenueIntakeForm({ orgCode, agencyId }: Props) {
           Saved to venue config for org code <span className="font-mono text-slate-200">{orgCode}</span>.
         </p>
         <Link
-          href={`/onboarding/checklist/venue?orgCode=${encodeURIComponent(orgCode)}`}
+          href={verticalOnboardingContinueHref(
+            pathname,
+            `/onboarding/checklist/venue?orgCode=${encodeURIComponent(orgCode)}`,
+          )}
           className="mt-6 inline-block text-sm text-violet-400 hover:underline"
         >
           Continue to onboarding checklist →

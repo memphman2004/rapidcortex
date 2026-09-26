@@ -119,7 +119,7 @@ function buildAdaptiveCard(opp: TeamsAlertOpportunity, viewUrl: string) {
         },
         {
           type: "TextBlock",
-          text: "This creates displacement opportunities for Rapid Cortex.",
+          text: "This creates displacement opportunities for NexCort iQ.",
           wrap: true,
           isSubtle: true,
         },

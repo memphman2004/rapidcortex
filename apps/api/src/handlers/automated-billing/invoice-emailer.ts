@@ -27,7 +27,7 @@ export async function sendAutomatedInvoiceEmail(invoice: AutomatedInvoice): Prom
     return { sent: false, skipped: "ses_mock" };
   }
 
-  const from = env.billingSesSenderEmail || process.env.FROM_EMAIL || "billing@rapidcortex.us";
+  const from = env.billingSesSenderEmail || process.env.FROM_EMAIL || "billing@nexcortiq.us";
   const to = invoice.billingContactEmail.trim();
   if (!to) return { sent: false, skipped: "missing_recipient" };
 

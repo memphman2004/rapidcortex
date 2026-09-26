@@ -2,7 +2,7 @@ import { BillingSelfServeNotice } from "@/components/billing/billing-self-serve-
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 
 export const metadata = {
-  title: "RC Lite procurement",
+  title: "NexCort Lite procurement",
   robots: { index: false, follow: false },
 };
 
@@ -12,9 +12,9 @@ export default async function RcLiteCheckoutPage() {
   return (
     <main className="min-h-dvh bg-slate-950 px-4 py-8 sm:px-8">
       <BillingSelfServeNotice
-        headline="RC Lite billing"
+        headline="NexCort Lite billing"
         subheadline="API access is awarded through pilots, invoicing, and agency procurement—not public card checkout."
-        planName="RC Lite API Access"
+        planName="NexCort Lite API Access"
         billingFrequency="monthly"
         includedFeatures={[
           "api_access and api_portal_access",

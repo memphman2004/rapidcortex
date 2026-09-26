@@ -29,7 +29,7 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
     operatorExplanation:
       "Each person only sees what their role allows (for example dispatchers versus supervisors), reducing accidental exposure and mistakes.",
     adminExplanation:
-      "Map Cognito (or your IdP) roles to Rapid Cortex roles, review quarterly, and require MFA where policy demands it for admins.",
+      "Map Cognito (or your IdP) roles to NexCort iQ roles, review quarterly, and require MFA where policy demands it for admins.",
     salesExplanation:
       "Role-based access is a baseline procurement requirement for public safety: least privilege, separation of duties, and auditability.",
   },
@@ -99,11 +99,11 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
   active_incident_view: {
     shortDescription: "List and details for active incidents the agency is working.",
     operatorExplanation:
-      "Gives a shared view of in-progress work in Rapid Cortex; it does not alone replace the CAD of record for dispatch authority.",
+      "Gives a shared view of in-progress work in NexCort iQ; it does not alone replace the CAD of record for dispatch authority.",
     adminExplanation:
-      "Label the UI clearly so staff know what is system-of-record (CAD) versus decision-support context from Rapid Cortex.",
+      "Label the UI clearly so staff know what is system-of-record (CAD) versus decision-support context from NexCort iQ.",
     salesExplanation:
-      "Operators need a single operational picture; Rapid Cortex can complement CAD without replacing vendor CAD workflows unless separately integrated.",
+      "Operators need a single operational picture; NexCort iQ can complement CAD without replacing vendor CAD workflows unless separately integrated.",
   },
   dispatcher_console: {
     shortDescription: "Primary operator console for day-to-day real-time tasks.",
@@ -279,7 +279,7 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
   major_incident_management: {
     shortDescription: "Controls and context for large-scale or long-duration major incidents (ICS-style coordination, not a CAD replacement).",
     operatorExplanation:
-      "Helps track multi-jurisdiction or multi-hour events without pretending CAD is controlled from Rapid Cortex unless integrated.",
+      "Helps track multi-jurisdiction or multi-hour events without pretending CAD is controlled from NexCort iQ unless integrated.",
     adminExplanation:
       "Set governance for who can open major mode, public affairs rules, and dependencies on radio/CAD data feeds as available.",
     salesExplanation:
@@ -313,7 +313,7 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
       "Turns policy binders into usable digital guidance—procurement often asks for “what do we do when X happens?”.",
   },
   incident_timeline_reconstruction: {
-    shortDescription: "Reconstructs a timestamped view of what happened in Rapid Cortex for a given event.",
+    shortDescription: "Reconstructs a timestamped view of what happened in NexCort iQ for a given event.",
     operatorExplanation:
       "AAR teams rebuild sequences for after-action, training, and oversight without simulating public safety response.",
     adminExplanation:
@@ -367,7 +367,7 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
       "Gives risk officers confidence that product incidents won’t languish unseen overnight.",
   },
   on_call_routing: {
-    shortDescription: "On-call handoffs for the Rapid Cortex service team or integrated paging targets as configured (not 911 ACD).",
+    shortDescription: "On-call handoffs for the NexCort iQ service team or integrated paging targets as configured (not 911 ACD).",
     operatorExplanation:
       "Designated people receive alerts through approved channels; this is not a substitute for public emergency call distribution.",
     adminExplanation:
@@ -425,7 +425,7 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
     operatorExplanation:
       "The floor and IT can reach a trained responder with clearer SLAs when the product is down or degraded.",
     adminExplanation:
-      "Validate hours of coverage, holiday handling, and how you page Rapid Cortex in emergencies.",
+      "Validate hours of coverage, holiday handling, and how you page NexCort iQ in emergencies.",
     salesExplanation:
       "Common upsell for 24/7 agencies that cannot wait for next-business-day email for outage-class problems.",
   },
@@ -450,14 +450,14 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
   custom_security_compliance_review: {
     shortDescription: "CJIS-aligned and procurement-grade security and compliance review documentation (not a certification claim on its own).",
     operatorExplanation:
-      "Gives your infosec and policy teams a clear picture of how Rapid Cortex maps to expected controls, without claiming a certification the product has not earned.",
+      "Gives your infosec and policy teams a clear picture of how NexCort iQ maps to expected controls, without claiming a certification the product has not earned.",
     adminExplanation:
       "Security and legal teams map controls, gaps, and compensating steps; you still own the ATO/approval path and CJIS program responsibilities.",
     salesExplanation:
       "Helps large agencies de-risk the contract when IT asks for evidence on paper for sensitive deployments.",
   },
   cad_disabled_mode: {
-    shortDescription: "Operate Rapid Cortex with no direct CAD data feed—assisted workflows only, no live CAD state.",
+    shortDescription: "Operate NexCort iQ with no direct CAD data feed—assisted workflows only, no live CAD state.",
     operatorExplanation:
       "Staff get intake and AI assist without any assertion of reading or writing the CAD; safest default in early pilots.",
     adminExplanation:
@@ -475,7 +475,7 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
       "Reduces expensive rework by surfacing “unknown unknowns” before build versus after cutover failure.",
   },
   cad_read_only_integration: {
-    shortDescription: "Read selected CAD or RMS fields into Rapid Cortex for context only, no write-back to CAD from this product path.",
+    shortDescription: "Read selected CAD or RMS fields into NexCort iQ for context only, no write-back to CAD from this product path.",
     operatorExplanation:
       "Dispatchers can see a structured snapshot where integrated; they still work primary CAD in the vendor UIs for dispatch authority.",
     adminExplanation:
@@ -484,7 +484,7 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
       "Most agencies start read-only: lower risk, faster to harden, and no dispatch-by-proxy confusion.",
   },
   cad_assisted_writeback: {
-    shortDescription: "Draft CAD updates in Rapid Cortex, then require explicit human approval in controlled flows before a vendor path sends data.",
+    shortDescription: "Draft CAD updates in NexCort iQ, then require explicit human approval in controlled flows before a vendor path sends data.",
     operatorExplanation:
       "Never implies silent CAD updates—human review and an approved path per agency policy, with dispatcher attestation in the product flow as configured.",
     adminExplanation:
@@ -502,7 +502,7 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
       "Rare, highly governed option—pitch cautiously, only with references and vendor proof points.",
   },
   cad_vendor_adapter: {
-    shortDescription: "Adapter layer for a specific CAD vendor’s APIs or SDK, behind the common Rapid Cortex CAD interface.",
+    shortDescription: "Adapter layer for a specific CAD vendor’s APIs or SDK, behind the common NexCort iQ CAD interface.",
     operatorExplanation:
       "Staff should not need to know adapter details—success looks like “CAD fields appear when configured.\"",
     adminExplanation:
@@ -540,7 +540,7 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
   livelocation_secure_caller_share: {
     shortDescription: "SMS time-limited secure link so callers can share approved GPS context with an incident.",
     operatorExplanation:
-      "Dispatchers generate a link that opens a consent-first page; location history and accuracy display in Rapid Cortex when callers opt in and policy allows SMS delivery.",
+      "Dispatchers generate a link that opens a consent-first page; location history and accuracy display in NexCort iQ when callers opt in and policy allows SMS delivery.",
     adminExplanation:
       "Coordinate lawful SMS policies, archiving, Secrets Manager SMS credentials, and ENABLE_PINPOINT gating across web and API.",
     salesExplanation:
@@ -556,7 +556,7 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
       "Honest story: heuristic duplicate-call grouping for situational clarity, not mystical predictive hotspots unless your agency later layers analytics.",
   },
   operational_maps_als: {
-    shortDescription: "Dark-theme embedded Amazon Location Service maps aligned with Rapid Cortex command surfaces.",
+    shortDescription: "Dark-theme embedded Amazon Location Service maps aligned with NexCort iQ command surfaces.",
     operatorExplanation:
       "Caller-shared pins or incident overlays render on workspace maps alongside future CAD overlays when integrations feed data.",
     adminExplanation:
@@ -693,7 +693,7 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
   audit_event_trail: {
     shortDescription: "Product-level audit events for security and compliance (distinct from but related to your CAD audit).",
     operatorExplanation:
-      "Supports “who did what in Rapid Cortex” for investigations, separate from voice recordings.",
+      "Supports “who did what in NexCort iQ” for investigations, separate from voice recordings.",
     adminExplanation:
       "Map events to your GRC tool; define who may export audit logs and how chain-of-custody works.",
     salesExplanation:
@@ -709,7 +709,7 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
       "A major theme in RFPs where evidence handling is regulated or politically sensitive.",
   },
   role_based_permissions: {
-    shortDescription: "Enforce what each role can do inside Rapid Cortex, mapped from your directory or Cognito groups.",
+    shortDescription: "Enforce what each role can do inside NexCort iQ, mapped from your directory or Cognito groups.",
     operatorExplanation:
       "Same concept as broader RBAC but specific to in-app operations like exporting or config changes.",
     adminExplanation:

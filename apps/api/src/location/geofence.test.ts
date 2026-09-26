@@ -55,11 +55,9 @@ describe("geofencesForAgency", () => {
   });
 });
 
-describe("listAgencyGeofences mock", () => {
-  it("returns the Atlanta service-area fixture when ALS mock is on", async () => {
+describe("listAgencyGeofences without a collection", () => {
+  it("returns no geofences instead of a fixture service area", async () => {
     const rows = await listAgencyGeofences("test-agency");
-    expect(rows).toHaveLength(1);
-    expect(rows[0]?.zoneId).toBe("agency-service-area");
-    expect(rows[0]?.polygon.length).toBeGreaterThanOrEqual(4);
+    expect(rows).toEqual([]);
   });
 });

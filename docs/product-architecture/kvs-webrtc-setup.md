@@ -1,6 +1,6 @@
 # Kinesis Video Streams WebRTC (live + optional recording)
 
-Rapid Cortex live video can use **Amazon Kinesis Video Streams (KVS)** for WebRTC: a **signaling channel** is required for live sessions. If you also want **saving/ingestion to the cloud**, you need a Kinesis **video** stream, positive **data retention**, and a **media storage configuration** that maps the signaling channel to that stream.
+NexCort iQ live video can use **Amazon Kinesis Video Streams (KVS)** for WebRTC: a **signaling channel** is required for live sessions. If you also want **saving/ingestion to the cloud**, you need a Kinesis **video** stream, positive **data retention**, and a **media storage configuration** that maps the signaling channel to that stream.
 
 ## Two building blocks
 

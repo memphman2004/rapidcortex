@@ -7,7 +7,7 @@ import {
 } from "@/lib/marketing-links";
 
 export const metadata: Metadata = {
-  title: "Desktop access required · Rapid Cortex",
+  title: "Desktop access required · NexCort iQ",
   robots: { index: false, follow: false },
 };
 
@@ -25,7 +25,7 @@ export default function MobileAccessRestrictedPage() {
           Desktop Access Required
         </h1>
         <p className="mt-4 text-center text-sm leading-relaxed text-slate-400">
-          Rapid Cortex console access is restricted to approved desktop workstations. For security,
+          NexCort iQ console access is restricted to approved desktop workstations. For security,
           dispatcher, supervisor, and admin access is not available from mobile devices.
         </p>
         <p className="mt-6 text-center text-xs leading-relaxed text-slate-500">
@@ -33,14 +33,14 @@ export default function MobileAccessRestrictedPage() {
           administrator.
         </p>
         <p className="mt-10 text-center text-xs text-slate-500 lg:hidden">
-          Rapid Cortex console access is available from approved desktop workstations only.
+          NexCort iQ console access is available from approved desktop workstations only.
         </p>
         <div className="mx-auto mt-10 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link
             href={home}
             className="rounded-md bg-sky-600 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-sky-500"
           >
-            Return to Rapid Cortex
+            Return to NexCort iQ
           </Link>
           <a
             href={demo}

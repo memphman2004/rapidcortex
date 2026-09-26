@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — CAD Bridge event broker (hub of up to 8 CAD participants).
+  NexCort iQ — CAD Bridge event broker (hub of up to 8 CAD participants).
   Routes attach to stack 2 HttpApi. Live partner CAD HTTP remains fail-closed
   (CAD_WRITEBACK_ENABLED=false). Mock outbound is default on.
   Six DynamoDB tables (distinct access/TTL/retention). Optional VPC for on-prem CAD.
@@ -262,6 +262,7 @@ Resources:
   CadBridgeEventsDlq:
     Type: AWS::SQS::Queue
     Properties:
+      KmsMasterKeyId: alias/aws/sqs
       QueueName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-events-dlq-${DeploymentStage}.fifo"
       FifoQueue: true
       ContentBasedDeduplication: false
@@ -270,6 +271,7 @@ Resources:
   CadBridgeEventsQueue:
     Type: AWS::SQS::Queue
     Properties:
+      KmsMasterKeyId: alias/aws/sqs
       QueueName: !Sub "${ManagedPolicyNamePrefix}-cad-bridge-events-${DeploymentStage}.fifo"
       FifoQueue: true
       ContentBasedDeduplication: false

@@ -1,0 +1,191 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  NexCort iQ Loadout data layer — subscriptions, API keys, usage, swap history, invoices.
+  Physical names use prefix rapid-cortex-loadout-*-stage.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  DynamoTableNamePrefix:
+    Type: String
+    Default: rapid-cortex
+
+Resources:
+  LoadoutSubscriptionsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${DynamoTableNamePrefix}-loadout-subscriptions-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      Tags:
+        - Key: Project
+          Value: NexCortiQ
+        - Key: Component
+          Value: Loadout
+
+  LoadoutApiKeysTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${DynamoTableNamePrefix}-loadout-api-keys-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: tenantId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: TenantIndex
+          KeySchema:
+            - AttributeName: tenantId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Project
+          Value: NexCortiQ
+        - Key: Component
+          Value: Loadout
+
+  LoadoutUsageTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${DynamoTableNamePrefix}-loadout-usage-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: Project
+          Value: NexCortiQ
+        - Key: Component
+          Value: Loadout
+
+  LoadoutSwapHistoryTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${DynamoTableNamePrefix}-loadout-swap-history-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      Tags:
+        - Key: Project
+          Value: NexCortiQ
+        - Key: Component
+          Value: Loadout
+
+  LoadoutInvoicesTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${DynamoTableNamePrefix}-loadout-invoices-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: Project
+          Value: NexCortiQ
+        - Key: Component
+          Value: Loadout
+
+Outputs:
+  LoadoutSubscriptionsTable:
+    Description: Loadout subscriptions table name
+    Value: !Ref LoadoutSubscriptionsTable
+  LoadoutSubscriptionsTableArn:
+    Description: Loadout subscriptions table ARN
+    Value: !GetAtt LoadoutSubscriptionsTable.Arn
+  LoadoutApiKeysTable:
+    Description: Loadout API keys table name
+    Value: !Ref LoadoutApiKeysTable
+  LoadoutApiKeysTableArn:
+    Description: Loadout API keys table ARN
+    Value: !GetAtt LoadoutApiKeysTable.Arn
+  LoadoutUsageTable:
+    Description: Loadout usage table name
+    Value: !Ref LoadoutUsageTable
+  LoadoutUsageTableArn:
+    Description: Loadout usage table ARN
+    Value: !GetAtt LoadoutUsageTable.Arn
+  LoadoutSwapHistoryTable:
+    Description: Loadout swap history table name
+    Value: !Ref LoadoutSwapHistoryTable
+  LoadoutSwapHistoryTableArn:
+    Description: Loadout swap history table ARN
+    Value: !GetAtt LoadoutSwapHistoryTable.Arn
+  LoadoutInvoicesTable:
+    Description: Loadout invoices table name
+    Value: !Ref LoadoutInvoicesTable
+  LoadoutInvoicesTableArn:
+    Description: Loadout invoices table ARN
+    Value: !GetAtt LoadoutInvoicesTable.Arn

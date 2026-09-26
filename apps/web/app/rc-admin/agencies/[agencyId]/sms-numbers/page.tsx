@@ -10,7 +10,7 @@ import { smsRoutingPermissions } from "@/lib/sms-routing/access";
 import { deriveVerticalFromAgencyId } from "@/lib/vertical";
 
 export const metadata = {
-  title: "SMS Numbers (RC Admin)",
+  title: "SMS Numbers (NexCort Admin)",
   robots: { index: false, follow: false },
 };
 

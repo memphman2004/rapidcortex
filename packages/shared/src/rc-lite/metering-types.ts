@@ -1,4 +1,4 @@
-/** Billable unit types for RC Lite usage meters. */
+/** Billable unit types for NexCort Lite usage meters. */
 export const RC_LITE_BILLABLE_UNIT_TYPES = [
   "api_call",
   "audio_minute",

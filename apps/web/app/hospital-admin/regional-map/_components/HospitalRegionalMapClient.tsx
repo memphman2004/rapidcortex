@@ -3,12 +3,15 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatClockTime } from "@/lib/clock-format";
 
 /**
  * apps/web/app/hospital-admin/regional-map/_components/HospitalRegionalMapClient.tsx
  * Same component as dashboard regional widget but full-page with search/filter.
  */
 export function HospitalRegionalMapClient({ agencyId }: { agencyId: string }) {
+  const { hour12 } = useClockPreference();
   const [filter, setFilter] = useState<"ALL" | "OPEN" | "ALERT" | "DIVERSION">("ALL");
 
   const { data: facilities = [], isLoading } = useQuery({
@@ -93,7 +96,7 @@ export function HospitalRegionalMapClient({ agencyId }: { agencyId: string }) {
                   )}
                   {f.lastUpdatedAt && (
                     <p className="mt-1 text-[10px] text-slate-700">
-                      Updated {new Date(f.lastUpdatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      Updated {formatClockTime(f.lastUpdatedAt, hour12)}
                     </p>
                   )}
                 </div>

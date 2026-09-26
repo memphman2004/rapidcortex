@@ -118,7 +118,7 @@ export function DemoRequestForm() {
         <p className="text-lg font-semibold leading-snug text-emerald-100">
           We&apos;ll be in touch within one business day.
         </p>
-        <p className="mt-3 text-sm text-emerald-200/85">Thank you for your interest in Rapid Cortex.</p>
+        <p className="mt-3 text-sm text-emerald-200/85">Thank you for your interest in NexCort iQ.</p>
       </div>
     );
   }

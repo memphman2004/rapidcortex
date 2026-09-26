@@ -1,54 +1,18 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { Camera, Link2 } from "lucide-react";
 import { useSession } from "@/components/auth/session-context";
-import { RingConnectButton, isRingEnabled } from "@/src/features/connect/ring";
 import { CameraProviderSetup } from "@/components/cameras/CameraProviderSetup";
-import type { RingDevicesResponse } from "@/src/features/connect/ring/ring-types";
 import { NestCameraPanel } from "@/components/cameras/NestCameraPanel";
 import { WyzeCameraPanel } from "@/components/cameras/WyzeCameraPanel";
-import { NEST_TM, RING_TM, WYZE_TM, joinTrademarkList } from "@/lib/brand-marks";
+import { NEST_TM, WYZE_TM, joinTrademarkList } from "@/lib/brand-marks";
 import { isNestEnabled } from "@/lib/nest-feature-flags";
 import { isWyzeEnabled } from "@/lib/wyze-feature-flags";
 
-async function fetchRingDevices(): Promise<RingDevicesResponse> {
-  const res = await fetch("/api/integrations/ring/devices", { credentials: "include" });
-  if (res.status === 404) {
-    return { success: true, data: { devices: [] } };
-  }
-  return (await res.json()) as RingDevicesResponse;
-}
-
 export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
   const { user } = useSession();
-  const queryClient = useQueryClient();
-  const ringEnabled = isRingEnabled();
 
   const nestEnabled = isNestEnabled();
   const wyzeEnabled = isWyzeEnabled();
-
-  useEffect(() => {
-    const qp = new URLSearchParams(window.location.search);
-    const status = qp.get("status");
-    if (status === "success" || status === "connected") {
-      void queryClient.invalidateQueries({ queryKey: ["ring-devices", venueCode] });
-      qp.delete("status");
-      const next = `${window.location.pathname}${qp.toString() ? `?${qp.toString()}` : ""}`;
-      window.history.replaceState({}, "", next);
-    }
-  }, [queryClient, venueCode]);
-
-  const devicesQuery = useQuery({
-    queryKey: ["ring-devices", venueCode],
-    enabled: ringEnabled && Boolean(user),
-    queryFn: fetchRingDevices,
-    refetchInterval: 30_000,
-  });
-
-  const devices = devicesQuery.data?.data?.devices ?? [];
-  const linked = devices.length > 0;
 
   if (!user) {
     return <p className="text-sm text-slate-400">Sign in to manage venue cameras.</p>;
@@ -60,25 +24,12 @@ export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
         <h1 className="text-2xl font-bold text-white">Cameras</h1>
         <p className="mt-1 text-sm text-slate-400">
           Register venue RTSP / ONVIF cameras for KVS streaming above, then link{" "}
-          {joinTrademarkList([ringEnabled && RING_TM, nestEnabled && NEST_TM, wyzeEnabled && WYZE_TM])}{" "}
+          {joinTrademarkList([nestEnabled && NEST_TM, wyzeEnabled && WYZE_TM])}{" "}
           accounts for emergency collaboration during incidents.
         </p>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        {ringEnabled ? (
-          <section className="space-y-3 rounded-lg border border-blue-500/30 bg-slate-900/40 p-4">
-            <h2 className="text-sm font-semibold text-blue-200">{RING_TM}</h2>
-            <RingConnectButton
-              agencyId={user.agencyId}
-              userId={user.userId}
-              onLinked={() =>
-                void queryClient.invalidateQueries({ queryKey: ["ring-devices", venueCode] })
-              }
-            />
-          </section>
-        ) : null}
-
         {nestEnabled ? (
           <section className="space-y-3 rounded-lg border border-emerald-500/30 bg-slate-900/40 p-4">
             <h2 className="text-sm font-semibold text-emerald-200">{NEST_TM}</h2>
@@ -98,52 +49,6 @@ export function VenueCamerasClient({ venueCode }: { venueCode: string }) {
           </section>
         ) : null}
       </div>
-
-      {ringEnabled && linked ? (
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {devices.map((device) => (
-            <article
-              key={device.deviceId}
-              className="rounded-lg border border-slate-700/60 bg-slate-900/40 p-4"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <h2 className="text-sm font-semibold text-slate-100">{device.deviceName}</h2>
-                <span
-                  className={`h-2.5 w-2.5 rounded-full ${device.isEnabledForConnect ? "bg-green-400" : "bg-slate-500"}`}
-                />
-              </div>
-              <div className="mt-3 flex aspect-video flex-col items-center justify-center rounded-md border border-slate-700 bg-slate-800/70 text-center">
-                <Camera className="mb-1 h-6 w-6 text-sky-400" />
-                <p className="text-xs text-slate-300">{device.deviceType}</p>
-                {device.locationLabel ? (
-                  <p className="mt-1 text-xs text-slate-400">{device.locationLabel}</p>
-                ) : null}
-              </div>
-              <div className="mt-3 flex items-center justify-between gap-2">
-                <p className="text-xs text-slate-400">
-                  {device.isEnabledForConnect ? "Ready for emergency requests" : "Disabled for Connect"}
-                </p>
-                <a
-                  href={`/app/venue/${venueCode}/incidents`}
-                  className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-sky-300 hover:bg-slate-800"
-                >
-                  <Link2 className="h-3 w-3" />
-                  Incident Media
-                </a>
-              </div>
-            </article>
-          ))}
-        </section>
-      ) : ringEnabled ? (
-        <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900/30 p-8 text-center">
-          <Camera className="mx-auto mb-2 h-8 w-8 text-slate-500" />
-          <p className="text-sm text-slate-300">No {RING_TM} cameras linked yet.</p>
-          <p className="mt-1 text-xs text-slate-500">
-            Use Connect {RING_TM} Account above to authorize your devices.
-          </p>
-        </div>
-      ) : null}
-
     </div>
   );
 }

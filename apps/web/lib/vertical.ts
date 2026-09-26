@@ -11,9 +11,9 @@ export const VERTICAL_CONFIG: Record<
   Vertical,
   { label: string; color: string; bg: string }
 > = {
-  core: { label: "RC Core", color: "#0284C7", bg: "rgba(2,132,199,0.15)" },
-  campus: { label: "RC Campus", color: "#64748B", bg: "rgba(100,116,139,0.15)" },
-  venue: { label: "RC Venue", color: "#F97316", bg: "rgba(249,115,22,0.15)" },
+  core: { label: "911 Centers/PSAPs", color: "#0284C7", bg: "rgba(2,132,199,0.15)" },
+  campus: { label: "Campus", color: "#64748B", bg: "rgba(100,116,139,0.15)" },
+  venue: { label: "Venue", color: "#F97316", bg: "rgba(249,115,22,0.15)" },
   hospital: { label: "RC Hospital", color: "#14B8A6", bg: "rgba(20,184,166,0.15)" },
   transit: { label: "RC Transit", color: "#818CF8", bg: "rgba(129,140,248,0.15)" },
   call_assist: { label: "Call Assist", color: "#14B8A6", bg: "rgba(20,184,166,0.15)" },

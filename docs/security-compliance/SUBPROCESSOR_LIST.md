@@ -1,10 +1,10 @@
 # Subprocessor list
 
 **Audience:** agency security, legal, and procurement reviewers.  
-**Status:** **CURRENT** as of 2026-09-08 — review quarterly and before each major architecture change.  
+**Status:** **CURRENT** as of 2026-09-19 — review quarterly and before each major architecture change.  
 **Not exhaustive** of every AWS API call; lists **categories of third parties** that may process customer data when features are enabled.
 
-Rapid Cortex is primarily deployed on **Amazon Web Services (us-east-1** by default unless contract specifies otherwise). Customer data is scoped by **`agencyId`** tenant isolation.
+NexCort iQ is primarily deployed on **Amazon Web Services (us-east-1** by default unless contract specifies otherwise). Customer data is scoped by **`agencyId`** tenant isolation.
 
 This inventory is the AI / communications subprocessor documentation for Call Assist, mapping, STT, and analysis. It is **not** a CJIS certification.
 
@@ -53,7 +53,9 @@ Call Assist knowledge answers are grounded on the **agency knowledge base in Dyn
 | **Amazon SNS** | Ops alerts, optional SMS | Phone/email for alerts | Operator-configured |
 | **Amazon Pinpoint** | SMS / messaging links (e.g. caller media intake) | Phone numbers, message metadata | When Pinpoint features enabled |
 | **Amazon End User Messaging** | Transactional SMS (incident links, consent, Silent Text) | Phone numbers, message metadata | When SMS features enabled |
-| **Ring** (partner API) | Camera / doorbell integrations | Device metadata, media | Ring Connect module only |
+| **Twilio** | Incident-media SMS / voice links | Phone numbers, message metadata, media URLs | When incident-media secret is used |
+| **Wyze** | Camera API | Device credentials / media | Only if `WyzeEnabled` / Rapid Vision Wyze |
+| **Google Nest SDM** | Agency/citizen camera linking | OAuth tokens, device metadata | Agency OAuth may be live; citizen path needs Device Access + RC OAuth secret |
 | **CAD vendor systems** | Read or write adapters | Incident/unit data per agency | Agency-controlled endpoints |
 
 ---
@@ -68,7 +70,22 @@ Configure per [pricing-billing](../pricing-billing/) docs; not all pilots enable
 
 ---
 
-## 5. Desktop distribution
+## 5. Rapid IQ / internal GTM (not 911 incident content)
+
+These process **prospect and sales-automation** data when Rapid IQ is enabled. They are **not** on the 911 transcript path.
+
+| Subprocessor | Purpose | Data categories |
+|--------------|---------|-----------------|
+| **Hunter.io** | Email finding | Prospect emails / domain data |
+| **Apollo.io** | Contact enrichment | Prospect contact metadata |
+| **Legiscan / OpenStates** | Bill / jurisdiction research | Public legislative text |
+| **RunSignUp** | Event / conference signals | Public event metadata |
+| **Microsoft** (Graph / Outlook) | Campaign mail (`hello@nexcortiq.us`) | Email content for RC sales |
+| **Microsoft Teams** (incoming webhook) | Internal Rapid IQ alerts | Alert text |
+
+---
+
+## 6. Desktop distribution
 
 | Subprocessor | Purpose | Data categories |
 |--------------|---------|-----------------|
@@ -77,7 +94,7 @@ Configure per [pricing-billing](../pricing-billing/) docs; not all pilots enable
 
 ---
 
-## 6. Customer responsibilities
+## 7. Customer responsibilities
 
 Agencies remain responsible for:
 
@@ -89,13 +106,14 @@ Agencies remain responsible for:
 
 ---
 
-## 7. Updates
+## 8. Updates
 
 | Version | Date | Change |
 |---------|------|--------|
+| 0.3 | 2026-09-19 | Pre-window review: Twilio, Wyze, Nest SDM, Rapid IQ GTM vendors; 36 live secret *names* checked |
 | 0.2 | 2026-09-08 | Current AI/comms inventory: Connect, Lex, Polly, Location Service, Bedrock minimization, Call Assist KB grounding |
 | 0.1 | 2026-07-09 | Initial draft from `infra/template.yaml` and provider docs |
 
-**Contact:** security review requests — use agency contract channel or `privacy@rapidcortex.us` for privacy-specific questions.
+**Contact:** security review requests — use agency contract channel or `privacy@nexcortiq.us` for privacy-specific questions.
 
 **Related:** [SECURITY_QUESTIONNAIRE_RESPONSES.md](./SECURITY_QUESTIONNAIRE_RESPONSES.md), [PRIVACY_RETENTION_DECISIONS.md](./PRIVACY_RETENTION_DECISIONS.md)

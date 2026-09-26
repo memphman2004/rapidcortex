@@ -1,5 +1,7 @@
 # Implementation workbook template (per agency)
 
+**Last reviewed:** 2026-09-19 (60-day refresh)
+
 **Copy** this file per pilot (e.g. `internal/workbooks/<agency>-<year>.md`). Do not commit agency-specific PII to a public repo.
 
 ## 1. Identity
@@ -19,8 +21,8 @@
 | Agency IT / security | | | | |
 | Floor supervisor / comms lead | | | | |
 | Training lead | | | | |
-| Rapid Cortex pilot lead | | | | |
-| Rapid Cortex on-call / escalation | | | | |
+| NexCort iQ pilot lead | | | | |
+| NexCort iQ on-call / escalation | | | | |
 
 ## 3. Technical references (no secrets in this table)
 
@@ -29,6 +31,7 @@
 | Web base URL | |
 | API base (if disclosed to agency) | |
 | Cognito user pool id (public id ok) | |
+| MFA enrolled for floor users (TOTP/SMS) | ☐ |
 | Region(s) | |
 | Stack / stage name | |
 | Hosted docs base (`NEXT_PUBLIC_DOCUMENTATION_BASE_URL`) | |
@@ -39,6 +42,7 @@
 |------------|-------|-------------|------|
 | SOW / assistive AI alignment | | | ☐ |
 | Privacy / retention decision | | | ☐ |
+| MFA enrollment complete for floor users | | | ☐ |
 | Protocol approval path | | | ☐ |
 | Multilingual scope | | | ☐ |
 

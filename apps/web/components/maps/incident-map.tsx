@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
+import { reportLocationToMapIncident } from "@/components/maps/map-incident-adapters";
 import { isAlsMapConfigured } from "@/lib/map/als-env";
 
 function alsMapOk(): boolean {
@@ -61,6 +62,7 @@ export function IncidentMap({
   zoom = 14,
   className,
   fill = false,
+  incidentId,
 }: {
   lat: number;
   lng: number;
@@ -70,6 +72,7 @@ export function IncidentMap({
   className?: string;
   /** When true, fill the parent (parent must have an explicit height). */
   fill?: boolean;
+  incidentId?: string;
 }) {
   const shellRef = useRef<HTMLDivElement | null>(null);
   const mapReadyRef = useRef(false);
@@ -115,7 +118,7 @@ export function IncidentMap({
       >
         <p className="text-sm font-semibold text-rose-300">Map isn’t configured</p>
         <p className="max-w-sm text-xs leading-relaxed text-slate-500">
-          Map isn’t available in this environment. Contact Rapid Cortex support.
+          Map isn’t available in this environment. Contact NexCort iQ support.
         </p>
         <p className="font-mono text-[11px] text-slate-500">
           {lat.toFixed(5)}, {lng.toFixed(5)}
@@ -152,13 +155,17 @@ export function IncidentMap({
             liveTraffic: true,
             liveTrafficClosures: true,
             airports: true,
+            activeIncidents: true,
           }}
-          callerLocation={{
-            lat,
-            lng,
-            label: label ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
-            source: "manual",
-          }}
+          incidents={[
+            reportLocationToMapIncident({
+              id: incidentId,
+              latitude: lat,
+              longitude: lng,
+              locationLabel: label ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+            }),
+          ]}
+          selectedIncidentId={incidentId}
         />
       </div>
     </div>
@@ -211,7 +218,7 @@ export function MapModal({
         <header className="flex items-start justify-between gap-3 border-b border-slate-800 px-4 py-3">
           <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-400/90">
-              Rapid Cortex · Map
+              NexCort iQ · Map
             </p>
             <h2 className="truncate text-sm font-semibold text-white">
               {label ?? "Incident location"}
@@ -235,6 +242,7 @@ export function MapModal({
             lat={lat}
             lng={lng}
             label={label}
+            incidentId={incidentId}
             zoom={zoom}
             fill
             className="rounded-lg"

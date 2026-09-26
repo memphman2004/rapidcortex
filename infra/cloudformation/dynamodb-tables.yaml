@@ -2,7 +2,7 @@
 # Production tables also exist in infra/nested/stack-data-layer.yaml — deploy one path per environment.
 
 AWSTemplateFormatVersion: "2010-09-09"
-Description: DynamoDB tables for Rapid Cortex Pinpoint and Surge (standalone lab stacks).
+Description: DynamoDB tables for NexCort iQ Pinpoint and Surge (standalone lab stacks).
 
 Parameters:
   Environment:

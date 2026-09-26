@@ -93,7 +93,7 @@ function TransitOperationsShellInner({
               <Bus size={16} color={T.blue} />
             </div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>Rapid Cortex</div>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>NexCort iQ</div>
               <div style={{ fontSize: 10, color: T.textSecondary, letterSpacing: "0.05em" }}>
                 TRANSIT OPERATIONS
               </div>

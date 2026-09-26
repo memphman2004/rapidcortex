@@ -1,6 +1,6 @@
 # Data protection model
 
-Rapid Cortex processes **agency-scoped operational data**: incidents, callers, transcripts, media, translations, and AI-derived analysis. This document describes **data protection expectations** for engineering and operations. It is **not** a legal data processing agreement.
+NexCort iQ processes **agency-scoped operational data**: incidents, callers, transcripts, media, translations, and AI-derived analysis. This document describes **data protection expectations** for engineering and operations. It is **not** a legal data processing agreement.
 
 ## Classification (engineering view)
 

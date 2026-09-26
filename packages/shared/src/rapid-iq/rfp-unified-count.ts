@@ -1,5 +1,5 @@
 /**
- * Unified RFP predicate across Rapid IQ opportunity feed, pipeline signals,
+ * Unified RFP predicate across NexiQ opportunity feed, pipeline signals,
  * and Opportunity Intelligence rows. Used by the 15-minute snapshot Lambda
  * and the dashboard RFPs tile.
  */

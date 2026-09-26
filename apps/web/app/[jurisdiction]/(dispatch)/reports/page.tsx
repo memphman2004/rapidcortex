@@ -1,6 +1,6 @@
 "use client";
 
-import { isSupervisorOrAdmin } from "rapid-cortex-security";
+import { isAdminRole } from "rapid-cortex-security";
 import { useSession } from "@/components/auth/session-context";
 import { ReportsDashboard } from "@/components/reports/reports-dashboard";
 import { isReportsApiConfigured } from "@/lib/reports-api";
@@ -9,7 +9,7 @@ import { isReportsEnabled } from "@/lib/runtime-flags";
 export default function ReportsPage() {
   const { user } = useSession();
   const enabled = isReportsEnabled() && isReportsApiConfigured();
-  const supervisor = user ? isSupervisorOrAdmin(user.role) : false;
+  const supervisor = user ? isAdminRole(user.role) : false;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-6 p-4">
@@ -17,7 +17,7 @@ export default function ReportsPage() {
         <h1 className="text-xl font-semibold text-white">Reports</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">
           {supervisor
-            ? "Generate operational reports across call volume, SLA compliance, QA scores, and more."
+            ? "Generate operational reports across call volume, SLA, QA, and monthly system health (device uptime, activations, resolved incidents, open issues)."
             : "View your dispatcher performance reports for the selected date range."}
         </p>
       </div>
@@ -26,7 +26,7 @@ export default function ReportsPage() {
         <ReportsDashboard />
       ) : (
         <p className="text-sm text-slate-500">
-          Reporting isn’t enabled yet. Contact Rapid Cortex support.
+          Reporting isn’t enabled yet. Contact NexCort iQ support.
         </p>
       )}
     </div>

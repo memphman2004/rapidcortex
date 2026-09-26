@@ -239,7 +239,7 @@ export function CampusCleryWorkspace({
       <header className="rounded-lg border border-slate-700/50 bg-slate-900/40 p-5">
         <h2 className="text-lg font-semibold text-white">Clery Act reporting</h2>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Build the Annual Security Report tally for {code}: pull classified Rapid Cortex campus
+          Build the Annual Security Report tally for {code}: pull classified NexCort iQ campus
           incidents, import rows from campus PD / conduct systems, and add manual CSA entries.
           Classification and publication remain an institutional responsibility.
         </p>
@@ -284,7 +284,7 @@ export function CampusCleryWorkspace({
               disabled={busy}
               className="rounded bg-emerald-800 px-3 py-2 text-sm text-white hover:bg-emerald-700 disabled:opacity-50"
             >
-              Sync from Rapid Cortex
+              Sync from NexCort iQ
             </button>
           )}
         </div>

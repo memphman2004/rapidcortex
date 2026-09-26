@@ -30,13 +30,13 @@ export function canSetCallAssistShift(role: string | undefined): boolean {
   return canAdminCallAssist(role);
 }
 
-/** Operational profile (911 / campus / venue) — Rapid Cortex operators only. */
+/** Operational profile (911 / campus / venue) — NexCort iQ operators only. */
 export function canSetCallAssistVertical(role: string | undefined): boolean {
   if (!role) return false;
   return isRcInternalOperator(role);
 }
 
-/** Agency switcher panel — Rapid Cortex operators only. */
+/** Agency switcher panel — NexCort iQ operators only. */
 export function canSeeAgencySwitcher(role: string | undefined): boolean {
   if (!role) return false;
   return isRcInternalOperator(role);

@@ -12,6 +12,7 @@ import {
   type AlertTemplate,
   type AlertVertical,
 } from "rapid-cortex-shared";
+import { isEnsTestProgramEnabled, isFourwindsEnabled } from "@/lib/runtime-flags";
 
 type Props = {
   vertical: AlertVertical;
@@ -137,6 +138,11 @@ export function VerticalAlertsDispatchClient({
             Templates
           </Link>
         ) : null}
+        {vertical !== "transit" && isEnsTestProgramEnabled() ? (
+          <Link className="text-sky-400 hover:underline" href={`${basePath}/ens-tests`}>
+            ENS test program
+          </Link>
+        ) : null}
       </div>
 
       {error ? <p className="text-sm text-red-300">{error}</p> : null}
@@ -184,7 +190,16 @@ export function VerticalAlertsDispatchClient({
           <fieldset className="text-sm text-slate-300">
             <legend>Channels</legend>
             <div className="mt-1 space-y-1">
-              {(["WEB_DASHBOARD", "SMS", "EMAIL", "WEB_PUSH"] as AlertChannel[]).map((ch) => (
+              {(
+                [
+                  "WEB_DASHBOARD",
+                  "SMS",
+                  "EMAIL",
+                  "WEB_PUSH",
+                  ...(isFourwindsEnabled() ? (["DISPLAY_TAKEOVER"] as AlertChannel[]) : []),
+                  "PA_SIREN",
+                ] as AlertChannel[]
+              ).map((ch) => (
                 <label key={ch} className="flex items-center gap-2">
                   <input type="checkbox" checked={channels.includes(ch)} onChange={() => toggleChannel(ch)} />
                   {ch.replaceAll("_", " ")}

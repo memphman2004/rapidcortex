@@ -3,26 +3,26 @@ import Link from "next/link";
 import { NestConnectEnrollment } from "@/components/connect/nest-connect-enrollment";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
 import { absoluteUrl } from "@/lib/seo";
-import { GOOGLE_NEST_TM, NEST_TM, RING_TM } from "@/lib/brand-marks";
+import { GOOGLE_NEST_TM, NEST_TM } from "@/lib/brand-marks";
 
 export const metadata: Metadata = {
-  title: `${GOOGLE_NEST_TM} cameras | Rapid Vision™`,
-  description: `${GOOGLE_NEST_TM} SDM cameras in Rapid Cortex: agency-linked streams plus nearby citizen ${NEST_TM} devices with consent-gated emergency video for dispatch, campus, and venue teams.`,
+  title: `${GOOGLE_NEST_TM} cameras | NexiQ Vision™`,
+  description: `${GOOGLE_NEST_TM} SDM cameras in NexCort iQ: agency-linked streams plus nearby citizen ${NEST_TM} devices with consent-gated emergency video for dispatch, campus, and venue teams.`,
   alternates: { canonical: absoluteUrl("/connect/nest") },
 };
 
 export default function NestConnectPage() {
   return (
     <MarketingArticleShell
-      eyebrow="Rapid Vision™"
+      eyebrow="NexiQ Vision™"
       title={`${GOOGLE_NEST_TM} cameras`}
       sectionLabel="Connect"
     >
       <p className="leading-relaxed text-slate-200">
-        Rapid Vision™ supports{" "}
-        <strong className="text-white">{GOOGLE_NEST_TM}</strong> alongside {RING_TM}: agency-owned
+        NexiQ Vision™ supports{" "}
+        <strong className="text-white">{GOOGLE_NEST_TM}</strong>: agency-owned
         cameras via Google SDM OAuth, and nearby citizen {NEST_TM} devices with the same
-        consent-first request pattern used for {RING_TM} doorbells.
+        consent-first request pattern used across NexiQ Vision™ camera sources.
       </p>
 
       <section className="mt-8 space-y-4 rounded-2xl border border-emerald-500/25 bg-emerald-950/20 p-6 text-sm leading-relaxed text-slate-300">
@@ -30,18 +30,18 @@ export default function NestConnectPage() {
         <ul className="list-disc space-y-2 pl-5">
           <li>
             <strong className="text-slate-100">Link the agency {NEST_TM} account.</strong> An agency
-            admin completes Google SDM OAuth from Rapid Cortex Admin → Integrations (or Campus /
+            admin completes Google SDM OAuth from NexCort iQ Admin → Integrations (or Campus /
             Venue Cameras). The OAuth client secret is encrypted with KMS before storage — never in
             the browser.
           </li>
           <li>
             <strong className="text-slate-100">Agency cameras on Media.</strong> Dispatchers and
-            campus/venue operators can view linked {NEST_TM} streams next to {RING_TM} and facility
+            campus/venue operators can view linked {NEST_TM} streams next to facility
             video during an active incident.
           </li>
           <li>
             <strong className="text-slate-100">Nearby citizen {NEST_TM} devices.</strong> When
-            incident GPS is known, Rapid Cortex can list eligible nearby {NEST_TM} cameras and send a
+            incident GPS is known, NexCort iQ can list eligible nearby {NEST_TM} cameras and send a
             time-limited sharing request. The owner approves or declines — nothing is automatic.
           </li>
           <li>
@@ -57,7 +57,7 @@ export default function NestConnectPage() {
       <section className="mt-8 space-y-4 rounded-2xl border border-slate-700/80 bg-slate-950/40 p-6 text-sm leading-relaxed text-slate-300">
         <h2 className="text-base font-semibold text-white">Privacy &amp; consent</h2>
         <p>
-          Citizen {NEST_TM} access is request-based and time-bounded. Rapid Cortex is designed for
+          Citizen {NEST_TM} access is request-based and time-bounded. NexCort iQ is designed for
           live operational viewing with owner approval — not silent always-on surveillance of
           residential devices.
         </p>
@@ -85,12 +85,6 @@ export default function NestConnectPage() {
           className="inline-flex rounded-md bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500"
         >
           Talk to us about {NEST_TM}
-        </Link>
-        <Link
-          href="/connect/ring/start"
-          className="inline-flex rounded-md border border-slate-600 px-4 py-2 font-medium text-slate-200 hover:border-slate-500 hover:text-white"
-        >
-          {RING_TM} Connect for device owners →
         </Link>
         <a
           href="/integrations"

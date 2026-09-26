@@ -27,8 +27,10 @@ import {
   resolveLeadChannel,
   verticalLabel,
 } from "./leads-utils";
+import { LeadGrantsTab } from "./lead-grants-tab";
+import { LeadSignalsTab } from "./lead-signals-tab";
 
-type Tab = "details" | "activity" | "source";
+type Tab = "details" | "activity" | "grants" | "signals" | "source";
 type ComposerMode = "note" | "call" | "email" | "task";
 
 type Props = {
@@ -474,6 +476,8 @@ export function LeadDetailPanel({
           [
             ["details", "Overview"],
             ["activity", `Activity${items.length > 0 ? ` (${items.length})` : ""}`],
+            ["grants", "Grants"],
+            ["signals", "Signals"],
             ["source", "Source ★"],
           ] as const
         ).map(([id, label]) => (
@@ -836,6 +840,10 @@ export function LeadDetailPanel({
             )}
           </>
         )}
+
+        {tab === "grants" && <LeadGrantsTab lead={lead} />}
+
+        {tab === "signals" && <LeadSignalsTab lead={lead} />}
 
         {tab === "source" && (
           <>

@@ -24,7 +24,7 @@ describe("session-product access", () => {
     expect(csv.has("api_access") && csv.has("api_portal_access")).toBe(true);
   });
 
-  it("RC Lite plan id without dashboard flags does not grant dashboards but grants API portal", () => {
+  it("NexCort Lite plan id without dashboard flags does not grant dashboards but grants API portal", () => {
     const u = baseUser({
       planId: "rc_lite",
       isSubscriber: true,

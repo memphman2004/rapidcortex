@@ -16,6 +16,8 @@ set -euo pipefail
 # - ROOT_DOMAIN (default: rapidcortex.us)
 # - API_SUBDOMAIN_PREFIX (default: api; staging defaults to api-staging)
 # - I_UNDERSTAND_DEV_IS_PROD=1 required for `deploy.sh dev` (that stack is live production)
+# - P0 before sam deploy: vitest cross-tenant isolation, live isolation JWTs
+#   (API_URL, AGENCY_A_JWT, AGENCY_B_JWT), check-prod-mock-flags.py, check-go-no-go-p0.py
 # - EXISTING_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN / EXISTING_BILLING_SES_CREDENTIALS_SECRET_ARN
 #   skip DataLayer secret create when those names already exist (staging recreate)
 # - CAD_BRIDGE_VPC_ID / CAD_BRIDGE_VPC_SUBNET_IDS / CAD_BRIDGE_VPC_SECURITY_GROUP_ID
@@ -35,8 +37,10 @@ set -euo pipefail
 # - SNS_EMAIL_SUBSCRIPTION, SNS_SMS_TEST_NUMBER
 # - SES_IDENTITY_TYPE (email|domain), SES_IDENTITY_VALUE, SES_CONFIGURATION_SET_NAME
 # - ENABLE_API_WAF (true|false) → EnableApiWaf; optional WAF_RATE_LIMIT_5M, TRANSCRIPT_RETENTION_POLICY_DAYS
-# - ENABLE_CLOUD_TRAIL (true|false) → EnableCloudTrail (template default true). Set false in dev if CloudTrail S3
-#   bucket name conflicts with an existing retained bucket from a prior deploy.
+# - ENABLE_CLOUD_TRAIL (true|false) → EnableCloudTrail. Live DeploymentStage=dev MUST stay false
+#   (Option B trail rapid-cortex-cloudtrail-prod). true would create a second trail + Object Lock
+#   COMPLIANCE bucket. deploy.sh sources scripts/lib/soc2-live-production-overrides.sh on STAGE=dev
+#   (forces DDB_ENABLE_PITR=true; rejects CAD write-back and SAM CloudTrail create).
 # - INCLUDE_DATA_LAYER_NESTED_STACK=false for legacy dev stacks whose DynamoDB/S3 already live on the root stack
 #   (same names as nested stack-data-layer). Requires FLAT_DATA_LAYER_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN and
 #   FLAT_DATA_LAYER_BILLING_SES_CREDENTIALS_SECRET_ARN (full Secrets Manager ARNs). Default: nested data layer enabled.
@@ -165,6 +169,18 @@ if [[ "$STAGE" == "dev" && "${I_UNDERSTAND_DEV_IS_PROD:-}" != "1" ]]; then
   exit 1
 fi
 
+if [[ "$STAGE" == "dev" ]]; then
+  # SOC 2 live lock-in: PITR on; SAM CloudTrail stays off (Option B trail);
+  # CAD write-back fail-closed. See docs/security-compliance/soc2/SYSTEM-BOUNDARY.md
+  # shellcheck source=scripts/lib/soc2-live-production-overrides.sh
+  source "${ROOT}/scripts/lib/soc2-live-production-overrides.sh"
+  rc_soc2_apply_live_production_overrides
+  # SOC2 forces CAD_WRITEBACK_ENABLED=false so this script will not *enable* write-back.
+  # Unset the override so we do not pass CadWritebackEnabled=false and disable an
+  # already-approved live pilot (current stack value is kept via UsePreviousValue).
+  unset CAD_WRITEBACK_ENABLED
+fi
+
 if [[ "$STAGE" == "staging" ]]; then
   export API_SUBDOMAIN_PREFIX="${API_SUBDOMAIN_PREFIX:-api-staging}"
   if [[ "${CAD_WRITEBACK_ENABLED:-}" == "true" ]]; then
@@ -206,14 +222,22 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-cad.yaml
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-4.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-5.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-milestone.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-physical-security.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-location.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-cad-bridge.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-cad-mesh.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-features.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-c2c.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-call-assist.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-sop-intel.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-translate.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-6.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-alarms-2.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-data-layer-loadout.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-loadout.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-data-layer-grants.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-grants.yaml"
 fi
 
 echo "IAM managed policy size preflight (6,144-byte cap)..."
@@ -242,7 +266,7 @@ export NODE_OPTIONS
 export SAM_NODE_MODULES_SRC="${SAM_NODE_MODULES_SRC:-${ROOT}/apps/api/node_modules}"
 
 echo "═══════════════════════════════════════════════════════"
-echo " Rapid Cortex SAM backend deployment"
+echo " NexCort iQ SAM backend deployment"
 echo "═══════════════════════════════════════════════════════"
 echo " Stage:                ${STAGE}"
 echo " Stack:                ${STACK_NAME}"
@@ -480,11 +504,17 @@ fi
 if [[ -n "${ANTHROPIC_API_KEY_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} AnthropicApiKeySecretArn=${ANTHROPIC_API_KEY_SECRET_ARN}"
 fi
+if [[ -n "${GUEST_ASSIST_SESSION_SECRET:-}" ]]; then
+  PARAMS="${PARAMS} GuestAssistSessionSecret=${GUEST_ASSIST_SESSION_SECRET}"
+fi
 if [[ -n "${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} RapidIqHunterApiKeySecretArn=${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}"
 fi
 if [[ -n "${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} RapidIqApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}"
+fi
+if [[ -n "${RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} RapidIqWatchIngestApiKeySecretArn=${RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN}"
 fi
 if [[ -n "${RMS_VENDOR_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} RmsVendorSecretArn=${RMS_VENDOR_SECRET_ARN}"
@@ -516,9 +546,10 @@ fi
 if [[ -n "${TRANSCRIPT_RETENTION_POLICY_DAYS:-}" ]]; then
   PARAMS="${PARAMS} TranscriptRetentionPolicyDays=${TRANSCRIPT_RETENTION_POLICY_DAYS}"
 fi
-# CAD write-back: blocked in prod until pilot go/no-go + signed agency addendum (see cursor-prompt-cad-writeback-pilot.md).
-if [[ "$STAGE" == "prod" && "${CAD_WRITEBACK_ENABLED:-}" == "true" ]]; then
-  echo "ERROR: CAD_WRITEBACK_ENABLED=true is not allowed for prod deploys until pilot validation and a signed CAD writeback addendum." >&2
+# CAD write-back: blocked on live until pilot go/no-go + signed agency addendum.
+# DeploymentStage=dev is live production (app.rapidcortex.us), not a sandbox.
+if [[ "$STAGE" == "prod" || "$STAGE" == "dev" ]] && [[ "${CAD_WRITEBACK_ENABLED:-}" == "true" ]]; then
+  echo "ERROR: CAD_WRITEBACK_ENABLED=true is not allowed for ${STAGE} deploys until pilot validation and a signed CAD writeback addendum." >&2
   exit 1
 fi
 if [[ -n "${CAD_WRITEBACK_ENABLED:-}" ]]; then
@@ -549,6 +580,24 @@ fi
 if [[ "${INCLUDE_APP_SAM_BILLING_NESTED_STACK:-true}" == "false" ]]; then
   PARAMS="${PARAMS} IncludeAppSamBillingNestedStack=false"
 fi
+if [[ -n "${FEATURES_ACTIVE_AGENCY_IDS:-}" ]]; then
+  PARAMS="${PARAMS} FeaturesActiveAgencyIds=${FEATURES_ACTIVE_AGENCY_IDS}"
+fi
+if [[ -n "${FEATURES_SOCIAL_AGENCY_CONFIGS:-}" ]]; then
+  PARAMS="${PARAMS} FeaturesSocialAgencyConfigs=${FEATURES_SOCIAL_AGENCY_CONFIGS}"
+fi
+if [[ -n "${FEATURES_RING_NEIGHBORS_WEBHOOK_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} FeaturesRingNeighborsWebhookSecretArn=${FEATURES_RING_NEIGHBORS_WEBHOOK_SECRET_ARN}"
+fi
+if [[ -n "${AGENCY_KMS_KEY_ARN:-}" ]]; then
+  PARAMS="${PARAMS} AgencyKMSKeyArn=${AGENCY_KMS_KEY_ARN}"
+fi
+if [[ "${SIEM_ENABLED:-}" == "true" || "${SIEM_ENABLED:-}" == "1" ]]; then
+  PARAMS="${PARAMS} SIEMEnabled=true"
+  if [[ -n "${SIEM_ENDPOINT_URL:-}" ]]; then
+    PARAMS="${PARAMS} SIEMEndpointUrl=${SIEM_ENDPOINT_URL}"
+  fi
+fi
 # Rapid IQ nested hashed stack JWN4SGUYZXYF: intel-watch queues / extra ingest Lambdas
 # collide with leftover standalone rapid-cortex-dev-AppSamRapidIqPipelineStack.
 # HTTP routes are gated separately (recreate via SignalHttpIntegrationV2 on live).
@@ -572,9 +621,6 @@ elif [[ "${OUTLOOK_GRAPH_MOCK:-}" == "1" ]]; then
   PARAMS="${PARAMS} OutlookGraphMock=true"
 elif [[ "${OUTLOOK_GRAPH_MOCK:-}" == "0" ]]; then
   PARAMS="${PARAMS} OutlookGraphMock=false"
-fi
-if [[ -n "${RING_CREDENTIALS_SECRET_ARN_OVERRIDE:-}" ]]; then
-  PARAMS="${PARAMS} RingCredentialsSecretArnOverride=${RING_CREDENTIALS_SECRET_ARN_OVERRIDE}"
 fi
 if [[ -n "${EXISTING_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} ExistingBillingPaymentInstructionsSecretArn=${EXISTING_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN}"
@@ -612,6 +658,10 @@ fi
 if [[ -n "${EXISTING_VERTICAL_ALERTS_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingVerticalAlertsTableName=${EXISTING_VERTICAL_ALERTS_TABLE_NAME}"
 fi
+if [[ -n "${EXISTING_FOURWINDS_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} ExistingFourWindsSecretArn=${EXISTING_FOURWINDS_SECRET_ARN}"
+fi
+PARAMS="${PARAMS} FourWindsMock=${FOURWINDS_MOCK:-true}"
 if [[ -n "${EXISTING_CLERY_ACT_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingCleryActTableName=${EXISTING_CLERY_ACT_TABLE_NAME}"
 fi
@@ -681,17 +731,9 @@ fi
 if [[ -n "${CAD_BRIDGE_VPC_SECURITY_GROUP_ID:-}" ]]; then
   PARAMS="${PARAMS} CadBridgeVpcSecurityGroupId=${CAD_BRIDGE_VPC_SECURITY_GROUP_ID}"
 fi
-if [[ -n "${ENABLE_CONNECT_RING:-}" ]]; then
-  PARAMS="${PARAMS} EnableConnectRing=${ENABLE_CONNECT_RING}"
-fi
 if [[ -n "${ENABLE_RAPID_VISION_NEST:-}" ]]; then
   PARAMS="${PARAMS} EnableRapidVisionNest=${ENABLE_RAPID_VISION_NEST}"
 fi
-if [[ -n "${RING_PARTNERSHIP_ENABLED:-}" ]]; then
-  PARAMS="${PARAMS} RingPartnershipEnabled=${RING_PARTNERSHIP_ENABLED}"
-fi
-# RING_DISABLED — 2026-09-11. Default false; set RING_ENABLED=true to recreate Ring Lambdas.
-PARAMS="${PARAMS} RingEnabled=${RING_ENABLED:-false}"
 if [[ -n "${FFMPEG_LAYER_ARN:-}" ]]; then
   PARAMS="${PARAMS} FfmpegLayerArn=${FFMPEG_LAYER_ARN}"
 fi
@@ -721,12 +763,6 @@ if [[ -n "${EXISTING_NEST_CITIZEN_ACCOUNTS_TABLE_NAME:-}" ]]; then
 fi
 if [[ -n "${NEST_RC_OAUTH_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} NestRcOauthSecretArn=${NEST_RC_OAUTH_SECRET_ARN}"
-fi
-if [[ -n "${RING_REDIRECT_URI:-}" ]]; then
-  PARAMS="${PARAMS} RingRedirectUri=${RING_REDIRECT_URI}"
-fi
-if [[ -n "${RING_ACCOUNT_LINK_URL:-}" ]]; then
-  PARAMS="${PARAMS} RingAccountLinkUrl=${RING_ACCOUNT_LINK_URL}"
 fi
 if [[ -n "${PilotTestFeaturesEnabled:-}" ]]; then
   PARAMS="${PARAMS} PilotTestFeaturesEnabled=${PilotTestFeaturesEnabled}"
@@ -801,6 +837,26 @@ rapid_cortex_print_deploy_failure_reason() {
   echo "Tip: full event history in console or: aws cloudformation describe-stack-events --stack-name '${STACK_NAME}'" >&2
   echo "Cognito group drift (AlreadyExists / rename): ./scripts/reconcile-cognito-groups-cfn-import.sh ${STAGE}" >&2
 }
+
+# P0 gates. Unit isolation always runs. Live isolation needs JWTs because the
+# pool requires TOTP, so USER_PASSWORD_AUTH cannot mint a token by itself.
+echo "==> P0 cross-tenant isolation (unit)"
+npx vitest run apps/api/src/__tests__/security/cross-tenant-isolation.test.ts --reporter=dot
+
+echo "==> P0 cross-tenant isolation (live)"
+if [[ -n "${AGENCY_A_JWT:-}" && -n "${AGENCY_B_JWT:-}" && -n "${API_URL:-}" ]]; then
+  npx tsx scripts/cross-agency-isolation-test.ts
+elif [[ -n "${RC_TEST_PASSWORD:-}" ]]; then
+  bash scripts/run-cross-agency-isolation-test.sh
+else
+  echo "P0 blocked: export API_URL, AGENCY_A_JWT, and AGENCY_B_JWT (MFA tokens)." >&2
+  echo "Password auth cannot complete while MfaConfiguration is ON." >&2
+  exit 1
+fi
+
+echo "==> P0 mock flags and go/no-go"
+CHECK_DEPLOY_ENV=1 python3 scripts/check-prod-mock-flags.py
+python3 scripts/check-go-no-go-p0.py
 
 # SAM_DISABLE_ROLLBACK=1 keeps failed stacks for inspection (blocks replacement updates on Cognito groups, etc.).
 DEPLOY_EXTRA_ARGS=()

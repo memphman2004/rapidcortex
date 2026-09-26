@@ -1,4 +1,7 @@
-# Rapid Cortex Customer Readiness Gate Sheet
+# NexCort iQ Customer Readiness Gate Sheet
+
+**Last reviewed:** 2026-09-19 (60-day refresh) · **Owner:** Jeff Coleman  
+**Related:** [PILOT_GOVERNANCE.md](../go-to-market-sales/PILOT_GOVERNANCE.md) · [AUTH_OPERATIONS.md](../product-architecture/AUTH_OPERATIONS.md) · [soc2/README.md](../security-compliance/soc2/README.md)
 
 ## First Read-Only CAD Pilot
 
@@ -10,7 +13,7 @@
 
 ## 2) Pilot Positioning
 
-"Rapid Cortex will run as a read-only operational intelligence layer that augments the customer's existing CAD workflow without modifying CAD records."
+"NexCort iQ will run as a read-only operational intelligence layer that augments the customer's existing CAD workflow without modifying CAD records."
 
 ## 3) Gate Summary Table
 
@@ -18,7 +21,7 @@
 |---|---|---|---|---|---|---|---|
 | CAD read adapter | Yellow | Adapter interfaces and read-only scaffolding exist | Real vendor adapter is not complete end-to-end | Implement one real vendor read adapter and validate in staging | Integrations + Backend | Read operations succeed against vendor sandbox/test endpoint | End-to-end read flow passes staging + pilot checks |
 | CAD write-back | Red | Write path is intentionally disabled/placeholder | No approved write path | Keep hard-disabled behind feature flag | Integrations + Security | Write attempts return disabled/not configured | Remains disabled for this pilot phase |
-| Authentication and tenancy | Yellow | JWT/Cognito auth and agency role model present | Customer-like role/agency isolation needs full staging evidence | Execute role + `agencyId` isolation test pack | Security + Backend | Cross-agency access attempts fail with `403` | Isolation tests pass for pilot accounts |
+| Authentication and tenancy | Yellow | JWT/Cognito auth, agency role model, **production MFA ON** (`us-east-1_0z6tA6WBs`, evidence 2026-09-17) | Customer-like role/agency isolation needs full staging evidence | Execute role + `agencyId` isolation test pack; confirm MFA enrollment for pilot accounts | Security + Backend | Cross-agency access attempts fail with `403`; MFA challenge succeeds | Isolation tests pass for pilot accounts |
 | External API platform | Yellow | External API framework exists with dispatcher/routing patterns | Pilot-critical path still includes some partial/stubbed routes | Replace pilot-path stubs and validate live route behavior | API Team | Pilot flows complete without `notConfigured` failures | Pilot API smoke tests pass end-to-end |
 | Audit logging | Yellow | Audit services and repositories exist | Full pilot action coverage evidence not complete | Verify audit events for auth, CAD reads, and operator actions | Backend + Security | Each pilot scenario emits expected audit events | Audit evidence package complete and reviewable |
 | Secrets management | Yellow | Secret management patterns exist | Need stack-level verification for pilot deployment | Validate no secrets in code/front-end env, confirm managed secret sources | Security + Platform | Secret scan + config review passes | Security sign-off for secrets posture |
@@ -79,7 +82,7 @@
 
 ## 8) Customer Meeting Script
 
-"Rapid Cortex is ready for a controlled read-only pilot. We are intentionally keeping CAD write-back disabled during the first phase to protect the customer's live CAD environment. This allows the agency to validate AI summaries, transcription, translation, operational visibility, audit logs, and workflow fit without changing CAD records. Write-back will only be considered after all technical, operational, and approval gates are met."
+"NexCort iQ is ready for a controlled read-only pilot. We are intentionally keeping CAD write-back disabled during the first phase to protect the customer's live CAD environment. This allows the agency to validate AI summaries, transcription, translation, operational visibility, audit logs, and workflow fit without changing CAD records. Write-back will only be considered after all technical, operational, and approval gates are met."
 
 ## 9) Final Recommendation
 

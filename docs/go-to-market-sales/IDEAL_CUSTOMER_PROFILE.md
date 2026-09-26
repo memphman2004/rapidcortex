@@ -21,11 +21,11 @@ Segments:
 - Bounded customer (single ECC/PSAP, campus, or venue) willing to run a **controlled** pilot with written assistive-AI governance ([PILOT_GOVERNANCE.md](./PILOT_GOVERNANCE.md)).
 - IT / security can support Cognito-based access, URL deployment, and required secrets ([INSTALLATION.md](./INSTALLATION.md)).
 - Supervision culture that **reviews** escalations and AI-assisted outputs — not set-and-forget automation.
-- **Side-by-side posture:** CAD, radio, ENS, VMS, and logging remain authoritative; Rapid Cortex is an intelligence / reporting layer ([PRODUCT_OVERVIEW.md](./PRODUCT_OVERVIEW.md)).
+- **Side-by-side posture:** CAD, radio, ENS, VMS, and logging remain authoritative; NexCort iQ is an intelligence / reporting layer ([PRODUCT_OVERVIEW.md](./PRODUCT_OVERVIEW.md)).
 
 ### Weak fit (defer or reshape)
 
-- Expectation that Rapid Cortex **replaces** CAD, 911 CPE, radio, ENS, or logging as system of record ([NON_GOALS.md](./NON_GOALS.md)).
+- Expectation that NexCort iQ **replaces** CAD, 911 CPE, radio, ENS, or logging as system of record ([NON_GOALS.md](./NON_GOALS.md)).
 - Requirement for certified CJIS / HIPAA / SOC 2 **claims** in the pilot window without a completed assessment program.
 - Unbounded multi-tenant self-serve signup without agency/institution onboarding.
 - Mandatory bidirectional CAD or guaranteed live radio ingest as a **Day-1** deliverable without a scoped connector project.

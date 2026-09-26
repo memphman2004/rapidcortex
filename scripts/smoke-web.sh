@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 #
-# Rapid Cortex web smoke tests — curl-based, works against CloudFront or ALB DNS.
+# NexCort iQ web smoke tests — curl-based, works against CloudFront or ALB DNS.
 #
 # Usage:
 #   ./scripts/smoke-web.sh <base-url>
@@ -54,7 +54,7 @@ smoke_hint_marketing_miss() {
 
 downloads_html_has_marketing_markers() {
   local html="$1"
-  grep -qi 'Rapid Cortex Downloads' <<<"${html}" && return 0
+  grep -qi 'NexCort iQ Downloads' <<<"${html}" && return 0
   grep -qi 'Download for Mac' <<<"${html}" && grep -qi 'Download for Windows' <<<"${html}" && return 0
   grep -qiE 'downloads\.rapidcortex\.us/(mac|windows)' <<<"${html}" && return 0
   grep -qi 'Desktop installers' <<<"${html}" && grep -qiE 'rc.?lite|RC[[:space:]]*Lite' <<<"${html}" && return 0
@@ -165,7 +165,7 @@ fi
 DEPLOY_STAGE="$(echo "${DEPLOY_STAGE:-${STAGE:-prod}}" | tr '[:upper:]' '[:lower:]')"
 
 echo "════════════════════════════════════════════════════════"
-echo " Rapid Cortex Web Smoke Tests"
+echo " NexCort iQ Web Smoke Tests"
 echo "════════════════════════════════════════════════════════"
 echo " Base URL:     ${BASE_URL}"
 echo " Stage label: ${DEPLOY_STAGE}"

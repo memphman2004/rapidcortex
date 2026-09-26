@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
- * Android product (Play: us.rapidcortex.app). Native iOS Rapid Cortex Mobile is
+ * Android product (Play: us.rapidcortex.app). Native iOS NexCort iQ Mobile is
  * apps/ios-mobile (us.rapidcortex.field, unlisted TestFlight). Keep the iOS Expo
  * keys below only for existing credentials; do not ship new Expo iOS builds.
  *
@@ -45,7 +45,7 @@ const appOrigin = process.env.EXPO_PUBLIC_APP_ORIGIN?.trim() || 'https://app.rap
 const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim() || '';
 
 const config: ExpoConfig = {
-  name: 'Rapid Cortex',
+  name: 'NexCort iQ',
   slug: 'rapid-cortex',
   version: '1.0.0',
   orientation: 'portrait',
@@ -68,30 +68,30 @@ const config: ExpoConfig = {
     userInterfaceStyle: 'dark',
     infoPlist: {
       NSCameraUsageDescription:
-        'Rapid Cortex uses the camera to scan QR codes for sign location setup.',
+        'NexCort iQ uses the camera to scan QR codes for sign location setup.',
       NFCReaderUsageDescription:
-        'Rapid Cortex uses NFC to program safety reporting tags for campus and venue locations.',
+        'NexCort iQ uses NFC to program safety reporting tags for campus and venue locations.',
       NSFaceIDUsageDescription:
-        'Allow Rapid Cortex to use Face ID for secure login.',
+        'Allow NexCort iQ to use Face ID for secure login.',
       // ITMS-90683: ble-plx links CoreBluetooth; purpose string required even if unused.
       NSBluetoothAlwaysUsageDescription:
-        'Rapid Cortex uses Bluetooth to pair optional Guardian safety devices. QR and NFC location setup do not require Bluetooth.',
+        'NexCort iQ uses Bluetooth to pair optional Guardian safety devices. QR and NFC location setup do not require Bluetooth.',
       NSBluetoothPeripheralUsageDescription:
-        'Rapid Cortex uses Bluetooth to pair optional Guardian safety devices. QR and NFC location setup do not require Bluetooth.',
+        'NexCort iQ uses Bluetooth to pair optional Guardian safety devices. QR and NFC location setup do not require Bluetooth.',
       // Linked expo-location / react-native-maps initialize Core Location at process start.
       // Missing these strings SIGABRT as soon as the native splash appears.
       NSLocationWhenInUseUsageDescription:
-        'Rapid Cortex uses your location to place safety codes and optional Guardian device maps.',
+        'NexCort iQ uses your location to place safety codes and optional Guardian device maps.',
       NSLocationAlwaysAndWhenInUseUsageDescription:
-        'Rapid Cortex can use location in the background only when you enable Guardian device tracking.',
+        'NexCort iQ can use location in the background only when you enable Guardian device tracking.',
       NSLocationAlwaysUsageDescription:
-        'Rapid Cortex can use location in the background only when you enable Guardian device tracking.',
+        'NexCort iQ can use location in the background only when you enable Guardian device tracking.',
       NSMicrophoneUsageDescription:
-        'Rapid Cortex may use the microphone when you record video while scanning a QR code.',
+        'NexCort iQ may use the microphone when you record video while scanning a QR code.',
       NSPhotoLibraryUsageDescription:
-        'Rapid Cortex saves QR code images to your photo library when you choose Save.',
+        'NexCort iQ saves QR code images to your photo library when you choose Save.',
       NSPhotoLibraryAddUsageDescription:
-        'Rapid Cortex saves QR code images to your photo library when you choose Save.',
+        'NexCort iQ saves QR code images to your photo library when you choose Save.',
       ITSAppUsesNonExemptEncryption: false,
       // Debug Dev Client loads Metro over http://LAN:8081. Expo's default
       // NSAllowsArbitraryLoads=false makes iOS ATS reject that URL even when
@@ -182,9 +182,9 @@ const config: ExpoConfig = {
       'expo-location',
       {
         locationWhenInUsePermission:
-          'Rapid Cortex uses your location to place safety codes and optional Guardian device maps.',
+          'NexCort iQ uses your location to place safety codes and optional Guardian device maps.',
         locationAlwaysAndWhenInUsePermission:
-          'Rapid Cortex can use location in the background only when you enable Guardian device tracking.',
+          'NexCort iQ can use location in the background only when you enable Guardian device tracking.',
         isIosBackgroundLocationEnabled: false,
       },
     ],
@@ -192,9 +192,9 @@ const config: ExpoConfig = {
       'expo-camera',
       {
         cameraPermission:
-          'Rapid Cortex uses the camera to scan QR codes for sign location setup.',
+          'NexCort iQ uses the camera to scan QR codes for sign location setup.',
         microphonePermission:
-          'Rapid Cortex may use the microphone when you record video while scanning a QR code.',
+          'NexCort iQ may use the microphone when you record video while scanning a QR code.',
         recordAudioAndroid: false,
       },
     ],
@@ -202,28 +202,28 @@ const config: ExpoConfig = {
       'expo-media-library',
       {
         photosPermission:
-          'Rapid Cortex saves generated QR code images when you choose Save.',
+          'NexCort iQ saves generated QR code images when you choose Save.',
         savePhotosPermission:
-          'Rapid Cortex saves generated QR code images when you choose Save.',
+          'NexCort iQ saves generated QR code images when you choose Save.',
         isAccessMediaLocationEnabled: false,
       },
     ],
     [
       'expo-local-authentication',
-      { faceIDPermission: 'Allow Rapid Cortex to use Face ID for secure login.' },
+      { faceIDPermission: 'Allow NexCort iQ to use Face ID for secure login.' },
     ],
     [
       'react-native-ble-plx',
       {
         isBackgroundEnabled: false,
         bluetoothAlwaysPermission:
-          'Rapid Cortex uses Bluetooth to pair optional Guardian safety devices. QR and NFC location setup do not require Bluetooth.',
+          'NexCort iQ uses Bluetooth to pair optional Guardian safety devices. QR and NFC location setup do not require Bluetooth.',
       },
     ],
     [
       'react-native-nfc-manager',
       {
-        nfcPermission: 'Allow Rapid Cortex to program NFC safety reporting tags',
+        nfcPermission: 'Allow NexCort iQ to program NFC safety reporting tags',
         // ITMS-90778: NDEF in readersession.formats is rejected; TAG is required.
         includeNdefEntitlement: false,
         selectIdentifiers: [],

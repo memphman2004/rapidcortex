@@ -30,6 +30,11 @@ import {
 } from "rapid-cortex-shared/auth/session-product";
 import { isHospitalOperatorRole } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isRcInternalOperator, isRcsuperadmin } from "rapid-cortex-shared/tenancy/principal";
+import { salesContractorMayAccessPath } from "rapid-cortex-shared/auth/sales-contractor-paths";
+import {
+  canViewPipeline,
+  isSalesContractor,
+} from "@/lib/sales/sales-authz";
 import {
   dashboardPrefixFromPathname,
   type DashboardPrefix,
@@ -312,7 +317,7 @@ function ensureRoleDashboardPath(
   return null;
 }
 
-/** Jurisdiction-path segments that imply the Rapid Cortex web dashboards (subscriber + entitlement gated). */
+/** Jurisdiction-path segments that imply the NexCort iQ web dashboards (subscriber + entitlement gated). */
 function jurisdictionSubpathRequiresDashboardEntitlement(subpath: string): boolean {
   const prefixes = [
     "/dashboard",
@@ -356,12 +361,20 @@ const RESERVED_FIRST_SEGMENTS = new Set<string>([
   /** Role hub + `(app)` dashboards — not a jurisdiction slug. */
   "dashboard",
   "dashboards",
+  /** Root aliases under `app/admin/*` (integrations, venue sections) — not a jurisdiction slug. */
+  "admin",
   /** Native OAuth bridge + return-to-app (Hosted UI handoff). */
   "auth",
   /** Public SMS consent proof (toll-free verification). */
   "sms-consent",
   /** Hospital capacity portal (legacy URL — redirects to role dashboards). */
   "hospital-portal",
+  /** Sales contractor portal (not a jurisdiction slug). */
+  "sales",
+  /** Public shareable ROI calculator (`/roi/[token]`). */
+  "roi",
+  /** Public free-tier registration (`/register/free`). */
+  "register",
   /**
    * PWA metadata route — first segment is literally `manifest.webmanifest`. If we treat it as a
    * `{jurisdiction}` slug and the browser requests `/manifest.webmanifest/dashboard` (bad href or
@@ -569,6 +582,10 @@ async function guardRoleDashboard(
   );
   if (roleDashRenewal) return roleDashRenewal;
 
+  if (isSalesContractor(user)) {
+    return nextOrRedirect(request, resolveRedirectUrl("/sales", request));
+  }
+
   if (isHospitalDashboardPrefix(prefix)) {
     if (!isHospitalPortalEnabled()) {
       return new NextResponse(null, { status: 404 });
@@ -645,6 +662,45 @@ async function guardRcLitePortal(request: NextRequest): Promise<NextResponse> {
 
   const rcLiteNetwork = await maybeBlockNetworkAccess(request, user);
   if (rcLiteNetwork) return rcLiteNetwork;
+
+  return NextResponse.next();
+}
+
+async function guardSalesPortal(request: NextRequest): Promise<NextResponse> {
+  if (!isAuthConfigured()) {
+    return NextResponse.next();
+  }
+  const pathname = request.nextUrl.pathname;
+  const loginUrl = resolveRedirectUrl(marketingLoginPath(), request);
+  loginUrl.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
+
+  const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
+  const refresh = request.cookies.get(COOKIE_REFRESH_TOKEN)?.value;
+  if (!token && !refresh) {
+    return nextOrRedirect(request, loginUrl);
+  }
+
+  const user = token ? await verifyCognitoIdToken(token) : null;
+  if (!user && refresh) {
+    const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
+    bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
+    return nextOrRedirect(request, bounce);
+  }
+
+  if (!user) {
+    return nextOrRedirect(request, loginUrl);
+  }
+
+  const renewal = handleOperationalPasswordRenewalGate(
+    request,
+    user,
+    resolveRedirectUrl("/change-password", request),
+  );
+  if (renewal) return renewal;
+
+  if (!canViewPipeline(user)) {
+    return nextOrRedirect(request, resolveRedirectUrl("/unauthorized", request));
+  }
 
   return NextResponse.next();
 }
@@ -983,6 +1039,9 @@ async function runMiddleware(request: NextRequest) {
   if (isCallAssistDashboardPath(pathname)) {
     return guardCallAssistDashboard(request);
   }
+  if (pathname === "/sales" || pathname.startsWith("/sales/")) {
+    return guardSalesPortal(request);
+  }
   if (pathname === "/not-authorized" || pathname.startsWith("/not-authorized/")) {
     return NextResponse.next();
   }
@@ -1007,6 +1066,9 @@ async function runMiddleware(request: NextRequest) {
   }
   if (pathname === "/change-password" || pathname.startsWith("/change-password/")) {
     return guardStandaloneChangePasswordPage(request);
+  }
+  if (pathname === "/staff-guide" || pathname.startsWith("/staff-guide/")) {
+    return guardDashboardHub(request);
   }
   if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
     return guardDashboardHub(request);
@@ -1136,11 +1198,15 @@ async function runMiddleware(request: NextRequest) {
     const auditorReadAllowed =
       effective === "auditor" &&
       AUDITOR_READ_ADMIN_PATHS.some((p) => subpath === p || subpath.startsWith(`${p}/`));
-    // Dispatcher sidebar includes CAD Bridge at /admin/cad/bridge; bounce-to-home looks like a dead link.
-    const dispatcherCadBridgeAllowed =
+    // Dispatcher sidebar includes CAD Bridge and C2C Hub under /admin/cad/*;
+    // bounce-to-home looks like a dead link.
+    const dispatcherCadInteropAllowed =
       effective === "dispatcher" &&
-      (subpath === "/admin/cad/bridge" || subpath.startsWith("/admin/cad/bridge/"));
-    if (!auditorReadAllowed && !dispatcherCadBridgeAllowed) {
+      (subpath === "/admin/cad/bridge" ||
+        subpath.startsWith("/admin/cad/bridge/") ||
+        subpath === "/admin/cad/c2c" ||
+        subpath.startsWith("/admin/cad/c2c/"));
+    if (!auditorReadAllowed && !dispatcherCadInteropAllowed) {
       return redirectToRoleAwareHome(request, user, jurisdiction);
     }
   }
@@ -1201,7 +1267,11 @@ async function runMiddleware(request: NextRequest) {
     }
   }
   if (subpath === "/rc-admin" || subpath.startsWith("/rc-admin/")) {
-    if (!isRcInternalOperator(user.role)) {
+    if (isRcInternalOperator(user.role)) {
+      // ok
+    } else if (isSalesContractor(user) && salesContractorMayAccessPath(subpath)) {
+      // Sales contractors: allowlisted CRM / enablement tools only
+    } else {
       return redirectToRoleAwareHome(request, user, jurisdiction);
     }
   } else if (subpath === "/staff" || subpath.startsWith("/staff/")) {
@@ -1239,6 +1309,6 @@ async function runMiddleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Run for `/docs/*.html` so manuals can require auth; still skip most static file extensions.
-    "/((?!_next/static|_next/image|favicon.ico|api/health|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/health|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|md)$).*)",
   ],
 };

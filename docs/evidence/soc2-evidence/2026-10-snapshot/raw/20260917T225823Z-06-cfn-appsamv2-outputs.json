@@ -90,7 +90,7 @@
     {
         "OutputKey": "RootDomainName",
         "OutputValue": "rapidcortex.us",
-        "Description": "Primary public-facing domain for Rapid Cortex."
+        "Description": "Primary public-facing domain for NexCort iQ."
     },
     {
         "OutputKey": "DetectIncidentTypeFunctionName",

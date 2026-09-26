@@ -53,7 +53,7 @@ export function TopBar({
     >
       <div className="flex min-w-0 items-center gap-2 sm:gap-3 lg:gap-4">
         <Link href={to("/dashboard")} className="flex shrink-0 items-center gap-2">
-          <SiteLogoMark heightClass={compact ? "h-10" : "h-24 sm:h-28"} priority />
+          <SiteLogoMark heightClass={compact ? "h-12" : "h-28 sm:h-32"} priority />
         </Link>
         <div className="hidden h-6 w-px bg-[var(--rc-border)] sm:block" aria-hidden />
         <div className="hidden min-w-0 flex-col sm:flex">

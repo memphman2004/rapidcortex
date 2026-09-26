@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Rapid Cortex macOS — Developer ID sign, UDZO .dmg, Apple notarization (notarytool), staple.
+# NexCort iQ macOS — Developer ID sign, UDZO .dmg, Apple notarization (notarytool), staple.
 # Outside Mac App Store distribution. Requires Xcode + valid Developer ID Application cert in keychain.
 #
 # Environment (required for full pipeline including notarization):
@@ -13,7 +13,7 @@
 #   CONFIGURATION        default Release
 #   OUTPUT_DIR           default <repo>/dist
 #   DMG_FILENAME         default RapidCortex.dmg
-#   DMG_VOLUME_NAME      default "Rapid Cortex"
+#   DMG_VOLUME_NAME      default "NexCort iQ"
 #   SKIP_NOTARIZE        set to 1 to sign + DMG only (no notarytool; for local smoke)
 #
 # Usage:
@@ -31,7 +31,7 @@ SCHEME="RapidCortexDesktop"
 CONFIG="${CONFIGURATION:-Release}"
 OUT_DIR="${OUTPUT_DIR:-$ROOT/dist}"
 DMG_NAME="${DMG_FILENAME:-RapidCortex.dmg}"
-VOLNAME="${DMG_VOLUME_NAME:-Rapid Cortex}"
+VOLNAME="${DMG_VOLUME_NAME:-NexCort iQ}"
 ENTITLEMENTS="$PROJECT_DIR/RapidCortexDesktop/RapidCortexDesktop.entitlements"
 # Keep archives/DMG on repo dist/; DerivedData on local disk (external volumes can hang xcodebuild).
 BUILD_ROOT="${MACOS_BUILD_ROOT:-$HOME/.rapid-cortex-macos-build/dist-macos-$$}"

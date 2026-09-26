@@ -5,9 +5,9 @@
  * POST /api/vision/sessions/{sessionId}/transcript/stop
  * GET  /api/incidents/{id}/vision/transcript
  *
- * Auth/response match ring-stream-viewer-token.ts:
+ * Auth/response sequence:
  *   getUserContext → isUserAccountActive → operationalPasswordBlock
- *   → isRingAuthorizedRole (or Vision canRequest/canView) → ringJson
+ *   → canRequestVisionAccess (mutate) / canViewVision (read) → jsonOk / jsonError
  *
  * Session keys: pk INCIDENT#{incidentId} / sk SESSION#{sessionId}
  */
@@ -24,9 +24,8 @@ import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { env } from "../../lib/env.js";
 import { makeId } from "../../lib/ids.js";
+import { jsonError, jsonOk } from "../../lib/http-json.js";
 import { operationalPasswordBlock } from "../../lib/operationalPasswordGate.js";
-import { isRingAuthorizedRole } from "../../integrations/ring/ring-auth.js";
-import { ringJson } from "../../integrations/ring/ring-api-response.js";
 import { requireActiveIncident } from "../../integrations/incidents/require-active-incident.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { visionStore } from "../../rapid-vision/store.js";
@@ -35,32 +34,31 @@ const auditRepo = new AuditRepository();
 const lambda = new LambdaClient({});
 
 type GateOk = { user: UserContext };
-type GateErr = { response: ReturnType<typeof ringJson> };
+type GateErr = { response: APIGatewayProxyResultV2 };
 
 async function gateTranscriptUser(
   event: APIGatewayProxyEventV2,
   mode: "mutate" | "view",
 ): Promise<GateOk | GateErr> {
   const user = await getUserContext(event);
-  if (!user) return { response: ringJson({ success: false, error: "Unauthorized" }, 401) };
+  if (!user) return { response: jsonError("Unauthorized", 401) };
   if (!isUserAccountActive(user)) {
-    return { response: ringJson({ success: false, error: ACCOUNT_INACTIVE_MESSAGE }, 403) };
+    return { response: jsonError(ACCOUNT_INACTIVE_MESSAGE, 403) };
   }
   const pwd = operationalPasswordBlock(user);
   if (pwd) {
     return {
-      response: ringJson({ success: false, error: "Password update is required before continuing." }, 403),
+      response: jsonError("Password update is required before continuing.", 403),
     };
   }
   if (!env.enableRapidVision || !env.enableRapidVisionTranscript) {
-    return { response: ringJson({ success: false, error: "Rapid Vision™ transcript is disabled" }, 503) };
+    return { response: jsonError("Rapid Vision™ transcript is disabled", 503) };
   }
   const allowed =
-    isRingAuthorizedRole(user) ||
-    (mode === "mutate"
+    mode === "mutate"
       ? canRequestVisionAccess(user, user.agencyId)
-      : canViewVision(user, user.agencyId));
-  if (!allowed) return { response: ringJson({ success: false, error: "Forbidden" }, 403) };
+      : canViewVision(user, user.agencyId);
+  if (!allowed) return { response: jsonError("Forbidden", 403) };
   return { user };
 }
 
@@ -105,7 +103,7 @@ export async function startHandler(event: APIGatewayProxyEventV2): Promise<APIGa
     const sessionId = sessionIdFromEvent(event);
     const body = parseJsonBody(event.body);
     if (body === null) {
-      return ringJson({ success: false, error: "Invalid JSON body." }, 400);
+      return jsonError("Invalid JSON body.", 400);
     }
     const parsedBody = visionTranscriptSessionBodySchema.safeParse(
       typeof body === "object" && body !== null && "incidentId" in body
@@ -113,50 +111,40 @@ export async function startHandler(event: APIGatewayProxyEventV2): Promise<APIGa
         : { incidentId: event.pathParameters?.id ?? "" },
     );
     if (!parsedBody.success) {
-      return ringJson(
-        { success: false, error: "sessionId (path) and incidentId (body) are required." },
-        400,
-      );
+      return jsonError("sessionId (path) and incidentId (body) are required.", 400);
     }
     const incidentId = parsedBody.data.incidentId;
     if (!sessionId || !incidentId) {
-      return ringJson(
-        { success: false, error: "sessionId (path) and incidentId (body) are required." },
-        400,
-      );
+      return jsonError("sessionId (path) and incidentId (body) are required.", 400);
     }
 
     const incidentResult = await requireActiveIncident(incidentId, user);
     if (!incidentResult.ok) {
-      return ringJson({ success: false, error: incidentResult.message }, incidentResult.statusCode);
+      return jsonError(incidentResult.message, incidentResult.statusCode);
     }
 
     const session = await visionStore.getSession(incidentId, sessionId, user.agencyId);
-    if (!session) return ringJson({ success: false, error: "Session not found." }, 404);
+    if (!session) return jsonError("Session not found.", 404);
     if (session.agencyId !== user.agencyId) {
-      return ringJson({ success: false, error: "Forbidden" }, 403);
+      return jsonError("Forbidden", 403);
     }
     if (session.status !== "active") {
-      return ringJson({ success: false, error: `Session is ${session.status}, not active.` }, 409);
+      return jsonError(`Session is ${session.status}, not active.`, 409);
     }
     if (session.transcriptStatus === "active") {
-      return ringJson({ success: false, error: "Transcript is already running for this session." }, 409);
+      return jsonError("Transcript is already running for this session.", 409);
     }
 
     const kvsRef = (session.kvsStreamArn ?? session.kvsChannelName ?? "").trim();
     if (!kvsRef && !env.visionTranscriptMock) {
-      return ringJson(
-        {
-          success: false,
-          error:
-            "No KVS stream reference on this session. Media storage must be enabled (kvsStreamArn or kvsChannelName required).",
-        },
+      return jsonError(
+        "No KVS stream reference on this session. Media storage must be enabled (kvsStreamArn or kvsChannelName required).",
         422,
       );
     }
 
     if (!env.visionTranscriptWorkerFunction) {
-      return ringJson({ success: false, error: "Transcript worker is not configured" }, 503);
+      return jsonError("Transcript worker is not configured", 503);
     }
 
     await visionStore.updateTranscriptStatus({
@@ -190,7 +178,7 @@ export async function startHandler(event: APIGatewayProxyEventV2): Promise<APIGa
         status: "stopped",
       });
       console.error(JSON.stringify({ msg: "transcript_worker_invoke_failed", error: String(err) }));
-      return ringJson({ success: false, error: "Failed to start transcript." }, 500);
+      return jsonError("Failed to start transcript.", 500);
     }
 
     try {
@@ -209,14 +197,11 @@ export async function startHandler(event: APIGatewayProxyEventV2): Promise<APIGa
       /* audit failure is never fatal */
     }
 
-    return ringJson({
-      success: true,
-      data: {
-        sessionId,
-        incidentId,
-        transcriptStatus: "active",
-        message: "Transcript worker starting. Segments will appear within a few seconds.",
-      },
+    return jsonOk({
+      sessionId,
+      incidentId,
+      transcriptStatus: "active",
+      message: "Transcript worker starting. Segments will appear within a few seconds.",
     });
   } catch (err) {
     console.error(
@@ -225,7 +210,7 @@ export async function startHandler(event: APIGatewayProxyEventV2): Promise<APIGa
         error: err instanceof Error ? err.message : String(err),
       }),
     );
-    return ringJson({ success: false, error: "Failed to start transcript." }, 500);
+    return jsonError("Failed to start transcript.", 500);
   }
 }
 
@@ -238,7 +223,7 @@ export async function stopHandler(event: APIGatewayProxyEventV2): Promise<APIGat
     const sessionId = sessionIdFromEvent(event);
     const body = parseJsonBody(event.body);
     if (body === null) {
-      return ringJson({ success: false, error: "Invalid JSON body." }, 400);
+      return jsonError("Invalid JSON body.", 400);
     }
     const parsedBody = visionTranscriptSessionBodySchema.safeParse(
       typeof body === "object" && body !== null && "incidentId" in body
@@ -246,23 +231,17 @@ export async function stopHandler(event: APIGatewayProxyEventV2): Promise<APIGat
         : { incidentId: event.pathParameters?.id ?? "" },
     );
     if (!parsedBody.success) {
-      return ringJson(
-        { success: false, error: "sessionId (path) and incidentId (body) are required." },
-        400,
-      );
+      return jsonError("sessionId (path) and incidentId (body) are required.", 400);
     }
     const incidentId = parsedBody.data.incidentId;
     if (!sessionId || !incidentId) {
-      return ringJson(
-        { success: false, error: "sessionId (path) and incidentId (body) are required." },
-        400,
-      );
+      return jsonError("sessionId (path) and incidentId (body) are required.", 400);
     }
 
     const session = await visionStore.getSession(incidentId, sessionId, user.agencyId);
-    if (!session) return ringJson({ success: false, error: "Session not found." }, 404);
+    if (!session) return jsonError("Session not found.", 404);
     if (session.agencyId !== user.agencyId) {
-      return ringJson({ success: false, error: "Forbidden" }, 403);
+      return jsonError("Forbidden", 403);
     }
 
     await visionStore.updateTranscriptStatus({
@@ -288,10 +267,7 @@ export async function stopHandler(event: APIGatewayProxyEventV2): Promise<APIGat
       /* audit failure is never fatal */
     }
 
-    return ringJson({
-      success: true,
-      data: { sessionId, incidentId, transcriptStatus: "stopped" },
-    });
+    return jsonOk({ sessionId, incidentId, transcriptStatus: "stopped" });
   } catch (err) {
     console.error(
       JSON.stringify({
@@ -299,7 +275,7 @@ export async function stopHandler(event: APIGatewayProxyEventV2): Promise<APIGat
         error: err instanceof Error ? err.message : String(err),
       }),
     );
-    return ringJson({ success: false, error: "Failed to stop transcript." }, 500);
+    return jsonError("Failed to stop transcript.", 500);
   }
 }
 
@@ -311,12 +287,12 @@ export async function getHandler(event: APIGatewayProxyEventV2): Promise<APIGate
 
     const incidentId = event.pathParameters?.id?.trim() ?? incidentIdFromEvent(event);
     if (!incidentId) {
-      return ringJson({ success: false, error: "incidentId path parameter required." }, 400);
+      return jsonError("incidentId path parameter required.", 400);
     }
 
     const parsed = visionTranscriptQuerySchema.safeParse(event.queryStringParameters ?? {});
     if (!parsed.success) {
-      return ringJson({ success: false, error: "Invalid transcript query." }, 400);
+      return jsonError("Invalid transcript query.", 400);
     }
 
     const segments = await visionStore.listTranscriptSegments({
@@ -326,14 +302,11 @@ export async function getHandler(event: APIGatewayProxyEventV2): Promise<APIGate
       limit: parsed.data.limit ?? 100,
     });
 
-    return ringJson({
-      success: true,
-      data: {
-        incidentId,
-        sessionId: parsed.data.sessionId ?? null,
-        segments,
-        count: segments.length,
-      },
+    return jsonOk({
+      incidentId,
+      sessionId: parsed.data.sessionId ?? null,
+      segments,
+      count: segments.length,
     });
   } catch (err) {
     console.error(
@@ -342,7 +315,7 @@ export async function getHandler(event: APIGatewayProxyEventV2): Promise<APIGate
         error: err instanceof Error ? err.message : String(err),
       }),
     );
-    return ringJson({ success: false, error: "Failed to load transcript." }, 500);
+    return jsonError("Failed to load transcript.", 500);
   }
 }
 

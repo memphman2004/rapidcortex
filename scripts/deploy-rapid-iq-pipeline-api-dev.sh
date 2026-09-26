@@ -209,6 +209,9 @@ fi
 if [[ -n "${OPENAI_API_KEY_SECRET_ARN:-}" ]]; then
   PARAM_OVERRIDES+=("OpenAiApiKeySecretArn=${OPENAI_API_KEY_SECRET_ARN}")
 fi
+if [[ -n "${RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAM_OVERRIDES+=("RapidIqWatchIngestApiKeySecretArn=${RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN}")
+fi
 if [[ -n "${EXTERNAL_API_ENCRYPTION_KEY_ARN:-}" ]]; then
   PARAM_OVERRIDES+=("ExternalApiEncryptionKeyArn=${EXTERNAL_API_ENCRYPTION_KEY_ARN}")
 fi

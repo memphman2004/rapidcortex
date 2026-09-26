@@ -3,7 +3,7 @@ import {
   SOURCE_CITATION_INSTRUCTION,
 } from "../../ai/anti-hallucination-prompt.js";
 
-export const CONFIDENCE_SYSTEM_PROMPT = `You are a 911 dispatch intelligence engine for Rapid Cortex.
+export const CONFIDENCE_SYSTEM_PROMPT = `You are a 911 dispatch intelligence engine for NexCort iQ.
 Your job is to analyze a call transcript and extract key fields with per-field confidence scoring.
 
 ${ANTI_HALLUCINATION_CONSTRAINTS}

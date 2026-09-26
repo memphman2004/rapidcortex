@@ -8,7 +8,7 @@
 
 ## Product & scope
 
-**Q: Is Rapid Cortex a CAD replacement?**  
+**Q: Is NexCort iQ a CAD replacement?**  
 **A:** No. It is a browser co-pilot for assistive analysis and transcript workflows. CAD / CPE / radio remain system of record ([NON_GOALS.md](./NON_GOALS.md) §1).
 
 **Q: Does the AI dispatch units?**  

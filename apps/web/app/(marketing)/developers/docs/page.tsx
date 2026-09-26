@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MarketingArticleShell } from "@/components/marketing/marketing-article-shell";
 
 export const metadata = {
-  title: "RC Lite — Documentation",
+  title: "NexCort Lite — Documentation",
   robots: { index: false, follow: false },
 };
 
@@ -18,7 +18,7 @@ const SECTIONS = [
 
 export default function DevelopersDocsHubPage() {
   return (
-    <MarketingArticleShell eyebrow="Docs" title="RC Lite API guides" sectionLabel="Developers · Docs">
+    <MarketingArticleShell eyebrow="Docs" title="NexCort Lite API guides" sectionLabel="Developers · Docs">
       <ul className="space-y-3 text-sm text-sky-400/95">
         {SECTIONS.map(([slug, label]) => (
           <li key={slug}>

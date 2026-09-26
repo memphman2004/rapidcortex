@@ -368,9 +368,9 @@ function buildPrompt(form: GrantSuccessProfile): string {
   const programLabels = form.grantPrograms.map((id) => GRANT_PROGRAM_LABELS[id]).join(", ");
   const schoolTypeLabel = GRANT_SCHOOL_TYPE_LABELS[form.schoolType];
 
-  return `You are a senior grant writer specializing in public safety technology grants for educational institutions and municipal / state / county agencies. Generate a comprehensive, customized grant package for Rapid Cortex — a next-generation public safety intelligence and reporting platform.
+  return `You are a senior grant writer specializing in public safety technology grants for educational institutions and municipal / state / county agencies. Generate a comprehensive, customized grant package for NexCort iQ — a next-generation public safety intelligence and reporting platform.
 
-Rapid Cortex features: anonymous/identified emergency reporting via QR codes and NFC tags; real-time incident management dashboard; AI-assisted triage and incident pattern recognition; mass notification coordination; CJIS-aware/FERPA-compliant architecture where applicable; CAD system integration; 40+ language multilingual support; live camera feed integration (KVS/WebRTC); predictive analytics; mobile app for staff/responders; audit trails and chain-of-custody documentation.
+NexCort iQ features: anonymous/identified emergency reporting via QR codes and NFC tags; real-time incident management dashboard; AI-assisted triage and incident pattern recognition; mass notification coordination; CJIS-aware/FERPA-compliant architecture where applicable; CAD system integration; 40+ language multilingual support; live camera feed integration (KVS/WebRTC); predictive analytics; mobile app for staff/responders; audit trails and chain-of-custody documentation.
 
 APPLICANT:
 - Name: ${form.schoolName}
@@ -434,7 +434,7 @@ function mockGrantPackage(form: GrantSuccessProfile): GrantPackage {
     technologyDescription: "Mock technology description.",
     budget: [
       {
-        item: "Rapid Cortex Campus platform license",
+        item: "NexCort iQ Campus platform license",
         quantity: 1,
         unitCost: amount,
         totalCost: amount,

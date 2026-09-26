@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { isSupervisorOrAdmin } from "rapid-cortex-security";
+import { isAdminRole } from "rapid-cortex-security";
 import type { ReportResult, ReportType } from "rapid-cortex-shared";
 import { REPORT_TYPE_LABELS, reportTypeSchema } from "rapid-cortex-shared";
 import { useSession } from "@/components/auth/session-context";
@@ -11,10 +11,12 @@ import { ReportTable } from "@/components/reports/report-table";
 import { fetchAdminUsers, isApiConfigured } from "@/lib/api";
 import {
   dateInputToRange,
+  dateInputToUtcRange,
   defaultReportName,
   downloadReportCsv,
   generateReport,
   isReportsApiConfigured,
+  previousCalendarMonthRange,
 } from "@/lib/reports-api";
 import { isReportsEnabled } from "@/lib/runtime-flags";
 
@@ -43,7 +45,7 @@ export function ReportBuilder({
   compact,
 }: ReportBuilderProps) {
   const { user } = useSession();
-  const supervisor = user ? isSupervisorOrAdmin(user.role) : false;
+  const supervisor = user ? isAdminRole(user.role) : false;
   const enabled = isReportsEnabled() && isReportsApiConfigured();
 
   const { today, weekAgo } = useMemo(() => {
@@ -54,6 +56,7 @@ export function ReportBuilder({
       weekAgo: start.toISOString().slice(0, 10),
     };
   }, []);
+  const lastMonth = useMemo(() => previousCalendarMonthRange(), []);
 
   const allowedTypes = useMemo(
     () => (supervisor ? ALL_TYPES : (["dispatcher_performance"] as ReportType[])),
@@ -64,8 +67,12 @@ export function ReportBuilder({
     allowedTypes.includes(initialType) ? initialType : allowedTypes[0]!,
   );
   const [name, setName] = useState(initialName ?? defaultReportName(type));
-  const [startDate, setStartDate] = useState(initialStart ?? weekAgo);
-  const [endDate, setEndDate] = useState(initialEnd ?? today);
+  const [startDate, setStartDate] = useState(
+    initialStart ?? (initialType === "system_health" ? lastMonth.startInput : weekAgo),
+  );
+  const [endDate, setEndDate] = useState(
+    initialEnd ?? (initialType === "system_health" ? lastMonth.endInput : today),
+  );
   const [dispatcherIds, setDispatcherIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
@@ -91,6 +98,11 @@ export function ReportBuilder({
   const onTypeChange = (next: ReportType) => {
     setType(next);
     setName(defaultReportName(next));
+    if (next === "system_health") {
+      setStartDate(lastMonth.startInput);
+      setEndDate(lastMonth.endInput);
+      setName(`System health — ${lastMonth.label}`);
+    }
   };
 
   const toggleDispatcher = (id: string) => {
@@ -104,7 +116,8 @@ export function ReportBuilder({
     setBusy(true);
     setError(null);
     try {
-      const dateRange = dateInputToRange(startDate, endDate);
+      const dateRange =
+        type === "system_health" ? dateInputToUtcRange(startDate, endDate) : dateInputToRange(startDate, endDate);
       const filters: Record<string, unknown> = {};
       if (supervisor && dispatcherIds.length > 0) {
         filters.dispatcherIds = dispatcherIds;
@@ -197,9 +210,28 @@ export function ReportBuilder({
         >
           {busy ? "Generating…" : "Generate report"}
         </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStartDate(lastMonth.startInput);
+            setEndDate(lastMonth.endInput);
+            if (type === "system_health") {
+              setName(`System health — ${lastMonth.label}`);
+            }
+          }}
+          className="rounded bg-slate-800 px-3 py-2 text-xs font-medium text-slate-200 ring-1 ring-slate-700"
+        >
+          Last month ({lastMonth.label})
+        </button>
       </div>
+      {type === "system_health" ? (
+        <p className="text-xs text-slate-500">
+          Monthly system health covers device uptime (camera fleet), activation events (QR/NFC, public
+          reports, live video), resolved incidents, and currently open issues. Dates use UTC calendar days.
+        </p>
+      ) : null}
 
-      {supervisor && agencyDispatchers.length > 0 ? (
+      {supervisor && type !== "system_health" && agencyDispatchers.length > 0 ? (
         <div className="rounded-lg border border-slate-800 bg-slate-950/30 p-4">
           <p className="text-xs font-medium text-slate-400">Dispatcher filter (optional)</p>
           <div className="mt-2 flex flex-wrap gap-2">

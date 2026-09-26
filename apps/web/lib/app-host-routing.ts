@@ -47,6 +47,8 @@ const APP_OPERATIONAL_ROOT_SEGMENTS = new Set<string>([
   "silent-text",
   "translate",
   "media",
+  "onboarding",
+  "rc-guest-assist.html",
 ]);
 
 export function getConfiguredAppHostname(): string {
@@ -124,12 +126,20 @@ export function isMarketingPublicPath(pathname: string): boolean {
     first === "diversion" ||
     first === "map-preview" ||
     first === "status" ||
-    first === "crime-log"
+    first === "crime-log" ||
+    first === "rc-guest-assist.html" ||
+    // Authenticated campus/venue/NexCort Admin wizards — reserved so they are not a
+    // jurisdiction slug, but they are not marketing pages.
+    first === "onboarding" ||
+    // Sales contractor portal + public ROI / free-tier registration (app host, not www).
+    first === "sales" ||
+    first === "roi" ||
+    first === "register"
   ) {
     return false;
   }
 
-  // RC Lite developer guides — app host only, session required (see middleware guardAuthenticatedDocs).
+  // NexCort Lite developer guides — app host only, session required (see middleware guardAuthenticatedDocs).
   if (first === "developers" && (segments[1] === "docs" || pathname.startsWith("/developers/docs/"))) {
     return false;
   }

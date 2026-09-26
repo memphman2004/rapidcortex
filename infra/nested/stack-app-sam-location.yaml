@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — Amazon Location Service (maps, places, routing, geofences, tracker)
+  NexCort iQ — Amazon Location Service (maps, places, routing, geofences, tracker)
   and Cognito Identity Pool for MapLibre tile auth. Routes attach to stack 2 HttpApi.
 
 Parameters:
@@ -52,6 +52,8 @@ Globals:
         ALLOW_UNAUTHENTICATED_API: "false"
         CAD_WRITEBACK_ENABLED: "false"
         ALS_LOCATION_MOCK: "false"
+        ENABLE_MAP_HOSPITALS: "true"
+        ENABLE_MAP_EDUCATION: "true"
         ALS_PLACE_INDEX_NAME: !Sub "rc-places-${DeploymentStage}"
         ALS_ROUTE_CALCULATOR_NAME: !Sub "rc-routes-${DeploymentStage}"
         ALS_GEOFENCE_COLLECTION_NAME: !Sub "rc-geofences-${DeploymentStage}"
@@ -199,6 +201,14 @@ Resources:
                   - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-dark-${DeploymentStage}"
                   - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-here-${DeploymentStage}"
                   - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-here-dark-${DeploymentStage}"
+        - PolicyName: MapTilesV2
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - geo-maps:GetTile
+                Resource: !Sub "arn:${AWS::Partition}:geo-maps:${AWS::Region}::provider/default"
 
   RCMapIdentityPoolAuthedRole:
     Type: AWS::IAM::Role
@@ -232,6 +242,14 @@ Resources:
                   - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-dark-${DeploymentStage}"
                   - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-here-${DeploymentStage}"
                   - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/rc-map-here-dark-${DeploymentStage}"
+        - PolicyName: MapTilesV2
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - geo-maps:GetTile
+                Resource: !Sub "arn:${AWS::Partition}:geo-maps:${AWS::Region}::provider/default"
 
   RCMapIdentityPoolRoleAttachment:
     Type: AWS::Cognito::IdentityPoolRoleAttachment
@@ -281,6 +299,12 @@ Resources:
               - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:route-calculator/rc-routes-${DeploymentStage}"
               - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:geofence-collection/rc-geofences-${DeploymentStage}"
               - !Sub "arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:tracker/rc-tracker-${DeploymentStage}"
+          - Sid: AmazonLocationPlacesV2
+            Effect: Allow
+            Action:
+              - geo-places:SearchNearby
+              - geo-places:GetPlace
+            Resource: !Sub "arn:${AWS::Partition}:geo-places:${AWS::Region}::provider/default"
 
   LocationHttpFunction:
     Type: AWS::Serverless::Function
@@ -326,6 +350,24 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/location/{proxy+}"
+      Target: !Sub "integrations/${LocationHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteMapHospitals:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/map/hospitals"
+      Target: !Sub "integrations/${LocationHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteMapEducation:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/map/education"
       Target: !Sub "integrations/${LocationHttpIntegration}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]

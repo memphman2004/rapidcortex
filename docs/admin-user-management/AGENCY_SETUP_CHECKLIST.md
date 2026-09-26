@@ -1,13 +1,13 @@
-# Agency setup checklist (agency + Rapid Cortex)
+# Agency setup checklist (agency + NexCort iQ)
 
-Use alongside [AGENCY_ONBOARDING_RUNBOOK.md](./AGENCY_ONBOARDING_RUNBOOK.md). Checkboxes are **shared**—assign an owner (A = agency, R = Rapid Cortex, J = joint).
+Use alongside [AGENCY_ONBOARDING_RUNBOOK.md](./AGENCY_ONBOARDING_RUNBOOK.md). Checkboxes are **shared**—assign an owner (A = agency, R = NexCort iQ, J = joint).
 
 ## A. Contacts & governance (J)
 
 - [ ] Executive sponsor named (A).
 - [ ] IT / security contact named (A).
 - [ ] Floor supervisor / training lead named (A).
-- [ ] Rapid Cortex pilot lead named (R).
+- [ ] NexCort iQ pilot lead named (R).
 - [ ] [AGENCY_PLAYBOOK_TEMPLATE.md](./AGENCY_PLAYBOOK_TEMPLATE.md) copy started (J).
 
 ## B. Inputs (A → R)
@@ -28,7 +28,7 @@ Use alongside [AGENCY_ONBOARDING_RUNBOOK.md](./AGENCY_ONBOARDING_RUNBOOK.md). Ch
 - [ ] `NEXT_PUBLIC_OFFLINE_DEMO_MODE` **not** set on pilot web host unless sandbox-only (R).
 - [ ] CORS origins correct for pilot web origin (R).
 - [ ] Integration status endpoint healthy for admin test user (R).
-- [ ] **ANI/ALI source confirmed:** Rapid Cortex resolves ANI automatically from the Connect contact flow. ALI (caller location) must be written into Connect contact attributes (`callerAddress`, `callerCity`, `callerState`) by the agency's CPE, ALI database feed, or RapidSOS integration before go-live. Rapid Cortex does not operate a SIP switch or carrier ALI database. Confirm ALI source and test with a sample call before dispatcher training (A/IT).
+- [ ] **ANI/ALI source confirmed:** NexCort iQ resolves ANI automatically from the Connect contact flow. ALI (caller location) must be written into Connect contact attributes (`callerAddress`, `callerCity`, `callerState`) by the agency's CPE, ALI database feed, or RapidSOS integration before go-live. NexCort iQ does not operate a SIP switch or carrier ALI database. Confirm ALI source and test with a sample call before dispatcher training (A/IT).
 - [ ] **Call Assist Transcribe vocab:** `COUNTY_FIPS=… AGENCY_ID=… npx tsx scripts/generate-transcribe-vocab.ts`, review `SoundsLike`, then seed (`vocabs/README.md`) (R).
 
 ## D. Provisioning (R or agency admin)

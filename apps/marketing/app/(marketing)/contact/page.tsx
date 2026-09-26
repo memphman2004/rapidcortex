@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import { absoluteUrl, buildOgShareImage } from "@/lib/seo";
 
-const DEST = "https://www.rapidcortex.us/contact-sales?interest=demo";
+const DEST = "https://www.nexcortiq.us/contact-sales?interest=demo";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "Contact | Rapid Cortex",
-    description: "Contact Rapid Cortex sales for demos, pilots, and procurement discussions.",
+    title: "Contact | NexCort iQ",
+    description: "Contact NexCort iQ sales for demos, pilots, and procurement discussions.",
     robots: { index: false, follow: true },
     alternates: { canonical: absoluteUrl("/contact-sales?interest=demo") },
     openGraph: {
-      title: "Contact | Rapid Cortex",
+      title: "Contact | NexCort iQ",
       url: DEST,
-      images: [buildOgShareImage("Contact Rapid Cortex")],
+      images: [buildOgShareImage("Contact NexCort iQ")],
       type: "website",
     },
   };

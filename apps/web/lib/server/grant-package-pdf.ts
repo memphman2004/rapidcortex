@@ -25,7 +25,7 @@ export function generateGrantPackagePdfBuffer(params: {
       margin: 54,
       info: {
         Title: `Grant package — ${profile.schoolName}`,
-        Author: "Rapid Cortex",
+        Author: "NexCort iQ",
         Subject: "Grant Success Program package",
       },
     });
@@ -65,7 +65,7 @@ export function generateGrantPackagePdfBuffer(params: {
       .fillColor("#FFFFFF")
       .font("Helvetica-Bold")
       .fontSize(16)
-      .text("RAPID CORTEX", 54, 22, { continued: true })
+      .text("NEXCORT IQ", 54, 22, { continued: true })
       .font("Helvetica")
       .fontSize(11)
       .text("  ·  Grant Success Program");
@@ -169,7 +169,7 @@ export function generateGrantPackagePdfBuffer(params: {
       .fontSize(8)
       .fillColor(T3)
       .text(
-        "Rapid Cortex Grant Success Program — AI-assisted draft for authorized grant writers. Verify figures and compliance claims before submission.",
+        "NexCort iQ Grant Success Program — AI-assisted draft for authorized grant writers. Verify figures and compliance claims before submission.",
         { width: pageWidth, align: "center" },
       );
 

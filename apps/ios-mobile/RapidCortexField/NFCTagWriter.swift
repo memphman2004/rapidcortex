@@ -2,6 +2,12 @@ import Combine
 import CoreNFC
 import Foundation
 
+enum NFCHardware {
+    static var isAvailable: Bool { NFCTagReaderSession.readingAvailable }
+    static let unavailableMessage =
+        "NFC tag writing requires a physical iPhone 7 or later. QR codes still work on this device."
+}
+
 /// Programs NDEF URI records onto NTAG Type 2 stickers (and ISO15693 tags).
 ///
 /// Uses `NFCTagReaderSession` (not `NFCNDEFReaderSession`) so factory-blank
@@ -28,7 +34,7 @@ final class NFCTagWriter: NSObject, ObservableObject {
     }
 
     func beginWriting(url: URL, batch: Bool = false, completion: @escaping (NFCWriteResult) -> Void) {
-        guard NFCTagReaderSession.readingAvailable else {
+        guard NFCHardware.isAvailable else {
             publish {
                 self.state = .failure(NFCWriteError.hardwareUnavailable.localizedDescription)
             }
@@ -231,7 +237,7 @@ enum NFCWriteError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .hardwareUnavailable:
-            return "NFC is not available on this device. Requires a physical iPhone 7 or later."
+            return NFCHardware.unavailableMessage
         case .sessionUnavailable:
             return "Could not start NFC. Enable Near Field Communication Tag Reading for us.rapidcortex.field, then rebuild."
         case .tagNotWritable:

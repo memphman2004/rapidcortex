@@ -5,7 +5,7 @@ import { buildPublicPageMetadata } from "@/lib/seo";
 const PATH = "/venue-safety-integrations";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Venue Safety Integrations | Cameras, QR/SMS, SOC | Rapid Cortex",
+  title: "Venue Safety Integrations | Cameras, QR/SMS, SOC | NexCort iQ",
   description:
     "Venue safety integrations for stadiums and arenas: QR/SMS guest reporting, consent-based cameras, and SOC workflows — adapters validated per contract, not a rip-and-replace of radios or 911.",
   path: PATH,
@@ -21,64 +21,63 @@ export const metadata: Metadata = buildPublicPageMetadata({
 export default function VenueSafetyIntegrationsPage() {
   return (
     <KeywordLandingPage
-      title="Venue Safety Integrations | Cameras, QR/SMS, SOC | Rapid Cortex"
+      title="Venue Safety Integrations | Cameras, QR/SMS, SOC | NexCort iQ"
       description="Venue safety integrations for stadiums and arenas: QR/SMS guest reporting, consent-based cameras, and SOC workflows — adapters validated per contract, not a rip-and-replace of radios or 911."
       path={PATH}
       h1="Venue Safety Integrations for Stadiums and Arenas"
       eyebrow="Venue safety integrations"
-      intro="Rapid Cortex Venue connects guest reporting channels and optional camera consent flows to the security operations dashboard. Integrations enhance SOC workflows. They do not replace radios, CCTV matrices, venue security, or 911."
+      intro="NexCort iQ Venue connects guest reporting channels and optional camera consent flows to the security operations dashboard. Integrations enhance SOC workflows. They do not replace radios, CCTV matrices, venue security, or 911."
       sections={[
         {
           title: "Why venue integrations matter",
           body: "A text from Section 112 and a camera on the north concourse only help if they share an incident. Integrations exist so QR/SMS reports, media, and camera references land on one SOC record.",
         },
         {
-          title: "What Rapid Cortex connects",
+          title: "What NexCort iQ connects",
           body: "Adapter coverage is scoped per venue. Maturity varies and is contract-validated.",
           bullets: [
             "QR and NFC signs mapped to gates, sections, and concourses",
             "SMS reporting with venue code and location parsing",
-            "Consent-based Ring Connect and Nest SDM camera flows",
+            "Consent-based Nest SDM and Wyze Connect camera flows",
             "Nearby camera references on the SOC incident card",
-            "Optional escalation into Rapid Cortex Core for emergency communications",
+            "Optional escalation into 911 Centers/PSAPs for emergency communications",
           ],
         },
         {
           title: "SOC workflows, not a new radio net",
-          body: "Supervisors assign, chat, and close incidents in the dashboard. Radios and existing video walls stay in place. Rapid Cortex does not become your CAD or public-address system.",
+          body: "Supervisors assign, chat, and close incidents in the dashboard. Radios and existing video walls stay in place. NexCort iQ does not become your CAD or public-address system.",
         },
         {
           title: "Operations notes",
-          body: "Connectors are enabled per facility and event calendar. Access is audited. Rapid Cortex is not a 911 emergency dispatch system and does not provide medical direction.",
+          body: "Connectors are enabled per facility and event calendar. Access is audited. NexCort iQ is not a 911 emergency dispatch system and does not provide medical direction.",
         },
         {
           title: "What these integrations do not replace",
-          body: "Venue security contractors, law enforcement details, EMS, CCTV control rooms, and 911 remain the response stack. Rapid Cortex feeds structured reports into the SOC.",
+          body: "Venue security contractors, law enforcement details, EMS, CCTV control rooms, and 911 remain the response stack. NexCort iQ feeds structured reports into the SOC.",
         },
       ]}
       relatedLinks={[
-        { href: "/product/venue", label: "Rapid Cortex Venue product" },
+        { href: "/product/venue", label: "NexCort iQ Venue product" },
         { href: "/venue", label: "Venue safety intelligence" },
         { href: "/venue-safety-software", label: "Venue safety software" },
         { href: "/stadium-security-software", label: "Stadium security software" },
         { href: "/integrations", label: "Integrations overview" },
-        { href: "/connect/ring/start", label: "Start Ring Connect" },
         { href: "/connect/nest", label: "Nest Connect" },
         { href: "/connect/wyze/start", label: "Wyze Connect" },
         { href: "/free-60-day-pilot", label: "Free 60-Day Pilot Program" },
-        { href: "/blog/rapid-cortex-venue", label: "Blog: Rapid Cortex Venue" },
+        { href: "/blog/rapid-cortex-venue", label: "Blog: NexCort iQ Venue" },
         { href: "/blog/stadium-fan-safety-without-adding-staff", label: "Blog: Stadium fan safety without adding staff" },
       ]}
       faq={[
         {
           question: "Do venue safety integrations replace 911 or our SOC cameras?",
           answer:
-            "No. Rapid Cortex does not replace 911, medical direction, radios, or your CCTV matrix. Integrations attach reports and optional consent-based camera context to the SOC dashboard.",
+            "No. NexCort iQ does not replace 911, medical direction, radios, or your CCTV matrix. Integrations attach reports and optional consent-based camera context to the SOC dashboard.",
         },
         {
           question: "What reporting channels can we integrate?",
           answer:
-            "QR/NFC signs, SMS with a venue code, and optional Ring, Nest, or Wyze Connect consent flows. Other camera stacks are scoped per contract.",
+            "QR/NFC signs, SMS with a venue code, and optional Nest or Wyze Connect consent flows. Other camera stacks are scoped per contract.",
         },
         {
           question: "Can we pilot venue integrations on a subset of zones?",

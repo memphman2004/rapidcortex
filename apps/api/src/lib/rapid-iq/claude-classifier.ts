@@ -162,8 +162,8 @@ function classifySignalHeuristic(
               ? `A specific date appears in the text (${dateMatch[0]}).`
               : "Additional procurement context is present in the excerpted passage.",
           isCampus
-            ? "Rapid Cortex Campus maps to campus safety / Clery-related operations when the buyer agency can be confirmed from the document."
-            : "Rapid Cortex Core maps to CAD/NG911 and AI coaching needs when the buyer agency can be confirmed from the document.",
+            ? "NexCort iQ Campus maps to campus safety / Clery-related operations when the buyer agency can be confirmed from the document."
+            : "NexCort iQ Core maps to CAD/NG911 and AI coaching needs when the buyer agency can be confirmed from the document.",
           "Confirm the purchasing agency and decision window from the original document before outreach.",
         ].join(" ")
       : "",
@@ -230,21 +230,21 @@ export async function classifySignal(
   }
 
   const text = await callClaude(
-    `You are a public safety and civic-document intelligence analyst for Rapid Cortex Civic IQ.
+    `You are a public safety and civic-document intelligence analyst for NexCort iQ Civic IQ.
 Cover three official public-source categories in addition to PSAP/911 (Core), campus safety, and venue operations:
 1. Government meeting records — city council minutes, school board agendas, county commission sessions, utility board meetings.
 2. Budget and planning documents — adopted budgets, capital improvement plans, IT strategic plans, department budget requests.
 3. Procurement notices — RFPs, RFIs, contract awards, expirations, cooperative purchasing, sole source justifications.
 University signals often involve Board of Trustees, campus police, Clery Act, Title IX, or student safety fees.
 Extract only factual information present in the document. Never invent information. Respond ONLY with valid JSON.
-Civic meeting, budget, and procurement records are relevant even when they do not mention 911, CAD, or Rapid Cortex. Do not reject those documents solely for lacking a public-safety product keyword.
+Civic meeting, budget, and procurement records are relevant even when they do not mention 911, CAD, or NexCort iQ. Do not reject those documents solely for lacking a public-safety product keyword.
 
 SUMMARY QUALITY RULES:
 - aiSummary must be 3-4 complete sentences. A single sentence is a FAILURE.
 - Always name the specific government document or meeting (e.g. "The July 14 budget workshop agenda" not "a document").
 - Always state the dollar amount if one appears in the text.
 - Always name the incumbent vendor if one is mentioned.
-- Always connect to a specific Rapid Cortex feature (real-time transcription, CAD integration, AI coaching, LiveLocation, etc.).
+- Always connect to a specific NexCort iQ feature (real-time transcription, CAD integration, AI coaching, LiveLocation, etc.).
 - End with a time-sensitive action recommendation ("Contact before the August board vote" / "RFP expected within 60 days").
 
 ANTI-TEMPLATE RULES — CRITICAL:
@@ -291,7 +291,7 @@ agencyName MUST be the purchasing agency or grant recipient named in the text �
 aiSummary REQUIRED: 3-4 sentences that MUST include:
 1. The SPECIFIC document title and date when present (not "meeting materials").
 2. A SPECIFIC dollar amount, vendor name, vote outcome, technology, or identifiable civic document type (meeting minutes, adopted budget, CIP, RFP/RFI, contract award, sole source, cooperative purchasing). If none exist, set isRelevant: false.
-3. Why this is a direct Rapid Cortex Core/Campus/Venue opportunity.
+3. Why this is a direct NexCort iQ Core/Campus/Venue opportunity.
 4. Time-sensitive action or decision window.
 NO TEMPLATES. NO GENERIC LANGUAGE.`,
     1400,
@@ -345,9 +345,9 @@ export async function generateTalkingPoints(
       ? `Confirm whether the ~$${opportunity.estimatedDollarValue.toLocaleString()} budget is still allocated.`
       : "Ask which budget cycle funds the modernization.",
     opportunity.incumbentVendor
-      ? `Position Rapid Cortex as a complement/displacement vs ${opportunity.incumbentVendor}.`
+      ? `Position NexCort iQ as a complement/displacement vs ${opportunity.incumbentVendor}.`
       : "Ask which CAD/NG911 stack they run today.",
-    `Offer a 20-minute Rapid Cortex Core demo tailored to ${opportunity.agencyName}.`,
+    `Offer a 20-minute NexCort iQ Core demo tailored to ${opportunity.agencyName}.`,
   ];
 
   // Only reuse non-empty cached points (empty [] means a prior failed generate).
@@ -358,7 +358,7 @@ export async function generateTalkingPoints(
     return fallback();
   }
   const text = await callClaude(
-    "Generate sales talking points for Rapid Cortex reps. Return ONLY a JSON array of exactly 5 strings.",
+    "Generate sales talking points for NexCort iQ reps. Return ONLY a JSON array of exactly 5 strings.",
     `5 talking points for a call with ${opportunity.agencyName}. Signal: ${opportunity.aiHeadline}. Dollar: ${opportunity.estimatedDollarValue ?? "unknown"}. Incumbent: ${opportunity.incumbentVendor ?? "unknown"}. Product: ${opportunity.rcProduct}`,
     600,
   );
@@ -416,7 +416,7 @@ export async function signalChat(
           .join("\n\n")
       : "No individual signals recorded.";
 
-  const systemPrompt = `You are a sales intelligence assistant for Rapid Cortex, a public safety AI platform.
+  const systemPrompt = `You are a sales intelligence assistant for NexCort iQ, a public safety AI platform.
 Answer accurately using only the information below. If asked for a source, provide the exact URL from SOURCE DOCUMENTS or SIGNALS.
 Never invent URLs. If you lack information, say what you do and don't know.
 
@@ -488,16 +488,16 @@ export function buildOutreachFallback(
             ? `Confirm whether the ~$${opportunity.estimatedDollarValue.toLocaleString()} budget is still allocated.`
             : "Ask which budget cycle funds the modernization.",
           opportunity.incumbentVendor
-            ? `Position Rapid Cortex as a complement/displacement vs ${opportunity.incumbentVendor}.`
+            ? `Position NexCort iQ as a complement/displacement vs ${opportunity.incumbentVendor}.`
             : "Ask which CAD/NG911 stack they run today.",
-          `Offer a 20-minute Rapid Cortex Core demo tailored to ${opportunity.agencyName}.`,
+          `Offer a 20-minute NexCort iQ Core demo tailored to ${opportunity.agencyName}.`,
         ];
 
   const pointsBlock = points.map((p, i) => `${i + 1}. ${p}`).join("\n");
   const summary = opportunity.aiSummary?.trim() || opportunity.aiHeadline;
 
   return {
-    subject: `Rapid Cortex — ${opportunity.agencyName}`,
+    subject: `NexCort iQ — ${opportunity.agencyName}`,
     body: [
       greeting,
       "",
@@ -508,10 +508,10 @@ export function buildOutreachFallback(
       "Talking points for our conversation:",
       pointsBlock,
       "",
-      `Would you have 20 minutes this week for a brief Rapid Cortex overview tailored to ${opportunity.agencyName}?`,
+      `Would you have 20 minutes this week for a brief NexCort iQ overview tailored to ${opportunity.agencyName}?`,
       "",
       "Best,",
-      "Rapid Cortex",
+      "NexCort iQ",
     ].join("\n"),
   };
 }
@@ -548,7 +548,7 @@ export async function generateOutreach(
 
   const text = await callClaude(
     [
-      "You are a senior SDR for Rapid Cortex (public safety AI for 911 / campus / venue).",
+      "You are a senior SDR for NexCort iQ (public safety AI for 911 / campus / venue).",
       "Return ONLY valid JSON with keys subject and body (no markdown fences).",
       "body must be a complete email: greeting, 2–4 sentence message grounded in the signal summary,",
       "a numbered Talking points section (use the provided points when present), and a soft CTA.",
@@ -615,7 +615,7 @@ export async function generateRfpResponseOutline(
   };
   if (isCollectorsMockEnabled() || !(await resolveAnthropicKey())) {
     return {
-      executiveSummary: `Position Rapid Cortex for ${agencyName} against this RFP using Core transcription, CAD integration, and CJIS-aware tenancy.`,
+      executiveSummary: `Position NexCort iQ for ${agencyName} against this RFP using Core transcription, CAD integration, and CJIS-aware tenancy.`,
       requirements: [
         {
           requirement: "Real-time call documentation",
@@ -629,10 +629,10 @@ export async function generateRfpResponseOutline(
     };
   }
   const text = await callClaude(
-    `You are a senior solutions engineer for Rapid Cortex, an AI-powered public safety platform for 911 centers, campus safety, and venue security.
-Analyze RFP documents and map stated requirements to Rapid Cortex capabilities.
+    `You are a senior solutions engineer for NexCort iQ, an AI-powered public safety platform for 911 centers, campus safety, and venue security.
+Analyze RFP documents and map stated requirements to NexCort iQ capabilities.
 
-Rapid Cortex key capabilities:
+NexCort iQ key capabilities:
 - Real-time call transcription (AI-powered, 40+ languages)
 - CAD integration (read/write with major CAD vendors)
 - AI coaching and supervisor dashboards
@@ -814,7 +814,7 @@ export async function generateAgencyProfile(
     .join("\n");
 
   const text = await callClaude(
-    `You are a public safety intelligence analyst for Rapid Cortex sales.
+    `You are a public safety intelligence analyst for NexCort iQ sales.
 Enrich agency profiles with best-available estimates grounded in known US PSAP / ECC norms.
 Prefer the provided known facts when present. Use null only when you truly have no basis.
 Return ONLY valid JSON (no markdown).`,
@@ -869,13 +869,20 @@ Return JSON:
   return mergeAgencyProfiles(seed, parsed);
 }
 
+export class ResearchUnavailableError extends Error {
+  constructor() {
+    super("Agency research requires a configured Anthropic API key");
+    this.name = "ResearchUnavailableError";
+  }
+}
+
 export async function researchAgency(
   agencyName: string,
   city: string,
   state: string,
 ): Promise<string> {
   if (isCollectorsMockEnabled() || !(await resolveAnthropicKey())) {
-    return `Research stub for ${agencyName} in ${city}, ${state}. Enable Anthropic for a full sales intelligence brief.`;
+    throw new ResearchUnavailableError();
   }
   const text = await callClaude(
     `You are a public safety technology sales intelligence analyst. Research government agencies and provide actionable sales intelligence. Be specific and factual. Include only what you know confidently.`,
@@ -887,7 +894,7 @@ Provide:
 3. Recent news, incidents, or events that might create technology needs
 4. Key leadership if known
 5. Budget context (county budget size, recent allocations)
-6. How Rapid Cortex Core specifically fits their situation
+6. How NexCort iQ Core specifically fits their situation
 
 Be specific and cite what you know vs what is estimated.`,
     1000,
@@ -920,7 +927,7 @@ export async function generateCompetitorIntel(
     return `Displacement notes for ${agencyName} vs ${incumbentVendor}: emphasize open integration, multi-language transcription, and agency-isolated CJIS posture.`;
   }
   const text = await callClaude(
-    `You are a competitive intelligence analyst for Rapid Cortex. Provide honest competitive analysis to help with displacement opportunities.
+    `You are a competitive intelligence analyst for NexCort iQ. Provide honest competitive analysis to help with displacement opportunities.
 CRITICAL M&A CONTEXT (August 2026): Axon acquired Carbyne and Prepared; Motorola acquired Exacom and Hyper; RapidSOS raised $100M and acquired Northern911.`,
     `${agencyName} currently uses ${incumbentVendor}.
 ${registryContext}
@@ -928,7 +935,7 @@ ${registryContext}
 Provide:
 1. Known weaknesses or pain points with ${incumbentVendor} in public safety
 2. Common reasons agencies leave ${incumbentVendor}
-3. Key Rapid Cortex advantages in this displacement scenario
+3. Key NexCort iQ advantages in this displacement scenario
 4. Recommended talking points for this specific situation
 Keep it factual and concise.`,
     600,

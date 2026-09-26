@@ -7,7 +7,7 @@ import { sendOnvifPtz, type GatewayPtzRequest } from "./onvif-ptz-client.ts";
  *
  *   GATEWAY_SECRET=... ONVIF_MOCK=1 node --experimental-strip-types ptz-relay-server.ts
  *
- * Rapid Cortex Lambda POSTs HMAC-signed JSON to POST /relay/ptz.
+ * NexCort iQ Lambda POSTs HMAC-signed JSON to POST /relay/ptz.
  */
 const PORT = Number(process.env.PORT ?? "8787");
 const SECRET = process.env.GATEWAY_SECRET?.trim() ?? "";

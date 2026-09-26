@@ -1,5 +1,5 @@
 /**
- * Rapid Cortex — k6 Load Test Script
+ * NexCort iQ — k6 Load Test Script
  *
  * SLA thresholds sourced from MSA Exhibit C §C.5.1 and §8.4.1.
  *
@@ -63,9 +63,11 @@ export const thresholds = buildK6Thresholds(PROFILE, {
 // ── Load profiles ────────────────────────────────────────────────────────────
 //
 // VU sizing rationale:
-//   A mid-size PSAP typically seats 8–20 concurrent dispatchers.
-//   Stress target of 50 VUs ≈ 2.5× peak expected production concurrency.
-//   Spike target of 100 VUs simulates a mass-casualty event surge.
+//   A mid-size PSAP seats 8–20 concurrent dispatchers.
+//   A major incident can push 150+ concurrent consoles (breaking-point test, 2026-08-17).
+//   Stress and spike hold 200 VUs so the official profile covers that floor.
+//   hey -c above 125 records missing statuses with no HTTP code; use k6 or
+//   scripts/perf/psap-burst.mjs, which keeps a status for every request.
 //
 const ALL_PROFILES = {
   // Quick sanity — does it respond at all?
@@ -98,8 +100,8 @@ const ALL_PROFILES = {
   // Beyond-peak stress — where do things degrade?
   stress: {
     stages: [
-      { duration: "3m",  target: 50 },   // ramp to 2.5× expected peak
-      { duration: "10m", target: 50 },   // sustain
+      { duration: "3m",  target: 200 },  // major-incident floor
+      { duration: "10m", target: 200 },  // sustain
       { duration: "2m",  target: 0  },   // ramp down
     ],
     thresholds,
@@ -119,8 +121,8 @@ const ALL_PROFILES = {
   spike: {
     stages: [
       { duration: "30s", target: 0   },  // baseline idle
-      { duration: "1m",  target: 100 },  // instant spike to 5× expected peak
-      { duration: "2m",  target: 100 },  // hold spike
+      { duration: "1m",  target: 200 },  // major-incident spike
+      { duration: "2m",  target: 200 },  // hold spike
       { duration: "1m",  target: 10  },  // partial drain
       { duration: "3m",  target: 10  },  // recovery observation
       { duration: "30s", target: 0   },  // ramp down

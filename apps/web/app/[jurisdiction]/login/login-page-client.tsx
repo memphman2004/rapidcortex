@@ -4,13 +4,9 @@ import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
 import type { LoginQuerySnapshot } from "@/lib/auth/login-query";
 import { marketingHomePath } from "@/lib/marketing-links";
-import { SITE_NAME } from "@/lib/site";
+import { SITE_LOGO_HEIGHT, SITE_LOGO_PATH, SITE_LOGO_WIDTH, SITE_NAME } from "@/lib/site";
 import { RapidCortexPulse, type PulseState } from "@/components/auth/rapid-cortex-pulse";
 import { LoginForm } from "./login-form";
-
-const LOGIN_LOGO_PATH = "/Logo/rapid-cortex-logo-transparent.png";
-const LOGIN_LOGO_WIDTH = 3000;
-const LOGIN_LOGO_HEIGHT = 2000;
 
 type Props = {
   loginQuery: LoginQuerySnapshot;
@@ -52,10 +48,10 @@ export function LoginPageClient({ loginQuery, signInConfigured, year }: Props) {
         <header className="rc-login-brand">
           <a href={marketingHomePath()} aria-label={`${SITE_NAME} home`}>
             <Image
-              src={LOGIN_LOGO_PATH}
+              src={SITE_LOGO_PATH}
               alt={SITE_NAME}
-              width={LOGIN_LOGO_WIDTH}
-              height={LOGIN_LOGO_HEIGHT}
+              width={SITE_LOGO_WIDTH}
+              height={SITE_LOGO_HEIGHT}
               priority
               unoptimized
               className="rc-login-brand__logo"
@@ -86,7 +82,7 @@ export function LoginPageClient({ loginQuery, signInConfigured, year }: Props) {
         />
 
         <p className="rc-login-page__copyright">
-          © {year} Rapid Cortex, LLC — Apps on Demand · app.rapidcortex.us
+          © {year} NexCort iQ, LLC — Apps on Demand · app.rapidcortex.us
         </p>
       </div>
     </main>

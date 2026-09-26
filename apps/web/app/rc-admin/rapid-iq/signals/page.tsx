@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Legacy Rapid IQ Signals / Pipeline URLs — UI now lives inside Rapid IQ. */
+/** Legacy NexiQ Signals / Pipeline URLs — UI now lives inside NexiQ. */
 export default function RcAdminRapidIqSignalsRedirect() {
   redirect("/rc-admin/rapid-iq");
 }

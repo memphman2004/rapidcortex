@@ -66,7 +66,7 @@ fi
 ORIGIN_DISPLAY="${API_GATEWAY_ORIGIN_DOMAIN:-${HTTP_API_ID}.execute-api.${AWS_REGION}.amazonaws.com}"
 
 echo "═══════════════════════════════════════════════════════"
-echo " Rapid Cortex API edge (CloudFront + WAF)"
+echo " NexCort iQ API edge (CloudFront + WAF)"
 echo "═══════════════════════════════════════════════════════"
 echo " Stack:          ${STACK_NAME}"
 echo " Stage:          ${STAGE}"

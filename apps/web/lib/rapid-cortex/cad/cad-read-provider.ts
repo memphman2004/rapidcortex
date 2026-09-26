@@ -7,7 +7,7 @@ import type { CadHealthResult } from "@/lib/rapid-cortex/cad/CadAdapter";
 export interface CadReadProvider {
   healthCheck(): Promise<CadHealthResult>;
 
-  /** Active / open incidents visible to Rapid Cortex (vendor-specific definition of active). */
+  /** Active / open incidents visible to NexCort iQ (vendor-specific definition of active). */
   listActiveIncidents(): Promise<CadIncidentRecord[]>;
 
   getIncidentById(incidentId: string): Promise<CadIncidentRecord | null>;

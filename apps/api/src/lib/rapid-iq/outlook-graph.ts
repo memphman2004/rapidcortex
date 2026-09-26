@@ -28,7 +28,7 @@ export type SalesOutlookConnection = {
 
 const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
 const SCOPES = "openid profile email offline_access User.Read Mail.Send";
-export const DEFAULT_SALES_OUTLOOK_MAILBOX = "hello@rapidcortex.us";
+export const DEFAULT_SALES_OUTLOOK_MAILBOX = "hello@nexcortiq.us";
 
 export function salesOutlookMailbox(): string {
   return (env.outlookSalesMailbox || DEFAULT_SALES_OUTLOOK_MAILBOX).trim().toLowerCase();
@@ -243,8 +243,8 @@ export async function sendOutlookMail(input: {
         content: input.html || input.text,
       },
       toRecipients: [{ emailAddress: { address: input.to } }],
-      from: { emailAddress: { address: from, name: "Rapid Cortex" } },
-      replyTo: [{ emailAddress: { address: from, name: "Rapid Cortex" } }],
+      from: { emailAddress: { address: from, name: "NexCort iQ" } },
+      replyTo: [{ emailAddress: { address: from, name: "NexCort iQ" } }],
     },
     saveToSentItems: true,
   });

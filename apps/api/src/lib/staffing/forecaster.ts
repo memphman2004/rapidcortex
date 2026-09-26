@@ -33,68 +33,81 @@ function addDays(base: Date, days: number): Date {
   return d;
 }
 
-function mockShift(
+function historicalShift(
   date: string,
   shiftStart: number,
   shiftEnd: number,
   predicted: number,
-  recommended: number,
-  riskLevel: RiskLevel,
-  riskReason: string,
+  p95: number,
+  sampleCount: number,
 ): ShiftForecast {
+  const recommended = Math.max(1, Math.ceil(predicted / 15));
+  const riskLevel: RiskLevel =
+    sampleCount === 0 ? "LOW" : predicted >= p95 && p95 > 0 ? "HIGH" : predicted >= 30 ? "HIGH" : "NORMAL";
+  const riskReason =
+    sampleCount === 0
+      ? "No historical call volume for this shift."
+      : `Historical average ${predicted.toFixed(1)} calls (p95 ${p95.toFixed(1)}) across ${sampleCount} samples.`;
+  const low = Math.min(predicted, p95);
+  const high = Math.max(predicted, p95);
   return shiftForecastSchema.parse({
     date,
     shiftStart,
     shiftEnd,
     predictedCallVolume: predicted,
-    confidenceRange: [Math.max(0, predicted - 5), predicted + 8] as [number, number],
+    confidenceRange: [low, high] as [number, number],
     recommendedDispatchers: recommended,
-    currentScheduledDispatchers: Math.max(1, recommended - 2),
+    currentScheduledDispatchers: null,
     riskLevel,
     riskReason,
   });
 }
 
-export function mockWeeklyForecast(agencyId: string, dataQualityNote: string | null): WeeklyStaffingForecast {
+/** Forecast from stored hourly history. Does not invent a Friday surge or a scheduled roster. */
+export function statisticalWeeklyForecast(params: {
+  agencyId: string;
+  buckets: HourlyBucket[];
+  forecastDays: number;
+  shiftLengthHours: number;
+  dataQualityNote: string | null;
+}): WeeklyStaffingForecast {
   const start = new Date();
   start.setUTCHours(0, 0, 0, 0);
-  const forecastStartDate = isoDate(start);
+  const days = Math.min(14, Math.max(1, params.forecastDays || 7));
+  const length = Math.min(24, Math.max(1, params.shiftLengthHours || 8));
   const shifts: ShiftForecast[] = [];
 
-  for (let day = 0; day < 7; day += 1) {
-    const date = isoDate(addDays(start, day));
-    const dow = addDays(start, day).getUTCDay();
-    const isFriday = dow === 5;
-    shifts.push(
-      mockShift(
-        date,
-        isFriday ? 18 : 8,
-        isFriday ? 2 : 16,
-        isFriday ? 42 : 18,
-        isFriday ? 9 : 5,
-        isFriday ? "CRITICAL" : day === 2 || day === 4 ? "HIGH" : "NORMAL",
-        isFriday
-          ? "[MOCK] Expect 40% call volume surge based on historical Friday evening pattern."
-          : day === 2 || day === 4
-            ? "[MOCK] Elevated weekday volume vs baseline."
-            : "[MOCK] Normal staffing range.",
-      ),
-    );
+  for (let day = 0; day < days; day += 1) {
+    const dateObj = addDays(start, day);
+    const dow = dateObj.getUTCDay();
+    for (let hour = 0; hour < 24; hour += length) {
+      const end = Math.min(24, hour + length);
+      const window = params.buckets.filter(
+        (bucket) => bucket.dayOfWeek === dow && bucket.hourOfDay >= hour && bucket.hourOfDay < end,
+      );
+      const predicted = window.reduce((sum, bucket) => sum + bucket.avgCallVolume, 0);
+      const p95 = window.reduce((sum, bucket) => sum + bucket.p95CallVolume, 0);
+      const samples = window.reduce((sum, bucket) => sum + bucket.sampleCount, 0);
+      shifts.push(historicalShift(isoDate(dateObj), hour, end === 24 ? 0 : end, predicted, p95, samples));
+    }
   }
 
-  const peakRiskShift = shifts.find((s) => s.riskLevel === "CRITICAL") ?? shifts[0]!;
+  const rank: Record<RiskLevel, number> = { LOW: 0, NORMAL: 1, HIGH: 2, CRITICAL: 3 };
+  const peakRiskShift = shifts.reduce((peak, shift) =>
+    rank[shift.riskLevel] > rank[peak.riskLevel] ? shift : peak,
+  );
   return weeklyStaffingForecastSchema.parse({
-    agencyId,
+    agencyId: params.agencyId,
     generatedAt: new Date().toISOString(),
-    forecastStartDate,
+    forecastStartDate: isoDate(start),
     shifts,
     weekSummary: {
       peakRiskShift,
-      avgRecommended: Math.round(shifts.reduce((a, s) => a + s.recommendedDispatchers, 0) / shifts.length),
-      criticalShiftCount: shifts.filter((s) => s.riskLevel === "CRITICAL").length,
-      dataQualityNote,
+      avgRecommended: Math.round(shifts.reduce((sum, shift) => sum + shift.recommendedDispatchers, 0) / shifts.length),
+      criticalShiftCount: shifts.filter((shift) => shift.riskLevel === "CRITICAL").length,
+      dataQualityNote: params.dataQualityNote,
     },
-    modelUsed: "mock",
+    modelUsed: "historical-buckets",
   });
 }
 
@@ -123,7 +136,7 @@ export async function forecastStaffingWithBedrock(params: {
   dataQualityNote: string | null;
 }): Promise<WeeklyStaffingForecast> {
   if (env.predictiveStaffingMock) {
-    return mockWeeklyForecast(params.agencyId, params.dataQualityNote);
+    return statisticalWeeklyForecast(params);
   }
 
   const client = new BedrockRuntimeClient({ region: env.region });
@@ -149,7 +162,10 @@ export async function forecastStaffingWithBedrock(params: {
     const blocks = out.output?.message?.content;
     const text = blocks?.map((b) => ("text" in b ? b.text : "")).join("")?.trim() ?? "";
     if (!text) {
-      return mockWeeklyForecast(params.agencyId, "Bedrock returned empty response; using fallback forecast.");
+      return statisticalWeeklyForecast({
+        ...params,
+        dataQualityNote: "Bedrock returned an empty response. Forecast uses historical call volume only.",
+      });
     }
 
     let parsed: ReturnType<typeof parseForecastJson>;
@@ -157,7 +173,10 @@ export async function forecastStaffingWithBedrock(params: {
       parsed = parseForecastJson(text);
     } catch {
       console.error(JSON.stringify({ type: "staffing.forecast_parse_error", raw: text.slice(0, 200) }));
-      return mockWeeklyForecast(params.agencyId, "Could not parse AI forecast; using fallback.");
+      return statisticalWeeklyForecast({
+        ...params,
+        dataQualityNote: "Could not parse the AI forecast. Forecast uses historical call volume only.",
+      });
     }
 
     const start = new Date();
@@ -177,6 +196,9 @@ export async function forecastStaffingWithBedrock(params: {
     } else {
       console.error(JSON.stringify({ type: "staffing.bedrock_error", message: String(error) }));
     }
-    return mockWeeklyForecast(params.agencyId, "AI forecast unavailable; using statistical fallback.");
+    return statisticalWeeklyForecast({
+      ...params,
+      dataQualityNote: "AI forecast unavailable. Forecast uses historical call volume only.",
+    });
   }
 }

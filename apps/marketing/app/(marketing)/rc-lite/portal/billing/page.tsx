@@ -1,14 +1,14 @@
 import Link from "next/link";
 
-export const metadata = { title: "RC Lite — billing", robots: { index: false, follow: false } };
+export const metadata = { title: "NexCort Lite — billing", robots: { index: false, follow: false } };
 
 export default function RcLitePortalBillingPage() {
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-white">RC Lite billing</h1>
+      <h1 className="text-2xl font-semibold text-white">NexCort Lite billing</h1>
       <p className="mt-3 text-sm leading-relaxed text-slate-400">
-        RC Lite is API-only — access is awarded separately from Rapid Cortex dashboard seat plans. Government customers
-        typically use pilots, purchase orders, invoicing, and Net terms tracked in agency records. Rapid Cortex is sold
+        NexCort Lite is API-only — access is awarded separately from NexCort iQ dashboard seat plans. Government customers
+        typically use pilots, purchase orders, invoicing, and Net terms tracked in agency records. NexCort iQ is sold
         through agency contracts and approved procurement workflows.
       </p>
       <div className="mt-5 flex flex-wrap gap-3">

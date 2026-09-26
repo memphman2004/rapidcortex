@@ -17,10 +17,17 @@ export function JurisdictionProvider({
   );
 }
 
-/** Rewrites `/call-assist/...` links onto the Call Assist–only product shell. */
-export function CallAssistProductBaseProvider({ children }: { children: React.ReactNode }) {
+/** Rewrites `/call-assist/...` links onto a Call Assist product shell (app or RC admin). */
+export function CallAssistProductBaseProvider({
+  children,
+  base = "/app/call-assist",
+}: {
+  children: React.ReactNode;
+  /** Root for Call Assist chrome links (default `/app/call-assist`). */
+  base?: string;
+}) {
   return (
-    <CallAssistProductBaseContext.Provider value="/app/call-assist">
+    <CallAssistProductBaseContext.Provider value={base}>
       {children}
     </CallAssistProductBaseContext.Provider>
   );

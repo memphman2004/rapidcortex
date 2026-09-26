@@ -6,13 +6,13 @@ import { marketingDemoPath } from "@/lib/marketing-links";
 import { absoluteUrl, buildPublicPageMetadata } from "@/lib/seo";
 
 const DEMO_PATH = marketingDemoPath();
-const DEMO_CANONICAL = "https://www.rapidcortex.us/demo";
+const DEMO_CANONICAL = absoluteUrl(DEMO_PATH);
 
 export const metadata: Metadata = {
   ...buildPublicPageMetadata({
-    title: "Watch the Demo | Rapid Cortex Public Safety Intelligence Platform",
+    title: "Watch the Demo | NexCort iQ Public Safety Intelligence Platform",
     description:
-      "Watch how Rapid Cortex supports 911 dispatch intelligence with live transcription, multilingual workflows, caller media intake, supervisor visibility, continuity logs, and CAD-friendly decision support.",
+      "Watch how NexCort iQ supports 911 dispatch intelligence with live transcription, multilingual workflows, caller media intake, supervisor visibility, continuity logs, and CAD-friendly decision support.",
     path: DEMO_PATH,
   }),
   alternates: {
@@ -64,7 +64,7 @@ export default function MarketingDemoPage() {
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-400/90">Live platform demo</p>
           <h1 className="mt-5 text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
-            See Rapid Cortex in action
+            See NexCort iQ in action
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-pretty text-base leading-relaxed text-slate-300 sm:text-lg">
             Watch how dispatchers and supervisors use real-time AI intelligence during active emergency incidents.
@@ -130,7 +130,7 @@ export default function MarketingDemoPage() {
           </div>
           <div className="rounded-xl border border-slate-800/90 bg-slate-900/30 p-6 sm:p-8">
             <p className="text-sm leading-relaxed text-slate-300 sm:text-base">
-              Rapid Cortex works alongside your existing CAD system. No replacement. No disruption. Pure intelligence
+              NexCort iQ works alongside your existing CAD system. No replacement. No disruption. Pure intelligence
               overlay.
             </p>
           </div>

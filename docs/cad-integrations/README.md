@@ -1,6 +1,6 @@
 # CAD integrations — documentation
 
-PDF-ready Markdown guides for agency IT administrators and CAD vendor teams connecting a **record CAD system** to **Rapid Cortex** (supplemental AI and workflow layer; CAD remains system of record).
+PDF-ready Markdown guides for agency IT administrators and CAD vendor teams connecting a **record CAD system** to **NexCort iQ** (supplemental AI and workflow layer; CAD remains system of record).
 
 **Canonical PDF (v1.0, customer / IT bundle):** [`../admin-user-management/RapidCortex-CAD-Integration-Guide-1.0.pdf`](../admin-user-management/RapidCortex-CAD-Integration-Guide-1.0.pdf) — same file is listed under **Documents for agency IT** on **`/{slug}/admin/pilot`** and in `demo/customer-program-documentation-bundle.json`.
 
@@ -13,7 +13,7 @@ PDF-ready Markdown guides for agency IT administrators and CAD vendor teams conn
 | [Generic webhook](generic-webhook-integration-guide.md) | Any HTTPS-capable CAD or middleware | 1–3 hours + mapping |
 | [Master checklist (all vendors)](cad-integration-checklist-master.md) | PM / IT / compliance sign-off | One page |
 
-**Support:** [support@rapidcortex.us](mailto:support@rapidcortex.us)
+**Support:** [support@nexcortiq.us](mailto:support@nexcortiq.us)
 
 **API base (production):** `https://api.rapidcortex.us`  
 **Webhook path pattern:** `POST /api/cad/webhook/{agencyId}/{integrationId}`

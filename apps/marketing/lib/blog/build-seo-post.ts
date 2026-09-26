@@ -47,7 +47,7 @@ function hubCta(hub: ContentHub): BlogPost["cta"] {
     case "Buyer Intent":
       return {
         eyebrow: "Compare on your terms",
-        text: "Get a scoped walkthrough of Rapid Cortex Core, Venue, and Campus — and how each sits alongside the systems you already run.",
+        text: "Get a scoped walkthrough of 911 Centers/PSAPs, Venue, and Campus — and how each sits alongside the systems you already run.",
         buttonLabel: "Contact Sales",
         href: "/contact-sales",
       };
@@ -55,7 +55,7 @@ function hubCta(hub: ContentHub): BlogPost["cta"] {
     default:
       return {
         eyebrow: "Evaluate without disruption",
-        text: "Rapid Cortex pilots run alongside your existing CAD, telephony, and security workflows — not instead of them.",
+        text: "NexCort iQ pilots run alongside your existing CAD, telephony, and security workflows — not instead of them.",
         buttonLabel: "Schedule a Demo",
         href: "/demo",
       };
@@ -152,7 +152,7 @@ export function buildSeoPost(entry: CalendarEntry, content: SeoPostContent): Blo
     description: buildDescription(entry),
     category: entry.hub,
     tags: hubTags(entry.hub, entry.seoFocus),
-    author: { name: "Rapid Cortex Team", role: "Product" },
+    author: { name: "NexCort iQ Team", role: "Product" },
     publishedAt: entry.publishedAt,
     readingTimeMinutes: Math.max(5, Math.round(wordCount / 200)),
     content: blocks,

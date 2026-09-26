@@ -41,6 +41,8 @@ import type { AgencyTenant } from "rapid-cortex-shared";
 import { resolveAgencyVerticalFromTenant } from "rapid-cortex-shared";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
+import { useClockPreference } from "@/components/providers/clock-preference-provider";
+import { formatHeaderClock } from "@/lib/clock-format";
 import { SiteSquareMark } from "@/components/brand/site-logo-link";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -292,25 +294,6 @@ function navItemActive(pathname: string, item: NavItem): boolean {
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-function formatClock(now: Date): { dateLine: string; timeMain: string; ampm: string } {
-  const dateLine = now.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-  const timeParts = now.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-  const match = timeParts.match(/^(.+)\s+(AM|PM)$/i);
-  return {
-    dateLine,
-    timeMain: match?.[1] ?? timeParts,
-    ampm: match?.[2] ?? "",
-  };
-}
 
 function formatTimeAgo(iso: string): string {
   const ms = Date.now() - new Date(iso).getTime();
@@ -325,10 +308,10 @@ function formatTimeAgo(iso: string): string {
 
 function roleLabel(role: string): string {
   const r = role.trim().toLowerCase();
-  if (r === "rcsuperadmin") return "RC Super Admin";
-  if (r === "rcitadmin") return "RC IT Admin";
-  if (r === "rcadmin") return "RC Admin";
-  return role || "RC Admin";
+  if (r === "rcsuperadmin") return "NexCort Super Admin";
+  if (r === "rcitadmin") return "NexCort IT Admin";
+  if (r === "rcadmin") return "NexCort Admin";
+  return role || "NexCort Admin";
 }
 
 function mapVertical(agency: AgencyTenant): VerticalKey {
@@ -500,6 +483,7 @@ function RcAdminConsoleHomeInner({
   userEmail,
   userRole,
 }: RcAdminConsoleHomeProps) {
+  const { hour12 } = useClockPreference();
   const pathname = usePathname() ?? "";
   const apiLive = isApiConfigured();
   const superAdmin = isRcSuperAdmin(userRole);
@@ -576,7 +560,7 @@ function RcAdminConsoleHomeInner({
   const env = findEnv(envId);
   const currentBg = customBg ?? env.defaultBg;
   const hasCustomBg = Boolean(customBg);
-  const clock = formatClock(now);
+  const clock = formatHeaderClock(now, hour12);
 
   const switchEnv = useCallback((next: EnvDef) => {
     setEnvId(next.id);
@@ -659,7 +643,7 @@ function RcAdminConsoleHomeInner({
   const reportsHref = findNavHref(navItems, "reports");
   const auditHref = findNavHref(navItems, "audit");
   const billingHref = findNavHref(navItems, "billing");
-  const onboardingHref = findNavHref(navItems, "agencies") ?? "/rc-admin/onboarding";
+  const onboardingHref = "/rc-admin/onboarding";
 
   const roleLower = userRole.trim().toLowerCase();
   const showEmergency =
@@ -928,7 +912,7 @@ function RcAdminConsoleHomeInner({
                     lineHeight: 1,
                   }}
                 >
-                  RAPID <span style={{ color: C.purple }}>CORTEX</span>
+                  NexCort <span style={{ color: C.purple }}>iQ</span>
                 </div>
                 <div
                   style={{
@@ -945,7 +929,7 @@ function RcAdminConsoleHomeInner({
             </div>
           </div>
 
-          <nav style={{ flex: 1, padding: 7, overflowY: "auto" }} aria-label="RC Admin navigation">
+          <nav style={{ flex: 1, padding: 7, overflowY: "auto" }} aria-label="NexCort Admin navigation">
             {nav.sections.map((section, sectionIndex) => (
               <div key={section.id}>
                 {section.label ? (
@@ -1294,10 +1278,10 @@ function RcAdminConsoleHomeInner({
                 </div>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>
-                    Rapid Cortex Platform
+                    NexCort iQ Platform
                   </div>
                   <div style={{ fontSize: 10.5, color: C.textSub }}>
-                    RC Admin Console · {env.name}
+                    NexCort Admin Console · {env.name}
                   </div>
                 </div>
                 <div
@@ -1362,7 +1346,7 @@ function RcAdminConsoleHomeInner({
                   />
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>
-                      Rapid Cortex Network
+                      NexCort iQ Network
                     </div>
                     <div
                       style={{
@@ -1444,7 +1428,7 @@ function RcAdminConsoleHomeInner({
                         textShadow: "0 1px 4px rgba(0,0,0,0.5)",
                       }}
                     >
-                      Rapid Cortex Platform — {env.name} overview.
+                      NexCort iQ Platform — {env.name} overview.
                       {!usingLiveKpis && !loadingAgencies ? (
                         <span style={{ color: "rgba(255,255,255,0.45)" }}>
                           {" "}

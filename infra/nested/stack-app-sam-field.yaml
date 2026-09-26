@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — Field app (911 Dispatch view/coach/log + workspace access requests).
+  NexCort iQ — Field app (911 Dispatch view/coach/log + workspace access requests).
   Routes attach to stack 1 HttpApi so native clients on api.rapidcortex.us can reach them.
   No CAD write-back, incident close, or dispatch controls.
 
@@ -74,7 +74,7 @@ Globals:
         ACTIVE_CALLS_TABLE: !Ref ActiveCallsTable
         WEBSOCKET_CONNECTIONS_TABLE: !Ref WebSocketConnectionsTable
         OPS_ALERTS_TOPIC_ARN: !Ref OpsAlertsTopicArn
-        CONTACT_FROM_EMAIL: support@rapidcortex.us
+        CONTACT_FROM_EMAIL: support@nexcortiq.us
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
         COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
         COGNITO_NATIVE_CLIENT_ID: !Ref ImportedCognitoNativeClientId
@@ -175,7 +175,7 @@ Resources:
             Action:
               - ses:SendEmail
             Resource:
-              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@rapidcortex.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@nexcortiq.us
 
   FieldCommandHttpFunction:
     Type: AWS::Serverless::Function

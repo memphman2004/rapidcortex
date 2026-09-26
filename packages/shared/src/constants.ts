@@ -1,5 +1,5 @@
 /** Product name for UI, emails, and log prefixes. */
-export const PRODUCT_NAME = "Rapid Cortex";
+export const PRODUCT_NAME = "NexCort iQ";
 
 /** Public marketing tagline (short). */
 export const PRODUCT_TAGLINE = "Real-Time AI Intelligence for Emergency Response";

@@ -1,0 +1,22 @@
+[
+  {
+    "table": "rapid-cortex-agencies-dev",
+    "ok": true,
+    "pitr": "ENABLED"
+  },
+  {
+    "table": "rapid-cortex-audit-dev",
+    "ok": true,
+    "pitr": "ENABLED"
+  },
+  {
+    "table": "rapid-cortex-incidents-dev",
+    "ok": true,
+    "pitr": "ENABLED"
+  },
+  {
+    "table": "rapid-cortex-transcripts-dev",
+    "ok": true,
+    "pitr": "ENABLED"
+  }
+]

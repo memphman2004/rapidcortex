@@ -35,6 +35,7 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/qa\/scorecards(\/|$)/,
   /^\/api\/qa\/coaching-notes(\/|$)/,
   /^\/api\/rcs\//,
+  /^\/api\/psap\/continuity(\/|$)/,
   /^\/api\/cad-connector\//,
   /^\/api\/ng911\//,
   /^\/api\/call-assist\//,
@@ -44,26 +45,28 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/public\/vision\//,
   /^\/api\/incidents\/[^/]+\/vision/,
   /^\/api\/cad-bridge\//,
+  /^\/api\/agencies\/[^/]+\/network(\/|$)/,
   /^\/api\/public\/cad-bridge\//,
   /^\/api\/c2c\//,
   /^\/api\/public\/c2c\//,
   /^\/api\/location\//,
+  /^\/api\/geocode(\/|$)/,
+  /^\/api\/map\/hospitals$/,
+  /^\/api\/map\/education$/,
   /^\/api\/alerts\//,
   /^\/api\/public\/call-assist\//,
   /^\/api\/public\/diversion\//,
   /^\/api\/incidents\/[^/]+\/eido$/,
   /^\/api\/incidents\/[^/]+\/additional-data/,
+  /** 13-feature suite (AppSamFeaturesStack on AppSam2 HttpApi). Not the local Next entitlements GET /api/features. */
+  /^\/api\/features\//,
 ];
 
-/** Billing, payments, Ring Connect, network policy — stack-app-sam-4 (AppSam4Stack). */
+/** Billing, payments, network policy — stack-app-sam-4 (AppSam4Stack). */
 const STACK4_PATH_TESTS: RegExp[] = [
   /^\/api\/billing\//,
   /^\/api\/agencies\/[^/]+\/billing/,
   /^\/api\/rc-admin\/invoices\/bulk-draft$/,
-  // RING_DISABLED — 2026-09-11. Keep path mapping so BFF can return 503; SAM omits the Lambdas.
-  /^\/api\/integrations\/ring\//,
-  /^\/api\/public\/ring\//,
-  /^\/api\/user\/account$/,
   /^\/api\/cameras\/providers/,
   /^\/api\/admin\/invoices/,
   /^\/api\/admin\/pricing/,
@@ -94,6 +97,7 @@ const STACK5_PATH_TESTS: RegExp[] = [
   /^\/api\/public\/campus\//,
   /^\/api\/public\/crime-log\//,
   /^\/api\/physical-security\//,
+  /^\/api\/milestone(\/|$)/,
   /^\/api\/public\/locate\//,
   /^\/api\/sms-routing/,
   /^\/api\/video\//,
@@ -112,6 +116,7 @@ const STACK3_PATH_TESTS: RegExp[] = [
   /^\/api\/rc-admin\/leads(\/|$)/,
   /^\/api\/rc-admin\/psap-prospects(\/|$)/,
   /^\/api\/psap-prospects(\/|$)/,
+  /^\/api\/map\/psaps$/,
   /^\/api\/contacts(\/|$)/,
   /^\/api\/rapid-iq(\/|$)/,
   /^\/api\/rc-admin\/rapid-iq(\/|$)/,
@@ -133,6 +138,7 @@ const STACK3_PATH_TESTS: RegExp[] = [
   /^\/api\/video-assist\//,
   /^\/api\/incidents\/[^/]+\/video-assist/,
   /^\/api\/agencies\/[^/]+\/share-partners/,
+  /^\/api\/loadout\//,
 ];
 
 export function isSam4ApiPath(path: string): boolean {

@@ -666,7 +666,7 @@ a(f"| CloudTrail + log integrity | {'DENIED' if ct['listDenied'] else 'OK'} | {'
 
 s3 = summary["controls"]["s3"]
 s3_ok = not s3["rapidCortexMissingEncryption"] and not s3["rapidCortexMissingBpa"]
-s3_note = f"{s3['rapidCortexBucketCount']} Rapid Cortex buckets; encryption algs={', '.join(s3['rapidCortexAlgorithms'])}."
+s3_note = f"{s3['rapidCortexBucketCount']} NexCort iQ buckets; encryption algs={', '.join(s3['rapidCortexAlgorithms'])}."
 if s3["rapidCortexMissingEncryption"]:
     s3_note += f" Missing encryption: {', '.join(s3['rapidCortexMissingEncryption'])}."
 if s3["rapidCortexMissingBpa"]:
@@ -677,7 +677,7 @@ a(f"| S3 encryption + Block Public Access | OK | {yn(s3_ok)} for rapid-cortex-* 
 
 ddb = summary["controls"]["dynamodbPitr"]
 ddb_ok = ddb["rapidCortexTableCount"] > 0 and not ddb["pitrDisabled"]
-ddb_note = f"{ddb['pitrEnabled']}/{ddb['rapidCortexTableCount']} Rapid Cortex / Ring tables have PITR. Param DynamoPointInTimeRecovery={ddb['parameter']}."
+ddb_note = f"{ddb['pitrEnabled']}/{ddb['rapidCortexTableCount']} NexCort iQ / Ring tables have PITR. Param DynamoPointInTimeRecovery={ddb['parameter']}."
 if ddb["pitrDisabled"]:
     shown = ddb["pitrDisabled"][:20]
     extra = f" (+{len(ddb['pitrDisabled'])-20} more)" if len(ddb["pitrDisabled"]) > 20 else ""

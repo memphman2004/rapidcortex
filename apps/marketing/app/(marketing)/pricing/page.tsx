@@ -5,8 +5,8 @@ import { absoluteUrl, buildOgShareImage } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "Pricing | Rapid Cortex",
-    description: "Quote-based pricing tiers for Rapid Cortex Core, Campus, and Venue product deployments.",
+    title: "Pricing | NexCort iQ",
+    description: "Quote-based pricing tiers for 911 Centers/PSAPs, Campus, and Venue product deployments.",
     keywords: [
       "public safety pricing",
       "dispatch software pricing",
@@ -15,16 +15,16 @@ export async function generateMetadata(): Promise<Metadata> {
       "venue security pricing",
     ],
     openGraph: {
-      title: "Pricing | Rapid Cortex",
+      title: "Pricing | NexCort iQ",
       description: "All plans are quote-based for agency-specific requirements.",
       url: absoluteUrl("/pricing"),
-      siteName: "Rapid Cortex",
-      images: [buildOgShareImage("Rapid Cortex pricing")],
+      siteName: "NexCort iQ",
+      images: [buildOgShareImage("NexCort iQ pricing")],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: "Pricing | Rapid Cortex",
+      title: "Pricing | NexCort iQ",
       description: "Quote-based plan tiers and add-on catalog.",
       images: [{ url: buildOgShareImage().url, alt: buildOgShareImage().alt }],
     },
@@ -38,7 +38,7 @@ export default function PricingPage() {
   return (
     <article className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <header className="space-y-4">
-        <h1 className="text-3xl font-semibold text-white sm:text-4xl">Rapid Cortex Pricing</h1>
+        <h1 className="text-3xl font-semibold text-white sm:text-4xl">NexCort iQ Pricing</h1>
         <p className="text-sm text-slate-300">
           All plans are quote-based. Contact us for pricing tailored to your agency.
         </p>
@@ -52,13 +52,13 @@ export default function PricingPage() {
               <h3 className="text-base font-semibold text-slate-100">{tier}</h3>
               <nav className="mt-4 flex gap-2">
                 <Link
-                  href="https://www.rapidcortex.us/contact-sales?interest=demo"
+                  href="https://www.nexcortiq.us/contact-sales?interest=demo"
                   className="inline-flex min-h-10 items-center rounded-md bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-500"
                 >
                   Request Demo
                 </Link>
                 <Link
-                  href="https://www.rapidcortex.us/contact-sales?interest=demo"
+                  href="https://www.nexcortiq.us/contact-sales?interest=demo"
                   className="inline-flex min-h-10 items-center rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-100 hover:bg-slate-800"
                 >
                   Contact

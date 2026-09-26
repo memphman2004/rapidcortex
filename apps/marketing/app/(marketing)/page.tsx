@@ -9,40 +9,38 @@ import {
   marketingDashboardPath,
   marketingDemoPath,
   marketingLoginPath,
-  marketingNestConnectPath,
   marketingPricingPath,
   marketingSignupPath,
   marketingWyzeConnectPath,
 } from "@/lib/marketing-links";
 import { MarketingPilotResourcesStrip } from "@/components/marketing/pilot-resources-strip";
 import { NewFeaturesSection } from "@/components/sections/NewFeaturesSection";
-import { SITE_MISSION, SITE_NAME, SITE_SLOGAN } from "@/lib/site";
+import { SITE_MISSION, SITE_NAME, SITE_NAME_WITH_FORMER, SITE_SLOGAN } from "@/lib/site";
 import { absoluteUrl, buildOrganizationJsonLd, buildWebsiteJsonLd, buildOgShareImage } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "Home | Rapid Cortex",
-    description:
-      "Rapid Cortex is an intelligence layer for emergency response teams with AI-assisted situational awareness, transcription, translation, and command coordination.",
+    title: `${SITE_NAME} | ${SITE_SLOGAN}`,
+    description: `${SITE_NAME_WITH_FORMER} is an intelligence layer for emergency response teams with AI-assisted situational awareness, transcription, translation, and command coordination.`,
     keywords: [
-      "rapid cortex",
+      "nexcort iq",
       "911 dispatch intelligence",
       "public safety software",
       "incident command platform",
       "emergency communications intelligence",
     ],
     openGraph: {
-      title: "Home | Rapid Cortex",
-      description: "Intelligence at the speed of response.",
+      title: `${SITE_NAME} | ${SITE_SLOGAN}`,
+      description: `${SITE_SLOGAN}. ${SITE_NAME_WITH_FORMER}.`,
       url: absoluteUrl("/"),
-      siteName: "Rapid Cortex",
-      images: [buildOgShareImage("Rapid Cortex home")],
+      siteName: SITE_NAME,
+      images: [buildOgShareImage(`${SITE_NAME} home`)],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: "Home | Rapid Cortex",
-      description: "Intelligence at the speed of response.",
+      title: `${SITE_NAME} | ${SITE_SLOGAN}`,
+      description: SITE_SLOGAN,
       images: [{ url: buildOgShareImage().url, alt: buildOgShareImage().alt }],
     },
     alternates: { canonical: absoluteUrl("/") },
@@ -61,27 +59,29 @@ export default function MarketingHomePage() {
   const softwareApplicationJsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "Rapid Cortex",
+    name: SITE_NAME,
+    alternateName: "Rapid Cortex",
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web, Windows, macOS",
-    url: "https://www.rapidcortex.us",
+    url: absoluteUrl("/"),
     description:
-      "Unified public safety intelligence platform with three products: Rapid Cortex Core for 911 centers and PSAPs, Rapid Cortex Venue for stadium and venue safety coordination, and Rapid Vision™ for emergency camera and media sharing.",
+      "Unified public safety intelligence platform with three products: 911 Centers/PSAPs, NexCort iQ Venue for stadium and venue safety coordination, and NexiQ Vision™ for emergency camera and media sharing.",
     offers: [
       {
         "@type": "Offer",
         name: "Free 60-Day Pilot Program",
         description:
-          "Qualified agencies and venues can evaluate Rapid Cortex with a structured 60-day pilot.",
+          "Qualified agencies and venues can evaluate NexCort iQ with a structured 60-day pilot.",
         price: "0",
         priceCurrency: "USD",
       },
     ],
     provider: {
       "@type": "Organization",
-      name: "Rapid Cortex",
-      url: "https://www.rapidcortex.us",
-      email: "Support@rapidcortex.us",
+      name: SITE_NAME,
+      alternateName: "Rapid Cortex",
+      url: absoluteUrl("/"),
+      email: "Support@nexcortiq.us",
       founder: { "@type": "Person", name: "Dr. Jeffrey W. Coleman" },
     },
   };
@@ -111,6 +111,9 @@ export default function MarketingHomePage() {
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-pretty text-lg text-slate-300/95 drop-shadow-sm">
             {SITE_MISSION}
+          </p>
+          <p className="mx-auto mt-3 max-w-2xl text-pretty text-sm text-slate-400/95 drop-shadow-sm">
+            {SITE_NAME_WITH_FORMER}.
           </p>
           <p className="mx-auto mt-4 max-w-2xl text-pretty text-base text-slate-400/95 drop-shadow-sm">
             <strong className="font-medium text-slate-200">
@@ -178,7 +181,7 @@ export default function MarketingHomePage() {
               },
               {
                 title: "Live Command Maps",
-                body: "Amazon Location Service command-center maps align with Rapid Cortex workstations—carry caller-shared pins and situational context alongside CAD-driven unit markers when your feed supports them.",
+                body: "Amazon Location Service command-center maps align with NexCort iQ workstations—carry caller-shared pins and situational context alongside CAD-driven unit markers when your feed supports them.",
                 Icon: Map,
               },
               {
@@ -215,44 +218,15 @@ export default function MarketingHomePage() {
       <section className="relative z-10 bg-slate-950 mx-auto max-w-6xl px-4 pb-8 sm:px-6">
         <h2 className="text-center text-xl font-semibold text-white sm:text-2xl">Camera integrations</h2>
         <p className="mx-auto mt-4 max-w-3xl text-center text-sm text-slate-400">
-          Rapid Vision™ requests temporary live video from citizen and facility cameras during
+          NexiQ Vision™ requests temporary live video from citizen and facility cameras during
           active incidents — with owner consent for residential devices.
         </p>
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <li className="rounded-lg border border-blue-500/25 bg-slate-900/40 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-300">Partner</p>
-            <h3 className="mt-2 text-lg font-semibold text-white">Ring™</h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-400">
-              Consent-based emergency video from Ring™ doorbells and cameras near the incident —
-              available to authorized dispatch and campus teams.
-            </p>
-            <a
-              href="/connect/ring/start"
-              className="mt-4 inline-flex text-sm font-medium text-sky-400 hover:text-sky-300"
-            >
-              Ring™ Connect for device owners →
-            </a>
-          </li>
-          <li className="rounded-lg border border-emerald-500/25 bg-slate-900/40 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Partner</p>
-            <h3 className="mt-2 text-lg font-semibold text-white">Google Nest™</h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-400">
-              Agency-linked Nest™ cameras plus nearby citizen Nest™ devices with the same
-              consent-first request pattern used for Ring™.
-            </p>
-            <a
-              href={marketingNestConnectPath()}
-              className="mt-4 inline-flex text-sm font-medium text-sky-400 hover:text-sky-300"
-            >
-              Nest™ Connect →
-            </a>
-          </li>
+        <ul className="mx-auto mt-8 grid max-w-md gap-4">
           <li className="rounded-lg border border-cyan-500/25 bg-slate-900/40 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">Partner</p>
-            <h3 className="mt-2 text-lg font-semibold text-white">Wyze™</h3>
+            <h3 className="text-lg font-semibold text-white">Wyze™</h3>
             <p className="mt-2 text-sm leading-relaxed text-slate-400">
               Homeowner Wyze™ cameras with encrypted API keys and SMS consent for each emergency
-              live-share request — the same opt-in model used for Ring™ and Nest™.
+              live-share request during an active incident.
             </p>
             <a
               href={marketingWyzeConnectPath()}
@@ -271,19 +245,19 @@ export default function MarketingHomePage() {
             href="/product/core"
             className="flex items-start rounded-md border border-slate-700 bg-slate-900/40 px-4 pt-2 pb-3 text-sm font-medium leading-snug text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
           >
-            RC Core
+            911 Centers/PSAPs
           </Link>
           <Link
             href="/product/campus"
             className="flex items-start rounded-md border border-slate-700 bg-slate-900/40 px-4 pt-2 pb-3 text-sm font-medium leading-snug text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
           >
-            RC Campus
+            Campus
           </Link>
           <Link
             href="/product/venue"
             className="flex items-start rounded-md border border-slate-700 bg-slate-900/40 px-4 pt-2 pb-3 text-sm font-medium leading-snug text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
           >
-            RC Venue
+            Venue
           </Link>
         </nav>
       </section>
@@ -293,7 +267,7 @@ export default function MarketingHomePage() {
           Explore 911 and NG911 resources
         </h2>
         <p className="mx-auto mt-4 max-w-3xl text-center text-sm text-slate-400">
-          Rapid Cortex is an intelligence and decision-support layer that works alongside CAD and
+          NexCort iQ is an intelligence and decision-support layer that works alongside CAD and
           NG911 systems for emergency communications teams.
         </p>
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

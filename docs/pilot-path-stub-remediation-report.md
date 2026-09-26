@@ -19,7 +19,7 @@ Legend:
 
 ## Residual exploratory routes
 
-- **`apps/web/lib/rc-lite/v1-handle.ts`** — Returns HTTP **501** by design until RC Lite workers connect. Not part of the primary pilot SPA path; flagged for future service-disabled harmonization **only** if surfaced to production users.
+- **`apps/web/lib/rc-lite/v1-handle.ts`** — Returns HTTP **501** by design until NC Lite workers connect. Not part of the primary pilot SPA path; flagged for future service-disabled harmonization **only** if surfaced to production users.
 - **Marketing/developer docs** referencing `501` — Documentation only.
 
 ## Operational follow-ups

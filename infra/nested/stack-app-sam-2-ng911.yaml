@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Rapid Cortex — NG9-1-1 assist: non-emergency diversion, crisis diversion,
+  NexCort iQ — NG9-1-1 assist: non-emergency diversion, crisis diversion,
   EIDO export/import, Additional Data packages, call-processing metrics + NG-SEC evidence.
   Routes attach to stack 2 HttpApi via ApiGatewayV2.
 
@@ -70,7 +70,7 @@ Globals:
           - CreateNg911AssistTable
           - !Ref Ng911AssistTable
           - !Ref ExistingNg911AssistTableName
-        NG911_DIVERSION_MOCK_SMS: "true"
+        NG911_DIVERSION_MOCK_SMS: "false"
         AUDIT_TABLE: !Ref AuditTable
         AGENCIES_TABLE: !Ref AgenciesTable
         INCIDENTS_TABLE: !Ref IncidentsTable

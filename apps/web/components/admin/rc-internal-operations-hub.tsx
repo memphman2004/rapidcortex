@@ -18,7 +18,7 @@ const quickLinks = [
   { path: "/admin/protocols", label: "Protocol packs" },
 ] as const;
 
-/** Rapid Cortex internal GTM, sales, and onboarding operations — RC Admin only. */
+/** NexCort iQ internal GTM, sales, and onboarding operations — NexCort Admin only. */
 export function RcInternalOperationsHub() {
   const to = useJurisdictionLink();
   const docsBaseConfigured = Boolean(getDocumentationBaseUrl());
@@ -28,7 +28,7 @@ export function RcInternalOperationsHub() {
       <div>
         <h1 className="text-lg font-semibold text-white">Internal operations</h1>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-400">
-          GTM, promise control, onboarding trackers, and sales-ready definitions for Rapid Cortex
+          GTM, promise control, onboarding trackers, and sales-ready definitions for NexCort iQ
           platform operators. Not shown to agency IT or customer admins.
         </p>
         {!docsBaseConfigured ? (

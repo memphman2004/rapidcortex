@@ -1,0 +1,18 @@
+
+       _               _
+   ___| |__   ___  ___| | _______   __
+  / __| '_ \ / _ \/ __| |/ / _ \ \ / /
+ | (__| | | |  __/ (__|   < (_) \ V /
+  \___|_| |_|\___|\___|_|\_\___/ \_/
+
+By Prisma Cloud | version: 3.3.19 
+
+cloudformation scan results:
+
+Passed checks: 1, Failed checks: 0, Skipped checks: 0
+
+Check: CKV_AWS_108: "Ensure IAM policies does not allow data exfiltration"
+	PASSED for resource: AWS::IAM::ManagedPolicy.PsapEnrichmentGeoPolicy
+	File: /infra/nested/psap-enrichment-place-index.yaml:34-58
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/ensure-iam-policies-do-not-allow-data-exfiltration
+

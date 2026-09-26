@@ -1,4 +1,4 @@
-/** Procurement-oriented billing notice — Rapid Cortex does not offer public card checkout here. */
+/** Procurement-oriented billing notice — NexCort iQ does not offer public card checkout here. */
 
 function formatUsd(cents: number): string {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
@@ -16,8 +16,8 @@ export function BillingSelfServeNotice(props: {
 }) {
   const line =
     props.productLine === "rc_lite"
-      ? "RC Lite API access"
-      : "Rapid Cortex platform (dashboard seats)";
+      ? "NexCort Lite API access"
+      : "NexCort iQ platform (dashboard seats)";
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-xl shadow-black/20 sm:p-8">
@@ -52,10 +52,10 @@ export function BillingSelfServeNotice(props: {
       </ul>
       <div className="rounded-xl border border-amber-900/40 bg-amber-950/20 p-4 text-sm text-amber-100/90">
         <p>
-          Rapid Cortex is sold through agency contracts, approved pilots, purchase orders, invoices, and authorized
+          NexCort iQ is sold through agency contracts, approved pilots, purchase orders, invoices, and authorized
           procurement workflows. Complete access for{" "}
           <strong className="text-amber-50">{line}</strong>{" "}
-          through your contracting office or Rapid Cortex sales — not via public card checkout on this site.
+          through your contracting office or NexCort iQ sales — not via public card checkout on this site.
         </p>
       </div>
     </div>

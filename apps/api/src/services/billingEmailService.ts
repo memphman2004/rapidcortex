@@ -47,10 +47,10 @@ function brandedHtml(content: string): string {
                 <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto;">
                   <tr>
                     <td style="padding-right:14px;vertical-align:middle;">
-                      <img src="${logoSrc}" width="48" height="48" alt="Rapid Cortex" style="display:block;width:48px;height:48px;border-radius:10px;border:0;line-height:0;object-fit:contain;" />
+                      <img src="${logoSrc}" width="48" height="48" alt="NexCort iQ" style="display:block;width:48px;height:48px;border-radius:10px;border:0;line-height:0;object-fit:contain;" />
                     </td>
                     <td style="vertical-align:middle;text-align:left;">
-                      <div style="color:#f8fafc;font-size:20px;font-weight:700;line-height:1.25;">Rapid Cortex</div>
+                      <div style="color:#f8fafc;font-size:20px;font-weight:700;line-height:1.25;">NexCort iQ</div>
                       <div style="color:#94a3b8;font-size:13px;line-height:1.35;margin-top:4px;font-weight:600;">Billing notification</div>
                     </td>
                   </tr>
@@ -174,7 +174,7 @@ export async function sendInvoiceEmail(
         CcAddresses: ccEmails.filter(Boolean),
       },
       Message: {
-        Subject: { Data: `Rapid Cortex Invoice ${invoice.invoiceNumber ?? invoice.invoiceId}` },
+        Subject: { Data: `NexCort iQ Invoice ${invoice.invoiceNumber ?? invoice.invoiceId}` },
         Body: { Html: { Data: html } },
       },
     }),

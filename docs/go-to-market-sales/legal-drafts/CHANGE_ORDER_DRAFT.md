@@ -1,6 +1,7 @@
 # Change Order — DRAFT
 
 > **STATUS: DRAFT — COUNSEL REVIEW REQUIRED**  
+> **Last reviewed:** 2026-09-19 (60-day refresh — still draft).  
 > Modifies an existing Order Form and Statement of Work under the MSA. No Change Order is effective until signed by both Parties.
 
 ---
@@ -66,7 +67,7 @@ Attach revised Exhibit A excerpt if scope is material.
 
 ## Signatures
 
-| **Customer** | **Rapid Cortex** |
+| **Customer** | **NexCort iQ** |
 |--------------|------------------|
 | Authorized signature | Authorized signature |
 | Date | Date |

@@ -6,7 +6,7 @@
 
 ---
 
-## 1. What hospital Rapid Cortex is (and is not)
+## 1. What hospital NexCort iQ is (and is not)
 
 | Hospital module **is** | Hospital module **is not** |
 |------------------------|----------------------------|

@@ -11,7 +11,7 @@ export default function TranslateSessionPage() {
       <TranslateSessionPageClient
         sessionId={params.sessionId}
         vertical="law_enforcement"
-        heading="RC Translate"
+        heading="Translate"
       />
     </Suspense>
   );

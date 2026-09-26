@@ -42,7 +42,7 @@ export async function runGrantsGovCollector(): Promise<{ signalsFound: number }>
     classified.aiSummary = [
       'Grants.gov NOFO "NG911 modernization" lists Mock County 911 as an eligible applicant class example.',
       "Estimated award band $250,000 for PSAP communications upgrades.",
-      "Rapid Cortex Core maps to NG911 recording and AI coaching funded by this opportunity class.",
+      "NexCort iQ Core maps to NG911 recording and AI coaching funded by this opportunity class.",
       "Outreach before the mock close date while applications are open.",
     ].join(" ");
     if (classified.isRelevant) {
@@ -123,7 +123,7 @@ export async function runGrantsGovCollector(): Promise<{ signalsFound: number }>
           classified.aiSummary = [
             `Grants.gov opportunity "${hit.title ?? "Untitled"}" (${hit.number ?? "n/a"}) names ${classified.agencyName} in connection with public safety / emergency communications funding.`,
             `Awarding agency: ${hit.agencyName ?? hit.agencyCode ?? "federal"}. Status: ${hit.oppStatus ?? "posted"}; close date ${hit.closeDate ?? "see listing"}.`,
-            `Rapid Cortex Core aligns with NG911 and dispatch modernization projects that use these grant dollars.`,
+            `NexCort iQ Core aligns with NG911 and dispatch modernization projects that use these grant dollars.`,
             `Engage ${classified.agencyName} before the application close window.`,
           ].join(" ");
         }

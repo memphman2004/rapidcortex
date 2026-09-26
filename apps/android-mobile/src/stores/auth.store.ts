@@ -228,7 +228,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
 
   authenticateBiometric: async () => {
     if (!get().biometricEnabled) return true;
-    return biometricAuthenticate('Unlock Rapid Cortex');
+    return biometricAuthenticate('Unlock NexCort iQ');
   },
 
   clearError: () => set({ error: null }),
@@ -262,7 +262,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
         );
 
         if (get().biometricEnabled) {
-          const passed = await biometricAuthenticate('Unlock Rapid Cortex');
+          const passed = await biometricAuthenticate('Unlock NexCort iQ');
           if (!passed) {
             return;
           }
@@ -280,7 +280,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
         }
 
         if (get().biometricEnabled) {
-          const passed = await biometricAuthenticate('Unlock Rapid Cortex');
+          const passed = await biometricAuthenticate('Unlock NexCort iQ');
           if (!passed) {
             return;
           }

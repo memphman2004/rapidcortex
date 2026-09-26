@@ -89,6 +89,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         description,
         isAnonymous: true,
         confidential: false,
+        latitude: body.location?.latitude,
+        longitude: body.location?.longitude,
       },
       agencyId,
       `security-event:${body.source}`,

@@ -1,6 +1,7 @@
 import {
   CognitoIdentityProviderClient,
   InitiateAuthCommand,
+  RevokeTokenCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { getCognitoClientId, getCognitoRegion } from "@/lib/auth/cognito-config";
 import { cognitoUsernameForSecretHashFromIdToken } from "@/lib/auth/cognito-jwt-payload";
@@ -50,5 +51,31 @@ export async function exchangeRefreshToken(
     };
   } catch {
     return null;
+  }
+}
+
+/**
+ * Revoke a refresh token so idle sign-out cannot be replayed from a copied cookie.
+ * Returns false when Cognito rejects the call; the caller still clears local cookies.
+ */
+export async function revokeRefreshToken(refreshToken: string): Promise<boolean> {
+  const clientId = getCognitoClientId();
+  const region = getCognitoRegion();
+  const token = refreshToken.trim();
+  if (!clientId || !token) return false;
+
+  const secret = process.env.COGNITO_CLIENT_SECRET?.trim();
+  const cip = new CognitoIdentityProviderClient({ region });
+  try {
+    await cip.send(
+      new RevokeTokenCommand({
+        Token: token,
+        ClientId: clientId,
+        ...(secret ? { ClientSecret: secret } : {}),
+      }),
+    );
+    return true;
+  } catch {
+    return false;
   }
 }

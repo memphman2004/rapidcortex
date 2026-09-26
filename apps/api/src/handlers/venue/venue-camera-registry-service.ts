@@ -259,7 +259,7 @@ export function buildProducerConfigYaml(agencyId: string, cameras: VenueCamera[]
   );
 
   const lines: string[] = [
-    `# Rapid Cortex KVS Producer Agent configuration`,
+    `# NexCort iQ KVS Producer Agent configuration`,
     `# Agency: ${agencyId}`,
     `# Generated: ${new Date().toISOString()}`,
     `# Run the KVS Producer SDK on-site — one process per camera or a multi-camera agent.`,
@@ -296,7 +296,7 @@ export function buildProducerConfigYaml(agencyId: string, cameras: VenueCamera[]
   }
 
   lines.push("");
-  lines.push("# Optional Rapid Cortex Video PTZ sidecar (same host as this producer):");
+  lines.push("# Optional NexCort iQ Video PTZ sidecar (same host as this producer):");
   lines.push("#   GATEWAY_SECRET from Secrets Manager, then:");
   lines.push("#   cd /opt/rc-video-gateway && GATEWAY_SECRET=... node --experimental-strip-types ptz-relay-server.ts");
   lines.push("");

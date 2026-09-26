@@ -102,8 +102,8 @@ export function CadNatureCodeMappingEditor({ integration, canEdit }: Props) {
       <div>
         <h3 className="text-sm font-semibold text-white">CAD nature-code mapping</h3>
         <p className="mt-1 text-xs leading-relaxed text-slate-400">
-          Map your CAD nature / problem codes to Rapid Cortex incident types and SOP packs. CAD remains the
-          system of record — Rapid Cortex uses this table for intelligence only (SOP overlay, category, supervisor
+          Map your CAD nature / problem codes to NexCort iQ incident types and SOP packs. CAD remains the
+          system of record — NexCort iQ uses this table for intelligence only (SOP overlay, category, supervisor
           alert). Write-back is not enabled.
         </p>
       </div>
@@ -166,7 +166,7 @@ export function CadNatureCodeMappingEditor({ integration, canEdit }: Props) {
                   />
                 </label>
                 <label className="block text-[11px] text-slate-400">
-                  Rapid Cortex type
+                  NexCort iQ type
                   <select
                     value={row.rcIncidentTypeId ?? ""}
                     disabled={!canEdit}

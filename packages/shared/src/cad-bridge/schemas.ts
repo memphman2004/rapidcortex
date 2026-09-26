@@ -32,7 +32,7 @@ export const CAD_BRIDGE_VENDOR_LABELS: Record<CADVendor, string> = {
   SOUTHERN_SOFTWARE: "Southern Software",
 };
 
-/** Hub capacity: up to 8 CAD participants on one Rapid Cortex bridge. */
+/** Hub capacity: up to 8 CAD participants on one NexCort iQ bridge. */
 export const CAD_BRIDGE_SLOTS = [
   "CAD_A",
   "CAD_B",
@@ -405,7 +405,7 @@ export const circuitBreakerStateSchema = z.object({
 });
 export type CircuitBreakerState = z.infer<typeof circuitBreakerStateSchema>;
 
-/** Canonical Secrets Manager path (Rapid Cortex). */
+/** Canonical Secrets Manager path (NexCort iQ). */
 export const CAD_BRIDGE_SECRET_ARN_PREFIX = "rapid-cortex/cad-bridge/";
 /** Alternate prefix from the standalone CAD-bridge template. IAM allows both. */
 export const CAD_BRIDGE_SECRET_ARN_PREFIX_LEGACY = "rc-cad-bridge/";

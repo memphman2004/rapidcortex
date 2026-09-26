@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Commit and push local Rapid Cortex changes on a schedule (LaunchAgent / cron).
+# Commit and push local NexCort iQ changes on a schedule (LaunchAgent / cron).
 # Safe defaults: skip if clean tree; never force-push; respect .gitignore.
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/Volumes/Mac Mini/Coding Projects/Rapid Cortex}"
+REPO_ROOT="${REPO_ROOT:-/Volumes/Mac Mini/Coding Projects/NexCort iQ}"
 LOG_DIR="${HOME}/Library/Logs/rapid-cortex"
 LOG_FILE="${LOG_DIR}/daily-github-update.log"
 LOCK_DIR="${TMPDIR:-/tmp}/rapid-cortex-daily-github-update.lock"

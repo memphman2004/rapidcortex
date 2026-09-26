@@ -5,18 +5,24 @@
 
 | ID | Artifact | Priority | Status | Owner | Notes |
 |----|----------|----------|--------|-------|-------|
-| LEG-001 | Pilot scope agreement (final) | P0 | DRAFT | NEEDS OWNER | PDF still titled “Draft” |
+| LEG-001 | Pilot scope agreement (final) | P0 | DRAFT | NEEDS OWNER | PDF still titled “Draft”; May 2026 Internal Product PDF is **archive** (60-day review 2026-09-19). Canonical markdown: [PILOT_OVERVIEW.md](./PILOT_OVERVIEW.md) + [PILOT_GOVERNANCE.md](./PILOT_GOVERNANCE.md) until counsel issues an executable |
+| SOC-103 | 60-day MFA / contract / pilot document review | P1 | **DONE** 2026-09-19 | Security | [document-review.md](../security-compliance/soc2/processes/document-review.md); next due 2026-11-18 |
 | LEG-002 | DPA (executable) | P0 | **DRAFT** | Legal | [DPA_DRAFT.md](./legal-drafts/DPA_DRAFT.md) — counsel review |
 | LEG-003 | BAA template | P1 | GAP | NEEDS OWNER | Hospital customers |
 | LEG-004 | CJIS SLA rider | P1 | GAP | NEEDS OWNER | Referenced on trust page |
 | LEG-005 | Standalone order form | P1 | **DRAFT** | Legal | [ORDER_FORM_DRAFT.md](./legal-drafts/ORDER_FORM_DRAFT.md) |
 | LEG-006 | Change order template | P2 | **DRAFT** | Legal | [CHANGE_ORDER_DRAFT.md](./legal-drafts/CHANGE_ORDER_DRAFT.md) |
-| LEG-007 | Entity naming reconciliation | P0 | OPEN | NEEDS OWNER | AOD LLC vs Rapid Cortex LLC |
+| LEG-007 | Entity naming reconciliation | P0 | OPEN | NEEDS OWNER | AOD LLC vs NexCort iQ LLC |
 | LEG-008 | MSA Exhibit B pricing (filled) | P0 | TBD | Finance | `RC_Pricing_Master_Guide_v4.xlsx` |
 | LEG-009 | Per-vendor CAD SOW | P1 | GAP | NEEDS OWNER | GA-013 |
-| LEG-010 | Pen-test SOW / report | P2 | GAP | NEEDS OWNER | Acceptable-use references pen-test SOW |
-| LEG-011 | SOC 2 report | P2 | N/A | — | Third-party audit only |
-| OPS-001 | Security questionnaire pack | P1 | **DRAFT** | SE / security | [SECURITY_QUESTIONNAIRE_RESPONSES.md](../security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md) — customize per RFP |
+| LEG-010 | Pen-test SOW / report | P2 | DRAFT inquiry | Jeff | Send [LEG-010-PENTEST-INQUIRY.md](../security-compliance/soc2/LEG-010-PENTEST-INQUIRY.md) to Cobalt (`sales@cobalt.io`); Schellman backup |
+| LEG-011 | SOC 2 Type II **report** | P2 | N/A | CPA firm | Third-party attestation only — [OUT-OF-BAND.md](../security-compliance/soc2/OUT-OF-BAND.md) |
+| SOC-001 | SOC 2 policy + process pack (CC1–CC9) | P1 | **DONE** | — | [soc2/README.md](../security-compliance/soc2/README.md) — not a Type II report |
+| SOC-002 | Observation window calendar + evidence ledgers | P1 | **DONE** (templates + 2026-09-19 closeout) | Security | [2026-09-19-prewindow](../security-compliance/soc2/evidence/2026-09-19-prewindow/README.md); live AWS re-run still due |
+| SOC-101 | CPA firm engagement | P0 | **PACKET** | Management | [CPA-ENGAGEMENT-SOW.md](../security-compliance/soc2/CPA-ENGAGEMENT-SOW.md) — not sent |
+| SOC-102 | Signed policies / HR / tabletop / restore | P0 | **PARTIAL** | Management / HR / Eng | Tabletop done; restore dry-run; wet signatures outstanding |
+| SOC-103 | 60-day MFA / contract / pilot document review | P1 | **DONE** 2026-09-19 | Security | [document-review.md](../security-compliance/soc2/processes/document-review.md); next due 2026-11-18 |
+| OPS-001 | Security questionnaire pack | P1 | **DRAFT** | SE / security | [SECURITY_QUESTIONNAIRE_RESPONSES.md](../security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md) — MFA/PITR/CloudTrail updated 2026-09-19; still customize per RFP |
 | OPS-013 | RFP cybersecurity + implementation pack | P1 | **DONE** | — | [rfp/README.md](../rfp/README.md); still not CJIS/SOC2 certification |
 | OPS-002 | Subprocessor list | P1 | **DRAFT** | SE / security | [SUBPROCESSOR_LIST.md](../security-compliance/SUBPROCESSOR_LIST.md) |
 | OPS-003 | Supervisor pilot checklist | P2 | **DONE** | — | [PILOT_SUPERVISOR_CHECKLIST.md](../training/PILOT_SUPERVISOR_CHECKLIST.md) |

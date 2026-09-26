@@ -6,9 +6,9 @@
 
 ---
 
-## 1. What campus Rapid Cortex is (and is not)
+## 1. What campus NexCort iQ is (and is not)
 
-| Campus Rapid Cortex **is** | Campus Rapid Cortex **is not** |
+| Campus NexCort iQ **is** | Campus NexCort iQ **is not** |
 |----------------------------|--------------------------------|
 | Assistive safety workflows, location-aware intake (QR/NFC), staff coordination | A replacement for **911**, campus police radio, or Clery-only reporting alone |
 | Slate/neutral **campus console** at `/app/campus/{code}` | A PSAP transcription or CAD workspace |
@@ -27,7 +27,7 @@ Campus reporters typically have **no login** when texting a number from signage 
 | `CAMPUS_SECURITY` | Security | Patrol coordination, incidents |
 | `CAMPUS_DISPATCH` | Campus dispatch | Campus-scoped queue (not 911 PSAP) |
 
-Campus users must **not** receive PSAP roles. Clery and state education reporting remain **agency-owned** processes — Rapid Cortex may support workflows but does not replace statutory filings.
+Campus users must **not** receive PSAP roles. Clery and state education reporting remain **agency-owned** processes — NexCort iQ may support workflows but does not replace statutory filings.
 
 ---
 

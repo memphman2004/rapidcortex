@@ -8,8 +8,8 @@ import {
 import { SITE_NAME, SITE_OPERATOR_NAME, SITE_OPERATOR_URL } from "@/lib/site";
 
 export const metadata = {
-  title: "RC Lite — API-only Rapid Cortex intelligence",
-  description: `RC Lite gives approved agencies and partners secure API access to ${SITE_NAME} intelligence — a product of ${SITE_OPERATOR_NAME}, founded in 2025 — without requiring the full dashboard platform.`,
+  title: "NexCort Lite — API-only NexCort iQ intelligence",
+  description: `NexCort Lite gives approved agencies and partners secure API access to ${SITE_NAME} intelligence — a product of ${SITE_OPERATOR_NAME}, founded in 2025 — without requiring the full dashboard platform.`,
 };
 
 export default function RcLiteMarketingPage() {
@@ -19,13 +19,13 @@ export default function RcLiteMarketingPage() {
 
   return (
     <MarketingArticleShell
-      eyebrow="API product — not the full Rapid Cortex dashboards"
-      title="RC Lite: Rapid Cortex intelligence through API access"
-      sectionLabel="RC Lite"
+      eyebrow="API product — not the full NexCort iQ dashboards"
+      title="NexCort Lite: NexCort iQ intelligence through API access"
+      sectionLabel="NexCort Lite"
     >
       <p className="text-lg font-medium leading-relaxed text-slate-100">
         Secure public-safety intelligence APIs for CAD vendors, dispatch platforms, emergency operations systems, and
-        safety-focused software teams. RC Lite lets approved partners add {SITE_NAME} intelligence to their own systems —
+        safety-focused software teams. NexCort Lite lets approved partners add {SITE_NAME} intelligence to their own systems —
         including incident classification, risk scoring, CAD-ready export, transcription, translation, caller media links,
         and QA analysis.
       </p>
@@ -43,13 +43,13 @@ export default function RcLiteMarketingPage() {
         <Link href="/desktop" className="text-sky-400 hover:text-sky-300">
           browser and desktop apps
         </Link>
-        ; RC Lite is the API-only path for partners embedding intelligence in their own products.
+        ; NexCort Lite is the API-only path for partners embedding intelligence in their own products.
       </p>
       <p className="mt-4 text-xs leading-relaxed text-slate-500">
-        Disclaimer: RC Lite enhances existing emergency systems. It does not replace CAD, RMS, 911 telephony, or official
+        Disclaimer: NexCort Lite enhances existing emergency systems. It does not replace CAD, RMS, 911 telephony, or official
         dispatch procedures. Press contact:{" "}
-        <a href="mailto:info@rapidcortex.us" className="text-sky-500 hover:text-sky-400">
-          info@rapidcortex.us
+        <a href="mailto:info@nexcortiq.us" className="text-sky-500 hover:text-sky-400">
+          info@nexcortiq.us
         </a>
         .
       </p>
@@ -58,22 +58,22 @@ export default function RcLiteMarketingPage() {
       </p>
 
       <h2 className="mt-12 text-xl font-semibold text-white" id="what">
-        What RC Lite is
+        What NexCort Lite is
       </h2>
       <p className="mt-4 leading-relaxed text-slate-300">
-        RC Lite is an <strong className="font-semibold text-slate-100">API-only integration product</strong>—not a
+        NexCort Lite is an <strong className="font-semibold text-slate-100">API-only integration product</strong>—not a
         dispatcher, supervisor, QA, or administrator web application. It ships OAuth client credentials, tenant-scoped REST
-        endpoints, webhooks, and usage-aware billing for teams embedding Rapid Cortex intelligence in CAD, RMS, GIS, or
+        endpoints, webhooks, and usage-aware billing for teams embedding NexCort iQ intelligence in CAD, RMS, GIS, or
         custom municipal systems.
       </p>
 
       <h2 className="mt-10 text-xl font-semibold text-white" id="who">
-        Who RC Lite is for
+        Who NexCort Lite is for
       </h2>
       <ul className="mt-4 list-disc space-y-2 pl-6 text-slate-300">
         <li>CAD, RMS, and GIS vendors integrating approved APIs</li>
         <li>Municipal IT teams and statewide public safety programs</li>
-        <li>Agencies that require API access only (no operational Rapid Cortex web dashboards)</li>
+        <li>Agencies that require API access only (no operational NexCort iQ web dashboards)</li>
       </ul>
 
       <h2 className="mt-10 text-xl font-semibold text-white" id="includes">
@@ -87,7 +87,7 @@ export default function RcLiteMarketingPage() {
         </li>
         <li>
           CAD export through the API contract only (<strong className="text-slate-100">not</strong> the in-app CAD
-          operational workflow from Rapid Cortex Command)
+          operational workflow from NexiQ Command)
         </li>
         <li>Webhooks, usage tracking, API-side billing signals, and developer documentation</li>
       </ul>
@@ -113,7 +113,7 @@ export default function RcLiteMarketingPage() {
         Usage-based billing
       </h2>
       <p className="mt-4 leading-relaxed text-slate-300">
-        RC Lite is invoiced as its own SKU with usage meters for API calls, AI summaries, transcription, translation, and
+        NexCort Lite is invoiced as its own SKU with usage meters for API calls, AI summaries, transcription, translation, and
         related artifacts. Scope is confirmed during procurement; public marketing pages intentionally omit list pricing.
       </p>
 
@@ -122,7 +122,7 @@ export default function RcLiteMarketingPage() {
       </h2>
       <p className="mt-4 leading-relaxed text-slate-300">
         Separate sandbox and production credentials help vendors certify integrations before cutover. Operational promotion
-        gates stay under Rapid Cortex security review.
+        gates stay under NexCort iQ security review.
       </p>
 
       <h2 className="mt-10 text-xl font-semibold text-white" id="webhooks">
@@ -138,15 +138,15 @@ export default function RcLiteMarketingPage() {
           Signed-in console
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-300">
-          RC Lite customers use the dedicated API console to rotate credentials, inspect usage, configure webhooks, and open
-          documentation—still <strong className="font-semibold text-slate-100">not</strong> the Rapid Cortex dispatcher or
+          NexCort Lite customers use the dedicated API console to rotate credentials, inspect usage, configure webhooks, and open
+          documentation—still <strong className="font-semibold text-slate-100">not</strong> the NexCort iQ dispatcher or
           supervisor applications.
         </p>
         <Link
           href="/rc-lite/portal"
           className="mt-4 inline-flex rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-100 hover:bg-slate-900"
         >
-          RC Lite portal overview →
+          NexCort Lite portal overview →
         </Link>
       </div>
 
@@ -155,7 +155,7 @@ export default function RcLiteMarketingPage() {
           href={`${contactSales}?interest=api_access`}
           className="inline-flex rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-sky-950/30 hover:bg-sky-500"
         >
-          Request RC Lite Access
+          Request NexCort Lite Access
         </Link>
         <Link
           href={`${contactSales}?interest=integration`}
@@ -167,7 +167,7 @@ export default function RcLiteMarketingPage() {
           href={pricing}
           className="inline-flex rounded-xl border border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-200 hover:bg-slate-900"
         >
-          Compare Rapid Cortex platform plans
+          Compare NexCort iQ platform plans
         </Link>
         <Link href={docs} className="inline-flex rounded-xl border border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-200 hover:bg-slate-900">
           Developer docs
@@ -175,8 +175,8 @@ export default function RcLiteMarketingPage() {
       </div>
 
       <p className="mt-10 text-xs leading-relaxed text-slate-500">
-        Rapid Cortex remains the full web dashboard platform. RC Lite never rebrands those consoles—“RC Lite dashboards” are
-        not part of this SKU. Agencies that adopt both purchase Rapid Cortex platform licensing plus either RC Lite as a
+        NexCort iQ remains the full web dashboard platform. NexCort Lite never rebrands those consoles—“NexCort Lite dashboards” are
+        not part of this SKU. Agencies that adopt both purchase NexCort iQ platform licensing plus either NexCort Lite as a
         standalone API entitlement or the API Access Add-On layered onto Command / Enterprise deployments.
       </p>
     </MarketingArticleShell>

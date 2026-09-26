@@ -114,7 +114,7 @@ export default function AdminDiversionPage() {
       <div className="space-y-4 p-4 md:p-6">
         <h1 className="text-lg font-semibold text-white">Non-emergency diversion</h1>
         <p className="max-w-xl text-sm text-slate-400">
-          NG9-1-1 assist is not enabled for this agency. Contact Rapid Cortex support to turn it on.
+          NG9-1-1 assist is not enabled for this agency. Contact NexCort iQ support to turn it on.
         </p>
         <Link href={to("/admin")} className="text-sm text-sky-400 hover:underline">
           ← Admin overview

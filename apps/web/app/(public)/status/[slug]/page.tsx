@@ -130,7 +130,7 @@ export default function PublicStakeholderStatusPage() {
       </main>
 
       <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
-        Powered by Rapid Cortex
+        Powered by NexCort iQ
       </footer>
     </div>
   );

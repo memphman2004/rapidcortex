@@ -1,6 +1,6 @@
 # AWS End User Messaging SMS (send, receive, delivery events)
 
-This runbook covers how Rapid Cortex sends and receives SMS through **AWS End User Messaging SMS**, and the 10DLC registration steps an operator must complete in the console first.
+This runbook covers how NexCort iQ sends and receives SMS through **AWS End User Messaging SMS**, and the 10DLC registration steps an operator must complete in the console first.
 
 > **Naming, because it is genuinely confusing.** The service is *AWS End User Messaging SMS*. Its API, CLI service name, and SDK package are all still called `pinpoint-sms-voice-v2`. Amazon Pinpoint itself reaches **end of support on 2026-10-30**, but the SMS, voice, push, and OTP APIs are explicitly carved out and continue under End User Messaging. Do **not** create a Pinpoint project, and do not use the `@aws-sdk/client-pinpoint` package — that is the retiring v1 surface.
 
@@ -25,7 +25,7 @@ End to end this is realistically six to seven weeks. Note also that 10DLC resour
 
 ### Account and credentials
 
-All Rapid Cortex SMS resources live in account **158961537080**, region **us-east-1**. The `default` AWS profile on a dev machine may point at an unrelated account, so always run these commands with:
+All NexCort iQ SMS resources live in account **158961537080**, region **us-east-1**. The `default` AWS profile on a dev machine may point at an unrelated account, so always run these commands with:
 
 ```bash
 export AWS_PROFILE=rapid-cortex
@@ -112,12 +112,12 @@ aws pinpoint-sms-voice-v2 put-keyword --region us-east-1 \
   --origination-identity <phone-number-id-or-pool-id> \
   --keyword HELP \
   --keyword-action AUTOMATIC_RESPONSE \
-  --keyword-message "Columbus PD via Rapid Cortex. Help: 706-555-0100. Reply STOP to opt out."
+  --keyword-message "Columbus PD via NexCort iQ. Help: 706-555-0100. Reply STOP to opt out."
 ```
 
 Outstanding items to complete after approval:
 
-- [ ] Keep the public HELP reply email-only (`support@rapidcortex.us`). Do not put a personal cell in customer-facing HELP text, privacy, or terms. Brand registration may still list a business support phone for TCR; that is separate from public HELP copy.
+- [ ] Keep the public HELP reply email-only (`support@nexcortiq.us`). Do not put a personal cell in customer-facing HELP text, privacy, or terms. Brand registration may still list a business support phone for TCR; that is separate from public HELP copy.
 - [ ] Set per-number `HELP` and `STOP` keyword responses for each agency number.
 - [ ] Keep the registered copy and the runtime replies consistent; carriers can audit that they match.
 
@@ -143,13 +143,13 @@ aws pinpoint-sms-voice-v2 set-text-message-spend-limit-override \
   --region us-east-1
 ```
 
-Do **not** use `aws pinpoint update-sms-channel` or `aws sms-voice update-phone-number-settings`. Those are classic Pinpoint / a different CLI surface. Rapid Cortex sends with `SendTextMessage` on `pinpoint-sms-voice-v2`.
+Do **not** use `aws pinpoint update-sms-channel` or `aws sms-voice update-phone-number-settings`. Those are classic Pinpoint / a different CLI surface. NexCort iQ sends with `SendTextMessage` on `pinpoint-sms-voice-v2`.
 
 Sandbox destination verification is optional now. Keep `./scripts/setup-aws-10dlc.sh verify` only if you need a known-good handset on a sandbox region.
 
 Live origination (10DLC, two-way, campaign COMPLETE): **+1 319-835-8230**. Brand and campaign registrations are COMPLETE. AppSam5Stack creates configuration set `${AppName}-sms-${DeploymentStage}` when `AwsSmsConfigurationSetName` is blank, and attaches TEXT_ALL events to `AwsSmsDeliveryEventsTopic`. Extra per-agency numbers are the remaining scale work — not another sandbox ticket.
 
-## Wiring the AWS resources to Rapid Cortex
+## Wiring the AWS resources to NexCort iQ
 
 The nested stack `infra/nested/stack-app-sam-5.yaml` creates two SNS topics and exports their ARNs, because AWS delivers both inbound messages and delivery events to SNS rather than to an HTTP webhook:
 

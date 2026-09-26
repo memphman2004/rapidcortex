@@ -24,7 +24,7 @@ function wrap(preheader: string, bodyContent: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rapid Cortex</title>
+  <title>NexCort iQ</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <!-- Preheader (hidden preview text) -->
@@ -38,7 +38,7 @@ function wrap(preheader: string, bodyContent: string): string {
           <!-- Header -->
           <tr>
             <td style="background:#0D1B3E;border-radius:8px 8px 0 0;padding:28px 36px;text-align:center;">
-              <div style="color:#ffffff;font-size:22px;font-weight:700;letter-spacing:0.08em;">RAPID CORTEX</div>
+              <div style="color:#ffffff;font-size:22px;font-weight:700;letter-spacing:0.08em;">NEXCORT IQ</div>
               <div style="color:#93a3c0;font-size:12px;margin-top:4px;font-style:italic;">Intelligence at the Speed of Response</div>
             </td>
           </tr>
@@ -54,7 +54,7 @@ function wrap(preheader: string, bodyContent: string): string {
           <tr>
             <td style="background:#f8fafc;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;padding:20px 36px;text-align:center;">
               <div style="color:#94a3b8;font-size:11px;line-height:1.6;">
-                Apps on Demand LLC &nbsp;d/b/a&nbsp; <strong>Rapid Cortex</strong><br>
+                Apps on Demand LLC &nbsp;d/b/a&nbsp; <strong>NexCort iQ</strong><br>
                 <a href="https://www.rapidcortex.us" style="color:#64748b;text-decoration:none;">www.rapidcortex.us</a>
               </div>
             </td>
@@ -72,7 +72,7 @@ function wrap(preheader: string, bodyContent: string): string {
 const P  = `style="margin:0 0 16px;color:#1e293b;font-size:15px;line-height:1.65;"`;
 const P_MUTED = `style="margin:0 0 16px;color:#64748b;font-size:14px;line-height:1.65;"`;
 const DIVIDER = `<hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;">`;
-const SIG = (name: string) => `<p ${P_MUTED}>${name}<br><span style="color:#94a3b8;font-size:12px;">Rapid Cortex</span></p>`;
+const SIG = (name: string) => `<p ${P_MUTED}>${name}<br><span style="color:#94a3b8;font-size:12px;">NexCort iQ</span></p>`;
 
 function ctaButton(text: string, href: string): string {
   return `
@@ -99,21 +99,21 @@ export function rejectionEmail(input: EmailTemplateInput): { subject: string; ht
   const { firstName, customMessage } = input;
 
   const html = wrap(
-    "Thank you for your interest in joining Rapid Cortex.",
+    "Thank you for your interest in joining NexCort iQ.",
     `<p ${P}>Hi ${firstName},</p>
-     <p ${P}>Thank you for taking the time to apply for the <strong>${input.position}</strong> role at Rapid Cortex. We genuinely appreciate your interest in our mission and the effort you put into your application.</p>
+     <p ${P}>Thank you for taking the time to apply for the <strong>${input.position}</strong> role at NexCort iQ. We genuinely appreciate your interest in our mission and the effort you put into your application.</p>
      <p ${P}>After careful review, we have decided to move forward with other candidates whose experience more closely matches what we need at this stage. This was not an easy decision — we received strong applications and yours was among them.</p>
      ${customMessage ? `<p ${P}>${customMessage}</p>` : ""}
      <p ${P}>We are a growing company and will continue to add roles as we scale. We encourage you to check back at <a href="https://www.rapidcortex.us/careers" style="color:#0369a1;">www.rapidcortex.us/careers</a> for future opportunities.</p>
      ${DIVIDER}
-     <p ${P_MUTED}>We wish you the very best in your search — thank you again for your interest in Rapid Cortex.</p>
-     ${SIG("The Rapid Cortex Team")}`
+     <p ${P_MUTED}>We wish you the very best in your search — thank you again for your interest in NexCort iQ.</p>
+     ${SIG("The NexCort iQ Team")}`
   );
 
   const text = [
     `Hi ${firstName},`,
     "",
-    `Thank you for applying for the ${input.position} role at Rapid Cortex.`,
+    `Thank you for applying for the ${input.position} role at NexCort iQ.`,
     "",
     "After careful review, we have decided to move forward with other candidates whose experience more closely matches what we need at this stage.",
     "",
@@ -122,12 +122,12 @@ export function rejectionEmail(input: EmailTemplateInput): { subject: string; ht
     "",
     "We wish you the very best.",
     "",
-    "— The Rapid Cortex Team",
+    "— The NexCort iQ Team",
     "www.rapidcortex.us",
   ].join("\n");
 
   return {
-    subject: "Your Application to Rapid Cortex — Update",
+    subject: "Your Application to NexCort iQ — Update",
     html,
     text,
   };
@@ -145,7 +145,7 @@ export function phoneScreenEmail(input: EmailTemplateInput): { subject: string; 
   const html = wrap(
     "We'd love to connect — you've been selected for a phone screen.",
     `<p ${P}>Hi ${firstName},</p>
-     <p ${P}>Thank you for applying to Rapid Cortex. We reviewed your application for the <strong>${input.position}</strong> role, and we would love to connect for a brief introductory call.</p>
+     <p ${P}>Thank you for applying to NexCort iQ. We reviewed your application for the <strong>${input.position}</strong> role, and we would love to connect for a brief introductory call.</p>
      ${infoBox(`
        <strong>📞 Phone Screen</strong><br>
        Duration: approximately 15–20 minutes<br>
@@ -153,7 +153,7 @@ export function phoneScreenEmail(input: EmailTemplateInput): { subject: string; 
        Who you'll speak with: ${reviewerName}, Founder &amp; CEO<br>
        <span style="color:#0c4a6e;font-size:13px;">We will call you at the number you provide during booking.</span>
      `)}
-     <p ${P}>We just want to learn a bit more about your background and give you a chance to ask questions about the role and what we are building at Rapid Cortex.</p>
+     <p ${P}>We just want to learn a bit more about your background and give you a chance to ask questions about the role and what we are building at NexCort iQ.</p>
      ${customMessage ? `<p ${P}>${customMessage}</p>` : ""}
      ${scheduleSection}
      <p ${P_MUTED}>If none of the available times work, simply reply to this email and we will find something that fits your schedule.</p>
@@ -165,7 +165,7 @@ export function phoneScreenEmail(input: EmailTemplateInput): { subject: string; 
   const text = [
     `Hi ${firstName},`,
     "",
-    `Thank you for applying for the ${input.position} role at Rapid Cortex.`,
+    `Thank you for applying for the ${input.position} role at NexCort iQ.`,
     "",
     "We reviewed your application and would love to connect for a brief phone call — about 15–20 minutes, no video required, no preparation needed. We will call you at the number you provide when you book.",
     "",
@@ -177,11 +177,11 @@ export function phoneScreenEmail(input: EmailTemplateInput): { subject: string; 
     "Looking forward to connecting.",
     "",
     `— ${reviewerName}`,
-    "Rapid Cortex · www.rapidcortex.us",
+    "NexCort iQ · www.rapidcortex.us",
   ].join("\n");
 
   return {
-    subject: "Next Step — Phone Screen with Rapid Cortex",
+    subject: "Next Step — Phone Screen with NexCort iQ",
     html,
     text,
   };
@@ -197,9 +197,9 @@ export function interviewEmail(input: EmailTemplateInput): { subject: string; ht
     : infoBox("We will reach out shortly with available times to coordinate your interview.");
 
   const html = wrap(
-    "You have been selected for an interview with Rapid Cortex.",
+    "You have been selected for an interview with NexCort iQ.",
     `<p ${P}>Hi ${firstName},</p>
-     <p ${P}>We are pleased to invite you to interview for the <strong>${input.position}</strong> position at Rapid Cortex. We were impressed by your application and are excited to learn more about your experience.</p>
+     <p ${P}>We are pleased to invite you to interview for the <strong>${input.position}</strong> position at NexCort iQ. We were impressed by your application and are excited to learn more about your experience.</p>
      ${infoBox(`
        <strong>🗓️ Interview Details</strong><br>
        Duration: approximately 30–45 minutes<br>
@@ -225,7 +225,7 @@ export function interviewEmail(input: EmailTemplateInput): { subject: string; ht
   const text = [
     `Hi ${firstName},`,
     "",
-    `We are pleased to invite you to interview for the ${input.position} position at Rapid Cortex.`,
+    `We are pleased to invite you to interview for the ${input.position} position at NexCort iQ.`,
     "",
     "Interview details:",
     "  Format: Microsoft Teams video call",
@@ -246,11 +246,11 @@ export function interviewEmail(input: EmailTemplateInput): { subject: string; ht
     "No formal preparation required.",
     "",
     `— ${reviewerName}`,
-    "Rapid Cortex · www.rapidcortex.us",
+    "NexCort iQ · www.rapidcortex.us",
   ].join("\n");
 
   return {
-    subject: `Interview Invitation — ${input.position.split("/")[0].trim()} at Rapid Cortex`,
+    subject: `Interview Invitation — ${input.position.split("/")[0].trim()} at NexCort iQ`,
     html,
     text,
   };
@@ -265,7 +265,7 @@ export function offerAdvanceEmail(input: EmailTemplateInput): { subject: string;
   const html = wrap(
     "Exciting news — we would like to move forward with you.",
     `<p ${P}>Hi ${firstName},</p>
-     <p ${P}>We have thoroughly enjoyed getting to know you through our conversations, and we are excited to let you know that we would like to move forward with an offer for the <strong>${input.position}</strong> role at Rapid Cortex.</p>
+     <p ${P}>We have thoroughly enjoyed getting to know you through our conversations, and we are excited to let you know that we would like to move forward with an offer for the <strong>${input.position}</strong> role at NexCort iQ.</p>
      <p ${P}>We will be sending over the formal offer details shortly. In the meantime, please feel free to reach out with any questions.</p>
      ${customMessage ? `<p ${P}>${customMessage}</p>` : ""}
      ${DIVIDER}
@@ -276,17 +276,17 @@ export function offerAdvanceEmail(input: EmailTemplateInput): { subject: string;
   const text = [
     `Hi ${firstName},`,
     "",
-    `We are excited to move forward with an offer for the ${input.position} role at Rapid Cortex.`,
+    `We are excited to move forward with an offer for the ${input.position} role at NexCort iQ.`,
     "",
     "We will be sending over the formal offer details shortly.",
     "",
     ...(customMessage ? [customMessage, ""] : []),
     `— ${reviewerName}`,
-    "Rapid Cortex · www.rapidcortex.us",
+    "NexCort iQ · www.rapidcortex.us",
   ].join("\n");
 
   return {
-    subject: "We Would Like to Move Forward — Rapid Cortex",
+    subject: "We Would Like to Move Forward — NexCort iQ",
     html,
     text,
   };

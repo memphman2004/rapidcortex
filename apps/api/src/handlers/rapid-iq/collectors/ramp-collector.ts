@@ -518,7 +518,7 @@ export async function runRampCollector(): Promise<{ signalsFound: number }> {
       ``,
       `Context: This is an official LA28 Olympic and Paralympic Games procurement opportunity.`,
       `LA28 will host the 2028 Summer Olympics in Los Angeles across 35+ venues with 15,000+ athletes`,
-      `and 5M+ spectators. Rapid Cortex provides venue safety, guest incident reporting, and 911`,
+      `and 5M+ spectators. NexCort iQ provides venue safety, guest incident reporting, and 911`,
       `emergency communications integration — directly relevant to Security and Technology categories.`,
       `Register at RAMPLA.org (Sports & Entertainment / Security NAICS) and respond promptly.`,
     ].join("\n");
@@ -553,7 +553,7 @@ export async function runRampCollector(): Promise<{ signalsFound: number }> {
         aiSummary:
           classified.aiSummary ??
           `LA28 Olympic Games issued a ${opp.type} for ${opp.title}. ` +
-            `Official Olympic procurement via RAMPLA.org — relevant to Rapid Cortex venue safety ` +
+            `Official Olympic procurement via RAMPLA.org — relevant to NexCort iQ venue safety ` +
             `and emergency communications. ${opp.deadline ? `Deadline: ${opp.deadline}.` : ""} ` +
             `Log in to RAMP and respond immediately.`,
         incumbentVendor: null,

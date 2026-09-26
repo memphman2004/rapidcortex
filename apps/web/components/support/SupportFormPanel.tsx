@@ -118,7 +118,7 @@ export function SupportFormPanel({
       setStep("confirmed");
     } catch {
       setError(
-        "Failed to submit your ticket. Please try again or email support@rapidcortex.us directly.",
+        "Failed to submit your ticket. Please try again or email support@nexcortiq.us directly.",
       );
       setStep("form");
     }
@@ -137,7 +137,7 @@ export function SupportFormPanel({
         <div className="flex items-center justify-between border-b border-slate-800 px-5 py-4">
           <div>
             <p className="text-[10px] font-medium uppercase tracking-widest text-slate-500">
-              Rapid Cortex
+              NexCort iQ
             </p>
             <h2 className="text-sm font-semibold text-white">Support Request</h2>
           </div>

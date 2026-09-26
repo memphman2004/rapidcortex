@@ -18,8 +18,8 @@ Re-run: `AWS_PROFILE=rapid-cortex AWS_DEFAULT_REGION=us-east-1 bash scripts/soc2
 | Control | Auditor CLI | Operating in production? | Evidence |
 |---|---|---|---|
 | CloudTrail + log-file validation | **DENIED** (`GetTrailStatus`, `GetEventSelectors`, `DescribeTrails`) | **PARTIAL / not auditor-ready** | Management events *are* recording (`lookup-events` returned live KMS/STS calls). Stack param **`EnableCloudTrail=false`**. No `AWS::CloudTrail::Trail` on nested stacks. SAM bucket `rapid-cortex-cloudtrail-logs-dev-*` does **not** exist. Separate bucket `rapid-cortex-cloudtrail-logs-prod-158961537080` exists (SSE-S3, BPA, versioning). **Cannot prove** trail name, `IsLogging`, or `LogFileValidationEnabled`. S3/Lambda data events params are `false`. `CloudTrailKmsKeyArn` empty. |
-| S3 default encryption + Block Public Access | OK on Rapid Cortex buckets | **PASS** for `rapid-cortex-*` (19/19) | All Rapid Cortex buckets: SSE-S3 `AES256` + all four BPA flags. Versioning missing on 5: `assets`, `resumes`, `sam-artifacts`, `translate-audio`, `vision-artifacts`. Other-product buckets in this account: **AccessDenied** (not proven missing). |
-| DynamoDB PITR | OK | **GAP** — 41 of 182 Rapid Cortex/Ring tables | `DynamoPointInTimeRecovery=auto` and `DeploymentStage=dev`, so template condition `EnablePilotGradeBackups` is **false** (PITR auto-on only for staging/prod/pilot). Core tables **off**: `agencies`, `audit`, `analyses`, Ring session tables, billing, most incident/transcript tables. Newer feature tables **on**: Vision, Venue, CAD bridge, QR, Nest, Connect. Inventory: `dynamodb-pitr-inventory.tsv`. |
+| S3 default encryption + Block Public Access | OK on NexCort iQ buckets | **PASS** for `rapid-cortex-*` (19/19) | All NexCort iQ buckets: SSE-S3 `AES256` + all four BPA flags. Versioning missing on 5: `assets`, `resumes`, `sam-artifacts`, `translate-audio`, `vision-artifacts`. Other-product buckets in this account: **AccessDenied** (not proven missing). |
+| DynamoDB PITR | OK | **GAP** — 41 of 182 NexCort iQ/Ring tables | `DynamoPointInTimeRecovery=auto` and `DeploymentStage=dev`, so template condition `EnablePilotGradeBackups` is **false** (PITR auto-on only for staging/prod/pilot). Core tables **off**: `agencies`, `audit`, `analyses`, Ring session tables, billing, most incident/transcript tables. Newer feature tables **on**: Vision, Venue, CAD bridge, QR, Nest, Connect. Inventory: `dynamodb-pitr-inventory.tsv`. |
 | KMS CMK rotation | **DENIED** (`ListKeys`) | **UNKNOWN** (no CMK aliases visible) | `kms:ListAliases` succeeded and returned **only AWS-managed** aliases (`alias/aws/s3`, `alias/aws/dynamodb`, `alias/aws/acm`, …). No customer-managed key aliases. AWS-managed keys rotate by AWS; that is **not** a CMK rotation control. |
 | Secrets Manager rotation | **DENIED** (`ListSecrets`) | **UNKNOWN** | Two CFN secrets exist: `rapid-cortex/dev/billing/payment-instructions`, `rapid-cortex/dev/billing/ses-credentials`. Rotation flag not readable with this principal. No secret *values* collected. |
 | WAF logging | OK (CloudFront list) | **GAP** | Regional WebACLs: **0**. Stack **`EnableApiWaf=false`**, `ApiWebAclArn=""`. CloudFront: logging **on** for `rapid-cortex-v2-web-cdn-prod` → log group `aws-waf-logs-rapid-cortex-v2-cdn-prod`. Logging **off** for `rapid-cortex-httpapi-cdn-waf-dev` and `CreatedByCloudFront-a0a27a88` (`WAFNonexistentItemException`). |
@@ -37,7 +37,7 @@ These are not documentation tasks. If they are still true on day 1 of the observ
 
 2. **CloudTrail** — Either turn **`EnableCloudTrail=true`** on `rapid-cortex-dev` (multi-Region, `EnableLogFileValidation=true`, `IsLogging=true`) **or** document the existing prod log bucket + the actual trail name, with `get-trail-status` and `get-event-selectors` output. Today you cannot show log-file validation. S3 object-level and Lambda data events are off.
 
-3. **DynamoDB PITR** — Set **`DynamoPointInTimeRecovery=true`** (do not rely on `auto` while production is still `DeploymentStage=dev`) and enable PITR on every in-scope table, especially `agencies`, `audit`, incident/transcript tables, and Ring tables. 141 Rapid Cortex/Ring tables are currently `DISABLED`.
+3. **DynamoDB PITR** — Set **`DynamoPointInTimeRecovery=true`** (do not rely on `auto` while production is still `DeploymentStage=dev`) and enable PITR on every in-scope table, especially `agencies`, `audit`, incident/transcript tables, and Ring tables. 141 NexCort iQ/Ring tables are currently `DISABLED`.
 
 4. **Cognito MFA** — Change production user pool MFA from `OPTIONAL` to **`ON`** (required), or document IdP-enforced MFA as the compensating control with evidence.
 
@@ -47,15 +47,15 @@ These are not documentation tasks. If they are still true on day 1 of the observ
 
 7. **ACM expiry** — Add a CloudWatch alarm on `AWS/CertificateManager` `DaysToExpiry` (or EventBridge `ACM Certificate Approaching Expiration`) for every in-use cert, including `cc0f7fc4-d4ca-4b1a-8ff6-e0676d872fa5`.
 
-8. **Account scope** — Account `158961537080` also hosts Melios, MindHeist, PassPoint, OR Game, and personal/marketing sites. For SOC 2, either move Rapid Cortex production to a **dedicated account** or treat those resources as in-scope (encryption, BPA, PITR, logging, access).
+8. **Account scope** — Account `158961537080` also hosts Melios, MindHeist, PassPoint, OR Game, and personal/marketing sites. For SOC 2, either move NexCort iQ production to a **dedicated account** or treat those resources as in-scope (encryption, BPA, PITR, logging, access).
 
 ---
 
 ## What is already operating (keep)
 
-- Rapid Cortex S3 buckets: default encryption + Block Public Access.
+- NexCort iQ S3 buckets: default encryption + Block Public Access.
 - CloudFront WAF on `rapid-cortex-v2-web-cdn-prod` with logging to CloudWatch Logs.
-- 14 Rapid Cortex CloudWatch alarms in `OK`.
+- 14 NexCort iQ CloudWatch alarms in `OK`.
 - Cognito password policy (12+ mixed character classes).
 - CloudTrail *management-event delivery* is happening (some trail exists even though the SAM trail is not deployed).
 - Compliance/evidence buckets already exist: `rapid-cortex-compliance-evidence-prod-158961537080`, `rapid-cortex-evidence-exports-prod-158961537080`.

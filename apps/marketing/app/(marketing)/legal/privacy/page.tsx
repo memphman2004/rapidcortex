@@ -8,7 +8,7 @@ import { SITE_NAME } from "@/lib/site";
  * body as /privacy (A2P canonical) so this URL is a real page, not a JS redirect.
  */
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Privacy Policy | Rapid Cortex Public Safety Platform",
+  title: "Privacy Policy | NexCort iQ Public Safety Platform",
   description: `Learn how ${SITE_NAME} manages personal and operational information for public safety agencies, emergency communications teams, and platform users.`,
   path: "/legal/privacy",
 });

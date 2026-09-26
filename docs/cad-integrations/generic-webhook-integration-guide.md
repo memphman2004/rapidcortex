@@ -1,24 +1,24 @@
-# Generic Webhook + Rapid Cortex Integration Guide
+# Generic Webhook + NexCort iQ Integration Guide
 
-**Version 1.0** | Rapid Cortex Public Safety AI Platform
+**Version 1.0** | NexCort iQ Public Safety AI Platform
 
 ---
 
 ## Overview
 
-Use this guide when your CAD or **middleware** can issue **HTTPS POST** requests with **JSON** (or JSON produced from XML upstream), but there is **no named vendor profile** in Rapid Cortex—or you prefer explicit **field mapping** control.
+Use this guide when your CAD or **middleware** can issue **HTTPS POST** requests with **JSON** (or JSON produced from XML upstream), but there is **no named vendor profile** in NexCort iQ—or you prefer explicit **field mapping** control.
 
 **What this integration does**
 
-- Accepts a **generic JSON** body at the Rapid Cortex webhook endpoint.
-- Maps your CAD’s field names to Rapid Cortex fields using **configuration** stored with the integration (`fieldMapping` / similar, per your Rapid Cortex build).
-- Supports **agency-owned** transformation layers (ESB, iPaaS, scripts) between CAD and Rapid Cortex.
+- Accepts a **generic JSON** body at the NexCort iQ webhook endpoint.
+- Maps your CAD’s field names to NexCort iQ fields using **configuration** stored with the integration (`fieldMapping` / similar, per your NexCort iQ build).
+- Supports **agency-owned** transformation layers (ESB, iPaaS, scripts) between CAD and NexCort iQ.
 
 **Data flow (ASCII)**
 
 ```
 ┌──────────────┐     optional      ┌─────────────┐   HTTPS JSON    ┌──────────────────┐
-│ Any CAD       │ ──► transformer │ (optional)  │ ──────────────► │ Rapid Cortex API │
+│ Any CAD       │ ──► transformer │ (optional)  │ ──────────────► │ NexCort iQ API │
 └──────────────┘                   └─────────────┘                 └──────────────────┘
 ```
 
@@ -26,7 +26,7 @@ Use this guide when your CAD or **middleware** can issue **HTTPS POST** requests
 
 - Ability to send **POST** with **TLS 1.2+**.
 - Ability to set a **static secret** header (recommended: `X-RC-Token`).
-- Rapid Cortex **admin** to configure mapping.
+- NexCort iQ **admin** to configure mapping.
 
 **Estimated setup time:** 1–3 hours **plus** mapping and testing.
 
@@ -34,14 +34,14 @@ Use this guide when your CAD or **middleware** can issue **HTTPS POST** requests
 
 ## Prerequisites checklist
 
-- [ ] Rapid Cortex **Admin** access.
+- [ ] NexCort iQ **Admin** access.
 - [ ] Sample **JSON** payload from CAD or middleware (sanitized).
 - [ ] Mapping table agreed with dispatch / records.
 - [ ] Outbound **443** to `api.rapidcortex.us`.
 
 ---
 
-## Step 1: Generate integration credentials in Rapid Cortex
+## Step 1: Generate integration credentials in NexCort iQ
 
 1. **Admin → CAD Integrations → Add integration**.
 2. Choose **Generic webhook** (or equivalent).
@@ -58,7 +58,7 @@ Use this guide when your CAD or **middleware** can issue **HTTPS POST** requests
 1. Configure **POST** to the webhook URL.
 2. Set header: `X-RC-Token: <your token>` (unless your admin UI specifies a different header).
 3. Ensure **Content-Type: application/json**.
-4. In Rapid Cortex, configure **field mappings** so keys like your `IncidentId` map to Rapid Cortex’s expected logical fields (per admin UI / documentation).
+4. In NexCort iQ, configure **field mappings** so keys like your `IncidentId` map to NexCort iQ’s expected logical fields (per admin UI / documentation).
 
 > 💡 **Tip:** Keep payloads **stable**—avoid adding/removing keys without versioning your mapping.
 
@@ -90,13 +90,13 @@ curl -sS -X POST \
   }'
 ```
 
-> 💡 **Tip:** Expect HTTP **200** with a small JSON body; use Rapid Cortex **logs** to confirm parse success.
+> 💡 **Tip:** Expect HTTP **200** with a small JSON body; use NexCort iQ **logs** to confirm parse success.
 
 ---
 
 ## Step 5: Validate data mapping
 
-| Your JSON key (example) | Rapid Cortex logical field |
+| Your JSON key (example) | NexCort iQ logical field |
 | --- | --- |
 | `cadNumber` / `IncidentId` | CAD incident identifier |
 | `incidentType` / `Nature` | Type / nature |
@@ -133,7 +133,7 @@ Minimum TLS 1.2, **no cross-agency** mixing of URLs/tokens, **audit** access, **
 
 ## Support contacts
 
-- **Rapid Cortex:** [support@rapidcortex.us](mailto:support@rapidcortex.us)
+- **NexCort iQ:** [support@nexcortiq.us](mailto:support@nexcortiq.us)
 
 ---
 
@@ -153,7 +153,7 @@ Minimum TLS 1.2, **no cross-agency** mixing of URLs/tokens, **audit** access, **
 
 ## Appendix B: Field mapping reference (conceptual)
 
-| Rapid Cortex logical | Typical CAD sources |
+| NexCort iQ logical | Typical CAD sources |
 | --- | --- |
 | CAD incident id | `IncidentNumber`, `CallId`, `CADCallNumber`, … |
 | Type / nature | `NatureCode`, `CallType`, … |

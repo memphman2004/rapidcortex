@@ -55,7 +55,7 @@ export default async function CampusQrCodesPage({ params, searchParams }: Props)
           Campus QR Codes
         </h1>
         <p className="mt-1 max-w-3xl text-sm" style={{ color: "var(--rc-text-muted)" }}>
-          Named report codes for buildings and zones. Same list as the Rapid Cortex Field app.
+          Named report codes for buildings and zones. Same list as the NexiQ Field app.
         </p>
         <div className="mt-3 flex flex-wrap gap-4 text-sm">
           <Link
@@ -78,7 +78,7 @@ export default async function CampusQrCodesPage({ params, searchParams }: Props)
         canCreate={perms.canCreate}
         canDeactivate={perms.canDeactivate}
         canDownload={perms.canDownload}
-        zoneLabel="Building / Floor / Room"
+        zoneLabel="Location Details"
         hideHeading
         tenantConsole
       />

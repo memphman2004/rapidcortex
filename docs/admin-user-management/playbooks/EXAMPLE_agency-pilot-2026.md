@@ -40,7 +40,7 @@
 | IT / identity (Cognito) | Dana Chen | `dchen@metro-ecc.example.gov` | 07:00–19:00 ET |
 | ECC supervision lead | Lt. James Rivera | `jrivera@metro-ecc.example.gov` | Shift coverage |
 | Medical director / protocol authority | Dr. Patel (EMS medical control) | Via agency medical director office | On-call |
-| Rapid Cortex support (contract) | RC Pilot Desk | `pilot@rapidcortex.us` | Per SUPPORT_MODEL |
+| NexCort iQ support (contract) | RC Pilot Desk | `pilot@nexcortiq.us` | Per SUPPORT_MODEL |
 
 ---
 
@@ -71,7 +71,7 @@
 
 - **Retention:** Pilot data retained **90 days** after pilot end unless extended in writing; aligns with `TRANSCRIPT_RETENTION_POLICY_DAYS=90` on stack.
 - **Export requests:** Lt. Rivera — coordination with RC ops within **5 business days**.
-- **Deletion requests:** Chief Okonkwo + agency counsel — written request to `privacy@rapidcortex.us`.
+- **Deletion requests:** Chief Okonkwo + agency counsel — written request to `privacy@nexcortiq.us`.
 - **Legal hold:** Agency counsel — `counsel@metro-ecc.example.gov`
 
 ---
@@ -80,7 +80,7 @@
 
 | Severity | Definition (agency) |
 |----------|---------------------|
-| **P1** | Rapid Cortex unavailable during live 911 operations for > 5 min |
+| **P1** | NexCort iQ unavailable during live 911 operations for > 5 min |
 | **P2** | Multilingual or analyze failures affecting > 25% of active calls |
 
 **Runbook addendum:** Floor falls back to CAD/voice-only; supervisors notify RC Pilot Desk within 15 min of P1.

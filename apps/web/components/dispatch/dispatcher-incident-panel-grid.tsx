@@ -12,6 +12,8 @@ import {
   CallerCardPremiseNotesPanel,
 } from "@/components/dispatch/caller-card-panel";
 import { IncidentContextMap } from "@/components/dispatch/incident-context-map";
+import { psapIncidentsToMap } from "@/components/maps/map-incident-adapters";
+import { useLiveCallerLocations } from "@/hooks/use-live-caller-locations";
 import { IncidentMediaPanel } from "@/components/dispatch/incident-media-panel";
 import { IntelligenceWorkstation } from "@/components/dispatch/intelligence-workstation";
 import { LiveVideoPanel } from "@/components/dispatch/live-video-panel";
@@ -60,7 +62,19 @@ export function DispatcherIncidentMapPanel({
   incident: Incident | null;
 }) {
   const mapPin = useMemo(() => resolveIncidentMapPin(incident), [incident]);
-  if (!mapPin) {
+  const liveCallers = useLiveCallerLocations(incidentId);
+  const mapIncidents = useMemo(
+    () => (incident && mapPin ? psapIncidentsToMap([incident]) : []),
+    [incident, mapPin],
+  );
+  const center = mapPin ?? (liveCallers[0]
+    ? {
+        lat: liveCallers[0]!.lat,
+        lng: liveCallers[0]!.lng,
+        label: liveCallers[0]!.label ?? "Live caller",
+      }
+    : null);
+  if (!center) {
     return (
       <PanelUnavailable
         message={
@@ -73,7 +87,16 @@ export function DispatcherIncidentMapPanel({
   }
   return (
     <div className="h-full min-h-0 w-full">
-      <IncidentContextMap latitude={mapPin.lat} longitude={mapPin.lng} label={mapPin.label} fill />
+      <IncidentContextMap
+        latitude={center.lat}
+        longitude={center.lng}
+        label={center.label}
+        liveCallers={liveCallers}
+        incidentId={incidentId ?? undefined}
+        reportPin={Boolean(mapPin)}
+        incidents={mapIncidents}
+        fill
+      />
     </div>
   );
 }
@@ -245,10 +268,10 @@ export function DispatcherIncidentWorkstationBody({
           },
           {
             key: "pinpoint",
-            label: "Rapid Cortex Pinpoint",
+            label: "NexiQ Pinpoint",
             body: panel(
               "pinpoint",
-              "Rapid Cortex Pinpoint",
+              "NexiQ Pinpoint",
               isPinpointEnabled() ? (
                 <PinpointPanel incidentId={incidentId} ani={incident?.callerCallback} embedded />
               ) : (

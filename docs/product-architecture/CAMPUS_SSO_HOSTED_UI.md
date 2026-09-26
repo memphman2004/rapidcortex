@@ -1,6 +1,6 @@
 # Campus SSO via Cognito Hosted UI (INT-023 / UM-015)
 
-Rapid Cortex does **not** implement a custom SAML stack on `/api/auth/signin`. Indiana University and similar campuses authenticate through **Amazon Cognito Hosted UI**, which federates to Shibboleth, Azure AD, or Duo.
+NexCort iQ does **not** implement a custom SAML stack on `/api/auth/signin`. Indiana University and similar campuses authenticate through **Amazon Cognito Hosted UI**, which federates to Shibboleth, Azure AD, or Duo.
 
 ## Browser path
 
@@ -8,7 +8,7 @@ Rapid Cortex does **not** implement a custom SAML stack on `/api/auth/signin`. I
 2. `GET /api/auth/hosted-ui/start?next=/app/campus/{code}` stores PKCE cookies (`rc_hu_verifier`, `rc_hu_state`, `rc_hu_next`) and redirects to Cognito `/oauth2/authorize`.
 3. Cognito sends the user to the configured IdP. MFA is enforced **at the IdP**.
 4. Cognito redirects to `{origin}/api/auth/hosted-ui/callback` with `code` + `state`.
-5. The callback exchanges the code (PKCE S256, optional `COGNITO_CLIENT_SECRET`), sets Rapid Cortex httpOnly auth cookies, and sends the user to the allowlisted `next` path.
+5. The callback exchanges the code (PKCE S256, optional `COGNITO_CLIENT_SECRET`), sets NexCort iQ httpOnly auth cookies, and sends the user to the allowlisted `next` path.
 
 `next` must be a same-origin relative path (`/…`). Open redirects are rejected.
 

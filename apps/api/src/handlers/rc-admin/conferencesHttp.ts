@@ -2,7 +2,7 @@ import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda
 import {
   PLATFORM_CONFERENCE_AGENCY_ID,
   applyConferenceChange,
-  canAccessRapidIq,
+  canAccessRapidIqWorkspace,
   conferenceSourceUrl,
   createConferenceBodySchema,
   dismissConferenceChange,
@@ -41,7 +41,7 @@ async function requireConferencesAdmin(
   if (!user) return { error: unauthorized() };
   if (!isUserAccountActive(user)) return { error: unauthorized(ACCOUNT_INACTIVE_MESSAGE) };
   if (!env.enableConferences) return { error: serviceUnavailable("Conferences tracker is not enabled") };
-  if (!canAccessRapidIq(user.role)) return { error: forbidden() };
+  if (!canAccessRapidIqWorkspace(user.role)) return { error: forbidden() };
   return { user };
 }
 

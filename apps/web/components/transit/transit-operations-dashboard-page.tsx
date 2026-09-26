@@ -3,6 +3,7 @@ import { dashboardRouteFromRole, verticalFromRole } from "rapid-cortex-shared";
 import { extractTransitCode } from "@/lib/auth/post-login-redirect";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { isVerticalEnabled } from "@/lib/features";
+import { loadStaffGuideArticles } from "@/lib/staff-guide/load-articles";
 import { TransitConsoleHome } from "./transit-console-home";
 
 const TRANSIT_CONSOLE_ROLES = new Set([
@@ -36,6 +37,7 @@ export async function TransitOperationsDashboardPage({
   }
 
   const transitCode = extractTransitCode(agencyId);
+  const staffGuideArticles = loadStaffGuideArticles("transit");
   return (
     <TransitConsoleHome
       agencyId={agencyId}
@@ -44,6 +46,7 @@ export async function TransitOperationsDashboardPage({
       userEmail={user.email ?? ""}
       userRole={user.role}
       userId={user.userId}
+      staffGuideArticles={staffGuideArticles}
     />
   );
 }

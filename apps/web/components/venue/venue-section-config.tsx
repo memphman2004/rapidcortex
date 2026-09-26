@@ -1,5 +1,5 @@
 /**
- * Rapid Cortex — Venue Section Management
+ * NexCort iQ — Venue Section Management
  *
  * Three exports:
  *

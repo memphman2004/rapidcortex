@@ -20,7 +20,7 @@ const STATS = [
   { value: "$2.4B", label: "in 911 grant funding available annually" },
   { value: "40%", label: "of eligible agencies never apply" },
   { value: "30s", label: "to generate a complete narrative" },
-  { value: "$0", label: "additional cost for RC customers" },
+  { value: "$0", label: "additional cost for customers" },
 ] as const;
 
 const PROBLEMS: ReadonlyArray<{ Icon: LucideIcon; stat: string; title: string; body: string }> = [
@@ -34,7 +34,7 @@ const PROBLEMS: ReadonlyArray<{ Icon: LucideIcon; stat: string; title: string; b
     Icon: ClipboardList,
     stat: "12+",
     title: "Grant programs available right now",
-    body: "COPS, NG911, Byrne JAG, ARPA, FEMA HSGP, state criminal justice funds — most agencies know about one or two. Rapid Cortex knows all of them.",
+    body: "COPS, NG911, Byrne JAG, ARPA, FEMA HSGP, state criminal justice funds — most agencies know about one or two. NexCort iQ knows all of them.",
   },
   {
     Icon: Wallet,
@@ -84,7 +84,7 @@ const PROGRAMS = [
     agency: "State Programs",
     name: "State Criminal Justice & 911 Funds",
     amount: "Varies",
-    desc: "State-level 911 boards and criminal justice agencies administer their own grant programs. Rapid Cortex tracks active programs in all 50 states.",
+    desc: "State-level 911 boards and criminal justice agencies administer their own grant programs. NexCort iQ tracks active programs in all 50 states.",
     tag: "All 50 states tracked",
   },
 ] as const;
@@ -211,7 +211,7 @@ export function GrantsLanding() {
               Your agency deserves the technology. We help you pay for it.
             </h1>
             <p className="mt-5 max-w-xl text-pretty text-base leading-relaxed text-slate-300 sm:text-lg">
-              Rapid Cortex includes a free AI grant writer that generates complete, ready-to-submit
+              NexCort iQ includes a free AI grant writer that generates complete, ready-to-submit
               grant applications — COPS, NG911, Byrne JAG, ARPA, and more.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -297,7 +297,7 @@ export function GrantsLanding() {
           Every major public safety funding source — covered.
         </h2>
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
-          Rapid Cortex writes for the programs your agency actually qualifies for. Each application is
+          NexCort iQ writes for the programs your agency actually qualifies for. Each application is
           written to the specific evaluation criteria and language requirements of that program — not
           a generic template.
         </p>
@@ -355,7 +355,7 @@ export function GrantsLanding() {
             The technology you need. The funding to get it.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">
-            The Grant Success Program is included with every Rapid Cortex subscription — Essential,
+            The Grant Success Program is included with every NexCort iQ subscription — Essential,
             Professional, and Enterprise. No extra license. No consulting fee. No grant writer on
             staff required.
           </p>

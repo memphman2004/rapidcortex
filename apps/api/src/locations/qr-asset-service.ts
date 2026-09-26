@@ -45,7 +45,7 @@ export async function renderQrPdf(location: QRLocation): Promise<Buffer> {
     const qrSize = 216; // ~3 inches at 72 dpi
     const qrX = doc.page.margins.left + (pageWidth - qrSize) / 2;
 
-    doc.fontSize(10).fillColor("#64748B").text("Rapid Cortex", doc.page.margins.left, 42, {
+    doc.fontSize(10).fillColor("#64748B").text("NexCort iQ", doc.page.margins.left, 42, {
       width: pageWidth / 2,
       align: "left",
     });

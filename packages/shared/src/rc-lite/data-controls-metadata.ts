@@ -44,6 +44,6 @@ export const RC_LITE_DATA_CONTROLS_LABELS: readonly { id: RcLiteDataControlId; t
     {
       id: "do_not_train_on_customer_payloads",
       title: "No training reuse",
-      description: "Contractual guarantee that RC Lite production payloads are not repurposed as model-training corpora.",
+      description: "Contractual guarantee that NexCort Lite production payloads are not repurposed as model-training corpora.",
     },
   ];

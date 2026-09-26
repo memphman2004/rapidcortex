@@ -48,7 +48,7 @@ export type StaffingAgencyConfig = {
   }>;
 };
 
-/** Rapid Cortex staff onboarding checklist (stored per agency, platform-managed). */
+/** NexCort iQ staff onboarding checklist (stored per agency, platform-managed). */
 export const PLATFORM_ONBOARDING_STEP_IDS = [
   "tenant_created",
   "first_admin",
@@ -101,7 +101,7 @@ export interface AgencyConfig {
   wellness?: WellnessAgencyConfig;
   /** Campus vertical — display, notifications, escalation, and public QR report form. */
   campus?: CampusAgencyConfig;
-  /** Platform (Rapid Cortex) onboarding tracker — not used by agency admins in product UI. */
+  /** Platform (NexCort iQ) onboarding tracker — not used by agency admins in product UI. */
   platformOnboarding?: PlatformOnboardingState;
   /** CJIS-style retention: days per category; merged with stack defaults. */
   retentionOverrideDays?: RetentionOverrideDays;

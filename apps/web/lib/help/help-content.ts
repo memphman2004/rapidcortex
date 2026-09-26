@@ -1,5 +1,5 @@
 /**
- * Rapid Cortex — Help Content Index
+ * NexCort iQ — Help Content Index
  *
  * Maps each role to its ordered list of articles.
  * The `topic` field is the S3 key suffix: help/{role}/{topic}.md
@@ -115,7 +115,7 @@ const AGENCY_ADMIN_HELP: HelpIndex = [
     section: "Agency Settings",
     articles: [
       { topic: "sop-library",      title: "SOP Library & Protocol Upload",   description: "Uploading and managing your agency's SOP documents." },
-      { topic: "cad-integration",  title: "CAD Integration Setup",           description: "Connecting Rapid Cortex to your CAD system." },
+      { topic: "cad-integration",  title: "CAD Integration Setup",           description: "Connecting NexCort iQ to your CAD system." },
       { topic: "api-keys",         title: "API Keys & Webhooks",             description: "Issuing API keys for integrations and managing webhooks." },
       { topic: "mfa-policy",       title: "MFA Policy",                      description: "Enforcing multi-factor authentication for your agency." },
       { topic: "data-retention",   title: "Data Retention Settings",         description: "Configuring how long incident and transcript data is kept." },
@@ -140,7 +140,7 @@ const AGENCY_IT_HELP: HelpIndex = [
   {
     section: "Integrations",
     articles: [
-      { topic: "cad-integration",  title: "CAD Integration Setup",           description: "Connecting Rapid Cortex to your CAD system." },
+      { topic: "cad-integration",  title: "CAD Integration Setup",           description: "Connecting NexCort iQ to your CAD system." },
       { topic: "api-keys",         title: "API Keys & Webhooks",             description: "Issuing and rotating API keys for integrations." },
       { topic: "mfa-policy",       title: "MFA Policy Configuration",        description: "Setting MFA requirements for your agency." },
     ],
@@ -356,7 +356,7 @@ const RC_ADMIN_HELP: HelpIndex = [
   {
     section: "Platform Admin",
     articles: [
-      { topic: "index",            title: "RC Admin Overview",               description: "Multi-tenant platform controls and agency management." },
+      { topic: "index",            title: "NexCort Admin Overview",               description: "Multi-tenant platform controls and agency management." },
       { topic: "agency-onboard",   title: "Onboarding an Agency",           description: "Provisioning a new agency in the platform." },
       { topic: "platform-health",  title: "Platform Health Dashboard",       description: "Monitoring all-tenant system health." },
       { topic: "notices",          title: "Platform Notices",                description: "Broadcasting notices to one or all agencies." },
@@ -368,7 +368,7 @@ const RC_IT_ADMIN_HELP: HelpIndex = [
   {
     section: "RC IT Support",
     articles: [
-      { topic: "index",            title: "RC IT Admin Overview",            description: "Cross-tenant user support and diagnostics access." },
+      { topic: "index",            title: "NexCort IT Admin Overview",            description: "Cross-tenant user support and diagnostics access." },
       { topic: "user-support",     title: "User Account Support",            description: "Password resets, unlocks, MFA re-enrollment." },
       { topic: "diagnostics",      title: "Infrastructure Diagnostics",      description: "Accessing system diagnostics across tenants." },
     ],

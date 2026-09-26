@@ -1,33 +1,29 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { alsScopedId } from "rapid-cortex-shared";
+import { LocationNotConfiguredError } from "./client.js";
+import { listAgencyGeofences } from "./geofence.js";
 import { geocodeAddress, reverseGeocode } from "./geocoding.js";
 import { calculateRoute } from "./routing.js";
-import { alsScopedId } from "rapid-cortex-shared";
 
-describe("ALS location mock", () => {
-  it("geocodes the White House fixture", async () => {
-    const results = await geocodeAddress("1600 Pennsylvania Ave NW, Washington DC");
-    expect(results[0]?.formattedAddress).toMatch(/Pennsylvania/i);
-    expect(results[0]?.latitude).toBeCloseTo(38.8977, 2);
-    expect(results[0]?.provider).toBe("amazon-location");
+describe("ALS location without a configured index", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
-  it("geocodes a Kansas City agency address", async () => {
-    const results = await geocodeAddress("1125 Locust St Kansas City MO");
-    expect(results[0]?.city).toBe("Kansas City");
-    expect(results[0]?.longitude).toBeCloseTo(-94.583, 1);
+  it("does not invent geocodes", async () => {
+    vi.stubEnv("ALS_PLACE_INDEX_NAME", "");
+    await expect(geocodeAddress("1600 Pennsylvania Ave NW, Washington DC")).resolves.toEqual([]);
+    await expect(geocodeAddress("1125 Locust St Kansas City MO")).resolves.toEqual([]);
+    await expect(reverseGeocode(-84.388, 33.749)).resolves.toEqual([]);
   });
 
-  it("reverse geocodes with mock coordinates", async () => {
-    const results = await reverseGeocode(-84.388, 33.749);
-    expect(results[0]?.provider).toBe("amazon-location");
-    expect(results[0]?.latitude).toBe(33.749);
-  });
-
-  it("returns a mock car route with geometry", async () => {
-    const route = await calculateRoute([-94.583, 39.1012], [-94.58, 39.11]);
-    expect(route.distanceMiles).toBeGreaterThan(0);
-    expect(route.durationMinutes).toBeGreaterThan(0);
-    expect(route.geometry.length).toBeGreaterThanOrEqual(2);
+  it("does not invent a route or a service-area geofence", async () => {
+    vi.stubEnv("ALS_ROUTE_CALCULATOR_NAME", "");
+    vi.stubEnv("ALS_GEOFENCE_COLLECTION_NAME", "");
+    await expect(calculateRoute([-94.583, 39.1012], [-94.58, 39.11])).rejects.toBeInstanceOf(
+      LocationNotConfiguredError,
+    );
+    await expect(listAgencyGeofences("test-agency")).resolves.toEqual([]);
   });
 
   it("scopes geofence ids without colons", () => {

@@ -1,4 +1,4 @@
-# Rapid Cortex — GREEN status report (template)
+# NexCort iQ — GREEN status report (template)
 
 **Date:** _YYYY-MM-DD_  
 **Scope:** _e.g. single-agency read-only pilot — not full multi-tenant production unless explicitly stated_

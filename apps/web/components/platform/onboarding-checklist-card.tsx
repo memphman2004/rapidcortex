@@ -66,7 +66,7 @@ export function OnboardingChecklistCard({ agencyId, steps, notesByStep, agencyNo
       <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
         Onboarding checklist
       </h2>
-      <p className="mt-1 text-xs text-slate-500">Internal Rapid Cortex — tracked in agency config</p>
+      <p className="mt-1 text-xs text-slate-500">Internal NexCort iQ — tracked in agency config</p>
       <ul className="mt-4 space-y-2">
         {(Object.keys(STEP_LABELS) as PlatformOnboardingStepId[]).map((step) => {
           const status: PlatformOnboardingStepStatus = steps[step] ?? "pending";

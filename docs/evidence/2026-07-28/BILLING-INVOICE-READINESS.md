@@ -9,8 +9,8 @@
 |-------|--------|
 | `rapidcortex.us` SES identity | **Success** (verified) |
 | DKIM | **SUCCESS** |
-| `support@rapidcortex.us` | **Success** |
-| `billing@rapidcortex.us` separate identity | Not required — domain identity covers `*@rapidcortex.us` |
+| `support@nexcortiq.us` | **Success** |
+| `billing@nexcortiq.us` separate identity | Not required — domain identity covers `*@nexcortiq.us` |
 | SES production access | **NOT enabled** (`ProductionAccessEnabled: false`) — account still in SES sandbox |
 
 **Human action required:** Request SES production access in AWS Console (SES → Account dashboard → Request production access) so invoices can be emailed to external agency domains. Until then, SES only delivers to verified identities.

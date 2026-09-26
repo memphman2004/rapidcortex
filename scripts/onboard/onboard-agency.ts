@@ -1,5 +1,5 @@
 /**
- * Day-0 tenant provision for one Rapid Cortex vertical.
+ * Day-0 tenant provision for one NexCort iQ vertical.
  *
  * Copy scripts/onboard/vars/<vertical>.env.example → <vertical>.env, fill agency
  * fields, then:

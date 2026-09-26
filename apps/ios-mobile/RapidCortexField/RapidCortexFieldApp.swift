@@ -81,27 +81,43 @@ struct RapidCortexFieldApp: App {
     }
 }
 
+private enum QRNFCTab: Hashable {
+    case codes
+    case create
+    case agencies
+    case settings
+}
+
 struct QRNFCRootView: View {
     @EnvironmentObject var auth: CognitoAuthManager
+    @State private var selectedTab: QRNFCTab = .codes
 
     private var defaultVertical: String {
         auth.qrCodeVertical
     }
 
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             CodesListView()
-                .tabItem { Label("Codes", systemImage: "qrcode") }
+                .tabItem { Label("Reporting Points", systemImage: "qrcode") }
+                .tag(QRNFCTab.codes)
             if auth.claims?.canManageCodes == true {
-                NewCodeView(agencyId: auth.operationalAgencyId, defaultVertical: defaultVertical)
-                    .tabItem { Label("Create", systemImage: "plus") }
+                NewCodeView(
+                    agencyId: auth.operationalAgencyId,
+                    defaultVertical: defaultVertical,
+                    onBack: { selectedTab = .codes }
+                )
+                .tabItem { Label("Add", systemImage: "plus") }
+                .tag(QRNFCTab.create)
             }
             if auth.claims?.isPlatformAdmin == true {
                 AgenciesView()
                     .tabItem { Label("Agencies", systemImage: "building.2") }
+                    .tag(QRNFCTab.agencies)
             }
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gear") }
+                .tag(QRNFCTab.settings)
         }
         .tint(RCTheme.amber)
         .onAppear {
@@ -144,12 +160,12 @@ struct NoAccessView: View {
                 Text("Access not configured")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(RCTheme.textPrimary)
-                Text("Your account (\(auth.claims?.email ?? "")) isn't set up for this application. Contact your administrator or Rapid Cortex support.")
+                Text("Your account (\(auth.claims?.email ?? "")) isn't set up for this application. Contact your administrator or NexCort iQ support.")
                     .font(.system(size: 13))
                     .foregroundColor(RCTheme.textMuted)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
-                Link("support@rapidcortex.us", destination: URL(string: "mailto:support@rapidcortex.us")!)
+                Link("support@nexcortiq.us", destination: URL(string: "mailto:support@nexcortiq.us")!)
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(RCTheme.accentLight)
                 Button("Sign out") { auth.signOut() }

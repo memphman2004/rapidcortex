@@ -1,4 +1,4 @@
-# Rapid Cortex — production web deployment guide (complete)
+# NexCort iQ — production web deployment guide (complete)
 
 This guide ties together **infra**, **`scripts/deploy-web-no-docker.sh`**, **smoke tests**, and **manual verification**. For pipeline-only prerequisites, see also **`docs/deployment-web-no-docker-runbook.md`**.
 
@@ -93,7 +93,7 @@ curl -fsS "${BASE_URL}/api/health/upstream" | jq .
 ```bash
 curl -fsS "${BASE_URL}/downloads" | grep -qi "Download for Mac" && echo "downloads OK"
 
-curl -fsS "${BASE_URL}/rc-lite" | grep -qi "RC Lite" && echo "rc-lite OK"
+curl -fsS "${BASE_URL}/rc-lite" | grep -qi "NC Lite" && echo "rc-lite OK"
 
 curl -fsS "${BASE_URL}/developers/api" | grep -qi "API documentation" && echo "developers/api OK"
 

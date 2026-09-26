@@ -9,7 +9,7 @@ import {
 
 /**
  * Installable/PWA chrome + share targets for mobile browsers.
- * Icons use the same Rapid Cortex square mark (`public/icon-*.png`) as tabs and touch icons.
+ * Icons use the same NexCort iQ square mark (`public/icon-*.png`) as tabs and touch icons.
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {

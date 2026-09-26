@@ -163,7 +163,7 @@ function LivePreview({ mode }: { mode: UserTextMode }) {
         </span>
       </div>
       <p className="mt-2 text-[10px] leading-snug" style={{ color: labels }}>
-        Status, priority, and alert colors stay Rapid Cortex operational colors — they cannot be changed here.
+        Status, priority, and alert colors stay NexCort iQ operational colors — they cannot be changed here.
       </p>
       <div className="mt-2 rounded border border-red-800/60 bg-red-950/80 px-2 py-1.5 text-[11px] text-red-200">
         Alert banner sample — emergency red is locked.

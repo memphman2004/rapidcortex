@@ -6,7 +6,7 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-/** Agency directory inside the RC Admin role dashboard shell (no redirect to dispatcher layout). */
+/** Agency directory inside the NexCort Admin role dashboard shell (no redirect to dispatcher layout). */
 export default async function RcAdminAgenciesPage() {
   await requireRole(["rcsuperadmin", "rcadmin", "rcitadmin"]);
   return <PlatformAgenciesPage />;

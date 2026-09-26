@@ -1,7 +1,7 @@
 import type { MonetizationPlanRecord } from "./entities.js";
 import type { MonetizationAddOnId } from "./plan-ids.js";
 
-/** Placeholder numeric fields — tune in Dynamo / RC Admin tooling; never shown on public marketing. */
+/** Placeholder numeric fields — tune in Dynamo / NexCort Admin tooling; never shown on public marketing. */
 export function defaultPlanSeed(now: string): Record<string, MonetizationPlanRecord> {
   const base = (
     partial: Pick<
@@ -47,7 +47,7 @@ export function defaultPlanSeed(now: string): Record<string, MonetizationPlanRec
       ...base({
         planId: "essential",
         planName: "rapid_essential_internal",
-        publicName: "Rapid Cortex Essential",
+        publicName: "NexiQ Essential",
         description:
           "Entry dashboard platform — dispatcher, supervisor, admin, summaries, transcription, baseline reporting.",
         billingType: "pilot",
@@ -63,7 +63,7 @@ export function defaultPlanSeed(now: string): Record<string, MonetizationPlanRec
       ...base({
         planId: "command",
         planName: "rapid_command_internal",
-        publicName: "Rapid Cortex Command",
+        publicName: "NexiQ Command",
         description:
           "Full operational platform — QA, executive, IT/security, translation, caller media, advanced reporting.",
         billingType: "monthly",
@@ -79,7 +79,7 @@ export function defaultPlanSeed(now: string): Record<string, MonetizationPlanRec
       ...base({
         planId: "enterprise_statewide",
         planName: "rapid_enterprise_internal",
-        publicName: "Rapid Cortex Enterprise / Statewide",
+        publicName: "NexiQ Enterprise / Statewide",
         description:
           "Multi-agency, advanced integrations, evidence support, GovCloud-ready options, negotiated SLAs.",
         billingType: "custom",
@@ -95,9 +95,9 @@ export function defaultPlanSeed(now: string): Record<string, MonetizationPlanRec
       ...base({
         planId: "rc_lite",
         planName: "rapid_rc_lite_internal",
-        publicName: "RC Lite",
+        publicName: "NexCort Lite",
         description:
-          "Standalone API-only product sold separately from Rapid Cortex dashboard plans (Essential / Command / Enterprise). Tenant-scoped REST/OAuth APIs for intelligence, media links, CAD export, metering, audit, and webhooks—no dispatcher, supervisor, or agency console entitlement.",
+          "Standalone API-only product sold separately from NexCort iQ dashboard plans (Essential / Command / Enterprise). Tenant-scoped REST/OAuth APIs for intelligence, media links, CAD export, metering, audit, and webhooks—no dispatcher, supervisor, or agency console entitlement.",
         billingType: "monthly",
         supportLevel: "standard",
       }),
@@ -159,6 +159,33 @@ export function defaultAddOnSeed(now: string): Record<MonetizationAddOnId, impor
       "setup_implementation_fee",
       "Setup / Implementation Fee",
       "Initial integration, SSO, and workspace provisioning billed one-time.",
+    ),
+    call_assist: mk(
+      "call_assist",
+      "Call Assist (Non-Emergency)",
+      "AI-assisted non-emergency intake, greetings, callbacks, and operator console.",
+    ),
+    rapid_vision: mk(
+      "rapid_vision",
+      "NexIQ Vision™",
+      "Live camera assist and scene intelligence for authorized roles.",
+    ),
+    rc_translate: mk(
+      "rc_translate",
+      "NexCort Translate",
+      "Field / venue / campus / clinical voice translation sessions.",
+    ),
+    cad_mesh: mk("cad_mesh", "CAD-to-CAD Mesh", "Cross-agency CAD mesh for mutual aid partners."),
+    mutual_aid_mci: mk(
+      "mutual_aid_mci",
+      "Mutual Aid & MCI Command",
+      "Mutual aid coordination and multi-casualty incident command.",
+    ),
+    ng911_assist: mk("ng911_assist", "NG911 Assist", "Diversion, EIDO, Additional Data, and NG911 metrics."),
+    connect_nest_wyze: mk(
+      "connect_nest_wyze",
+      "Nest / Wyze Connect",
+      "Citizen Nest and Wyze camera share flows alongside Ring Connect.",
     ),
   };
 }

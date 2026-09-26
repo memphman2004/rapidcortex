@@ -11,7 +11,7 @@ export function PricingEnterpriseSection() {
           Government, statewide, and large-agency procurement
         </h2>
         <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-400 sm:text-base">
-          Rapid Cortex is built for agencies that answer to councils, boards, and oversight
+          NexCort iQ is built for agencies that answer to councils, boards, and oversight
           bodies. Our sales motion is procurement-friendly: documented packaging, clear module
           boundaries, pilots and phased rollouts, multi-site and regional deployment planning, and
           optional custom security and compliance review aligned to CJIS-aware expectations.

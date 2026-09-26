@@ -87,7 +87,7 @@ export function SurgePanel({ incidentId }: { incidentId: string | null }) {
 
   return (
     <section className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-      <div className="text-[10px] font-semibold tracking-wide text-amber-400">Rapid Cortex Surge</div>
+      <div className="text-[10px] font-semibold tracking-wide text-amber-400">NexCort iQ Surge</div>
       <p className="mt-1 text-[11px] leading-snug text-slate-500">
         Detect duplicate callers during spikes — group by time, location, and shared keywords; surface unique details
         per caller.

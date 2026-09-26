@@ -1,0 +1,42 @@
+npm warn Unknown env config "devdir". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+─────────────────────────────────────────────────────────────
+  NexCort iQ — PSAP Address Enrichment (AWS Location / Esri)
+  Table:       rapid-cortex-psap-prospects-dev
+  Region:      us-east-1
+  Place Index: rapid-cortex-psap-enrichment-dev
+  Dry run:     true
+  Force:       false
+  Limit:       5
+  State:       GA
+─────────────────────────────────────────────────────────────
+(node:56663) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.19.1.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+[1] 28083335-04a3-4e0b-b53e-e7763839e1ff — COOK COUNTY 9-1-1 (GA)  ✓ [DRY RUN]
+     31647, Sparks, GA, USA
+     FIPS: —  zip: 31647  source: reverse_geocode
+[2] 3308f0c7-583e-4d97-ba79-9922b806b6a4 — DOUGHERTY COUNTY 9-1-1 (GA)  ✓ [DRY RUN]
+     31721, Albany, GA, USA
+     FIPS: —  zip: 31721  source: reverse_geocode
+[3] 945ad23f-d6bf-4eee-8a6d-05794cf454ab — ALMA-BACON 9-1-1 (GA)  ↻ skip (already has street address)
+[4] 2080a04b-d771-479d-9eb1-1aa679458e3d — ALPHARETTA POLICE DEPARTMENT (GA)  ✓ [DRY RUN]
+     ChargePoint, 2nd St, Alpharetta, GA, 30009, USA
+     FIPS: —  zip: 30009  source: reverse_geocode
+[5] 4aa7d06b-5aaf-4705-b814-dd5cdf072c50 — TURNER COUNTY 9-1-1 (GA)  ↻ skip (already has street address)
+
+─────────────────────────────────────────────────────────────
+  Enrichment Complete
+  Total scanned:  5
+  Enriched:       0
+  Skipped:        2
+  No data:        0
+  Failed:         0
+  Dry run:        3
+─────────────────────────────────────────────────────────────
+

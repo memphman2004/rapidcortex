@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { isSupervisorOrAdmin } from "rapid-cortex-security";
+import { isAdminRole } from "rapid-cortex-security";
 import type { ReportConfig, ReportType } from "rapid-cortex-shared";
 import { REPORT_TYPE_LABELS } from "rapid-cortex-shared";
 import { useSession } from "@/components/auth/session-context";
@@ -18,6 +18,8 @@ import {
   generateReport,
   isReportsApiConfigured,
   lastNDaysRange,
+  monthlySystemHealthReportName,
+  previousCalendarMonthRange,
 } from "@/lib/reports-api";
 import { isReportsEnabled } from "@/lib/runtime-flags";
 import type { ActivityItem } from "@/lib/dashboards/mockDashboardData";
@@ -37,7 +39,7 @@ function configToActivity(config: ReportConfig): ActivityItem {
 export function ReportsDashboard() {
   const { user } = useSession();
   const qc = useQueryClient();
-  const supervisor = user ? isSupervisorOrAdmin(user.role) : false;
+  const supervisor = user ? isAdminRole(user.role) : false;
   const enabled = isReportsEnabled() && isReportsApiConfigured();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -149,6 +151,33 @@ export function ReportsDashboard() {
               className="rounded bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 ring-1 ring-slate-700 disabled:opacity-40"
             >
               {quickBusy === "QA scores" ? "…" : "QA scores"}
+            </button>
+            <button
+              type="button"
+              disabled={quickBusy !== null}
+              onClick={() => {
+                const month = previousCalendarMonthRange();
+                void (async () => {
+                  setQuickBusy("Monthly system health");
+                  setError(null);
+                  try {
+                    const result = await generateReport({
+                      type: "system_health",
+                      name: monthlySystemHealthReportName(month.label),
+                      dateRange: { start: month.start, end: month.end },
+                    });
+                    setSelectedId(result.reportId);
+                    await invalidate();
+                  } catch (e) {
+                    setError(e instanceof Error ? e.message : "Quick generate failed");
+                  } finally {
+                    setQuickBusy(null);
+                  }
+                })();
+              }}
+              className="rounded bg-sky-900/50 px-3 py-1.5 text-xs font-medium text-sky-100 ring-1 ring-sky-800 disabled:opacity-40"
+            >
+              {quickBusy === "Monthly system health" ? "…" : "Monthly system health"}
             </button>
           </div>
         </section>

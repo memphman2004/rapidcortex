@@ -28,6 +28,16 @@
       "import": "./dist/auth/role-display.js",
       "require": "./dist/auth/role-display.js"
     },
+    "./auth/sales-contractor-access": {
+      "types": "./dist/auth/sales-contractor-access.d.ts",
+      "import": "./dist/auth/sales-contractor-access.js",
+      "require": "./dist/auth/sales-contractor-access.js"
+    },
+    "./auth/sales-contractor-paths": {
+      "types": "./dist/auth/sales-contractor-paths.d.ts",
+      "import": "./dist/auth/sales-contractor-paths.js",
+      "require": "./dist/auth/sales-contractor-paths.js"
+    },
     "./auth/password-policy": {
       "types": "./dist/auth/password-policy.d.ts",
       "import": "./dist/auth/password-policy.js",
@@ -117,6 +127,16 @@
       "types": "./dist/pricing/index.d.ts",
       "import": "./dist/pricing/index.js",
       "require": "./dist/pricing/index.js"
+    },
+    "./loadout": {
+      "types": "./dist/loadout/index.d.ts",
+      "import": "./dist/loadout/index.js",
+      "require": "./dist/loadout/index.js"
+    },
+    "./guest-assist/token": {
+      "types": "./dist/guest-assist/token.d.ts",
+      "import": "./dist/guest-assist/token.js",
+      "require": "./dist/guest-assist/token.js"
     }
   },
   "scripts": {

@@ -60,7 +60,7 @@ const RC_IT_ADMIN_NAV: NavTab[] = [
   { id: "location-qr", label: "Location QR Codes", href: "/rc-admin/location-qr-codes" },
 ];
 
-/** Canonical RC Admin sidebar per internal role — spec section 1. */
+/** Canonical NexCort Admin sidebar per internal role — spec section 1. */
 export function rcAdminNavForRole(role: string): NavTab[] {
   const r = effectiveRole(role);
   if (isRcSuperAdmin(r)) return RC_SUPERADMIN_NAV;
@@ -69,7 +69,7 @@ export function rcAdminNavForRole(role: string): NavTab[] {
   return [];
 }
 
-/** RC Admin sidebar scoped per internal role — no cross-role tool links. */
+/** NexCort Admin sidebar scoped per internal role — no cross-role tool links. */
 export function filterRcAdminNavTabs(_tabs: NavTab[], role: string): NavTab[] {
   return rcAdminNavForRole(role);
 }

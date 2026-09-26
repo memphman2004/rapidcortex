@@ -2,7 +2,7 @@
 set -euo pipefail
 
 #
-# Rapid Cortex — full stress test run: k6 profiles + report generation.
+# NexCort iQ — full stress test run: k6 profiles + report generation.
 #
 # Usage:
 #   API_BASE=https://<api-host> WEB_BASE=https://<web-host> \
@@ -120,7 +120,7 @@ done
 
 echo ""
 echo "════════════════════════════════════════════════════════"
-echo " Rapid Cortex — stress test run complete (${ENVIRONMENT})"
+echo " NexCort iQ — stress test run complete (${ENVIRONMENT})"
 echo "════════════════════════════════════════════════════════"
 for line in "${SUMMARY_LINES[@]}"; do
   echo " ${line}"

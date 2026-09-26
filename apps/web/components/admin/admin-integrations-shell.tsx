@@ -4,11 +4,10 @@ import Link from "next/link";
 import { PilotIntegrationStatusPanel } from "@/components/admin/pilot-integration-status";
 import { useSession } from "@/components/auth/session-context";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
-import { RingConnectButton, RingIntegrationStatus, isRingEnabled } from "@/src/features/connect/ring";
 import { NestIntegrationSettings } from "@/components/cameras/NestIntegrationSettings";
 import { isNestEnabled } from "@/lib/nest-feature-flags";
 import { isWyzeEnabled } from "@/lib/wyze-feature-flags";
-import { GOOGLE_NEST_TM, RING_TM, WYZE_TM } from "@/lib/brand-marks";
+import { GOOGLE_NEST_TM, WYZE_TM } from "@/lib/brand-marks";
 import { marketingWyzeConnectPath } from "@/lib/marketing-links";
 
 type Props = {
@@ -56,16 +55,6 @@ export function AdminIntegrationsShell({
           <PilotIntegrationStatusPanel />
         </div>
       </section>
-
-      {isRingEnabled() && user ? (
-        <section className="space-y-3 rounded-lg border border-zinc-800 bg-slate-900/35 p-4">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-300">
-            {RING_TM} Doorbell Integration
-          </h3>
-          <RingIntegrationStatus agencyId={user.agencyId} userId={user.userId} />
-          <RingConnectButton agencyId={user.agencyId} userId={user.userId} />
-        </section>
-      ) : null}
 
       {isNestEnabled() ? (
         <section className="space-y-3 rounded-lg border border-zinc-800 bg-slate-900/35 p-4">

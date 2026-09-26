@@ -86,7 +86,7 @@ export function AdminUsersPanel() {
   if (!isApiConfigured()) {
     return (
       <p className="text-sm text-amber-200/90">
-        Platform connection isn’t configured. Contact Rapid Cortex support to manage users.
+        Platform connection isn’t configured. Contact NexCort iQ support to manage users.
       </p>
     );
   }
@@ -102,9 +102,9 @@ export function AdminUsersPanel() {
         <p className="mt-2 text-xs leading-relaxed text-slate-500">
           {isCallAssistProductRole(sessionUser?.role)
             ? "Call Assist administrators can invite Call Assist Admin, Supervisor, and Operator accounts for this tenant only. These roles never land on the 911 dispatcher console."
-            : "Agency administrators can assign Dispatcher, Supervisor, Agency Admin, or Agency IT roles only within their own agency. Only Rapid Cortex Super Admin may assign RC Admin roles when editing users in the directory below. Invite/create above is agency-role only. Auditor and Analyst accounts are provisioned by Rapid Cortex support."}{" "}
+            : "Agency administrators can assign Dispatcher, Supervisor, Agency Admin, or Agency IT roles only within their own agency. Only NexCort iQ Super Admin may assign NexCort Admin roles when editing users in the directory below. Invite/create above is agency-role only. Auditor and Analyst accounts are provisioned by NexCort iQ support."}{" "}
           <span className="font-medium text-slate-400">Re-enabling</span> a deactivated account is not
-          in this UI — contact Rapid Cortex support.
+          in this UI — contact NexCort iQ support.
         </p>
         <form
           className="mt-4 grid max-w-xl gap-3 sm:grid-cols-2"

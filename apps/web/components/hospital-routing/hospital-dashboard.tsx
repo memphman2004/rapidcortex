@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import type { HospitalPatientNeeds, HospitalRecommendation } from "rapid-cortex-shared";
 import { RapidCortexMap, RouteLayer } from "rapid-cortex-maps";
-import type maplibregl from "maplibre-gl";
-import maplibreglLib from "maplibre-gl";
+import type * as maplibregl from "maplibre-gl";
+import * as maplibreglLib from "maplibre-gl";
 
 import { fetchHospitalRecommendations } from "@/lib/hospital-routing/api";
 import { fetchAlsRoute } from "@/lib/location/fetch-route";

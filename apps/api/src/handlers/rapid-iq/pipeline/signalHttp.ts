@@ -1,18 +1,19 @@
 /**
  * HTTP API for Rapid IQ procurement pipeline signals.
  * Routes: /api/rapid-iq/signals* (legacy /api/rapid-iq/pipeline/signals* still accepted).
- * RBAC: rcsuperadmin / rcadmin (canAccessRapidIq).
+ * RBAC: rcsuperadmin / rcadmin / salescontractor (canAccessRapidIqWorkspace).
  */
 
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import {
-  canAccessRapidIq,
+  canAccessRapidIqWorkspace,
   createManualRapidIqPipelineSignalBodySchema,
   enqueueRapidIqPipelineFromOpportunityBodySchema,
   patchRapidIqPipelineSignalBodySchema,
   pushRapidIqPipelineToCrmBodySchema,
   RAPID_IQ_PIPELINE_SIGNAL_STATUSES,
   rapidIqResearchRequestSchema,
+  rapidIqWatchIngestRequestSchema,
   type UserContext,
 } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
@@ -24,6 +25,8 @@ import { runRapidIqResearch } from "../../../lib/rapid-iq/pipeline/ai-research.j
 import { getCreditStatus } from "../../../lib/rapid-iq/pipeline/credit-guard.js";
 import { createManualPipelineSignal } from "../../../lib/rapid-iq/pipeline/create-manual-signal.js";
 import { enqueueOpportunityToPipeline } from "../../../lib/rapid-iq/pipeline/enqueue-from-opportunity.js";
+import { ingestWatchSignal } from "../../../lib/rapid-iq/pipeline/ingest-watch-signal.js";
+import { assertWatchIngestApiKey } from "../../../lib/rapid-iq/pipeline/watch-ingest-auth.js";
 import {
   getAgencyProfile,
   getSignal,
@@ -64,7 +67,7 @@ async function requirePipelineAdmin(
   if (!env.enableRapidIqPipeline) {
     return { error: serviceUnavailable("Rapid IQ Pipeline is not enabled") };
   }
-  if (!canAccessRapidIq(user.role)) return { error: forbidden() };
+  if (!canAccessRapidIqWorkspace(user.role)) return { error: forbidden() };
   return { user };
 }
 
@@ -78,6 +81,69 @@ function parseBody(event: APIGatewayProxyEventV2): unknown {
   } catch {
     return null;
   }
+}
+
+function isWatchIngestPath(path: string): boolean {
+  return (
+    path.includes("/rapid-iq/pipeline/watch-ingest") ||
+    path.includes("/rapid-iq/watch-ingest")
+  );
+}
+
+async function handleWatchIngest(event: APIGatewayProxyEventV2): Promise<JsonResult> {
+  if (!env.enableRapidIqPipeline) {
+    return serviceUnavailable("Rapid IQ Pipeline is not enabled");
+  }
+  const auth = await assertWatchIngestApiKey(event);
+  if (!auth.ok) {
+    if (auth.reason === "ingest_not_configured" || auth.reason === "secret_unavailable") {
+      return serviceUnavailable("Watch ingest is not configured");
+    }
+    return unauthorized("Invalid watch ingest API key");
+  }
+
+  const body = parseBody(event);
+  if (body === null) return badRequest("Invalid JSON");
+  const parsed = rapidIqWatchIngestRequestSchema.safeParse(body);
+  if (!parsed.success) return badRequestFromZod(parsed.error);
+
+  const items = Array.isArray(parsed.data) ? parsed.data : [parsed.data];
+  const results = [];
+  for (const item of items) {
+    const result = await ingestWatchSignal(item);
+    results.push({
+      action: result.action,
+      signalId: result.signal.signalId,
+      externalKey: result.signal.externalKey,
+      status: result.signal.status,
+      watchUpdated: result.signal.watchUpdated ?? false,
+    });
+    try {
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: "platform",
+        actorId: "system:chatgpt-watch",
+        type: AUDIT_EVENT_TYPES.RAPID_IQ_PIPELINE_SIGNAL_UPDATED,
+        details: {
+          action: result.action,
+          source: "chatgpt_watch",
+          watch: item.watch,
+          externalKey: item.external_key,
+          signalId: result.signal.signalId,
+        },
+        createdAt: new Date().toISOString(),
+        resourceType: "rapid_iq_pipeline_signal",
+        resourceId: result.signal.signalId,
+      });
+    } catch {
+      /* never fail ingest on audit */
+    }
+  }
+
+  return ok({
+    ingested: results.length,
+    results,
+  });
 }
 
 function signalIdFromPath(path: string, params?: { signalId?: string }): string | undefined {
@@ -135,12 +201,17 @@ function isManualBody(body: unknown): boolean {
 
 export async function handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
   try {
+    const method = (event.requestContext.http?.method ?? "GET").toUpperCase();
+    const path = event.rawPath ?? event.requestContext.http?.path ?? "";
+
+    // Machine ingest — API key auth, no Cognito JWT (route AuthorizationType: NONE).
+    if (method === "POST" && isWatchIngestPath(path)) {
+      return withCorrelationHeaders(event, await handleWatchIngest(event));
+    }
+
     const auth = await requirePipelineAdmin(event);
     if ("error" in auth) return withCorrelationHeaders(event, auth.error);
     const { user } = auth;
-
-    const method = (event.requestContext.http?.method ?? "GET").toUpperCase();
-    const path = event.rawPath ?? event.requestContext.http?.path ?? "";
 
     if (path.includes("/rapid-iq/intel")) {
       return withCorrelationHeaders(event, await handleIntelHttp(event, user));

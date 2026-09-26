@@ -7,7 +7,7 @@ type VideoClipExportEvent = {
 };
 
 /**
- * Async GetClip → S3 export for Rapid Cortex Video DVR clips.
+ * Async GetClip → S3 export for NexCort iQ Video DVR clips.
  * Invoked with InvocationType=Event from the video HTTP catch-all.
  */
 export const handler: Handler<VideoClipExportEvent, { ok: boolean; errorCode?: string }> = async (event) => {

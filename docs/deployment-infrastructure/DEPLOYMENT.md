@@ -1,6 +1,6 @@
 # Deployment — repeatable environments
 
-This document is the **operator runbook** for shipping Rapid Cortex API + Cognito + data plane via SAM, then wiring the Next.js app. Pair with [ENVIRONMENT_MATRIX.md](./ENVIRONMENT_MATRIX.md), [AWS_SETUP.md](./AWS_SETUP.md), [INSTALLATION.md](./INSTALLATION.md), and [CI_RELEASE_PIPELINE.md](./CI_RELEASE_PIPELINE.md) (quality gates and ECS release order; no GitHub-specific workflows in-repo).
+This document is the **operator runbook** for shipping NexCort iQ API + Cognito + data plane via SAM, then wiring the Next.js app. Pair with [ENVIRONMENT_MATRIX.md](./ENVIRONMENT_MATRIX.md), [AWS_SETUP.md](./AWS_SETUP.md), [INSTALLATION.md](./INSTALLATION.md), and [CI_RELEASE_PIPELINE.md](./CI_RELEASE_PIPELINE.md) (quality gates and ECS release order; no GitHub-specific workflows in-repo).
 
 ## Supported deployment stages
 

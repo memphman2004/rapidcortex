@@ -1,5 +1,5 @@
 import type { SmsProviderMode } from "rapid-cortex-shared";
-import { RING_INTEGRATION_ENABLED, smsProviderModeSchema } from "rapid-cortex-shared";
+import { smsProviderModeSchema } from "rapid-cortex-shared";
 import { hydrateLambdaEnvFromJson } from "./hydrateLambdaEnv";
 
 hydrateLambdaEnvFromJson();
@@ -138,6 +138,8 @@ export const env = {
     Number.parseInt(process.env.AUTO_ANALYZE_EVERY_N_SEGMENTS ?? "0", 10) || 0,
   ),
   cognitoUserPoolId: process.env.COGNITO_USER_POOL_ID?.trim() ?? "",
+  /** Web app client id — used when attaching SAML IdPs to SupportedIdentityProviders. */
+  cognitoClientId: process.env.COGNITO_CLIENT_ID?.trim() ?? "",
   /** Caller Video Assist (SMS + WebRTC) — empty disables video-assist HTTP handlers at runtime. */
   videoAssistTable: process.env.VIDEO_ASSIST_TABLE?.trim() ?? "",
   videoAssistPublicBaseUrl: process.env.VIDEO_ASSIST_PUBLIC_BASE_URL?.trim() ?? "",
@@ -213,10 +215,13 @@ export const env = {
   /** Surge — duplicate-call clusters; empty table disables handlers. */
   surgeClustersTable: process.env.SURGE_CLUSTERS_TABLE?.trim() ?? "",
   enableSurge: featureEnabled("ENABLE_SURGE"),
-  /** Rapid Vision™ — Ring Source (ENABLE_CONNECT_RING preserved for Stack 4 Ring Lambdas). */
-  enableConnectRing: RING_INTEGRATION_ENABLED && featureEnabled("ENABLE_CONNECT_RING"),
   enableConnectNest: featureEnabled("ENABLE_CONNECT_NEST"),
   enableConnectWyze: featureEnabled("ENABLE_CONNECT_WYZE"),
+  /** Milestone XProtect — on-prem Bridge Protocol (default on when unset). */
+  enableMilestoneXprotect: featureEnabled("ENABLE_MILESTONE_XPROTECT"),
+  milestoneConnectionsTableName: process.env.MILESTONE_CONNECTIONS_TABLE?.trim() ?? "",
+  milestoneBridgeCredentialsSecretArn:
+    process.env.MILESTONE_BRIDGE_CREDENTIALS_SECRET_ARN?.trim() ?? "",
   nestTokensTableName: process.env.NEST_TOKENS_TABLE?.trim() ?? "",
   nestOauthStateTableName: process.env.NEST_OAUTH_STATE_TABLE?.trim() ?? "",
   nestConsentTableName: process.env.NEST_CONSENT_TABLE?.trim() ?? "",
@@ -228,21 +233,9 @@ export const env = {
   wyzeConsentTableName: process.env.WYZE_CONSENT_TABLE?.trim() ?? "",
   wyzeKmsKeyArn: process.env.WYZE_KMS_KEY_ARN?.trim() ?? "",
   wyzeApiKeysSecretArn: process.env.WYZE_API_KEYS_SECRET_ARN?.trim() ?? "",
-  ringAccountsTable: process.env.RING_TABLE_ACCOUNTS?.trim() ?? "",
-  ringDevicesTable: process.env.RING_TABLE_DEVICES?.trim() ?? "",
-  ringRequestsTable:
-    process.env.RING_TABLE_REQUESTS?.trim() || process.env.RING_CAMERA_REQUESTS_TABLE?.trim() || "",
-  ringSessionsTable: process.env.RING_TABLE_SESSIONS?.trim() ?? "",
-  ringCitizenOwnersTable: process.env.RING_TABLE_CITIZEN_OWNERS?.trim() ?? "",
-  ringHomeownerParticipantsTable:
-    process.env.RING_TABLE_HOMEOWNER_PARTICIPANTS?.trim() || process.env.HOMEOWNER_TABLE?.trim() || "",
-  ringUnclaimedTokensTable: process.env.RING_TABLE_UNCLAIMED_TOKENS?.trim() ?? "",
-  ringCredentialsSecretArn:
-    process.env.RING_CREDENTIALS_SECRET_ARN?.trim() ||
-    process.env.RING_PARTNER_TOKEN_SECRET_ARN?.trim() ||
-    "",
-  ringPublicApiBaseUrl:
-    process.env.RING_PUBLIC_API_BASE_URL?.trim() || "https://api.rapidcortex.us",
+  /** Public execute-api origin for citizen consent landing links (Nest / Wyze). */
+  connectPublicApiBaseUrl:
+    process.env.CONNECT_PUBLIC_API_BASE_URL?.trim() || "https://api.rapidcortex.us",
   internalServiceKey: process.env.INTERNAL_SERVICE_KEY?.trim() ?? "",
   /** Automated QA scoring (F1) — empty table names disable QA HTTP handlers at runtime. */
   qaSessionsTable: process.env.QA_SESSIONS_TABLE?.trim() ?? "",
@@ -360,6 +353,10 @@ export const env = {
   enableCallAssistGreetingConfig: featureEnabled("ENABLE_CALL_ASSIST_GREETING_CONFIG"),
   callAssistTable: process.env.CALL_ASSIST_TABLE?.trim() ?? "",
   enableVerticalAlerts: featureEnabled("ENABLE_VERTICAL_ALERTS"),
+  enableEnsTestProgram: featureEnabled("ENABLE_ENS_TEST_PROGRAM"),
+  enableFourwinds: featureEnabled("ENABLE_FOURWINDS"),
+  fourwindsApiBaseUrl: process.env.FOURWINDS_API_BASE_URL?.trim() ?? "",
+  fourwindsSecretArn: process.env.FOURWINDS_SECRET_ARN?.trim() ?? "",
   verticalAlertsTable: process.env.VERTICAL_ALERTS_TABLE?.trim() ?? "",
   alertShortCodeSsmPrefix: process.env.ALERT_SHORT_CODE_SSM_PREFIX?.trim() || "/rc/alerts/short-code/",
   alertEmailSender: process.env.ALERT_EMAIL_SENDER?.trim() || "alerts@alerts.rapidcortex.us",
@@ -401,7 +398,6 @@ export const env = {
   enableRcTranslate: featureEnabled("ENABLE_RC_TRANSLATE"),
   /** Rapid Vision™ — AI visual intelligence. Default on when unset. */
   enableRapidVision: featureEnabled("ENABLE_RAPID_VISION"),
-  enableRapidVisionRing: featureEnabled("ENABLE_RAPID_VISION_RING"),
   enableRapidVisionNest: featureEnabled("ENABLE_RAPID_VISION_NEST"),
   enableRapidVisionCallerVideo: featureEnabled("ENABLE_RAPID_VISION_CALLER_VIDEO"),
   enableRapidVisionDemo: featureEnabled("ENABLE_RAPID_VISION_DEMO"),
@@ -418,7 +414,7 @@ export const env = {
   enableVisionAiThumbnails: featureEnabled("ENABLE_VISION_AI_THUMBNAILS"),
   enableVisionAiWs: featureEnabled("ENABLE_VISION_AI_WS"),
   enableVisionAiAdmin: featureEnabled("ENABLE_VISION_AI_ADMIN"),
-  /** Rapid Cortex Video — agency-owned VMS wall / DVR. Default on when unset. */
+  /** NexCort iQ Video — agency-owned VMS wall / DVR. Default on when unset. */
   enableRcVideo: featureEnabled("ENABLE_RC_VIDEO"),
   enableRcVideoAnalytics: featureEnabled("ENABLE_RC_VIDEO_ANALYTICS", false),
   enableRcVmsFederation: featureEnabled("ENABLE_RC_VMS_FEDERATION"),
@@ -565,8 +561,8 @@ export const env = {
   /** Web-form + RC Admin ticket board (separate from phone-line rc-support-calls). */
   ticketsTable: process.env.TICKETS_TABLE?.trim() ?? "",
   enableSupportForm: featureEnabled("ENABLE_SUPPORT_FORM"),
-  supportEmail: process.env.SUPPORT_EMAIL?.trim() || "support@rapidcortex.us",
-  supportFromEmail: process.env.FROM_EMAIL?.trim() || "noreply@rapidcortex.us",
+  supportEmail: process.env.SUPPORT_EMAIL?.trim() || "support@nexcortiq.us",
+  supportFromEmail: process.env.FROM_EMAIL?.trim() || "noreply@nexcortiq.us",
   supportPhone: process.env.SUPPORT_PHONE?.trim() || "",
   /** RC Admin Contacts address book (companies + persons). */
   contactCompaniesTable: process.env.CONTACT_COMPANIES_TABLE?.trim() ?? "",
@@ -620,15 +616,15 @@ export const env = {
   /** Private resumes bucket for careers apply uploads. */
   resumesBucket: process.env.RESUMES_BUCKET?.trim() ?? "",
   /** SES From for careers confirmation + status emails. */
-  careersFromEmail: process.env.FROM_EMAIL?.trim() || process.env.CAREERS_FROM_EMAIL?.trim() || "careers@rapidcortex.us",
+  careersFromEmail: process.env.FROM_EMAIL?.trim() || process.env.CAREERS_FROM_EMAIL?.trim() || "careers@nexcortiq.us",
   /** Internal inbox for new job application notifications. */
-  careersNotifyEmail: process.env.NOTIFY_EMAIL?.trim() || process.env.CAREERS_NOTIFY_EMAIL?.trim() || "jeff@rapidcortex.us",
+  careersNotifyEmail: process.env.NOTIFY_EMAIL?.trim() || process.env.CAREERS_NOTIFY_EMAIL?.trim() || "jeff@nexcortiq.us",
   /** Fallback signature name when Cognito claims lack name/email. */
   careersReviewerName: process.env.REVIEWER_NAME?.trim() || "Jeffrey Coleman",
   /** Verified SES From for marketing welcome + team notify; empty skips SES. */
   sesFromEmail: process.env.SES_FROM_EMAIL?.trim() ?? "",
   /** Internal inbox for new Cortex signup notifications. */
-  rcTeamNotifyEmail: process.env.RC_TEAM_NOTIFY_EMAIL?.trim() ?? "team@rapidcortex.us",
+  rcTeamNotifyEmail: process.env.RC_TEAM_NOTIFY_EMAIL?.trim() ?? "team@nexcortiq.us",
   /** When true/1, SES send is skipped (local/CI). */
   sesMock: process.env.SES_MOCK === "true" || process.env.SES_MOCK === "1",
   /** Azure app (public) client id for RC Sales Automation Outlook Graph send. */
@@ -657,7 +653,7 @@ export const env = {
   },
   /** Campaign From / reply-to mailbox. Connect Outlook must sign in as this address. */
   get outlookSalesMailbox(): string {
-    return process.env.OUTLOOK_SALES_MAILBOX?.trim() || "hello@rapidcortex.us";
+    return process.env.OUTLOOK_SALES_MAILBOX?.trim() || "hello@nexcortiq.us";
   },
   /** Careers UI + public apply. Default ON when unset. */
   enableHiring: featureEnabled("ENABLE_HIRING"),
@@ -669,8 +665,7 @@ export const env = {
   cleryActTable: process.env.CLERY_ACT_TABLE?.trim() ?? "",
   cleryClassificationMock:
     process.env.CLERY_CLASSIFICATION_MOCK === "true" ||
-    process.env.CLERY_CLASSIFICATION_MOCK === "1" ||
-    !process.env.ANTHROPIC_API_KEY_SECRET_ARN,
+    process.env.CLERY_CLASSIFICATION_MOCK === "1",
   /** Campus EAP / building checklist library. Default on when unset. */
   enableCampusEap: featureEnabled("ENABLE_CAMPUS_EAP"),
   /** Signed inbound campus security-event webhook. Default on when unset. */
@@ -777,6 +772,7 @@ export const env = {
   websocketConnectionsTable: process.env.WEBSOCKET_CONNECTIONS_TABLE?.trim() ?? "",
   /** HTTPS management endpoint for API Gateway WebSocket (no wss:// prefix). */
   websocketApiEndpoint: process.env.WEBSOCKET_API_ENDPOINT?.trim() ?? "",
+  guestAssistSessionSecret: process.env.GUEST_ASSIST_SESSION_SECRET?.trim() ?? "",
   /** Immutable CAD webhook receipts (TTL). */
   cadIncidentsRawTable: process.env.CAD_INCIDENTS_RAW_TABLE?.trim() ?? "",
   /** @deprecated Prefer {@link cadIncidentsRawTable}; legacy normalized CAD rows. */
@@ -793,6 +789,28 @@ export const env = {
   cadPublicApiBaseUrl: process.env.CAD_PUBLIC_API_BASE_URL?.trim() ?? "",
   /** When true, CAD write-back HTTP routes accept submissions (otherwise 400). */
   cadWritebackEnabled: featureEnabled("CAD_WRITEBACK_ENABLED", false),
+  /** Agency CAD mesh console and share router. Default on. Live vendor writes stay fail-closed. */
+  cadMeshEnabled: featureEnabled("ENABLE_CAD_MESH", true),
+  /** 13-feature suite (citizens, address intel, mutual aid, MCI, evidence, etc.). Default on. */
+  enableFeaturesSuite: featureEnabled("ENABLE_FEATURES_SUITE"),
+  citizensTable: process.env.CITIZENS_TABLE?.trim() ?? "",
+  addressIntelTable: process.env.ADDRESS_INTEL_TABLE?.trim() ?? "",
+  altResponseTable: process.env.ALT_RESPONSE_TABLE?.trim() ?? "",
+  coRespondersTable: process.env.CO_RESPONDERS_TABLE?.trim() ?? "",
+  mutualAidTable: process.env.MUTUAL_AID_TABLE?.trim() ?? "",
+  mciTable: process.env.MCI_TABLE?.trim() ?? "",
+  infraTable: process.env.INFRA_TABLE?.trim() ?? "",
+  interpreterTable: process.env.INTERPRETER_TABLE?.trim() ?? "",
+  evidenceTable: process.env.EVIDENCE_TABLE?.trim() ?? "",
+  evidenceBucket: process.env.EVIDENCE_BUCKET?.trim() ?? "",
+  preplanBucket: process.env.PREPLAN_BUCKET?.trim() ?? "",
+  assessmentTable: process.env.ASSESSMENT_TABLE?.trim() ?? "",
+  learningTable: process.env.LEARNING_TABLE?.trim() ?? "",
+  publicEventsTable: process.env.PUBLIC_EVENTS_TABLE?.trim() ?? "",
+  checkinTable: process.env.CHECKIN_TABLE?.trim() ?? "",
+  socialSignalsTable: process.env.SOCIAL_SIGNALS_TABLE?.trim() ?? "",
+  panicAlertSnsTopic: process.env.PANIC_ALERT_SNS_TOPIC?.trim() ?? "",
+  socialAlertSnsTopic: process.env.SOCIAL_ALERT_SNS_TOPIC?.trim() ?? "",
   /**
    * Scenario Center HTTP (demo seed / QA suite). Fail-closed — must be exactly "true".
    * Never enable on live production (.env-api-dev / app.rapidcortex.us).
@@ -902,11 +920,31 @@ export const env = {
     10,
     Number.parseInt(process.env.RCS_ARRIVAL_RADIUS_METERS ?? "150", 10) || 150,
   ),
-  alsPlaceIndexName: process.env.ALS_PLACE_INDEX_NAME?.trim() ?? "",
-  alsRouteCalculatorName: process.env.ALS_ROUTE_CALCULATOR_NAME?.trim() ?? "",
-  alsGeofenceCollectionName: process.env.ALS_GEOFENCE_COLLECTION_NAME?.trim() ?? "",
-  alsTrackerName: process.env.ALS_TRACKER_NAME?.trim() ?? "",
-  /** Default ON (mock) when unset so local/CI never call ALS. Deployed stack sets false. */
-  alsLocationMock:
-    process.env.ALS_LOCATION_MOCK !== "false" && process.env.ALS_LOCATION_MOCK !== "0",
+  enableMapHospitals: featureEnabled("ENABLE_MAP_HOSPITALS"),
+  enableMapEducation: featureEnabled("ENABLE_MAP_EDUCATION"),
+  get alsPlaceIndexName(): string {
+    return process.env.ALS_PLACE_INDEX_NAME?.trim() ?? "";
+  },
+  get alsRouteCalculatorName(): string {
+    return process.env.ALS_ROUTE_CALCULATOR_NAME?.trim() ?? "";
+  },
+  get alsGeofenceCollectionName(): string {
+    return process.env.ALS_GEOFENCE_COLLECTION_NAME?.trim() ?? "";
+  },
+  get alsTrackerName(): string {
+    return process.env.ALS_TRACKER_NAME?.trim() ?? "";
+  },
+  /**
+   * Default ON (mock) when unset so local/CI never call ALS. Deployed stacks set false.
+   * Getter so tests and post-hydrate env updates are visible.
+   */
+  get alsLocationMock(): boolean {
+    return process.env.ALS_LOCATION_MOCK !== "false" && process.env.ALS_LOCATION_MOCK !== "0";
+  },
+  /** NexCortiQ Loadout — API provisioning, metering, and invoicing. Default on when unset. */
+  enableLoadout: featureEnabled("ENABLE_LOADOUT"),
+  loadoutSubscriptionsTable: process.env.LOADOUT_SUBSCRIPTIONS_TABLE?.trim() ?? "",
+  loadoutApiKeysTable: process.env.LOADOUT_API_KEYS_TABLE?.trim() ?? "",
+  loadoutUsageTable: process.env.LOADOUT_USAGE_TABLE?.trim() ?? "",
+  loadoutInvoicesTable: process.env.LOADOUT_INVOICES_TABLE?.trim() ?? "",
 };

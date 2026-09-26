@@ -192,7 +192,21 @@ struct CodeDetailView: View {
     }
 
     private var nfcCard: some View {
-        Button { showingNFCSheet = true } label: {
+        Group {
+            if NFCHardware.isAvailable {
+                Button { showingNFCSheet = true } label: {
+                    nfcCardContent(actionLabel: "Program NFC Tag")
+                }
+                .buttonStyle(.plain)
+            } else {
+                nfcCardContent(actionLabel: nil)
+            }
+        }
+        .padding(.bottom, 12)
+    }
+
+    private func nfcCardContent(actionLabel: String?) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("NFC Tag")
@@ -205,17 +219,23 @@ struct CodeDetailView: View {
                     )
                 }
                 Spacer()
-                Text("Program NFC Tag")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(RCTheme.amber)
+                if let actionLabel {
+                    Text(actionLabel)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(RCTheme.amber)
+                }
             }
-            .padding(16)
-            .background(RCTheme.surface1)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(RCTheme.border, lineWidth: 1))
+            if actionLabel == nil {
+                Text(NFCHardware.unavailableMessage)
+                    .font(.system(size: 12))
+                    .foregroundColor(RCTheme.textMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
-        .buttonStyle(.plain)
-        .padding(.bottom, 12)
+        .padding(16)
+        .background(RCTheme.surface1)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(RCTheme.border, lineWidth: 1))
     }
 
     private var signReferenceRow: some View {

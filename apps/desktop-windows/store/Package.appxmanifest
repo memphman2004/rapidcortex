@@ -7,13 +7,13 @@
   <!-- Publisher CN must match Partner Center after you reserve the name. -->
   <Identity
     Name="RapidCortex.Desktop"
-    Publisher="CN=Rapid Cortex"
+    Publisher="CN=NexCort iQ"
     Version="1.0.3.0" />
   <Properties>
-    <DisplayName>Rapid Cortex</DisplayName>
-    <PublisherDisplayName>Rapid Cortex</PublisherDisplayName>
+    <DisplayName>NexCort iQ</DisplayName>
+    <PublisherDisplayName>NexCort iQ</PublisherDisplayName>
     <Logo>Images\StoreLogo.png</Logo>
-    <Description>Desktop workspace for Rapid Cortex public-safety operations.</Description>
+    <Description>Desktop workspace for NexCort iQ public-safety operations.</Description>
   </Properties>
   <Resources>
     <Resource Language="en-us" />
@@ -27,7 +27,7 @@
       Executable="RapidCortexDesktop.exe"
       EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
-        DisplayName="Rapid Cortex"
+        DisplayName="NexCort iQ"
         Description="Assistive public-safety workspace (does not replace CAD or 911)."
         BackgroundColor="transparent"
         Square150x150Logo="Images\Square150x150Logo.png"

@@ -1,18 +1,18 @@
 export const Strings = {
   app: {
-    name: 'Rapid Cortex',
-    tagline: 'Real-Time AI Intelligence for Emergency Response',
+    name: 'NexCort iQ',
+    tagline: 'Intelligence at the speed of response',
   },
 
   enterSplash: {
-    eyebrow: 'Rapid Cortex',
-    titleLine1: 'Enter the',
-    titleLine2: 'Cortex',
+    eyebrow: 'NexCort iQ',
+    titleLine1: 'Enter',
+    titleLine2: 'NexCort',
     tagline: 'Intelligence at the speed of response',
     initialize: 'Initialize',
     accessing: 'Accessing...',
     statusNeural: 'NEURAL LINK ESTABLISHED',
-    statusOnline: 'CORTEX ONLINE',
+    statusOnline: 'NEXCORT ONLINE',
     statusRouting: 'ROUTING...',
   },
 
@@ -45,16 +45,16 @@ export const Strings = {
   },
 
   productSelection: {
-    safeSoundTitle: 'RC Safe & Sound',
+    safeSoundTitle: 'NC Safe & Sound',
     safeSoundSubtitle: 'Protect your family, pets, and valuables',
-    venueTitle: 'RC Venue',
+    venueTitle: 'NC Venue',
     venueSubtitle: 'Zone signs, QR codes, and NFC tag programming',
-    campusTitle: 'RC Campus',
+    campusTitle: 'NC Campus',
     campusSubtitle: 'Campus safety reporting codes and NFC deployment',
     /** @deprecated Prefer venueTitle / campusTitle */
-    venueCampusTitle: 'RC Venue / Campus',
+    venueCampusTitle: 'NC Venue / Campus',
     venueCampusSubtitle: 'Sign management and field deployment tools',
-    commandTitle: 'RC Command',
+    commandTitle: 'NC Command',
     commandSubtitle: 'View, communicate, and coach. Not a CAD dispatch console.',
   },
 
@@ -75,9 +75,9 @@ export const Strings = {
     campusTools: 'Campus Tools',
     commandTools: 'Field Command',
     venueCampusTools: 'Venue & Campus Tools',
-    noAccountContactAdmin: "Don't have an account? Contact your Rapid Cortex administrator.",
-    faceIdPrompt: 'Allow Rapid Cortex to use Face ID for secure login.',
-    biometricReason: 'Authenticate to access Rapid Cortex',
+    noAccountContactAdmin: "Don't have an account? Contact your NexCort iQ administrator.",
+    faceIdPrompt: 'Allow NexCort iQ to use Face ID for secure login.',
+    biometricReason: 'Authenticate to access NexCort iQ',
     usePasscode: 'Use Passcode',
 
     errors: {
@@ -192,19 +192,19 @@ export const Strings = {
       language: 'Language',
       myLanguage: 'My Language',
       languageSubtitle:
-        'Intelligent translations powered by Rapid Cortex · 150+ languages',
+        'Intelligent translations powered by NexCort iQ · 150+ languages',
       languagePreferenceHelp:
-        'Your language preference helps emergency responders communicate with you. Rapid Cortex intelligent translation supports 150+ languages.',
+        'Your language preference helps emergency responders communicate with you. NexCort iQ intelligent translation supports 150+ languages.',
       emergencyContactsShortcut: 'Emergency contacts',
     },
   },
 
   venue: {
-    codes: 'QR & NFC Codes',
-    create: 'Create',
+    codes: 'Reporting Points',
+    create: 'Add',
     account: 'Account',
-    agencyCodes: 'QR & NFC Codes',
-    searchPlaceholder: 'Search by name or zone',
+    agencyCodes: 'Reporting Points',
+    searchPlaceholder: 'Search by name or location',
     filters: {
       all: 'All',
       active: 'Active',
@@ -216,22 +216,23 @@ export const Strings = {
     notProgrammed: 'Not Programmed',
     lastActivity: 'Last activity',
     createCode: {
-      codeName: 'Code Name',
-      codeNamePlaceholder: 'e.g. Gate B Concourse',
-      zone: 'Zone / Location',
-      zonePlaceholder: 'e.g. Section 112, Row A',
-      reportType: 'Report Type',
+      title: 'Create Reporting Point',
+      subtitle: 'Set up a QR code or NFC tag for this location.',
+      codeName: 'Reporting Point Name',
+      codeNamePlaceholder: 'e.g. Gate A, Student Center, Bus 2145',
+      zone: 'Location Details',
+      zonePlaceholder: 'e.g. Section 112, East Entrance, Platform 3',
+      reportType: 'Reporting Options',
       reportTypes: {
         anonymous: 'Anonymous',
         identified: 'Identified',
         both: 'Both',
       },
-      smsNumber: 'SMS Phone Number',
+      smsNumber: 'Text Reporting Number',
       smsPlaceholder: '(555) 000-0000',
-      smsHelper:
-        'The phone number visitors text to report an incident. Appears on the physical sign.',
-      createButton: 'Create Code',
-      successToast: 'Code created — ready to program',
+      smsHelper: 'Optional. Shown on the printed sign.',
+      createButton: 'Create Reporting Point',
+      successToast: 'Reporting point created — ready to program',
     },
     signPackage: {
       signIdentity: 'Sign Identity',
@@ -281,12 +282,12 @@ export const Strings = {
       cta: 'Trade show signs',
       program: 'Program NFC tag',
       blurb:
-        'Print the QR and program an NTAG213 so a booth tap or scan opens the Rapid Cortex site — not a location report form. Each tap is counted.',
+        'Print the QR and program an NTAG213 so a booth tap or scan opens the NexCort iQ site — not a location report form. Each tap is counted.',
       homeLabel: 'Home',
       demoLabel: 'Demo',
       ready: 'Hold an NTAG213 tag to the back of your phone',
       writing: 'Writing marketing URL…',
-      success: 'Tag opens the Rapid Cortex website',
+      success: 'Tag opens the NexCort iQ website',
     },
     accountDetails: {
       role: 'Role',
@@ -298,7 +299,7 @@ export const Strings = {
       termsOfUse: 'Terms of use',
       requestDeletion: 'Request account deletion',
       requestDeletionBody:
-        'Opens the Rapid Cortex account deletion page. Agency operational records may be retained when required by law. We process requests within 30 days.',
+        'Opens the NexCort iQ account deletion page. Agency operational records may be retained when required by law. We process requests within 30 days.',
       continueToRequest: 'Continue',
     },
     vertical: {
@@ -308,8 +309,8 @@ export const Strings = {
   },
 
   campus: {
-    codes: 'QR & NFC Codes',
-    create: 'Create',
+    codes: 'Reporting Points',
+    create: 'Add',
     account: 'Account',
   },
 
@@ -366,7 +367,7 @@ export const Strings = {
     canCancelAlerts: 'Can cancel alerts',
     preferredLanguage: 'Notification language',
     preferredLanguageHelp:
-      "Emergency alerts will be sent to this contact in their language using Rapid Cortex's 150+ language translation service.",
+      "Emergency alerts will be sent to this contact in their language using NexCort iQ's 150+ language translation service.",
     relationships: {
       parent: 'Parent',
       spouse: 'Spouse',
@@ -384,7 +385,7 @@ export const Strings = {
     searchPlaceholder: 'Search languages',
     noResults: (query: string) => `No languages matching '${query}'`,
     rtlBadge: 'RTL',
-    poweredBy: 'Intelligent translations powered by Rapid Cortex',
+    poweredBy: 'Intelligent translations powered by NexCort iQ',
     unavailable: 'Language list unavailable. Check your connection.',
     detected: 'Detected',
   },

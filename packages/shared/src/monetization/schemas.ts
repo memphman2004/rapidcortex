@@ -56,10 +56,10 @@ export const salesLeadPackageSoldSchema = z.enum([
 export type SalesLeadPackageSold = z.infer<typeof salesLeadPackageSoldSchema>;
 
 export const SALES_LEAD_PACKAGE_SOLD_LABELS: Record<SalesLeadPackageSold, string> = {
-  rc_core: "RC Core (911)",
-  rc_campus: "RC Campus",
-  rc_venue: "RC Venue",
-  rc_lite: "RC Lite",
+  rc_core: "911 Centers/PSAPs (911)",
+  rc_campus: "Campus",
+  rc_venue: "Venue",
+  rc_lite: "NexCort Lite",
   none: "None",
 };
 
@@ -85,6 +85,8 @@ export const patchSalesLeadBodySchema = z
     nextAction: z.string().max(500).optional(),
     nextActionDate: z.string().max(64).optional(),
     lostReason: z.string().max(200).optional(),
+    selectedFeatureIds: z.array(z.string().min(1).max(80)).max(100).optional(),
+    freeOfferings: z.array(z.string().min(1).max(80)).max(50).optional(),
   })
   .strict()
   .refine((v) => Object.keys(v).length > 0, {

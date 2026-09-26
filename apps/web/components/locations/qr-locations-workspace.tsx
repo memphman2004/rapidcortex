@@ -30,7 +30,7 @@ export function QrLocationsWorkspace({
   if (!enabled) {
     return (
       <p className="text-sm text-slate-400">
-        QR location tools aren’t enabled for this site. Contact Rapid Cortex support.
+        QR location tools aren’t enabled for this site. Contact NexCort iQ support.
       </p>
     );
   }
@@ -38,7 +38,7 @@ export function QrLocationsWorkspace({
   if (!api) {
     return (
       <p className="text-sm text-slate-400">
-        Platform connection isn’t configured. Contact Rapid Cortex support.
+        Platform connection isn’t configured. Contact NexCort iQ support.
       </p>
     );
   }

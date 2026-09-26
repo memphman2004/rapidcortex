@@ -10,8 +10,7 @@
 #   vertical_transit   — Transit security users
 #   vertical_hospital  — Hospital users
 #   vertical_call_assist — Call Assist non-emergency intake
-#   vertical_ring      — Ring homeowners and Ring reviewer accounts
-#   vertical_platform  — Rapid Cortex platform/admin accounts
+#   vertical_platform  — NexCort iQ platform/admin accounts
 #
 # Mapping must stay in sync with packages/shared/src/auth/cognito-vertical-group.ts
 #
@@ -51,19 +50,17 @@ VERTICAL_GROUPS=(
   vertical_transit
   vertical_hospital
   vertical_call_assist
-  vertical_ring
 )
 
 group_description() {
   case "$1" in
-    vertical_platform) echo "Platform — Rapid Cortex internal admin accounts" ;;
+    vertical_platform) echo "Platform — NexCort iQ internal admin accounts" ;;
     vertical_911) echo "911 PSAP — dispatchers, supervisors, agency admins, analysts" ;;
     vertical_campus) echo "Campus safety — campus admins, security, dispatch, faculty" ;;
     vertical_venue) echo "Venue security — venue admins, operators, supervisors" ;;
     vertical_transit) echo "Transit security — transit safety personnel" ;;
     vertical_hospital) echo "Hospital — hospital coordinators and staff" ;;
     vertical_call_assist) echo "Call Assist — non-emergency AI intake (no 911 dispatcher console)" ;;
-    vertical_ring) echo "Ring — homeowners and Ring integration reviewer accounts" ;;
     *) echo "" ;;
   esac
 }
@@ -113,7 +110,6 @@ import json, os, subprocess, sys
 POOL = os.environ["POOL"]
 REGION = os.environ["REGION"]
 PLAN_PATH = sys.argv[1]
-RING_REVIEWER = "ring-reviewer@rapidcortex.us"
 GROUPS = [
     "vertical_platform",
     "vertical_911",
@@ -122,7 +118,6 @@ GROUPS = [
     "vertical_transit",
     "vertical_hospital",
     "vertical_call_assist",
-    "vertical_ring",
 ]
 
 def aws_json(args, *, ignore_missing=False):
@@ -178,8 +173,6 @@ def vertical_group(agency_id, role, email):
     agency_lc = agency.lower()
     if agency == "__platform__" or role_lc.startswith("rc"):
         return "vertical_platform"
-    if role_lc == "homeowner" or email_lc == RING_REVIEWER:
-        return "vertical_ring"
     if "campus" in agency_lc or role_lc.startswith("campus_"):
         return "vertical_campus"
     if "venue" in agency_lc or role_lc.startswith("venue_"):
@@ -302,5 +295,5 @@ echo "  View groups in AWS Console:"
 echo "  Cognito → User Pools → $POOL → Groups"
 echo ""
 echo "  New users are assigned at create time (PostConfirmation, admin create,"
-echo "  Ring homeowner signup, hospital portal). Re-run this script after a bulk import."
+echo "  hospital portal). Re-run this script after a bulk import."
 echo ""

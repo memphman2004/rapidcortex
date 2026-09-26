@@ -263,7 +263,7 @@ export function CadFieldMappingStep({ vendor, initial, onChange }: Props) {
           padding: "8px 10px",
         }}
       >
-        Map vendor priority codes to Rapid Cortex P1–P4.
+        Map vendor priority codes to NexCort iQ P1–P4.
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>

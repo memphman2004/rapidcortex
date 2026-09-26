@@ -1,6 +1,6 @@
 # Vertical onboarding packets (S3)
 
-Customer-facing packets live under the Rapid Cortex **assets** bucket:
+Customer-facing packets live under the NexCort iQ **assets** bucket:
 
 ```
 s3://{AssetsBucket}/onboarding-packets/campus/
@@ -10,13 +10,13 @@ s3://{AssetsBucket}/onboarding-packets/transit/
 s3://{AssetsBucket}/onboarding-packets/psap/
 ```
 
-RC Superadmin, RC Admin, and RC IT see **every** folder from **RC Admin → Onboarding packets**.
+NC Superadmin, NC Admin, and NC IT see **every** folder from **NC Admin → Onboarding packets**.
 
 Agency / campus / venue / hospital / transit **admins** see only their vertical.
 
 ## What belongs here
 
-Shareable discovery and go-live files: what Rapid Cortex is and is not, what to collect, roles, integrations, and checklists.
+Shareable discovery and go-live files: what NexCort iQ is and is not, what to collect, roles, integrations, and checklists.
 
 Do **not** put credentials, internal pricing workbooks, or unsigned MSAs in these folders.
 

@@ -78,7 +78,7 @@ export const CALL_ASSIST_BID_LINE_MATRIX: readonly CallAssistBidLine[] = [
     requirement: "Telephony Integration",
     position: "PARTIAL",
     notes:
-      "Amazon Connect webhook + contact-flow actions. SIP/VoIP CPE, ANI/ALI display, queue management, and overflow routing are tenant telephony — not a Rapid Cortex 911 phone-system replacement.",
+      "Amazon Connect webhook + contact-flow actions. SIP/VoIP CPE, ANI/ALI display, queue management, and overflow routing are tenant telephony — not a NexCort iQ 911 phone-system replacement.",
   },
   {
     line: 14,

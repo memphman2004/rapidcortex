@@ -5,21 +5,21 @@ import { buildPublicPageMetadata } from "@/lib/seo";
 const PATH = "/free-60-day-pilot";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Free 60-Day Pilot for 911 Centers & PSAPs | Rapid Cortex",
+  title: "Free 60-Day Pilot for 911 Centers & PSAPs | NexCort iQ",
   description:
-    "Qualified agencies and public safety operations teams can evaluate Rapid Cortex through a free 60-day pilot with non-disruptive deployment and no CAD replacement required.",
+    "Qualified agencies and public safety operations teams can evaluate NexCort iQ through a free 60-day pilot with non-disruptive deployment and no CAD replacement required.",
   path: PATH,
 });
 
 export default function FreePilotPage() {
   return (
     <KeywordLandingPage
-      title="Free 60-Day Pilot for 911 Centers & PSAPs | Rapid Cortex"
-      description="Qualified agencies and public safety operations teams can evaluate Rapid Cortex through a free 60-day pilot with non-disruptive deployment and no CAD replacement required."
+      title="Free 60-Day Pilot for 911 Centers & PSAPs | NexCort iQ"
+      description="Qualified agencies and public safety operations teams can evaluate NexCort iQ through a free 60-day pilot with non-disruptive deployment and no CAD replacement required."
       path={PATH}
       h1="Free 60-Day Pilot Program"
       eyebrow="free 60-day pilot"
-      intro="Rapid Cortex offers qualified agencies and operations teams a Free 60-Day Pilot Program to evaluate decision support and operational awareness in real workflows."
+      intro="NexCort iQ offers qualified agencies and operations teams a Free 60-Day Pilot Program to evaluate decision support and operational awareness in real workflows."
       sections={[
         {
           title: "Designed for non-disruptive evaluation",
@@ -42,7 +42,7 @@ export default function FreePilotPage() {
         },
         {
           title: "No CAD replacement required",
-          body: "Rapid Cortex is deployed as an intelligence and decision-support layer, not a replacement for systems of record.",
+          body: "NexCort iQ is deployed as an intelligence and decision-support layer, not a replacement for systems of record.",
         },
       ]}
       relatedLinks={[

@@ -154,7 +154,7 @@ export function LiveVideoCallerClient({ token }: { token: string }) {
   return (
     <main className="mx-auto min-h-[100dvh] max-w-lg bg-slate-950 px-4 py-8 text-slate-100">
       <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-300/90">Secure Live Video</p>
-      <h1 className="mt-2 text-xl font-semibold tracking-tight">Rapid Cortex live support</h1>
+      <h1 className="mt-2 text-xl font-semibold tracking-tight">NexCort iQ live support</h1>
       <p className="mt-4 text-sm leading-relaxed text-slate-300">
         A dispatcher requested temporary live video for your active incident. Joining is optional. You can stop at any
         time.

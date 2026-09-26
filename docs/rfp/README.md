@@ -13,7 +13,7 @@ Canonical product claims remain in [NON_GOALS.md](../go-to-market-sales/NON_GOAL
 | Included | Not included (cannot be shipped as software) |
 |----------|-----------------------------------------------|
 | Documented controls mapped to each RFP bullet | FBI / CSO **CJIS certification** or CJIS-ATP |
-| Operating procedures Rapid Cortex will follow | A **staffed 24/7 SOC** unless the 24/7 support add-on is purchased |
+| Operating procedures NexCort iQ will follow | A **staffed 24/7 SOC** unless the 24/7 support add-on is purchased |
 | AWS-native detection (WAF, CloudWatch, audit, optional GuardDuty) | Traditional on-prem IDS/IPS appliances on the agency LAN |
 | Tenant IAM, RBAC, encryption, logging | Segmentation of the **agency’s** PSAP network |
 | Implementation schedule, cutover, rollback, UAT, BCP, risk plan | Filled dates, names, and RTO/RPO **until a SOW is signed** |
@@ -49,8 +49,8 @@ Do **not** write any of the following unless counsel and a completed assessment 
 | IAM | §6 | [AUTH_OPERATIONS.md](../product-architecture/AUTH_OPERATIONS.md) |
 | Security event logging | §7 | [AUDIT_EVENT_MATRIX.md](../security-compliance/AUDIT_EVENT_MATRIX.md) |
 | Vulnerability management | §8 | [CI_RELEASE_PIPELINE.md](../deployment-infrastructure/CI_RELEASE_PIPELINE.md) |
-| Incident response | §9 | [INCIDENT_RESPONSE.md](../operations-runbooks/INCIDENT_RESPONSE.md) |
-| Disaster recovery | §10 | [BACKUP_AND_RECOVERY.md](../operations-runbooks/BACKUP_AND_RECOVERY.md) |
+| Incident response | §9 | [INCIDENT_RESPONSE.md](../operations-runbooks/INCIDENT_RESPONSE.md), [soc2 POL-07](../security-compliance/soc2/policies/07-incident-response-policy.md) |
+| Disaster recovery | §10 | [BACKUP_AND_RECOVERY.md](../operations-runbooks/BACKUP_AND_RECOVERY.md), [restore-drill](../security-compliance/soc2/processes/restore-drill.md) |
 | Implementation schedule | [implementation-and-transition.md](./implementation-and-transition.md) §1 | [AGENCY_ONBOARDING_RUNBOOK.md](../operations-runbooks/AGENCY_ONBOARDING_RUNBOOK.md) |
 | Cutover strategy | §2 | [PILOT_GOVERNANCE.md](../go-to-market-sales/PILOT_GOVERNANCE.md) |
 | Rollback | §3 | [RUNBOOK.md](../operations-runbooks/RUNBOOK.md) |
@@ -70,6 +70,7 @@ Do **not** write any of the following unless counsel and a completed assessment 
 4. [SECURITY_QUESTIONNAIRE_RESPONSES.md](../security-compliance/SECURITY_QUESTIONNAIRE_RESPONSES.md)  
 5. [SUBPROCESSOR_LIST.md](../security-compliance/SUBPROCESSOR_LIST.md)  
 6. CJIS / SOC 2 **alignment** PDF (internal product requirements) — alignment only  
+7. [SOC 2 control pack](../security-compliance/soc2/README.md) — policies/SOPs; **not** a Type II report
 
 Add per-agency: filled implementation workbook, network diagram for **this** tenant’s access path, executed DPA after signature.
 
@@ -79,4 +80,5 @@ Add per-agency: filled implementation workbook, network diagram for **this** ten
 
 | Version | Date | Notes |
 |---------|------|-------|
+| 1.1 | 2026-09-19 | Link SOC 2 in-repo control pack (still not certification) |
 | 1.0 | 2026-08-21 | Initial complete pack for cybersecurity + implementation RFP bullets |

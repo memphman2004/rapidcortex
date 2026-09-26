@@ -4,7 +4,7 @@ import { RC_LITE_WEBHOOK_EVENTS } from "rapid-cortex-shared";
 import { marketingDevelopersDocsPath } from "@/lib/marketing-links";
 
 export const metadata = {
-  title: "RC Lite webhook lab",
+  title: "NexCort Lite webhook lab",
 };
 
 export default function DevelopersWebhookSandboxPage() {

@@ -145,8 +145,8 @@ export function QrNfcUsagePanel({
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">Usage</h3>
         <p className="mt-1 text-xs text-slate-500">
           {showSiteUsage
-            ? "Counts every QR-initiated website open: location report codes, Location QR (RCLI) scan points, and Rapid Cortex site signs (www.rapidcortex.us). NFC taps are counted separately when a programmed tag opens the same pages."
-            : "QR scans and NFC taps on this campus’s named report codes. Same codes as the Rapid Cortex Field app."}
+            ? "Counts every QR-initiated website open: location report codes, Location QR (RCLI) scan points, and NexCort iQ site signs (www.rapidcortex.us). NFC taps are counted separately when a programmed tag opens the same pages."
+            : "QR scans and NFC taps on this campus’s named report codes. Same codes as the NexiQ Field app."}
         </p>
       </div>
 
@@ -190,7 +190,7 @@ export function QrNfcUsagePanel({
           {showSiteUsage ? (
           <div className="overflow-x-auto rounded-lg border border-amber-900/40 bg-amber-950/10 px-3 py-3">
             <h4 className="text-xs font-semibold uppercase tracking-wide text-amber-400/90">
-              Rapid Cortex site QR
+              NexCort iQ site QR
             </h4>
             <table className="mt-2 w-full text-left text-sm">
               <thead>
@@ -208,7 +208,7 @@ export function QrNfcUsagePanel({
                       {
                         qrId: "site-home" as const,
                         destinationId: "home" as const,
-                        name: "Rapid Cortex site — Home",
+                        name: "NexCort iQ site — Home",
                         url: "https://www.rapidcortex.us",
                         scanCount: 0,
                         nfcTapCount: 0,
@@ -217,7 +217,7 @@ export function QrNfcUsagePanel({
                       {
                         qrId: "site-demo" as const,
                         destinationId: "demo" as const,
-                        name: "Rapid Cortex site — Demo",
+                        name: "NexCort iQ site — Demo",
                         url: "https://www.rapidcortex.us/demo/",
                         scanCount: 0,
                         nfcTapCount: 0,

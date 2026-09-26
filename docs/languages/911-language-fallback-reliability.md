@@ -8,7 +8,7 @@ Use a **tiered fallback model** so dispatchers always have a path forward. This 
 
 | Layer | What happens | Purpose |
 | --- | --- | --- |
-| **1. Primary language detection** | Rapid Cortex detects caller language automatically from audio. | Fast start with no dispatcher delay. |
+| **1. Primary language detection** | NexCort iQ detects caller language automatically from audio. | Fast start with no dispatcher delay. |
 | **2. Confidence score** | System shows confidence: High / Medium / Low. | Prevents blind trust in bad translations. |
 | **3. Manual language override** | Dispatcher can select a language if auto-detection is wrong. | Human stays in control. |
 | **4. Primary translation engine** | **Azure Speech / Translator** handles real-time transcription + translation. | Main real-time translation path. Azure supports real-time speech translation and **100+ text translation** languages. |
@@ -27,16 +27,16 @@ Use a **tiered fallback model** so dispatchers always have a path forward. This 
 - Dispatchers can **manually select** a language, **switch providers**, use **emergency phrase prompts**, and **escalate** to a certified human interpreter.  
 - Dispatcher remains in control; **original audio** is preserved for review.
 
-![RC Lite vs Rapid Cortex — practical language setup](./images/rc-lite-vs-rapid-cortex-language.png)
+![NC Lite vs NexCort iQ — practical language setup](./images/rc-lite-vs-rapid-cortex-language.png)
 
 | Product | Language strategy |
 | --- | --- |
-| **RC Lite** | Support the top **20–40 local languages**, real-time transcription, basic translation, confidence score, and human interpreter escalation. |
-| **Rapid Cortex** | Support **100+ languages**, multi-provider fallback, confidence scoring, phrase library, translation audit trail, CAD-linked transcript, and interpreter handoff. |
+| **NC Lite** | Support the top **20–40 local languages**, real-time transcription, basic translation, confidence score, and human interpreter escalation. |
+| **NexCort iQ** | Support **100+ languages**, multi-provider fallback, confidence scoring, phrase library, translation audit trail, CAD-linked transcript, and interpreter handoff. |
 
 **Key rule:** For 911, AI translation should **assist**, not replace, human judgment.
 
-**Positioning line:** *“When language is a barrier, Rapid Cortex gives dispatchers immediate understanding while keeping certified interpreter escalation one click away.”*
+**Positioning line:** *“When language is a barrier, NexCort iQ gives dispatchers immediate understanding while keeping certified interpreter escalation one click away.”*
 
 ---
 
