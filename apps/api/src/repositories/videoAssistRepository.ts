@@ -48,14 +48,17 @@ export class VideoAssistRepository {
     );
   }
 
-  async get(sessionId: string): Promise<VideoAssistDdbItem | null> {
+  async get(sessionId: string, agencyId?: string): Promise<VideoAssistDdbItem | null> {
     const r = await ddb.send(
       new GetCommand({
         TableName: this.table(),
         Key: { sessionId },
       }),
     );
-    return (r.Item as VideoAssistDdbItem) ?? null;
+    const item = (r.Item as VideoAssistDdbItem) ?? null;
+    if (!item) return null;
+    if (agencyId && item.agencyId !== agencyId) return null;
+    return item;
   }
 
   async getByTokenHash(tokenHash: string): Promise<VideoAssistDdbItem | null> {
@@ -72,17 +75,27 @@ export class VideoAssistRepository {
     return items?.[0] ?? null;
   }
 
-  async listByIncident(incidentId: string, limit = 20): Promise<VideoAssistDdbItem[]> {
+  /**
+   * List sessions for an incident, scoped to agencyId (tenant isolation).
+   * Filters in memory after the incident GSI query — incidentId alone is not a tenant boundary.
+   */
+  async listByIncident(
+    incidentId: string,
+    agencyId: string,
+    limit = 20,
+  ): Promise<VideoAssistDdbItem[]> {
     const r = await ddb.send(
       new QueryCommand({
         TableName: this.table(),
         IndexName: "incidentId-createdAt-index",
         KeyConditionExpression: "incidentId = :i",
-        ExpressionAttributeValues: { ":i": incidentId },
+        FilterExpression: "agencyId = :a",
+        ExpressionAttributeValues: { ":i": incidentId, ":a": agencyId },
         ScanIndexForward: false,
-        Limit: limit,
+        Limit: Math.max(limit * 3, 25),
       }),
     );
-    return (r.Items as VideoAssistDdbItem[]) ?? [];
+    const items = (r.Items as VideoAssistDdbItem[]) ?? [];
+    return items.filter((row) => row.agencyId === agencyId).slice(0, limit);
   }
 }

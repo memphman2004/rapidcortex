@@ -45,7 +45,10 @@ export NEXT_PUBLIC_CONNECT_PUBLIC_BASE="${NEXT_PUBLIC_CONNECT_PUBLIC_BASE:-https
 # REKOGNITION_ROLE_ARN=arn:aws:iam::{account}:role/rc-rekognition-stream-processor-{env}
 # ANTHROPIC_API_KEY=resolved from Secrets Manager: rc/anthropic-api-key
 # VISION_AI_WRITER_INTERVAL_SECONDS=30
-# VISION_TRANSCRIPT_MOCK=true   # set false for live ffmpeg + Amazon Transcribe Streaming
+# VISION_TRANSCRIPT_MOCK — leave unset so SAM/deploy sets it from FfmpegLayerArn
+# (false when layer attached, true otherwise). Set true only for scripted demos.
+# FFMPEG_LAYER_ARN — in-account layer; publish with scripts/publish-ffmpeg-layer.sh
+# FFMPEG_LAYER_ARN=arn:aws:lambda:us-east-1:ACCOUNT:layer:rapid-cortex-ffmpeg:1
 # VISION_TRANSCRIPTS_TABLE=rapid-cortex-vision-transcripts-{env}
 # VISION_EVENTS_TABLE=rapid-cortex-vision-events-{env}
 # VISION_SCENE_CLASSIFY_QUEUE_URL=https://sqs.{region}.amazonaws.com/{account}/rapid-cortex-vision-scene-classify-{env}

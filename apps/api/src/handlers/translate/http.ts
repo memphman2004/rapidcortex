@@ -19,6 +19,7 @@ import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { withCorrelationHeaders } from "../../lib/correlation.js";
 import { env } from "../../lib/env.js";
+import { assertAIGateFeature } from "../../lib/ai-gate-check.js";
 import { makeId } from "../../lib/ids.js";
 import { requireTranslateAddon } from "../../middleware/requireAddon.js";
 import {
@@ -137,6 +138,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       const vertical = parsed.data.vertical ?? "law_enforcement";
       if (!canStartTranslateSessionForVertical(user, user.agencyId, vertical)) {
         return withCorrelationHeaders(event, forbidden());
+      }
+      const gate = await assertAIGateFeature(user.agencyId, "translation");
+      if (!gate.allowed) {
+        return withCorrelationHeaders(
+          event,
+          ok({ aiDisabled: true, result: null, message: "AI translation disabled for this agency" }),
+        );
       }
       if (!isRcInternalOperator(user.role)) {
         const addonGate = await requireTranslateAddon(vertical)(event, user);
@@ -401,7 +409,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         }
         const now = new Date().toISOString();
         const segments = await translateStore.listSegments(sessionId, user.agencyId);
-        const summary = await generateSessionSummary(session, segments);
+        const gate = await assertAIGateFeature(user.agencyId, "summaries");
+        const summary = gate.allowed
+          ? await generateSessionSummary(session, segments)
+          : undefined;
         session = {
           ...session,
           status: "CLOSED",
@@ -411,10 +422,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         };
         await translateStore.putSession(session);
 
-        const wantWriteback = parsed.data.writebackNote === true || parsed.data.cadWriteback === true;
+        const wantWriteback =
+          Boolean(summary) &&
+          (parsed.data.writebackNote === true || parsed.data.cadWriteback === true);
         let cadWritebackQueued = false;
         let writebackQueued = false;
-        if (wantWriteback) {
+        if (wantWriteback && summary) {
           const result = await queueVerticalWriteback({
             session,
             summary,

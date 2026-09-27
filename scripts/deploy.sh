@@ -49,8 +49,8 @@ set -euo pipefail
 #   must keep alarms enabled (Rules in template.yaml). Omit or set true after AppSamStack is healthy; default true.
 # - INCLUDE_APP_SAM_BILLING_NESTED_STACK=false: skip nested AppSamBillingStack when a leftover DELETE_FAILED
 #   nested stack still owns named billing Lambdas/SQS/IAM. Default true.
-# - INCLUDE_APP_SAM_BILLING_NESTED_STACK=false: skip nested AppSamBillingStack when a leftover DELETE_FAILED
-#   nested stack still owns named billing Lambdas/SQS/IAM. Default true.
+# - INCLUDE_APP_SAM_FEATURES_NESTED_STACK=false: skip nested AppSamFeaturesStack when Retain DynamoDB
+#   tables already exist (standalone/prior Features deploy). Default true.
 # - SAM_BUILD_USE_CACHE=0 force full rebuild (--no-cached). Default: 1 (cached incremental).
 # - SAM_PARALLEL=0 disables sam build --parallel (default 1).
 # - SAM_USE_CONTAINER=1 adds `sam build --use-container` for the whole tree (slow). The Rapid Vision
@@ -238,6 +238,8 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-data-layer-loado
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-loadout.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-data-layer-grants.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-grants.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-data-layer-nexiq-intel.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-nexiq-intel.yaml"
 fi
 
 echo "IAM managed policy size preflight (6,144-byte cap)..."
@@ -487,6 +489,9 @@ fi
 if [[ -n "${ENABLE_LIVE_VIDEO_RESOURCES:-}" ]]; then
   PARAMS="${PARAMS} EnableLiveVideoResources=${ENABLE_LIVE_VIDEO_RESOURCES}"
 fi
+if [[ -n "${WEBRTC_TURN_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} WebrtcTurnSecretArn=${WEBRTC_TURN_SECRET_ARN}"
+fi
 if [[ -n "${ENABLE_SILENT_TEXT:-}" ]]; then
   PARAMS="${PARAMS} EnableSilentText=${ENABLE_SILENT_TEXT}"
 fi
@@ -515,6 +520,15 @@ if [[ -n "${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:-}" ]]; then
 fi
 if [[ -n "${RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} RapidIqWatchIngestApiKeySecretArn=${RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN}"
+fi
+if [[ -n "${ENABLE_NEXIQ_INTEL:-}" ]]; then
+  PARAMS="${PARAMS} EnableNexiQIntel=${ENABLE_NEXIQ_INTEL}"
+fi
+if [[ -n "${NEXIQ_INTEL_BEDROCK_MODEL_ID:-}" ]]; then
+  PARAMS="${PARAMS} BedrockModelId=${NEXIQ_INTEL_BEDROCK_MODEL_ID}"
+fi
+if [[ -n "${NEXIQ_INTEL_QUALIFICATION_THRESHOLD:-}" ]]; then
+  PARAMS="${PARAMS} QualificationThreshold=${NEXIQ_INTEL_QUALIFICATION_THRESHOLD}"
 fi
 if [[ -n "${RMS_VENDOR_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} RmsVendorSecretArn=${RMS_VENDOR_SECRET_ARN}"
@@ -580,6 +594,9 @@ fi
 if [[ "${INCLUDE_APP_SAM_BILLING_NESTED_STACK:-true}" == "false" ]]; then
   PARAMS="${PARAMS} IncludeAppSamBillingNestedStack=false"
 fi
+if [[ "${INCLUDE_APP_SAM_FEATURES_NESTED_STACK:-true}" == "false" ]]; then
+  PARAMS="${PARAMS} IncludeAppSamFeaturesNestedStack=false"
+fi
 if [[ -n "${FEATURES_ACTIVE_AGENCY_IDS:-}" ]]; then
   PARAMS="${PARAMS} FeaturesActiveAgencyIds=${FEATURES_ACTIVE_AGENCY_IDS}"
 fi
@@ -627,6 +644,9 @@ if [[ -n "${EXISTING_BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN:-}" ]]; then
 fi
 if [[ -n "${EXISTING_BILLING_SES_CREDENTIALS_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} ExistingBillingSesCredentialsSecretArn=${EXISTING_BILLING_SES_CREDENTIALS_SECRET_ARN}"
+fi
+if [[ -n "${REUSE_EXISTING_SALES_DATA_RESOURCES:-}" ]]; then
+  PARAMS="${PARAMS} ReuseExistingSalesDataResources=${REUSE_EXISTING_SALES_DATA_RESOURCES}"
 fi
 if [[ -n "${EXISTING_CALL_ASSIST_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingCallAssistTableName=${EXISTING_CALL_ASSIST_TABLE_NAME}"
@@ -733,6 +753,22 @@ if [[ -n "${CAD_BRIDGE_VPC_SECURITY_GROUP_ID:-}" ]]; then
 fi
 if [[ -n "${ENABLE_RAPID_VISION_NEST:-}" ]]; then
   PARAMS="${PARAMS} EnableRapidVisionNest=${ENABLE_RAPID_VISION_NEST}"
+fi
+if [[ -z "${FFMPEG_LAYER_ARN:-}" ]]; then
+  # Prefer the in-account rapid-cortex-ffmpeg layer so Vision live captions get ffmpeg.
+  FFMPEG_LAYER_ARN="$(
+    aws lambda list-layer-versions \
+      --layer-name rapid-cortex-ffmpeg \
+      --region "${AWS_REGION:-us-east-1}" \
+      --query 'LayerVersions[0].LayerVersionArn' \
+      --output text 2>/dev/null || true
+  )"
+  if [[ -z "${FFMPEG_LAYER_ARN}" || "${FFMPEG_LAYER_ARN}" == "None" ]]; then
+    FFMPEG_LAYER_ARN=""
+    echo "WARN: No rapid-cortex-ffmpeg layer found. Vision transcript stays on mock until you run scripts/publish-ffmpeg-layer.sh" >&2
+  else
+    echo "Using ffmpeg layer: ${FFMPEG_LAYER_ARN}" >&2
+  fi
 fi
 if [[ -n "${FFMPEG_LAYER_ARN:-}" ]]; then
   PARAMS="${PARAMS} FfmpegLayerArn=${FFMPEG_LAYER_ARN}"
@@ -848,15 +884,22 @@ if [[ -n "${AGENCY_A_JWT:-}" && -n "${AGENCY_B_JWT:-}" && -n "${API_URL:-}" ]]; 
   npx tsx scripts/cross-agency-isolation-test.ts
 elif [[ -n "${RC_TEST_PASSWORD:-}" ]]; then
   bash scripts/run-cross-agency-isolation-test.sh
+elif [[ "${ALLOW_DEPLOY_WITHOUT_P0_LIVE:-0}" == "1" ]]; then
+  echo "WARN: ALLOW_DEPLOY_WITHOUT_P0_LIVE=1 — skipping live cross-tenant JWT check (unit isolation already ran)." >&2
 else
   echo "P0 blocked: export API_URL, AGENCY_A_JWT, and AGENCY_B_JWT (MFA tokens)." >&2
   echo "Password auth cannot complete while MfaConfiguration is ON." >&2
+  echo "Or set ALLOW_DEPLOY_WITHOUT_P0_LIVE=1 to continue after unit isolation only." >&2
   exit 1
 fi
 
 echo "==> P0 mock flags and go/no-go"
 CHECK_DEPLOY_ENV=1 python3 scripts/check-prod-mock-flags.py
-python3 scripts/check-go-no-go-p0.py
+if [[ "${SKIP_GO_NO_GO_P0:-0}" == "1" ]]; then
+  echo "WARN: SKIP_GO_NO_GO_P0=1 — skipping check-go-no-go-p0.py (restore/rollback drill artifacts)." >&2
+else
+  python3 scripts/check-go-no-go-p0.py
+fi
 
 # SAM_DISABLE_ROLLBACK=1 keeps failed stacks for inspection (blocks replacement updates on Cognito groups, etc.).
 DEPLOY_EXTRA_ARGS=()

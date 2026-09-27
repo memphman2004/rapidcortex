@@ -44,6 +44,7 @@ export function LiveStreamWithTranscript({
   const [segments, setSegments] = useState<TranscriptSegment[]>([]);
   const [loadingTx, setLoadingTx] = useState(true);
   const [videoLive, setVideoLive] = useState(false);
+  const [txError, setTxError] = useState<string | null>(null);
   const autoFiredRef = useRef(false);
 
   useEffect(() => {
@@ -94,6 +95,7 @@ export function LiveStreamWithTranscript({
 
   const handleStart = useCallback(async () => {
     setTxStatus("starting");
+    setTxError(null);
     try {
       const res = await fetch(
         `/api/vision/sessions/${encodeURIComponent(sessionId)}/transcript/start`,
@@ -104,10 +106,26 @@ export function LiveStreamWithTranscript({
           body: JSON.stringify({ incidentId }),
         },
       );
-      const body = (await res.json()) as { success?: boolean };
-      setTxStatus(body.success ? "active" : "idle");
+      const body = (await res.json()) as {
+        success?: boolean;
+        error?: string;
+        message?: string;
+        data?: { message?: string };
+      };
+      if (body.success) {
+        setTxStatus("active");
+        return;
+      }
+      setTxStatus("idle");
+      setTxError(
+        body.error ??
+          body.message ??
+          body.data?.message ??
+          "Could not start live captions for this session.",
+      );
     } catch {
       setTxStatus("idle");
+      setTxError("Could not start live captions for this session.");
     }
   }, [sessionId, incidentId]);
 
@@ -251,6 +269,7 @@ export function LiveStreamWithTranscript({
           initialSegments={segments}
           transcriptStatus={txStatus}
           loading={loadingTx}
+          error={txError}
           onStart={handleStart}
           onStop={handleStop}
           style={{ height: "100%" }}

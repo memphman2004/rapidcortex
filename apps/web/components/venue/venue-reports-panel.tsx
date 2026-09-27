@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { extractVenueCode } from "@/lib/auth/post-login-redirect";
-import { fetchVenueIncidents } from "@/lib/venue/venue-incidents-api";
 import { useEffect, useState } from "react";
 import type { VenueIncident } from "@/app/venue/[venueCode]/_lib/venue-types";
 import {
@@ -10,10 +8,14 @@ import {
   mapVenueIncidentStatus,
   mapVenueIncidentType,
 } from "@/components/venue/use-venue-ops-data";
+import { ManualModeBadge, useAIFeature } from "@/lib/ai-gate";
+import { extractVenueCode } from "@/lib/auth/post-login-redirect";
+import { fetchVenueIncidents } from "@/lib/venue/venue-incidents-api";
 
 export function VenueReportsPanel({ agencyId, linkBase }: { agencyId: string; linkBase: string }) {
   const venueCode = extractVenueCode(agencyId);
   const [rows, setRows] = useState<VenueIncident[]>([]);
+  const summariesOn = useAIFeature("summaries");
 
   useEffect(() => {
     void fetchVenueIncidents(venueCode).then(setRows).catch(() => setRows([]));
@@ -22,11 +24,29 @@ export function VenueReportsPanel({ agencyId, linkBase }: { agencyId: string; li
   return (
     <div style={{ padding: 14 }}>
       <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 12px" }}>Incident Reports</h2>
+      {!summariesOn ? (
+        <div style={{ marginBottom: 12 }}>
+          <ManualModeBadge label="AI report summaries" />
+        </div>
+      ) : null}
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {rows.map((row) => (
-          <Link key={row.id} href={`${linkBase}/incidents/${row.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-            <div style={{ background: "var(--rc-surface-alt)", border: "1px solid var(--rc-border)", borderRadius: 8, padding: 12 }}>
-              <div style={{ fontWeight: 700, color: "var(--rc-amber)", fontSize: 11 }}>{mapVenueIncidentType(row.type)}</div>
+          <Link
+            key={row.id}
+            href={`${linkBase}/incidents/${row.id}`}
+            style={{ textDecoration: "none", color: "inherit" }}
+          >
+            <div
+              style={{
+                background: "var(--rc-surface-alt)",
+                border: "1px solid var(--rc-border)",
+                borderRadius: 8,
+                padding: 12,
+              }}
+            >
+              <div style={{ fontWeight: 700, color: "var(--rc-amber)", fontSize: 11 }}>
+                {mapVenueIncidentType(row.type)}
+              </div>
               <div style={{ fontSize: 12, marginTop: 4 }}>{row.zoneLabel}</div>
               <div style={{ fontSize: 10, color: "var(--rc-text-muted)", marginTop: 4 }}>
                 {mapVenueIncidentStatus(row.status)} · {formatVenueTimeAgo(row.updatedAt)}

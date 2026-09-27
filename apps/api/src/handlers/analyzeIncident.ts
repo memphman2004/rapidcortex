@@ -36,6 +36,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (addonGate) return addonGate;
     const pwd = operationalPasswordBlock(user);
     if (pwd) return pwd;
+
+    const { assertAIGateFeature } = await import("../lib/ai-gate-check.js");
+    const gate = await assertAIGateFeature(user.agencyId, "incidentSuggestions");
+    if (!gate.allowed) {
+      return ok({
+        aiDisabled: true,
+        analysisStatus: "skipped",
+        message: "Incident AI suggestions are disabled for this agency (Manual Mode).",
+      });
+    }
+
     const analysis = await service.analyze(incidentId, user, {
       triggerType: "manual",
       requestId,

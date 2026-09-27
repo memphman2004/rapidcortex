@@ -17,6 +17,11 @@ export type SceneDescribeMessage = {
 
 export async function describeAndUpdate(message: SceneDescribeMessage): Promise<VisionSceneAlert | null> {
   if (!env.enableRapidVisionSceneIntel || !env.enableVisionAiClaude) return null;
+
+  const { assertAIGateFeature } = await import("../../lib/ai-gate-check.js");
+  const gate = await assertAIGateFeature(message.agencyId, "cameraAnalysis");
+  if (!gate.allowed) return null;
+
   const alert = await visionStore.getSceneAlert(message.agencyId, message.eventId);
   if (!alert || alert.agencyId !== message.agencyId) return null;
 

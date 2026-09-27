@@ -133,10 +133,20 @@
       "import": "./dist/loadout/index.js",
       "require": "./dist/loadout/index.js"
     },
+    "./nexiq-intel": {
+      "types": "./dist/nexiq-intel/index.d.ts",
+      "import": "./dist/nexiq-intel/index.js",
+      "require": "./dist/nexiq-intel/index.js"
+    },
     "./guest-assist/token": {
       "types": "./dist/guest-assist/token.d.ts",
       "import": "./dist/guest-assist/token.js",
       "require": "./dist/guest-assist/token.js"
+    },
+    "./nexiq-intel/types": {
+      "types": "./dist/nexiq-intel/types.d.ts",
+      "import": "./dist/nexiq-intel/types.js",
+      "require": "./dist/nexiq-intel/types.js"
     }
   },
   "scripts": {

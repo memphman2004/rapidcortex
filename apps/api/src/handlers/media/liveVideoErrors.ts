@@ -11,7 +11,12 @@ export function mapLiveVideoError(e: unknown) {
   const msg = e instanceof Error ? e.message : String(e);
   if (msg.startsWith("VALIDATION:")) return badRequest(msg.slice("VALIDATION:".length));
   if (msg === "NOT_FOUND") return notFound();
-  if (msg === "FORBIDDEN" || msg === "FORBIDDEN_ROLE" || msg === "TENANT_MISMATCH")
+  if (
+    msg === "FORBIDDEN" ||
+    msg === "FORBIDDEN_ROLE" ||
+    msg === "FORBIDDEN_PERMISSION" ||
+    msg === "TENANT_MISMATCH"
+  )
     return forbidden();
   if (msg === "SESSION_EXPIRED") return jsonStatus({ error: "session_expired" }, 410);
   if (msg === "SESSION_CLOSED") return jsonStatus({ error: "session_closed" }, 409);

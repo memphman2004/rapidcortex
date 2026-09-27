@@ -14,6 +14,8 @@ describe("salesContractorMayAccessPath", () => {
     expect(salesContractorMayAccessPath("/sales/pricing-catalog")).toBe(true);
     expect(salesContractorMayAccessPath("/rc-admin/psap-prospects")).toBe(true);
     expect(salesContractorMayAccessPath("/rc-admin/contacts")).toBe(true);
+    expect(salesContractorMayAccessPath("/rc-admin/sales-automation")).toBe(true);
+    expect(salesContractorMayAccessPath("/rc-admin/nexiq/intel/sources")).toBe(true);
     expect(salesContractorMayAccessPath("/rc-admin/billing")).toBe(false);
     expect(salesContractorMayAccessPath("/rc-admin/users")).toBe(false);
   });

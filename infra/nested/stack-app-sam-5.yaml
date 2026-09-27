@@ -260,6 +260,13 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: Set true to deploy live-video KVS functions/routes. Default false keeps core API leaner.
+  WebrtcTurnSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional Secrets Manager ARN for shared WebRTC TURN/ICE JSON (Video Assist SMS P2P + Live Video
+      legacy_p2p fallback). KVS sessions use GetIceServerConfig TURN from AWS. Leave empty until coturn
+      (or equivalent) is provisioned.
   EnableApiWaf:
     Type: String
     Default: "false"
@@ -784,6 +791,7 @@ Conditions:
   HasSesConfigurationSet: !Not [!Equals [!Ref SesConfigurationSetName, ""]]
   HasRoute53HostedZone: !Not [!Equals [!Ref Route53HostedZoneId, ""]]
   CreateLiveVideoResources: !Equals [!Ref EnableLiveVideoResources, "true"]
+  HasWebrtcTurnSecret: !Not [!Equals [!Ref WebrtcTurnSecretArn, ""]]
   HasSilentText: !Equals [!Ref EnableSilentText, "true"]
   # Opt-in only. Empty used to mean "create", but rapid-cortex-deploy cannot
   # sms-voice:TagResource, so auto-create rolls back AppSam5. Pass CREATE_NEW to
@@ -4172,6 +4180,13 @@ Resources:
                 Condition:
                   StringEquals:
                     aws:RequestedRegion: !Ref AWS::Region
+              - !If
+                - HasWebrtcTurnSecret
+                - Effect: Allow
+                  Action:
+                    - secretsmanager:GetSecretValue
+                  Resource: !Ref WebrtcTurnSecretArn
+                - !Ref AWS::NoValue
 
   LiveVideoPublicExecutionRole:
     Type: AWS::IAM::Role
@@ -4209,6 +4224,13 @@ Resources:
                 Action:
                   - kinesisvideo:GetIceServerConfig
                 Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
+              - !If
+                - HasWebrtcTurnSecret
+                - Effect: Allow
+                  Action:
+                    - secretsmanager:GetSecretValue
+                  Resource: !Ref WebrtcTurnSecretArn
+                - !Ref AWS::NoValue
 
   StreamViewerExecutionRole:
     Type: AWS::IAM::Role
@@ -4430,7 +4452,7 @@ Resources:
           LIVE_VIDEO_PUBLIC_BASE_URL: !Sub "https://app.${RootDomainName}"
           LIVE_VIDEO_KVS_TOKEN_ROLE_ARN: !GetAtt KvsWebRtcBrowserTokenRole.Arn
           LIVE_VIDEO_STORAGE_MODE: kvs
-          WEBRTC_TURN_SECRET_ARN: ""
+          WEBRTC_TURN_SECRET_ARN: !Ref WebrtcTurnSecretArn
           LIVE_VIDEO_KVS_DATA_RETENTION_HOURS: "24"
           LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL: "true"
           LIVE_VIDEO_EXPORT_TO_S3: "true"
@@ -4512,7 +4534,7 @@ Resources:
           LIVE_VIDEO_KVS_TOKEN_ROLE_ARN: !GetAtt KvsWebRtcBrowserTokenRole.Arn
           LIVE_VIDEO_STORAGE_MODE: kvs
           LIVE_VIDEO_EXPORT_FUNCTION_NAME: !Ref LiveVideoExportFunction
-          WEBRTC_TURN_SECRET_ARN: ""
+          WEBRTC_TURN_SECRET_ARN: !Ref WebrtcTurnSecretArn
           AUDIT_TABLE: !Ref AuditTable
           ASSETS_BUCKET: !Ref AssetsBucket
       Events:

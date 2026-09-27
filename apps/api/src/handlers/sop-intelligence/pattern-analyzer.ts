@@ -24,6 +24,17 @@ export const handler: EventBridgeHandler<string, unknown, void> = async (event) 
     return;
   }
   try {
+    const { assertAIGateFeature } = await import("../../lib/ai-gate-check.js");
+    const gate = await assertAIGateFeature(detail.agencyId, "patternDetection");
+    if (!gate.allowed) {
+      console.info(
+        JSON.stringify({
+          msg: "sop_intel_pattern_skipped_ai_gate",
+          agencyId: detail.agencyId,
+        }),
+      );
+      return;
+    }
     await analyzeSopPattern(detail);
   } catch (err) {
     console.warn(JSON.stringify({ msg: "sop_intel_pattern_analyzer_error", err: String(err) }));

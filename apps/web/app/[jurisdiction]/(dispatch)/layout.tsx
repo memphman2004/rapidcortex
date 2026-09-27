@@ -1,5 +1,7 @@
 import { DispatchShell } from "@/components/dispatch/dispatch-shell";
+import { AIGateProvider } from "@/lib/ai-gate";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
+import { isAiFeatureGateEnabled } from "@/lib/runtime-flags";
 import { blockPsapRoutesForVerticalAgency } from "@/lib/venue/venue-psap-route-guard";
 
 type Props = {
@@ -12,5 +14,13 @@ export default async function DispatchLayout({ children, params }: Props) {
   await blockPsapRoutesForVerticalAgency(jurisdiction);
 
   const user = await getDashboardSessionUser();
-  return <DispatchShell user={user}>{children}</DispatchShell>;
+  const body = <DispatchShell user={user}>{children}</DispatchShell>;
+
+  if (!isAiFeatureGateEnabled() || !user?.agencyId) {
+    return body;
+  }
+
+  return (
+    <AIGateProvider agencyId={user.agencyId}>{body}</AIGateProvider>
+  );
 }

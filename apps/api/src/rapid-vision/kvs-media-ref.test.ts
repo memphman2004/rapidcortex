@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { resolveVisionSessionKvsRef, visionWebRtcChannelName } from "./kvs-media-ref.js";
+import {
+  isKvsHlsMediaStreamRef,
+  resolveTranscriptHlsStreamRef,
+  resolveVisionSessionKvsRef,
+  visionWebRtcChannelName,
+} from "./kvs-media-ref.js";
 
 describe("resolveVisionSessionKvsRef", () => {
   it("prefers an explicit stream ARN for HLS", () => {
@@ -31,6 +36,94 @@ describe("resolveVisionSessionKvsRef", () => {
       kvsChannelName: null,
       kvsStreamArn: null,
     });
+  });
+});
+
+describe("isKvsHlsMediaStreamRef", () => {
+  it("accepts media stream ARNs", () => {
+    expect(
+      isKvsHlsMediaStreamRef("arn:aws:kinesisvideo:us-east-1:123:stream/media/1"),
+    ).toBe(true);
+  });
+
+  it("rejects signaling channel ARNs", () => {
+    expect(
+      isKvsHlsMediaStreamRef(
+        "arn:aws:kinesisvideo:us-east-1:123:channel/rc-connect-abc/1700000000",
+      ),
+    ).toBe(false);
+  });
+
+  it("rejects empty values", () => {
+    expect(isKvsHlsMediaStreamRef("")).toBe(false);
+    expect(isKvsHlsMediaStreamRef(null)).toBe(false);
+  });
+});
+
+describe("resolveTranscriptHlsStreamRef", () => {
+  it("returns a real media stream ARN", () => {
+    expect(
+      resolveTranscriptHlsStreamRef({
+        kvsChannelName: "ring-channel-1",
+        kvsStreamArn: "arn:aws:kinesisvideo:us-east-1:123:stream/media/1",
+      }),
+    ).toBe("arn:aws:kinesisvideo:us-east-1:123:stream/media/1");
+  });
+
+  it("rejects channel-name copied into kvsStreamArn (Ring fallback)", () => {
+    expect(
+      resolveTranscriptHlsStreamRef({
+        kvsChannelName: "ring-channel-1",
+        kvsStreamArn: "ring-channel-1",
+      }),
+    ).toBeNull();
+  });
+
+  it("rejects channel-only sessions", () => {
+    expect(
+      resolveTranscriptHlsStreamRef({
+        kvsChannelName: "ring-channel-1",
+        kvsStreamArn: null,
+      }),
+    ).toBeNull();
+  });
+});
+
+describe("visionWebRtcChannelName", () => {
+  it("prefers kvsChannelName for WebRTC signaling", () => {
+    expect(
+      visionWebRtcChannelName({
+        kvsChannelName: "rc-connect-sess-1",
+        kvsStreamArn: "arn:aws:kinesisvideo:us-east-1:123:stream/media/1",
+      }),
+    ).toBe("rc-connect-sess-1");
+  });
+
+  it("falls back to a non-ARN kvsStreamArn", () => {
+    expect(
+      visionWebRtcChannelName({
+        kvsChannelName: null,
+        kvsStreamArn: "rc-connect-sess-1",
+      }),
+    ).toBe("rc-connect-sess-1");
+  });
+
+  it("parses a signaling channel ARN", () => {
+    expect(
+      visionWebRtcChannelName({
+        kvsChannelName: "",
+        kvsStreamArn: "arn:aws:kinesisvideo:us-east-1:123:channel/rc-connect-abc/1700000000",
+      }),
+    ).toBe("rc-connect-abc");
+  });
+
+  it("does not treat a media stream ARN as a signaling channel", () => {
+    expect(
+      visionWebRtcChannelName({
+        kvsChannelName: null,
+        kvsStreamArn: "arn:aws:kinesisvideo:us-east-1:123:stream/media/1",
+      }),
+    ).toBe("");
   });
 });
 

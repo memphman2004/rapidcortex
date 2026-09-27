@@ -19,6 +19,9 @@ const {
   exportSessionClipToS3Mock,
   presignRecordingDownloadMock,
   createStorageStreamForSessionMock,
+  createKinesisSignalingChannelMock,
+  deleteKinesisSignalingChannelMock,
+  isKvsPipelineConfiguredMock,
 } = vi.hoisted(() => ({
   getIncidentMock: vi.fn(),
   createSessionMock: vi.fn(),
@@ -38,6 +41,9 @@ const {
   exportSessionClipToS3Mock: vi.fn(),
   presignRecordingDownloadMock: vi.fn(),
   createStorageStreamForSessionMock: vi.fn(),
+  createKinesisSignalingChannelMock: vi.fn(),
+  deleteKinesisSignalingChannelMock: vi.fn(),
+  isKvsPipelineConfiguredMock: vi.fn(),
 }));
 
 vi.mock("../repositories/incidentRepository.js", () => ({
@@ -79,6 +85,13 @@ vi.mock("./kvsStorageService.js", () => ({
   presignRecordingDownload: (...a: unknown[]) => presignRecordingDownloadMock(...a),
 }));
 
+vi.mock("./kvsWebRtcService.js", () => ({
+  createKinesisSignalingChannel: (...a: unknown[]) => createKinesisSignalingChannelMock(...a),
+  deleteKinesisSignalingChannel: (...a: unknown[]) => deleteKinesisSignalingChannelMock(...a),
+  isKvsPipelineConfigured: (...a: unknown[]) => isKvsPipelineConfiguredMock(...a),
+  buildKvsBrowserBundle: vi.fn(),
+}));
+
 import { env } from "../lib/env.js";
 import { LiveVideoService } from "./liveVideoService.js";
 
@@ -106,6 +119,10 @@ describe("LiveVideoService", () => {
     exportSessionClipToS3Mock.mockReset();
     presignRecordingDownloadMock.mockReset();
     createStorageStreamForSessionMock.mockReset();
+    createKinesisSignalingChannelMock.mockReset();
+    deleteKinesisSignalingChannelMock.mockReset();
+    isKvsPipelineConfiguredMock.mockReset();
+    isKvsPipelineConfiguredMock.mockReturnValue(false);
     exportSessionClipToS3Mock.mockResolvedValue({ ok: false, errorCode: "NO_FRAGMENTS" });
     presignRecordingDownloadMock.mockResolvedValue(null);
     enqueueRecordingExportMock.mockResolvedValue(undefined);
@@ -116,6 +133,62 @@ describe("LiveVideoService", () => {
       agencyId: "agency-a",
       ...p,
     }));
+  });
+
+  it("rejects operators without workspace.live_video", async () => {
+    getIncidentMock.mockResolvedValue({ incidentId: "inc-1", agencyId: "agency-a" });
+    const svc = new LiveVideoService();
+    await expect(
+      svc.requestLiveVideo(
+        "inc-1",
+        { userId: "u-1", role: "auditor", agencyId: "agency-a", email: "a@agency.example" } as never,
+        { callerPhone: "+15555550100" },
+      ),
+    ).rejects.toThrow(/FORBIDDEN/);
+    expect(sendSmsMock).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when KVS storage attach fails under kvs-ingestion", async () => {
+    const prevMode = env.liveVideoStorageMode;
+    const prevAttach = env.liveVideoKvsStorageAttachToChannel;
+    env.liveVideoStorageMode = "kvs-ingestion";
+    env.liveVideoKvsStorageAttachToChannel = true;
+    isKvsPipelineConfiguredMock.mockReturnValue(true);
+    createKinesisSignalingChannelMock.mockResolvedValue({
+      channelArn: "arn:aws:kinesisvideo:us-east-1:123:channel/rc-live-x/1",
+      channelName: "rc-live-x",
+    });
+    createStorageStreamForSessionMock.mockResolvedValue({
+      streamArn: "arn:aws:kinesisvideo:us-east-1:123:stream/rc-lvsv-x/1",
+      streamName: "rc-lvsv-x",
+    });
+    enableStorageForChannelMock.mockRejectedValue(new Error("attach denied"));
+    deleteKinesisSignalingChannelMock.mockResolvedValue(undefined);
+    getIncidentMock.mockResolvedValue({ incidentId: "inc-1", agencyId: "agency-a" });
+    sendSmsMock.mockResolvedValue({
+      provider: "aws",
+      status: "sent",
+      messageId: "SM123",
+      recipientRedacted: "***0100",
+      sentAt: new Date().toISOString(),
+      retryable: false,
+    });
+    try {
+      const svc = new LiveVideoService();
+      const out = await svc.requestLiveVideo(
+        "inc-1",
+        { userId: "u-1", role: "dispatcher", agencyId: "agency-a", email: "d@agency.example" } as never,
+        { callerPhone: "+15555550100", storageMode: "kvs-ingestion" },
+      );
+      expect(out.status).toBe("failed");
+      expect(deleteKinesisSignalingChannelMock).toHaveBeenCalled();
+      expect(createSessionMock).toHaveBeenCalledWith(
+        expect.objectContaining({ status: "failed", liveVideoPipeline: "legacy_p2p" }),
+      );
+    } finally {
+      env.liveVideoStorageMode = prevMode;
+      env.liveVideoKvsStorageAttachToChannel = prevAttach;
+    }
   });
 
   it("creates a session and sends SMS", async () => {

@@ -9,9 +9,16 @@
 
 PYTHON_IMAGE ?= public.ecr.aws/sam/build-python3.11:latest
 VISION_DOCKER_BUILD ?= 0
-# Colima/Docker Desktop often cannot bind-mount /Volumes (USB). Stage sources onto $HOME.
+# Colima/Docker Desktop often cannot bind-mount /Volumes (USB) or SAM's /var/folders
+# temp CodeUri copies. Stage sources onto $HOME so the container can read them.
 DOCKER_SRC := $(CURDIR)
 ifneq ($(findstring /Volumes,$(CURDIR)),)
+DOCKER_SRC := $(HOME)/.rapid-cortex-sam-build/transcript-worker-src
+endif
+ifneq ($(findstring /var/folders,$(CURDIR)),)
+DOCKER_SRC := $(HOME)/.rapid-cortex-sam-build/transcript-worker-src
+endif
+ifneq ($(findstring /tmp/,$(CURDIR)),)
 DOCKER_SRC := $(HOME)/.rapid-cortex-sam-build/transcript-worker-src
 endif
 
@@ -28,10 +35,8 @@ else
 	  echo "ERROR: docker is required when VISION_DOCKER_BUILD=1 (amazon-transcribe native deps vs Amazon Linux)." >&2; \
 	  exit 1; \
 	fi
-	if [ "$(DOCKER_SRC)" != "$(CURDIR)" ]; then \
-	  mkdir -p "$(DOCKER_SRC)"; \
-	  cp "$(CURDIR)/requirements.txt" "$(CURDIR)/lambda_function.py" "$(DOCKER_SRC)/"; \
-	fi
+	mkdir -p "$(DOCKER_SRC)"; \
+	cp "$(CURDIR)/requirements.txt" "$(CURDIR)/lambda_function.py" "$(DOCKER_SRC)/"; \
 	docker run --rm --platform linux/amd64 \
 	  -v "$(DOCKER_SRC)":/src \
 	  -v "$(ARTIFACTS_DIR)":/out \

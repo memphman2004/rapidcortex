@@ -40,6 +40,7 @@ import { AuthorizationService, AUDIT_EVENT_TYPES, type Permission } from "rapid-
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { withCorrelationHeaders } from "../../lib/correlation.js";
 import { env } from "../../lib/env.js";
+import { assertAIGateFeature } from "../../lib/ai-gate-check.js";
 import { makeId } from "../../lib/ids.js";
 import { requireAddon } from "../../middleware/requireAddon.js";
 import {
@@ -412,6 +413,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       requirePerm(user, "call_assist.session.view");
       const parsed = initiateCallAssistSessionSchema.safeParse(body ?? {});
       if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      const gate = await assertAIGateFeature(agencyId, "callHandling");
+      if (!gate.allowed) {
+        return withCorrelationHeaders(
+          event,
+          ok({
+            aiDisabled: true,
+            result: null,
+            message: "Call Assist AI disabled — transfer / human paths remain available",
+          }),
+        );
+      }
       const session = await initiateSession({
         agencyId: agencyId,
         actorId: user.userId,
@@ -434,6 +446,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         sessionId: parts[1],
       });
       if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      const gate = await assertAIGateFeature(agencyId, "callHandling");
+      if (!gate.allowed) {
+        return withCorrelationHeaders(
+          event,
+          ok({
+            aiDisabled: true,
+            result: null,
+            message: "Call Assist AI disabled for this agency",
+          }),
+        );
+      }
       const result = await processUtterance({
         agencyId: agencyId,
         actorId: user.userId,

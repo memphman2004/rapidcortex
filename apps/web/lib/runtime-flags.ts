@@ -95,6 +95,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_RAPID_IQ: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ,
   NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE,
   NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL,
+  NEXT_PUBLIC_ENABLE_NEXIQ_INTEL: process.env.NEXT_PUBLIC_ENABLE_NEXIQ_INTEL,
   NEXT_PUBLIC_ENABLE_SALES_AUTOMATION: process.env.NEXT_PUBLIC_ENABLE_SALES_AUTOMATION,
   NEXT_PUBLIC_ENABLE_CONFERENCES: process.env.NEXT_PUBLIC_ENABLE_CONFERENCES,
   NEXT_PUBLIC_ENABLE_ESCALATION: process.env.NEXT_PUBLIC_ENABLE_ESCALATION,
@@ -111,6 +112,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
   NEXT_PUBLIC_ENABLE_LOADOUT: process.env.NEXT_PUBLIC_ENABLE_LOADOUT,
   NEXT_PUBLIC_ENABLE_LOADOUT_PORTAL: process.env.NEXT_PUBLIC_ENABLE_LOADOUT_PORTAL,
+  NEXT_PUBLIC_ENABLE_AI_FEATURE_GATE: process.env.NEXT_PUBLIC_ENABLE_AI_FEATURE_GATE,
 };
 
 const CAD_WRITEBACK_FLAG = "NEXT_PUBLIC_ENABLE_CAD_WRITEBACK";
@@ -718,6 +720,11 @@ export function isRapidIqIntelUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL");
 }
 
+/** NexiQ Intelligence Pipeline (source registry / coverage) — default ON when unset. */
+export function isNexiqIntelUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_NEXIQ_INTEL");
+}
+
 /** NexCort Admin NexiQ sales automation (campaign drafts + Outlook send after approval). Default on when unset. */
 export function isSalesAutomationUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SALES_AUTOMATION");
@@ -764,6 +771,11 @@ export function isStaffGuideEnabled(): boolean {
 /** NexCortiQ Loadout — API provisioning, usage metering, and invoicing engine. Default on when unset. */
 export function isLoadoutEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_LOADOUT");
+}
+
+/** Agency AI feature gate (admin toggle + per-component UX). Default on when unset. */
+export function isAiFeatureGateEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_AI_FEATURE_GATE");
 }
 
 /** NexCortiQ Loadout — agency-facing portal (dashboard, catalog, invoices, API keys). Default on when unset. */

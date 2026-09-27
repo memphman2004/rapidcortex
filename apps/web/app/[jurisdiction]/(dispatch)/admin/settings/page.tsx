@@ -56,6 +56,13 @@ export default async function AdminSettingsPage({ params }: Props) {
           >
             Camera AI monitoring
           </Link>
+          {" · "}
+          <Link
+            href={`${prefix}/admin/settings/ai-mode`}
+            className="text-sky-400 hover:text-sky-300 hover:underline"
+          >
+            AI mode
+          </Link>
         </p>
       </div>
 

@@ -205,3 +205,4 @@ export {
   type MatrixRole,
 } from "./role-access-matrix-v2.js";
 export { canManageQrLocations, canViewQrLocations } from "./qr-locations-access.js";
+export { canToggleAIGate, canReadAIGateConfig } from "./ai-gate-authz.js";

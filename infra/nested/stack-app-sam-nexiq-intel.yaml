@@ -1,0 +1,509 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  NexiQ Intelligence Pipeline — Lambda functions, EventBridge schedule, SQS triggers.
+  Nested stack AppSamNexiQIntelStack (NOT AppSam6 — slot 6 is Rapid Vision).
+  Import data-layer outputs for table names, queue ARNs, bucket name.
+
+Parameters:
+  AppName:
+    Type: String
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+    Description: AppSam3 HttpApi id (same as RC Admin leads)
+  HttpApiJwtAuthorizerId:
+    Type: String
+    Default: ""
+    Description: Optional JWT authorizer id on AppSam3 HttpApi
+
+  NexiQIntelSourcesTable:
+    Type: String
+  NexiQIntelSourceRunsTable:
+    Type: String
+  NexiQIntelDocumentsTable:
+    Type: String
+  NexiQIntelSignalsTable:
+    Type: String
+  NexiQIntelGapsTable:
+    Type: String
+  NexiQIntelBenchmarksTable:
+    Type: String
+  NexiQIntelCoverageTable:
+    Type: String
+  NexiQIntelRawArtifactsBucket:
+    Type: String
+  NexiQIntelCollectionQueueUrl:
+    Type: String
+  NexiQIntelCollectionQueueArn:
+    Type: String
+  NexiQIntelProcessingQueueUrl:
+    Type: String
+  NexiQIntelProcessingQueueArn:
+    Type: String
+  BedrockModelId:
+    Type: String
+    Default: "anthropic.claude-3-5-sonnet-20241022-v2:0"
+  QualificationThreshold:
+    Type: Number
+    Default: 65
+    MinValue: 0
+    MaxValue: 100
+  MaxSourcesPerRun:
+    Type: Number
+    Default: 50
+  CollectorScheduleExpression:
+    Type: String
+    Default: "rate(30 minutes)"
+    Description: EventBridge schedule for the collector Lambda
+  EnableNexiQIntel:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+  LeadsTableName:
+    Type: String
+    Description: Existing SalesLeadCrmRecord DynamoDB table name
+  AuditTable:
+    Type: String
+    Description: Existing audit table (required by shared auth/env module when bundling getUserContext)
+  CognitoUserPoolId:
+    Type: String
+    Default: ""
+  CognitoClientId:
+    Type: String
+    Default: ""
+  CognitoIssuer:
+    Type: String
+    Default: ""
+
+Conditions:
+  IsIntelEnabled: !Equals [!Ref EnableNexiQIntel, "true"]
+  HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Architectures: [arm64]
+    Timeout: 60
+    MemorySize: 512
+    Environment:
+      Variables:
+        NODE_ENV: !Ref DeploymentStage
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
+        ENABLE_NEXIQ_INTEL: !Ref EnableNexiQIntel
+        NEXIQ_INTEL_SOURCES_TABLE: !Ref NexiQIntelSourcesTable
+        NEXIQ_INTEL_SOURCE_RUNS_TABLE: !Ref NexiQIntelSourceRunsTable
+        NEXIQ_INTEL_DOCUMENTS_TABLE: !Ref NexiQIntelDocumentsTable
+        NEXIQ_INTEL_SIGNALS_TABLE: !Ref NexiQIntelSignalsTable
+        NEXIQ_INTEL_GAPS_TABLE: !Ref NexiQIntelGapsTable
+        NEXIQ_INTEL_BENCHMARKS_TABLE: !Ref NexiQIntelBenchmarksTable
+        NEXIQ_INTEL_COVERAGE_TABLE: !Ref NexiQIntelCoverageTable
+        NEXIQ_INTEL_RAW_ARTIFACTS_BUCKET: !Ref NexiQIntelRawArtifactsBucket
+        NEXIQ_INTEL_COLLECTION_QUEUE_URL: !Ref NexiQIntelCollectionQueueUrl
+        NEXIQ_INTEL_PROCESSING_QUEUE_URL: !Ref NexiQIntelProcessingQueueUrl
+        NEXIQ_INTEL_BEDROCK_MODEL_ID: !Ref BedrockModelId
+        NEXIQ_INTEL_QUALIFICATION_THRESHOLD: !Ref QualificationThreshold
+        NEXIQ_INTEL_MAX_SOURCES_PER_RUN: !Ref MaxSourcesPerRun
+        LEADS_TABLE: !Ref LeadsTableName
+        AUDIT_TABLE: !Ref AuditTable
+        COGNITO_USER_POOL_ID: !Ref CognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref CognitoClientId
+        COGNITO_ISSUER: !Ref CognitoIssuer
+
+Resources:
+
+  # ── Shared IAM Role ───────────────────────────────────────────────────────────
+  NexiQIntelLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AppName}-nexiq-intel-lambda-${DeploymentStage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: NexiQIntelDynamoDB
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:BatchWriteItem
+                Resource:
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQIntelSourcesTable}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQIntelSourcesTable}/index/*
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQIntelSourceRunsTable}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQIntelSourceRunsTable}/index/*
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQIntelDocumentsTable}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQIntelDocumentsTable}/index/*
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQIntelSignalsTable}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQIntelSignalsTable}/index/*
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQIntelGapsTable}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQIntelGapsTable}/index/*
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQIntelBenchmarksTable}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQIntelBenchmarksTable}/index/*
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQIntelCoverageTable}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQIntelCoverageTable}/index/*
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LeadsTableName}"
+        - PolicyName: NexiQIntelS3
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: !Sub
+                  - "${BucketArn}/*"
+                  - BucketArn: !Sub arn:aws:s3:::${NexiQIntelRawArtifactsBucket}
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !Sub arn:aws:s3:::${NexiQIntelRawArtifactsBucket}
+        - PolicyName: NexiQIntelSQS
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                  - sqs:SendMessageBatch
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                  - sqs:ChangeMessageVisibility
+                Resource:
+                  - !Ref NexiQIntelCollectionQueueArn
+                  - !Ref NexiQIntelProcessingQueueArn
+        - PolicyName: NexiQIntelBedrock
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: bedrock:InvokeModel
+                Resource: !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/${BedrockModelId}"
+        - PolicyName: NexiQIntelLambdaInvoke
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AppName}-nexiq-intel-collector-${DeploymentStage}
+
+  # ── Collector Lambda ──────────────────────────────────────────────────────────
+  NexiQIntelCollectorFunction:
+    Type: AWS::Serverless::Function
+    Condition: IsIntelEnabled
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      FunctionName: !Sub "${AppName}-nexiq-intel-collector-${DeploymentStage}"
+      Description: Scheduled source checker — fetches sources, deduplicates, enqueues for processing
+      CodeUri: ../../apps/api/
+      Handler: dist/nexiq-intel/intel-collector/index.handler
+      Timeout: 300          # 5 min — multiple concurrent source fetches
+      MemorySize: 1024
+      Role: !GetAtt NexiQIntelLambdaRole.Arn
+      Environment:
+        Variables:
+          NEXIQ_INTEL_COLLECTOR_LAMBDA_NAME: !Sub "${AppName}-nexiq-intel-collector-${DeploymentStage}"
+      Events:
+        ScheduledRun:
+          Type: ScheduleV2
+          Properties:
+            ScheduleExpression: !Ref CollectorScheduleExpression
+            State: ENABLED
+            Input: '{"type":"SCHEDULED_SOURCE_CHECK","triggeredBy":"SCHEDULER"}'
+            RetryPolicy:
+              MaximumRetryAttempts: 2
+              MaximumEventAgeInSeconds: 600
+      Tags:
+        Component: nexiq-intel
+        Stage: !Ref DeploymentStage
+
+  # ── Processor Lambda (SQS Consumer) ──────────────────────────────────────────
+  NexiQIntelProcessorFunction:
+    Type: AWS::Serverless::Function
+    Condition: IsIntelEnabled
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      FunctionName: !Sub "${AppName}-nexiq-intel-processor-${DeploymentStage}"
+      Description: Document processor — extract, classify, detect signals, qualify, create inbox leads
+      CodeUri: ../../apps/api/
+      Handler: dist/nexiq-intel/intel-processor/index.handler
+      Timeout: 540          # 9 min — Bedrock processing per doc
+      MemorySize: 1024
+      Role: !GetAtt NexiQIntelLambdaRole.Arn
+      Events:
+        CollectionQueueTrigger:
+          Type: SQS
+          Properties:
+            Queue: !Ref NexiQIntelCollectionQueueArn
+            BatchSize: 5              # Process 5 docs per invocation
+            MaximumBatchingWindowInSeconds: 30
+            FunctionResponseTypes:
+              - ReportBatchItemFailures # Partial batch success
+      Tags:
+        Component: nexiq-intel
+        Stage: !Ref DeploymentStage
+
+  # ── API Handler Lambda ────────────────────────────────────────────────────────
+  NexiQIntelApiFunction:
+    Type: AWS::Serverless::Function
+    Condition: IsIntelEnabled
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      FunctionName: !Sub "${AppName}-nexiq-intel-api-${DeploymentStage}"
+      Description: Source Registry, Coverage Dashboard, Gaps, Benchmarks REST API
+      CodeUri: ../../apps/api/
+      Handler: dist/nexiq-intel/intel-api/index.handler
+      Timeout: 30
+      MemorySize: 512
+      Role: !GetAtt NexiQIntelLambdaRole.Arn
+      Environment:
+        Variables:
+          NEXIQ_INTEL_COLLECTOR_LAMBDA_NAME: !Sub "${AppName}-nexiq-intel-collector-${DeploymentStage}"
+      Tags:
+        Component: nexiq-intel
+        Stage: !Ref DeploymentStage
+
+  NexiQIntelHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NexiQIntelApiFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  NexiQIntelHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Condition: IsIntelEnabled
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref NexiQIntelApiFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+
+  RouteNexiqIntelSourcesGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/nexiq/intel/sources"
+      Target: !Sub "integrations/${NexiQIntelHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteNexiqIntelSourcesPost:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rc-admin/nexiq/intel/sources"
+      Target: !Sub "integrations/${NexiQIntelHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteNexiqIntelSourceGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/nexiq/intel/sources/{sourceId}"
+      Target: !Sub "integrations/${NexiQIntelHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteNexiqIntelSourcePatch:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PATCH /api/rc-admin/nexiq/intel/sources/{sourceId}"
+      Target: !Sub "integrations/${NexiQIntelHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteNexiqIntelSourceDelete:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "DELETE /api/rc-admin/nexiq/intel/sources/{sourceId}"
+      Target: !Sub "integrations/${NexiQIntelHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteNexiqIntelSourceRun:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rc-admin/nexiq/intel/sources/{sourceId}/run"
+      Target: !Sub "integrations/${NexiQIntelHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteNexiqIntelSourceRuns:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/nexiq/intel/sources/{sourceId}/runs"
+      Target: !Sub "integrations/${NexiQIntelHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteNexiqIntelSourceDocs:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/nexiq/intel/sources/{sourceId}/documents"
+      Target: !Sub "integrations/${NexiQIntelHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteNexiqIntelDocGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/nexiq/intel/documents/{docId}"
+      Target: !Sub "integrations/${NexiQIntelHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteNexiqIntelCoverage:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/nexiq/intel/coverage"
+      Target: !Sub "integrations/${NexiQIntelHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteNexiqIntelCoverageHistory:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/nexiq/intel/coverage/history"
+      Target: !Sub "integrations/${NexiQIntelHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteNexiqIntelGapsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/nexiq/intel/gaps"
+      Target: !Sub "integrations/${NexiQIntelHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteNexiqIntelGapsPost:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rc-admin/nexiq/intel/gaps"
+      Target: !Sub "integrations/${NexiQIntelHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteNexiqIntelBenchmarksGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/nexiq/intel/benchmarks"
+      Target: !Sub "integrations/${NexiQIntelHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteNexiqIntelBenchmarksPost:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: IsIntelEnabled
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rc-admin/nexiq/intel/benchmarks"
+      Target: !Sub "integrations/${NexiQIntelHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  # ── CloudWatch Alarms ─────────────────────────────────────────────────────────
+  CollectorErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: IsIntelEnabled
+    Properties:
+      AlarmName: !Sub "${AppName}-nexiq-intel-collector-errors-${DeploymentStage}"
+      AlarmDescription: NexiQ Intel Collector Lambda errors
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref NexiQIntelCollectorFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  ProcessorDLQDepthAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: IsIntelEnabled
+    Properties:
+      AlarmName: !Sub "${AppName}-nexiq-intel-processor-dlq-depth-${DeploymentStage}"
+      AlarmDescription: Messages accumulating in NexiQ Intel Processing DLQ — documents failing to process
+      MetricName: ApproximateNumberOfMessagesVisible
+      Namespace: AWS/SQS
+      Dimensions:
+        - Name: QueueName
+          Value: !Sub "${AppName}-nexiq-intel-processing-dlq-${DeploymentStage}"
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+# ─── Outputs ──────────────────────────────────────────────────────────────────
+Outputs:
+  NexiQIntelCollectorFunctionName:
+    Description: Collector Lambda name
+    Value: !If [IsIntelEnabled, !Ref NexiQIntelCollectorFunction, "disabled"]
+  NexiQIntelProcessorFunctionName:
+    Description: Processor Lambda name
+    Value: !If [IsIntelEnabled, !Ref NexiQIntelProcessorFunction, "disabled"]
+  NexiQIntelApiFunctionName:
+    Description: API Lambda name
+    Value: !If [IsIntelEnabled, !Ref NexiQIntelApiFunction, "disabled"]

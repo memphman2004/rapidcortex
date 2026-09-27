@@ -549,6 +549,15 @@
       "Type": "String",
       "Default": "rapid-cortex-rcs-escalation-dev",
       "Description": "Pre-existing DynamoDB table name for RcsEscalationTable (parameter workaround; do not create)."
+    },
+    "ReuseExistingSalesDataResources": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Description": "When true, skip creating sales ROI/activity/RFP/claims/free-tier tables that already exist (Retain leftovers after rollback)."
     }
   },
   "Rules": {
@@ -1143,6 +1152,22 @@
             ""
           ]
         }
+      ]
+    },
+    "CreateSalesDataResources": {
+      "Fn::Equals": [
+        {
+          "Ref": "ReuseExistingSalesDataResources"
+        },
+        "false"
+      ]
+    },
+    "ReuseSalesDataResources": {
+      "Fn::Equals": [
+        {
+          "Ref": "ReuseExistingSalesDataResources"
+        },
+        "true"
       ]
     }
   },
@@ -6146,7 +6171,8 @@
             "Value": "sales-roi"
           }
         ]
-      }
+      },
+      "Condition": "CreateSalesDataResources"
     },
     "SalesActivityReportsTable": {
       "Type": "AWS::DynamoDB::Table",
@@ -6187,7 +6213,8 @@
             "Value": "sales-activity"
           }
         ]
-      }
+      },
+      "Condition": "CreateSalesDataResources"
     },
     "SalesAccountClaimsTable": {
       "Type": "AWS::DynamoDB::Table",
@@ -6220,7 +6247,8 @@
             "Value": "sales-claims"
           }
         ]
-      }
+      },
+      "Condition": "CreateSalesDataResources"
     },
     "SalesRfpTrackerTable": {
       "Type": "AWS::DynamoDB::Table",
@@ -6253,7 +6281,8 @@
             "Value": "sales-rfp"
           }
         ]
-      }
+      },
+      "Condition": "CreateSalesDataResources"
     },
     "FreeTierRegistrationsTable": {
       "Type": "AWS::DynamoDB::Table",
@@ -6286,7 +6315,12 @@
             "Value": "sales-free-tier"
           }
         ]
-      }
+      },
+      "Condition": "CreateSalesDataResources"
+    },
+    "SalesDataReuseMarker": {
+      "Type": "AWS::CloudFormation::WaitConditionHandle",
+      "Condition": "ReuseSalesDataResources"
     }
   },
   "Outputs": {
@@ -6988,6 +7022,36 @@
       "Description": "Automated billing run records",
       "Value": {
         "Ref": "ExistingBillingRunsTableName"
+      }
+    },
+    "SalesRoiSessionsTableName": {
+      "Description": "Physical name for SalesRoiSessions",
+      "Value": {
+        "Fn::Sub": "rapid-cortex-sales-roi-sessions-${DeploymentStage}"
+      }
+    },
+    "SalesActivityReportsTableName": {
+      "Description": "Physical name for SalesActivityReports",
+      "Value": {
+        "Fn::Sub": "rapid-cortex-sales-activity-reports-${DeploymentStage}"
+      }
+    },
+    "SalesAccountClaimsTableName": {
+      "Description": "Physical name for SalesAccountClaims",
+      "Value": {
+        "Fn::Sub": "rapid-cortex-sales-account-claims-${DeploymentStage}"
+      }
+    },
+    "SalesRfpTrackerTableName": {
+      "Description": "Physical name for SalesRfpTracker",
+      "Value": {
+        "Fn::Sub": "rapid-cortex-sales-rfp-tracker-${DeploymentStage}"
+      }
+    },
+    "FreeTierRegistrationsTableName": {
+      "Description": "Physical name for FreeTierRegistrations",
+      "Value": {
+        "Fn::Sub": "rapid-cortex-free-tier-registrations-${DeploymentStage}"
       }
     }
   }

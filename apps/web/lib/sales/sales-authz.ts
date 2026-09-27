@@ -18,7 +18,12 @@ function hasOversight(u: Pick<UserContext, "role">): boolean {
   return OVERSIGHT.has(role(u));
 }
 
+function isSalesOnlyContractor(u: Pick<UserContext, "role">): boolean {
+  return isSalesContractor(u) && !hasOversight(u);
+}
+
 export function canViewPipeline(u: UserContext): boolean {
+  // isRcsuperadmin also matches __platform__ agency JWTs (incl. sales) — intentional for portal entry.
   return isRcsuperadmin(u) || isSalesContractor(u) || hasOversight(u);
 }
 
@@ -31,9 +36,10 @@ export function canViewEarnings(u: UserContext): boolean {
 }
 
 export function earningsScopedToSelf(u: UserContext): boolean {
-  return !isRcsuperadmin(u) && !hasOversight(u) && isSalesContractor(u);
+  // Role-only: sales JWTs use agencyId=__platform__, which would falsely trip isRcsuperadmin.
+  return isSalesOnlyContractor(u);
 }
 
 export function isBlockedFromAgencyOps(u: UserContext): boolean {
-  return !isRcsuperadmin(u) && isSalesContractor(u);
+  return isSalesOnlyContractor(u);
 }

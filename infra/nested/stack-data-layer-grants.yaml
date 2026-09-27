@@ -3,6 +3,7 @@ Description: >
   NexCort iQ Grant Intelligence + sales signal stores.
   Physical names: rapid-cortex-grants|grant-matches|grant-runs|lead-signals|signal-prospecting-*-{stage}.
   Vertical isolation is enforced in application code (GrantRecord.verticals / LeadSignal.vertical).
+  Set ReuseExistingGrantDataResources=true when tables already exist (AlreadyExists / Retain leftovers).
 
 Parameters:
   DeploymentStage:
@@ -11,10 +12,25 @@ Parameters:
   DynamoTableNamePrefix:
     Type: String
     Default: rapid-cortex
+  ReuseExistingGrantDataResources:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, skip creating retained DynamoDB tables (use physical names in outputs).
+
+Conditions:
+  CreateGrantDataResources: !Equals [!Ref ReuseExistingGrantDataResources, "false"]
+  ReuseGrantDataResources: !Equals [!Ref ReuseExistingGrantDataResources, "true"]
 
 Resources:
+  # Anchor so the stack is never empty when reusing existing tables.
+  GrantDataReuseMarker:
+    Type: AWS::CloudFormation::WaitConditionHandle
+    Condition: ReuseGrantDataResources
+
   GrantsTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateGrantDataResources
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -67,6 +83,7 @@ Resources:
 
   GrantMatchesTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateGrantDataResources
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -91,7 +108,6 @@ Resources:
         - AttributeName: sk
           KeyType: RANGE
       GlobalSecondaryIndexes:
-        # VERTICAL#{vertical} / MATCHED_AT#{iso}#{grantId} — list matches for one vertical only
         - IndexName: ByVerticalMatchedAt
           KeySchema:
             - AttributeName: gsi1pk
@@ -108,6 +124,7 @@ Resources:
 
   GrantRunsTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateGrantDataResources
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -135,6 +152,7 @@ Resources:
 
   LeadSignalsTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateGrantDataResources
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -159,7 +177,6 @@ Resources:
         - AttributeName: sk
           KeyType: RANGE
       GlobalSecondaryIndexes:
-        # VERTICAL#{vertical} / DETECTED_AT#{iso}#{signalId} — Signal Feed never cross-vertical
         - IndexName: ByVerticalDetectedAt
           KeySchema:
             - AttributeName: gsi1pk
@@ -176,6 +193,7 @@ Resources:
 
   SignalProspectingTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateGrantDataResources
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -203,22 +221,22 @@ Resources:
 
 Outputs:
   GrantsTableName:
-    Value: !Ref GrantsTable
+    Value: !Sub "${DynamoTableNamePrefix}-grants-${DeploymentStage}"
   GrantsTableArn:
-    Value: !GetAtt GrantsTable.Arn
+    Value: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoTableNamePrefix}-grants-${DeploymentStage}"
   GrantMatchesTableName:
-    Value: !Ref GrantMatchesTable
+    Value: !Sub "${DynamoTableNamePrefix}-grant-matches-${DeploymentStage}"
   GrantMatchesTableArn:
-    Value: !GetAtt GrantMatchesTable.Arn
+    Value: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoTableNamePrefix}-grant-matches-${DeploymentStage}"
   GrantRunsTableName:
-    Value: !Ref GrantRunsTable
+    Value: !Sub "${DynamoTableNamePrefix}-grant-runs-${DeploymentStage}"
   GrantRunsTableArn:
-    Value: !GetAtt GrantRunsTable.Arn
+    Value: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoTableNamePrefix}-grant-runs-${DeploymentStage}"
   LeadSignalsTableName:
-    Value: !Ref LeadSignalsTable
+    Value: !Sub "${DynamoTableNamePrefix}-lead-signals-${DeploymentStage}"
   LeadSignalsTableArn:
-    Value: !GetAtt LeadSignalsTable.Arn
+    Value: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoTableNamePrefix}-lead-signals-${DeploymentStage}"
   SignalProspectingTableName:
-    Value: !Ref SignalProspectingTable
+    Value: !Sub "${DynamoTableNamePrefix}-signal-prospecting-${DeploymentStage}"
   SignalProspectingTableArn:
-    Value: !GetAtt SignalProspectingTable.Arn
+    Value: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoTableNamePrefix}-signal-prospecting-${DeploymentStage}"

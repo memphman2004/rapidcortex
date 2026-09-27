@@ -60,6 +60,7 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/incidents\/[^/]+\/additional-data/,
   /** 13-feature suite (AppSamFeaturesStack on AppSam2 HttpApi). Not the local Next entitlements GET /api/features. */
   /^\/api\/features\//,
+  /^\/api\/agency\/[^/]+\/config\/ai-mode/,
 ];
 
 /** Billing, payments, network policy — stack-app-sam-4 (AppSam4Stack). */
@@ -120,6 +121,7 @@ const STACK3_PATH_TESTS: RegExp[] = [
   /^\/api\/contacts(\/|$)/,
   /^\/api\/rapid-iq(\/|$)/,
   /^\/api\/rc-admin\/rapid-iq(\/|$)/,
+  /^\/api\/rc-admin\/nexiq\/intel(\/|$)/,
   /^\/api\/rc-admin\/conferences(\/|$)/,
   /^\/api\/venue\/push-subscription(\/|$)/,
   /^\/api\/escalations(\/|$)/,

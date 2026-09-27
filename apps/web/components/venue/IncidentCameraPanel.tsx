@@ -6,6 +6,7 @@ import { EscalateTo911Modal } from "@/components/venue/escalate-to-911-modal";
 import { useClockPreference } from "@/components/providers/clock-preference-provider";
 import { formatClockTime } from "@/lib/clock-format";
 import { isEscalationUiEnabled } from "@/lib/runtime-flags";
+import { ManualModeBadge, useAIFeature } from "@/lib/ai-gate";
 import { KVSWebRTCPlayer } from "./KVSWebRTCPlayer";
 import {
   fetchVenueIncidentUpdates,
@@ -63,6 +64,7 @@ export function IncidentCameraPanel({
   enableDispatchControls?: boolean;
 }) {
   const { hour12 } = useClockPreference();
+  const cameraAiOn = useAIFeature("cameraAnalysis");
   const [streamCameras, setStreamCameras] = useState<VenueIncidentCameraSummary[]>(incident.cameras);
   const [sectionCameras, setSectionCameras] = useState<VenueIncidentCameraSummary[]>([]);
   const [showAllSection, setShowAllSection] = useState(false);
@@ -215,6 +217,12 @@ export function IncidentCameraPanel({
             </button>
           ) : null}
         </div>
+
+        {!cameraAiOn ? (
+          <div style={{ padding: "8px 12px 0" }}>
+            <ManualModeBadge label="Camera AI analysis" />
+          </div>
+        ) : null}
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, padding: 12 }}>
           {streamCameras.length === 0 ? (

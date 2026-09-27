@@ -52,6 +52,10 @@ async function analyzeSession(session: VisionSession & { startedAt?: string }): 
     return;
   }
 
+  const { assertAIGateFeature } = await import("../lib/ai-gate-check.js");
+  const gate = await assertAIGateFeature(session.agencyId, "cameraAnalysis");
+  if (!gate.allowed) return;
+
   if (session.provider === "demo") {
     await generateDemoObservation(session);
     return;

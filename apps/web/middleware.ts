@@ -582,7 +582,14 @@ async function guardRoleDashboard(
   );
   if (roleDashRenewal) return roleDashRenewal;
 
+  // Sales contractors share allowlisted /rc-admin CRM tools with RC Admin (same pages/chrome).
+  // Non-allowlisted rc-admin routes bounce home to /sales.
   if (isSalesContractor(user)) {
+    if (prefix === "rc-admin" && salesContractorMayAccessPath(pathname)) {
+      const salesNet = await maybeBlockNetworkAccess(request, user);
+      if (salesNet) return salesNet;
+      return NextResponse.next();
+    }
     return nextOrRedirect(request, resolveRedirectUrl("/sales", request));
   }
 

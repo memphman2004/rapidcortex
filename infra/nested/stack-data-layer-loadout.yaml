@@ -2,6 +2,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: >
   NexCort iQ Loadout data layer — subscriptions, API keys, usage, swap history, invoices.
   Physical names use prefix rapid-cortex-loadout-*-stage.
+  Set ReuseExistingLoadoutDataResources=true when tables already exist (AlreadyExists / Retain leftovers).
 
 Parameters:
   DeploymentStage:
@@ -10,10 +11,24 @@ Parameters:
   DynamoTableNamePrefix:
     Type: String
     Default: rapid-cortex
+  ReuseExistingLoadoutDataResources:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, skip creating retained DynamoDB tables (use physical names in outputs).
+
+Conditions:
+  CreateLoadoutDataResources: !Equals [!Ref ReuseExistingLoadoutDataResources, "false"]
+  ReuseLoadoutDataResources: !Equals [!Ref ReuseExistingLoadoutDataResources, "true"]
 
 Resources:
+  LoadoutDataReuseMarker:
+    Type: AWS::CloudFormation::WaitConditionHandle
+    Condition: ReuseLoadoutDataResources
+
   LoadoutSubscriptionsTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateLoadoutDataResources
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -41,6 +56,7 @@ Resources:
 
   LoadoutApiKeysTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateLoadoutDataResources
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -73,6 +89,7 @@ Resources:
 
   LoadoutUsageTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateLoadoutDataResources
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -103,6 +120,7 @@ Resources:
 
   LoadoutSwapHistoryTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateLoadoutDataResources
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -130,6 +148,7 @@ Resources:
 
   LoadoutInvoicesTable:
     Type: AWS::DynamoDB::Table
+    Condition: CreateLoadoutDataResources
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -161,31 +180,31 @@ Resources:
 Outputs:
   LoadoutSubscriptionsTable:
     Description: Loadout subscriptions table name
-    Value: !Ref LoadoutSubscriptionsTable
+    Value: !Sub "${DynamoTableNamePrefix}-loadout-subscriptions-${DeploymentStage}"
   LoadoutSubscriptionsTableArn:
     Description: Loadout subscriptions table ARN
-    Value: !GetAtt LoadoutSubscriptionsTable.Arn
+    Value: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoTableNamePrefix}-loadout-subscriptions-${DeploymentStage}"
   LoadoutApiKeysTable:
     Description: Loadout API keys table name
-    Value: !Ref LoadoutApiKeysTable
+    Value: !Sub "${DynamoTableNamePrefix}-loadout-api-keys-${DeploymentStage}"
   LoadoutApiKeysTableArn:
     Description: Loadout API keys table ARN
-    Value: !GetAtt LoadoutApiKeysTable.Arn
+    Value: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoTableNamePrefix}-loadout-api-keys-${DeploymentStage}"
   LoadoutUsageTable:
     Description: Loadout usage table name
-    Value: !Ref LoadoutUsageTable
+    Value: !Sub "${DynamoTableNamePrefix}-loadout-usage-${DeploymentStage}"
   LoadoutUsageTableArn:
     Description: Loadout usage table ARN
-    Value: !GetAtt LoadoutUsageTable.Arn
+    Value: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoTableNamePrefix}-loadout-usage-${DeploymentStage}"
   LoadoutSwapHistoryTable:
     Description: Loadout swap history table name
-    Value: !Ref LoadoutSwapHistoryTable
+    Value: !Sub "${DynamoTableNamePrefix}-loadout-swap-history-${DeploymentStage}"
   LoadoutSwapHistoryTableArn:
     Description: Loadout swap history table ARN
-    Value: !GetAtt LoadoutSwapHistoryTable.Arn
+    Value: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoTableNamePrefix}-loadout-swap-history-${DeploymentStage}"
   LoadoutInvoicesTable:
     Description: Loadout invoices table name
-    Value: !Ref LoadoutInvoicesTable
+    Value: !Sub "${DynamoTableNamePrefix}-loadout-invoices-${DeploymentStage}"
   LoadoutInvoicesTableArn:
     Description: Loadout invoices table ARN
-    Value: !GetAtt LoadoutInvoicesTable.Arn
+    Value: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoTableNamePrefix}-loadout-invoices-${DeploymentStage}"

@@ -176,6 +176,8 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
         { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
         { id: "contacts", label: "Contacts", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
         { id: "rapid-iq", label: "NexiQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
+        { id: "nexiq-intel-sources", label: "Intel Sources", href: "/rc-admin/nexiq/intel/sources", icon: "Radar", feature: "nexiqIntel" },
+        { id: "nexiq-intel-coverage", label: "Intel Coverage", href: "/rc-admin/nexiq/intel/coverage", icon: "Activity", feature: "nexiqIntel" },
         { id: "sales-automation", label: "Email Campaigns", href: "/rc-admin/sales-automation", icon: "Mail", feature: "salesAutomation" },
         { id: "conferences", label: "Conferences", href: "/rc-admin/conferences", icon: "CalendarDays", feature: "conferences" },
       ],
@@ -290,18 +292,19 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
   ],
 };
 
+/** Mirrors RC Admin SALES & CRM + shared catalogs/ops — same destinations RC operators use. */
 export const SALES_CONTRACTOR_NAV: RoleNav = {
   accent: "sky",
   roleBadge: "SALES",
   sections: [
     {
-      id: "home",
-      label: "SALES PORTAL",
+      id: "sales-crm",
+      label: "SALES & CRM",
       items: [
-        { id: "sales-home", label: "Sales Portal", href: "/sales", icon: "Briefcase", exact: true },
+        { id: "sales-portal", label: "Sales Portal", href: "/sales", icon: "Briefcase", exact: true },
         {
           id: "deployments-map",
-          label: "Deployment Maps",
+          label: "Deployments map",
           href: "/rc-admin/deployments-map",
           icon: "Map",
           feature: "deploymentsMap",
@@ -328,7 +331,28 @@ export const SALES_CONTRACTOR_NAV: RoleNav = {
           icon: "Users",
           feature: "contactsModule",
         },
-        { id: "rapid-iq", label: "Nex iQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
+        { id: "rapid-iq", label: "NexiQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
+        {
+          id: "nexiq-intel-sources",
+          label: "Intel Sources",
+          href: "/rc-admin/nexiq/intel/sources",
+          icon: "Radar",
+          feature: "nexiqIntel",
+        },
+        {
+          id: "nexiq-intel-coverage",
+          label: "Intel Coverage",
+          href: "/rc-admin/nexiq/intel/coverage",
+          icon: "Activity",
+          feature: "nexiqIntel",
+        },
+        {
+          id: "sales-automation",
+          label: "Email Campaigns",
+          href: "/rc-admin/sales-automation",
+          icon: "Mail",
+          feature: "salesAutomation",
+        },
         {
           id: "conferences",
           label: "Conferences",
@@ -360,15 +384,15 @@ export const SALES_CONTRACTOR_NAV: RoleNav = {
     },
     {
       id: "ops",
-      label: "PLATFORM",
+      label: "PLATFORM OPS",
       items: [
         { id: "notices", label: "Platform Notices", href: "/rc-admin/support", icon: "Megaphone" },
         { id: "grants", label: "Grants", href: "/rc-admin/grants", icon: "ShieldCheck" },
         {
           id: "onboarding-packets",
-          label: "Onboarding Packets",
+          label: "Onboarding packets",
           href: "/rc-admin/onboarding/packets",
-          icon: "ClipboardList",
+          icon: "FolderOpen",
           feature: "verticalOnboarding",
         },
         { id: "system-health", label: "System Health", href: "/rc-admin/system-health", icon: "Activity" },
@@ -426,6 +450,8 @@ export const RC_ADMIN_NAV: RoleNav = {
         { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
         { id: "contacts", label: "Contacts", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
         { id: "rapid-iq", label: "NexiQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
+        { id: "nexiq-intel-sources", label: "Intel Sources", href: "/rc-admin/nexiq/intel/sources", icon: "Radar", feature: "nexiqIntel" },
+        { id: "nexiq-intel-coverage", label: "Intel Coverage", href: "/rc-admin/nexiq/intel/coverage", icon: "Activity", feature: "nexiqIntel" },
         { id: "sales-automation", label: "Email Campaigns", href: "/rc-admin/sales-automation", icon: "Mail", feature: "salesAutomation" },
         { id: "conferences", label: "Conferences", href: "/rc-admin/conferences", icon: "CalendarDays", feature: "conferences" },
       ],

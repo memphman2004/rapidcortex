@@ -43,6 +43,7 @@ interface Props {
   initialSegments?: TranscriptSegment[];
   transcriptStatus?: "idle" | "starting" | "active" | "stopped";
   loading?: boolean;
+  error?: string | null;
   onStart?: () => Promise<void>;
   onStop?: () => Promise<void>;
   style?: CSSProperties;
@@ -53,6 +54,7 @@ export function LiveTranscriptPanel({
   initialSegments = [],
   transcriptStatus = "idle",
   loading = false,
+  error = null,
   onStart,
   onStop,
   style,
@@ -178,13 +180,15 @@ export function LiveTranscriptPanel({
         onScroll={onScroll}
         style={{ flex: 1, overflowY: "auto", padding: "8px 10px", minHeight: 0 }}
       >
-        {loading ? (
+        {error ? (
+          <EmptyMsg text={error} />
+        ) : loading ? (
           <EmptyMsg text="Loading…" />
         ) : segments.length === 0 ? (
           isActive ? (
             <EmptyMsg text="Listening for audio…" pulsing />
           ) : (
-            <EmptyMsg text="Press START to transcribe scene audio." />
+            <EmptyMsg text="Press START for live captions of scene audio." />
           )
         ) : (
           grouped.map((g, i) => <SpeakerGroup key={`${g.speakerLabel}-${i}`} group={g} />)

@@ -64,6 +64,12 @@ Parameters:
       Nested Rapid IQ intel/sales HTTP routes on AppSam3 HttpApi. Staging default
       false. Live rapid-cortex-dev sets true after SignalHttpIntegrationV2 (orphan
       x30c8uk is gone from the API; leftover standalone route IDs are ghosts).
+  EnableNexiQIntel:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: Enable NexiQ Intelligence Pipeline (collector/processor/API nested stack)
+
   EnableRapidIqNestedExpansion:
     Type: String
     Default: "false"
@@ -315,6 +321,13 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: Set true to deploy live-video KVS functions/routes. Default false keeps core API leaner.
+  WebrtcTurnSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional Secrets Manager ARN for shared WebRTC TURN/ICE JSON used by Video Assist (SMS caller
+      P2P) and Live Video legacy_p2p fallback. KVS sessions use AWS GetIceServerConfig TURN. Leave
+      empty until coturn (or equivalent) is provisioned.
   EnableSilentText:
     Type: String
     Default: "false"
@@ -459,6 +472,13 @@ Parameters:
     Description: >-
       When set, nested DataLayer skips creating rapid-cortex/${stage}/billing/ses-credentials and emits this ARN.
       Required on staging recreate if that secret already exists.
+  ReuseExistingSalesDataResources:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, DataLayer skips creating sales ROI/activity/RFP/claims/free-tier DynamoDB tables
+      that already exist (Retain leftovers after rollback).
   ExistingCallAssistTableName:
     Type: String
     Default: ""
@@ -846,6 +866,7 @@ Resources:
         EnableLiveVideoResources: !Ref EnableLiveVideoResources
         ExistingBillingPaymentInstructionsSecretArn: !Ref ExistingBillingPaymentInstructionsSecretArn
         ExistingBillingSesCredentialsSecretArn: !Ref ExistingBillingSesCredentialsSecretArn
+        ReuseExistingSalesDataResources: !Ref ReuseExistingSalesDataResources
         ExistingQRLocationsTableName: !Sub "${DynamoTableNamePrefix}-qr-locations-${DeploymentStage}"
         ExistingCampusConfigTableName: !Sub "${DynamoTableNamePrefix}-campus-config-${DeploymentStage}"
         ExistingCampusIncidentsTableName: !Sub "${DynamoTableNamePrefix}-campus-incidents-${DeploymentStage}"
@@ -908,6 +929,19 @@ Resources:
       Parameters:
         DeploymentStage: !Ref DeploymentStage
         DynamoTableNamePrefix: !Ref DynamoTableNamePrefix
+        ReuseExistingLoadoutDataResources: "true"
+
+
+  NexiQIntelDataStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-data-layer-nexiq-intel.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        DynamoTableNamePrefix: !Ref DynamoTableNamePrefix
+        AppName: !Ref AppName
+        ReuseExistingNexiQIntelDataResources: "true"
 
   GrantsDataStack:
     Type: AWS::CloudFormation::Stack
@@ -917,6 +951,7 @@ Resources:
       Parameters:
         DeploymentStage: !Ref DeploymentStage
         DynamoTableNamePrefix: !Ref DynamoTableNamePrefix
+        ReuseExistingGrantDataResources: "true"
 
   AppSamStackV2:
     Type: AWS::CloudFormation::Stack
@@ -2194,6 +2229,7 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-video-assist-sessions-${DeploymentStage}"
         AwsSmsPoolId: !Ref AwsSmsPoolId
         AwsSmsConfigurationSetName: !Ref AwsSmsConfigurationSetName
+        WebrtcTurnSecretArn: !Ref WebrtcTurnSecretArn
         WafRateLimitPer5Min: !Ref WafRateLimitPer5Min
         WebhooksTable:
           Fn::If:
@@ -3226,6 +3262,7 @@ Resources:
         EnableCloudTrailLambdaDataEvents: !Ref EnableCloudTrailLambdaDataEvents
         EnableCloudTrailS3DataEvents: !Ref EnableCloudTrailS3DataEvents
         EnableLiveVideoResources: !Ref EnableLiveVideoResources
+        WebrtcTurnSecretArn: !Ref WebrtcTurnSecretArn
         ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
         ExternalApiJwtSecretArn: !Ref ExternalApiJwtSecretArn
         ExternalApiRateLimitsTable:
@@ -3666,6 +3703,54 @@ Resources:
         AlertEmail: ""
         OpsSnsTopicArn: ""
 
+
+  AppSamNexiQIntelStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - NexiQIntelDataStack
+      - AppSam3Stack
+      - AppSamStackV2
+      - DataLayerStack
+    Properties:
+      TimeoutInMinutes: 90
+      TemplateURL: nested/stack-app-sam-nexiq-intel.yaml
+      Parameters:
+        AppName: !Ref AppName
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam3Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: ""
+        EnableNexiQIntel: !Ref EnableNexiQIntel
+        NexiQIntelSourcesTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelSourcesTable
+        NexiQIntelSourceRunsTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelSourceRunsTable
+        NexiQIntelDocumentsTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelDocumentsTable
+        NexiQIntelSignalsTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelSignalsTable
+        NexiQIntelGapsTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelGapsTable
+        NexiQIntelBenchmarksTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelBenchmarksTable
+        NexiQIntelCoverageTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelCoverageTable
+        NexiQIntelRawArtifactsBucket: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelRawArtifactsBucketName
+        NexiQIntelCollectionQueueUrl: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelCollectionQueueUrl
+        NexiQIntelCollectionQueueArn: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelCollectionQueueArn
+        NexiQIntelProcessingQueueUrl: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelProcessingQueueUrl
+        NexiQIntelProcessingQueueArn: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelProcessingQueueArn
+        LeadsTableName:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.SalesLeadsTable
+            - !Sub "${DynamoTableNamePrefix}-sales-leads-${DeploymentStage}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        CognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        CognitoClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        CognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+
   AppSamGrantsStack:
     Type: AWS::CloudFormation::Stack
     Metadata:
@@ -3786,49 +3871,6 @@ Resources:
         AppPublicBaseUrl: !Ref AppPublicBaseUrl
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
-  AppSamSopIntelStack2:
-    Type: AWS::CloudFormation::Stack
-    Metadata:
-      cfn-lint:
-        config:
-          ignore_checks:
-            - W3005
-    DependsOn:
-      - AppSam2Stack
-      - AppSamRealtime2Stack
-    Properties:
-      TimeoutInMinutes: 60
-      TemplateURL: nested/stack-app-sam-sop-intel.yaml
-      Parameters:
-        DeploymentStage: !Ref DeploymentStage
-        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
-        HttpApiJwtAuthorizerId: "3ui9q4"
-        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
-        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
-        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
-        AuditTable:
-          Fn::If:
-            - HasDataLayerNestedStack
-            - !GetAtt DataLayerStack.Outputs.AuditTable
-            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
-        AgenciesTable:
-          Fn::If:
-            - HasDataLayerNestedStack
-            - !GetAtt DataLayerStack.Outputs.AgenciesTable
-            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
-        WebSocketConnectionsTable:
-          Fn::If:
-            - HasDataLayerNestedStack
-            - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
-            - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
-        WebSocketApiEndpoint: !Sub
-          - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
-          - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
-        WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
-        AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
-        AppPublicBaseUrl: !Ref AppPublicBaseUrl
-        ManagedPolicyNamePrefix: !Ref AWS::StackName
-
   AppSamTranslateStack2:
     Type: AWS::CloudFormation::Stack
     Metadata:
@@ -3916,6 +3958,11 @@ Resources:
         ExistingVisionTranscriptsTableName: !Ref ExistingVisionTranscriptsTableName
         ExistingVisionEventsTableName: !Ref ExistingVisionEventsTableName
         FfmpegLayerArn: !Ref FfmpegLayerArn
+        LiveVideoSessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.LiveVideoSessionsTable
+            - !Sub "${DynamoTableNamePrefix}-live-video-sessions-${DeploymentStage}"
         EnableRapidVisionNest: !Ref EnableRapidVisionNest
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 

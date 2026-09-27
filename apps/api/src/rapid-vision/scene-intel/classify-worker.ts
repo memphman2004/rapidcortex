@@ -72,6 +72,10 @@ export async function classifyAndPersist(message: SceneClassifyMessage): Promise
   if (!env.enableRapidVision || !env.enableRapidVisionSceneIntel) return null;
   if (!message.agencyId || !message.cameraId) return null;
 
+  const { assertAIGateFeature } = await import("../../lib/ai-gate-check.js");
+  const gate = await assertAIGateFeature(message.agencyId, "cameraAnalysis");
+  if (!gate.allowed) return null;
+
   const settings = await visionStore.getSettings(message.agencyId);
   if (settings.sceneIntelEnabled === false) return null;
 

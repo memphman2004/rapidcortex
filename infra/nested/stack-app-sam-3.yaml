@@ -333,6 +333,12 @@ Parameters:
     Description: >-
       AWS End User Messaging phone pool id used as the shared SMS sender when an agency has no
       number of its own. Blank lets the account auto-select an originator.
+  WebrtcTurnSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional Secrets Manager ARN for Video Assist (SMS caller P2P) TURN/ICE JSON. Leave empty until
+      coturn (or equivalent) is provisioned; handlers fall back to STUN-only.
   AwsSmsConfigurationSetName:
     Type: String
     Default: ""
@@ -467,6 +473,7 @@ Conditions:
           - !Ref DeploymentStage
           - pilot
   HasIncidentMediaTwilioSecretArn: !Not [!Equals [!Ref IncidentMediaTwilioSecretArn, ""]]
+  HasWebrtcTurnSecret: !Not [!Equals [!Ref WebrtcTurnSecretArn, ""]]
   HasExternalApiJwtSecretArn: !Not [!Equals [!Ref ExternalApiJwtSecretArn, ""]]
   HasExternalApiEncryptionKeyArn: !Not [!Equals [!Ref ExternalApiEncryptionKeyArn, ""]]
   HasDynamoTablePrefix: !Not [!Equals [!Ref DynamoTableNamePrefix, ""]]
@@ -2287,6 +2294,7 @@ Resources:
           VIDEO_ASSIST_PUBLIC_BASE_URL: !Sub "https://app.${RootDomainName}"
           AWS_SMS_POOL_ID: !Ref AwsSmsPoolId
           AWS_SMS_CONFIGURATION_SET_NAME: !Ref AwsSmsConfigurationSetName
+          WEBRTC_TURN_SECRET_ARN: !Ref WebrtcTurnSecretArn
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
@@ -2313,6 +2321,15 @@ Resources:
             Condition:
               StringEquals:
                 aws:RequestedRegion: !Ref AWS::Region
+        - !If
+          - HasWebrtcTurnSecret
+          - Statement:
+              - Sid: WebrtcTurnSecretRead
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref WebrtcTurnSecretArn
+          - !Ref AWS::NoValue
       Events:
         PostSession:
           Type: HttpApi
@@ -2374,10 +2391,20 @@ Resources:
       Environment:
         Variables:
           VIDEO_ASSIST_TABLE: !Ref VideoAssistSessionsTable
+          WEBRTC_TURN_SECRET_ARN: !Ref WebrtcTurnSecretArn
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !If
+          - HasWebrtcTurnSecret
+          - Statement:
+              - Sid: WebrtcTurnSecretRead
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref WebrtcTurnSecretArn
+          - !Ref AWS::NoValue
 
       Events:
         GetPublic:

@@ -18,6 +18,7 @@ import { AUDIT_EVENT_TYPES, TenantAccessGuard } from "rapid-cortex-security";
 import { env } from "../lib/env.js";
 import { makeId } from "../lib/ids.js";
 import { sendVideoAssistSms, videoAssistSmsFailureMessage } from "../lib/videoAssistSms.js";
+import { resolveWebRtcIceServers } from "../lib/webrtcIceServers.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import type { VideoAssistDdbItem } from "../repositories/videoAssistRepository.js";
 import { VideoAssistRepository } from "../repositories/videoAssistRepository.js";
@@ -210,8 +211,10 @@ export class VideoAssistService {
   async getDispatcherSession(incidentId: string, sessionId: string, user: UserContext) {
     assertConfigured();
     const incident = TenantAccessGuard.assertIncidentAccess(await incidentRepo.get(incidentId), user);
-    const item = await repo.get(sessionId);
-    if (!item || item.incidentId !== incidentId) throw new Error("NOT_FOUND");
+    const item = await repo.get(sessionId, incident.agencyId);
+    if (!item || item.incidentId !== incidentId || item.agencyId !== incident.agencyId) {
+      throw new Error("NOT_FOUND");
+    }
     return toDispatcher(item);
   }
 
@@ -223,7 +226,7 @@ export class VideoAssistService {
   async listSessionsBrief(incidentId: string, user: UserContext) {
     assertConfigured();
     const incident = TenantAccessGuard.assertIncidentAccess(await incidentRepo.get(incidentId), user);
-    const rows = await repo.listByIncident(incidentId, 25);
+    const rows = await repo.listByIncident(incidentId, incident.agencyId, 25);
     return {
       items: rows.map((r) => ({
         sessionId: r.sessionId,
@@ -238,8 +241,10 @@ export class VideoAssistService {
   async cancelSession(incidentId: string, sessionId: string, user: UserContext) {
     assertConfigured();
     const incident = TenantAccessGuard.assertIncidentAccess(await incidentRepo.get(incidentId), user);
-    let item = await repo.get(sessionId);
-    if (!item || item.incidentId !== incidentId) throw new Error("NOT_FOUND");
+    let item = await repo.get(sessionId, incident.agencyId);
+    if (!item || item.incidentId !== incidentId || item.agencyId !== incident.agencyId) {
+      throw new Error("NOT_FOUND");
+    }
     const now = new Date().toISOString();
     item = append(item, { at: now, type: "session.canceled", meta: { by: user.userId } });
     item = {
@@ -267,8 +272,10 @@ export class VideoAssistService {
   async resendSms(incidentId: string, sessionId: string, user: UserContext) {
     assertConfigured();
     const incident = TenantAccessGuard.assertIncidentAccess(await incidentRepo.get(incidentId), user);
-    const item = await repo.get(sessionId);
-    if (!item || item.incidentId !== incidentId) throw new Error("NOT_FOUND");
+    const item = await repo.get(sessionId, incident.agencyId);
+    if (!item || item.incidentId !== incidentId || item.agencyId !== incident.agencyId) {
+      throw new Error("NOT_FOUND");
+    }
     assertLive(item);
     if (!item.publicUrl) throw new Error("MISSING_PUBLIC_URL");
     const sms = await sendVideoAssistSms({
@@ -389,8 +396,10 @@ export class VideoAssistService {
     if (!parsed.success) throw new Error(`VALIDATION:${parsed.error.message}`);
     const sig: VideoAssistSignalBody = parsed.data;
     const incident = TenantAccessGuard.assertIncidentAccess(await incidentRepo.get(incidentId), user);
-    let item = await repo.get(sessionId);
-    if (!item || item.incidentId !== incidentId) throw new Error("NOT_FOUND");
+    let item = await repo.get(sessionId, incident.agencyId);
+    if (!item || item.incidentId !== incidentId || item.agencyId !== incident.agencyId) {
+      throw new Error("NOT_FOUND");
+    }
     assertLive(item);
     const now = new Date().toISOString();
     if (sig.kind === "dispatcher-answer") {
@@ -448,8 +457,10 @@ export class VideoAssistService {
   async markLiveFromDispatcher(incidentId: string, sessionId: string, user: UserContext) {
     assertConfigured();
     const incident = TenantAccessGuard.assertIncidentAccess(await incidentRepo.get(incidentId), user);
-    let item = await repo.get(sessionId);
-    if (!item || item.incidentId !== incidentId) throw new Error("NOT_FOUND");
+    let item = await repo.get(sessionId, incident.agencyId);
+    if (!item || item.incidentId !== incidentId || item.agencyId !== incident.agencyId) {
+      throw new Error("NOT_FOUND");
+    }
     const now = new Date().toISOString();
     item = append(item, { at: now, type: "stream.started", meta: { by: user.userId } });
     item = {
@@ -473,17 +484,10 @@ export class VideoAssistService {
     return toDispatcher(item);
   }
 
-  iceServers(): { iceServers: { urls: string | string[]; username?: string; credential?: string }[] } {
-    const raw = process.env.VIDEO_ASSIST_ICE_SERVERS_JSON?.trim();
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw) as { urls: string | string[]; username?: string; credential?: string }[];
-        if (Array.isArray(parsed)) return { iceServers: parsed };
-      } catch {
-        /* fall through */
-      }
-    }
-    return { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+  async iceServers(): Promise<{
+    iceServers: { urls: string | string[]; username?: string; credential?: string }[];
+  }> {
+    return { iceServers: await resolveWebRtcIceServers() };
   }
 }
 

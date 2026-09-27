@@ -3,7 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { ownersForState, type TerritoryOwner } from "@/lib/sales/territory-roster";
 
-type NewsVertical = "911" | "campus" | "venue" | "law-enforcement" | "fire-ems" | "govtech" | "general" | "all";
+type NewsVertical =
+  | "911"
+  | "campus"
+  | "venue"
+  | "transit"
+  | "law-enforcement"
+  | "fire-ems"
+  | "govtech"
+  | "general"
+  | "all";
 
 type NewsItem = {
   id: string;
@@ -21,6 +30,7 @@ const FILTERS: { id: NewsVertical; label: string }[] = [
   { id: "911", label: "911" },
   { id: "campus", label: "Campus" },
   { id: "venue", label: "Venue" },
+  { id: "transit", label: "Transit" },
   { id: "law-enforcement", label: "Law" },
   { id: "fire-ems", label: "Fire/EMS" },
   { id: "govtech", label: "GovTech" },

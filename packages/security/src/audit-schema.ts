@@ -534,6 +534,10 @@ export const AUDIT_EVENT_TYPES = {
   /** Supervisor loaded the live operator presence list. */
   SUPERVISOR_OPERATORS_VIEWED: "supervisor.operators.viewed",
 
+  AI_GATE_ENABLED: "ai_gate.enabled",
+  AI_GATE_DISABLED: "ai_gate.disabled",
+  AI_GATE_FEATURE_CHANGED: "ai_gate.feature_changed",
+
   ...WYZE_AUDIT_EVENT_TYPES,
   ...NEST_AUDIT_EVENT_TYPES,
   ...MILESTONE_AUDIT_EVENT_TYPES,

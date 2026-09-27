@@ -133,6 +133,27 @@ export const visionStore = {
     return item as VisionSession;
   },
 
+  /** Persist a real KVS media stream ARN for live closed-captioning (HLS → ffmpeg → Transcribe). */
+  async attachHlsStreamArn(params: {
+    incidentId: string;
+    sessionId: string;
+    agencyId: string;
+    kvsStreamArn: string;
+  }): Promise<void> {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: sessionsTable(),
+        Key: { pk: `INCIDENT#${params.incidentId}`, sk: `SESSION#${params.sessionId}` },
+        UpdateExpression: "SET kvsStreamArn = :arn",
+        ConditionExpression: "agencyId = :a",
+        ExpressionAttributeValues: {
+          ":arn": params.kvsStreamArn,
+          ":a": params.agencyId,
+        },
+      }),
+    );
+  },
+
   async listSessionsForIncident(agencyId: string, incidentId: string): Promise<VisionSession[]> {
     if (!sessionsTable()) return [];
     const result = await ddb.send(

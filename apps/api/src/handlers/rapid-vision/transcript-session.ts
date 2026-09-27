@@ -28,9 +28,15 @@ import { jsonError, jsonOk } from "../../lib/http-json.js";
 import { operationalPasswordBlock } from "../../lib/operationalPasswordGate.js";
 import { requireActiveIncident } from "../../integrations/incidents/require-active-incident.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
+import { LiveVideoRepository } from "../../repositories/liveVideoRepository.js";
+import {
+  isKvsHlsMediaStreamRef,
+  resolveTranscriptHlsStreamRef,
+} from "../../rapid-vision/kvs-media-ref.js";
 import { visionStore } from "../../rapid-vision/store.js";
 
 const auditRepo = new AuditRepository();
+const liveVideoRepo = new LiveVideoRepository();
 const lambda = new LambdaClient({});
 
 type GateOk = { user: UserContext };
@@ -135,12 +141,56 @@ export async function startHandler(event: APIGatewayProxyEventV2): Promise<APIGa
       return jsonError("Transcript is already running for this session.", 409);
     }
 
-    const kvsRef = (session.kvsStreamArn ?? session.kvsChannelName ?? "").trim();
-    if (!kvsRef && !env.visionTranscriptMock) {
-      return jsonError(
-        "No KVS stream reference on this session. Media storage must be enabled (kvsStreamArn or kvsChannelName required).",
-        422,
-      );
+    const { assertAIGateFeature } = await import("../../lib/ai-gate-check.js");
+    const gate = await assertAIGateFeature(user.agencyId, "transcription");
+    if (!gate.allowed) {
+      return jsonOk({
+        aiDisabled: true,
+        sessionId,
+        incidentId,
+        transcriptStatus: session.transcriptStatus ?? "stopped",
+        message: "Live transcription AI is disabled for this agency (Manual Mode).",
+      });
+    }
+
+    // Live closed-captioning needs a KVS *video stream* (HLS), not a WebRTC signaling channel.
+    // Prefer the Vision session ARN; if missing, attach the incident's live-video media stream.
+    // Mock mode may start without media so demos still show scripted segments.
+    if (!env.visionTranscriptMock) {
+      let hlsRef = resolveTranscriptHlsStreamRef(session);
+      if (!hlsRef && env.liveVideoSessionsTable) {
+        try {
+          const live = await liveVideoRepo.getByIncidentId(user.agencyId, incidentId);
+          const liveArn = live?.kvsVideoStreamArn?.trim() ?? "";
+          if (
+            live &&
+            live.agencyId === user.agencyId &&
+            live.status !== "ended" &&
+            isKvsHlsMediaStreamRef(liveArn)
+          ) {
+            await visionStore.attachHlsStreamArn({
+              incidentId,
+              sessionId,
+              agencyId: user.agencyId,
+              kvsStreamArn: liveArn,
+            });
+            hlsRef = liveArn;
+          }
+        } catch (err) {
+          console.warn(
+            JSON.stringify({
+              msg: "transcript_live_video_hls_lookup_failed",
+              error: err instanceof Error ? err.message : String(err),
+            }),
+          );
+        }
+      }
+      if (!hlsRef) {
+        return jsonError(
+          "Live captions require KVS media storage on this session (a video stream ARN). WebRTC signaling alone cannot feed closed captioning.",
+          422,
+        );
+      }
     }
 
     if (!env.visionTranscriptWorkerFunction) {

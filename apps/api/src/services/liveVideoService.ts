@@ -34,6 +34,7 @@ import {
   getPlaybackInfo,
   presignRecordingDownload,
 } from "./kvsStorageService.js";
+import { resolveWebRtcIceServers } from "../lib/webrtcIceServers.js";
 import { sendIncidentMediaLinkSms } from "./sms/smsProviderFactory.js";
 
 const authz = new AuthorizationService();
@@ -58,19 +59,14 @@ function assertConfigured(): void {
   if (!env.liveVideoSessionsTable) throw new Error("LIVE_VIDEO_SESSIONS_TABLE_NOT_CONFIGURED");
 }
 
-function assertDispatcherRole(user: UserContext): void {
+/**
+ * Live Video (KVS) RBAC — same matrix permission as Video Assist SMS path.
+ * Primary: workspace.live_video. Secondary: canDispatch + !auditor.
+ */
+function assertLiveVideoOperator(user: UserContext): void {
+  authz.assertCanPerform(user, "workspace.live_video");
   if (!authz.canDispatch(user) || user.role === "auditor") {
     const err = new Error("FORBIDDEN");
-    (err as Error & { statusCode?: number }).statusCode = 403;
-    throw err;
-  }
-  if (
-    user.role !== "dispatcher" &&
-    user.role !== "supervisor" &&
-    user.role !== "agencyadmin" &&
-    user.role !== "rcsuperadmin"
-  ) {
-    const err = new Error("FORBIDDEN_ROLE");
     (err as Error & { statusCode?: number }).statusCode = 403;
     throw err;
   }
@@ -107,19 +103,6 @@ function toJoinResponse(
 
 function isKvsSession(s: LiveVideoSession): boolean {
   return Boolean(s.signalingChannelArn && s.kinesisViewerClientId);
-}
-
-function readIceServers(): { urls: string | string[]; username?: string; credential?: string }[] {
-  const raw = process.env.WEBRTC_ICE_SERVERS_JSON?.trim() ?? process.env.VIDEO_ASSIST_ICE_SERVERS_JSON?.trim() ?? "";
-  if (raw) {
-    try {
-      const parsed = JSON.parse(raw) as { urls: string | string[]; username?: string; credential?: string }[];
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    } catch {
-      // fall through
-    }
-  }
-  return [{ urls: "stun:stun.l.google.com:19302" }];
 }
 
 async function cleanupKinesisLiveVideoResources(session: {
@@ -185,7 +168,7 @@ async function maybeExportRecording(session: LiveVideoSession): Promise<LiveVide
 export class LiveVideoService {
   async requestLiveVideo(incidentId: string, user: UserContext, body: RequestLiveVideoPayload) {
     assertConfigured();
-    assertDispatcherRole(user);
+    assertLiveVideoOperator(user);
     const incident = TenantAccessGuard.assertIncidentAccess(await incidentRepo.get(incidentId), user);
 
     const sessionId = makeId("lvs");
@@ -265,8 +248,25 @@ export class LiveVideoService {
           resourceType: "incident",
           resourceId: incidentId,
         });
-      } catch {
-        // Live session can continue without cloud storage if stream creation fails.
+      } catch (storageErr) {
+        // Fail closed when ingest is required — do not leave a "live" session without recording.
+        const requireIngest =
+          storageMode === "kvs-ingestion" && env.liveVideoKvsStorageAttachToChannel;
+        if (requireIngest) {
+          kvsError = true;
+          try {
+            await deleteKinesisSignalingChannel(signalingChannelArn);
+          } catch {
+            // best-effort cleanup
+          }
+          signalingChannelArn = undefined;
+          signalingChannelName = undefined;
+          liveVideoPipeline = "legacy_p2p";
+          console.error("[liveVideo] storage attach failed; failing session closed", {
+            sessionId,
+            err: storageErr instanceof Error ? storageErr.message : String(storageErr),
+          });
+        }
       }
     }
 
@@ -369,7 +369,7 @@ export class LiveVideoService {
 
   async getLiveSession(incidentId: string, user: UserContext): Promise<GetLiveSessionResponse> {
     assertConfigured();
-    assertDispatcherRole(user);
+    assertLiveVideoOperator(user);
     const incident = TenantAccessGuard.assertIncidentAccess(await incidentRepo.get(incidentId), user);
     const session = await repo.getByIncidentId(incident.agencyId, incidentId);
     if (!session) throw new Error("NOT_FOUND");
@@ -417,7 +417,7 @@ export class LiveVideoService {
       storageConfiguredAt: session.storageConfiguredAt,
       playbackReadyAt: session.playbackReadyAt,
       recordingS3Key: session.recordingS3Key,
-      iceServers: readIceServers(),
+      iceServers: await resolveWebRtcIceServers(),
     } as GetLiveSessionResponse;
     if (!isKvsSession(session) || (session.status !== "pending" && session.status !== "active")) {
       return base;
@@ -495,7 +495,7 @@ export class LiveVideoService {
         mediaStorageEnabled: Boolean(session.channelMediaStorageAttached),
       });
     }
-    return toJoinResponse(latest, "caller", readIceServers(), kvs);
+    return toJoinResponse(latest, "caller", await resolveWebRtcIceServers(), kvs);
   }
 
   async liveHeartbeatFromCaller(token: string, payload: LiveHeartbeatPayload): Promise<JoinLiveVideoResponse> {
@@ -523,7 +523,7 @@ export class LiveVideoService {
         resourceType: "incident",
         resourceId: ended.incidentId,
       });
-      return toJoinResponse(ended, "caller", readIceServers());
+      return toJoinResponse(ended, "caller", await resolveWebRtcIceServers());
     }
     const updated = await repo.updateHeartbeat({
       sessionId: session.sessionId,
@@ -532,7 +532,7 @@ export class LiveVideoService {
       offerSdp: payload.offerSdp,
       iceCandidate: payload.iceCandidate,
     });
-    return toJoinResponse(updated, "caller", readIceServers());
+    return toJoinResponse(updated, "caller", await resolveWebRtcIceServers());
   }
 
   async liveHeartbeatFromDispatcher(
@@ -541,7 +541,7 @@ export class LiveVideoService {
     payload: LiveHeartbeatPayload,
   ): Promise<JoinLiveVideoResponse> {
     assertConfigured();
-    assertDispatcherRole(user);
+    assertLiveVideoOperator(user);
     const incident = TenantAccessGuard.assertIncidentAccess(await incidentRepo.get(incidentId), user);
     const session = payload.sessionId
       ? await repo.getBySessionId(payload.sessionId)
@@ -569,7 +569,7 @@ export class LiveVideoService {
         resourceType: "incident",
         resourceId: incidentId,
       });
-      return toJoinResponse(ended, "dispatcher", readIceServers());
+      return toJoinResponse(ended, "dispatcher", await resolveWebRtcIceServers());
     }
 
     let updated = await repo.updateHeartbeat({
@@ -604,7 +604,7 @@ export class LiveVideoService {
         resourceId: incidentId,
       });
     }
-    return toJoinResponse(updated, "dispatcher", readIceServers());
+    return toJoinResponse(updated, "dispatcher", await resolveWebRtcIceServers());
   }
 
   async endLiveSession(incidentId: string, user: UserContext, payload: EndLiveVideoPayload) {
@@ -622,7 +622,7 @@ export class LiveVideoService {
 
   async getRecordedPlayback(incidentId: string, user: UserContext): Promise<RecordedPlaybackResponse> {
     assertConfigured();
-    assertDispatcherRole(user);
+    assertLiveVideoOperator(user);
     const incident = TenantAccessGuard.assertIncidentAccess(await incidentRepo.get(incidentId), user);
     const session = await repo.getByIncidentId(incident.agencyId, incidentId);
     if (!session) throw new Error("NOT_FOUND");

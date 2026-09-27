@@ -69,6 +69,10 @@ Parameters:
     # Empty skips the layer (mock / VISION_TRANSCRIPT_MOCK). Pass an in-account layer ARN for live HLS.
     Default: ""
     Description: Optional in-account ffmpeg Lambda layer ARN (x86_64). Empty skips the layer (mock transcript only).
+  LiveVideoSessionsTable:
+    Type: String
+    Default: ""
+    Description: Physical live-video sessions table name. Used to attach KVS media stream ARN for closed captions.
   EnableRapidVisionNest:
     Type: String
     Default: "true"
@@ -91,6 +95,7 @@ Conditions:
   HasTranscriptsTable: !Not [!Equals [!Ref TranscriptsTable, ""]]
   HasWebSocket: !Not [!Equals [!Ref WebSocketConnectionsTable, ""]]
   HasFfmpegLayer: !Not [!Equals [!Ref FfmpegLayerArn, ""]]
+  HasLiveVideoSessionsTable: !Not [!Equals [!Ref LiveVideoSessionsTable, ""]]
 
 Globals:
   Function:
@@ -114,11 +119,14 @@ Globals:
         ENABLE_VISION_AI_WS: "true"
         ENABLE_VISION_AI_ADMIN: "true"
         VISION_AI_MOCK: "false"
-        VISION_TRANSCRIPT_MOCK: "false"
+        # Live captions (ffmpeg→Transcribe) only when an in-account ffmpeg layer is attached.
+        # Without the layer, keep mock on so the LIVE panel never shows empty TX LIVE.
+        VISION_TRANSCRIPT_MOCK: !If [HasFfmpegLayer, "false", "true"]
         VISION_TRANSCRIPT_LANGUAGE: "en-US"
         VISION_TRANSCRIPT_WORKER_DURATION_S: "780"
         VISION_TRANSCRIPT_STOP_POLL_S: "60"
         VISION_TRANSCRIPT_WORKER_FUNCTION: !Sub "rapid-cortex-vision-transcript-worker-${DeploymentStage}"
+        LIVE_VIDEO_SESSIONS_TABLE: !Ref LiveVideoSessionsTable
         # Physical names only — do not !Ref conditional tables inside Fn::If.
         # CloudFormation validates both branches; unused !Ref / empty Existing* ARNs
         # fail nested CREATE with "Validation failure detected".
@@ -560,6 +568,17 @@ Resources:
             Action:
               - lambda:InvokeFunction
             Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:rapid-cortex-vision-transcript-worker-${DeploymentStage}"
+          - !If
+            - HasLiveVideoSessionsTable
+            - Sid: LiveVideoSessionsReadForCaptions
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Query
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LiveVideoSessionsTable}"
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LiveVideoSessionsTable}/index/*"
+            - !Ref AWS::NoValue
 
   VisionKvsBrowserTokenRole:
     Type: AWS::IAM::Role

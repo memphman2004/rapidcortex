@@ -417,6 +417,7 @@ export type AuditResourceType =
   | "analysis"
   | "user"
   | "agency"
+  | "agency_config"
   | "billing"
   | "integration"
   | "session"

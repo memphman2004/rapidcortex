@@ -36,8 +36,8 @@ export type SalesPortalTab =
 type TabDef = { id: SalesPortalTab; label: string; group: string };
 
 const TABS: TabDef[] = [
-  { id: "pipeline", label: "Pipeline", group: "CRM" },
-  { id: "campaigns", label: "Campaigns", group: "CRM" },
+  { id: "pipeline", label: "Leads", group: "CRM" },
+  { id: "campaigns", label: "Email Campaigns", group: "CRM" },
   { id: "kpi", label: "KPI", group: "CRM" },
   { id: "earnings", label: "Earnings", group: "CRM" },
   { id: "quote", label: "Quote", group: "Tools" },

@@ -37,7 +37,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (routeKey === "GET /api/video-assist/t/{token}/ice-config") {
-      return ok(service.iceServers());
+      return ok(await service.iceServers());
     }
 
     if (routeKey === "POST /api/video-assist/t/{token}/opened") {

@@ -772,6 +772,10 @@ export const env = {
   websocketConnectionsTable: process.env.WEBSOCKET_CONNECTIONS_TABLE?.trim() ?? "",
   /** HTTPS management endpoint for API Gateway WebSocket (no wss:// prefix). */
   websocketApiEndpoint: process.env.WEBSOCKET_API_ENDPOINT?.trim() ?? "",
+  /** Per-agency AI feature gate config + audit (pk/sk single-table). */
+  agencyAiGateTable: process.env.AGENCY_AI_GATE_TABLE?.trim() ?? "",
+  /** Feature flag for AI gate UI/API surface. Default on when unset. */
+  enableAiFeatureGate: featureEnabled("ENABLE_AI_FEATURE_GATE"),
   guestAssistSessionSecret: process.env.GUEST_ASSIST_SESSION_SECRET?.trim() ?? "",
   /** Immutable CAD webhook receipts (TTL). */
   cadIncidentsRawTable: process.env.CAD_INCIDENTS_RAW_TABLE?.trim() ?? "",
@@ -943,6 +947,8 @@ export const env = {
   },
   /** NexCortiQ Loadout — API provisioning, metering, and invoicing. Default on when unset. */
   enableLoadout: featureEnabled("ENABLE_LOADOUT"),
+  /** NexiQ Intelligence Pipeline (collector/processor/API). Default on when unset. */
+  enableNexiqIntel: featureEnabled("ENABLE_NEXIQ_INTEL"),
   loadoutSubscriptionsTable: process.env.LOADOUT_SUBSCRIPTIONS_TABLE?.trim() ?? "",
   loadoutApiKeysTable: process.env.LOADOUT_API_KEYS_TABLE?.trim() ?? "",
   loadoutUsageTable: process.env.LOADOUT_USAGE_TABLE?.trim() ?? "",

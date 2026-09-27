@@ -161,6 +161,7 @@ Paths below are **canonical** — prefer these over flat `docs/FOO.md` links in 
 | Google Analytics 4 property & page index | [seo/GOOGLE_ANALYTICS_INDEX.md](./seo/GOOGLE_ANALYTICS_INDEX.md) |
 | Marketing site map (current pages) | [seo/SITE_MAP.md](./seo/SITE_MAP.md) |
 | NexCort iQ cutover (keep Rapid Cortex live) | [seo/NEXCORTIQ_CUTOVER.md](./seo/NEXCORTIQ_CUTOVER.md) |
+| AI Feature Gate | [ai-feature-gate/README.md](./ai-feature-gate/README.md) |
 | Cortex SEO intelligence notes | [seo/CORTEX_SEO_INTELLIGENCE.md](./seo/CORTEX_SEO_INTELLIGENCE.md) |
 
 ---

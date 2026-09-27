@@ -1,0 +1,497 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  NexiQ Intelligence Pipeline data layer — sources, runs, documents, signals,
+  gaps, benchmarks, coverage, SQS queues, raw artifacts bucket.
+  Physical names: rapid-cortex-nexiq-intel-*-stage.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  DynamoTableNamePrefix:
+    Type: String
+    Default: rapid-cortex
+  AppName:
+    Type: String
+    Default: rapid-cortex
+  ReuseExistingNexiQIntelDataResources:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, skip creating retained tables/queues/bucket (AlreadyExists / Retain leftovers).
+
+Conditions:
+  IsPitrEnabled: !Equals [!Ref DeploymentStage, prod]
+  CreateNexiQIntelDataResources: !Equals [!Ref ReuseExistingNexiQIntelDataResources, "false"]
+  ReuseNexiQIntelDataResources: !Equals [!Ref ReuseExistingNexiQIntelDataResources, "true"]
+
+Resources:
+  NexiQIntelDataReuseMarker:
+    Type: AWS::CloudFormation::WaitConditionHandle
+    Condition: ReuseNexiQIntelDataResources
+
+  # ── S3: Raw document artifact storage ──────────────────────────────────────
+  NexiQIntelRawArtifactsBucket:
+    Condition: CreateNexiQIntelDataResources
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub "${AppName}-nexiq-intel-raw-${DeploymentStage}-${AWS::AccountId}"
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          # Raw HTML/text: keep 90 days
+          - Id: ExpireRawContent
+            Prefix: raw/
+            Status: Enabled
+            ExpirationInDays: 90
+          # Processed artifacts: keep 2 years
+          - Id: ExpireProcessed
+            Prefix: processed/
+            Status: Enabled
+            ExpirationInDays: 730
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: Component
+          Value: nexiq-intel
+        - Key: Stage
+          Value: !Ref DeploymentStage
+
+  # ── SQS: Collection Queue ────────────────────────────────────────────────────
+  NexiQIntelCollectionQueueDLQ:
+    Condition: CreateNexiQIntelDataResources
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AppName}-nexiq-intel-collection-dlq-${DeploymentStage}"
+      MessageRetentionPeriod: 1209600  # 14 days
+      Tags:
+        - Key: Component
+          Value: nexiq-intel
+
+  NexiQIntelCollectionQueue:
+    Condition: CreateNexiQIntelDataResources
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AppName}-nexiq-intel-collection-${DeploymentStage}"
+      VisibilityTimeout: 660   # must be >= processor Lambda timeout (540s)
+      MessageRetentionPeriod: 86400   # 1 day
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt NexiQIntelCollectionQueueDLQ.Arn
+        maxReceiveCount: 3
+      Tags:
+        - Key: Component
+          Value: nexiq-intel
+
+  # ── SQS: Processing Queue (extract → classify → detect → qualify) ────────────
+  NexiQIntelProcessingQueueDLQ:
+    Condition: CreateNexiQIntelDataResources
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AppName}-nexiq-intel-processing-dlq-${DeploymentStage}"
+      MessageRetentionPeriod: 1209600
+      Tags:
+        - Key: Component
+          Value: nexiq-intel
+
+  NexiQIntelProcessingQueue:
+    Condition: CreateNexiQIntelDataResources
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AppName}-nexiq-intel-processing-${DeploymentStage}"
+      VisibilityTimeout: 600   # 10 min; Bedrock processing may take time
+      MessageRetentionPeriod: 86400
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt NexiQIntelProcessingQueueDLQ.Arn
+        maxReceiveCount: 3
+      Tags:
+        - Key: Component
+          Value: nexiq-intel
+
+  # ── DynamoDB: Source Registry ─────────────────────────────────────────────────
+  # PK: sourceId  |  No SK needed (single-item per source)
+  # GSI1: health-nextScheduledCheckAt (scheduled source queries)
+  # GSI2: domain-index (dedup by domain)
+  NexiQIntelSourcesTable:
+    Condition: CreateNexiQIntelDataResources
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${DynamoTableNamePrefix}-nexiq-intel-sources-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [IsPitrEnabled, true, false]
+      AttributeDefinitions:
+        - AttributeName: sourceId
+          AttributeType: S
+        - AttributeName: health
+          AttributeType: S
+        - AttributeName: nextScheduledCheckAt
+          AttributeType: S
+        - AttributeName: domain
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sourceId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: health-nextScheduledCheckAt-index
+          KeySchema:
+            - AttributeName: health
+              KeyType: HASH
+            - AttributeName: nextScheduledCheckAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: INCLUDE
+            NonKeyAttributes:
+              - sourceId
+              - name
+              - url
+              - enabled
+              - checkFrequencyMinutes
+              - connectorType
+              - verticals
+        - IndexName: domain-index
+          KeySchema:
+            - AttributeName: domain
+              KeyType: HASH
+          Projection:
+            ProjectionType: KEYS_ONLY
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Component
+          Value: nexiq-intel
+        - Key: Stage
+          Value: !Ref DeploymentStage
+
+  # ── DynamoDB: Source Runs (Telemetry) ─────────────────────────────────────────
+  # PK: sourceId  |  SK: runId
+  # GSI1: runId-index (direct run lookup)
+  # GSI2: status-startedAt-index (find failing/recent runs)
+  NexiQIntelSourceRunsTable:
+    Condition: CreateNexiQIntelDataResources
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${DynamoTableNamePrefix}-nexiq-intel-source-runs-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [IsPitrEnabled, true, false]
+      AttributeDefinitions:
+        - AttributeName: sourceId
+          AttributeType: S
+        - AttributeName: runId
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+        - AttributeName: startedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sourceId
+          KeyType: HASH
+        - AttributeName: runId
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: runId-index
+          KeySchema:
+            - AttributeName: runId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: status-startedAt-index
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+            - AttributeName: startedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: INCLUDE
+            NonKeyAttributes:
+              - sourceId
+              - runId
+              - durationMs
+              - documentsDiscovered
+              - newDocumentsFound
+              - signalsDetected
+              - opportunitiesCreated
+              - failureReason
+              - failureCategory
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Component
+          Value: nexiq-intel
+        - Key: Stage
+          Value: !Ref DeploymentStage
+
+  # ── DynamoDB: Intel Documents ─────────────────────────────────────────────────
+  # PK: docId  |  No SK
+  # GSI1: fingerprint-index (dedup)
+  # GSI2: sourceId-collectedAt-index (by-source browsing)
+  # GSI3: status-collectedAt-index (pipeline queue monitoring)
+  NexiQIntelDocumentsTable:
+    Condition: CreateNexiQIntelDataResources
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${DynamoTableNamePrefix}-nexiq-intel-documents-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [IsPitrEnabled, true, false]
+      AttributeDefinitions:
+        - AttributeName: docId
+          AttributeType: S
+        - AttributeName: fingerprint
+          AttributeType: S
+        - AttributeName: sourceId
+          AttributeType: S
+        - AttributeName: collectedAt
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+      KeySchema:
+        - AttributeName: docId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: fingerprint-index
+          KeySchema:
+            - AttributeName: fingerprint
+              KeyType: HASH
+          Projection:
+            ProjectionType: INCLUDE
+            NonKeyAttributes:
+              - docId
+              - isDuplicate
+              - duplicateOfDocId
+              - status
+        - IndexName: sourceId-collectedAt-index
+          KeySchema:
+            - AttributeName: sourceId
+              KeyType: HASH
+            - AttributeName: collectedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: INCLUDE
+            NonKeyAttributes:
+              - docId
+              - runId
+              - status
+              - url
+              - title
+              - fingerprint
+              - isDuplicate
+        - IndexName: status-collectedAt-index
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+            - AttributeName: collectedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: INCLUDE
+            NonKeyAttributes:
+              - docId
+              - sourceId
+              - runId
+              - url
+              - title
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Component
+          Value: nexiq-intel
+        - Key: Stage
+          Value: !Ref DeploymentStage
+
+  # ── DynamoDB: Intel Signals ───────────────────────────────────────────────────
+  # PK: orgId  |  SK: signalId
+  # GSI1: signalId-index
+  # GSI2: vertical-detectedAt-index
+  # GSI3: inboxLeadId-index (link back to CRM record)
+  NexiQIntelSignalsTable:
+    Condition: CreateNexiQIntelDataResources
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${DynamoTableNamePrefix}-nexiq-intel-signals-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [IsPitrEnabled, true, false]
+      AttributeDefinitions:
+        - AttributeName: orgId
+          AttributeType: S
+        - AttributeName: signalId
+          AttributeType: S
+        - AttributeName: vertical
+          AttributeType: S
+        - AttributeName: detectedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orgId
+          KeyType: HASH
+        - AttributeName: signalId
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: signalId-index
+          KeySchema:
+            - AttributeName: signalId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: vertical-detectedAt-index
+          KeySchema:
+            - AttributeName: vertical
+              KeyType: HASH
+            - AttributeName: detectedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Component
+          Value: nexiq-intel
+        - Key: Stage
+          Value: !Ref DeploymentStage
+
+  # ── DynamoDB: Discovery Gaps ──────────────────────────────────────────────────
+  NexiQIntelGapsTable:
+    Condition: CreateNexiQIntelDataResources
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${DynamoTableNamePrefix}-nexiq-intel-gaps-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: gapId
+          AttributeType: S
+        - AttributeName: gapCategory
+          AttributeType: S
+        - AttributeName: detectedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: gapId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: gapCategory-detectedAt-index
+          KeySchema:
+            - AttributeName: gapCategory
+              KeyType: HASH
+            - AttributeName: detectedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Component
+          Value: nexiq-intel
+
+  # ── DynamoDB: Discovery Benchmarks ────────────────────────────────────────────
+  NexiQIntelBenchmarksTable:
+    Condition: CreateNexiQIntelDataResources
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${DynamoTableNamePrefix}-nexiq-intel-benchmarks-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: benchmarkId
+          AttributeType: S
+        - AttributeName: vertical
+          AttributeType: S
+      KeySchema:
+        - AttributeName: benchmarkId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: vertical-index
+          KeySchema:
+            - AttributeName: vertical
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Component
+          Value: nexiq-intel
+
+  # ── DynamoDB: Coverage Snapshots ──────────────────────────────────────────────
+  NexiQIntelCoverageTable:
+    Condition: CreateNexiQIntelDataResources
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${DynamoTableNamePrefix}-nexiq-intel-coverage-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: date
+          AttributeType: S
+        - AttributeName: hour
+          AttributeType: N
+      KeySchema:
+        - AttributeName: date
+          KeyType: HASH
+        - AttributeName: hour
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Component
+          Value: nexiq-intel
+
+Outputs:
+  NexiQIntelSourcesTable:
+    Value: !Sub "${DynamoTableNamePrefix}-nexiq-intel-sources-${DeploymentStage}"
+  NexiQIntelSourceRunsTable:
+    Value: !Sub "${DynamoTableNamePrefix}-nexiq-intel-source-runs-${DeploymentStage}"
+  NexiQIntelDocumentsTable:
+    Value: !Sub "${DynamoTableNamePrefix}-nexiq-intel-documents-${DeploymentStage}"
+  NexiQIntelSignalsTable:
+    Value: !Sub "${DynamoTableNamePrefix}-nexiq-intel-signals-${DeploymentStage}"
+  NexiQIntelGapsTable:
+    Value: !Sub "${DynamoTableNamePrefix}-nexiq-intel-gaps-${DeploymentStage}"
+  NexiQIntelBenchmarksTable:
+    Value: !Sub "${DynamoTableNamePrefix}-nexiq-intel-benchmarks-${DeploymentStage}"
+  NexiQIntelCoverageTable:
+    Value: !Sub "${DynamoTableNamePrefix}-nexiq-intel-coverage-${DeploymentStage}"
+  NexiQIntelRawArtifactsBucketName:
+    Value: !Sub "${AppName}-nexiq-intel-raw-${DeploymentStage}-${AWS::AccountId}"
+  NexiQIntelCollectionQueueUrl:
+    Value: !Sub "https://sqs.${AWS::Region}.amazonaws.com/${AWS::AccountId}/${AppName}-nexiq-intel-collection-${DeploymentStage}"
+  NexiQIntelCollectionQueueArn:
+    Value: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AppName}-nexiq-intel-collection-${DeploymentStage}"
+  NexiQIntelProcessingQueueUrl:
+    Value: !Sub "https://sqs.${AWS::Region}.amazonaws.com/${AWS::AccountId}/${AppName}-nexiq-intel-processing-${DeploymentStage}"
+  NexiQIntelProcessingQueueArn:
+    Value: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AppName}-nexiq-intel-processing-${DeploymentStage}"

@@ -69,6 +69,8 @@ Resources:
 
   GrantIngestorFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
     Properties:
       FunctionName: !Sub rapid-cortex-grant-ingestor-${DeploymentStage}
       CodeUri: ../../apps/api/
@@ -106,6 +108,8 @@ Resources:
 
   GrantMatcherFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
     Properties:
       FunctionName: !Sub rapid-cortex-grant-matcher-${DeploymentStage}
       CodeUri: ../../apps/api/

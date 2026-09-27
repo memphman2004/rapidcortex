@@ -93,7 +93,7 @@ def handler(event: dict, context: Any) -> dict:
     )
 
     try:
-        asyncio.run(
+        should_continue = asyncio.run(
             _run(
                 session=session,
                 session_id=session_id,
@@ -113,9 +113,16 @@ def handler(event: dict, context: Any) -> dict:
                 }
             )
         )
+        _stop_transcript(
+            incident_id=incident_id,
+            session_id=session_id,
+            agency_id=agency_id,
+            reason="pipeline_error",
+        )
         return {"statusCode": 500, "body": "pipeline_error"}
 
-    _maybe_continue(params)
+    if should_continue:
+        _maybe_continue(params)
     return {"statusCode": 200, "body": "ok"}
 
 
@@ -127,7 +134,12 @@ async def _run(
     agency_id: str,
     camera_id: str,
     duration_seconds: int,
-) -> None:
+) -> bool:
+    """
+    Run one caption window. Returns True only when live audio ran successfully
+    and a self-continue invoke is appropriate. Soft failures stop the transcript
+    and return False so we never re-invoke into an empty loop.
+    """
     if _is_mock():
         await _run_mock(
             session_id=session_id,
@@ -135,24 +147,47 @@ async def _run(
             agency_id=agency_id,
             camera_id=camera_id,
         )
-        return
+        return False
 
-    kvs_ref = (
-        (session.get("kvsStreamArn") or "").strip()
-        or (session.get("kvsChannelName") or "").strip()
-    )
+    kvs_ref = _resolve_hls_stream_ref(session)
     if not kvs_ref:
-        logger.warning(json.dumps({"msg": "transcript_no_kvs_ref", "sessionId": session_id}))
-        return
+        logger.warning(
+            json.dumps(
+                {
+                    "msg": "transcript_no_hls_stream",
+                    "sessionId": session_id,
+                    "detail": "Need kvsStreamArn media stream (:stream/), not signaling channel",
+                }
+            )
+        )
+        _stop_transcript(
+            incident_id=incident_id,
+            session_id=session_id,
+            agency_id=agency_id,
+            reason="no_hls_stream",
+        )
+        return False
 
     hls_url = _get_hls_url(str(kvs_ref))
     if not hls_url:
-        return
+        _stop_transcript(
+            incident_id=incident_id,
+            session_id=session_id,
+            agency_id=agency_id,
+            reason="kvs_hls_failed",
+        )
+        return False
 
     ffmpeg_bin = _resolve_ffmpeg()
     if not ffmpeg_bin:
         logger.error(json.dumps({"msg": "ffmpeg_missing"}))
-        return
+        _stop_transcript(
+            incident_id=incident_id,
+            session_id=session_id,
+            agency_id=agency_id,
+            reason="ffmpeg_missing",
+        )
+        return False
 
     from amazon_transcribe.client import TranscribeStreamingClient
     from amazon_transcribe.handlers import TranscriptResultStreamHandler
@@ -216,6 +251,8 @@ async def _run(
         except Exception:
             pass
 
+    return not _session_should_stop(incident_id, session_id, agency_id)
+
 
 async def _run_mock(*, session_id: str, incident_id: str, agency_id: str, camera_id: str) -> None:
     lines = [
@@ -269,12 +306,66 @@ async def _watch_stop(
 
 
 def _resolve_ffmpeg() -> str | None:
-    for candidate in (FFMPEG_BIN, "/opt/bin/ffmpeg", "/opt/ffmpeg/bin/ffmpeg", "ffmpeg"):
-        if candidate == "ffmpeg":
-            return candidate
+    for candidate in (FFMPEG_BIN, "/opt/bin/ffmpeg", "/opt/ffmpeg/bin/ffmpeg"):
         if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
             return candidate
     return None
+
+
+def _resolve_hls_stream_ref(session: dict) -> str | None:
+    """Prefer a KVS video stream ARN (:stream/). Never use a signaling channel as HLS source."""
+    stream_arn = str(session.get("kvsStreamArn") or "").strip()
+    channel = str(session.get("kvsChannelName") or "").strip()
+    if stream_arn.startswith("arn:") and ":stream/" in stream_arn and ":channel/" not in stream_arn:
+        return stream_arn
+    # Explicit non-ARN stream name that is not a copy of the signaling channel name.
+    if stream_arn and not stream_arn.startswith("arn:") and stream_arn != channel:
+        return stream_arn
+    return None
+
+
+def _stop_transcript(
+    *,
+    incident_id: str,
+    session_id: str,
+    agency_id: str,
+    reason: str,
+) -> None:
+    """Fail-closed: mark transcript stopped so soft failures do not self-continue."""
+    if not SESSIONS_TABLE:
+        return
+    now = datetime.now(timezone.utc).isoformat()
+    try:
+        _ddb.Table(SESSIONS_TABLE).update_item(
+            Key={"pk": f"INCIDENT#{incident_id}", "sk": f"SESSION#{session_id}"},
+            UpdateExpression="SET transcriptStatus = :s, transcriptStoppedAt = :t",
+            ConditionExpression="agencyId = :a",
+            ExpressionAttributeValues={
+                ":s": "stopped",
+                ":t": now,
+                ":a": agency_id,
+            },
+        )
+        logger.info(
+            json.dumps(
+                {
+                    "msg": "transcript_stopped_soft_fail",
+                    "sessionId": session_id,
+                    "reason": reason,
+                }
+            )
+        )
+    except Exception as exc:
+        logger.warning(
+            json.dumps(
+                {
+                    "msg": "transcript_stop_failed",
+                    "sessionId": session_id,
+                    "reason": reason,
+                    "error": str(exc),
+                }
+            )
+        )
 
 
 def _start_ffmpeg(hls_url: str, ffmpeg_bin: str) -> subprocess.Popen:

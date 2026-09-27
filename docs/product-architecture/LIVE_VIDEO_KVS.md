@@ -2,6 +2,19 @@
 
 Implementation notes for operators and future development.
 
+## Two production inbound video paths (both required)
+
+These are **different use cases**, not alternatives. Keep both enabled in production.
+
+| Path | Product surface | Who shares | Who watches | Media plane |
+| --- | --- | --- | --- | --- |
+| **A — Live Video (KVS)** | `POST .../live-video/request`, stack 5 | Caller via SMS link (optional) **or** location/camera producers on KVS | Dispatcher / supervisor with `workspace.live_video` | **Kinesis Video Streams WebRTC** (+ optional ingest/recording). Custom TURN secret is only for `legacy_p2p` fallback; KVS uses `GetIceServerConfig`. |
+| **B — Video Assist (SMS MVP)** | `POST .../video-assist/sessions`, stack 3 | **Caller** opens SMS link and shares camera | Dispatcher in incident workspace | **Browser P2P WebRTC** — needs **TURN** (`WEBRTC_TURN_SECRET_ARN` / ICE JSON) for cellular/NAT. Sessions are **agencyId-scoped** on get/list/mutations. |
+
+Do **not** retire Video Assist for “live streams”: Assist is the SMS caller-share MVP; KVS Live Video is the location/dispatcher viewing + recorded ingest path. Gate UI copy so operators pick the right tool, not so one path replaces the other.
+
+**Ops wiring:** set root parameter `WebrtcTurnSecretArn` (or `WEBRTC_TURN_SECRET_ARN` in `deploy.sh` env). Empty ARN = STUN-only fallback (fine for lab; production Assist needs TURN).
+
 ## How AWS models this (matches the KVS console)
 
 AWS documents **Kinesis Video Streams with WebRTC** as the managed capability for live two-way audio/video. That path uses **signaling channels** for WebRTC signaling.
@@ -78,9 +91,12 @@ Place-camera / on-prem producers are **out of scope** (YAML + local producer onl
 - **`ENABLE_LIVE_VIDEO`**: API must be `"true"` for live video routes.
 - **`NEXT_PUBLIC_ENABLE_LIVE_VIDEO`**: Web UI feature gate (default on when unset).
 - **`LIVE_VIDEO_KVS_STORAGE_ATTACH_TO_CHANNEL`**: Default on. Set `false` to skip `UpdateMediaStorageConfiguration`.
+- **When attach is on and storage mode is `kvs-ingestion`**: storage/stream attach failures **fail closed** (session `failed`, signaling channel cleaned up) — no silent live-without-recording.
 - **`LIVE_VIDEO_EXPORT_TO_S3`**: Default on. Set `false` to keep fragments in KVS only.
+- **`WEBRTC_TURN_SECRET_ARN`**: Shared TURN/ICE secret for Video Assist + Live Video `legacy_p2p`. CloudFormation parameter `WebrtcTurnSecretArn`.
 - **TTL / limits**: `LIVE_VIDEO_SESSION_TTL_SECONDS`, `LIVE_VIDEO_MAX_DURATION_SECONDS`, `LIVE_VIDEO_HEARTBEAT_TIMEOUT_SECONDS`.
 - **Tagging (`KVS_WEBRTC_TAG_APP`, `KVS_WEBRTC_TAG_ENV`)**: Applied to created video streams for cost/ownership.
+- **RBAC**: Live Video operators need `workspace.live_video` (dispatcher/supervisor matrix) plus `canDispatch`; auditors denied.
 
 ## Browser / device
 
