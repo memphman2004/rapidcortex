@@ -1,0 +1,42 @@
+flowchart LR
+  subgraph Citizens
+    C[Caller]
+  end
+
+  subgraph KCPD_OnPrem["KCPD telephony / PSAP (agency-owned)"]
+    NE[Non-emergency DID / SIP]
+    CPE[911 CPE / radio / CAD floor]
+    Live[Live call taker / queue]
+  end
+
+  subgraph AWS["NexCort iQ — AWS us-east-1 Multi-AZ"]
+    Connect[Amazon Connect]
+    Lex[Amazon Lex V2]
+    API[Call Assist API / Lambdas]
+    Web[Web console<br/>ops · QA · admin]
+    Data[(DynamoDB + S3<br/>sessions · audit · media)]
+  end
+
+  subgraph External["City / self-service"]
+    City[311 · Parks · Water · …]
+    Portal[KCPD online reporting]
+  end
+
+  subgraph CAD_RMS["Systems of record"]
+    P1[Motorola PremierOne CAD]
+    RMS[Motorola Records RMS]
+  end
+
+  C --> NE
+  NE --> Connect
+  Connect --> Lex
+  Lex --> API
+  API --> Data
+  Web --> API
+  Connect -->|Emergency / low confidence / human request| Live
+  Connect -->|Warm transfer| City
+  API -->|SMS / URL when eligible| Portal
+  API -.->|Human-reviewed packet<br/>fail-closed write| P1
+  API -.->|Draft path fail-closed| RMS
+  Live --> CPE
+  CPE --> P1

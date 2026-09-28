@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { canAccessContactsModule } from "../contacts/schemas.js";
 import {
+  canAccessSalesAutomation,
+  canManageSalesAutomation,
+} from "../rapid-iq/schemas.js";
+import {
   canAccessDeploymentsMap,
   canAccessGrantSuccessProgram,
   canAccessPsapProspectsCrm,
@@ -32,5 +36,12 @@ describe("sales contractor CRM access helpers", () => {
 
   it("keeps rcitadmin off Rapid IQ workspace", () => {
     expect(canAccessRapidIqWorkspace("rcitadmin")).toBe(false);
+  });
+
+  it("lets sales view email campaigns but not approve or edit", () => {
+    expect(canAccessSalesAutomation("salescontractor")).toBe(true);
+    expect(canManageSalesAutomation("salescontractor")).toBe(false);
+    expect(canManageSalesAutomation("rcadmin")).toBe(true);
+    expect(canManageSalesAutomation("rcsuperadmin")).toBe(true);
   });
 });

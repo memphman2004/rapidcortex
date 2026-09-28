@@ -1,0 +1,28 @@
+sequenceDiagram
+  autonumber
+  actor Caller
+  participant Tel as KCPD non-emergency telephony
+  participant Connect as Amazon Connect
+  participant Lex as Lex + Safety Engine
+  participant API as Call Assist services
+  participant KB as Knowledge / intake
+  participant Human as Live call taker
+  participant CAD as PremierOne (review packet)
+
+  Caller->>Tel: Dial non-emergency
+  Tel->>Connect: SIP / PSTN
+  Connect->>Caller: AI disclosure + language menu
+  Connect->>Lex: Voice turn
+  Lex->>API: Intent / slots / session
+  API->>KB: Grounded FAQ / dynamic questions
+  alt Emergency, distress, or low confidence
+    Lex-->>Connect: Stop AI interview
+    Connect->>Human: Transfer original caller leg
+  else Contain / self-service
+    API-->>Caller: FAQ or online-report SMS/URL
+  else City service
+    Connect->>Human: Warm-transfer to 311/Parks/Water
+  else Police non-emergency intake complete
+    API->>CAD: Transfer Package for human review
+    Note over CAD: Write-back off until UAT + dual flags
+  end

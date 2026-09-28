@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="720" viewBox="0 0 1100 720">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect width="1100" height="720" fill="#ffffff"/>
+  <rect x="0" y="0" width="1100" height="64" fill="#0f172a"/>
+  <text x="24" y="28" font-family="Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#f8fafc">Figure A — NexCort iQ Call Assist Context (KCPD)</text>
+  <text x="24" y="50" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#94a3b8">RFP 2026-0010 Addendum 4 · Non-emergency only · CAD remains system of record</text>
+
+  <rect x="24" y="88" width="200" height="560" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="40" y="112" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#64748b">CITIZENS</text>
+
+  <rect x="248" y="88" width="250" height="560" rx="12" fill="#fff7ed" stroke="#fdba74"/>
+  <text x="264" y="112" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#c2410c">KCPD (AGENCY-OWNED)</text>
+
+  <rect x="522" y="88" width="340" height="560" rx="12" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="538" y="112" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d4ed8">NEXCORT iQ ON AWS (us-east-1)</text>
+
+  <rect x="886" y="88" width="190" height="560" rx="12" fill="#f0fdf4" stroke="#86efac"/>
+  <text x="902" y="112" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#15803d">SYSTEMS OF RECORD</text>
+
+  <rect x="44" y="140" width="160" height="70" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+<text x="56" y="162" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">Caller</text>
+<text x="56" y="182" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Non-emergency need</text>
+  <rect x="268" y="140" width="210" height="90" rx="10" fill="#ffffff" stroke="#ea580c" stroke-width="1.5"/>
+<text x="280" y="162" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">Non-emergency DID / SIP</text>
+<text x="280" y="182" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Existing phone path</text>
+<text x="280" y="198" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">ANI/ALI when provided</text>
+  <rect x="268" y="260" width="210" height="90" rx="10" fill="#ffffff" stroke="#ea580c" stroke-width="1.5"/>
+<text x="280" y="282" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">Live call taker / queue</text>
+<text x="280" y="302" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Emergency and low-confidence</text>
+<text x="280" y="318" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">transfers land here</text>
+  <rect x="268" y="380" width="210" height="90" rx="10" fill="#ffffff" stroke="#ea580c" stroke-width="1.5"/>
+<text x="280" y="402" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">911 CPE / CAD floor</text>
+<text x="280" y="422" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Unchanged by this bid</text>
+<text x="280" y="438" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Not replaced</text>
+  <rect x="268" y="500" width="210" height="90" rx="10" fill="#ffffff" stroke="#ea580c" stroke-width="1.5"/>
+<text x="280" y="522" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">City transfers</text>
+<text x="280" y="542" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">311 / Parks / Water</text>
+<text x="280" y="558" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Admin-configured directory</text>
+
+  <rect x="542" y="140" width="300" height="80" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="554" y="162" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">Amazon Connect</text>
+<text x="554" y="182" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Contact flow, disclosure, language menu</text>
+<text x="554" y="198" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Lex attach and transfer control</text>
+  <rect x="542" y="240" width="300" height="90" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="554" y="262" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">Amazon Lex V2 + Safety Engine</text>
+<text x="554" y="282" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Conversational triage</text>
+<text x="554" y="298" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Hard-stop emergency escalation</text>
+  <rect x="542" y="350" width="300" height="90" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="554" y="372" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">Call Assist API / Lambdas</text>
+<text x="554" y="392" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Intake, knowledge, confidence</text>
+<text x="554" y="408" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Transfer package builder</text>
+  <rect x="542" y="460" width="140" height="100" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="554" y="482" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">Web console</text>
+<text x="554" y="502" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Ops / QA</text>
+<text x="554" y="518" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Admin</text>
+  <rect x="702" y="460" width="140" height="100" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="714" y="482" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">Data</text>
+<text x="714" y="502" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">DynamoDB</text>
+<text x="714" y="518" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">S3 and audit</text>
+
+  <rect x="906" y="160" width="150" height="110" rx="10" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+<text x="918" y="182" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">PremierOne CAD</text>
+<text x="918" y="202" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Human-reviewed packet</text>
+<text x="918" y="218" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Write-back fail-closed</text>
+<text x="918" y="234" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">until UAT</text>
+  <rect x="906" y="310" width="150" height="100" rx="10" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+<text x="918" y="332" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">Motorola Records</text>
+<text x="918" y="352" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Draft path</text>
+<text x="918" y="368" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Fail-closed Day-1</text>
+  <rect x="906" y="450" width="150" height="90" rx="10" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+<text x="918" y="472" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">Online reporting</text>
+<text x="918" y="492" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">kcpd.org portal</text>
+<text x="918" y="508" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">SMS/URL divert</text>
+
+  <line x1="204" y1="175" x2="268" y2="175" stroke="#64748b" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <line x1="478" y1="185" x2="542" y2="175" stroke="#64748b" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <line x1="692" y1="220" x2="692" y2="240" stroke="#64748b" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <line x1="692" y1="330" x2="692" y2="350" stroke="#64748b" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <line x1="612" y1="440" x2="612" y2="460" stroke="#64748b" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <line x1="772" y1="440" x2="772" y2="460" stroke="#64748b" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <line x1="542" y1="285" x2="478" y2="300" stroke="#64748b" stroke-width="1.75" marker-end="url(#arrow)"/><text x="510.0" y="286.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#475569">Escalate</text>
+  <line x1="542" y1="390" x2="478" y2="530" stroke="#64748b" stroke-width="1.75" stroke-dasharray="6 4" marker-end="url(#arrow)"/><text x="510.0" y="454.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#475569">Warm xfer</text>
+  <line x1="842" y1="390" x2="906" y2="210" stroke="#64748b" stroke-width="1.75" stroke-dasharray="6 4" marker-end="url(#arrow)"/><text x="874.0" y="294.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#475569">Review packet</text>
+  <line x1="842" y1="400" x2="906" y2="350" stroke="#64748b" stroke-width="1.75" stroke-dasharray="6 4" marker-end="url(#arrow)"/><text x="874.0" y="369.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#475569">RMS draft</text>
+  <line x1="842" y1="420" x2="906" y2="480" stroke="#64748b" stroke-width="1.75" stroke-dasharray="6 4" marker-end="url(#arrow)"/><text x="874.0" y="444.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#475569">Self-service</text>
+  <line x1="373" y1="350" x2="373" y2="380" stroke="#64748b" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+  <text x="24" y="680" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#64748b">Solid = primary voice path · Dashed = gated / optional · RapidSOS out of scope (Addendum / Q&amp;A) · CJIS-aligned AWS controls, not FBI ATO</text>
+  <text x="24" y="700" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#64748b">Apps on Demand LLC d/b/a NexCort iQ · Confidential — for KCPD evaluation</text>
+</svg>

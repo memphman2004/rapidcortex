@@ -974,12 +974,45 @@ export async function middleware(request: NextRequest) {
   }
 }
 
+/** AI training crawlers only — never block curl/wget (ops/health/CI). */
+const AI_TRAINING_UA_FRAGMENTS = [
+  "gptbot",
+  "chatgpt-user",
+  "google-extended",
+  "anthropic-ai",
+  "claude-web",
+  "claudebot",
+  "ccbot",
+  "bytespider",
+  "cohere-ai",
+  "perplexitybot",
+  "amazonbot",
+  "meta-externalagent",
+] as const;
+
+function isAiTrainingBot(ua: string): boolean {
+  const lower = ua.toLowerCase();
+  return AI_TRAINING_UA_FRAGMENTS.some((f) => lower.includes(f));
+}
+
 async function runMiddleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // ALB/ECS probes must not load the edge middleware graph (see matcher + node:crypto note below).
   if (pathname === "/api/health" || pathname.startsWith("/api/health/")) {
     return NextResponse.next();
+  }
+
+  // Block AI training scrapers at the edge (robots.txt is advisory only).
+  const ua = request.headers.get("user-agent") ?? "";
+  if (ua && isAiTrainingBot(ua)) {
+    return new NextResponse(JSON.stringify({ error: "Access denied" }), {
+      status: 403,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Robots-Tag": "noindex, nofollow, noarchive, noai, noimageai",
+      },
+    });
   }
 
   const mobileOperationalBlock = getMobileOperationalAuthMiddlewareResponse(request);

@@ -44,17 +44,27 @@ Parameters:
   ApprovedCorsOrigins:
     Type: String
     Default: "https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us"
+  LeadSignalsTable:
+    Type: String
+    Default: ""
+    Description: Lead signals table for GET /api/rc-admin/signal-feed (ByVerticalDetectedAt GSI)
+
+Conditions:
+  HasLeadSignalsTable: !Not [!Equals [!Ref LeadSignalsTable, ""]]
 
 Globals:
   Function:
     Runtime: nodejs20.x
     Timeout: 30
     MemorySize: 512
+    Layers:
+      - !Ref NodeDepsLayer
     Environment:
       Variables:
         DEPLOYMENT_STAGE: !Ref DeploymentStage
         ALLOW_UNAUTHENTICATED_API: "false"
         SALES_LEADS_TABLE: !Ref SalesLeadsTable
+        LEAD_SIGNALS_TABLE: !Ref LeadSignalsTable
         AUDIT_TABLE: !Ref AuditTable
         AGENCIES_TABLE: !Ref AgenciesTable
         INCIDENTS_TABLE: !Ref IncidentsTable
@@ -69,6 +79,18 @@ Globals:
         APPROVED_CORS_ORIGINS: !Ref ApprovedCorsOrigins
 
 Resources:
+  NodeDepsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${ManagedPolicyNamePrefix}-leads-crm-api-deps-${DeploymentStage}"
+      Description: Shared node_modules for Leads CRM Lambdas (lean CodeUri builds)
+      ContentUri: ../../apps/api/layer/
+      CompatibleRuntimes:
+        - nodejs20.x
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: makefile
+
   AppManagedPolicyLeadsCrmDdb:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -95,6 +117,18 @@ Resources:
               - dynamodb:PutItem
             Resource:
               - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+          - !If
+            - HasLeadSignalsTable
+            - Sid: LeadSignalsQuery
+              Effect: Allow
+              Action:
+                - dynamodb:Query
+                - dynamodb:GetItem
+                - dynamodb:DescribeTable
+              Resource:
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LeadSignalsTable}
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LeadSignalsTable}/index/*
+            - !Ref AWS::NoValue
 
   RcAdminLeadsCrmFunction:
     Type: AWS::Serverless::Function
@@ -128,6 +162,15 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/leads/pipeline"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteSignalFeedGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/signal-feed"
       Target: !Sub "integrations/${LeadsCrmIntegration}"
       AuthorizationType: JWT
       AuthorizerId: !Ref HttpApiJwtAuthorizerId

@@ -144,6 +144,11 @@ Globals:
     Runtime: nodejs20.x
     Timeout: 60
     MemorySize: 512
+    # Lean SAM builds skip per-function node_modules; ship shared deps via layer
+    # (same pattern as stack-app-sam-5). Without this, SignalHttp fails:
+    # Cannot find module 'rapid-cortex-shared'.
+    Layers:
+      - !Ref NodeDepsLayer
     Environment:
       Variables:
         DEPLOYMENT_STAGE: !Ref DeploymentStage
@@ -186,6 +191,18 @@ Globals:
         OUTLOOK_SALES_MAILBOX: hello@nexcortiq.us
 
 Resources:
+  NodeDepsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${ManagedPolicyNamePrefix}-rapidiq-pipeline-api-deps-${DeploymentStage}"
+      Description: Shared node_modules for Rapid IQ pipeline Lambdas (lean CodeUri builds)
+      ContentUri: ../../apps/api/layer/
+      CompatibleRuntimes:
+        - nodejs20.x
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: makefile
+
   RawSignalsDLQ:
     Type: AWS::SQS::Queue
     Properties:

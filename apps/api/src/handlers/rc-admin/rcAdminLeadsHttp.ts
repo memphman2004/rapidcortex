@@ -1,5 +1,6 @@
 /**
  * RC Admin Leads CRM router — all routes under /api/rc-admin/leads/* [CR-1].
+ * Also serves GET /api/rc-admin/signal-feed (vertical-scoped LeadSignal list).
  * Covers pipeline, get-by-id, stage, notes, attribution-summary, and activity log.
  */
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
@@ -7,6 +8,7 @@ import {
   addSalesLeadActivityBodySchema,
   addSalesLeadNoteBodySchema,
   canAccessSalesLeadsCrm,
+  LeadVerticalSchema,
   patchSalesLeadBodySchema,
   patchSalesLeadStageBodySchema,
 } from "rapid-cortex-shared";
@@ -14,6 +16,7 @@ import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { makeId } from "../../lib/ids.js";
 import {
+  badRequest,
   badRequestFromZod,
   forbidden,
   ok,
@@ -22,6 +25,7 @@ import {
 } from "../../lib/response.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { SalesLeadRepository } from "../../repositories/salesLeadRepository.js";
+import { listSignalsForVertical } from "../../signals/signal-processor.js";
 
 const repo = new SalesLeadRepository();
 const auditRepo = new AuditRepository();
@@ -58,6 +62,24 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   const noteId = event.pathParameters?.noteId?.trim();
 
   try {
+    // Vertical-scoped signal feed (Sales Portal → Signal Feed tab)
+    if (m === "GET" && (path.endsWith("/signal-feed") || path.endsWith("/signal-feed/"))) {
+      const q = event.queryStringParameters ?? {};
+      const verticalRaw = (q.vertical ?? "").trim();
+      const parsed = LeadVerticalSchema.safeParse(verticalRaw);
+      if (!parsed.success || parsed.data === "unknown") {
+        return badRequest("vertical query required (rc911|campus|venue|hospital|transit)");
+      }
+      const days = Math.min(90, Math.max(1, Number.parseInt(q.days ?? "30", 10) || 30));
+      const cutoff = Date.now() - days * 86_400_000;
+      const all = await listSignalsForVertical(parsed.data, 200);
+      const signals = all.filter((s) => {
+        const t = Date.parse(s.detectedAt);
+        return Number.isFinite(t) ? t >= cutoff : true;
+      });
+      return ok({ signals, vertical: parsed.data });
+    }
+
     if (m === "GET" && path.endsWith("/pipeline")) {
       const leads = await repo.listNormalized(500);
       const data = repo.buildPipelinePayload(leads);

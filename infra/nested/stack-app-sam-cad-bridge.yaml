@@ -514,13 +514,6 @@ Resources:
       Target: !Sub "integrations/${CadBridgeWebhookIntegration}"
       AuthorizationType: NONE
 
-  RouteCadBridgeWebhookSlot:
-    Type: AWS::ApiGatewayV2::Route
-    Properties:
-      ApiId: !Ref HttpApiId
-      RouteKey: "POST /api/public/cad-bridge/{agencyId}/{slot}/events"
-      Target: !Sub "integrations/${CadBridgeWebhookIntegration}"
-      AuthorizationType: NONE
 
   AlarmCadBridgeDlq:
     Type: AWS::CloudWatch::Alarm

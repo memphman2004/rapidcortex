@@ -6,6 +6,11 @@ import { RoleNavSidebar } from "@/components/navigation/role-nav-sidebar";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { ActiveNoticesBanner } from "@/components/notices/ActiveNoticesBanner";
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
+import { TopNav } from "@/components/dashboards/top-nav";
+import {
+  getRoleDashboardIdentity,
+  roleDashboardShellVars,
+} from "@/lib/dashboards/role-dashboard-design";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 
 export function SalesWorkspaceShell({
@@ -31,17 +36,23 @@ function SalesWorkspaceShellInner({
 }) {
   const [mobileNav, setMobileNav] = useState(false);
   const { theme, rootRef } = useThemeRoot<HTMLDivElement>();
+  // Prefer role palette (salescontractor / rcsuperadmin); rc-admin prefix is fallback only.
+  const identity = getRoleDashboardIdentity("rc-admin", user.role);
+  const shellVars = roleDashboardShellVars(identity) as CSSProperties;
 
   return (
     <HelpChrome role={user.role}>
       <div
         ref={rootRef}
         data-theme={theme}
-        className="min-h-screen bg-[#030712] text-slate-100"
+        className="min-h-screen bg-[var(--rc-bg)] text-[var(--rc-text-primary)]"
         style={
           {
+            ...shellVars,
             colorScheme: theme,
-            ["--role-accent" as string]: "#0284C7",
+            fontFamily:
+              "var(--rc-dashboard-font-family, Inter, ui-sans-serif, system-ui, sans-serif)",
+            ["--role-accent" as string]: identity.accent,
           } as CSSProperties
         }
       >
@@ -60,29 +71,14 @@ function SalesWorkspaceShellInner({
             onNavigate={() => setMobileNav(false)}
           />
           <div className="flex min-w-0 flex-1 flex-col">
-            <header className="flex items-center justify-between gap-3 border-b border-white/5 bg-[#0a1628]/80 px-4 py-3 backdrop-blur md:px-6">
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  className="rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-300 md:hidden"
-                  onClick={() => setMobileNav(true)}
-                >
-                  Menu
-                </button>
-                <a href="/sales" className="text-sm font-semibold tracking-tight text-white">
-                  NexCort iQ <span className="font-normal text-sky-400">Sales</span>
-                </a>
-              </div>
-              <a
-                href="/logout"
-                className="text-xs text-slate-500 transition hover:text-slate-300"
-              >
-                Sign out
-              </a>
-            </header>
+            <TopNav
+              identity={identity}
+              user={user}
+              onMenuClick={() => setMobileNav(true)}
+            />
             <DemoModeBanner />
             <ActiveNoticesBanner />
-            <main className="flex-1 p-4 md:p-6">{children}</main>
+            <main className="flex-1 bg-[var(--rc-bg)] p-4 md:p-6">{children}</main>
           </div>
         </div>
       </div>

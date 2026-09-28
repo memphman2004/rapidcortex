@@ -283,6 +283,10 @@ Parameters:
     Type: String
   SalesLeadsTable:
     Type: String
+  LeadSignalsTable:
+    Type: String
+    Default: ""
+    Description: Lead signals table for GET /api/rc-admin/signal-feed (ByVerticalDetectedAt GSI).
   MarketingLeadsTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (MarketingLeadsTable).
@@ -1672,11 +1676,28 @@ Resources:
       Environment:
         Variables:
           SALES_LEADS_TABLE: !Ref SalesLeadsTable
+          LEAD_SIGNALS_TABLE: !Ref LeadSignalsTable
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardB
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            - Sid: LeadSignalsQuery
+              Effect: Allow
+              Action:
+                - dynamodb:Query
+                - dynamodb:GetItem
+                - dynamodb:DescribeTable
+              Resource:
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LeadSignalsTable}
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LeadSignalsTable}/index/*
       Events:
+        SignalFeedGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/signal-feed
+            Method: GET
         PipelineGet:
           Type: HttpApi
           Properties:

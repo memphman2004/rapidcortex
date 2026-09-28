@@ -229,3 +229,11 @@ export function canAccessSalesAutomation(role: string | undefined | null): boole
   const r = String(role ?? "").trim().toLowerCase();
   return canAccessRapidIq(r) || r === "salescontractor";
 }
+
+/**
+ * Approve / edit / suppress / Outlook connect for email campaigns.
+ * Sales contractors may view and queue drafts only — never approve or change copy.
+ */
+export function canManageSalesAutomation(role: string | undefined | null): boolean {
+  return canAccessRapidIq(role);
+}

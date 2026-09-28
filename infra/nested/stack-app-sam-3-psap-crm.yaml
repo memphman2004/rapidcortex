@@ -68,6 +68,9 @@ Globals:
     Runtime: nodejs20.x
     Timeout: 120
     MemorySize: 1024
+    # Lean CodeUri builds omit node_modules — attach shared deps layer.
+    Layers:
+      - !Ref NodeDepsLayer
     Environment:
       Variables:
         DEPLOYMENT_STAGE: !Ref DeploymentStage
@@ -92,6 +95,18 @@ Globals:
         CONTACT_PERSONS_TABLE: !Ref ContactPersonsTable
 
 Resources:
+  NodeDepsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${ManagedPolicyNamePrefix}-psap-crm-api-deps-${DeploymentStage}"
+      Description: Shared node_modules for PSAP CRM Lambdas (lean CodeUri builds)
+      ContentUri: ../../apps/api/layer/
+      CompatibleRuntimes:
+        - nodejs20.x
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: makefile
+
   AppManagedPolicyPsapCrmDdb:
     Type: AWS::IAM::ManagedPolicy
     Properties:

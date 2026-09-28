@@ -303,6 +303,9 @@ const nextConfig = {
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         { key: "Permissions-Policy", value: permissionsPolicy },
         { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+        // Discourage AI training / archive mirrors; do not use Cache-Control:no-store globally
+        // (that would break CDN and operational page performance).
+        { key: "X-Robots-Tag", value: "noai, noimageai" },
       ];
       if (strictTransportSecurity) baseHeaders.push(strictTransportSecurity);
       return baseHeaders;

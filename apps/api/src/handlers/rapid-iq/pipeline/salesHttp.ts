@@ -1,12 +1,13 @@
 /**
  * Sales automation HTTP API.
  * Routes: /api/rapid-iq/sales-automation/*
- * RBAC: canAccessRapidIq (already enforced by signalHttp).
+ * RBAC: workspace access via signalHttp; approve/edit/suppress require canManageSalesAutomation.
  */
 
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
 import {
   approveRapidIqSalesBulkBodySchema,
+  canManageSalesAutomation,
   createRapidIqSalesBulkCampaignBodySchema,
   createRapidIqSalesSequenceBodySchema,
   rapidIqOutlookCallbackBodySchema,
@@ -57,6 +58,7 @@ import { ConferenceRepository } from "../../../repositories/conferenceRepository
 import {
   badRequest,
   badRequestFromZod,
+  forbidden,
   notFound,
   ok,
   serviceUnavailable,
@@ -65,6 +67,11 @@ import { AuditRepository } from "../../../repositories/auditRepository.js";
 import { sendDueStepsNow } from "./sales-automation-send.js";
 
 const auditRepo = new AuditRepository();
+
+function denyUnlessManage(user: UserContext): ReturnType<typeof forbidden> | null {
+  if (!canManageSalesAutomation(user.role)) return forbidden();
+  return null;
+}
 
 function parseBody(event: APIGatewayProxyEventV2): unknown {
   if (!event.body) return {};
@@ -169,6 +176,8 @@ export async function handleSalesAutomationHttp(
 
   if (draftId && path.includes("/sales-automation/drafts/")) {
     if (method === "POST" && path.endsWith("/approve")) {
+      const denied = denyUnlessManage(user);
+      if (denied) return denied;
       const draft = await getSalesDraft(draftId);
       if (!draft) return notFound("Draft not found");
       const next = { ...draft, status: "approved" as const, updatedAt: new Date().toISOString() };
@@ -177,6 +186,8 @@ export async function handleSalesAutomationHttp(
       return ok({ draft: next });
     }
     if ((method === "PATCH" || method === "PUT") && !path.endsWith("/approve")) {
+      const denied = denyUnlessManage(user);
+      if (denied) return denied;
       const body = parseBody(event);
       if (body === null) return badRequest("Invalid JSON");
       const parsed = updateRapidIqSalesDraftBodySchema.safeParse(body);
@@ -220,6 +231,8 @@ export async function handleSalesAutomationHttp(
 
   if (seqId && path.includes("/sales-automation/sequences/")) {
     if (method === "POST" && path.endsWith("/approve")) {
+      const denied = denyUnlessManage(user);
+      if (denied) return denied;
       try {
         const sequence = await approveSequence(seqId, user.userId);
         if (sequence.status === "active") {
@@ -250,6 +263,8 @@ export async function handleSalesAutomationHttp(
       }
     }
     if (method === "POST" && path.endsWith("/suppress")) {
+      const denied = denyUnlessManage(user);
+      if (denied) return denied;
       try {
         const sequence = await suppressSequence(seqId, "manual");
         await audit(user, AUDIT_EVENT_TYPES.RAPID_IQ_SALES_SEQ_SUPPRESSED, seqId, { reason: "manual" });
@@ -259,6 +274,8 @@ export async function handleSalesAutomationHttp(
       }
     }
     if ((method === "PATCH" || method === "PUT") && !path.endsWith("/approve") && !path.endsWith("/suppress")) {
+      const denied = denyUnlessManage(user);
+      if (denied) return denied;
       const body = parseBody(event);
       if (body === null) return badRequest("Invalid JSON");
       const parsed = updateRapidIqSalesSequenceBodySchema.safeParse(body);
@@ -308,6 +325,8 @@ async function handleOutlook(
   }
 
   if (method === "GET" && path.includes("/outlook/connect")) {
+    const denied = denyUnlessManage(user);
+    if (denied) return denied;
     if (isOutlookGraphMock() || !isOutlookOAuthConfigured()) {
       if (!isOutlookGraphMock()) {
         return serviceUnavailable("Outlook OAuth is not configured");
@@ -336,6 +355,8 @@ async function handleOutlook(
   }
 
   if (method === "POST" && path.includes("/outlook/callback")) {
+    const denied = denyUnlessManage(user);
+    if (denied) return denied;
     if (isOutlookGraphMock()) {
       return badRequest("Outlook mock mode does not use an OAuth callback");
     }
@@ -373,6 +394,8 @@ async function handleOutlook(
   }
 
   if (method === "POST" && path.includes("/outlook/disconnect")) {
+    const denied = denyUnlessManage(user);
+    if (denied) return denied;
     const previous = await getOutlookConnection();
     await deleteOutlookConnection();
     await audit(user, AUDIT_EVENT_TYPES.RAPID_IQ_SALES_OUTLOOK_DISCONNECTED, "outlook", {
@@ -393,6 +416,8 @@ async function handleBulk(
   user: UserContext,
 ): Promise<ReturnType<typeof ok>> {
   if (method === "POST" && path.includes("/bulk/approve")) {
+    const denied = denyUnlessManage(user);
+    if (denied) return denied;
     const body = parseBody(event);
     if (body === null) return badRequest("Invalid JSON");
     const parsed = approveRapidIqSalesBulkBodySchema.safeParse(body);
@@ -433,6 +458,8 @@ async function handleBulk(
     (method === "PATCH" || method === "PUT") &&
     (path.endsWith("/sales-automation/bulk") || path.endsWith("/sales-automation/bulk/"))
   ) {
+    const denied = denyUnlessManage(user);
+    if (denied) return denied;
     const body = parseBody(event);
     if (body === null) return badRequest("Invalid JSON");
     const parsed = updateRapidIqSalesBulkCopyBodySchema.safeParse(body);

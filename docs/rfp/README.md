@@ -76,9 +76,20 @@ Add per-agency: filled implementation workbook, network diagram for **this** ten
 
 ---
 
+## Active solicitations
+
+| Solicitation | Pack | Deadline |
+|--------------|------|----------|
+| KCPD 2026-0010 Addendum 4 (AI-assisted non-emergency call management) | [kcpd-2026-0010/CHECKLIST.md](./kcpd-2026-0010/CHECKLIST.md) | 2026-09-30 15:30 CT |
+
+KCPD pack includes Scope of Services, portal supplier notes, pricing outline (fill $), references worksheet, CJIS cover, and Call Assist implementation overlay. Product honesty map: `packages/shared/src/call-assist/bid-matrix.ts`.
+
+---
+
 ## Version
 
 | Version | Date | Notes |
 |---------|------|-------|
+| 1.2 | 2026-09-27 | Add KCPD 2026-0010 submission pack |
 | 1.1 | 2026-09-19 | Link SOC 2 in-repo control pack (still not certification) |
 | 1.0 | 2026-08-21 | Initial complete pack for cybersecurity + implementation RFP bullets |

@@ -1,0 +1,10 @@
+stateDiagram-v2
+  [*] --> ReviewPacket: Intake complete
+  ReviewPacket --> FailClosed: Default production
+  FailClosed --> HumanApprove: Call taker / supervisor
+  HumanApprove --> LiveCreate: Only if dual write-back flags ON + KCPD UAT
+  LiveCreate --> PremierOne
+  FailClosed --> NoWrite: Flags off
+  NoWrite --> [*]
+  ReviewPacket --> RmsDraft: Optional Year 1 project
+  RmsDraft --> HumanFile: Human submits in Records

@@ -128,6 +128,10 @@ export function marketingBookDemoPath(): string {
   return marketingBookAppointmentUrl();
 }
 
+export function marketingProductCorePath(): string {
+  return "/product/core";
+}
+
 export function marketingRcLitePath(): string {
   return "/rc-lite";
 }

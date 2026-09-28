@@ -13,7 +13,8 @@ export AWS_REGION="${AWS_REGION:-us-east-1}"
 export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-$AWS_REGION}"
 export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=8192}"
 
-SAM_BUILD_DIR="/Volumes/Mac Mini/.sam-lean-build/leads-crm-$(date +%Y%m%d-%H%M%S)"
+# Build on internal drive — external /Volumes paths are slow and can fail mid-deploy.
+SAM_BUILD_DIR="${SAM_BUILD_DIR:-${HOME}/.rapid-cortex-sam-build/leads-crm-$(date +%Y%m%d-%H%M%S)}"
 mkdir -p "${SAM_BUILD_DIR}"
 export SAM_BUILD_DIR
 echo "SAM_BUILD_DIR=${SAM_BUILD_DIR}"
@@ -76,6 +77,7 @@ sam deploy \
     "HttpApiId=${HTTP_API_ID}" \
     "HttpApiJwtAuthorizerId=${JWT_AUTHORIZER_ID}" \
     SalesLeadsTable=rapid-cortex-sales-leads-dev \
+    LeadSignalsTable=rapid-cortex-lead-signals-dev \
     AuditTable=rapid-cortex-audit-dev \
     AgenciesTable=rapid-cortex-agencies-dev \
     IncidentsTable=rapid-cortex-incidents-dev \

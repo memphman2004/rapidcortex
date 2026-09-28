@@ -1,0 +1,51 @@
+flowchart TB
+  subgraph Edge["Voice edge"]
+    CF[Connect contact flow<br/>disclosure · DTMF language · Lex attach]
+    STT[Amazon Transcribe / Connect voice]
+    TTS[Amazon Polly Neural<br/>EN Ruth · ES Lupe]
+  end
+
+  subgraph Brain["Call Assist intelligence"]
+    LexBot[Lex V2 bot<br/>EmergencyEscalation · RequestHuman immutable]
+    Safety[Safety Engine<br/>weapons / mid-call emergency hard stop]
+    Triage[Triage + taxonomy<br/>13 RFP classes]
+    Intake[Structured intake + dynamic Q]
+    Ground[Never-fabricate grounding]
+    Sentiment[Comprehend / Contact Lens distress path]
+  end
+
+  subgraph Ops["Operator surfaces"]
+    Board[Call Assist live board]
+    Session[Session detail · transcript · CAD card]
+    QA[Supervisor QA]
+    Analytics[Analytics]
+    Admin[Admin · prompts · knowledge · routing · retention]
+  end
+
+  subgraph Integration["Integrations — gated"]
+    CadGate{Dual fail-closed<br/>CAD_WRITEBACK + Call Assist push}
+    CadAdapters[CAD adapters<br/>PremierOne first · multi-CAD ready]
+    RmsGate[RMS draft fail-closed]
+    Gis[GIS enrichment<br/>when KCPD endpoints provided]
+    Sms[SMS self-service / status]
+  end
+
+  CF --> LexBot
+  STT --> LexBot
+  LexBot --> TTS
+  LexBot --> Safety
+  Safety --> Triage
+  Triage --> Intake
+  Intake --> Ground
+  Sentiment --> Safety
+  LexBot --> Board
+  Board --> Session
+  Session --> QA
+  Session --> Analytics
+  Admin --> LexBot
+  Intake --> CadGate
+  CadGate -->|authorized| CadAdapters
+  CadGate -->|blocked| Session
+  Intake --> RmsGate
+  Intake --> Gis
+  Triage --> Sms

@@ -113,6 +113,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_LOADOUT: process.env.NEXT_PUBLIC_ENABLE_LOADOUT,
   NEXT_PUBLIC_ENABLE_LOADOUT_PORTAL: process.env.NEXT_PUBLIC_ENABLE_LOADOUT_PORTAL,
   NEXT_PUBLIC_ENABLE_AI_FEATURE_GATE: process.env.NEXT_PUBLIC_ENABLE_AI_FEATURE_GATE,
+  NEXT_PUBLIC_ENABLE_CONTENT_PROTECTION: process.env.NEXT_PUBLIC_ENABLE_CONTENT_PROTECTION,
 };
 
 const CAD_WRITEBACK_FLAG = "NEXT_PUBLIC_ENABLE_CAD_WRITEBACK";
@@ -776,6 +777,14 @@ export function isLoadoutEnabled(): boolean {
 /** Agency AI feature gate (admin toggle + per-component UX). Default on when unset. */
 export function isAiFeatureGateEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_AI_FEATURE_GATE");
+}
+
+/**
+ * Client content-protection (watermark, copy/print deterrents, demo mode).
+ * Default on when unset. Scope to sales/enablement — never wrap live dispatch.
+ */
+export function isContentProtectionEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CONTENT_PROTECTION");
 }
 
 /** NexCortiQ Loadout — agency-facing portal (dashboard, catalog, invoices, API keys). Default on when unset. */

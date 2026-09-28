@@ -2164,6 +2164,7 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.SalesLeadsTable
             - !Sub "${DynamoTableNamePrefix}-sales-leads-${DeploymentStage}"
+        LeadSignalsTable: !GetAtt GrantsDataStack.Outputs.LeadSignalsTableName
         MarketingLeadsTable:
           Fn::If:
             - HasDataLayerNestedStack

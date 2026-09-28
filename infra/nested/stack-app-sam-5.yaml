@@ -1791,32 +1791,9 @@ Resources:
         DNSName: !GetAtt ApiCustomDomain.RegionalDomainName
         HostedZoneId: !GetAtt ApiCustomDomain.RegionalHostedZoneId
 
-  ConnectBridgeEcrRepository:
-    Type: AWS::ECR::Repository
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      RepositoryName: !Sub "${AppName}-sam5-r2-connect-bridge-${DeploymentStage}"
-      ImageTagMutability: IMMUTABLE
-      ImageScanningConfiguration:
-        ScanOnPush: true
-      LifecyclePolicy:
-        LifecyclePolicyText: |
-          {"rules":[{"rulePriority":1,"description":"Keep last 5 images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":5},"action":{"type":"expire"}}]}
-
-  VenueBridgeEcrRepository:
-    Type: AWS::ECR::Repository
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      RepositoryName: !Sub "${AppName}-sam5-r2-venue-bridge-${DeploymentStage}"
-      ImageTagMutability: IMMUTABLE
-      ImageScanningConfiguration:
-        ScanOnPush: true
-      LifecyclePolicy:
-        LifecyclePolicyText: |
-          {"rules":[{"rulePriority":1,"description":"Keep last 5 images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":5},"action":{"type":"expire"}}]}
-
+  # ECR repos are retained in AWS but no longer managed here. Updating AWS::ECR::Repository
+  # requires ecr:GetRepositoryPolicy (missing on rapid-cortex-deploy). Task images use the
+  # conventional URI for the retained repositories.
   BridgeTaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -1892,7 +1869,7 @@ Resources:
       TaskRoleArn: !GetAtt BridgeTaskRole.Arn
       ContainerDefinitions:
         - Name: rc-connect-bridge
-          Image: !Sub "${ConnectBridgeEcrRepository.RepositoryUri}:latest"
+          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${AppName}-sam5-r2-connect-bridge-${DeploymentStage}:latest"
           Essential: true
           LogConfiguration:
             LogDriver: awslogs
@@ -1917,7 +1894,7 @@ Resources:
       TaskRoleArn: !GetAtt BridgeTaskRole.Arn
       ContainerDefinitions:
         - Name: rc-venue-bridge
-          Image: !Sub "${VenueBridgeEcrRepository.RepositoryUri}:latest"
+          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${AppName}-sam5-r2-venue-bridge-${DeploymentStage}:latest"
           Essential: true
           LogConfiguration:
             LogDriver: awslogs

@@ -1,0 +1,7 @@
+Contact: mailto:security@rapidcortex.us
+Preferred-Languages: en
+Canonical: https://app.rapidcortex.us/.well-known/security.txt
+
+# NOTICE: Unauthorized scraping, reproduction, or copying of content
+# from this domain constitutes copyright infringement and may result
+# in legal action. Access may be logged and monitored.
