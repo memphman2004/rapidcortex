@@ -85,7 +85,7 @@ function tagInner(block: string, tag: string): string {
 
 async function fetchRssFeed(url: string): Promise<RssArticle[]> {
   const res = await fetch(url, {
-    headers: { "user-agent": "RapidCortex-RapidIQ/1.0 (+https://rapidcortex.us)" },
+    headers: { "user-agent": "RapidCortex-NexiQ/1.0 (+https://rapidcortex.us)" },
     signal: AbortSignal.timeout(15_000),
   });
   if (!res.ok) {

@@ -49,10 +49,10 @@ async function searchGrants(keyword: string): Promise<GrantHit[]> {
 }
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: Grants.gov ingestion starting");
+  console.log("NexiQ pipeline: Grants.gov ingestion starting");
 
   if (await enqueueMockIfEnabled("grants-gov")) {
-    console.log("Rapid IQ pipeline: Grants.gov mock path complete");
+    console.log("NexiQ pipeline: Grants.gov mock path complete");
     return;
   }
 

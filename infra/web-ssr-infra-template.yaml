@@ -228,6 +228,14 @@ Parameters:
     Description: >-
       Optional. Managed prefix list ID (pl-…) for com.amazonaws.global.cloudfront.origin-facing. Leave empty to use
       the template mapping for this region. Required if you deploy in a region not listed under Mappings.
+  SalesEnablementStage:
+    Type: String
+    Default: ""
+    AllowedPattern: "^(|[a-z0-9-]{1,32})$"
+    Description: >-
+      DynamoDB suffix for sales enablement tables (ROI, activity, claims, RFP, free-tier).
+      Live API data usually lives under DeploymentStage=dev → set "dev" so web ECS can persist
+      sales portal data. Empty disables table env + IAM (in-memory fallback in sales-store).
 
 Conditions:
   CreateEcrRepository: !Equals [!Ref EcrRepositoryOverride, ""]
@@ -268,6 +276,7 @@ Conditions:
   HasAnthropicApiKeySecretArn: !Not [!Equals [!Ref AnthropicApiKeySecretArn, ""]]
   HasGuestAssistSessionSecret: !Not [!Equals [!Ref GuestAssistSessionSecret, ""]]
   HasWebSocketUrl: !Not [!Equals [!Ref WebSocketUrl, ""]]
+  HasSalesEnablementStage: !Not [!Equals [!Ref SalesEnablementStage, ""]]
   ManageRoute53AliasRecords:
     Fn::And:
       - !Condition AttachApexWwwAliases
@@ -528,6 +537,29 @@ Resources:
                   - ssmmessages:OpenControlChannel
                   - ssmmessages:OpenDataChannel
                 Resource: "*"
+              - !If
+                - HasSalesEnablementStage
+                - Sid: SalesEnablementDynamo
+                  Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                    - dynamodb:DeleteItem
+                    - dynamodb:Query
+                    - dynamodb:Scan
+                    - dynamodb:DescribeTable
+                  Resource:
+                    - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-sales-roi-sessions-${SalesEnablementStage}
+                    - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-sales-activity-reports-${SalesEnablementStage}
+                    - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-sales-account-claims-${SalesEnablementStage}
+                    - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-sales-rfp-tracker-${SalesEnablementStage}
+                    - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-free-tier-registrations-${SalesEnablementStage}
+                    - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-sales-roi-sessions-${SalesEnablementStage}/index/*
+                    - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-sales-activity-reports-${SalesEnablementStage}/index/*
+                    - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-sales-account-claims-${SalesEnablementStage}/index/*
+                    - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-sales-rfp-tracker-${SalesEnablementStage}/index/*
+                    - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-free-tier-registrations-${SalesEnablementStage}/index/*
+                - !Ref AWS::NoValue
 
   WebTaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -654,6 +686,31 @@ Resources:
               - HasWebSocketUrl
               - Name: NEXT_PUBLIC_WEBSOCKET_URL
                 Value: !Ref WebSocketUrl
+              - !Ref AWS::NoValue
+            - !If
+              - HasSalesEnablementStage
+              - Name: ROI_SESSIONS_TABLE_NAME
+                Value: !Sub rapid-cortex-sales-roi-sessions-${SalesEnablementStage}
+              - !Ref AWS::NoValue
+            - !If
+              - HasSalesEnablementStage
+              - Name: SALES_ACTIVITY_TABLE_NAME
+                Value: !Sub rapid-cortex-sales-activity-reports-${SalesEnablementStage}
+              - !Ref AWS::NoValue
+            - !If
+              - HasSalesEnablementStage
+              - Name: SALES_CLAIMS_TABLE_NAME
+                Value: !Sub rapid-cortex-sales-account-claims-${SalesEnablementStage}
+              - !Ref AWS::NoValue
+            - !If
+              - HasSalesEnablementStage
+              - Name: SALES_RFP_TABLE_NAME
+                Value: !Sub rapid-cortex-sales-rfp-tracker-${SalesEnablementStage}
+              - !Ref AWS::NoValue
+            - !If
+              - HasSalesEnablementStage
+              - Name: FREE_TIER_REGISTRATIONS_TABLE_NAME
+                Value: !Sub rapid-cortex-free-tier-registrations-${SalesEnablementStage}
               - !Ref AWS::NoValue
           Secrets: !If
             - HasAnthropicApiKeySecretArn

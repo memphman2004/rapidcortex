@@ -1,15 +1,15 @@
 import type {
   ConvertToLeadBody,
-  RapidIqContact,
-  RapidIqOpportunity,
-  RapidIqSignal,
-  RapidIqSource,
-  RapidIqVertical,
+  NexiQContact,
+  NexiQOpportunity,
+  NexiQSignal,
+  NexiQSource,
+  NexiQVertical,
   RefreshStatus,
   SignalChatMessage,
   UpdateOpportunityBody,
 } from "./types";
-import type { MentionedEntity, OpportunityListParams, RapidIqStats } from "./types";
+import type { MentionedEntity, OpportunityListParams, NexiQStats } from "./types";
 import { isCompetitorOpportunity } from "./competitor-registry";
 import {
   DEMO_REFRESH_STATUS,
@@ -42,15 +42,15 @@ type ApiEnvelope<T> = {
 };
 
 export type ListOpportunitiesResult = {
-  items: RapidIqOpportunity[];
+  items: NexiQOpportunity[];
   demo: boolean;
 };
 
 export type OpportunityDetailBundle = {
-  opportunity: RapidIqOpportunity;
-  signals: RapidIqSignal[];
-  contacts: RapidIqContact[];
-  sources: RapidIqSource[];
+  opportunity: NexiQOpportunity;
+  signals: NexiQSignal[];
+  contacts: NexiQContact[];
+  sources: NexiQSource[];
   mentioned: MentionedEntity[];
   demo: boolean;
 };
@@ -87,8 +87,8 @@ export async function listOpportunities(params: OpportunityListParams = {}): Pro
       cache: "no-store",
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const body = (await res.json()) as ApiEnvelope<RapidIqOpportunity[]>;
-    const items = unwrapItems<RapidIqOpportunity>(body);
+    const body = (await res.json()) as ApiEnvelope<NexiQOpportunity[]>;
+    const items = unwrapItems<NexiQOpportunity>(body);
     if (items.length === 0 && allowDemoFallback()) {
       return { items: filterDemoOpportunities(params), demo: true };
     }
@@ -110,11 +110,11 @@ export async function getOpportunityDetail(opportunityId: string): Promise<Oppor
       cache: "no-store",
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const body = (await res.json()) as ApiEnvelope<RapidIqOpportunity> & {
-      opportunity?: RapidIqOpportunity;
-      signals?: RapidIqSignal[];
-      contacts?: RapidIqContact[];
-      sources?: RapidIqSource[];
+    const body = (await res.json()) as ApiEnvelope<NexiQOpportunity> & {
+      opportunity?: NexiQOpportunity;
+      signals?: NexiQSignal[];
+      contacts?: NexiQContact[];
+      sources?: NexiQSource[];
       mentioned?: MentionedEntity[];
       opportunityId?: string;
     };
@@ -122,9 +122,9 @@ export async function getOpportunityDetail(opportunityId: string): Promise<Oppor
     const opportunity =
       body.opportunity ??
       (typeof body.data === "object" && body.data && "opportunityId" in (body.data as object)
-        ? (body.data as RapidIqOpportunity)
+        ? (body.data as NexiQOpportunity)
         : null) ??
-      (body.opportunityId ? (body as unknown as RapidIqOpportunity) : null);
+      (body.opportunityId ? (body as unknown as NexiQOpportunity) : null);
 
     if (!opportunity?.opportunityId) throw new Error("Missing opportunity");
 
@@ -137,13 +137,13 @@ export async function getOpportunityDetail(opportunityId: string): Promise<Oppor
       const [s, c, src] = await Promise.all([
         signals.length
           ? Promise.resolve(signals)
-          : fetchSignals(opportunityId, false).catch(() => [] as RapidIqSignal[]),
+          : fetchSignals(opportunityId, false).catch(() => [] as NexiQSignal[]),
         contacts.length
           ? Promise.resolve(contacts)
-          : fetchContacts(opportunityId, false).catch(() => [] as RapidIqContact[]),
+          : fetchContacts(opportunityId, false).catch(() => [] as NexiQContact[]),
         sources.length
           ? Promise.resolve(sources)
-          : fetchSources(opportunityId, false).catch(() => [] as RapidIqSource[]),
+          : fetchSources(opportunityId, false).catch(() => [] as NexiQSource[]),
       ]);
       signals = s;
       contacts = c;
@@ -179,41 +179,41 @@ export async function getOpportunityDetail(opportunityId: string): Promise<Oppor
   }
 }
 
-export async function fetchSignals(opportunityId: string, demo = false): Promise<RapidIqSignal[]> {
+export async function fetchSignals(opportunityId: string, demo = false): Promise<NexiQSignal[]> {
   if (demo) return getDemoSignals(opportunityId);
   const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(opportunityId)}/signals`, {
     credentials: "include",
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const body = await parseJson<ApiEnvelope<RapidIqSignal[]>>(res);
-  return unwrapItems<RapidIqSignal>(body);
+  const body = await parseJson<ApiEnvelope<NexiQSignal[]>>(res);
+  return unwrapItems<NexiQSignal>(body);
 }
 
-export async function fetchContacts(opportunityId: string, demo = false): Promise<RapidIqContact[]> {
+export async function fetchContacts(opportunityId: string, demo = false): Promise<NexiQContact[]> {
   if (demo) return getDemoContacts(opportunityId);
   const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(opportunityId)}/contacts`, {
     credentials: "include",
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const body = await parseJson<ApiEnvelope<RapidIqContact[]>>(res);
-  return unwrapItems<RapidIqContact>(body);
+  const body = await parseJson<ApiEnvelope<NexiQContact[]>>(res);
+  return unwrapItems<NexiQContact>(body);
 }
 
-export async function fetchSources(opportunityId: string, demo = false): Promise<RapidIqSource[]> {
+export async function fetchSources(opportunityId: string, demo = false): Promise<NexiQSource[]> {
   if (demo) return getDemoSources(opportunityId);
   const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(opportunityId)}/sources`, {
     credentials: "include",
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const body = await parseJson<ApiEnvelope<RapidIqSource[]>>(res);
-  return unwrapItems<RapidIqSource>(body);
+  const body = await parseJson<ApiEnvelope<NexiQSource[]>>(res);
+  return unwrapItems<NexiQSource>(body);
 }
 
 export async function updateOpportunity(
   opportunityId: string,
   body: UpdateOpportunityBody,
   demo = false,
-): Promise<RapidIqOpportunity> {
+): Promise<NexiQOpportunity> {
   if (demo) {
     const opp = getDemoOpportunity(opportunityId);
     if (!opp) throw new Error("Opportunity not found");
@@ -225,10 +225,10 @@ export async function updateOpportunity(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const parsed = await parseJson<ApiEnvelope<RapidIqOpportunity> & RapidIqOpportunity>(res);
+  const parsed = await parseJson<ApiEnvelope<NexiQOpportunity> & NexiQOpportunity>(res);
   const opp =
-    (parsed as { data?: RapidIqOpportunity }).data ??
-    ((parsed as RapidIqOpportunity).opportunityId ? (parsed as RapidIqOpportunity) : null);
+    (parsed as { data?: NexiQOpportunity }).data ??
+    ((parsed as NexiQOpportunity).opportunityId ? (parsed as NexiQOpportunity) : null);
   if (!opp) throw new Error("Missing opportunity in response");
   return opp;
 }
@@ -462,7 +462,7 @@ export async function searchContactsLive(
   opportunityId: string,
   query?: string,
   demo = false,
-): Promise<RapidIqContact[]> {
+): Promise<NexiQContact[]> {
   if (demo) {
     const contacts = getDemoContacts(opportunityId);
     if (!query?.trim()) return contacts;
@@ -482,8 +482,8 @@ export async function searchContactsLive(
     body: JSON.stringify({ opportunityId, query }),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const body = await parseJson<ApiEnvelope<RapidIqContact[]> & { contacts?: RapidIqContact[] }>(res);
-  return unwrapItems<RapidIqContact>(body);
+  const body = await parseJson<ApiEnvelope<NexiQContact[]> & { contacts?: NexiQContact[] }>(res);
+  return unwrapItems<NexiQContact>(body);
 }
 
 function isRefreshStatus(value: unknown): value is RefreshStatus {
@@ -525,7 +525,7 @@ export async function triggerRefresh(demo = false, source: "manual" | "ramp" = "
   }
 }
 
-export function computeStats(opportunities: RapidIqOpportunity[]): RapidIqStats {
+export function computeStats(opportunities: NexiQOpportunity[]): NexiQStats {
   return {
     opportunities: opportunities.length,
     rfps: opportunities.filter((o) => o.tags.includes("RFP LIVE")).length,
@@ -534,7 +534,7 @@ export function computeStats(opportunities: RapidIqOpportunity[]): RapidIqStats 
   };
 }
 
-export function demoStats(vertical?: RapidIqVertical): RapidIqStats {
+export function demoStats(vertical?: NexiQVertical): NexiQStats {
   return demoStatsForVertical(vertical);
 }
 

@@ -291,8 +291,12 @@ export type VenueIncidentStatus =
   | "open"
   | "assigned"
   | "responding"
+  | "pending_approval"
+  | "approved"
   | "resolved"
-  | "escalated";
+  | "closed"
+  | "escalated"
+  | "reopened";
 
 export type VenueIncidentSource = "sms" | "qr" | "manual" | "physical_security";
 
@@ -304,11 +308,44 @@ export type VenueIncidentType =
   | "guest_services"
   | "other";
 
+export type VenueEscalationLevel = 0 | 1 | 2 | 3;
+export type VenueApprovalStatus = "pending" | "approved" | "rejected" | "not_required";
+
+export interface VenueStatusChangeEvent {
+  at: string;
+  from: VenueIncidentStatus;
+  to: VenueIncidentStatus;
+  actorId: string;
+  actorLabel?: string;
+  note?: string;
+}
+
+export interface VenueEscalationEvent {
+  at: string;
+  level: VenueEscalationLevel;
+  actorId: string;
+  note?: string;
+}
+
+export interface VenueApprovalEvent {
+  at: string;
+  status: Exclude<VenueApprovalStatus, "not_required" | "pending"> | "pending";
+  actorId: string;
+  note?: string;
+}
+
+export interface VenueReopenEvent {
+  at: string;
+  actorId: string;
+  reason: string;
+}
+
 export interface VenueIncidentRecord {
   pk: string; // VENUE#MBS
   sk: string; // INCIDENT#MBS-2026-000247
   incidentId: string; // MBS-2026-000247
   venueCode: string;
+  agencyId?: string;
   zoneCode: string; // S124 - empty string if unknown
   zoneLabel: string; // "Section 124" - "Location not specified" if unknown
   qrRcli?: string;
@@ -322,6 +359,18 @@ export interface VenueIncidentRecord {
   mediaUrls: string[];
   cameraRefs: string[];
   assignedTo: string | null;
+  assignedAt?: string | null;
+  assignedLabel?: string | null;
+  linkedIncidentIds?: string[];
+  escalationLevel?: VenueEscalationLevel;
+  escalationHistory?: VenueEscalationEvent[];
+  approvalStatus?: VenueApprovalStatus;
+  approvalHistory?: VenueApprovalEvent[];
+  statusHistory?: VenueStatusChangeEvent[];
+  reopenHistory?: VenueReopenEvent[];
+  disposition?: string | null;
+  dispositionAt?: string | null;
+  customFields?: Record<string, string | number | boolean | null>;
   createdAt: string;
   updatedAt: string;
   ttl?: number;
@@ -413,6 +462,21 @@ export const VENUE_KEYS = {
   zoneSk: (zoneCode: string) => `ZONE#${zoneCode}`,
   incidentPk: (venueCode: string) => `VENUE#${venueCode}`,
   incidentSk: (incidentId: string) => `INCIDENT#${incidentId}`,
+  /** Append-only evidence metadata (immutable original lives in S3). */
+  evidenceSk: (incidentId: string, evidenceId: string) =>
+    `INCIDENT#${incidentId}#EVIDENCE#${evidenceId}`,
+  evidencePrefix: (incidentId: string) => `INCIDENT#${incidentId}#EVIDENCE#`,
+  /** Chain-of-custody append-only log for one evidence item. */
+  custodySk: (evidenceId: string, ts: string, id: string) => `COC#${evidenceId}#${ts}#${id}`,
+  custodyPrefix: (evidenceId: string) => `COC#${evidenceId}#`,
+  /** Append-only venue audit stream (never overwrite; ConditionExpression attribute_not_exists). */
+  auditSk: (ts: string, id: string) => `AUDIT#${ts}#${id}`,
+  auditPrefix: () => "AUDIT#",
+  formSchemaSk: () => "FORM_SCHEMA",
+  importConfigSk: (importId: string) => `IMPORT_CONFIG#${importId}`,
+  importRunSk: (importId: string, ts: string) => `IMPORT_RUN#${importId}#${ts}`,
+  reportSk: (incidentId: string, reportId: string) => `INCIDENT#${incidentId}#REPORT#${reportId}`,
+  reportPrefix: (incidentId: string) => `INCIDENT#${incidentId}#REPORT#`,
 } as const;
 
 export interface SmsDisambiguationSession {

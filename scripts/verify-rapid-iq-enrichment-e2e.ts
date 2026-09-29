@@ -1,5 +1,5 @@
 /**
- * E2E probe: Hunter.io + Apollo.io for Rapid IQ contact enrichment.
+ * E2E probe: Hunter.io + Apollo.io for NexiQ contact enrichment.
  *
  *   AWS_PROFILE=rapid-cortex STAGE=dev npx tsx scripts/verify-rapid-iq-enrichment-e2e.ts
  *

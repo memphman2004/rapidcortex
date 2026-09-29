@@ -66,6 +66,8 @@ import {
 } from "./use-campus-dashboard";
 import { CampusSiteSwitcher } from "./campus-site-switcher";
 import { CampusSiteScopeProvider, useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
+import { useCampusInstitutionType } from "@/lib/campus/use-campus-institution";
+import { DistrictSchoolsPanel } from "@/components/campus/k12/DistrictSchoolsPanel";
 import {
   consoleBgStorageKey,
   loadConsoleBg,
@@ -420,12 +422,19 @@ function CampusConsoleHomeInner({
     ? "CAMPUS_ADMIN"
     : (userRole ?? "CAMPUS_SECURITY");
 
+  const { institutionType } = useCampusInstitutionType();
+  const isK12 = institutionType === "k12";
+
   const nav = useMemo(() => {
     const ctx = buildNavContext({ agencyId }, undefined);
     return filterRoleNavByFeatures(
-      getRoleNav(navRole, { ...ctx, campusCode: codeUpper }),
+      getRoleNav(navRole, {
+        ...ctx,
+        campusCode: codeUpper,
+        campusInstitutionType: institutionType,
+      }),
     );
-  }, [agencyId, navRole, codeUpper]);
+  }, [agencyId, navRole, codeUpper, institutionType]);
 
   const navItems = useMemo(() => flattenNavItems(nav), [nav]);
   const badgeCounts = useNavBadgeCounts(userRole);
@@ -578,6 +587,10 @@ function CampusConsoleHomeInner({
   const camerasHref = findNavHref(navItems, "cameras");
   const usersHref = findNavHref(navItems, "users");
   const settingsHref = findNavHref(navItems, "settings");
+  const visitorsHref = findNavHref(navItems, "visitors");
+  const pickupHref = findNavHref(navItems, "pickup-auth");
+  const schoolSafetyHref = findNavHref(navItems, "school-safety");
+  const incidentLogHref = findNavHref(navItems, "incident-log");
 
   const quickActions = useMemo(() => {
     const tile = {
@@ -600,7 +613,43 @@ function CampusConsoleHomeInner({
         ...danger,
       });
     }
-    if (buildingsHref) {
+    if (isK12 && visitorsHref) {
+      actions.push({
+        key: "visitors",
+        label: "Visitors",
+        href: visitorsHref,
+        Icon: Users,
+        ...tile,
+      });
+    }
+    if (isK12 && pickupHref) {
+      actions.push({
+        key: "pickup",
+        label: "Pickup Auth",
+        href: pickupHref,
+        Icon: CheckCircle2,
+        ...tile,
+      });
+    }
+    if (isK12 && schoolSafetyHref) {
+      actions.push({
+        key: "school-safety",
+        label: "School Safety",
+        href: schoolSafetyHref,
+        Icon: BarChart2,
+        ...tile,
+      });
+    }
+    if (isK12 && incidentLogHref) {
+      actions.push({
+        key: "incident-log",
+        label: "Incident Log",
+        href: incidentLogHref,
+        Icon: Shield,
+        ...tile,
+      });
+    }
+    if (!isK12 && buildingsHref) {
       actions.push({
         key: "buildings",
         label: "Buildings",
@@ -627,7 +676,7 @@ function CampusConsoleHomeInner({
         ...tile,
       });
     }
-    if (reportsHref) {
+    if (!isK12 && reportsHref) {
       actions.push({
         key: "reports",
         label: "Reports",
@@ -646,12 +695,31 @@ function CampusConsoleHomeInner({
       });
     }
     return actions;
-  }, [incidentsHref, buildingsHref, zonesHref, qrHref, reportsHref, camerasHref]);
+  }, [
+    incidentsHref,
+    buildingsHref,
+    zonesHref,
+    qrHref,
+    reportsHref,
+    camerasHref,
+    visitorsHref,
+    pickupHref,
+    schoolSafetyHref,
+    incidentLogHref,
+    isK12,
+  ]);
 
   const checklist = useMemo(() => {
     if (!isAdmin) return [];
     const items: { label: string; href: string; done: boolean }[] = [];
-    if (buildingsHref) {
+    const sitesHref = `${pathname.split("/").slice(0, 4).join("/")}/sites`;
+    if (isK12) {
+      items.push({
+        label: "Add District Schools",
+        href: settingsHref ?? sitesHref,
+        done: sites.filter((s) => s.active !== false).length > 0,
+      });
+    } else if (buildingsHref) {
       items.push({
         label: "Add Buildings",
         href: buildingsHref,
@@ -681,7 +749,7 @@ function CampusConsoleHomeInner({
     }
     if (settingsHref) {
       items.push({
-        label: "Review Campus Settings",
+        label: isK12 ? "Review District Settings" : "Review Campus Settings",
         href: settingsHref,
         done: false,
       });
@@ -689,6 +757,7 @@ function CampusConsoleHomeInner({
     return items;
   }, [
     isAdmin,
+    isK12,
     buildingsHref,
     zonesHref,
     qrHref,
@@ -697,6 +766,8 @@ function CampusConsoleHomeInner({
     buildings.length,
     zones.length,
     onDuty.length,
+    sites,
+    pathname,
   ]);
 
   const checklistDone = checklist.filter((c) => c.done).length;
@@ -752,22 +823,26 @@ function CampusConsoleHomeInner({
       href: usersHref ?? settingsHref,
     },
     {
-      label: "BUILDINGS ONLINE",
-      value: loading ? "…" : buildingsOnline,
+      label: isK12 ? "SCHOOLS ONLINE" : "BUILDINGS ONLINE",
+      value: loading ? "…" : isK12 ? sites.filter((s) => s.active !== false).length : buildingsOnline,
       color: C.text,
       icon: <Building2 size={17} color={C.green} strokeWidth={1.7} />,
       iconBg: "rgba(16,185,129,0.15)",
-      linkLabel: "View building status",
-      href: buildingsHref,
+      linkLabel: isK12 ? "View schools" : "View building status",
+      href: isK12 ? `${pathname.split("/").slice(0, 4).join("/")}/sites` : buildingsHref,
     },
     {
-      label: "ZONES MONITORED",
-      value: loading ? "…" : kpiZones,
+      label: isK12 ? "SCHOOLS IN DISTRICT" : "ZONES MONITORED",
+      value: loading
+        ? "…"
+        : isK12
+          ? sites.filter((s) => s.active !== false).length
+          : kpiZones,
       color: C.text,
       icon: <Shield size={17} color={C.blue} strokeWidth={1.7} />,
       iconBg: "var(--rc-vertical-accent-dim)",
-      linkLabel: "View all zones",
-      href: zonesHref,
+      linkLabel: isK12 ? "View schools" : "View all zones",
+      href: isK12 ? `${pathname.split("/").slice(0, 4).join("/")}/sites` : zonesHref,
     },
   ];
 
@@ -1174,7 +1249,9 @@ function CampusConsoleHomeInner({
                         textShadow: "0 1px 4px rgba(0,0,0,0.5)",
                       }}
                     >
-                      Here&apos;s what&apos;s happening across campus.
+                      {isK12
+                        ? "Here's what's happening across the district."
+                        : "Here's what's happening across campus."}
                     </p>
                   </div>
 
@@ -1408,9 +1485,35 @@ function CampusConsoleHomeInner({
                                     overflow: "hidden",
                                     textOverflow: "ellipsis",
                                     whiteSpace: "nowrap",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 6,
                                   }}
                                 >
                                   {mapIncidentType(inc.type)}
+                                  {isK12 &&
+                                  (() => {
+                                    const school = sites.find(
+                                      (s) => s.code === (inc.siteCode ?? "").toUpperCase(),
+                                    );
+                                    const tag =
+                                      inc.siteShortName || school?.shortName || school?.code;
+                                    return tag ? (
+                                      <span
+                                        style={{
+                                          fontSize: 9,
+                                          fontWeight: 700,
+                                          padding: "2px 6px",
+                                          borderRadius: 4,
+                                          background: "#1e1230",
+                                          color: "#8b5cf6",
+                                          flexShrink: 0,
+                                        }}
+                                      >
+                                        {tag}
+                                      </span>
+                                    ) : null;
+                                  })()}
                                 </div>
                                 <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
                                   {inc.source === "physical_security" ? (
@@ -1585,36 +1688,52 @@ function CampusConsoleHomeInner({
                 </div>
 
                 <div style={card()}>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "13px 15px 9px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: C.textSub,
-                        letterSpacing: "0.7px",
-                      }}
-                    >
-                      CAMPUS ZONES
-                    </span>
-                    {zonesHref ? (
-                      <Link
-                        href={zonesHref}
-                        style={{ fontSize: 11, color: C.blue, fontWeight: 500, textDecoration: "none" }}
+                  {isK12 ? (
+                    <div style={{ padding: "13px 15px 12px" }}>
+                      <DistrictSchoolsPanel
+                        agencyId={agencyId}
+                        linkBase={`/app/campus/${codeUpper}`}
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "13px 15px 9px",
+                        }}
                       >
-                        View all
-                      </Link>
-                    ) : null}
-                  </div>
-                  <div style={{ padding: "4px 10px 12px" }}>
-                    <ZoneMap zoneLabels={zoneLabels} />
-                  </div>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: C.textSub,
+                            letterSpacing: "0.7px",
+                          }}
+                        >
+                          CAMPUS ZONES
+                        </span>
+                        {zonesHref ? (
+                          <Link
+                            href={zonesHref}
+                            style={{
+                              fontSize: 11,
+                              color: C.blue,
+                              fontWeight: 500,
+                              textDecoration: "none",
+                            }}
+                          >
+                            View all
+                          </Link>
+                        ) : null}
+                      </div>
+                      <div style={{ padding: "4px 10px 12px" }}>
+                        <ZoneMap zoneLabels={zoneLabels} />
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 

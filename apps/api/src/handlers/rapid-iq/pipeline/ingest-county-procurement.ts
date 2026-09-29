@@ -289,10 +289,10 @@ export async function crawlCountyProcurementEntry(entry: CountyProcurementEntry)
 }
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: county procurement ingest starting");
+  console.log("NexiQ pipeline: county procurement ingest starting");
 
   if (await enqueueMockIfEnabled("county-procurement")) {
-    console.log("Rapid IQ pipeline: county procurement mock path complete");
+    console.log("NexiQ pipeline: county procurement mock path complete");
     return;
   }
 

@@ -14,10 +14,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "vertical query required" }, { status: 400 });
   }
   try {
-    return await proxyToAuthUpstream(
-      request,
-      `/api/rc-admin/signal-feed?vertical=${encodeURIComponent(vertical)}&days=${request.nextUrl.searchParams.get("days") ?? "30"}`,
-    );
+    // Query string is forwarded by proxyToAuthUpstream from the incoming request.
+    // Path must resolve to API_UPSTREAM_BASE_3 (see isSam3ApiPath signal-feed rule).
+    return await proxyToAuthUpstream(request, "/api/rc-admin/signal-feed");
   } catch {
     // Upstream not deployed yet — empty feed for this vertical only
     return NextResponse.json({ signals: [], vertical });

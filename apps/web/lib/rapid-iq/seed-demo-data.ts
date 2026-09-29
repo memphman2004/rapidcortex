@@ -1,11 +1,11 @@
 import type {
   IntentStage,
   MentionedEntity,
-  RapidIqContact,
-  RapidIqOpportunity,
-  RapidIqSignal,
-  RapidIqSource,
-  RapidIqVertical,
+  NexiQContact,
+  NexiQOpportunity,
+  NexiQSignal,
+  NexiQSource,
+  NexiQVertical,
   RefreshStatus,
 } from "./types";
 import type { OpportunityListParams } from "./types";
@@ -17,16 +17,16 @@ function daysAgo(days: number): string {
 const REFRESHED = daysAgo(0);
 
 function opp(
-  partial: Omit<RapidIqOpportunity, "lastRefreshedAt" | "detectedAt"> & {
+  partial: Omit<NexiQOpportunity, "lastRefreshedAt" | "detectedAt"> & {
     detectedDaysAgo?: number;
   },
-): RapidIqOpportunity {
+): NexiQOpportunity {
   const detectedAt = daysAgo(partial.detectedDaysAgo ?? 3);
   const { detectedDaysAgo: _, ...rest } = partial;
   return { ...rest, detectedAt, lastRefreshedAt: REFRESHED };
 }
 
-export const DEMO_OPPORTUNITIES: RapidIqOpportunity[] = [
+export const DEMO_OPPORTUNITIES: NexiQOpportunity[] = [
   opp({
     opportunityId: "demo-fl-desoto-911",
     vertical: "911",
@@ -409,7 +409,7 @@ export const DEMO_OPPORTUNITIES: RapidIqOpportunity[] = [
   }),
 ];
 
-export const DEMO_SIGNALS: Record<string, RapidIqSignal[]> = {
+export const DEMO_SIGNALS: Record<string, NexiQSignal[]> = {
   "demo-fl-desoto-911": [
     {
       signalId: "sig-desoto-1",
@@ -482,7 +482,7 @@ export const DEMO_SIGNALS: Record<string, RapidIqSignal[]> = {
   ],
 };
 
-export const DEMO_CONTACTS: Record<string, RapidIqContact[]> = {
+export const DEMO_CONTACTS: Record<string, NexiQContact[]> = {
   "demo-fl-desoto-911": [
     {
       contactId: "con-desoto-1",
@@ -601,7 +601,7 @@ export const DEMO_CONTACTS: Record<string, RapidIqContact[]> = {
   ],
 };
 
-export const DEMO_SOURCES: Record<string, RapidIqSource[]> = {
+export const DEMO_SOURCES: Record<string, NexiQSource[]> = {
   "demo-fl-desoto-911": [
     {
       sourceId: "src-desoto-1",
@@ -684,7 +684,7 @@ export const DEMO_REFRESH_STATUS: RefreshStatus = {
   error: null,
 };
 
-function matchesSearch(opp: RapidIqOpportunity, search: string): boolean {
+function matchesSearch(opp: NexiQOpportunity, search: string): boolean {
   const q = search.trim().toLowerCase();
   if (!q) return true;
   return (
@@ -697,7 +697,7 @@ function matchesSearch(opp: RapidIqOpportunity, search: string): boolean {
   );
 }
 
-export function filterDemoOpportunities(params: OpportunityListParams = {}): RapidIqOpportunity[] {
+export function filterDemoOpportunities(params: OpportunityListParams = {}): NexiQOpportunity[] {
   return DEMO_OPPORTUNITIES.filter((o) => {
     if (params.vertical && o.vertical !== params.vertical) return false;
     if (params.state && o.state !== params.state) return false;
@@ -707,19 +707,19 @@ export function filterDemoOpportunities(params: OpportunityListParams = {}): Rap
   }).sort((a, b) => b.opportunityScore - a.opportunityScore);
 }
 
-export function getDemoOpportunity(opportunityId: string): RapidIqOpportunity | null {
+export function getDemoOpportunity(opportunityId: string): NexiQOpportunity | null {
   return DEMO_OPPORTUNITIES.find((o) => o.opportunityId === opportunityId) ?? null;
 }
 
-export function getDemoSignals(opportunityId: string): RapidIqSignal[] {
+export function getDemoSignals(opportunityId: string): NexiQSignal[] {
   return DEMO_SIGNALS[opportunityId] ?? [];
 }
 
-export function getDemoContacts(opportunityId: string): RapidIqContact[] {
+export function getDemoContacts(opportunityId: string): NexiQContact[] {
   return DEMO_CONTACTS[opportunityId] ?? [];
 }
 
-export function getDemoSources(opportunityId: string): RapidIqSource[] {
+export function getDemoSources(opportunityId: string): NexiQSource[] {
   return DEMO_SOURCES[opportunityId] ?? [];
 }
 
@@ -727,7 +727,7 @@ export function getDemoMentioned(opportunityId: string): MentionedEntity[] {
   return DEMO_MENTIONED[opportunityId] ?? [];
 }
 
-export function demoStatsForVertical(vertical?: RapidIqVertical): {
+export function demoStatsForVertical(vertical?: NexiQVertical): {
   opportunities: number;
   rfps: number;
   competitor: number;

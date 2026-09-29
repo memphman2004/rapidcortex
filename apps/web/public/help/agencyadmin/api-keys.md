@@ -1,8 +1,11 @@
-# API keys and webhooks
+# API Keys & Webhooks
 
-1. Open API keys / webhooks in administration.
-2. Issue a key only for a named integration.
-3. Store the secret in your vault — NexCort iQ will not show it again.
-4. Rotate on a schedule. Revoke keys for departed vendors.
+Issue API keys only for approved integrations and rotate on a schedule.
 
-Never put keys in chat, tickets, or CloudWatch. Scope is your agency only.
+1. Open **API Keys**.
+2. Create a key with the least scopes required.
+3. Store the secret in your agency vault — NexCort iQ shows it once.
+4. Configure webhooks to HTTPS endpoints you control.
+5. Rotate and revoke keys when vendors or staff change.
+
+Never commit keys to git or share them in email.

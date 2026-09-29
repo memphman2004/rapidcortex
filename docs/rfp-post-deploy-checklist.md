@@ -1,4 +1,4 @@
-# RapidIQ RFP Systems — Post-Deploy Checklist
+# NexiQ RFP Systems — Post-Deploy Checklist
 
 **Purpose:** Gate staging before production promotion for watches, OpenAI web-search discovery, and the unified RFP tile. Covers behavior that `sam validate --lint` and unit tests cannot see.
 
@@ -18,7 +18,7 @@ Live names (the Downloads draft used different ones):
 
 | Thing | Live value |
 |---|---|
-| Stack | Nested `rapid-cortex-${STAGE}-AppSamRapidIqPipelineStack` (parent `rapid-cortex-${STAGE}`) |
+| Stack | Nested `rapid-cortex-${STAGE}-AppSamNexiQPipelineStack` (parent `rapid-cortex-${STAGE}`) |
 | Table | Existing pipeline table (`WATCH#` / `INTEL#` / `SIGNAL#` / `pk=RFP_COUNTS sk=LATEST`) — no new Dynamo table |
 | Watch field | `market` = `PSAP` / `CAMPUS` / `VENUE` / `TRANSIT` (not `vertical` / `rc911`) |
 | Worker | `IntelWatchWorkerFunction` — discovery runs **here**, not in the orchestrator |
@@ -47,7 +47,7 @@ Three corrections already in code, worth confirming they stayed that way:
 - [ ] `OpenAiWebSearchEnabled` stack parameter is `false` unless you are in the one-shot test below
 - [ ] Worker env `OPENAI_WEB_SEARCH_ENABLED` matches the parameter
 - [ ] Worker env `OPENAI_API_KEY_SECRET_ARN` is set
-- [ ] SAM.gov secret ARN is on the **feed** stack / `RapidIqOrchestratorFunction` (`RAPID_IQ_SAM_GOV_API_KEY_SECRET_ARN`), not required on the watch worker
+- [ ] SAM.gov secret ARN is on the **feed** stack / `NexiQOrchestratorFunction` (`RAPID_IQ_SAM_GOV_API_KEY_SECRET_ARN`), not required on the watch worker
 
 If watch count is 25: `STAGE=staging npx tsx scripts/seed-rapid-iq-intel-watches.ts`
 
@@ -302,7 +302,7 @@ No new DynamoDB tables were added. Rollback removes Lambdas and EventBridge rule
 
 ```bash
 aws cloudformation rollback-stack \
-  --stack-name rapid-cortex-staging-AppSamRapidIqPipelineStack \
+  --stack-name rapid-cortex-staging-AppSamNexiQPipelineStack \
   --region us-east-1
 ```
 

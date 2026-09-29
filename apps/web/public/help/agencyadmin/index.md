@@ -1,16 +1,23 @@
-# Agency Admin overview
+# Agency Admin Overview
 
-You manage users, integrations, SOP library, retention, and billing — **not** the live dispatcher workspace. If you land on a call-taker screen, stop and tell NexCort iQ support. That is an operational separation failure.
+Agency Admin manages **users, SOP library, integrations, retention, and billing** for your tenant. You do **not** work live 911 calls from this console.
 
-Campus/venue/transit admins use **Staff Guide**, not this PSAP Help tab.
+## Your home surfaces
 
-## What you do
+- Users and roles
+- SOP library / protocols
+- CAD and API integration settings
+- MFA and data retention
+- Billing, subscriptions, and feature add-ons
 
-- Invite dispatchers, supervisors, IT, analysts, auditors
-- SOP library and CAD integration (with Agency IT)
-- MFA, retention, add-ons, invoices
+## Separation rule
 
-## What you do not do
+Landing on the dispatcher live workspace as Agency Admin is an operational failure. Use dispatcher accounts for live call work. Your job is configuration, access, and governance.
 
-- Work 911 calls
-- Manage campus QR codes (PSAP roles are excluded)
+## First-week checklist
+
+1. Confirm MFA policy matches CJIS-aligned agency policy.
+2. Upload current SOP packages.
+3. Invite supervisors and dispatchers with correct roles.
+4. Leave CAD write-back fail-closed until UAT and written authorization.
+5. Review retention windows with your records officer.

@@ -43,11 +43,11 @@ Parameters:
   RapidIqHunterApiKeySecretArn:
     Type: String
     Default: ""
-    Description: Hunter.io secret ARN (shared with Rapid IQ contact enrichment)
+    Description: Hunter.io secret ARN (shared with NexiQ contact enrichment)
   RapidIqApolloApiKeySecretArn:
     Type: String
     Default: ""
-    Description: Apollo.io secret ARN (shared with Rapid IQ contact enrichment)
+    Description: Apollo.io secret ARN (shared with NexiQ contact enrichment)
   ContactCompaniesTable:
     Type: String
     Default: ""

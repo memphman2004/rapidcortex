@@ -222,6 +222,17 @@ if [[ -n "$WS_URL" && "$WS_URL" != "None" ]]; then
   DEPLOY_OVERRIDES+=( "WebSocketUrl=${WS_URL}" )
 fi
 
+# Sales enablement Dynamo tables live on the API data-layer stage (often "dev" for live).
+# Override with SALES_ENABLEMENT_STAGE= or leave empty to keep in-memory fallback.
+SALES_ENABLEMENT_STAGE="${SALES_ENABLEMENT_STAGE:-}"
+if [[ -z "$SALES_ENABLEMENT_STAGE" ]]; then
+  # Prefer explicit API stack stage; live prod web still uses rapid-cortex-dev tables.
+  SALES_ENABLEMENT_STAGE="${API_DEPLOYMENT_STAGE:-${SALES_DATA_STAGE:-dev}}"
+fi
+if [[ -n "$SALES_ENABLEMENT_STAGE" ]]; then
+  DEPLOY_OVERRIDES+=( "SalesEnablementStage=${SALES_ENABLEMENT_STAGE}" )
+fi
+
 aws cloudformation deploy \
   --region "$AWS_REGION" \
   --template-file "$ROOT/infra/web-ssr-infra-template.yaml" \

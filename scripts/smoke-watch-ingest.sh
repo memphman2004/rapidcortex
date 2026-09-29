@@ -55,9 +55,9 @@ echo "HTTP ${CODE}"
 echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
 
 if [[ "${CODE}" != "200" ]]; then
-  echo "Smoke failed — check secret ARN on SignalHttp, EnableRapidIqNewHttpRoutes, and API_BASE." >&2
+  echo "Smoke failed — check secret ARN on SignalHttp, EnableNexiQNewHttpRoutes, and API_BASE." >&2
   exit 1
 fi
 
 echo ""
-echo "OK — open NexiQ IQ → Watch Feed and dismiss the smoke card (${EXT_KEY})."
+echo "OK — open NexiQ → Watch Feed and dismiss the smoke card (${EXT_KEY})."

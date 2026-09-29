@@ -1,11 +1,11 @@
 import { BOT_TEMPLATE_VERSION, type BotRebuildQueueEntry } from "rapid-cortex-shared";
 import { env } from "../../lib/env.js";
-import { LexBotProvisioner, mockLexModelsPort } from "./lex-bot-provisioner.js";
+import { createLexModelsPort, LexBotProvisioner } from "./lex-bot-provisioner.js";
 import { envLexQuotaPort } from "./lex-quota.js";
 import { callAssistStore } from "../store.js";
 import { tenantToVoiceConfig } from "../voice-config-map.js";
 
-const bots = new LexBotProvisioner(mockLexModelsPort(), envLexQuotaPort());
+const bots = new LexBotProvisioner(createLexModelsPort(env.callAssistLexMock), envLexQuotaPort());
 
 export async function enqueueBotRebuild(
   agencyId: string,

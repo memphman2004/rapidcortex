@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { LeadVerticalSchema, type LeadVertical } from "../monetization/leads-crm.js";
 
-/** Buying-intent / enablement signals attached to CRM leads (not Rapid IQ SignalType). */
+/** Buying-intent / enablement signals attached to CRM leads (not NexiQ SignalType). */
 export const LeadSignalTypeSchema = z.enum([
   "GRANT_SIGNAL",
   "RFP_SIGNAL",

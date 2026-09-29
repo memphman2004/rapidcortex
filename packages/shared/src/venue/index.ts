@@ -54,3 +54,29 @@ export {
   type VenueProfile,
   type VenueProfilePatch,
 } from "./section-schemas.js";
+
+/** RFP 2396IP — digital incident reporting (case, evidence CoC, form schema, imports). */
+export {
+  venueCaseStatusSchema,
+  venueCaseActionSchema,
+  venueCaseActionBodySchema,
+  venueEvidenceUploadBodySchema,
+  venueEvidenceConfirmBodySchema,
+  venueCustodyTransferBodySchema,
+  venueSecureShareBodySchema,
+  venueFormFieldSchema,
+  venueFormSchemaConfigSchema,
+  venueFormSchemaPutBodySchema,
+  venueIntegrationImportBodySchema,
+  DEFAULT_VENUE_FORM_SCHEMA,
+  type VenueCaseStatus,
+  type VenueCaseAction,
+  type VenueCaseActionBody,
+  type VenueEvidenceUploadBody,
+  type VenueEvidenceConfirmBody,
+  type VenueCustodyTransferBody,
+  type VenueSecureShareBody,
+  type VenueFormSchemaConfig,
+  type VenueIntegrationImportBody,
+  type VenueFormSchemaPutBody,
+} from "./case-management-schemas.js";

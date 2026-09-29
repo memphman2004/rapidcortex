@@ -17,15 +17,21 @@ function Metric({
   icon: string;
 }) {
   return (
-    <div className="flex min-w-[110px] flex-col gap-1 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#0d1b35] px-4 py-3">
-      <div className="flex items-baseline gap-1.5">
-        <span className={`text-[12px] opacity-50 ${color}`}>{icon}</span>
-        <span className={`text-2xl font-extrabold leading-none tracking-tight tabular-nums ${color}`}>
+    <div className="flex min-w-[120px] flex-1 flex-col items-center justify-center gap-1 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#0d1b35] px-4 py-3 text-center">
+      <div className="flex items-center justify-center gap-1.5">
+        <span className={`text-[12px] opacity-50 ${color}`} aria-hidden>
+          {icon}
+        </span>
+        <span
+          className={`text-2xl font-extrabold leading-none tracking-tight tabular-nums ${color}`}
+        >
           {value}
         </span>
       </div>
-      <div className="text-[9px] font-bold uppercase tracking-widest text-slate-600">{label}</div>
-      <div className="text-[9px] text-slate-700">{sublabel}</div>
+      <div className="w-full text-[9px] font-bold uppercase tracking-widest text-slate-600">
+        {label}
+      </div>
+      <div className="w-full text-[9px] text-slate-700">{sublabel}</div>
     </div>
   );
 }

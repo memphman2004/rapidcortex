@@ -1,10 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { matchesCampusSiteScope, type CampusZoneSummary } from "rapid-cortex-shared";
+import {
+  getZoneDefaults,
+  matchesCampusSiteScope,
+  type CampusZoneSummary,
+} from "rapid-cortex-shared";
 import { fetchCampusZones } from "@/lib/campus/campus-dashboard-api";
 import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
 import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
+import { useCampusInstitutionType } from "@/lib/campus/use-campus-institution";
 
 export function CampusZonesClient({
   campusCode,
@@ -17,6 +22,8 @@ export function CampusZonesClient({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { scope, setScope, sites, primarySiteCode } = useCampusSiteScope(agencyId);
+  const { institutionType } = useCampusInstitutionType();
+  const zoneDefaults = useMemo(() => getZoneDefaults(institutionType), [institutionType]);
 
   const visible = useMemo(
     () =>
@@ -67,7 +74,24 @@ export function CampusZonesClient({
       {error ? <p className="text-sm text-rose-300">{error}</p> : null}
       {loading ? <p className="text-sm text-slate-400">Loading zones…</p> : null}
       {!loading && visible.length === 0 ? (
-        <p className="text-sm text-slate-400">No zones are published for this campus yet.</p>
+        <div className="space-y-3">
+          <p className="text-sm text-slate-400">No zones are published for this campus yet.</p>
+          <div className="rounded-lg border border-slate-700/60 bg-slate-950/40 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Suggested {institutionType === "k12" ? "school" : "campus"} zones
+            </p>
+            <ul className="mt-2 flex flex-wrap gap-2">
+              {zoneDefaults.map((label) => (
+                <li
+                  key={label}
+                  className="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs text-slate-300"
+                >
+                  {label}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       ) : null}
       <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {visible.map((zone) => (

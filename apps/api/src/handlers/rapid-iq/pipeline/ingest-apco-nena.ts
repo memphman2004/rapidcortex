@@ -24,10 +24,10 @@ const HTML_PAGES = [
 ];
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: APCO/NENA/NASNA ingestion starting");
+  console.log("NexiQ pipeline: APCO/NENA/NASNA ingestion starting");
 
   if (await enqueueMockIfEnabled("trade-publication")) {
-    console.log("Rapid IQ pipeline: trade-publication mock path complete");
+    console.log("NexiQ pipeline: trade-publication mock path complete");
     return;
   }
 

@@ -15,7 +15,27 @@ export type CampusIncidentType =
   | "property_crime"
   | "maintenance"
   | "active_threat"
-  | "other";
+  | "other"
+  | "theft"
+  | "assault"
+  | "dui"
+  | "vandalism"
+  | "sexual_offense"
+  | "bias_hate"
+  | "drug_offense"
+  | "trespassing"
+  | "weapon"
+  | "missing_person"
+  | "fire"
+  | "fight"
+  | "drug_substance"
+  | "bullying"
+  | "trespasser"
+  | "property_damage"
+  | "suspicious"
+  | "lockdown_threat"
+  | "parent_dispute"
+  | "welfare_check";
 
 export type CampusIncidentSource =
   | "qr"
@@ -74,6 +94,8 @@ export interface CampusIncident {
   campusCode: string;
   /** Physical campus within a multi-campus tenant. */
   siteCode?: string;
+  /** K-12 school short badge denormalized at create (CCHS, CCMS). */
+  siteShortName?: string;
   /** Optional agency tenant id when present on older/newer records. */
   agencyId?: string;
   buildingCode: string;
@@ -169,7 +191,8 @@ export interface CampusAnalytics {
   respondingNow: number;
   resolvedToday: number;
   confidentialReports: number;
-  byType: Record<CampusIncidentType, number>;
+  /** Counts keyed by incident type (operational + catalog). Unknown types omitted. */
+  byType: Partial<Record<CampusIncidentType, number>> & Record<string, number>;
   byBuilding: { buildingLabel: string; count: number }[];
   bySource: { qr: number; sms: number; manual: number; phone: number; webhook: number };
   avgResponseMinutes: number;

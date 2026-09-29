@@ -304,6 +304,15 @@ describe("isCommsPlatformApiPath", () => {
     );
   });
 
+  it("routes RC Admin signal-feed to stack 3 (not stack 1)", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_3 = "https://stack3.example.com";
+    expect(isSam3ApiPath("/api/rc-admin/signal-feed")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/rc-admin/signal-feed")).toBe(
+      "https://stack3.example.com",
+    );
+  });
+
   it("routes live hospital overlay SearchNearby to stack 2", () => {
     process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
     process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";

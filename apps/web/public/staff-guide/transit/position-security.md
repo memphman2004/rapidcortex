@@ -1,17 +1,17 @@
 # Transit Security
 
-You report field incidents on routes and at stations. You are not a 911 dispatcher.
+You take field incidents on routes and at stations, use cameras for awareness, and escalate life-safety events by calling 911.
 
 ## You can
 
-- Create transit security incidents
-- Use fleet/incident/camera views your nav allows
+- Create and update on-system incidents
+- Review passenger QR reports
+- View cameras for the area you are working
 
 ## You cannot
 
-- Write back to 911 CAD
-- Assume QR deactivate permission (Admin / Supervisor manage codes)
+- Write to 911 CAD from this product
+- Rely on Camera AI as automatic dispatch
+- Treat Guest/passenger reports as verified facts without contact
 
-## Typical shift
-
-Log on-system incidents with vehicle, station, or route when known. Call 911 for in-progress emergencies. If a passenger code is missing or wrong, notify Supervisor so they can update or deactivate it.
+Read **When to call 911** before your first solo shift.

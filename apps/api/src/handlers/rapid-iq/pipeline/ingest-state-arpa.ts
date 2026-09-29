@@ -221,10 +221,10 @@ async function crawlArpaDashboard(source: ArpaSource): Promise<void> {
 }
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: State ARPA ingestion starting");
+  console.log("NexiQ pipeline: State ARPA ingestion starting");
 
   if (await enqueueMockIfEnabled("state-arpa")) {
-    console.log("Rapid IQ pipeline: State ARPA mock path complete");
+    console.log("NexiQ pipeline: State ARPA mock path complete");
     return;
   }
 
@@ -235,5 +235,5 @@ export async function handler(): Promise<void> {
     await new Promise((r) => setTimeout(r, 500));
   }
 
-  console.log("Rapid IQ pipeline: State ARPA ingestion complete");
+  console.log("NexiQ pipeline: State ARPA ingestion complete");
 }

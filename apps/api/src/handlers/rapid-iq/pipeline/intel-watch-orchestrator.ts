@@ -10,7 +10,7 @@ import { listIntelWatches, seedDefaultIntelWatches } from "../../../lib/rapid-iq
 import { enqueueIntelWatchJob } from "../../../lib/rapid-iq/intel-queue.js";
 
 export async function handler(_event: ScheduledEvent): Promise<{ seeded: number; queued: number }> {
-  if (!env.enableRapidIqPipeline) {
+  if (!env.enableNexiQPipeline) {
     return { seeded: 0, queued: 0 };
   }
   const seeded = await seedDefaultIntelWatches();

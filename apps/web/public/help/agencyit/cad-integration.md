@@ -1,7 +1,10 @@
-# CAD integration setup
+# CAD Integration Setup (IT)
 
-Work with Agency Admin and NexCort iQ. Open **Integrations**, **CAD Connector**, or **CAD Bridge** as licensed.
+1. Open **CAD Integration** with Agency Admin present for go/no-go decisions.
+2. Select the adapter for your CAD (PremierOne and others as contracted).
+3. Load credentials from Secrets Manager / vaulted fields only.
+4. Run **Integration test** against a non-production endpoint when available.
+5. Confirm read/copy-assist before any write-back discussion.
+6. Leave write-back fail-closed until UAT sign-off.
 
-Write-back stays off until a signed addendum. Test in the integration console before any production write.
-
-See Agency Admin Help **CAD Integration Setup** for the same policy.
+If tests fail, capture request IDs / correlation headers — do not retry blindly against production CAD.

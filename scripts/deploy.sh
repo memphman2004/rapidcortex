@@ -513,13 +513,13 @@ if [[ -n "${GUEST_ASSIST_SESSION_SECRET:-}" ]]; then
   PARAMS="${PARAMS} GuestAssistSessionSecret=${GUEST_ASSIST_SESSION_SECRET}"
 fi
 if [[ -n "${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN:-}" ]]; then
-  PARAMS="${PARAMS} RapidIqHunterApiKeySecretArn=${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}"
+  PARAMS="${PARAMS} NexiQHunterApiKeySecretArn=${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}"
 fi
 if [[ -n "${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:-}" ]]; then
-  PARAMS="${PARAMS} RapidIqApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}"
+  PARAMS="${PARAMS} NexiQApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}"
 fi
 if [[ -n "${RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN:-}" ]]; then
-  PARAMS="${PARAMS} RapidIqWatchIngestApiKeySecretArn=${RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN}"
+  PARAMS="${PARAMS} NexiQWatchIngestApiKeySecretArn=${RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN}"
 fi
 if [[ -n "${ENABLE_NEXIQ_INTEL:-}" ]]; then
   PARAMS="${PARAMS} EnableNexiQIntel=${ENABLE_NEXIQ_INTEL}"
@@ -615,11 +615,11 @@ if [[ "${SIEM_ENABLED:-}" == "true" || "${SIEM_ENABLED:-}" == "1" ]]; then
     PARAMS="${PARAMS} SIEMEndpointUrl=${SIEM_ENDPOINT_URL}"
   fi
 fi
-# Rapid IQ nested hashed stack JWN4SGUYZXYF: intel-watch queues / extra ingest Lambdas
-# collide with leftover standalone rapid-cortex-dev-AppSamRapidIqPipelineStack.
+# NexiQ nested hashed stack JWN4SGUYZXYF: intel-watch queues / extra ingest Lambdas
+# collide with leftover standalone rapid-cortex-dev-AppSamNexiQPipelineStack.
 # HTTP routes are gated separately (recreate via SignalHttpIntegrationV2 on live).
-PARAMS="${PARAMS} EnableRapidIqNewHttpRoutes=${ENABLE_RAPID_IQ_NEW_HTTP_ROUTES:-false}"
-PARAMS="${PARAMS} EnableRapidIqNestedExpansion=${ENABLE_RAPID_IQ_NESTED_EXPANSION:-false}"
+PARAMS="${PARAMS} EnableNexiQNewHttpRoutes=${ENABLE_RAPID_IQ_NEW_HTTP_ROUTES:-false}"
+PARAMS="${PARAMS} EnableNexiQNestedExpansion=${ENABLE_RAPID_IQ_NESTED_EXPANSION:-false}"
 if [[ -n "${OUTLOOK_OAUTH_CLIENT_ID:-}" ]]; then
   PARAMS="${PARAMS} OutlookOAuthClientId=${OUTLOOK_OAUTH_CLIENT_ID}"
 fi
@@ -776,6 +776,96 @@ fi
 if [[ -n "${CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} CallAssistConnectWebhookSecretArn=${CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN}"
 fi
+
+# Call Assist live Lex/Connect provisioning — resolve from Lex stack + Connect when unset.
+LEX_STACK_NAME="${LEX_STACK_NAME:-${APP_NAME:-rapid-cortex}-lex-${STAGE}}"
+if [[ -z "${CALL_ASSIST_LEX_BOT_ROLE_ARN:-}" ]]; then
+  CALL_ASSIST_LEX_BOT_ROLE_ARN="$(
+    aws cloudformation describe-stacks \
+      --stack-name "${LEX_STACK_NAME}" \
+      --region "${AWS_REGION:-us-east-1}" \
+      --query 'Stacks[0].Outputs[?OutputKey==`LexServiceRoleArn`].OutputValue' \
+      --output text 2>/dev/null || true
+  )"
+  if [[ "${CALL_ASSIST_LEX_BOT_ROLE_ARN}" == "None" ]]; then
+    CALL_ASSIST_LEX_BOT_ROLE_ARN=""
+  fi
+fi
+# Fallback: stack-lex RoleName is ${APP_NAME}-lex-service-role-${STAGE} (output may be missing until Lex redeploy).
+if [[ -z "${CALL_ASSIST_LEX_BOT_ROLE_ARN:-}" ]]; then
+  _ca_account="$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)"
+  if [[ -n "${_ca_account}" ]]; then
+    _ca_role_name="${APP_NAME:-rapid-cortex}-lex-service-role-${STAGE}"
+    if aws iam get-role --role-name "${_ca_role_name}" >/dev/null 2>&1; then
+      CALL_ASSIST_LEX_BOT_ROLE_ARN="arn:aws:iam::${_ca_account}:role/${_ca_role_name}"
+    fi
+  fi
+  unset _ca_role_name
+fi
+if [[ -z "${CALL_ASSIST_FULFILLMENT_LAMBDA_ARN:-}" ]]; then
+  CALL_ASSIST_FULFILLMENT_LAMBDA_ARN="$(
+    aws cloudformation describe-stacks \
+      --stack-name "${LEX_STACK_NAME}" \
+      --region "${AWS_REGION:-us-east-1}" \
+      --query 'Stacks[0].Outputs[?OutputKey==`FulfillmentHookFunctionArn`].OutputValue' \
+      --output text 2>/dev/null || true
+  )"
+  if [[ "${CALL_ASSIST_FULFILLMENT_LAMBDA_ARN}" == "None" ]]; then
+    CALL_ASSIST_FULFILLMENT_LAMBDA_ARN=""
+  fi
+fi
+CONNECT_INSTANCE_ID="${CONNECT_INSTANCE_ID:-20772ba7-98e6-4afd-94cc-19e03c0619df}"
+if [[ -z "${CALL_ASSIST_PRIMARY_QUEUE_ARN:-}" || -z "${CALL_ASSIST_EMERGENCY_QUEUE_ARN:-}" ]]; then
+  _ca_account="$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)"
+  _ca_region="${AWS_REGION:-us-east-1}"
+  if [[ -n "${_ca_account}" && -n "${CONNECT_INSTANCE_ID}" ]]; then
+    if [[ -z "${CALL_ASSIST_PRIMARY_QUEUE_ARN:-}" ]]; then
+      _ca_q="$(
+        aws connect list-queues --instance-id "${CONNECT_INSTANCE_ID}" --queue-types STANDARD \
+          --region "${_ca_region}" \
+          --query "QueueSummaryList[?Name==\`Demo Dispatcher\`].Id | [0]" \
+          --output text 2>/dev/null || true
+      )"
+      if [[ -n "${_ca_q}" && "${_ca_q}" != "None" ]]; then
+        CALL_ASSIST_PRIMARY_QUEUE_ARN="arn:aws:connect:${_ca_region}:${_ca_account}:instance/${CONNECT_INSTANCE_ID}/queue/${_ca_q}"
+      fi
+    fi
+    if [[ -z "${CALL_ASSIST_EMERGENCY_QUEUE_ARN:-}" ]]; then
+      _ca_eq="$(
+        aws connect list-queues --instance-id "${CONNECT_INSTANCE_ID}" --queue-types STANDARD \
+          --region "${_ca_region}" \
+          --query "QueueSummaryList[?Name==\`Call Assist Emergency\`].Id | [0]" \
+          --output text 2>/dev/null || true
+      )"
+      if [[ -n "${_ca_eq}" && "${_ca_eq}" != "None" ]]; then
+        CALL_ASSIST_EMERGENCY_QUEUE_ARN="arn:aws:connect:${_ca_region}:${_ca_account}:instance/${CONNECT_INSTANCE_ID}/queue/${_ca_eq}"
+      fi
+    fi
+  fi
+  unset _ca_account _ca_region _ca_q _ca_eq
+fi
+if [[ -n "${CALL_ASSIST_LEX_BOT_ROLE_ARN:-}" ]]; then
+  PARAMS="${PARAMS} CallAssistLexBotRoleArn=${CALL_ASSIST_LEX_BOT_ROLE_ARN}"
+  echo "Call Assist Lex bot role: ${CALL_ASSIST_LEX_BOT_ROLE_ARN}" >&2
+else
+  echo "WARN: CallAssistLexBotRoleArn unset (deploy Lex stack or export CALL_ASSIST_LEX_BOT_ROLE_ARN). Live CreateBot will fail until set." >&2
+fi
+if [[ -n "${CALL_ASSIST_PRIMARY_QUEUE_ARN:-}" ]]; then
+  PARAMS="${PARAMS} CallAssistPrimaryQueueArn=${CALL_ASSIST_PRIMARY_QUEUE_ARN}"
+fi
+if [[ -n "${CALL_ASSIST_EMERGENCY_QUEUE_ARN:-}" ]]; then
+  PARAMS="${PARAMS} CallAssistEmergencyQueueArn=${CALL_ASSIST_EMERGENCY_QUEUE_ARN}"
+fi
+if [[ -z "${CALL_ASSIST_PRIMARY_QUEUE_ARN:-}" || -z "${CALL_ASSIST_EMERGENCY_QUEUE_ARN:-}" ]]; then
+  echo "WARN: Call Assist Connect queue ARNs incomplete. Run scripts/configure-call-assist-connect.sh or export CALL_ASSIST_PRIMARY_QUEUE_ARN / CALL_ASSIST_EMERGENCY_QUEUE_ARN." >&2
+fi
+if [[ -n "${CALL_ASSIST_FULFILLMENT_LAMBDA_ARN:-}" ]]; then
+  PARAMS="${PARAMS} CallAssistFulfillmentLambdaArn=${CALL_ASSIST_FULFILLMENT_LAMBDA_ARN}"
+fi
+if [[ -n "${CALL_ASSIST_RAPIDSOS_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} CallAssistRapidSosSecretArn=${CALL_ASSIST_RAPIDSOS_SECRET_ARN}"
+fi
+
 PARAMS="${PARAMS} WyzeEnabled=${WYZE_ENABLED:-false}"
 if [[ -n "${WYZE_API_KEYS_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} WyzeApiKeysSecretArn=${WYZE_API_KEYS_SECRET_ARN}"

@@ -62,16 +62,18 @@ function MetricTile({
   subtext?: string;
 }) {
   return (
-    <div className="rounded-lg border border-slate-800 bg-[#0c1528] px-5 py-4">
-      <div className={`text-3xl font-bold leading-none tracking-tight ${color}`}>
+    <div className="flex min-h-[5.5rem] flex-col items-center justify-center rounded-lg border border-slate-800 bg-[#0c1528] px-4 py-4 text-center">
+      <div
+        className={`w-full text-3xl font-bold leading-none tracking-tight tabular-nums ${color}`}
+      >
         {value}
       </div>
-      <div className="mt-1 text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+      <div className="mt-2 w-full text-[10px] font-bold tracking-widest text-slate-500 uppercase">
         {label}
       </div>
-      {subtext && (
-        <div className="mt-1 text-xs text-slate-600">{subtext}</div>
-      )}
+      {subtext ? (
+        <div className="mt-1 w-full text-xs text-slate-600">{subtext}</div>
+      ) : null}
     </div>
   );
 }

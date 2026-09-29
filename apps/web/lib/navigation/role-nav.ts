@@ -13,6 +13,8 @@
  */
 
 import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
+import type { CampusInstitutionType } from "rapid-cortex-shared";
+import { parseCampusInstitutionType } from "rapid-cortex-shared";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1922,7 +1924,75 @@ export type NavContext = {
   venueCode?: string;
   campusCode?: string;
   transitCode?: string;
+  /** Campus product split — defaults to higher_ed when omitted. */
+  campusInstitutionType?: CampusInstitutionType;
 };
+
+/**
+ * Higher-ed keeps Clery compliance nav. K-12 swaps Clery for Incident Log /
+ * School Safety Report and adds Visitor Verification + Pickup Authorization.
+ */
+export function applyCampusInstitutionNav(
+  nav: RoleNav,
+  campusCode: string,
+  institutionType: CampusInstitutionType = "higher_ed",
+): RoleNav {
+  if (institutionType !== "k12") return nav;
+  const base = `/app/campus/${campusCode}`;
+  const sections = nav.sections
+    .filter((section) => section.id !== "clery-compliance")
+    .map((section) => {
+      if (section.id !== "management" && section.id !== "safety") return section;
+      if (section.id === "management") {
+        return {
+          ...section,
+          items: [
+            ...section.items.filter((item) => item.id !== "clery"),
+            {
+              id: "incident-log",
+              label: "Incident Log",
+              href: `${base}/reports/incidents`,
+              icon: "ClipboardList",
+            },
+            {
+              id: "school-safety",
+              label: "School Safety Report",
+              href: `${base}/reports/school-safety`,
+              icon: "FileText",
+            },
+          ],
+        };
+      }
+      return section;
+    });
+
+  const k12Safety: NavSection = {
+    id: "k12-safety",
+    label: "K-12 SAFETY",
+    items: [
+      {
+        id: "visitors",
+        label: "Visitor Verification",
+        href: `${base}/visitors`,
+        icon: "LogIn",
+      },
+      {
+        id: "pickup-auth",
+        label: "Pickup Authorization",
+        href: `${base}/pickup-auth`,
+        icon: "UserCheck",
+      },
+    ],
+  };
+
+  const insertAt = Math.max(
+    0,
+    sections.findIndex((s) => s.id === "management" || s.id === "config"),
+  );
+  const next = [...sections];
+  next.splice(insertAt === -1 ? next.length : insertAt, 0, k12Safety);
+  return { ...nav, sections: next };
+}
 
 export function getRoleNav(role: string, ctx: NavContext): RoleNav {
   const j = ctx.jurisdiction ?? "jurisdiction";
@@ -1945,12 +2015,60 @@ export function getRoleNav(role: string, ctx: NavContext): RoleNav {
     case "analyst":             return getAnalystNav(j);
     case "auditor":             return getAuditorNav(j);
     // Campus
-    case "CAMPUS_ADMIN":        return appendStaffGuideNav(getCampusAdminNav(c), `/app/campus/${c}/staff-guide`);
-    case "CAMPUS_SUPERVISOR":   return appendStaffGuideNav(getCampusSupervisorNav(c), `/app/campus/${c}/staff-guide`);
-    case "CAMPUS_SECURITY":     return appendStaffGuideNav(getCampusSecurityNav(c), `/app/campus/${c}/staff-guide`);
-    case "CAMPUS_DISPATCH":     return appendStaffGuideNav(getCampusDispatchNav(c), `/app/campus/${c}/staff-guide`);
-    case "CAMPUS_COUNSELOR":    return appendStaffGuideNav(getCampusCounselorNav(c), `/app/campus/${c}/staff-guide`);
-    case "CAMPUS_FACULTY":      return appendStaffGuideNav(getCampusFacultyNav(c), `/app/campus/${c}/staff-guide`);
+    case "CAMPUS_ADMIN":
+      return appendStaffGuideNav(
+        applyCampusInstitutionNav(
+          getCampusAdminNav(c),
+          c,
+          parseCampusInstitutionType(ctx.campusInstitutionType),
+        ),
+        `/app/campus/${c}/staff-guide`,
+      );
+    case "CAMPUS_SUPERVISOR":
+      return appendStaffGuideNav(
+        applyCampusInstitutionNav(
+          getCampusSupervisorNav(c),
+          c,
+          parseCampusInstitutionType(ctx.campusInstitutionType),
+        ),
+        `/app/campus/${c}/staff-guide`,
+      );
+    case "CAMPUS_SECURITY":
+      return appendStaffGuideNav(
+        applyCampusInstitutionNav(
+          getCampusSecurityNav(c),
+          c,
+          parseCampusInstitutionType(ctx.campusInstitutionType),
+        ),
+        `/app/campus/${c}/staff-guide`,
+      );
+    case "CAMPUS_DISPATCH":
+      return appendStaffGuideNav(
+        applyCampusInstitutionNav(
+          getCampusDispatchNav(c),
+          c,
+          parseCampusInstitutionType(ctx.campusInstitutionType),
+        ),
+        `/app/campus/${c}/staff-guide`,
+      );
+    case "CAMPUS_COUNSELOR":
+      return appendStaffGuideNav(
+        applyCampusInstitutionNav(
+          getCampusCounselorNav(c),
+          c,
+          parseCampusInstitutionType(ctx.campusInstitutionType),
+        ),
+        `/app/campus/${c}/staff-guide`,
+      );
+    case "CAMPUS_FACULTY":
+      return appendStaffGuideNav(
+        applyCampusInstitutionNav(
+          getCampusFacultyNav(c),
+          c,
+          parseCampusInstitutionType(ctx.campusInstitutionType),
+        ),
+        `/app/campus/${c}/staff-guide`,
+      );
     // Hospital
     case "HOSPITAL_ADMIN":      return HOSPITAL_ADMIN_NAV;
     case "HOSPITAL_COORDINATOR":return HOSPITAL_COORDINATOR_NAV;

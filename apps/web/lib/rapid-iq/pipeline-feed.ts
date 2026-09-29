@@ -1,5 +1,5 @@
-import type { RapidIqOpportunity } from "@/lib/rapid-iq/types";
-import type { RapidIqPipelineSignal, RapidIqPipelineSignalStatus } from "rapid-cortex-shared";
+import type { NexiQOpportunity } from "@/lib/rapid-iq/types";
+import type { NexiQPipelineSignal, NexiQPipelineSignalStatus } from "rapid-cortex-shared";
 import { isCompetitorOpportunity, isKnownCompetitor } from "./competitor-registry";
 
 export type PipelineFeedTab = "911" | "campus" | "venue" | "transit" | "competitor";
@@ -54,31 +54,31 @@ export function classifyPipelineFeedTab(input: {
 }
 
 export function isPipelineInboxSignal(signal: {
-  status: RapidIqPipelineSignalStatus;
+  status: NexiQPipelineSignalStatus;
   sourceId: string;
 }): boolean {
   return signal.status === "new" && signal.sourceId !== "rapid-iq";
 }
 
 export function isPipelineQueueSignal(signal: {
-  status: RapidIqPipelineSignalStatus;
+  status: NexiQPipelineSignalStatus;
   sourceId: string;
 }): boolean {
   if (signal.status === "reviewed") return true;
   return signal.status === "new" && signal.sourceId === "rapid-iq";
 }
 
-export function opportunityFeedTab(opportunity: RapidIqOpportunity): PipelineFeedTab {
+export function opportunityFeedTab(opportunity: NexiQOpportunity): PipelineFeedTab {
   if (isCompetitorOpportunity(opportunity)) return "competitor";
   return opportunity.vertical;
 }
 
-export function isInboxOpportunity(opportunity: RapidIqOpportunity): boolean {
+export function isInboxOpportunity(opportunity: NexiQOpportunity): boolean {
   return opportunity.status !== "dismissed" && opportunity.status !== "converted";
 }
 
-export function feedTabForPipelineSignal(signal: RapidIqPipelineSignal): PipelineFeedTab {
-  const vertical = (signal as RapidIqPipelineSignal & { vertical?: string }).vertical;
+export function feedTabForPipelineSignal(signal: NexiQPipelineSignal): PipelineFeedTab {
+  const vertical = (signal as NexiQPipelineSignal & { vertical?: string }).vertical;
   if (vertical === "competitor") return "competitor";
   if (signal.agencyType === "competitor_watch" || isKnownCompetitor(signal.vendorNamed)) {
     return "competitor";
@@ -87,23 +87,23 @@ export function feedTabForPipelineSignal(signal: RapidIqPipelineSignal): Pipelin
 }
 
 export function pipelineSignalsForTab(
-  items: RapidIqPipelineSignal[],
+  items: NexiQPipelineSignal[],
   tab: PipelineFeedTab,
-): RapidIqPipelineSignal[] {
+): NexiQPipelineSignal[] {
   return items.filter((s) => feedTabForPipelineSignal(s) === tab);
 }
 
 export function inboxPipelineSignals(
-  items: RapidIqPipelineSignal[],
+  items: NexiQPipelineSignal[],
   tab: PipelineFeedTab,
-): RapidIqPipelineSignal[] {
+): NexiQPipelineSignal[] {
   return pipelineSignalsForTab(items, tab).filter(isPipelineInboxSignal);
 }
 
 export function queuedPipelineSignals(
-  items: RapidIqPipelineSignal[],
+  items: NexiQPipelineSignal[],
   tab: PipelineFeedTab,
-): RapidIqPipelineSignal[] {
+): NexiQPipelineSignal[] {
   return pipelineSignalsForTab(items, tab).filter((s) => {
     if (isPipelineQueueSignal(s) || s.status === "pushed") return true;
     return s.status === "dismissed";
@@ -111,7 +111,7 @@ export function queuedPipelineSignals(
 }
 
 export function countQueuedUnworked(
-  items: RapidIqPipelineSignal[],
+  items: NexiQPipelineSignal[],
   tab?: PipelineFeedTab,
 ): number {
   const scoped = tab ? pipelineSignalsForTab(items, tab) : items;

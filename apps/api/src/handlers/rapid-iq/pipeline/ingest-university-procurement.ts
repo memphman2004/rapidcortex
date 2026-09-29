@@ -22,10 +22,10 @@ const BATCH_SIZE = 10;
 const CAMPUS_TERMS = ["campus safety", "dispatch", "security", "emergency", "communications", "CAD"];
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: university procurement ingestion starting");
+  console.log("NexiQ pipeline: university procurement ingestion starting");
 
   if (await enqueueMockIfEnabled("university-procurement")) {
-    console.log("Rapid IQ pipeline: university-procurement mock path complete");
+    console.log("NexiQ pipeline: university-procurement mock path complete");
     return;
   }
 

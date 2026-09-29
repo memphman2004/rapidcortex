@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 /**
- * Seeds 10 Rapid IQ opportunities (+ signals/contacts/sources) for local/dev demos.
+ * Seeds 10 NexiQ opportunities (+ signals/contacts/sources) for local/dev demos.
  * Run: STAGE=dev npx tsx scripts/seed-rapid-iq-dev.ts
  */
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";

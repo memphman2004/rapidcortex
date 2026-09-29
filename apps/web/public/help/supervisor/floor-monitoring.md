@@ -1,8 +1,19 @@
-# Live floor monitoring
+# Live Floor Monitoring
 
-1. Open the supervisor floor / monitoring view.
-2. Watch active incidents and dispatcher status.
-3. Open a call only per SOP. Monitoring is audited.
-4. If you take over or transfer, use **Call Transfer & Takeover** — do not pull CAD out from under a dispatcher without a voice.
+Floor monitoring shows which dispatchers are active, which incidents are open, and where load is concentrating.
 
-This is 911 floor oversight, not a campus or venue ops board.
+## How to use it
+
+1. Open the supervisor floor / live view.
+2. Sort or filter by status, queue, or dispatcher when available.
+3. Click into an incident only when you need detail or coaching context.
+4. If your agency enables supervisor watch of a live session, expect a **SUPERVISOR WATCHING** indicator — monitoring is audited.
+
+## Escalation cues
+
+- Growing unanswered queue
+- Long talk times with no CAD progress
+- Wellness flags on a seat
+- Multi-incident surge that needs a war room
+
+Floor view is awareness. It does not replace radio, telephony, or CAD.

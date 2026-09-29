@@ -528,7 +528,7 @@ async function main() {
       null, 150_000, 350_000, "range", "monthly", "per-authority", 603, now),
 
     // -------------------------------------------------------------------------
-    // ADD-ONS — Call Assist, Vision, Rapid IQ, Translate, Mesh (product gaps)
+    // ADD-ONS — Call Assist, Vision, NexiQ, Translate, Mesh (product gaps)
     // -------------------------------------------------------------------------
     addon("addon-call-assist", "Call Assist (Non-Emergency)", "Call Assist",
       "AI-assisted non-emergency intake, greeting configuration, callbacks, and operator console.",
@@ -551,7 +551,7 @@ async function main() {
     addon("addon-ng911-assist", "NG911 Assist Pack", "AI & Call Intelligence",
       "Diversion, EIDO, Additional Data, and NG911 metrics assist.",
       18_000, null, null, "fixed", "monthly", "agency/month", 276, now, ["ng911"]),
-    addon("addon-rapid-iq", "Rapid IQ Sales Intelligence", "Sales Intelligence",
+    addon("addon-rapid-iq", "NexiQ Sales Intelligence", "Sales Intelligence",
       "PSAP/RFP signal pipeline and opportunity scoring for NexCort internal sales (RC Admin).",
       null, null, null, "custom", "monthly", "agency/month", 277, now, ["rapid-iq"]),
     addon("addon-tip-console-full", "Security / Tip Console (Full)", "Campus & Venue",

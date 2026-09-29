@@ -57,6 +57,14 @@ export function mockLexModelsPort(): LexModelsPort {
   };
 }
 
+import { awsLexModelsPort } from "./aws-lex-models-port.js";
+
+/** Prefer live Lex Models when CALL_ASSIST_LEX_MOCK=false; mock otherwise (CI / local). */
+export function createLexModelsPort(mock = process.env.CALL_ASSIST_LEX_MOCK !== "false"): LexModelsPort {
+  if (mock) return mockLexModelsPort();
+  return awsLexModelsPort();
+}
+
 export class LexBotProvisioner {
   constructor(
     private readonly models: LexModelsPort,

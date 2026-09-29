@@ -2,7 +2,7 @@ import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { randomUUID } from "node:crypto";
 import {
-  canAccessRapidIqWorkspace,
+  canAccessNexiQWorkspace,
   convertToLeadBodySchema,
   outreachBodySchema,
   agencyProfileBodySchema,
@@ -61,14 +61,14 @@ const lambda = new LambdaClient({});
 
 type JsonResult = ReturnType<typeof ok>;
 
-async function requireRapidIqAdmin(
+async function requireNexiQAdmin(
   event: APIGatewayProxyEventV2,
 ): Promise<{ error: JsonResult } | { user: UserContext }> {
   const user = await getUserContext(event);
   if (!user) return { error: unauthorized() };
   if (!isUserAccountActive(user)) return { error: unauthorized(ACCOUNT_INACTIVE_MESSAGE) };
-  if (!env.enableRapidIq) return { error: serviceUnavailable("Rapid IQ is not enabled") };
-  if (!canAccessRapidIqWorkspace(user.role)) return { error: forbidden() };
+  if (!env.enableRapidIq) return { error: serviceUnavailable("NexiQ is not enabled") };
+  if (!canAccessNexiQWorkspace(user.role)) return { error: forbidden() };
   return { user };
 }
 
@@ -92,7 +92,7 @@ function opportunityIdFromPath(path: string, params?: { opportunityId?: string }
 
 export async function handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
   try {
-    const auth = await requireRapidIqAdmin(event);
+    const auth = await requireNexiQAdmin(event);
     if ("error" in auth) return withCorrelationHeaders(event, auth.error);
     const { user } = auth;
 
@@ -464,7 +464,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         assignee: parsed.data.assignee,
         attribution: {
           channel: "contact_sales",
-          channelLabel: "Rapid IQ",
+          channelLabel: "NexiQ",
           landingPage: "/rc-admin/rapid-iq",
           firstTouchAt: now,
         },

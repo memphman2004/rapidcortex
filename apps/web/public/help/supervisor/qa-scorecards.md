@@ -1,7 +1,14 @@
-# QA scorecards
+# QA Scorecards
 
-1. Open QA scorecards from supervisor review (when QA scoring is on).
-2. Read automated or analyst scores as coaching input.
-3. Do not use a single score as discipline without your HR/QA policy.
+QA scorecards summarize call quality for your team when the QA module is enabled.
 
-Analysts have a deeper QA trends view. Dispatchers do not see others’ scorecards here.
+## How to review
+
+1. Open **QA Scorecards** from the supervisor console.
+2. Filter by shift, dispatcher, or date range.
+3. Open a scored call to see criteria and transcript context.
+4. Use scores for coaching — not as the only measure of performance.
+
+## Coaching follow-through
+
+Add a coaching note when a pattern needs correction. Pair with wellness flags if fatigue or trauma exposure is involved. Software scores are assistive; your judgment and agency QA policy win.

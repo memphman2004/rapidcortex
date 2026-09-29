@@ -1,5 +1,5 @@
 /**
- * DynamoDB access for Rapid IQ pipeline signals
+ * DynamoDB access for NexiQ pipeline signals
  * (table: RAPID_IQ_PIPELINE_SIGNALS_TABLE — not RAPID_IQ_SIGNALS_TABLE).
  */
 
@@ -215,7 +215,7 @@ export async function listAllSignals(limit = 100): Promise<RapidIqPipelineSignal
   return flat.slice(0, limit);
 }
 
-/** Inbox + pipeline queue: bias toward `new` so collector ingest is not truncated by high-score Rapid IQ enqueues. */
+/** Inbox + pipeline queue: bias toward `new` so collector ingest is not truncated by high-score NexiQ enqueues. */
 export async function listSignalsForCommandCenter(limits?: {
   incoming?: number;
   reviewed?: number;

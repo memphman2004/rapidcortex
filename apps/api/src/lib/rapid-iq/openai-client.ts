@@ -1,8 +1,8 @@
 import OpenAI from "openai";
 import {
-  isRapidIqAiEnabled,
-  isRapidIqWebSearchEnabled,
-  resolveRapidIqOpenAiKey,
+  isNexiQAiEnabled,
+  isNexiQWebSearchEnabled,
+  resolveNexiQOpenAiKey,
 } from "./openai-config.js";
 
 export type OpenAiJsonResult = {
@@ -17,8 +17,8 @@ let cachedClient: OpenAI | null = null;
 let cachedKey = "";
 
 async function getClient(): Promise<OpenAI | null> {
-  if (!isRapidIqAiEnabled()) return null;
-  const key = await resolveRapidIqOpenAiKey();
+  if (!isNexiQAiEnabled()) return null;
+  const key = await resolveNexiQOpenAiKey();
   if (!key) return null;
   if (cachedClient && cachedKey === key) return cachedClient;
   cachedClient = new OpenAI({ apiKey: key });
@@ -26,7 +26,7 @@ async function getClient(): Promise<OpenAI | null> {
   return cachedClient;
 }
 
-export function resetRapidIqOpenAiClientForTests(): void {
+export function resetNexiQOpenAiClientForTests(): void {
   cachedClient = null;
   cachedKey = "";
 }
@@ -72,7 +72,7 @@ export async function createJsonResponse(opts: {
   const client = await getClient();
   if (!client) return null;
 
-  const useSearch = Boolean(opts.webSearch && isRapidIqWebSearchEnabled());
+  const useSearch = Boolean(opts.webSearch && isNexiQWebSearchEnabled());
   const maxRetries = opts.maxRetries ?? 3;
   let lastError: unknown;
 

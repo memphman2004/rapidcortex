@@ -203,7 +203,7 @@ ORPHANED = {
         f"rapid-cortex-resumes-{STAGE}-{ACCOUNT_ID}",
         "bucket",
     ),
-    # Pre-created Rapid IQ / marketing / RCS / PSAP CRM tables (exist outside CFN).
+    # Pre-created NexiQ / marketing / RCS / PSAP CRM tables (exist outside CFN).
     "MarketingLeadsTable": (
         "ExistingMarketingLeadsTableName",
         f"rapid-cortex-marketing-leads-{STAGE}",

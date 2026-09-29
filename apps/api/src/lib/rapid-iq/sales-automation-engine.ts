@@ -7,8 +7,8 @@ import { randomBytes } from "node:crypto";
 import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import {
   normalizeSalesAutomationVertical,
-  type CreateRapidIqSalesBulkCampaignBody,
-  type CreateRapidIqSalesSequenceBody,
+  type CreateNexiQSalesBulkCampaignBody,
+  type CreateNexiQSalesSequenceBody,
   type RapidIqSalesBulkApproveResult,
   type RapidIqSalesBulkBatch,
   type RapidIqSalesBulkResult,
@@ -19,13 +19,13 @@ import {
   type RapidIqSalesSequence,
   type RapidIqSalesStepLabel,
   type RapidIqSalesVertical,
-  type UpdateRapidIqSalesDraftBody,
-  type UpdateRapidIqSalesSequenceBody,
+  type UpdateNexiQSalesDraftBody,
+  type UpdateNexiQSalesSequenceBody,
 } from "rapid-cortex-shared";
 import { isCollectorsMockEnabled } from "./agenda-finder.js";
 import { findContactsViaHunter } from "./hunter-enrichment.js";
 import { createJsonResponse } from "./openai-client.js";
-import { isRapidIqAiEnabled, rapidIqModelStrategy } from "./openai-config.js";
+import { isNexiQAiEnabled, rapidIqModelStrategy } from "./openai-config.js";
 import { pipelineDdb } from "./pipeline-ddb.js";
 import {
   getSalesDraft,
@@ -176,7 +176,7 @@ async function generateThreeTouch(input: {
   conferenceName?: string;
 }): Promise<RapidIqSalesOutreachStep[]> {
   const fallback = heuristicThreeTouch(input);
-  if (!isRapidIqAiEnabled() || isCollectorsMockEnabled()) return fallback;
+  if (!isNexiQAiEnabled() || isCollectorsMockEnabled()) return fallback;
 
   const raw = await createJsonResponse({
     model: rapidIqModelStrategy(),
@@ -249,7 +249,7 @@ function hunterVertical(v: RapidIqSalesVertical): "911" | "campus" | "venue" | "
 }
 
 export async function createSequenceFromTrigger(
-  body: CreateRapidIqSalesSequenceBody,
+  body: CreateNexiQSalesSequenceBody,
 ): Promise<RapidIqSalesSequence> {
   const vertical = normalizeSalesAutomationVertical(body.vertical);
   const now = new Date().toISOString();
@@ -318,7 +318,7 @@ export async function createSequenceFromTrigger(
 }
 
 export async function createBulkCampaign(
-  body: CreateRapidIqSalesBulkCampaignBody,
+  body: CreateNexiQSalesBulkCampaignBody,
 ): Promise<RapidIqSalesBulkResult> {
   const vertical = normalizeSalesAutomationVertical(body.vertical);
   const campaignId = newId("bulk");
@@ -498,7 +498,7 @@ const EDITABLE_STEP_STATUSES = new Set(["pending", "scheduled"]);
 
 export function applySequenceEmailPatch(
   current: RapidIqSalesSequence,
-  patch: UpdateRapidIqSalesSequenceBody,
+  patch: UpdateNexiQSalesSequenceBody,
 ): RapidIqSalesSequence {
   if (!EDITABLE_SEQUENCE_STATUSES.has(current.status)) {
     throw new Error("Cannot edit a suppressed or completed sequence");
@@ -548,7 +548,7 @@ export function applySequenceEmailPatch(
 
 export async function updateSequenceCopy(
   sequenceId: string,
-  patch: UpdateRapidIqSalesSequenceBody,
+  patch: UpdateNexiQSalesSequenceBody,
 ): Promise<RapidIqSalesSequence> {
   const current = await getSalesSequence(sequenceId);
   if (!current) throw new Error("Sequence not found");
@@ -559,7 +559,7 @@ export async function updateSequenceCopy(
 
 export function applyDraftEmailPatch(
   current: RapidIqSalesContentDraft,
-  patch: UpdateRapidIqSalesDraftBody,
+  patch: UpdateNexiQSalesDraftBody,
 ): RapidIqSalesContentDraft {
   if (current.status !== "draft") {
     throw new Error("Only draft content can be edited");
@@ -581,7 +581,7 @@ export function applyDraftEmailPatch(
 
 export async function updateDraftCopy(
   draftId: string,
-  patch: UpdateRapidIqSalesDraftBody,
+  patch: UpdateNexiQSalesDraftBody,
 ): Promise<RapidIqSalesContentDraft> {
   const current = await getSalesDraft(draftId);
   if (!current) throw new Error("Draft not found");
@@ -592,7 +592,7 @@ export async function updateDraftCopy(
 
 export async function updateBulkCampaignCopy(
   campaignId: string,
-  patch: Pick<UpdateRapidIqSalesSequenceBody, "steps">,
+  patch: Pick<UpdateNexiQSalesSequenceBody, "steps">,
 ): Promise<{ updated: number }> {
   if (!patch.steps?.length) throw new Error("Provide at least one step email to update");
   const sequences = await listSalesSequences(500);
@@ -667,7 +667,7 @@ export function listCampaignCards(
       id: "psap-core-2026",
       name: "911 / PSAP Core outbound",
       description:
-        "6-touch Core sequence (Rapid IQ sends 1–3). CAD stays the system of record. See EMAIL_CAMPAIGN_911_VENUE_CAMPUS.md.",
+        "6-touch Core sequence (NexiQ sends 1–3). CAD stays the system of record. See EMAIL_CAMPAIGN_911_VENUE_CAMPUS.md.",
       next: "Always-on · approve then send from Outlook",
       status: "active",
     },
@@ -675,7 +675,7 @@ export function listCampaignCards(
       id: "campus-safety-2026",
       name: "Campus Safety outbound",
       description:
-        "QR / NFC / SMS campus console. Not a 911 dispatch system. Rapid IQ steps 1–3 of the campus track.",
+        "QR / NFC / SMS campus console. Not a 911 dispatch system. NexiQ steps 1–3 of the campus track.",
       next: "Always-on · approve then send from Outlook",
       status: "active",
     },
@@ -683,7 +683,7 @@ export function listCampaignCards(
       id: "venue-ops-2026",
       name: "Venue Operations outbound",
       description:
-        "Guest QR into section-level security ops. Cameras stay the venue’s. Rapid IQ steps 1–3 of the venue track.",
+        "Guest QR into section-level security ops. Cameras stay the venue’s. NexiQ steps 1–3 of the venue track.",
       next: "Always-on · approve then send from Outlook",
       status: "active",
     },

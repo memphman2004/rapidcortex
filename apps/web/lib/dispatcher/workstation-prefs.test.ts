@@ -9,6 +9,7 @@ describe("workstation layout prefs", () => {
         "intelligence",
         "map",
         "caller_mobile",
+        "video_assist",
         "silent_text",
         "pinpoint",
         "cad_entry",

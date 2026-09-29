@@ -443,6 +443,12 @@ Resources:
                     - Value: "true"
                     - Value: "sí"
                     - Value: si
+                    - Value: 是
+                    - Value: 对
+                    - Value: 係
+                    - Value: oo
+                    - Value: vâng
+                    - Value: نعم
                     - Value: affirmative
                 - SampleValue:
                     Value: No
@@ -451,10 +457,50 @@ Resources:
                     - Value: nope
                     - Value: "n"
                     - Value: "false"
+                    - Value: 不
+                    - Value: 不是
+                    - Value: 唔係
+                    - Value: hindi
+                    - Value: không
+                    - Value: لا
                     - Value: negative
               ValueSelectionSetting:
                 ResolutionStrategy: TOP_RESOLUTION
           Intents:
+            - Name: Welcome
+              Description: Call Assist intent Welcome
+              SampleUtterances:
+                - Utterance: "hello"
+                - Utterance: "hi"
+                - Utterance: "yes"
+                - Utterance: "i need help"
+                - Utterance: "i need to report something"
+                - Utterance: "i have a question"
+                - Utterance: "i want to report"
+                - Utterance: "can i get some help"
+                - Utterance: "i have a non-emergency"
+                - Utterance: "i need to make a report"
+                - Utterance: "i want to file a report"
+                - Utterance: "hey"
+                - Utterance: "good morning"
+                - Utterance: "good afternoon"
+                - Utterance: "good evening"
+                - Utterance: "um hi"
+                - Utterance: "is this non emergency"
+                - Utterance: "is this the non emergency line"
+                - Utterance: "I was told to call this number"
+                - Utterance: "I'm not sure if this is an emergency"
+                - Utterance: "I need to speak with someone about a report"
+                - Utterance: "can someone help me file a complaint"
+                - Utterance: "I'd like to report a problem"
+                - Utterance: "calling about something that already happened"
+                - Utterance: "this isn't urgent but I need to report it"
+                - Utterance: "hello is anyone there"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
             - Name: EmergencyEscalation
               Description: Call Assist intent EmergencyEscalation
               SampleUtterances:
@@ -504,6 +550,21 @@ Resources:
                 - Utterance: "she threatened to kill me"
                 - Utterance: "he threatened to shoot"
                 - Utterance: "they have a knife"
+                - Utterance: "there's a fight going on right now"
+                - Utterance: "people are fighting with weapons"
+                - Utterance: "someone just got shot"
+                - Utterance: "I hear gunshots"
+                - Utterance: "there's blood everywhere"
+                - Utterance: "she can't breathe"
+                - Utterance: "he's choking"
+                - Utterance: "overdose I think"
+                - Utterance: "someone overdosed"
+                - Utterance: "there's a car chasing me"
+                - Utterance: "I'm being followed and I'm scared"
+                - Utterance: "they have a firearm"
+                - Utterance: "knife fight"
+                - Utterance: "someone is holding a hostage"
+                - Utterance: "I need help immediately"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -525,6 +586,16 @@ Resources:
                 - Utterance: "operator"
                 - Utterance: "talk to someone real"
                 - Utterance: "I'd rather talk to a person"
+                - Utterance: "can I speak to a live person"
+                - Utterance: "please get me a call taker"
+                - Utterance: "I need an actual person"
+                - Utterance: "stop the robot"
+                - Utterance: "this AI isn't helping"
+                - Utterance: "put me through to an agent"
+                - Utterance: "I want customer service"
+                - Utterance: "transfer me please"
+                - Utterance: "let me speak with an operator now"
+                - Utterance: "human please"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -559,6 +630,18 @@ Resources:
                 - Utterance: "there's a dog barking constantly"
                 - Utterance: "there's noise outside my apartment"
                 - Utterance: "loud motorcycle"
+                - Utterance: "the noise is keeping me up"
+                - Utterance: "I can't sleep because of the noise"
+                - Utterance: "they're blasting music again"
+                - Utterance: "construction noise at night"
+                - Utterance: "someone is banging on the walls"
+                - Utterance: "loud arguing next door"
+                - Utterance: "karaoke going all night"
+                - Utterance: "drumming next door"
+                - Utterance: "the party next door won't quit"
+                - Utterance: "it's after quiet hours and they're still loud"
+                - Utterance: "can you send someone about the noise"
+                - Utterance: "reporting excessive noise"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -582,14 +665,10 @@ Resources:
                 - Priority: 1
                   SlotName: NoiseLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: NoiseType
-                - Priority: 5
+                - Priority: 3
                   SlotName: NoiseStillHappening
-                - Priority: 6
+                - Priority: 4
                   SlotName: CallbackNumber
               Slots:
                 - Name: NoiseLocation
@@ -603,28 +682,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "What's the address or location of the noise?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Is there an apartment, suite, or unit number?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What are the nearest cross streets?"
                 - Name: NoiseType
                   SlotTypeName: NoiseType
                   ValueElicitationSetting:
@@ -687,6 +744,17 @@ Resources:
                 - Utterance: "someone is wandering around confused"
                 - Utterance: "there's a man yelling at people"
                 - Utterance: "a person is making people uncomfortable"
+                - Utterance: "there's someone hanging around who doesn't belong"
+                - Utterance: "a stranger has been sitting in a car for hours"
+                - Utterance: "someone is checking door handles"
+                - Utterance: "person looking into my garage"
+                - Utterance: "there's a guy taking pictures of houses"
+                - Utterance: "someone followed me home"
+                - Utterance: "a person is hiding behind the dumpster"
+                - Utterance: "suspicious vehicle with people just sitting there"
+                - Utterance: "someone tried my front door"
+                - Utterance: "there's a creep watching the playground"
+                - Utterance: "I think someone is casing the neighborhood"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -710,18 +778,14 @@ Resources:
                 - Priority: 1
                   SlotName: SuspiciousLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: PersonDescription
-                - Priority: 5
+                - Priority: 3
                   SlotName: PersonDirection
-                - Priority: 6
+                - Priority: 4
                   SlotName: WeaponVisible
-                - Priority: 7
+                - Priority: 5
                   SlotName: CallbackNumber
-                - Priority: 8
+                - Priority: 6
                   SlotName: CallerSafeLocation
               Slots:
                 - Name: SuspiciousLocation
@@ -735,28 +799,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "Where is this person right now — what's the address or nearest intersection?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Is there an apartment, suite, or unit number?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What are the nearest cross streets?"
                 - Name: PersonDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -831,6 +873,15 @@ Resources:
                 - Utterance: "car has been here for three days"
                 - Utterance: "junk car sitting on the street"
                 - Utterance: "can you tow this abandoned car"
+                - Utterance: "there's a car that's been sitting here for days"
+                - Utterance: "abandoned truck on the street"
+                - Utterance: "a vehicle has been parked here forever"
+                - Utterance: "looks like someone dumped a car"
+                - Utterance: "car with flat tires left on the curb"
+                - Utterance: "van abandoned in the lot"
+                - Utterance: "there's a junk car on the grass"
+                - Utterance: "vehicle hasn't moved in over a week"
+                - Utterance: "reporting an abandoned automobile"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -854,22 +905,10 @@ Resources:
                 - Priority: 1
                   SlotName: VehicleLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: VehicleDescription
-                - Priority: 5
-                  SlotName: VehicleColor
-                - Priority: 6
-                  SlotName: VehicleMake
-                - Priority: 7
-                  SlotName: VehicleModel
-                - Priority: 8
-                  SlotName: VehiclePlate
-                - Priority: 9
+                - Priority: 3
                   SlotName: HowLongAbandoned
-                - Priority: 10
+                - Priority: 4
                   SlotName: AbandonedVehicleHazard
               Slots:
                 - Name: VehicleLocation
@@ -883,28 +922,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "What's the address or nearest intersection where the vehicle is located?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Is there an apartment, suite, or unit number?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What are the nearest cross streets?"
                 - Name: VehicleDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -916,50 +933,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "Can you describe the vehicle? Color, make or model if you know it, and any license plate?"
-                - Name: VehicleColor
-                  SlotTypeName: VehicleColor
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What color is the vehicle?"
-                - Name: VehicleMake
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Do you know the make of the vehicle — Ford, Toyota, Honda?"
-                - Name: VehicleModel
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Do you know the model?"
-                - Name: VehiclePlate
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Do you have a license plate number?"
                 - Name: HowLongAbandoned
                   SlotTypeName: IncidentTimeframe
                   ValueElicitationSetting:
@@ -1003,6 +976,15 @@ Resources:
                 - Utterance: "my radio was stolen"
                 - Utterance: "my laptop was stolen from my car"
                 - Utterance: "my car was ransacked"
+                - Utterance: "my car was broken into overnight"
+                - Utterance: "they smashed my window"
+                - Utterance: "my truck was broken into"
+                - Utterance: "someone stole stuff from my vehicle"
+                - Utterance: "car prowler in the parking lot"
+                - Utterance: "my glove box was rifled through"
+                - Utterance: "window shattered on my car"
+                - Utterance: "they got into my SUV"
+                - Utterance: "vehicle break-in to report"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -1026,26 +1008,16 @@ Resources:
                 - Priority: 1
                   SlotName: BurglaryVehicleLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: BurglaryVehicleDescription
-                - Priority: 5
-                  SlotName: VehicleColor
-                - Priority: 6
-                  SlotName: VehicleMake
-                - Priority: 7
-                  SlotName: VehicleModel
-                - Priority: 8
+                - Priority: 3
                   SlotName: BurglaryVehiclePlate
-                - Priority: 9
+                - Priority: 4
                   SlotName: ItemsStolen
-                - Priority: 10
+                - Priority: 5
                   SlotName: WhenOccurred
-                - Priority: 11
+                - Priority: 6
                   SlotName: SuspectSeen
-                - Priority: 12
+                - Priority: 7
                   SlotName: CallbackNumber
               Slots:
                 - Name: BurglaryVehicleLocation
@@ -1059,28 +1031,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "Where is your vehicle right now — what's the address?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Is there an apartment, suite, or unit number?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What are the nearest cross streets?"
                 - Name: BurglaryVehicleDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -1092,39 +1042,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "What's the year, make, model, and color of your vehicle?"
-                - Name: VehicleColor
-                  SlotTypeName: VehicleColor
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What color is the vehicle?"
-                - Name: VehicleMake
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Do you know the make of the vehicle — Ford, Toyota, Honda?"
-                - Name: VehicleModel
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Do you know the model?"
                 - Name: BurglaryVehiclePlate
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -1204,6 +1121,14 @@ Resources:
                 - Utterance: "someone took my phone"
                 - Utterance: "my phone was stolen"
                 - Utterance: "theft of services"
+                - Utterance: "my bike was stolen"
+                - Utterance: "package theft from my porch"
+                - Utterance: "they stole my lawn equipment"
+                - Utterance: "catalytic converter was stolen"
+                - Utterance: "someone stole from my yard"
+                - Utterance: "I want to report a theft that already happened"
+                - Utterance: "my property was taken"
+                - Utterance: "shoplifting report from earlier"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -1227,16 +1152,12 @@ Resources:
                 - Priority: 1
                   SlotName: TheftLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: TheftItemDescription
-                - Priority: 5
+                - Priority: 3
                   SlotName: TheftWhenOccurred
-                - Priority: 6
+                - Priority: 4
                   SlotName: TheftSuspectInfo
-                - Priority: 7
+                - Priority: 5
                   SlotName: TheftCallbackNumber
               Slots:
                 - Name: TheftLocation
@@ -1250,28 +1171,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "Where did the theft occur?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Is there an apartment, suite, or unit number?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What are the nearest cross streets?"
                 - Name: TheftItemDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -1336,6 +1235,16 @@ Resources:
                 - Utterance: "car blocking my mailbox"
                 - Utterance: "wrong way parking"
                 - Utterance: "expired tags parked on street"
+                - Utterance: "someone is parked in front of my driveway"
+                - Utterance: "car blocking the hydrant"
+                - Utterance: "illegal parking on my street"
+                - Utterance: "vehicle is in a no parking zone"
+                - Utterance: "they're parked on the sidewalk"
+                - Utterance: "blocking the fire lane"
+                - Utterance: "handicapped spot without a placard"
+                - Utterance: "double parked and I can't get out"
+                - Utterance: "someone parked in my assigned spot"
+                - Utterance: "car left in a loading zone"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -1359,20 +1268,8 @@ Resources:
                 - Priority: 1
                   SlotName: ParkingLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: ParkingVehicleDescription
-                - Priority: 5
-                  SlotName: VehicleColor
-                - Priority: 6
-                  SlotName: VehicleMake
-                - Priority: 7
-                  SlotName: VehicleModel
-                - Priority: 8
-                  SlotName: VehiclePlate
-                - Priority: 9
+                - Priority: 3
                   SlotName: ParkingViolationType
               Slots:
                 - Name: ParkingLocation
@@ -1386,28 +1283,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "What's the address where the vehicle is illegally parked?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Is there an apartment, suite, or unit number?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What are the nearest cross streets?"
                 - Name: ParkingVehicleDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -1419,50 +1294,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "Can you describe the vehicle — color, make, model, and license plate if you have it?"
-                - Name: VehicleColor
-                  SlotTypeName: VehicleColor
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What color is the vehicle?"
-                - Name: VehicleMake
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Do you know the make of the vehicle — Ford, Toyota, Honda?"
-                - Name: VehicleModel
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Do you know the model?"
-                - Name: VehiclePlate
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Do you have a license plate number?"
                 - Name: ParkingViolationType
                   SlotTypeName: ParkingViolationType
                   ValueElicitationSetting:
@@ -1497,6 +1328,15 @@ Resources:
                 - Utterance: "check on elderly person"
                 - Utterance: "check on my mom"
                 - Utterance: "check on my dad"
+                - Utterance: "can you check on my neighbor"
+                - Utterance: "worried about an elderly relative"
+                - Utterance: "please do a wellness check"
+                - Utterance: "my friend isn't answering and I'm concerned"
+                - Utterance: "mail is piling up at their house"
+                - Utterance: "I think something might be wrong with them"
+                - Utterance: "can officers check if they're okay"
+                - Utterance: "welfare check on my mom"
+                - Utterance: "haven't heard from them and I'm worried"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -1520,18 +1360,14 @@ Resources:
                 - Priority: 1
                   SlotName: WelfareCheckAddress
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: WelfareCheckPersonName
-                - Priority: 5
+                - Priority: 3
                   SlotName: WelfareCheckRelationship
-                - Priority: 6
+                - Priority: 4
                   SlotName: WelfareCheckLastContact
-                - Priority: 7
+                - Priority: 5
                   SlotName: WelfareCheckWhyConcerned
-                - Priority: 8
+                - Priority: 6
                   SlotName: WelfareCheckCallerCallback
               Slots:
                 - Name: WelfareCheckAddress
@@ -1545,28 +1381,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "What's the address of the person you're concerned about?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Is there an apartment, suite, or unit number?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What are the nearest cross streets?"
                 - Name: WelfareCheckPersonName
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -1645,6 +1459,16 @@ Resources:
                 - Utterance: "animal in my yard"
                 - Utterance: "coyote sighting"
                 - Utterance: "stray animal"
+                - Utterance: "there's a stray dog running around"
+                - Utterance: "aggressive dog off leash"
+                - Utterance: "animal cruelty I want to report"
+                - Utterance: "injured animal on the side of the road"
+                - Utterance: "raccoon in the attic again"
+                - Utterance: "loose horse on the road"
+                - Utterance: "dogs fighting in the park"
+                - Utterance: "dead animal in the street"
+                - Utterance: "someone left a dog in a hot car"
+                - Utterance: "coyote in the neighborhood"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -1668,12 +1492,8 @@ Resources:
                 - Priority: 1
                   SlotName: AnimalLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: AnimalType
-                - Priority: 5
+                - Priority: 3
                   SlotName: AnimalThreatLevel
               Slots:
                 - Name: AnimalLocation
@@ -1687,28 +1507,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "Where is the animal right now?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Is there an apartment, suite, or unit number?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What are the nearest cross streets?"
                 - Name: AnimalType
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -1747,6 +1545,13 @@ Resources:
                 - Utterance: "predatory towing"
                 - Utterance: "my car was booted"
                 - Utterance: "someone put a boot on my car"
+                - Utterance: "my car was towed and I don't know why"
+                - Utterance: "I think my vehicle was illegally towed"
+                - Utterance: "who towed my car"
+                - Utterance: "towing company took my truck"
+                - Utterance: "I need help finding my towed vehicle"
+                - Utterance: "dispute a tow"
+                - Utterance: "my car is gone and might have been towed"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -1770,22 +1575,10 @@ Resources:
                 - Priority: 1
                   SlotName: TowLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: TowVehicleDescription
-                - Priority: 5
-                  SlotName: VehicleColor
-                - Priority: 6
-                  SlotName: VehicleMake
-                - Priority: 7
-                  SlotName: VehicleModel
-                - Priority: 8
-                  SlotName: VehiclePlate
-                - Priority: 9
+                - Priority: 3
                   SlotName: TowCompanyInfo
-                - Priority: 10
+                - Priority: 4
                   SlotName: TowCallbackNumber
               Slots:
                 - Name: TowLocation
@@ -1799,28 +1592,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "Where was your vehicle when it was towed from?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Is there an apartment, suite, or unit number?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What are the nearest cross streets?"
                 - Name: TowVehicleDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -1832,50 +1603,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "What's the year, make, model, color, and license plate of your vehicle?"
-                - Name: VehicleColor
-                  SlotTypeName: VehicleColor
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What color is the vehicle?"
-                - Name: VehicleMake
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Do you know the make of the vehicle — Ford, Toyota, Honda?"
-                - Name: VehicleModel
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Do you know the model?"
-                - Name: VehiclePlate
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Do you have a license plate number?"
                 - Name: TowCompanyInfo
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -1917,6 +1644,13 @@ Resources:
                 - Utterance: "eggs on my car"
                 - Utterance: "someone threw rocks through my window"
                 - Utterance: "my fence was knocked over"
+                - Utterance: "graffiti on my fence"
+                - Utterance: "my mailbox was smashed"
+                - Utterance: "windows were egged"
+                - Utterance: "damage to my building overnight"
+                - Utterance: "tagged the side of my house"
+                - Utterance: "vandalism to report from last night"
+                - Utterance: "my tires were slashed"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -1940,14 +1674,10 @@ Resources:
                 - Priority: 1
                   SlotName: VandalismLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: VandalismDescription
-                - Priority: 5
+                - Priority: 3
                   SlotName: VandalismWhenOccurred
-                - Priority: 6
+                - Priority: 4
                   SlotName: VandalismSuspectInfo
               Slots:
                 - Name: VandalismLocation
@@ -1961,28 +1691,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "What's the address of the property that was damaged?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Is there an apartment, suite, or unit number?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What are the nearest cross streets?"
                 - Name: VandalismDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -2035,6 +1743,14 @@ Resources:
                 - Utterance: "health hazard"
                 - Utterance: "property is a mess"
                 - Utterance: "nuisance property"
+                - Utterance: "overgrown lot next door"
+                - Utterance: "trash piled up at a property"
+                - Utterance: "illegal dumping in the alley"
+                - Utterance: "someone is running a business from home illegally"
+                - Utterance: "junk and debris in the yard"
+                - Utterance: "code violation next door"
+                - Utterance: "tall grass and weeds complaint"
+                - Utterance: "abandoned furniture on the curb for weeks"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -2058,10 +1774,6 @@ Resources:
                 - Priority: 1
                   SlotName: CodeEnforcementAddress
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: CodeViolationDescription
               Slots:
                 - Name: CodeEnforcementAddress
@@ -2075,28 +1787,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "What's the address of the property?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Is there an apartment, suite, or unit number?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What are the nearest cross streets?"
                 - Name: CodeViolationDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -2131,6 +1821,15 @@ Resources:
                 - Utterance: "water coming up from the street"
                 - Utterance: "water is gushing from the ground"
                 - Utterance: "the street caved in"
+                - Utterance: "there's a giant pothole"
+                - Utterance: "street light is out"
+                - Utterance: "traffic light not working"
+                - Utterance: "water main leak"
+                - Utterance: "sidewalk is broken and dangerous"
+                - Utterance: "storm drain is clogged"
+                - Utterance: "tree down blocking the road"
+                - Utterance: "missing street sign"
+                - Utterance: "flooding on the roadway"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -2140,10 +1839,6 @@ Resources:
                 - Priority: 1
                   SlotName: PublicWorksLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: PublicWorksIssueType
               Slots:
                 - Name: PublicWorksLocation
@@ -2157,28 +1852,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "What's the location — address or nearest intersection?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Is there an apartment, suite, or unit number?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What are the nearest cross streets?"
                 - Name: PublicWorksIssueType
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -2207,6 +1880,14 @@ Resources:
                 - Utterance: "accident report"
                 - Utterance: "I need a report number for insurance"
                 - Utterance: "vehicle accident report"
+                - Utterance: "I was in a fender bender earlier"
+                - Utterance: "minor accident no injuries"
+                - Utterance: "I need an accident report for insurance"
+                - Utterance: "hit and run on my parked car"
+                - Utterance: "someone hit my car and left"
+                - Utterance: "property damage only crash"
+                - Utterance: "I need a crash report number"
+                - Utterance: "non injury accident to report"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -2230,24 +1911,12 @@ Resources:
                 - Priority: 1
                   SlotName: AccidentLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: AccidentWhen
-                - Priority: 5
+                - Priority: 3
                   SlotName: AccidentInjuries
-                - Priority: 6
+                - Priority: 4
                   SlotName: OtherVehicleDescription
-                - Priority: 7
-                  SlotName: VehicleColor
-                - Priority: 8
-                  SlotName: VehicleMake
-                - Priority: 9
-                  SlotName: VehicleModel
-                - Priority: 10
-                  SlotName: VehiclePlate
-                - Priority: 11
+                - Priority: 5
                   SlotName: AccidentCallbackNumber
               Slots:
                 - Name: AccidentLocation
@@ -2261,28 +1930,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "Where did the accident happen?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Is there an apartment, suite, or unit number?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What are the nearest cross streets?"
                 - Name: AccidentWhen
                   SlotTypeName: IncidentTimeframe
                   ValueElicitationSetting:
@@ -2316,50 +1963,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "Can you describe the other vehicle involved, if there was one?"
-                - Name: VehicleColor
-                  SlotTypeName: VehicleColor
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "What color is the vehicle?"
-                - Name: VehicleMake
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Do you know the make of the vehicle — Ford, Toyota, Honda?"
-                - Name: VehicleModel
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Do you know the model?"
-                - Name: VehiclePlate
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "Do you have a license plate number?"
                 - Name: AccidentCallbackNumber
                   SlotTypeName: AMAZON.PhoneNumber
                   ValueElicitationSetting:
@@ -2385,6 +1988,11 @@ Resources:
                 - Utterance: "can this be done online"
                 - Utterance: "I'd rather file this online"
                 - Utterance: "how do I make a report without calling"
+                - Utterance: "can I report this online"
+                - Utterance: "do I need to come in person"
+                - Utterance: "is this something I can file online"
+                - Utterance: "send me the online report link"
+                - Utterance: "I'd rather file online if possible"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -2405,6 +2013,11 @@ Resources:
                 - Utterance: "following up on my earlier call"
                 - Utterance: "I have a reference number"
                 - Utterance: "checking on my report"
+                - Utterance: "this is a follow up call"
+                - Utterance: "I called earlier and nothing happened"
+                - Utterance: "calling back about the same issue"
+                - Utterance: "I reported this yesterday"
+                - Utterance: "second call about the same problem"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -2457,6 +2070,14 @@ Resources:
                 - Utterance: "are there sex offenders in my area"
                 - Utterance: "who do I call for noise complaints"
                 - Utterance: "how do I get a gun permit"
+                - Utterance: "what are your non emergency hours"
+                - Utterance: "how do I get a copy of a police report"
+                - Utterance: "what's the number for animal control"
+                - Utterance: "how do I pay a parking ticket"
+                - Utterance: "do you have information about a road closure"
+                - Utterance: "who do I call about trash pickup"
+                - Utterance: "can you tell me about filing a report"
+                - Utterance: "what documents do I need for a report"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -2477,25 +2098,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "Sure — what do you need information about?"
-            - Name: Welcome
-              Description: Call Assist intent Welcome
-              SampleUtterances:
-                - Utterance: "hello"
-                - Utterance: "hi"
-                - Utterance: "yes"
-                - Utterance: "i need help"
-                - Utterance: "i need to report something"
-                - Utterance: "i have a question"
-                - Utterance: "i want to report"
-                - Utterance: "can i get some help"
-                - Utterance: "i have a non-emergency"
-                - Utterance: "i need to make a report"
-                - Utterance: "i want to file a report"
-              DialogCodeHook:
-                Enabled: true
-              FulfillmentCodeHook:
-                Enabled: true
-                IsActive: true
             - Name: FallbackIntent
               Description: Call Assist intent FallbackIntent
               ParentIntentSignature: AMAZON.FallbackIntent
@@ -2739,6 +2341,12 @@ Resources:
                     - Value: "true"
                     - Value: "sí"
                     - Value: si
+                    - Value: 是
+                    - Value: 对
+                    - Value: 係
+                    - Value: oo
+                    - Value: vâng
+                    - Value: نعم
                     - Value: affirmative
                 - SampleValue:
                     Value: No
@@ -2747,10 +2355,43 @@ Resources:
                     - Value: nope
                     - Value: "n"
                     - Value: "false"
+                    - Value: 不
+                    - Value: 不是
+                    - Value: 唔係
+                    - Value: hindi
+                    - Value: không
+                    - Value: لا
                     - Value: negative
               ValueSelectionSetting:
                 ResolutionStrategy: TOP_RESOLUTION
           Intents:
+            - Name: Welcome
+              Description: Call Assist intent Welcome
+              SampleUtterances:
+                - Utterance: "hola"
+                - Utterance: "sí"
+                - Utterance: "necesito ayuda"
+                - Utterance: "necesito reportar algo"
+                - Utterance: "quiero reportar"
+                - Utterance: "puedo recibir ayuda"
+                - Utterance: "tengo una llamada que no es de emergencia"
+                - Utterance: "necesito hacer un reporte"
+                - Utterance: "quiero presentar un reporte"
+                - Utterance: "buenos días"
+                - Utterance: "buenas tardes"
+                - Utterance: "buenas noches"
+                - Utterance: "¿es la línea que no es de emergencia?"
+                - Utterance: "me dijeron que llamara a este número"
+                - Utterance: "no sé si es una emergencia"
+                - Utterance: "quiero presentar una queja"
+                - Utterance: "llamar por algo que ya pasó"
+                - Utterance: "no es urgente pero necesito reportarlo"
+                - Utterance: "hola ¿hay alguien?"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
             - Name: EmergencyEscalation
               Description: Call Assist intent EmergencyEscalation
               SampleUtterances:
@@ -2778,6 +2419,16 @@ Resources:
                 - Utterance: "está convulsionando"
                 - Utterance: "me amenazó con matarme"
                 - Utterance: "tiene un cuchillo"
+                - Utterance: "hay una pelea ahora mismo"
+                - Utterance: "alguien acaba de ser baleado"
+                - Utterance: "escucho disparos"
+                - Utterance: "hay sangre por todas partes"
+                - Utterance: "no puede respirar"
+                - Utterance: "creo que es una sobredosis"
+                - Utterance: "me están siguiendo y tengo miedo"
+                - Utterance: "tienen un arma de fuego"
+                - Utterance: "necesito ayuda inmediatamente"
+                - Utterance: "hay un accidente con heridos"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -2793,6 +2444,12 @@ Resources:
                 - Utterance: "transfiérame"
                 - Utterance: "con una persona real"
                 - Utterance: "no quiero hablar con una máquina"
+                - Utterance: "quiero hablar con una persona real"
+                - Utterance: "páseme con un operador"
+                - Utterance: "no quiero el robot"
+                - Utterance: "transfiera la llamada por favor"
+                - Utterance: "agente humano por favor"
+                - Utterance: "quiero hablar con alguien ahora"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -2812,6 +2469,13 @@ Resources:
                 - Utterance: "el perro no deja de ladrar"
                 - Utterance: "hay cohetes en el vecindario"
                 - Utterance: "alguien tiene el carro con la música muy fuerte"
+                - Utterance: "el ruido no me deja dormir"
+                - Utterance: "están poniendo música muy alta otra vez"
+                - Utterance: "ruido de construcción de noche"
+                - Utterance: "están golpeando las paredes"
+                - Utterance: "hay una pelea de palabras al lado"
+                - Utterance: "es después del horario de silencio"
+                - Utterance: "quiero reportar ruido excesivo"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -2835,14 +2499,10 @@ Resources:
                 - Priority: 1
                   SlotName: NoiseLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: NoiseType
-                - Priority: 5
+                - Priority: 3
                   SlotName: NoiseStillHappening
-                - Priority: 6
+                - Priority: 4
                   SlotName: CallbackNumber
               Slots:
                 - Name: NoiseLocation
@@ -2856,28 +2516,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Cuál es la dirección o el lugar donde está el ruido?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Hay número de apartamento, suite o unidad?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Cuáles son las calles transversales más cercanas?"
                 - Name: NoiseType
                   SlotTypeName: NoiseType
                   ValueElicitationSetting:
@@ -2925,6 +2563,12 @@ Resources:
                 - Utterance: "alguien está viendo los carros"
                 - Utterance: "comportamiento sospechoso"
                 - Utterance: "hay alguien acechando"
+                - Utterance: "hay alguien que no pertenece al vecindario"
+                - Utterance: "un extraño lleva horas en un carro"
+                - Utterance: "alguien está probando las manijas de las puertas"
+                - Utterance: "alguien me siguió a casa"
+                - Utterance: "hay un vehículo sospechoso parado"
+                - Utterance: "creo que están vigilando las casas"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -2948,18 +2592,14 @@ Resources:
                 - Priority: 1
                   SlotName: SuspiciousLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: PersonDescription
-                - Priority: 5
+                - Priority: 3
                   SlotName: PersonDirection
-                - Priority: 6
+                - Priority: 4
                   SlotName: WeaponVisible
-                - Priority: 7
+                - Priority: 5
                   SlotName: CallbackNumber
-                - Priority: 8
+                - Priority: 6
                   SlotName: CallerSafeLocation
               Slots:
                 - Name: SuspiciousLocation
@@ -2973,28 +2613,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Dónde está esta persona ahora — cuál es la dirección o la intersección más cercana?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Hay número de apartamento, suite o unidad?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Cuáles son las calles transversales más cercanas?"
                 - Name: PersonDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -3060,6 +2678,10 @@ Resources:
                 - Utterance: "hay un carro sin placas"
                 - Utterance: "alguien dejó su carro aquí"
                 - Utterance: "un carro abandonado en la calle"
+                - Utterance: "hay un carro abandonado desde hace días"
+                - Utterance: "camioneta abandonada en la calle"
+                - Utterance: "parece que tiraron un carro"
+                - Utterance: "el vehículo no se ha movido en una semana"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -3083,22 +2705,10 @@ Resources:
                 - Priority: 1
                   SlotName: VehicleLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: VehicleDescription
-                - Priority: 5
-                  SlotName: VehicleColor
-                - Priority: 6
-                  SlotName: VehicleMake
-                - Priority: 7
-                  SlotName: VehicleModel
-                - Priority: 8
-                  SlotName: VehiclePlate
-                - Priority: 9
+                - Priority: 3
                   SlotName: HowLongAbandoned
-                - Priority: 10
+                - Priority: 4
                   SlotName: AbandonedVehicleHazard
               Slots:
                 - Name: VehicleLocation
@@ -3112,28 +2722,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Cuál es la dirección o la intersección más cercana donde está el vehículo?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Hay número de apartamento, suite o unidad?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Cuáles son las calles transversales más cercanas?"
                 - Name: VehicleDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -3145,50 +2733,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Puede describir el vehículo? Color, marca o modelo si lo sabe, y placa si es posible."
-                - Name: VehicleColor
-                  SlotTypeName: VehicleColor
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿De qué color es el vehículo?"
-                - Name: VehicleMake
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Sabe la marca del vehículo — Ford, Toyota, Honda?"
-                - Name: VehicleModel
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Sabe el modelo?"
-                - Name: VehiclePlate
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Tiene el número de placa?"
                 - Name: HowLongAbandoned
                   SlotTypeName: IncidentTimeframe
                   ValueElicitationSetting:
@@ -3222,6 +2766,11 @@ Resources:
                 - Utterance: "me rompieron la ventana del carro"
                 - Utterance: "me robaron del carro"
                 - Utterance: "entraron a mi vehículo"
+                - Utterance: "alguien entró a mi carro"
+                - Utterance: "rompieron la ventana de mi carro anoche"
+                - Utterance: "robaron cosas de mi vehículo"
+                - Utterance: "alguien entró a mi camioneta"
+                - Utterance: "reporte de robo a vehículo"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -3245,26 +2794,16 @@ Resources:
                 - Priority: 1
                   SlotName: BurglaryVehicleLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: BurglaryVehicleDescription
-                - Priority: 5
-                  SlotName: VehicleColor
-                - Priority: 6
-                  SlotName: VehicleMake
-                - Priority: 7
-                  SlotName: VehicleModel
-                - Priority: 8
+                - Priority: 3
                   SlotName: BurglaryVehiclePlate
-                - Priority: 9
+                - Priority: 4
                   SlotName: ItemsStolen
-                - Priority: 10
+                - Priority: 5
                   SlotName: WhenOccurred
-                - Priority: 11
+                - Priority: 6
                   SlotName: SuspectSeen
-                - Priority: 12
+                - Priority: 7
                   SlotName: CallbackNumber
               Slots:
                 - Name: BurglaryVehicleLocation
@@ -3278,28 +2817,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Dónde está su vehículo ahora — cuál es la dirección?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Hay número de apartamento, suite o unidad?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Cuáles son las calles transversales más cercanas?"
                 - Name: BurglaryVehicleDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -3311,39 +2828,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Cuál es el año, marca, modelo y color de su vehículo?"
-                - Name: VehicleColor
-                  SlotTypeName: VehicleColor
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿De qué color es el vehículo?"
-                - Name: VehicleMake
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Sabe la marca del vehículo — Ford, Toyota, Honda?"
-                - Name: VehicleModel
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Sabe el modelo?"
                 - Name: BurglaryVehiclePlate
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -3412,6 +2896,10 @@ Resources:
                 - Utterance: "me robaron el teléfono"
                 - Utterance: "me robaron la cartera"
                 - Utterance: "quiero hacer un reporte de robo"
+                - Utterance: "me robaron un paquete"
+                - Utterance: "robo de convertidor catalítico"
+                - Utterance: "quiero reportar un robo que ya ocurrió"
+                - Utterance: "me quitaron mi propiedad"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -3435,16 +2923,12 @@ Resources:
                 - Priority: 1
                   SlotName: TheftLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: TheftItemDescription
-                - Priority: 5
+                - Priority: 3
                   SlotName: TheftWhenOccurred
-                - Priority: 6
+                - Priority: 4
                   SlotName: TheftSuspectInfo
-                - Priority: 7
+                - Priority: 5
                   SlotName: TheftCallbackNumber
               Slots:
                 - Name: TheftLocation
@@ -3458,28 +2942,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Dónde ocurrió el robo?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Hay número de apartamento, suite o unidad?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Cuáles son las calles transversales más cercanas?"
                 - Name: TheftItemDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -3536,6 +2998,11 @@ Resources:
                 - Utterance: "alguien se estacionó en mi espacio"
                 - Utterance: "carro bloqueando el hidrante"
                 - Utterance: "estacionado en zona de discapacitados sin placa"
+                - Utterance: "están estacionados frente a mi entrada"
+                - Utterance: "carro bloqueando la boca de incendios"
+                - Utterance: "estacionamiento ilegal"
+                - Utterance: "bloqueando el carril de bomberos"
+                - Utterance: "doble estacionados y no puedo salir"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -3559,20 +3026,8 @@ Resources:
                 - Priority: 1
                   SlotName: ParkingLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: ParkingVehicleDescription
-                - Priority: 5
-                  SlotName: VehicleColor
-                - Priority: 6
-                  SlotName: VehicleMake
-                - Priority: 7
-                  SlotName: VehicleModel
-                - Priority: 8
-                  SlotName: VehiclePlate
-                - Priority: 9
+                - Priority: 3
                   SlotName: ParkingViolationType
               Slots:
                 - Name: ParkingLocation
@@ -3586,28 +3041,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Cuál es la dirección donde el vehículo está estacionado ilegalmente?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Hay número de apartamento, suite o unidad?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Cuáles son las calles transversales más cercanas?"
                 - Name: ParkingVehicleDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -3619,50 +3052,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Puede describir el vehículo — color, marca, modelo y placa si la tiene?"
-                - Name: VehicleColor
-                  SlotTypeName: VehicleColor
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿De qué color es el vehículo?"
-                - Name: VehicleMake
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Sabe la marca del vehículo — Ford, Toyota, Honda?"
-                - Name: VehicleModel
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Sabe el modelo?"
-                - Name: VehiclePlate
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Tiene el número de placa?"
                 - Name: ParkingViolationType
                   SlotTypeName: ParkingViolationType
                   ValueElicitationSetting:
@@ -3686,6 +3075,10 @@ Resources:
                 - Utterance: "chequeo de bienestar para persona mayor"
                 - Utterance: "mi mamá no contesta"
                 - Utterance: "no he sabido nada de mi amigo"
+                - Utterance: "pueden revisar a mi vecino"
+                - Utterance: "preocupado por un familiar anciano"
+                - Utterance: "por favor hagan una verificación de bienestar"
+                - Utterance: "no contesta y estoy preocupado"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -3709,18 +3102,14 @@ Resources:
                 - Priority: 1
                   SlotName: WelfareCheckAddress
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: WelfareCheckPersonName
-                - Priority: 5
+                - Priority: 3
                   SlotName: WelfareCheckRelationship
-                - Priority: 6
+                - Priority: 4
                   SlotName: WelfareCheckLastContact
-                - Priority: 7
+                - Priority: 5
                   SlotName: WelfareCheckWhyConcerned
-                - Priority: 8
+                - Priority: 6
                   SlotName: WelfareCheckCallerCallback
               Slots:
                 - Name: WelfareCheckAddress
@@ -3734,28 +3123,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Cuál es la dirección de la persona por la que está preocupado?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Hay número de apartamento, suite o unidad?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Cuáles son las calles transversales más cercanas?"
                 - Name: WelfareCheckPersonName
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -3825,6 +3192,11 @@ Resources:
                 - Utterance: "un animal abandonado"
                 - Utterance: "gato callejero"
                 - Utterance: "perro en el carro caliente"
+                - Utterance: "hay un perro suelto agresivo"
+                - Utterance: "quiero reportar crueldad animal"
+                - Utterance: "animal herido en la calle"
+                - Utterance: "perro dejado en un carro caliente"
+                - Utterance: "hay un coyote en el vecindario"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -3848,12 +3220,8 @@ Resources:
                 - Priority: 1
                   SlotName: AnimalLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: AnimalType
-                - Priority: 5
+                - Priority: 3
                   SlotName: AnimalThreatLevel
               Slots:
                 - Name: AnimalLocation
@@ -3867,28 +3235,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Dónde está el animal ahora mismo?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Hay número de apartamento, suite o unidad?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Cuáles son las calles transversales más cercanas?"
                 - Name: AnimalType
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -3919,6 +3265,9 @@ Resources:
                 - Utterance: "queja de grúa"
                 - Utterance: "me grúaron ilegalmente"
                 - Utterance: "pusieron una bota en mi carro"
+                - Utterance: "me remolcaron el carro y no sé por qué"
+                - Utterance: "creo que remolcaron mi vehículo ilegalmente"
+                - Utterance: "necesito encontrar mi carro remolcado"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -3942,22 +3291,10 @@ Resources:
                 - Priority: 1
                   SlotName: TowLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: TowVehicleDescription
-                - Priority: 5
-                  SlotName: VehicleColor
-                - Priority: 6
-                  SlotName: VehicleMake
-                - Priority: 7
-                  SlotName: VehicleModel
-                - Priority: 8
-                  SlotName: VehiclePlate
-                - Priority: 9
+                - Priority: 3
                   SlotName: TowCompanyInfo
-                - Priority: 10
+                - Priority: 4
                   SlotName: TowCallbackNumber
               Slots:
                 - Name: TowLocation
@@ -3971,28 +3308,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿De dónde se llevaron su vehículo?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Hay número de apartamento, suite o unidad?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Cuáles son las calles transversales más cercanas?"
                 - Name: TowVehicleDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -4004,50 +3319,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Cuál es el año, marca, modelo, color y placa de su vehículo?"
-                - Name: VehicleColor
-                  SlotTypeName: VehicleColor
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿De qué color es el vehículo?"
-                - Name: VehicleMake
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Sabe la marca del vehículo — Ford, Toyota, Honda?"
-                - Name: VehicleModel
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Sabe el modelo?"
-                - Name: VehiclePlate
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Tiene el número de placa?"
                 - Name: TowCompanyInfo
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -4082,6 +3353,10 @@ Resources:
                 - Utterance: "me rompieron el buzón"
                 - Utterance: "pintaron mi barda"
                 - Utterance: "daños a la propiedad"
+                - Utterance: "alguien vandalizó mi propiedad"
+                - Utterance: "hay grafiti en mi cerca"
+                - Utterance: "rayaron mi carro"
+                - Utterance: "me reventaron las llantas"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -4105,14 +3380,10 @@ Resources:
                 - Priority: 1
                   SlotName: VandalismLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: VandalismDescription
-                - Priority: 5
+                - Priority: 3
                   SlotName: VandalismWhenOccurred
-                - Priority: 6
+                - Priority: 4
                   SlotName: VandalismSuspectInfo
               Slots:
                 - Name: VandalismLocation
@@ -4126,28 +3397,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Cuál es la dirección de la propiedad que fue dañada?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Hay número de apartamento, suite o unidad?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Cuáles son las calles transversales más cercanas?"
                 - Name: VandalismDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -4191,6 +3440,10 @@ Resources:
                 - Utterance: "propiedad abandonada"
                 - Utterance: "negocio ilegal en casa"
                 - Utterance: "construcción sin permiso"
+                - Utterance: "terreno abandonado con hierba alta"
+                - Utterance: "basura acumulada en una propiedad"
+                - Utterance: "tiradero ilegal en el callejón"
+                - Utterance: "violación de código de vivienda"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -4214,10 +3467,6 @@ Resources:
                 - Priority: 1
                   SlotName: CodeEnforcementAddress
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: CodeViolationDescription
               Slots:
                 - Name: CodeEnforcementAddress
@@ -4231,28 +3480,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Cuál es la dirección de la propiedad?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Hay número de apartamento, suite o unidad?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Cuáles son las calles transversales más cercanas?"
                 - Name: CodeViolationDescription
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -4277,6 +3504,10 @@ Resources:
                 - Utterance: "se cayó un árbol en la calle"
                 - Utterance: "la coladera no tiene tapa"
                 - Utterance: "está saliendo agua del suelo"
+                - Utterance: "hay un bache enorme"
+                - Utterance: "la luz de la calle no funciona"
+                - Utterance: "fuga de agua en la calle"
+                - Utterance: "árbol caído bloqueando la vía"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -4286,10 +3517,6 @@ Resources:
                 - Priority: 1
                   SlotName: PublicWorksLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: PublicWorksIssueType
               Slots:
                 - Name: PublicWorksLocation
@@ -4303,28 +3530,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Cuál es la ubicación — dirección o intersección más cercana?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Hay número de apartamento, suite o unidad?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Cuáles son las calles transversales más cercanas?"
                 - Name: PublicWorksIssueType
                   SlotTypeName: FreeText
                   ValueElicitationSetting:
@@ -4347,6 +3552,10 @@ Resources:
                 - Utterance: "alguien me golpeó el carro estacionado"
                 - Utterance: "accidente sin heridos"
                 - Utterance: "necesito el número de reporte para el seguro"
+                - Utterance: "tuve un choque menor sin heridos"
+                - Utterance: "necesito un reporte de accidente para el seguro"
+                - Utterance: "golpearon mi carro y se fueron"
+                - Utterance: "accidente solo con daños materiales"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -4370,24 +3579,12 @@ Resources:
                 - Priority: 1
                   SlotName: AccidentLocation
                 - Priority: 2
-                  SlotName: AptBusiness
-                - Priority: 3
-                  SlotName: CrossStreets
-                - Priority: 4
                   SlotName: AccidentWhen
-                - Priority: 5
+                - Priority: 3
                   SlotName: AccidentInjuries
-                - Priority: 6
+                - Priority: 4
                   SlotName: OtherVehicleDescription
-                - Priority: 7
-                  SlotName: VehicleColor
-                - Priority: 8
-                  SlotName: VehicleMake
-                - Priority: 9
-                  SlotName: VehicleModel
-                - Priority: 10
-                  SlotName: VehiclePlate
-                - Priority: 11
+                - Priority: 5
                   SlotName: AccidentCallbackNumber
               Slots:
                 - Name: AccidentLocation
@@ -4401,28 +3598,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Dónde ocurrió el accidente?"
-                - Name: AptBusiness
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Hay número de apartamento, suite o unidad?"
-                - Name: CrossStreets
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Cuáles son las calles transversales más cercanas?"
                 - Name: AccidentWhen
                   SlotTypeName: IncidentTimeframe
                   ValueElicitationSetting:
@@ -4456,50 +3631,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "¿Puede describir el otro vehículo involucrado, si hubo alguno?"
-                - Name: VehicleColor
-                  SlotTypeName: VehicleColor
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿De qué color es el vehículo?"
-                - Name: VehicleMake
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Sabe la marca del vehículo — Ford, Toyota, Honda?"
-                - Name: VehicleModel
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Sabe el modelo?"
-                - Name: VehiclePlate
-                  SlotTypeName: FreeText
-                  ValueElicitationSetting:
-                    SlotConstraint: Optional
-                    PromptSpecification:
-                      MaxRetries: 2
-                      AllowInterrupt: true
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "¿Tiene el número de placa?"
                 - Name: AccidentCallbackNumber
                   SlotTypeName: AMAZON.PhoneNumber
                   ValueElicitationSetting:
@@ -4519,6 +3650,9 @@ Resources:
                 - Utterance: "¿puedo hacerlo en el sitio web?"
                 - Utterance: "quiero hacer un reporte por internet"
                 - Utterance: "¿cómo hago un reporte sin llamar?"
+                - Utterance: "puedo reportar esto en línea"
+                - Utterance: "pueden enviarme el enlace del reporte en línea"
+                - Utterance: "prefiero hacerlo por internet si se puede"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -4535,6 +3669,10 @@ Resources:
                 - Utterance: "tengo un número de referencia"
                 - Utterance: "quiero saber qué pasó con mi reporte"
                 - Utterance: "nadie vino"
+                - Utterance: "ya llamé sobre esto"
+                - Utterance: "esta es una llamada de seguimiento"
+                - Utterance: "llamé antes y no pasó nada"
+                - Utterance: "es el mismo problema de ayer"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -4581,6 +3719,11 @@ Resources:
                 - Utterance: "número de teléfono no emergencias"
                 - Utterance: "¿cómo registro mi alarma?"
                 - Utterance: "¿cómo obtengo un permiso de arma?"
+                - Utterance: "cuál es el horario de no emergencia"
+                - Utterance: "cómo obtengo una copia de un reporte"
+                - Utterance: "dónde está la estación de policía"
+                - Utterance: "cómo pago una multa de estacionamiento"
+                - Utterance: "qué documentos necesito para un reporte"
               DialogCodeHook:
                 Enabled: true
               FulfillmentCodeHook:
@@ -4601,24 +3744,6 @@ Resources:
                         - Message:
                             PlainTextMessage:
                               Value: "Claro — ¿sobre qué necesita información?"
-            - Name: Welcome
-              Description: Call Assist intent Welcome
-              SampleUtterances:
-                - Utterance: "hola"
-                - Utterance: "sí"
-                - Utterance: "necesito ayuda"
-                - Utterance: "necesito reportar algo"
-                - Utterance: "tengo una pregunta"
-                - Utterance: "quiero reportar"
-                - Utterance: "puedo recibir ayuda"
-                - Utterance: "tengo una llamada que no es de emergencia"
-                - Utterance: "necesito hacer un reporte"
-                - Utterance: "quiero presentar un reporte"
-              DialogCodeHook:
-                Enabled: true
-              FulfillmentCodeHook:
-                Enabled: true
-                IsActive: true
             - Name: FallbackIntent
               Description: Call Assist intent FallbackIntent
               ParentIntentSignature: AMAZON.FallbackIntent
@@ -4696,6 +3821,9 @@ Outputs:
   BotAliasArn:
     Description: Lex V2 bot alias ARN (Connect Get customer input)
     Value: !GetAtt RCCallAssistBotAlias.Arn
+  LexServiceRoleArn:
+    Description: IAM role ARN for Lex V2 bots — pass to Call Assist as CallAssistLexBotRoleArn
+    Value: !GetAtt LexServiceRole.Arn
   DialogHookFunctionArn:
     Value: !GetAtt LexDialogHookFunction.Arn
   FulfillmentHookFunctionArn:

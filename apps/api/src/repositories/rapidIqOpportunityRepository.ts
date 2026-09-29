@@ -1,5 +1,5 @@
 /**
- * Rapid IQ opportunities — RC-global (no agencyId). RBAC at handlers.
+ * NexiQ opportunities — RC-global (no agencyId). RBAC at handlers.
  */
 import { GetCommand, PutCommand, QueryCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { RapidIqOpportunity, UpdateOpportunityBody } from "rapid-cortex-shared";

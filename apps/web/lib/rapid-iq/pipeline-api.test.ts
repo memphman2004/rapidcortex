@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { RapidIqPipelineSignal } from "rapid-cortex-shared";
+import type { NexiQPipelineSignal } from "rapid-cortex-shared";
 import { countUnworkedPipelineItems, pipelineOpportunityIdSet } from "./pipeline-api";
 
-function stub(partial: Partial<RapidIqPipelineSignal> & Pick<RapidIqPipelineSignal, "status">): RapidIqPipelineSignal {
+function stub(partial: Partial<NexiQPipelineSignal> & Pick<NexiQPipelineSignal, "status">): NexiQPipelineSignal {
   return {
     signalId: partial.signalId ?? "s1",
     sourceId: partial.sourceId ?? "usa-spending",

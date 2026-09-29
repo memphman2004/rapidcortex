@@ -70,9 +70,9 @@ Configure per [pricing-billing](../pricing-billing/) docs; not all pilots enable
 
 ---
 
-## 5. Rapid IQ / internal GTM (not 911 incident content)
+## 5. NexiQ / internal GTM (not 911 incident content)
 
-These process **prospect and sales-automation** data when Rapid IQ is enabled. They are **not** on the 911 transcript path.
+These process **prospect and sales-automation** data when NexiQ is enabled. They are **not** on the 911 transcript path.
 
 | Subprocessor | Purpose | Data categories |
 |--------------|---------|-----------------|
@@ -81,7 +81,7 @@ These process **prospect and sales-automation** data when Rapid IQ is enabled. T
 | **Legiscan / OpenStates** | Bill / jurisdiction research | Public legislative text |
 | **RunSignUp** | Event / conference signals | Public event metadata |
 | **Microsoft** (Graph / Outlook) | Campaign mail (`hello@nexcortiq.us`) | Email content for RC sales |
-| **Microsoft Teams** (incoming webhook) | Internal Rapid IQ alerts | Alert text |
+| **Microsoft Teams** (incoming webhook) | Internal NexiQ alerts | Alert text |
 
 ---
 
@@ -110,7 +110,7 @@ Agencies remain responsible for:
 
 | Version | Date | Change |
 |---------|------|--------|
-| 0.3 | 2026-09-19 | Pre-window review: Twilio, Wyze, Nest SDM, Rapid IQ GTM vendors; 36 live secret *names* checked |
+| 0.3 | 2026-09-19 | Pre-window review: Twilio, Wyze, Nest SDM, NexiQ GTM vendors; 36 live secret *names* checked |
 | 0.2 | 2026-09-08 | Current AI/comms inventory: Connect, Lex, Polly, Location Service, Bedrock minimization, Call Assist KB grounding |
 | 0.1 | 2026-07-09 | Initial draft from `infra/template.yaml` and provider docs |
 

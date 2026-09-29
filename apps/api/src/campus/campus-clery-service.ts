@@ -31,9 +31,10 @@ import {
 import { env } from "../lib/env.js";
 import { makeId } from "../lib/ids.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
-import type { CampusIncident, CampusIncidentType } from "./campus-types.js";
+import type { CampusIncident } from "./campus-types.js";
 import { CAMPUS_KEYS } from "./campus-types.js";
 import { assertSwornOfficerMayUnfound } from "./clery-act/store.js";
+export { suggestCleryCategory } from "./campus-clery-suggest.js";
 
 export {
   CLERY_CATEGORIES,
@@ -52,43 +53,6 @@ function campusIncidentsTable(): string {
   const t = process.env.CAMPUS_INCIDENTS_TABLE?.trim();
   if (!t) throw new Error("CAMPUS_INCIDENTS_TABLE not set");
   return t;
-}
-
-const TYPE_TO_CLERY: Partial<Record<CampusIncidentType, CleryCategory>> = {
-  property_crime: "Burglary",
-  active_threat: "Aggravated Assault",
-};
-
-const KEYWORD_CLERY: Array<{ keywords: string[]; category: CleryCategory }> = [
-  { keywords: ["arson", "fire", "set fire"], category: "Arson" },
-  { keywords: ["robbery", "robbed", "stole from"], category: "Robbery" },
-  { keywords: ["assault", "attacked", "hit", "punched"], category: "Aggravated Assault" },
-  { keywords: ["car", "vehicle", "auto", "truck", "van"], category: "Motor Vehicle Theft" },
-  { keywords: ["weapon", "gun", "knife", "firearm", "explosive"], category: "Arrests - Weapons Violations" },
-  { keywords: ["drug", "narcotics", "marijuana", "cocaine", "pills"], category: "Arrests - Drug Abuse Violations" },
-  { keywords: ["alcohol", "drunk", "intoxicated", "liquor"], category: "Arrests - Liquor Law Violations" },
-  { keywords: ["stalk", "following me", "won't leave me alone"], category: "VAWA - Stalking" },
-  { keywords: ["domestic", "partner", "spouse", "boyfriend", "girlfriend"], category: "VAWA - Domestic Violence" },
-  { keywords: ["hazing"], category: "Hazing" },
-];
-
-/**
- * Keyword-based suggestion only — NEVER automatic classification.
- * Final determination must be made by designated Campus Security Authority.
- */
-export function suggestCleryCategory(
-  type: CampusIncidentType,
-  description: string,
-): CleryCategory | null {
-  const lower = description.toLowerCase();
-  const typeMatch = TYPE_TO_CLERY[type];
-  if (typeMatch) return typeMatch;
-
-  const matches = KEYWORD_CLERY.filter(({ keywords }) =>
-    keywords.some((k) => lower.includes(k)),
-  );
-  if (matches.length === 1) return matches[0].category;
-  return null;
 }
 
 /** Clery academic year typically Aug 1 (start year) through Jul 31 (end year). */

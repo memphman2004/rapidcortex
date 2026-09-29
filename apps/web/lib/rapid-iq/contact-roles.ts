@@ -1,4 +1,4 @@
-import type { ContactRoleTier, RapidIqVertical } from "./types";
+import type { ContactRoleTier, NexiQVertical } from "./types";
 
 export type ContactRoleDefinition = {
   tier: ContactRoleTier;
@@ -6,7 +6,7 @@ export type ContactRoleDefinition = {
   matchedOn: string;
 };
 
-export const CONTACT_ROLES_BY_VERTICAL: Record<RapidIqVertical, ContactRoleDefinition[]> = {
+export const CONTACT_ROLES_BY_VERTICAL: Record<NexiQVertical, ContactRoleDefinition[]> = {
   "911": [
     { tier: "primary", label: "911 / ECC Director", matchedOn: "911 Director" },
     { tier: "executive", label: "County Commissioner", matchedOn: "Commissioner" },
@@ -42,6 +42,6 @@ export const CONTACT_ROLES_BY_VERTICAL: Record<RapidIqVertical, ContactRoleDefin
   ],
 };
 
-export function personaChipsForVertical(vertical: RapidIqVertical): string[] {
+export function personaChipsForVertical(vertical: NexiQVertical): string[] {
   return CONTACT_ROLES_BY_VERTICAL[vertical].map((r) => r.matchedOn);
 }

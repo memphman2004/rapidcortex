@@ -14,13 +14,17 @@ import { isWyzeEnabled } from "@/lib/wyze-feature-flags";
 import { matchesCampusSiteScope } from "rapid-cortex-shared";
 import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
 import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
+import { useCampusInstitutionType } from "@/lib/campus/use-campus-institution";
 
 /**
  * Campus dorm / residential cameras — Nest™ + Wyze™ Connect for student-owned
  * doorbells and agency Nest™ accounts, mirrored from venue cameras UX.
+ * Nest dorm card is hidden for K-12 districts.
  */
 export function CampusCamerasClient({ campusCode }: { campusCode: string }) {
   const { user } = useSession();
+  const { institutionType } = useCampusInstitutionType();
+  const showNestDormCard = institutionType !== "k12" && isNestEnabled();
   const nestEnabled = isNestEnabled();
   const wyzeEnabled = isWyzeEnabled();
   const milestoneEnabled = isMilestoneXprotectEnabled();
@@ -76,10 +80,16 @@ export function CampusCamerasClient({ campusCode }: { campusCode: string }) {
       <div>
         <h1 className="text-2xl font-bold text-white">Cameras</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Link dorm{" "}
-          {joinTrademarkList([nestEnabled && GOOGLE_NEST_TM, wyzeEnabled && WYZE_TM])}{" "}
-          cameras for consent-based live video during campus incidents.
-          {nestEnabled ? ` Agency-owned ${NEST_TM} streams are available after admin OAuth.` : ""}
+          {institutionType === "k12" ? (
+            <>Fixed and consented cameras for school safety awareness — not a 911 dispatch console.</>
+          ) : (
+            <>
+              Link dorm{" "}
+              {joinTrademarkList([nestEnabled && GOOGLE_NEST_TM, wyzeEnabled && WYZE_TM])}{" "}
+              cameras for consent-based live video during campus incidents.
+              {nestEnabled ? ` Agency-owned ${NEST_TM} streams are available after admin OAuth.` : ""}
+            </>
+          )}
         </p>
         <div className="mt-3 max-w-xs">
           <CampusSiteSwitcher sites={sites} value={scope} onChange={setScope} />
@@ -108,7 +118,7 @@ export function CampusCamerasClient({ campusCode }: { campusCode: string }) {
 
       <div className="grid gap-6 xl:grid-cols-2">
         {milestoneEnabled ? <MilestoneConnectPanel /> : null}
-        {nestEnabled ? (
+        {showNestDormCard ? (
           <section className="space-y-3 rounded-lg border border-emerald-500/30 bg-slate-900/40 p-4">
             <h2 className="text-sm font-semibold text-emerald-200">{GOOGLE_NEST_TM} dorm cameras</h2>
             <CameraProviderSetup />

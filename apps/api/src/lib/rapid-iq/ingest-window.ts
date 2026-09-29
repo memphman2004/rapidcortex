@@ -1,5 +1,5 @@
 /**
- * Rapid IQ ingest lookback. Default is calendar year 2026 so open RFPs posted
+ * NexiQ ingest lookback. Default is calendar year 2026 so open RFPs posted
  * earlier in the year (e.g. county NG911 bids) still enter the signal queue.
  * Override with RAPID_IQ_INGEST_SINCE=YYYY-MM-DD.
  */

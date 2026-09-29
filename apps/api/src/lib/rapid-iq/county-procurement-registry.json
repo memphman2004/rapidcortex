@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "description": "Rapid IQ county procurement registry — top counties by population with known procurement portal URLs. Deduped by state+county name. Agenda/minutes seeds live in jurisdiction-registry.ts; this file is portal crawl targets.",
+    "description": "NexiQ county procurement registry — top counties by population with known procurement portal URLs. Deduped by state+county name. Agenda/minutes seeds live in jurisdiction-registry.ts; this file is portal crawl targets.",
     "platform_types": {
       "opengov": "OpenGov Procurement — portal slug provided",
       "bidnet": "BidNet Direct or state BidNet network",

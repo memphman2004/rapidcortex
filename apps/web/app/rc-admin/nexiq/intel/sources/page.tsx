@@ -243,9 +243,12 @@ function SourceDetailDrawer({
                         { v: run.signalsDetected, l: "Signals" },
                         { v: run.opportunitiesCreated, l: "Created" },
                       ].map(({ v, l }) => (
-                        <div key={l} className="rounded bg-slate-800/40 py-1">
-                          <div className="text-sm font-bold text-slate-200">{v}</div>
-                          <div className="text-[9px] text-slate-500">{l}</div>
+                        <div
+                          key={l}
+                          className="flex min-h-[3.25rem] flex-col items-center justify-center rounded bg-slate-800/40 px-1 py-1.5 text-center"
+                        >
+                          <div className="w-full text-sm font-bold tabular-nums text-slate-200">{v}</div>
+                          <div className="w-full text-[9px] text-slate-500">{l}</div>
                         </div>
                       ))}
                     </div>

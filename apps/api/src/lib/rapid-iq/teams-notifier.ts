@@ -91,7 +91,7 @@ function buildAdaptiveCard(opp: TeamsAlertOpportunity, viewUrl: string) {
         },
         {
           type: "Action.OpenUrl",
-          title: "View in Rapid IQ →",
+          title: "View in NexiQ →",
           url: viewUrl,
         },
       ],
@@ -135,7 +135,7 @@ function buildAdaptiveCard(opp: TeamsAlertOpportunity, viewUrl: string) {
       actions: [
         {
           type: "Action.OpenUrl",
-          title: "View in Rapid IQ →",
+          title: "View in NexiQ →",
           url: viewUrl,
         },
       ],
@@ -165,7 +165,7 @@ function buildAdaptiveCard(opp: TeamsAlertOpportunity, viewUrl: string) {
     body: [
       {
         type: "TextBlock",
-        text: `${scoreEmoji} Rapid IQ — ACT NOW`,
+        text: `${scoreEmoji} NexiQ — ACT NOW`,
         weight: "Bolder",
         size: "Medium",
         color: "Attention",
@@ -193,7 +193,7 @@ function buildAdaptiveCard(opp: TeamsAlertOpportunity, viewUrl: string) {
     actions: [
       {
         type: "Action.OpenUrl",
-        title: "View in Rapid IQ →",
+        title: "View in NexiQ →",
         url: viewUrl,
       },
     ],

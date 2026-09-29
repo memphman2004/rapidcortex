@@ -13,7 +13,7 @@ Automatic rotation is **not** enabled. These secrets are third-party API keys, O
 | Billing / SES SMTP | `rapid-cortex/billing/*`, `rapid-cortex/dev/billing/*` | 90 days or on staff change |
 | AI providers | `rapid-cortex/ai/openai`, `rapid-cortex/ai/anthropic` | 90 days or on vendor incident |
 | Camera / Ring / Nest / Wyze | `rapid-cortex/connect/*` | On compromise or partner key expiry |
-| Rapid IQ SaaS keys | `rapid-cortex/rapid-iq/*` | 90 days |
+| NexiQ SaaS keys | `rapid-cortex/rapid-iq/*` | 90 days |
 | JWT / token encryption | `rapid-cortex/external-api/*`, `rapid-cortex/rapid-iq/token-encryption` | 180 days; dual-publish then revoke |
 
 ## Procedure

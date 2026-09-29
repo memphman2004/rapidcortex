@@ -1,16 +1,24 @@
-# Real-time translation
+# Real-Time Translation
 
-Use a **language session** when the caller is not working in English (or your primary ops language).
+When multilingual support is enabled, NexCort iQ can show translated transcript lines and help you work a call when the caller speaks a language other than your primary console language.
 
-## During the call
+## Starting a language session
 
-1. Select the incident.
-2. Start translation from the language / Translate control in the workspace.
-3. Watch **Original:** lines under English text.
-4. If **Interpreter review** or **Low confidence** appears, follow agency interpreter SOP. Do not rely on the model alone.
+1. Select the live incident.
+2. Open the language / translation control in the workspace.
+3. Choose the caller's language (or accept the detected language when confidence is high).
+4. Continue the call using your agency's interpreter policy — AI translation is assistive.
 
-## After the call
+## What you will see
 
-Transcript and translation confidence stay on the incident for QA. Export and retention follow agency policy.
+- Original-language transcript lines when available
+- English (or agency default) rendering for triage and notes
+- Confidence indicators — low confidence means ask clarifying questions or escalate to a human interpreter
 
-Campus and venue have their own translate nav. This Help article is the **911 dispatcher** path.
+## Rules that never change
+
+- AI translation does **not** replace certified interpreters when your SOP requires them
+- Medical direction and legal statements follow agency policy, not machine translation
+- Emergency escalation still uses your Connect / transfer path — do not stay in a non-emergency interview if the call becomes an emergency
+
+If translation controls are missing, the languages module may be off. Contact Agency Admin / IT.

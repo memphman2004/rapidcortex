@@ -1,5 +1,5 @@
 /**
- * Ingest-time helpers for Rapid IQ pipeline Lambdas.
+ * Ingest-time helpers for NexiQ pipeline Lambdas.
  * Uses pipelineDdb (not lib/env) so collectors do not require INCIDENTS_TABLE.
  */
 

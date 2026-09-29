@@ -54,14 +54,14 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: >
-      Rapid IQ Opportunity Intelligence OpenAI web-search URL discovery (pipeline nested stack).
+      NexiQ Opportunity Intelligence OpenAI web-search URL discovery (pipeline nested stack).
       Default false. When true, watches with webSearchEnabled run two queries per daily worker (~$2/day).
-  EnableRapidIqNewHttpRoutes:
+  EnableNexiQNewHttpRoutes:
     Type: String
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: >-
-      Nested Rapid IQ intel/sales HTTP routes on AppSam3 HttpApi. Staging default
+      Nested NexiQ intel/sales HTTP routes on AppSam3 HttpApi. Staging default
       false. Live rapid-cortex-dev sets true after SignalHttpIntegrationV2 (orphan
       x30c8uk is gone from the API; leftover standalone route IDs are ghosts).
   EnableNexiQIntel:
@@ -70,12 +70,12 @@ Parameters:
     AllowedValues: ["true", "false"]
     Description: Enable NexiQ Intelligence Pipeline (collector/processor/API nested stack)
 
-  EnableRapidIqNestedExpansion:
+  EnableNexiQNestedExpansion:
     Type: String
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: >-
-      Extra Rapid IQ ingest/sales/intel-watch Lambdas on the hashed nested pipeline stack.
+      Extra NexiQ ingest/sales/intel-watch Lambdas on the hashed nested pipeline stack.
       Keep false on live rapid-cortex-dev (leftover standalone already owns them).
   OutlookOAuthClientId:
     Type: String
@@ -110,11 +110,11 @@ Parameters:
   RapidIqHunterApiKeySecretArn:
     Type: String
     Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/hunter-api-key-LXEwMX"
-    Description: Secrets Manager ARN for Hunter.io (PSAP / Rapid IQ contact enrichment).
+    Description: Secrets Manager ARN for Hunter.io (PSAP / NexiQ contact enrichment).
   RapidIqApolloApiKeySecretArn:
     Type: String
     Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/apollo-api-key-BDql0e"
-    Description: Secrets Manager ARN for Apollo.io (PSAP / Rapid IQ contact enrichment).
+    Description: Secrets Manager ARN for Apollo.io (PSAP / NexiQ contact enrichment).
   RapidIqWatchIngestApiKeySecretArn:
     Type: String
     Default: ""
@@ -557,6 +557,27 @@ Parameters:
     Description: >-
       Secrets Manager ARN for Amazon Connect Call Assist webhook HMAC. Empty keeps
       CALL_ASSIST_CONNECT_MOCK-only webhook verification.
+  CallAssistRapidSosSecretArn:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: Optional RapidSOS API secret ARN (read-only location). Empty disables RapidSOS lookups.
+  CallAssistLexBotRoleArn:
+    Type: String
+    Default: ""
+    Description: Lex V2 bot service role ARN (stack-lex LexServiceRole). Required for live CreateBot.
+  CallAssistPrimaryQueueArn:
+    Type: String
+    Default: ""
+    Description: Connect primary/demo queue ARN for Call Assist contact-flow provisioning.
+  CallAssistEmergencyQueueArn:
+    Type: String
+    Default: ""
+    Description: Connect emergency queue ARN for Call Assist contact-flow provisioning.
+  CallAssistFulfillmentLambdaArn:
+    Type: String
+    Default: ""
+    Description: Optional Lex fulfillment Lambda ARN for parameterized contact flows.
   EnableRapidVisionNest:
     Type: String
     Default: "true"
@@ -896,13 +917,13 @@ Resources:
         ExistingResumesBucketName: !Sub "${DynamoTableNamePrefix}-resumes-${DeploymentStage}-${AWS::AccountId}"
         ExistingMarketingLeadsTableName: !Sub "${DynamoTableNamePrefix}-marketing-leads-${DeploymentStage}"
         ExistingPsapProspectsTableName: !Sub "${DynamoTableNamePrefix}-psap-prospects-${DeploymentStage}"
-        ExistingRapidIqOpportunitiesTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-opportunities-${DeploymentStage}"
-        ExistingRapidIqSignalsTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-signals-${DeploymentStage}"
-        ExistingRapidIqContactsTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-contacts-${DeploymentStage}"
-        ExistingRapidIqSourcesTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-sources-${DeploymentStage}"
-        ExistingRapidIqJurisdictionsTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-jurisdictions-${DeploymentStage}"
-        ExistingRapidIqStateCoverageTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-state-coverage-${DeploymentStage}"
-        ExistingRapidIqPipelineSignalsTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-pipeline-signals-${DeploymentStage}"
+        ExistingNexiQOpportunitiesTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-opportunities-${DeploymentStage}"
+        ExistingNexiQSignalsTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-signals-${DeploymentStage}"
+        ExistingNexiQContactsTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-contacts-${DeploymentStage}"
+        ExistingNexiQSourcesTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-sources-${DeploymentStage}"
+        ExistingNexiQJurisdictionsTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-jurisdictions-${DeploymentStage}"
+        ExistingNexiQStateCoverageTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-state-coverage-${DeploymentStage}"
+        ExistingNexiQPipelineSignalsTableName: !Sub "${DynamoTableNamePrefix}-rapid-iq-pipeline-signals-${DeploymentStage}"
         ExistingRcsCallsTableName: !Sub "${DynamoTableNamePrefix}-rcs-calls-${DeploymentStage}"
         ExistingRcsUnitsTableName: !Sub "${DynamoTableNamePrefix}-rcs-units-${DeploymentStage}"
         ExistingRcsEscalationTableName: !Sub "${DynamoTableNamePrefix}-rcs-escalation-${DeploymentStage}"
@@ -932,7 +953,7 @@ Resources:
         ReuseExistingLoadoutDataResources: "true"
 
 
-  NexiQIntelDataStack:
+  RapidIqIntelDataStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TimeoutInMinutes: 60
@@ -2320,9 +2341,9 @@ Resources:
         RapidIqHunterApiKeySecretArn: !Ref RapidIqHunterApiKeySecretArn
         RapidIqApolloApiKeySecretArn: !Ref RapidIqApolloApiKeySecretArn
 
-  # Surgical Rapid IQ sales intelligence on AppSam3 HttpApi
+  # Surgical NexiQ sales intelligence on AppSam3 HttpApi
   # (opportunities/signals/contacts/sources + collectors + EventBridge).
-  AppSamRapidIqStack:
+  AppSamNexiQStack:
     Type: AWS::CloudFormation::Stack
     Metadata:
       cfn-lint:
@@ -2417,9 +2438,9 @@ Resources:
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
-  # Rapid IQ Signal Intelligence Pipeline (procurement signals → CRM)
-  # Separate from AppSamRapidIqStack opportunity feed.
-  AppSamRapidIqPipelineStack:
+  # NexiQ Signal Intelligence Pipeline (procurement signals → CRM)
+  # Separate from AppSamNexiQStack opportunity feed.
+  AppSamNexiQPipelineStack:
     Type: AWS::CloudFormation::Stack
     Metadata:
       cfn-lint:
@@ -2451,7 +2472,7 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
         AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
         RapidIqSamGovApiKeySecretArn: ""
-        # Apollo/Hunter ARNs — same Secrets Manager secrets as AppSamRapidIqStack / PsapCrm.
+        # Apollo/Hunter ARNs — same Secrets Manager secrets as AppSamNexiQStack / PsapCrm.
         RapidIqHunterApiKeySecretArn: !Ref RapidIqHunterApiKeySecretArn
         RapidIqApolloApiKeySecretArn: !Ref RapidIqApolloApiKeySecretArn
         RapidIqOpenstatesApiKeySecretArn: ""
@@ -2459,8 +2480,8 @@ Resources:
         RapidIqWatchIngestApiKeySecretArn: !Ref RapidIqWatchIngestApiKeySecretArn
         OpenAiApiKeySecretArn: !Ref OpenAiApiKeySecretArn
         OpenAiWebSearchEnabled: !Ref OpenAiWebSearchEnabled
-        EnableRapidIqNewHttpRoutes: !Ref EnableRapidIqNewHttpRoutes
-        EnableRapidIqNestedExpansion: !Ref EnableRapidIqNestedExpansion
+        EnableNexiQNewHttpRoutes: !Ref EnableNexiQNewHttpRoutes
+        EnableNexiQNestedExpansion: !Ref EnableNexiQNestedExpansion
         ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
         OutlookOAuthClientId: !Ref OutlookOAuthClientId
         OutlookOAuthClientSecretArn: !Ref OutlookOAuthClientSecretArn
@@ -3167,6 +3188,8 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.CampusConfigTable
             - !Sub "rapid-cortex-campus-config-${DeploymentStage}"
+        CampusVisitorsTable: !Sub "rapid-cortex-campus-visitors-${DeploymentStage}"
+        CampusPickupAuthTable: !Sub "rapid-cortex-campus-pickup-auth-${DeploymentStage}"
         CampusNotificationLogTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -3713,7 +3736,7 @@ Resources:
           ignore_checks:
             - W3005
     DependsOn:
-      - NexiQIntelDataStack
+      - RapidIqIntelDataStack
       - AppSam3Stack
       - AppSamStackV2
       - DataLayerStack
@@ -3726,18 +3749,18 @@ Resources:
         HttpApiId: !GetAtt AppSam3Stack.Outputs.HttpApiId
         HttpApiJwtAuthorizerId: ""
         EnableNexiQIntel: !Ref EnableNexiQIntel
-        NexiQIntelSourcesTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelSourcesTable
-        NexiQIntelSourceRunsTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelSourceRunsTable
-        NexiQIntelDocumentsTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelDocumentsTable
-        NexiQIntelSignalsTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelSignalsTable
-        NexiQIntelGapsTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelGapsTable
-        NexiQIntelBenchmarksTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelBenchmarksTable
-        NexiQIntelCoverageTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelCoverageTable
-        NexiQIntelRawArtifactsBucket: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelRawArtifactsBucketName
-        NexiQIntelCollectionQueueUrl: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelCollectionQueueUrl
-        NexiQIntelCollectionQueueArn: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelCollectionQueueArn
-        NexiQIntelProcessingQueueUrl: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelProcessingQueueUrl
-        NexiQIntelProcessingQueueArn: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelProcessingQueueArn
+        RapidIqIntelSourcesTable: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelSourcesTable
+        RapidIqIntelSourceRunsTable: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelSourceRunsTable
+        RapidIqIntelDocumentsTable: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelDocumentsTable
+        RapidIqIntelSignalsTable: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelSignalsTable
+        RapidIqIntelGapsTable: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelGapsTable
+        RapidIqIntelBenchmarksTable: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelBenchmarksTable
+        RapidIqIntelCoverageTable: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelCoverageTable
+        RapidIqIntelRawArtifactsBucket: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelRawArtifactsBucketName
+        RapidIqIntelCollectionQueueUrl: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelCollectionQueueUrl
+        RapidIqIntelCollectionQueueArn: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelCollectionQueueArn
+        RapidIqIntelProcessingQueueUrl: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelProcessingQueueUrl
+        RapidIqIntelProcessingQueueArn: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelProcessingQueueArn
         LeadsTableName:
           Fn::If:
             - HasDataLayerNestedStack
@@ -3869,6 +3892,11 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
         ExistingCallAssistTableName: !Ref ExistingCallAssistTableName
         CallAssistConnectWebhookSecretArn: !Ref CallAssistConnectWebhookSecretArn
+        CallAssistRapidSosSecretArn: !Ref CallAssistRapidSosSecretArn
+        CallAssistLexBotRoleArn: !Ref CallAssistLexBotRoleArn
+        CallAssistPrimaryQueueArn: !Ref CallAssistPrimaryQueueArn
+        CallAssistEmergencyQueueArn: !Ref CallAssistEmergencyQueueArn
+        CallAssistFulfillmentLambdaArn: !Ref CallAssistFulfillmentLambdaArn
         AppPublicBaseUrl: !Ref AppPublicBaseUrl
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
@@ -4442,13 +4470,13 @@ Outputs:
     Value: !GetAtt LoadoutAppStack.Outputs.LoadoutInvoiceGeneratorFunctionName
   RapidIqIntelWatchWorkerFunctionName:
     Description: Opportunity Intelligence watch worker (web search + collect)
-    Value: !GetAtt AppSamRapidIqPipelineStack.Outputs.IntelWatchWorkerFunctionName
+    Value: !GetAtt AppSamNexiQPipelineStack.Outputs.IntelWatchWorkerFunctionName
   RapidIqRfpUnifiedCounterFunctionName:
     Description: Unified RFP count snapshot Lambda
-    Value: !GetAtt AppSamRapidIqPipelineStack.Outputs.RfpUnifiedCounterFunctionName
+    Value: !GetAtt AppSamNexiQPipelineStack.Outputs.RfpUnifiedCounterFunctionName
   RapidIqPipelineSignalsTableName:
     Description: Pipeline + intel + watches + RFP snapshot table
-    Value: !GetAtt AppSamRapidIqPipelineStack.Outputs.RapidIqPipelineSignalsTableName
+    Value: !GetAtt AppSamNexiQPipelineStack.Outputs.RapidIqPipelineSignalsTableName
   GenerateGrantPackageFunctionName:
     Description: Grant generate Lambda name (web BFF direct Invoke for ~60s Anthropic budget)
     Value: !GetAtt AppSam3Stack.Outputs.GenerateGrantPackageFunctionName

@@ -67,9 +67,19 @@ function typeLabel(type: CampusIncident["type"]): string {
     security: "Safety",
     suspicious_activity: "Suspicious",
     mental_health: "Mental health",
+    fight: "Student Fight",
+    weapon: "Weapon",
+    drug_substance: "Drug / Substance",
+    bullying: "Bullying",
+    trespasser: "Trespasser",
+    property_damage: "Property Damage",
+    suspicious: "Suspicious Person",
+    lockdown_threat: "Lockdown / Threat",
+    parent_dispute: "Parent Dispute",
+    welfare_check: "Welfare Check",
     other: "Other",
   };
-  return map[type] ?? type;
+  return map[type] ?? type.replace(/_/g, " ");
 }
 
 export function CampusIncidentCard({

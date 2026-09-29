@@ -660,6 +660,19 @@ Globals:
         COGNITO_REGION: !Ref AWS::Region
 
 Resources:
+  # Shared node_modules for lean CodeUri sales CRM Lambdas (List/Patch/LeadsCrm).
+  NodeDepsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${Sam3ManagedPolicyNamePrefix}-sam3-api-deps-${DeploymentStage}"
+      Description: Shared node_modules for AppSam3 lean CRM Lambdas
+      ContentUri: ../../apps/api/layer/
+      CompatibleRuntimes:
+        - nodejs20.x
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: makefile
+
   AppManagedPolicyDynamoLambdaCrudShardA:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -1626,6 +1639,8 @@ Resources:
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/rc-admin/listRcAdminLeads.handler
+      Layers:
+        - !Ref NodeDepsLayer
       Environment:
         Variables:
           SALES_LEADS_TABLE: !Ref SalesLeadsTable
@@ -1649,6 +1664,8 @@ Resources:
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/rc-admin/patchRcAdminLead.handler
+      Layers:
+        - !Ref NodeDepsLayer
       Environment:
         Variables:
           SALES_LEADS_TABLE: !Ref SalesLeadsTable
@@ -1673,6 +1690,8 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/rc-admin/rcAdminLeadsHttp.handler
       Timeout: 30
+      Layers:
+        - !Ref NodeDepsLayer
       Environment:
         Variables:
           SALES_LEADS_TABLE: !Ref SalesLeadsTable
@@ -2478,14 +2497,12 @@ Resources:
               Authorizer: NONE
 
   # ---------------------------------------------------------------------------------------------
-  # Silent Text + Pinpoint Lambdas moved to `stack-app-sam.yaml` (Stack 1) on 2026-05-25 so they
-  # serve traffic through the `api.rapidcortex.us` custom domain. Stack 2's raw `execute-api`
-  # endpoint no longer exposes `/api/silent-text/*` or `/api/pinpoint/*`. See the
-  # Silent-Text-and-Pinpoint comment block in stack-app-sam.yaml for the new definitions.
+  # Silent Text + Pinpoint Lambdas live in `stack-app-sam-5.yaml` (AppSam5Stack). Video Assist
+  # (SMS P2P) remains in this stack (AppSam3). Web BFF: silent-text/live-video → API_UPSTREAM_BASE_5;
+  # video-assist → API_UPSTREAM_BASE_3.
   # ---------------------------------------------------------------------------------------------
 
-  # Renamed 2026-05-25 (was `PinpointSurgeIncidentsHttpFunction`) — pinpoint events moved to
-  # Stack 1's `PinpointIncidentsHttpFunction`; this Lambda now only handles `/api/incidents/{id}/surge/*`.
+  # Surge routes remain here; Pinpoint HTTP moved to AppSam5 `PinpointIncidentsHttpFunction`.
 
   # ---------------------------------------------------------------------------
   # Pricing Catalog — global service pricing + agency overrides + audit trail

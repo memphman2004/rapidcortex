@@ -164,6 +164,13 @@ export function DispatcherIncidentWorkstationBody({
     ) : isIncidentMediaEnabled() ? (
       <IncidentMediaPanel incidentId={incidentId} ani={incident?.callerCallback} embedded />
     ) : (
+      <PanelUnavailable message="Live video and caller media are not enabled for this agency." />
+    );
+
+  const videoAssist =
+    !incidentId ? (
+      <PanelUnavailable message="Select an incident in the queue." />
+    ) : (
       <VideoAssistPanel incidentId={incidentId} ani={incident?.callerCallback} />
     );
 
@@ -248,6 +255,11 @@ export function DispatcherIncidentWorkstationBody({
             ),
           },
           { key: "caller_mobile", label: "Caller Mobile", body: panel("caller_mobile", "Caller mobile", callerMobile) },
+          {
+            key: "video_assist",
+            label: "Video Assist",
+            body: panel("video_assist", "Video Assist (SMS)", videoAssist),
+          },
           {
             key: "silent_text",
             label: "Silent Text Link",

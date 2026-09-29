@@ -6,6 +6,7 @@ import { VenueHeader } from "@/app/venue/[venueCode]/_components/VenueHeader";
 import { VenueNav } from "@/app/venue/[venueCode]/_components/VenueNav";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import { VenueGuestServicesDisclaimer } from "./venue-guest-services-disclaimer";
+import { VenuePwaBootstrap } from "./venue-pwa-bootstrap";
 
 /**
  * Full console home owns its own chrome; sub-routes keep header + side nav.
@@ -73,11 +74,17 @@ export function VenueShellChrome({
   const operationsPopout = isVenueOperationsPopoutPath(pathname);
 
   if (consoleHome || operationsPopout) {
-    return <>{children}</>;
+    return (
+      <>
+        <VenuePwaBootstrap />
+        {children}
+      </>
+    );
   }
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-4 p-4">
+      <VenuePwaBootstrap />
       {isGuestServices ? <VenueGuestServicesDisclaimer className="mb-2" /> : null}
       <VenueHeader
         venueCode={venueCode}

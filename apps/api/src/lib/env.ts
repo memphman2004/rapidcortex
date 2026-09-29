@@ -34,7 +34,7 @@ function resolveSmsProviderMode(): SmsProviderMode {
 }
 
 /**
- * PSAP table/bucket names are getters so Rapid IQ (and other lean Lambdas) can
+ * PSAP table/bucket names are getters so NexiQ (and other lean Lambdas) can
  * import `env` without INCIDENTS_TABLE / AGENCIES_TABLE / ASSETS_BUCKET set.
  * Accessing a getter still throws if that handler actually needs the var.
  */
@@ -195,7 +195,12 @@ export const env = {
   liveVideoExportFunctionName: process.env.LIVE_VIDEO_EXPORT_FUNCTION_NAME?.trim() ?? "",
   kvsWebrtcTagApp: process.env.KVS_WEBRTC_TAG_APP?.trim() || "rapid-cortex",
   kvsWebrtcTagEnvironment: process.env.KVS_WEBRTC_TAG_ENV?.trim() || process.env.DEPLOYMENT_STAGE?.trim() || "dev",
-  /** Silent Text (SMS + web chat) — empty disables silent-text HTTP handlers at runtime. */
+  /**
+   * Silent Text (SMS → web chat). CFN `EnableSilentText` sets ENABLE_SILENT_TEXT on the Lambdas;
+   * when false handlers must return 503 (see stack-app-sam-5). Unset → enabled (ops default-on).
+   */
+  enableSilentText: featureEnabled("ENABLE_SILENT_TEXT"),
+  /** Empty table disables silent-text handlers even when the feature flag is on. */
   silentTextTable: process.env.SILENT_TEXT_TABLE?.trim() ?? "",
   silentTextPublicBaseUrl: process.env.SILENT_TEXT_PUBLIC_BASE_URL?.trim() ?? "",
   /** Pinpoint — caller GPS SMS links; empty table disables handlers. */
@@ -570,11 +575,11 @@ export const env = {
   /** RC Admin PSAP Prospect CRM — national outbound registry. */
   psapProspectsTable: process.env.PSAP_PROSPECTS_TABLE?.trim() ?? "",
   enablePsapProspects: featureEnabled("ENABLE_PSAP_PROSPECTS"),
-  /** Rapid IQ — RC-global sales intelligence (no agencyId scoping). */
+  /** NexiQ — RC-global sales intelligence (no agencyId scoping). */
   enableRapidIq: featureEnabled("ENABLE_RAPID_IQ"),
-  /** Rapid IQ Signal Intelligence Pipeline (procurement signals → CRM). Default on when unset. */
-  enableRapidIqPipeline: featureEnabled("ENABLE_RAPID_IQ_PIPELINE"),
-  /** Rapid IQ sales automation (campaign drafts + Outlook send after approval). Default on when unset. */
+  /** NexiQ Signal Intelligence Pipeline (procurement signals → CRM). Default on when unset. */
+  enableNexiQPipeline: featureEnabled("ENABLE_RAPID_IQ_PIPELINE"),
+  /** NexiQ sales automation (campaign drafts + Outlook send after approval). Default on when unset. */
   enableSalesAutomation: featureEnabled("ENABLE_SALES_AUTOMATION"),
   /** RC Admin conference catalog + weekly website refresh. Default on when unset. */
   enableConferences: featureEnabled("ENABLE_CONFERENCES"),

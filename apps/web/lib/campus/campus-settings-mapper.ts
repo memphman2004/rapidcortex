@@ -1,9 +1,11 @@
-import type { AgencyTenant, CampusAgencyConfig } from "rapid-cortex-shared";
+import type { AgencyTenant, CampusAgencyConfig, CampusInstitutionType } from "rapid-cortex-shared";
+import { resolveCampusInstitutionType } from "rapid-cortex-shared";
 
 export type CampusSettingsView = {
   general: {
     displayName: string;
     campusType: "university" | "k12" | "community_college" | "corporate" | "other";
+    institutionType: CampusInstitutionType;
     timezone: string;
   };
   notifications: {
@@ -35,6 +37,7 @@ const DEFAULT_SETTINGS: CampusSettingsView = {
   general: {
     displayName: "",
     campusType: "university",
+    institutionType: "higher_ed",
     timezone: "America/New_York",
   },
   notifications: {
@@ -71,6 +74,10 @@ export function campusSettingsFromAgency(agency: AgencyTenant): CampusSettingsVi
     general: {
       displayName: campus?.displayName ?? agency.name ?? "",
       campusType: campus?.campusType ?? DEFAULT_SETTINGS.general.campusType,
+      institutionType: resolveCampusInstitutionType({
+        institutionType: agency.institutionType ?? campus?.institutionType,
+        campusType: campus?.campusType,
+      }),
       timezone: campus?.timezone ?? DEFAULT_SETTINGS.general.timezone,
     },
     notifications: {
@@ -123,6 +130,7 @@ export function campusPatchFromSettingsView(
     if (trimmed) campus.displayName = trimmed;
   }
   if (general?.campusType) campus.campusType = general.campusType;
+  if (general?.institutionType) campus.institutionType = general.institutionType;
   if (general?.timezone) campus.timezone = general.timezone;
 
   if (notifications) {

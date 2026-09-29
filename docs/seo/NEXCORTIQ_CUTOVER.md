@@ -85,7 +85,7 @@ Standalone template `infra/rapidcortex-us-redirect.yaml` reserved if Rapid Corte
 
 Keep **URLs** on `app.rapidcortex.us`. Change **visible strings** and logos to NexCort iQ:
 
-- [x] Rapid iQ / NexiQ product naming cleanup (dashboard copy)
+- [x] NexiQ / NexiQ product naming cleanup (dashboard copy)
 - [x] NexCort logo asset in `apps/web/public/Logo/`
 - [x] Web `SITE_NAME` / metadata / OG → NexCort iQ (`apps/web/lib/site.ts`, `app/layout.tsx`)
 - [x] TOTP Authenticator issuer → `NexCort iQ` (`apps/web/lib/auth/totp-otpauth.ts`)

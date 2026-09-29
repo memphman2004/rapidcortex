@@ -1,15 +1,16 @@
 # Occupant alerts and broadcasts (Transit)
 
-**Occupant Alerts** and supervisor **broadcasts** notify riders or staff when enabled. They are not 911 and not CAD.
+When the alerts module is on, supervisors and admins can raise alert level and send occupant notifications for the transit system.
 
-## Alert level
+## How to send
 
-Supervisors can change transit alert level on the ops strip. That is an operations signal, not a PSAP status page.
+1. Open **Occupant alerts** / broadcasts.
+2. Choose severity and audience (system-wide vs route/station scope when offered).
+3. Write plain language. Tell people what to do and whether to call 911.
+4. Send and monitor acknowledgements if your tenant shows them.
 
-## Occupant alerts
+## Limits
 
-1. Open **Occupant Alerts** if it appears in your nav.
-2. Use templates your admin maintains.
-3. If the situation is an emergency, **call 911** as well.
-
-Security and Operator typically cannot change alert level or send broadcasts.
+- Alerts are not a public Wireless Emergency Alert (WEA) replacement unless your agency integrates one.
+- Do not use occupant alerts as a substitute for calling 911 during an in-progress emergency.
+- Audit sends — misuse erodes trust.

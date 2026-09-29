@@ -1,16 +1,16 @@
 /**
- * HTTP API for Rapid IQ procurement pipeline signals.
+ * HTTP API for NexiQ procurement pipeline signals.
  * Routes: /api/rapid-iq/signals* (legacy /api/rapid-iq/pipeline/signals* still accepted).
- * RBAC: rcsuperadmin / rcadmin / salescontractor (canAccessRapidIqWorkspace).
+ * RBAC: rcsuperadmin / rcadmin / salescontractor (canAccessNexiQWorkspace).
  */
 
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import {
-  canAccessRapidIqWorkspace,
-  createManualRapidIqPipelineSignalBodySchema,
-  enqueueRapidIqPipelineFromOpportunityBodySchema,
-  patchRapidIqPipelineSignalBodySchema,
-  pushRapidIqPipelineToCrmBodySchema,
+  canAccessNexiQWorkspace,
+  createManualRapidIqPipelineSignalBodySchema as createManualNexiQPipelineSignalBodySchema,
+  enqueueRapidIqPipelineFromOpportunityBodySchema as enqueueNexiQPipelineFromOpportunityBodySchema,
+  patchRapidIqPipelineSignalBodySchema as patchNexiQPipelineSignalBodySchema,
+  pushRapidIqPipelineToCrmBodySchema as pushNexiQPipelineToCrmBodySchema,
   RAPID_IQ_PIPELINE_SIGNAL_STATUSES,
   rapidIqResearchRequestSchema,
   rapidIqWatchIngestRequestSchema,
@@ -21,7 +21,7 @@ import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from ".
 import { withCorrelationHeaders } from "../../../lib/correlation.js";
 import { env } from "../../../lib/env.js";
 import { makeId } from "../../../lib/ids.js";
-import { runRapidIqResearch } from "../../../lib/rapid-iq/pipeline/ai-research.js";
+import { runNexiQResearch } from "../../../lib/rapid-iq/pipeline/ai-research.js";
 import { getCreditStatus } from "../../../lib/rapid-iq/pipeline/credit-guard.js";
 import { createManualPipelineSignal } from "../../../lib/rapid-iq/pipeline/create-manual-signal.js";
 import { enqueueOpportunityToPipeline } from "../../../lib/rapid-iq/pipeline/enqueue-from-opportunity.js";
@@ -64,10 +64,10 @@ async function requirePipelineAdmin(
   const user = await getUserContext(event);
   if (!user) return { error: unauthorized() };
   if (!isUserAccountActive(user)) return { error: unauthorized(ACCOUNT_INACTIVE_MESSAGE) };
-  if (!env.enableRapidIqPipeline) {
-    return { error: serviceUnavailable("Rapid IQ Pipeline is not enabled") };
+  if (!env.enableNexiQPipeline) {
+    return { error: serviceUnavailable("NexiQ Pipeline is not enabled") };
   }
-  if (!canAccessRapidIqWorkspace(user.role)) return { error: forbidden() };
+  if (!canAccessNexiQWorkspace(user.role)) return { error: forbidden() };
   return { user };
 }
 
@@ -91,8 +91,8 @@ function isWatchIngestPath(path: string): boolean {
 }
 
 async function handleWatchIngest(event: APIGatewayProxyEventV2): Promise<JsonResult> {
-  if (!env.enableRapidIqPipeline) {
-    return serviceUnavailable("Rapid IQ Pipeline is not enabled");
+  if (!env.enableNexiQPipeline) {
+    return serviceUnavailable("NexiQ Pipeline is not enabled");
   }
   const auth = await assertWatchIngestApiKey(event);
   if (!auth.ok) {
@@ -233,7 +233,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       if (body === null) return withCorrelationHeaders(event, badRequest("Invalid JSON"));
       const parsed = rapidIqResearchRequestSchema.safeParse(body);
       if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
-      const result = await runRapidIqResearch(parsed.data);
+      const result = await runNexiQResearch(parsed.data);
       await auditRepo.create({
         eventId: makeId("audit"),
         agencyId: "platform",
@@ -286,7 +286,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       if (body === null) return withCorrelationHeaders(event, badRequest("Invalid JSON"));
 
       if (isManualBody(body)) {
-        const parsed = createManualRapidIqPipelineSignalBodySchema.safeParse(body);
+        const parsed = createManualNexiQPipelineSignalBodySchema.safeParse(body);
         if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
         const { signal, alreadyQueued } = await createManualPipelineSignal(
           parsed.data,
@@ -305,7 +305,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         return withCorrelationHeaders(event, ok({ signal, alreadyQueued }));
       }
 
-      const parsed = enqueueRapidIqPipelineFromOpportunityBodySchema.safeParse(body);
+      const parsed = enqueueNexiQPipelineFromOpportunityBodySchema.safeParse(body);
       if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
 
       const { signal, alreadyQueued } = await enqueueOpportunityToPipeline(parsed.data);
@@ -335,7 +335,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     if (method === "PATCH" && !path.endsWith("/push-to-crm")) {
       const body = parseBody(event);
       if (body === null) return withCorrelationHeaders(event, badRequest("Invalid JSON"));
-      const parsed = patchRapidIqPipelineSignalBodySchema.safeParse(body);
+      const parsed = patchNexiQPipelineSignalBodySchema.safeParse(body);
       if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
 
       const updated = parsed.data.status
@@ -371,7 +371,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
 
       const body = parseBody(event);
       if (body === null) return withCorrelationHeaders(event, badRequest("Invalid JSON"));
-      const parsed = pushRapidIqPipelineToCrmBodySchema.safeParse(body);
+      const parsed = pushNexiQPipelineToCrmBodySchema.safeParse(body);
       if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
 
       const caller = user.email ?? user.userId;
@@ -414,7 +414,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
 
     return withCorrelationHeaders(event, badRequest("Method not allowed"));
   } catch (err) {
-    console.error("Rapid IQ pipeline signal handler error:", err);
+    console.error("NexiQ pipeline signal handler error:", err);
     return withCorrelationHeaders(event, serverError());
   }
 }

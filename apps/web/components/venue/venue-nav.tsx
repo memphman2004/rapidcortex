@@ -6,6 +6,7 @@ import type { ElementType } from "react";
 import {
   Activity,
   Bell,
+  BarChart3,
   FileText,
   Home,
   Languages,
@@ -36,6 +37,13 @@ function navItems(base: string): NavItem[] {
     { id: "home", label: "Home", href: base, icon: Home },
     { id: "ops", label: "Operations Center", href: base, icon: Activity },
     { id: "reports", label: "Reports", href: `${base}/reports`, icon: FileText },
+    {
+      id: "analytics",
+      label: "Analytics",
+      href: `${base}/analytics`,
+      icon: BarChart3,
+      supervisorOnly: true,
+    },
     { id: "sections", label: "Sections", href: `${base}/sections`, icon: MapPin },
     { id: "staff", label: "Staff", href: `${base}/staff`, icon: Users },
     {

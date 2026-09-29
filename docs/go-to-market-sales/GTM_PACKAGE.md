@@ -81,7 +81,7 @@ Ship **[JURISDICTION_OPERATIONS_GUIDE.md](./JURISDICTION_OPERATIONS_GUIDE.md)** 
 | [SALES_BOUNDARIES.md](./SALES_BOUNDARIES.md) | Role boundaries + safe phrasing |
 | [PILOT_NON_GOALS.md](./PILOT_NON_GOALS.md) | Pilot “never promise” operational list |
 | [FAQ_INTERNAL.md](./FAQ_INTERNAL.md) | Internal Q&A for sales/support |
-| [EMAIL_CAMPAIGN_911_VENUE_CAMPUS.md](./EMAIL_CAMPAIGN_911_VENUE_CAMPUS.md) | Send-ready 911 / campus / venue email sequences + Rapid IQ 3-touch |
+| [EMAIL_CAMPAIGN_911_VENUE_CAMPUS.md](./EMAIL_CAMPAIGN_911_VENUE_CAMPUS.md) | Send-ready 911 / campus / venue email sequences + NexiQ 3-touch |
 
 ---
 

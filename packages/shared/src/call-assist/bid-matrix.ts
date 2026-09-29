@@ -12,7 +12,7 @@ export type CallAssistBidLine = {
  *
  * Honesty gate: paste into Scope of Services only as-is. Do not upgrade PARTIAL → FULL
  * for CAD write, telephony CPE, RMS, GIS, SLAs, or vendor quals without live UAT evidence.
- * Last redlined against Call Assist adapters + demo playbook (2026-09-27).
+ * Last redlined against Call Assist adapters + demo playbook (2026-09-28).
  */
 export const CALL_ASSIST_BID_LINE_MATRIX: readonly CallAssistBidLine[] = [
   {
@@ -20,7 +20,7 @@ export const CALL_ASSIST_BID_LINE_MATRIX: readonly CallAssistBidLine[] = [
     requirement: "AI Call Answering",
     position: "PARTIAL",
     notes:
-      "Non-emergency Lex/Connect path with emergency hard-stop transfer, barge-in, grounding, disclosure. Live DID requires un-mocked Connect+Lex and agency telephony UAT — not a sole-prime CPE replacement.",
+      "Non-emergency Lex/Connect path with emergency hard-stop transfer, barge-in, grounding, disclosure. Live LexModelsV2 + Connect CreateContactFlow provisioners are wired when CALL_ASSIST_LEX_MOCK/CONNECT_MOCK=false and queue/role ARNs are set. Agency telephony UAT + DID claim still required — not a sole-prime CPE replacement.",
   },
   { line: 2, requirement: "Call Intake", position: "FULL", notes: "Structured intake plus dynamic questioning." },
   {
@@ -28,7 +28,7 @@ export const CALL_ASSIST_BID_LINE_MATRIX: readonly CallAssistBidLine[] = [
     requirement: "Incident Classification",
     position: "PARTIAL",
     notes:
-      "Triage, nature mapping, session chips for duplicates/repeat/chronic. Live PremierOne nearby incidents and premise hazards currently return empty until vendor UAT — do not claim officer-safety-via-CAD as live.",
+      "Triage, nature mapping, session chips for duplicates/repeat/chronic. Nearby incidents and premise hazards call the configured CAD connector once dual CAD gates are open; remain empty until vendor credentials + UAT — do not claim officer-safety-via-CAD as live without measured evidence.",
   },
   {
     line: 4,
@@ -80,21 +80,22 @@ export const CALL_ASSIST_BID_LINE_MATRIX: readonly CallAssistBidLine[] = [
     requirement: "Motorola CAD Integration",
     position: "PARTIAL",
     notes:
-      "PremierOne + multi-CAD adapters with dual fail-closed write gates (CAD_WRITEBACK_ENABLED + ENABLE_CALL_ASSIST_CAD_PUSH). Create/update/disposition/unit status/attachments require Motorola PS + agency UAT. Nearby/hazards empty until live.",
+      "PremierOne + multi-CAD adapters with dual fail-closed write gates (CAD_WRITEBACK_ENABLED + ENABLE_CALL_ASSIST_CAD_PUSH). Create/update/nearby/hazards HTTP paths are implemented against the agency CAD connector; enable only after Motorola PS + agency UAT + signed writeback addendum.",
   },
-  { line: 12, requirement: "(Deleted in Addendum)", position: "N_A", notes: "RapidSOS line removed per Q&A; do not bid or demo." },
+  { line: 12, requirement: "(Deleted in Addendum)", position: "N_A", notes: "RapidSOS line removed per Q&A; do not bid or demo. Optional read-only RapidSOS adapter exists for other tenants when CALL_ASSIST_RAPIDSOS_SECRET_ARN is set." },
   {
     line: 13,
     requirement: "Telephony Integration",
     position: "PARTIAL",
     notes:
-      "Amazon Connect webhook + contact-flow actions + ANI/ALI attributes. SIP/VoIP CPE, queue management, and overflow routing remain tenant telephony — not a NexCort iQ 911 phone-system replacement.",
+      "Amazon Connect webhook + contact-flow actions + ANI/ALI attributes. Onboarding CreateContactFlow is live when queue ARNs are configured. SIP/VoIP CPE, queue management, and overflow routing remain tenant telephony — not a NexCort iQ 911 phone-system replacement.",
   },
   {
     line: 14,
     requirement: "RMS Integration",
     position: "PARTIAL",
-    notes: "RMSProvider interface + fail-closed drafts. Live Motorola Records filing is not Day-1 enabled.",
+    notes:
+      "RMSProvider interface + fail-closed drafts. Live Motorola Records HTTP path exists when ENABLE_CALL_ASSIST_RMS_DRAFT=true and vendor secrets are set — not Day-1 enabled by default.",
   },
   {
     line: 15,

@@ -11,6 +11,7 @@ import { extractVenueCode } from "@/lib/auth/post-login-redirect";
 import { VenueNav } from "./venue-nav";
 import type { VenueThreatLevel } from "./venue-threat-strip";
 import { venueThreatLabel } from "./venue-threat-strip";
+import { VenuePwaBootstrap } from "./venue-pwa-bootstrap";
 
 export function VenueOperationsShell(props: {
   venueName: string;
@@ -52,6 +53,7 @@ function VenueOperationsShellInner({
 
   return (
     <HelpChrome role={userRole ?? "venue_admin"}>
+    <VenuePwaBootstrap />
     <div
       ref={rootRef}
       data-theme={theme}

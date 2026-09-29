@@ -1,21 +1,47 @@
 import { z } from "zod";
 
+/** Operational + catalog types (higher-ed and K-12). Unknown values rejected. */
+const campusIncidentTypeSchema = z.enum([
+  // Legacy / intake operational types
+  "medical",
+  "security",
+  "mental_health",
+  "suspicious_activity",
+  "wellness_check",
+  "property_crime",
+  "maintenance",
+  "active_threat",
+  "other",
+  // Higher-ed catalog (getIncidentTypes)
+  "theft",
+  "assault",
+  "dui",
+  "vandalism",
+  "sexual_offense",
+  "bias_hate",
+  "drug_offense",
+  "trespassing",
+  "weapon",
+  "missing_person",
+  "fire",
+  // K-12 catalog (getIncidentTypes)
+  "fight",
+  "drug_substance",
+  "bullying",
+  "trespasser",
+  "property_damage",
+  "suspicious",
+  "lockdown_threat",
+  "parent_dispute",
+  "welfare_check",
+]);
+
 export const createIncidentSchema = z.object({
   campusCode: z.string().min(2).max(20).transform((s) => s.toUpperCase()),
   buildingCode: z.string().min(1).max(50),
   floor: z.number().int().min(0).max(100).nullable().optional(),
   roomCode: z.string().max(20).optional().default(""),
-  type: z.enum([
-    "medical",
-    "security",
-    "mental_health",
-    "suspicious_activity",
-    "wellness_check",
-    "property_crime",
-    "maintenance",
-    "active_threat",
-    "other",
-  ]),
+  type: campusIncidentTypeSchema,
   source: z.enum([
     "qr",
     "sms",
@@ -39,6 +65,8 @@ export const createIncidentSchema = z.object({
   /** Cameras assigned to the scanned QR / area during inprocessing. */
   cameraIds: z.array(z.string().min(1).max(64)).max(8).optional(),
   siteCode: z.string().trim().max(20).optional(),
+  /** K-12 school badge (CCHS, CCMS) — denormalized at create for cards/logs. */
+  siteShortName: z.string().trim().max(16).optional(),
   latitude: z.number().min(-90).max(90).optional(),
   longitude: z.number().min(-180).max(180).optional(),
 });

@@ -16,6 +16,8 @@ function mapErr(e: unknown) {
   const msg = e instanceof Error ? e.message : String(e);
   if (msg.startsWith("VALIDATION:")) return badRequest(msg.slice("VALIDATION:".length));
   if (msg === "NOT_FOUND") return notFound();
+  if (msg === "SILENT_TEXT_DISABLED")
+    return serviceUnavailable("Silent text is not enabled for this deployment");
   if (msg === "SILENT_TEXT_TABLE_NOT_CONFIGURED")
     return serviceUnavailable("Silent text is not configured");
   if (msg === "SESSION_EXPIRED") return jsonStatus({ error: "session_expired" }, 410);

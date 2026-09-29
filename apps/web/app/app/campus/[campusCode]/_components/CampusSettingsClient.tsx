@@ -326,18 +326,48 @@ export function CampusSettingsClient({
               <div className="relative">
                 <select
                   value={merged.general.campusType}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const campusType = e.target.value as CampusSettingsView["general"]["campusType"];
                     update("general", {
-                      campusType: e.target.value as CampusSettingsView["general"]["campusType"],
-                    })
-                  }
+                      campusType,
+                      // Keep product split in sync: k12 campus → k12 institution console.
+                      institutionType: campusType === "k12" ? "k12" : "higher_ed",
+                    });
+                  }}
                   className="w-full appearance-none rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-slate-500 focus:outline-none"
                 >
                   <option value="university">University / College</option>
-                  <option value="k12">K–12 School</option>
+                  <option value="k12">K–12 School District</option>
                   <option value="community_college">Community College</option>
                   <option value="corporate">Corporate Campus</option>
                   <option value="other">Other</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-2.5 h-4 w-4 text-slate-500" />
+              </div>
+            </Field>
+            <Field
+              label="Institution type"
+              hint="Controls Clery vs K-12 Safety nav, visitor verification, and school dashboards."
+            >
+              <div className="relative">
+                <select
+                  value={merged.general.institutionType}
+                  onChange={(e) => {
+                    const institutionType = e.target.value as CampusSettingsView["general"]["institutionType"];
+                    update("general", {
+                      institutionType,
+                      campusType:
+                        institutionType === "k12"
+                          ? "k12"
+                          : merged.general.campusType === "k12"
+                            ? "university"
+                            : merged.general.campusType,
+                    });
+                  }}
+                  className="w-full appearance-none rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-slate-500 focus:outline-none"
+                >
+                  <option value="higher_ed">University / College (Clery)</option>
+                  <option value="k12">K–12 School District</option>
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-2.5 h-4 w-4 text-slate-500" />
               </div>

@@ -1,4 +1,4 @@
-/** Rapid IQ jurisdiction registry — RC-global (no agencyId). Seed source for DynamoDB. */
+/** NexiQ jurisdiction registry — RC-global (no agencyId). Seed source for DynamoDB. */
 
 import { UNIVERSITY_JURISDICTIONS } from "./university-registry.js";
 import { VENUE_JURISDICTIONS } from "./venue-registry.js";

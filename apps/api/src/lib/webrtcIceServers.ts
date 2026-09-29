@@ -106,3 +106,23 @@ export function isCustomIceConfigured(): boolean {
       env.webrtcTurnSecretArn,
   );
 }
+
+/**
+ * Strict stages require TURN for Video Assist (SMS P2P) — STUN alone fails on cellular NAT.
+ * Escape hatch: VIDEO_ASSIST_ALLOW_STUN_ONLY=1 (lab/CI only).
+ */
+export function requiresVideoAssistTurn(): boolean {
+  const allowStun =
+    process.env.VIDEO_ASSIST_ALLOW_STUN_ONLY?.trim().toLowerCase() === "1" ||
+    process.env.VIDEO_ASSIST_ALLOW_STUN_ONLY?.trim().toLowerCase() === "true";
+  if (allowStun) return false;
+  const stage = (process.env.DEPLOYMENT_STAGE ?? process.env.STAGE ?? "").trim().toLowerCase();
+  return stage === "prod" || stage === "pilot" || stage === "staging" || stage === "dev";
+}
+
+/** Fail closed for Video Assist SMS P2P when production-like stages lack TURN/ICE. */
+export function assertVideoAssistIceReady(): void {
+  if (requiresVideoAssistTurn() && !isCustomIceConfigured()) {
+    throw new Error("VIDEO_ASSIST_TURN_REQUIRED");
+  }
+}

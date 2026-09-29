@@ -32,7 +32,7 @@ These secrets exist; they process customer content **only if the corresponding f
 | `rapid-cortex/connect/ring-credentials` + per-account Ring secrets | Ring | Device/media (Ring Connect) | Already in §3; citizen token secrets are high-sensitivity — rotation on unlink |
 | `rapid-cortex/connect/wyze-api-keys` | Wyze | Camera credentials when WyzeEnabled | Off unless SAM gate on |
 | `rapid-cortex/connect/nest-consent-hmac-dev` | Google Nest SDM (when used) | OAuth/consent HMAC | Citizen path still needs Device Access; HMAC is RC-owned |
-| Rapid IQ keys (Hunter, Apollo, Legiscan, OpenStates, RunSignUp, Outlook/Graph, Teams webhook) | See v0.3 §8 | **Prospect / GTM data**, not 911 transcripts | Separate category |
+| NexiQ keys (Hunter, Apollo, Legiscan, OpenStates, RunSignUp, Outlook/Graph, Teams webhook) | See v0.3 §8 | **Prospect / GTM data**, not 911 transcripts | Separate category |
 | `rapid-cortex/dev/call-assist/*` | Amazon Connect (already listed) | Webhook/CCP secrets | AWS |
 | `rapid-cortex/external-api/jwt` + `encryption` | none (RC-owned keys) | API client tokens | Not a subprocessor |
 | `rapid-cortex/*/billing/*` | Amazon SES (already listed) | SMTP | AWS |

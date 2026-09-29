@@ -9,6 +9,12 @@ import { fetchVenueSectionCameras } from "@/lib/venue/venue-camera-api";
 import { canVenueSupervisorOps } from "@/lib/vertical/supervisor-access";
 import { incidentTypeLabel } from "@/app/venue/[venueCode]/_components/IncidentTypeIcon";
 import { IncidentCameraPanel, type VenueActiveIncidentPanel } from "./IncidentCameraPanel";
+import { VenueAuditTimeline } from "./rfp/venue-audit-timeline";
+import { VenueCaseWorkflowPanel } from "./rfp/venue-case-workflow-panel";
+import { VenueEvidencePanel } from "./rfp/venue-evidence-panel";
+import { VenueReportDistributePanel } from "./rfp/venue-report-distribute-panel";
+
+type RfpTab = "cameras" | "evidence" | "case" | "audit" | "reports";
 
 export function VenueIncidentOpsDetailClient({
   agencyId,
@@ -27,6 +33,9 @@ export function VenueIncidentOpsDetailClient({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [panel, setPanel] = useState<VenueActiveIncidentPanel | null>(null);
+  const [tab, setTab] = useState<RfpTab>("cameras");
+  const canMutate = canVenueSupervisorOps(userRole);
+  const rfpEnabled = process.env.NEXT_PUBLIC_ENABLE_VENUE_RFP_CASE !== "0";
 
   useEffect(() => {
     let cancelled = false;
@@ -80,6 +89,18 @@ export function VenueIncidentOpsDetailClient({
     );
   }
 
+  const tabs: { id: RfpTab; label: string }[] = [
+    { id: "cameras", label: "Cameras" },
+    ...(rfpEnabled
+      ? ([
+          { id: "evidence", label: "Evidence" },
+          { id: "case", label: "Case" },
+          { id: "audit", label: "Audit" },
+          { id: "reports", label: "Reports" },
+        ] as { id: RfpTab; label: string }[])
+      : []),
+  ];
+
   return (
     <div>
       <div style={{ padding: "14px 14px 0" }}>
@@ -87,14 +108,61 @@ export function VenueIncidentOpsDetailClient({
           ← Operations center
         </Link>
       </div>
-      <IncidentCameraPanel
-        agencyId={agencyId}
-        incident={panel}
-        canDispatch={canVenueSupervisorOps(userRole)}
-        embedded
-        mode="detail"
-        onClose={() => router.push(linkBase)}
-      />
+      {rfpEnabled ? (
+        <div
+          style={{
+            display: "flex",
+            gap: 6,
+            padding: "10px 14px 0",
+            flexWrap: "wrap",
+          }}
+        >
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTab(t.id)}
+              style={{
+                fontSize: 11,
+                padding: "4px 10px",
+                borderRadius: 999,
+                border: tab === t.id ? "1px solid #f59e0b" : "1px solid rgba(255,255,255,0.12)",
+                background: tab === t.id ? "rgba(245,158,11,0.15)" : "transparent",
+                color: tab === t.id ? "#f59e0b" : "var(--rc-text-muted)",
+                cursor: "pointer",
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {tab === "cameras" || !rfpEnabled ? (
+        <IncidentCameraPanel
+          agencyId={agencyId}
+          incident={panel}
+          canDispatch={canMutate}
+          embedded
+          mode="detail"
+          onClose={() => router.push(linkBase)}
+        />
+      ) : null}
+      {rfpEnabled && tab === "evidence" ? (
+        <VenueEvidencePanel venueCode={venueCode} incidentId={incidentId} canMutate={canMutate} />
+      ) : null}
+      {rfpEnabled && tab === "case" ? (
+        <VenueCaseWorkflowPanel venueCode={venueCode} incidentId={incidentId} canMutate={canMutate} />
+      ) : null}
+      {rfpEnabled && tab === "audit" ? (
+        <VenueAuditTimeline venueCode={venueCode} incidentId={incidentId} />
+      ) : null}
+      {rfpEnabled && tab === "reports" ? (
+        <VenueReportDistributePanel
+          venueCode={venueCode}
+          incidentId={incidentId}
+          canMutate={canMutate}
+        />
+      ) : null}
     </div>
   );
 }

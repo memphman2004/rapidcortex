@@ -1,19 +1,18 @@
 # Transit Admin
 
-You own the transit tenant: users, vehicles, routes, QR/NFC, and cameras. Not a 911 agency admin console.
+You own tenant configuration for fleet, routes, stations, users, QR/NFC, and camera registry.
 
 ## You can
 
-- Invite Transit Admin, Supervisor, Security, and Operator accounts
-- Manage fleet/route settings
-- Create, download, assign (vehicle / station / route), and deactivate passenger QR / NFC
-- Work incidents, occupant alerts, and reports
+- Invite transit roles and deactivate leavers
+- Manage QR/NFC on vehicles and stations
+- Configure cameras and occupant alert capability
+- Oversee incidents at the system level
 
-## You cannot
+## You cannot / must not
 
-- Enable 911 CAD write-back from this console
-- Manage another agency’s PSAP
+- Treat this console as 911 CAD or enable CAD write-back casually
+- Assign PSAP dispatcher roles to bus operators
+- Skip **When to call 911** training for new hires
 
-## Locations
-
-Put a code on each in-service vehicle and station the public should be able to report from. When a vehicle leaves the fleet, **Deactivate** the code and recover the NFC tag. See the Field tools articles in this guide.
+Start with **Transit Operations overview** and **New employee onboarding** in this Staff Guide.

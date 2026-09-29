@@ -18,7 +18,7 @@ import { AUDIT_EVENT_TYPES, TenantAccessGuard } from "rapid-cortex-security";
 import { env } from "../lib/env.js";
 import { makeId } from "../lib/ids.js";
 import { sendVideoAssistSms, videoAssistSmsFailureMessage } from "../lib/videoAssistSms.js";
-import { resolveWebRtcIceServers } from "../lib/webrtcIceServers.js";
+import { resolveWebRtcIceServers, assertVideoAssistIceReady, isCustomIceConfigured } from "../lib/webrtcIceServers.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import type { VideoAssistDdbItem } from "../repositories/videoAssistRepository.js";
 import { VideoAssistRepository } from "../repositories/videoAssistRepository.js";
@@ -95,6 +95,7 @@ function assertLive(item: VideoAssistDdbItem): void {
 export class VideoAssistService {
   async createSession(incidentId: string, user: UserContext, rawBody: unknown) {
     assertConfigured();
+    assertVideoAssistIceReady();
     const parsed = createVideoAssistSessionBodySchema.safeParse(rawBody);
     if (!parsed.success) throw new Error(`VALIDATION:${parsed.error.message}`);
 
@@ -486,8 +487,13 @@ export class VideoAssistService {
 
   async iceServers(): Promise<{
     iceServers: { urls: string | string[]; username?: string; credential?: string }[];
+    turnConfigured: boolean;
   }> {
-    return { iceServers: await resolveWebRtcIceServers() };
+    assertVideoAssistIceReady();
+    return {
+      iceServers: await resolveWebRtcIceServers(),
+      turnConfigured: isCustomIceConfigured(),
+    };
   }
 }
 

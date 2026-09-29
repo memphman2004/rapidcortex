@@ -1,9 +1,12 @@
-# Stakeholder status pages
+# Stakeholder Status Pages
 
-**Stakeholder status pages** share live incident status with command staff when the module is on.
+Stakeholder pages give command staff a **read-only** live view of selected incidents without a full dispatcher login.
 
-1. Open **Status Pages** from supervisor command.
-2. Share only the page SOP allows (no extra PII).
-3. Take the page down when the event ends.
+## How to share
 
-This is not a public 911 status site unless your contract says so.
+1. Open the incident or war room.
+2. Create or copy the stakeholder status link your agency enables.
+3. Share only with authorized recipients.
+4. Revoke or let links expire per retention policy.
+
+Stakeholders see status — not full CAD write tools. Do not treat a stakeholder page as a public website.

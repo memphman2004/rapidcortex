@@ -1,14 +1,27 @@
-# Supervisor overview
+# Supervisor Overview
 
-This Help tab is for **PSAP supervisors**. Campus/venue/transit supervisors use **Staff Guide**.
+Your console is for **floor oversight**, coaching, and shift reporting — not the primary dispatcher live-call workspace.
 
-You see floor ops, CAD approval (when write-back is on), QA, and reports. You do not get the dispatcher’s live CAD-entry workspace as your home.
+## What you can do
 
-## Start of shift
+- Watch live floor / queue status for your agency
+- Review CAD approval items when write-back + approval are enabled
+- Open war rooms for multi-unit or MCI coordination
+- Review QA scorecards and add coaching notes
+- Acknowledge wellness flags
+- Run shift and incident reports; share stakeholder status pages when enabled
 
-1. Sign in at the agency URL.
-2. Open the supervisor console.
-3. Confirm Connections is live.
-4. Scan the floor: active calls, dispatcher status, pending CAD approvals if that queue exists.
+## What you should not do from this role
 
-Watching a dispatcher session is logged. Use **SUPERVISOR_WATCHING** indicators as designed — do not shadow off-record.
+- Treat supervisor tools as a substitute for staffing a dispatcher on a live 911 call
+- Approve CAD payloads you have not read
+- Disable audit or wellness protections
+
+## Every shift
+
+1. Sign in at your agency URL and complete MFA.
+2. Confirm Connections / API health is live.
+3. Scan floor load and open incidents.
+4. Handle approvals and coaching without inventing CAD write-back if the agency gate is off.
+
+Training access in Help is unlimited for your account.

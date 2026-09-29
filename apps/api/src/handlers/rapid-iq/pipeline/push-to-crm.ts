@@ -5,7 +5,7 @@
 
 import { randomUUID } from "node:crypto";
 import type {
-  PushRapidIqPipelineToCrmBody,
+  PushNexiQPipelineToCrmBody,
   RapidIqPipelineSignal,
 } from "rapid-cortex-shared";
 import { SalesLeadRepository } from "../../../repositories/salesLeadRepository.js";
@@ -44,7 +44,7 @@ interface EnrichedContact {
 
 async function enrichContacts(
   signal: RapidIqPipelineSignal,
-  body: PushRapidIqPipelineToCrmBody,
+  body: PushNexiQPipelineToCrmBody,
 ): Promise<{
   contacts: EnrichedContact[];
   apolloCreditsUsed: number;
@@ -201,7 +201,7 @@ async function enrichContacts(
 
 export async function createCrmLeadFromPipelineSignal(
   signal: RapidIqPipelineSignal,
-  body: PushRapidIqPipelineToCrmBody,
+  body: PushNexiQPipelineToCrmBody,
   pushedBy: string,
 ): Promise<PipelineCrmPushResult> {
   const leadId = randomUUID();
@@ -230,7 +230,7 @@ export async function createCrmLeadFromPipelineSignal(
       : null;
 
   const signalNote = [
-    `Signal from Rapid IQ Pipeline — pushed by ${pushedBy}`,
+    `Signal from NexiQ Pipeline — pushed by ${pushedBy}`,
     `Source: ${signal.sourceId} | Score: ${signal.fitScore}/100 (${signal.fitLabel.toUpperCase()} FIT)`,
     `Signal Date: ${signal.signalDate}`,
     signal.vendorNamed ? `Vendor: ${signal.vendorNamed}` : null,
@@ -288,7 +288,7 @@ export async function createCrmLeadFromPipelineSignal(
     ],
     attribution: {
       channel: "contact_sales",
-      channelLabel: "Rapid IQ Pipeline",
+      channelLabel: "NexiQ Pipeline",
       landingPage: "/rc-admin/rapid-iq",
       firstTouchAt: now,
       utmSource: signal.sourceId,

@@ -26,10 +26,10 @@ function meetingListUrl(entity: BoardDocsEntity): string {
 }
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: BoardDocs ingestion starting");
+  console.log("NexiQ pipeline: BoardDocs ingestion starting");
 
   if (await enqueueMockIfEnabled("boarddocs")) {
-    console.log("Rapid IQ pipeline: BoardDocs mock path complete");
+    console.log("NexiQ pipeline: BoardDocs mock path complete");
     return;
   }
 

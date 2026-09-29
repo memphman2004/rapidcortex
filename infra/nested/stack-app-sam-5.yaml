@@ -466,6 +466,13 @@ Parameters:
     Type: String
     Default: ""
     Description: Venue config DynamoDB table (event schedules, SMS incidents).
+  VenueEvidenceBucket:
+    Type: String
+    Default: ""
+    Description: |
+      S3 bucket name for immutable venue evidence originals (RFP 2396IP).
+      Object Lock WORM requires a bucket pre-created with ObjectLockEnabled=true;
+      standard bucket uses a Deny-delete policy instead. Leave empty to skip evidence routes.
   CampusIncidentsTable:
     Type: String
     Default: ""
@@ -474,6 +481,14 @@ Parameters:
     Type: String
     Default: ""
     Description: Physical DynamoDB table for campus config, buildings, zones, and anon tokens.
+  CampusVisitorsTable:
+    Type: String
+    Default: ""
+    Description: K-12 visitor check-in / NSOPW screening log (agency-scoped).
+  CampusPickupAuthTable:
+    Type: String
+    Default: ""
+    Description: K-12 student pickup authorization records (agency-scoped).
   CampusNotificationLogTable:
     Type: String
     Default: ""
@@ -742,8 +757,17 @@ Conditions:
   HasVenueFacilitiesTable: !Not [!Equals [!Ref VenueFacilitiesTable, ""]]
   HasVenueCameraAccessLogTable: !Not [!Equals [!Ref VenueCameraAccessLogTable, ""]]
   HasVenueConfigTable: !Not [!Equals [!Ref VenueConfigTable, ""]]
+  HasVenueEvidenceBucket: !Not [!Equals [!Ref VenueEvidenceBucket, ""]]
+  HasVenueConfigAndEvidence: !And
+    - !Condition HasVenueConfigTable
+    - !Condition HasVenueEvidenceBucket
   HasCampusIncidentsTable: !Not [!Equals [!Ref CampusIncidentsTable, ""]]
   HasCampusConfigTable: !Not [!Equals [!Ref CampusConfigTable, ""]]
+  HasCampusVisitorsTable: !Not [!Equals [!Ref CampusVisitorsTable, ""]]
+  HasCampusPickupAuthTable: !Not [!Equals [!Ref CampusPickupAuthTable, ""]]
+  HasCampusK12Tables: !And
+    - !Condition HasCampusVisitorsTable
+    - !Condition HasCampusPickupAuthTable
   HasCampusNotificationLogTable: !Not [!Equals [!Ref CampusNotificationLogTable, ""]]
   HasVenueNotificationLogTable: !Not [!Equals [!Ref VenueNotificationLogTable, ""]]
   HasVenueCameraRegistryTable: !Not [!Equals [!Ref VenueCameraRegistryTable, ""]]
@@ -957,6 +981,12 @@ Globals:
           - HasVenueConfigTable
           - !Ref VenueConfigTable
           - ""
+        VENUE_EVIDENCE_BUCKET: !If
+          - HasVenueEvidenceBucket
+          - !Ref VenueEvidenceBucket
+          - ""
+        MOCK_PDF_REPORT: "0"
+        WEB_BASE_URL: !Sub "https://app.rapidcortex.us"
         VENUE_CODES: !Sub "${AppName}-venue-codes"
         CAMPUS_INCIDENTS_TABLE: !If
           - HasCampusIncidentsTable
@@ -965,6 +995,14 @@ Globals:
         CAMPUS_CONFIG_TABLE: !If
           - HasCampusConfigTable
           - !Ref CampusConfigTable
+          - ""
+        CAMPUS_VISITORS_TABLE: !If
+          - HasCampusVisitorsTable
+          - !Ref CampusVisitorsTable
+          - ""
+        CAMPUS_PICKUP_AUTH_TABLE: !If
+          - HasCampusPickupAuthTable
+          - !Ref CampusPickupAuthTable
           - ""
         CAMPUS_NOTIFICATION_LOG_TABLE: !If
           - HasCampusNotificationLogTable
@@ -2249,6 +2287,57 @@ Resources:
             Path: /api/campus/{agencyId}/sites
             Method: PUT
 
+  CampusK12Function:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusK12Tables
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/campus/campus-k12-handlers.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:UpdateItem
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusVisitorsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusVisitorsTable}/index/*
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusPickupAuthTable}
+      Events:
+        ListVisitors:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/visitors
+            Method: GET
+        CheckInVisitor:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/visitors/check-in
+            Method: POST
+        PickupAuthGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/pickup-auth
+            Method: GET
+        PickupAuthPut:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/pickup-auth
+            Method: PUT
+
   GetCampusZonesFunction:
     Type: AWS::Serverless::Function
     Condition: HasCampusConfigTable
@@ -2986,6 +3075,337 @@ Resources:
             ApiId: !Ref Api
             Path: /api/incidents/{incidentId}/status
             Method: PATCH
+
+  # ── RFP 2396IP: Evidence CoC + Case Workflow (Build Items 1-4) ──────────────
+
+  VenueCaseActionFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-case-handlers.caseAction
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - !If
+          - HasWebSocketBroadcast
+          - !Ref AppManagedPolicyWebSocketBroadcast
+          - !Ref AWS::NoValue
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/case/action
+            Method: POST
+
+  VenueEvidenceUploadFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigAndEvidence
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-case-handlers.evidenceUpload
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - Statement:
+            Sid: VenueEvidencePutObject
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+            Resource: !Sub arn:${AWS::Partition}:s3:::${VenueEvidenceBucket}/venue-evidence/*
+      Events:
+        RouteUpload:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/case/evidence/upload
+            Method: POST
+        RouteList:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/case/evidence
+            Method: GET
+
+  VenueEvidenceConfirmFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigAndEvidence
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-case-handlers.evidenceConfirm
+      Timeout: 60
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - Statement:
+            Sid: VenueEvidenceGetForHash
+            Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource: !Sub arn:${AWS::Partition}:s3:::${VenueEvidenceBucket}/venue-evidence/*
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/case/evidence/confirm
+            Method: POST
+
+  VenueEvidenceCustodyFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-case-handlers.custodyList
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        RouteGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/case/evidence/{evidenceId}/custody
+            Method: GET
+        RoutePost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/case/evidence/{evidenceId}/custody
+            Method: POST
+
+  VenueEvidenceDownloadFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigAndEvidence
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-case-handlers.evidenceDownload
+      Timeout: 15
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            Sid: VenueEvidencePresignGet
+            Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource: !Sub arn:${AWS::Partition}:s3:::${VenueEvidenceBucket}/venue-evidence/*
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/case/evidence/{evidenceId}/download
+            Method: GET
+
+  VenueCaseAuditFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-case-handlers.caseAudit
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/case/audit
+            Method: GET
+
+  VenueCaseReportFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigAndEvidence
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-case-handlers.caseReport
+      Timeout: 60
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - Statement:
+            Sid: VenueReportS3Put
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+            Resource: !Sub arn:${AWS::Partition}:s3:::${VenueEvidenceBucket}/venue-reports/*
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/case/report
+            Method: POST
+
+  VenueCaseShareFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-case-handlers.caseShare
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/case/share
+            Method: POST
+
+  # ── RFP 2396IP: Analytics + Import + Export + Form Schema (Build Items 5-9) ─
+
+  VenueAnalyticsTrendsFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-analytics-handlers.analyticsTrends
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/analytics/trends
+            Method: GET
+
+  VenueImportFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-import-handlers.venueImport
+      Timeout: 60
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/import
+            Method: POST
+
+  VenueExportCsvFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-export-handlers.exportCsv
+      Timeout: 60
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/export/csv
+            Method: GET
+
+  VenueExportPdfReportFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigAndEvidence
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-export-handlers.exportPdfReport
+      Timeout: 60
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - Statement:
+            Sid: VenueExportPdfS3
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+            Resource: !Sub arn:${AWS::Partition}:s3:::${VenueEvidenceBucket}/venue-reports/*
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/export/report/{incidentId}
+            Method: GET
+
+  VenueFormSchemaFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/venue/venue-form-schema-handlers.getFormSchema
+      Timeout: 15
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+      Events:
+        RouteGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/form-schema
+            Method: GET
+        RoutePut:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{agencyId}/form-schema
+            Method: PUT
 
   CameraHeartbeatFunction:
     Type: AWS::Serverless::Function
@@ -5433,6 +5853,57 @@ Resources:
             ApiId: !Ref Api
             Path: /api/rc-internal/support-tickets/{ticketId}/notes
             Method: POST
+
+  # RFP 2396IP — consolidated catch-all (analytics/form/import/export + case/evidence under /rfp/)
+  # Per-incident routes under /api/incidents/{id}/case/* are served by VenueCase*Function above.
+  VenueRfpHttpFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasVenueConfigTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/venue/handlers/venue-rfp-http.handler
+      Timeout: 60
+      MemorySize: 1024
+      Environment:
+        Variables:
+          # Prefer dedicated evidence bucket when provisioned; otherwise AssetsBucket so UI works without an extra param.
+          VENUE_EVIDENCE_BUCKET: !If
+            - HasVenueEvidenceBucket
+            - !Ref VenueEvidenceBucket
+            - !Ref AssetsBucket
+          VENUE_EVIDENCE_OBJECT_LOCK: "0"
+          VENUE_EVIDENCE_MOCK: "0"
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - !Ref AppManagedPolicyS3ApplicationBucketsCrud
+        - !If
+          - HasVenueEvidenceBucket
+          - Statement:
+              - Sid: VenueRfpEvidenceBucketObjects
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:AbortMultipartUpload
+                Resource: !Sub arn:${AWS::Partition}:s3:::${VenueEvidenceBucket}/*
+              - Sid: VenueRfpEvidenceBucketList
+                Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                Resource: !Sub arn:${AWS::Partition}:s3:::${VenueEvidenceBucket}
+          - !Ref AWS::NoValue
+      Events:
+        RfpProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/venue/{venueCode}/rfp/{proxy+}
+            Method: ANY
 
 Outputs:
   OpsAlertsTopicArn:

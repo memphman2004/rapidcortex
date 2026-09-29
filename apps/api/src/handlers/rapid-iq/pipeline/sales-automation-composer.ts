@@ -9,7 +9,7 @@ import { normalizeSalesAutomationVertical, type RapidIqSalesVertical } from "rap
 import { isCollectorsMockEnabled } from "../../../lib/rapid-iq/agenda-finder.js";
 import { listIntelOpportunities } from "../../../lib/rapid-iq/intel-db.js";
 import { createJsonResponse } from "../../../lib/rapid-iq/openai-client.js";
-import { isRapidIqAiEnabled, rapidIqModelStrategy } from "../../../lib/rapid-iq/openai-config.js";
+import { isNexiQAiEnabled, rapidIqModelStrategy } from "../../../lib/rapid-iq/openai-config.js";
 import { createSequenceFromTrigger, emptyDraft } from "../../../lib/rapid-iq/sales-automation-engine.js";
 import { putSalesDraft } from "../../../lib/rapid-iq/sales-automation-db.js";
 import { ConferenceRepository } from "../../../repositories/conferenceRepository.js";
@@ -44,7 +44,7 @@ async function composeNewsletter(weekOf: string) {
   let linkedinText: string | undefined;
   let subject = `Inside the Cortex — ${weekOf}`;
 
-  if (isRapidIqAiEnabled() && !isCollectorsMockEnabled()) {
+  if (isNexiQAiEnabled() && !isCollectorsMockEnabled()) {
     const raw = await createJsonResponse({
       model: rapidIqModelStrategy(),
       system:

@@ -711,15 +711,24 @@ export function isRapidIqUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ");
 }
 
+/** @deprecated Prefer isRapidIqUiEnabled — alias for web NexiQ rename. */
+export const isNexiQUiEnabled = isRapidIqUiEnabled;
+
 /** NexCort Admin NexiQ Signal Intelligence Pipeline. Default on when unset. */
 export function isRapidIqPipelineUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE");
 }
 
+/** @deprecated Prefer isRapidIqPipelineUiEnabled — alias for web NexiQ rename. */
+export const isNexiQPipelineUiEnabled = isRapidIqPipelineUiEnabled;
+
 /** NexiQ Opportunity Intelligence (OpenAI). Default on when unset. */
 export function isRapidIqIntelUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL");
 }
+
+/** @deprecated Prefer isRapidIqIntelUiEnabled — alias for web NexiQ rename. */
+export const isNexiQIntelUiEnabled = isRapidIqIntelUiEnabled;
 
 /** NexiQ Intelligence Pipeline (source registry / coverage) — default ON when unset. */
 export function isNexiqIntelUiEnabled(): boolean {

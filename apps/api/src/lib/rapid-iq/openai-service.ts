@@ -21,7 +21,7 @@ import { isCollectorsMockEnabled } from "./agenda-finder.js";
 import { recommendPursuit } from "./intel-recommend.js";
 import { createJsonResponse } from "./openai-client.js";
 import {
-  isRapidIqAiEnabled,
+  isNexiQAiEnabled,
   rapidIqHighValueThreshold,
   rapidIqModelAnalysis,
   rapidIqModelClassification,
@@ -158,7 +158,7 @@ const CLASSIFICATION_SCHEMA: Record<string, unknown> = {
 };
 
 function useLiveAi(): boolean {
-  return isRapidIqAiEnabled() && !isCollectorsMockEnabled();
+  return isNexiQAiEnabled() && !isCollectorsMockEnabled();
 }
 
 function stageFromKeywords(text: string): number {

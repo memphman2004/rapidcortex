@@ -725,12 +725,12 @@ function seedAgencyProfileFromContext(ctx: AgencyProfileContext): AgencyIntelPro
     estimatedBudget,
     currentCadVendor: ctx.incumbentVendor?.trim() || null,
     cadNotes: ctx.incumbentVendor
-      ? `Incumbent from Rapid IQ signal: ${ctx.incumbentVendor}`
+      ? `Incumbent from NexiQ signal: ${ctx.incumbentVendor}`
       : null,
     agencyWebsite: null,
     psapType: typeHint,
     notes: [
-      `Seeded from Rapid IQ opportunity for ${ctx.agencyName}${location ? ` (${location})` : ""}.`,
+      `Seeded from NexiQ opportunity for ${ctx.agencyName}${location ? ` (${location})` : ""}.`,
       ctx.aiHeadline ? `Signal: ${ctx.aiHeadline}` : null,
       annualCallVolume || dispatcherCount
         ? "Call volume / staffing figures are heuristic estimates pending verified sources — Refresh profile to enrich via Claude."
@@ -826,7 +826,7 @@ County: ${ctx.county || "unknown"}
 State: ${ctx.state}
 Vertical: ${ctx.vertical}
 
-Known facts from Rapid IQ:
+Known facts from NexiQ:
 ${knownFacts || "(none)"}
 
 Return JSON:

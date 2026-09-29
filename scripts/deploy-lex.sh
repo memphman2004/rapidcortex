@@ -125,16 +125,28 @@ ALIAS_ARN="$(aws cloudformation describe-stacks \
   --stack-name "${STACK}" \
   --query 'Stacks[0].Outputs[?OutputKey==`BotAliasArn`].OutputValue' \
   --output text --region "${REGION}")"
+LEX_ROLE_ARN="$(aws cloudformation describe-stacks \
+  --stack-name "${STACK}" \
+  --query 'Stacks[0].Outputs[?OutputKey==`LexServiceRoleArn`].OutputValue' \
+  --output text --region "${REGION}")"
+FULFILLMENT_ARN="$(aws cloudformation describe-stacks \
+  --stack-name "${STACK}" \
+  --query 'Stacks[0].Outputs[?OutputKey==`FulfillmentHookFunctionArn`].OutputValue' \
+  --output text --region "${REGION}")"
 
 echo ""
 echo "✅ Lex bot deployed:"
 echo "   Bot ID:        ${BOT_ID}"
 echo "   Alias ID:      ${ALIAS_ID}"
 echo "   Alias ARN:     ${ALIAS_ARN}"
+echo "   Lex role ARN:  ${LEX_ROLE_ARN}"
+echo "   Fulfillment:   ${FULFILLMENT_ARN}"
 echo "   Dialog hook:   ${APP_NAME}-lex-dialog-hook-${STAGE}"
-echo "   Fulfillment:   ${APP_NAME}-lex-fulfillment-hook-${STAGE}"
 echo "   DID lookup:    ${APP_NAME}-lex-agency-for-number-${STAGE}"
 echo ""
+echo "→ Pass into AppSamCallAssist / deploy.sh (auto-resolved when unset):"
+echo "   export CALL_ASSIST_LEX_BOT_ROLE_ARN=${LEX_ROLE_ARN}"
+echo "   export CALL_ASSIST_FULFILLMENT_LAMBDA_ARN=${FULFILLMENT_ARN}"
 echo "→ Next: import connect/contact-flow-call-assist.json into Amazon Connect"
 echo "   and set LEX_BOT_ID=${BOT_ID} LEX_BOT_ALIAS_ID=${ALIAS_ID}"
 echo "   Seed the tenant before test calls: AGENCY_ID=… CALL_ASSIST_TEST_DID=… bash scripts/seed-call-assist-tenant.sh"

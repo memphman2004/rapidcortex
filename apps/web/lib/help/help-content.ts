@@ -375,6 +375,71 @@ const RC_IT_ADMIN_HELP: HelpIndex = [
   },
 ];
 
+const RC_SUPERADMIN_HELP: HelpIndex = [
+  {
+    section: "Platform Superadmin",
+    articles: [
+      { topic: "index", title: "Platform Superadmin Overview", description: "Feature flags, cross-tenant authority, and platform health." },
+      { topic: "agency-onboard", title: "Onboarding an Agency", description: "Provisioning tenants with correct agency type and roles." },
+      { topic: "platform-health", title: "Platform Health Dashboard", description: "Alarms, latency, and cross-stack health." },
+      { topic: "notices", title: "Platform Notices", description: "Broadcasting operational notices to agencies." },
+    ],
+  },
+];
+
+// ── Call Assist (non-emergency) ────────────────────────────────────────────
+
+const CALL_ASSIST_OPERATOR_HELP: HelpIndex = [
+  {
+    section: "Getting Started",
+    articles: [
+      { topic: "index", title: "Call Assist Operator Overview", description: "Non-emergency AI intake — not a 911 dispatch console." },
+    ],
+  },
+  {
+    section: "Live Sessions",
+    articles: [
+      { topic: "live-calls", title: "Monitoring Live Calls", description: "Watch AI sessions, confidence, and escalation state." },
+      { topic: "takeover", title: "Human Takeover", description: "When and how to take a session from the bot." },
+      { topic: "emergency-transfer", title: "Emergency Transfer", description: "Safety Engine stops AI talk and transfers to live answer." },
+    ],
+  },
+];
+
+const CALL_ASSIST_SUPERVISOR_HELP: HelpIndex = [
+  {
+    section: "Getting Started",
+    articles: [
+      { topic: "index", title: "Call Assist Supervisor Overview", description: "Live oversight and QA for non-emergency Call Assist." },
+    ],
+  },
+  {
+    section: "Floor & QA",
+    articles: [
+      { topic: "live-oversight", title: "Live Oversight", description: "Spot long loops, low confidence, and emergency flags." },
+      { topic: "qa", title: "Call Assist QA", description: "Score transcripts, call-class, and emergency recognition." },
+    ],
+  },
+];
+
+const CALL_ASSIST_ADMIN_HELP: HelpIndex = [
+  {
+    section: "Getting Started",
+    articles: [
+      { topic: "index", title: "Call Assist Admin Overview", description: "Bots, knowledge, users, records, and demo runner." },
+    ],
+  },
+  {
+    section: "Administration",
+    articles: [
+      { topic: "configuration", title: "Call Assist Configuration", description: "Greeting, disclosure, KB, thresholds, transfer destination." },
+      { topic: "users", title: "Call Assist Users", description: "Invite admin, supervisor, and operator seats only." },
+      { topic: "demo-runner", title: "Demo Runner", description: "Seeded evaluation scenarios for stakeholders." },
+      { topic: "records", title: "Call Assist Records", description: "Session records for QA and records requests." },
+    ],
+  },
+];
+
 // ── Role → help index map ──────────────────────────────────────────────────
 
 /**
@@ -388,9 +453,15 @@ export function normalizeHelpRole(role: string): string {
     it_admin: "agencyit",
     commsupervisor: "supervisor",
     readonly_auditor: "auditor",
-    platform_superadmin: "rcadmin",
-    rc_superadmin: "rcadmin",
-    rcsuperadmin: "rcadmin",
+    platform_superadmin: "rcsuperadmin",
+    rc_superadmin: "rcsuperadmin",
+    rcsuperadmin: "rcsuperadmin",
+    call_assist_admin: "call_assist_admin",
+    call_assist_supervisor: "call_assist_supervisor",
+    call_assist_operator: "call_assist_operator",
+    callassistadmin: "call_assist_admin",
+    callassistsupervisor: "call_assist_supervisor",
+    callassistoperator: "call_assist_operator",
     campusadmin: "campus_admin",
     campussupervisor: "campus_supervisor",
     campussecurity: "campus_security",
@@ -437,7 +508,11 @@ const HELP_INDEX: Record<string, HelpIndex> = {
   transit_supervisor: TRANSIT_SUPERVISOR_HELP,
   transit_security:  TRANSIT_SECURITY_HELP,
   rcadmin:           RC_ADMIN_HELP,
+  rcsuperadmin:      RC_SUPERADMIN_HELP,
   rcitadmin:         RC_IT_ADMIN_HELP,
+  call_assist_admin: CALL_ASSIST_ADMIN_HELP,
+  call_assist_supervisor: CALL_ASSIST_SUPERVISOR_HELP,
+  call_assist_operator: CALL_ASSIST_OPERATOR_HELP,
 };
 
 export function getHelpIndex(role: string): HelpIndex {

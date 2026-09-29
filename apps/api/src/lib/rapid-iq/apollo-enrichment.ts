@@ -180,7 +180,7 @@ export async function findContactsViaApollo(
             domain,
             detail: detail.slice(0, 240),
             planHint: error === "plan_blocked_free"
-              ? "Apollo Free plan blocks people search — upgrade required for Rapid IQ contact enrichment"
+              ? "Apollo Free plan blocks people search — upgrade required for NexiQ contact enrichment"
               : undefined,
           }),
         );

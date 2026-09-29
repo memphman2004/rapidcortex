@@ -1,7 +1,7 @@
 /**
  * Legislative bill tracking for PSAP / 911 appropriations signals.
  * Prefers OpenStates when RAPID_IQ_OPENSTATES_API_KEY(_SECRET_ARN) is set.
- * Falls back to the provisioned LegiScan key used by the Rapid IQ collectors.
+ * Falls back to the provisioned LegiScan key used by the NexiQ collectors.
  */
 
 import type { RapidIqPipelineRawSignal } from "rapid-cortex-shared";
@@ -238,10 +238,10 @@ async function ingestLegiscan(apiKey: string): Promise<number> {
 }
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: legislative ingestion starting");
+  console.log("NexiQ pipeline: legislative ingestion starting");
 
   if (await enqueueMockIfEnabled("openlegislative")) {
-    console.log("Rapid IQ pipeline: legislative mock path complete");
+    console.log("NexiQ pipeline: legislative mock path complete");
     return;
   }
 

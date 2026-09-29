@@ -4,6 +4,8 @@ import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "@/components/auth/session-context";
 import { VenueCapacityField } from "@/components/venue/venue-capacity-field";
+import { VenueFormSettingsAdmin } from "@/components/venue/rfp/venue-form-settings-admin";
+import { VenueImportAdmin } from "@/components/venue/rfp/venue-import-admin";
 import {
   fetchAdminUsers,
   postAdminCreateUser,
@@ -209,6 +211,25 @@ export default function VenueSettingsPage({
         </p>
       ) : null}
 
+      <section className="rounded-lg border border-amber-500/30 bg-slate-900/40 p-4">
+        <h2 className="text-lg font-semibold text-amber-200">Digital incident reporting (RFP)</h2>
+        <p className="mt-1 text-sm text-slate-400">Form schema and CSV directory imports for supervisors.</p>
+        <div className="mt-3 flex flex-wrap gap-3 text-sm">
+          <Link
+            href={`/venue/${normalizedVenueCode}/settings/rfp-form`}
+            className="font-semibold text-amber-300 hover:text-amber-200"
+          >
+            Incident form settings →
+          </Link>
+          <Link
+            href={`/venue/${normalizedVenueCode}/settings/rfp-import`}
+            className="font-semibold text-amber-300 hover:text-amber-200"
+          >
+            CSV import →
+          </Link>
+        </div>
+      </section>
+
       <section className="rounded-lg border border-slate-700/60 bg-slate-900/40 p-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white">Venue Information</h2>
@@ -392,6 +413,17 @@ export default function VenueSettingsPage({
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section className="rounded-lg border border-amber-500/30 bg-slate-900/40 p-2">
+        <VenueFormSettingsAdmin
+          venueCode={normalizedVenueCode}
+          canMutate={Boolean(agencyId)}
+        />
+      </section>
+
+      <section className="rounded-lg border border-amber-500/30 bg-slate-900/40 p-2">
+        <VenueImportAdmin venueCode={normalizedVenueCode} canMutate={Boolean(agencyId)} />
       </section>
 
       <section className="rounded-lg border border-red-500/40 bg-red-500/5 p-4">

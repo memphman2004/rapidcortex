@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  NexCort iQ — surgical Rapid IQ sales intelligence on AppSam3 HttpApi.
+  NexCort iQ — surgical NexiQ sales intelligence on AppSam3 HttpApi.
   Priority jurisdiction scheduler + opportunity CRM APIs.
 
 Parameters:
@@ -53,21 +53,21 @@ Parameters:
   RapidIqHunterApiKeySecretArn:
     Type: String
     Default: ""
-    Description: Secrets Manager ARN for Hunter.io API key (Rapid IQ domain-search contact enrichment)
+    Description: Secrets Manager ARN for Hunter.io API key (NexiQ domain-search contact enrichment)
   RapidIqApolloApiKeySecretArn:
     Type: String
     Default: ""
-    Description: Secrets Manager ARN for Apollo.io API key (Rapid IQ people-search contact enrichment)
+    Description: Secrets Manager ARN for Apollo.io API key (NexiQ people-search contact enrichment)
   RapidIqTeamsWebhookSecretArn:
     Type: String
     Default: ""
     Description: >
-      Secrets Manager ARN for Rapid IQ Alerts Teams Power Automate webhook URL
+      Secrets Manager ARN for NexiQ Alerts Teams Power Automate webhook URL
       (channel + flow already provisioned — do not recreate)
   RapidIqLegiscanApiKeySecretArn:
     Type: String
     Default: ""
-    Description: Secrets Manager ARN for LegiScan API key (Rapid IQ legislature collector)
+    Description: Secrets Manager ARN for LegiScan API key (NexiQ legislature collector)
   RapidIqLegiscanApiKey:
     Type: String
     Default: ""
@@ -76,7 +76,7 @@ Parameters:
   RapidIqRunsignupCredentialsSecretArn:
     Type: String
     Default: ""
-    Description: Secrets Manager ARN for RunSignUp {token,secret} JSON (Rapid IQ venue collector)
+    Description: Secrets Manager ARN for RunSignUp {token,secret} JSON (NexiQ venue collector)
   ContactCompaniesTable:
     Type: String
     Default: ""
@@ -112,6 +112,9 @@ Globals:
     Runtime: nodejs20.x
     Timeout: 60
     MemorySize: 1024
+    # Lean CodeUri builds omit node_modules — attach shared deps layer.
+    Layers:
+      - !Ref NodeDepsLayer
     Environment:
       Variables:
         DEPLOYMENT_STAGE: !Ref DeploymentStage
@@ -156,11 +159,23 @@ Globals:
         APPROVED_CORS_ORIGINS: !Ref ApprovedCorsOrigins
 
 Resources:
-  AppManagedPolicyRapidIqDdb:
+  NodeDepsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${ManagedPolicyNamePrefix}-rapidiq-api-deps-${DeploymentStage}"
+      Description: Shared node_modules for NexiQ HTTP/orchestrator Lambdas (lean CodeUri builds)
+      ContentUri: ../../apps/api/layer/
+      CompatibleRuntimes:
+        - nodejs20.x
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: makefile
+
+  AppManagedPolicyNexiQDdb:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       # Do not set ManagedPolicyName — the live nested stack already owns
-      # rapid-cortex-dev-AppSamRapidIqStack-*-AppManagedPolicyRapidIqDdb-*. A named
+      # rapid-cortex-dev-AppSamNexiQStack-*-AppManagedPolicyNexiQDdb-*. A named
       # policy (rapid-cortex-dev-sam3-rapidiq-ddb-dev) exists as an orphan and
       # replacement 409s.
       PolicyDocument:
@@ -232,14 +247,14 @@ Resources:
       Handler: dist/handlers/rapid-iq/rapidIqHttp.handler
       Timeout: 60
       Policies:
-        - !Ref AppManagedPolicyRapidIqDdb
+        - !Ref AppManagedPolicyNexiQDdb
         - Statement:
             - Sid: InvokeOrchestrator
               Effect: Allow
               Action:
                 - lambda:InvokeFunction
               Resource: !GetAtt RapidIqOrchestratorFunction.Arn
-            - Sid: ReadRapidIqSecrets
+            - Sid: ReadNexiQSecrets
               Effect: Allow
               Action:
                 - secretsmanager:GetSecretValue
@@ -310,9 +325,9 @@ Resources:
       Timeout: 900
       MemorySize: 2048
       Policies:
-        - !Ref AppManagedPolicyRapidIqDdb
+        - !Ref AppManagedPolicyNexiQDdb
         - Statement:
-            - Sid: ReadRapidIqSecrets
+            - Sid: ReadNexiQSecrets
               Effect: Allow
               Action:
                 - secretsmanager:GetSecretValue
@@ -373,7 +388,7 @@ Resources:
     Type: AWS::Events::Rule
     Properties:
       # Keep CloudFormation-generated name (live physical id is not rapid-iq-collector-dev).
-      Description: "Rapid IQ — every 2 hours, time-gated 12am-7pm ET in handler"
+      Description: "NexiQ — every 2 hours, time-gated 12am-7pm ET in handler"
       ScheduleExpression: "rate(2 hours)"
       State: ENABLED
       Targets:
@@ -426,7 +441,7 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
 
-  RouteRapidIqOpportunities:
+  RouteNexiQOpportunities:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -435,7 +450,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqOpportunityGet:
+  RouteNexiQOpportunityGet:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -444,7 +459,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqOpportunityPatch:
+  RouteNexiQOpportunityPatch:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -453,7 +468,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqSignals:
+  RouteNexiQSignals:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -462,7 +477,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqContacts:
+  RouteNexiQContacts:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -471,7 +486,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqSources:
+  RouteNexiQSources:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -480,7 +495,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqRefresh:
+  RouteNexiQRefresh:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -489,7 +504,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqRefreshStatus:
+  RouteNexiQRefreshStatus:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -498,7 +513,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqTalkingPoints:
+  RouteNexiQTalkingPoints:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -507,7 +522,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqOutreach:
+  RouteNexiQOutreach:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -516,7 +531,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqRfpOutline:
+  RouteNexiQRfpOutline:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -525,7 +540,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqAgencyProfile:
+  RouteNexiQAgencyProfile:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -534,7 +549,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqResearchAgency:
+  RouteNexiQResearchAgency:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -543,7 +558,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqCompetitorIntel:
+  RouteNexiQCompetitorIntel:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -552,7 +567,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqSignalChat:
+  RouteNexiQSignalChat:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -561,7 +576,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqSearchContacts:
+  RouteNexiQSearchContacts:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId
@@ -570,7 +585,7 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
-  RouteRapidIqConvert:
+  RouteNexiQConvert:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApiId

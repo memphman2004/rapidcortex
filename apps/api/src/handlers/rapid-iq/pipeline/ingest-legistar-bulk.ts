@@ -178,10 +178,10 @@ async function queueItem(
 }
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: Legistar bulk ingestion starting");
+  console.log("NexiQ pipeline: Legistar bulk ingestion starting");
 
   if (await enqueueMockIfEnabled("legistar-bulk")) {
-    console.log("Rapid IQ pipeline: Legistar bulk mock path complete");
+    console.log("NexiQ pipeline: Legistar bulk mock path complete");
     return;
   }
 

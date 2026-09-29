@@ -273,7 +273,7 @@ export async function findAgencyContacts(
       try {
         await sleep(1_500);
         const res = await fetch(target.url, {
-          headers: { "user-agent": "RapidCortex-RapidIQ/1.0 (+https://rapidcortex.us)" },
+          headers: { "user-agent": "RapidCortex-NexiQ/1.0 (+https://rapidcortex.us)" },
           signal: AbortSignal.timeout(8_000),
         });
         if (!res.ok) continue;

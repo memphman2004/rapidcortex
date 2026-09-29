@@ -110,7 +110,7 @@ export async function runGrantsGovCollector(): Promise<{ signalsFound: number }>
           agencyLower === "grants.gov opportunity" ||
           agencyLower === (hit.agencyName ?? "").toLowerCase()
         ) {
-          // Federal awarding agency alone is not a Rapid IQ buyer opportunity
+          // Federal awarding agency alone is not a NexiQ buyer opportunity
           continue;
         }
         classified.signalType = classified.signalType ?? "grant";

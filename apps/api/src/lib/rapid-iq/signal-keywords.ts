@@ -1,5 +1,5 @@
 /**
- * Re-export the canonical Rapid IQ keyword library from shared.
+ * Re-export the canonical NexiQ keyword library from shared.
  * Callers may also import from `rapid-cortex-shared`.
  */
 export {

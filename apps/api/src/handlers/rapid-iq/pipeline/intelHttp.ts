@@ -1,16 +1,16 @@
 /**
  * Opportunity Intelligence HTTP API.
  * Routes: /api/rapid-iq/intel/*
- * RBAC: same as pipeline (canAccessRapidIq).
+ * RBAC: same as pipeline (canAccessNexiQ).
  */
 
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
 import {
-  createRapidIqIntelWatchBodySchema,
+  createRapidIqIntelWatchBodySchema as createNexiQIntelWatchBodySchema,
   defaultTransitWatchKeywords,
   intelStrategicPriority,
-  patchRapidIqIntelOpportunityBodySchema,
-  patchRapidIqIntelWatchBodySchema,
+  patchRapidIqIntelOpportunityBodySchema as patchNexiQIntelOpportunityBodySchema,
+  patchRapidIqIntelWatchBodySchema as patchNexiQIntelWatchBodySchema,
   rapidIqIntelManualIngestBodySchema,
   rapidIqIntelOutreachBodySchema,
   type RapidIqIntelOpportunity,
@@ -211,7 +211,7 @@ export async function handleIntelHttp(
   if (method === "POST" && (path.endsWith("/intel/watches") || path.endsWith("/intel/watches/"))) {
     const body = parseBody(event);
     if (body === null) return badRequest("Invalid JSON");
-    const parsed = createRapidIqIntelWatchBodySchema.safeParse(body);
+    const parsed = createNexiQIntelWatchBodySchema.safeParse(body);
     if (!parsed.success) return badRequestFromZod(parsed.error);
     const now = new Date().toISOString();
     const watch = {
@@ -240,7 +240,7 @@ export async function handleIntelHttp(
     if (method === "PATCH") {
       const body = parseBody(event);
       if (body === null) return badRequest("Invalid JSON");
-      const parsed = patchRapidIqIntelWatchBodySchema.safeParse(body);
+      const parsed = patchNexiQIntelWatchBodySchema.safeParse(body);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const watch = await updateIntelWatchFields(watchId, parsed.data);
       await audit(user, AUDIT_EVENT_TYPES.RAPID_IQ_INTEL_WATCH_UPDATED, watchId, parsed.data);
@@ -271,7 +271,7 @@ export async function handleIntelHttp(
   if (method === "PATCH") {
     const body = parseBody(event);
     if (body === null) return badRequest("Invalid JSON");
-    const parsed = patchRapidIqIntelOpportunityBodySchema.safeParse(body);
+    const parsed = patchNexiQIntelOpportunityBodySchema.safeParse(body);
     if (!parsed.success) return badRequestFromZod(parsed.error);
     const updated = await updateIntelOpportunityFields(intelId, parsed.data);
     await audit(user, AUDIT_EVENT_TYPES.RAPID_IQ_INTEL_UPDATED, intelId, parsed.data);

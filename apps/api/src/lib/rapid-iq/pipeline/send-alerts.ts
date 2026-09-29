@@ -86,7 +86,7 @@ export async function sendHighIntentAlerts(): Promise<{ candidates: number; sent
       `Stage: ${stage}`,
       `Source: ${s.sourceUrl}`,
       s.excerpt ? `Excerpt: "${s.excerpt}"` : "",
-      `Recommended: ${s.recommendedAction ?? "Review in Rapid IQ"}`,
+      `Recommended: ${s.recommendedAction ?? "Review in NexiQ"}`,
       "",
     ]
       .filter(Boolean)
@@ -97,10 +97,10 @@ export async function sendHighIntentAlerts(): Promise<{ candidates: number; sent
   const firstAgency = first.agencyName ?? "agency";
   const subject = `High-Intent Signal — ${firstAgency}${first.state ? `, ${first.state}` : ""} (Intent: ${displayPipelineScores(first).intent})`;
   const body = [
-    `${signals.length} high-intent Rapid IQ signal(s) in the last 6 hours.`,
+    `${signals.length} high-intent NexiQ signal(s) in the last 6 hours.`,
     "",
     ...blocks,
-    "View in Rapid IQ: https://app.rapidcortex.us/rc-admin/rapid-iq",
+    "View in NexiQ: https://app.rapidcortex.us/rc-admin/rapid-iq",
   ].join("\n");
 
   const { sent } = await sendOrLog(subject, body);
@@ -160,6 +160,6 @@ export async function sendWeeklyDigest(): Promise<{ sent: boolean }> {
     "View full dashboard → https://app.rapidcortex.us/rc-admin/rapid-iq",
   ].join("\n");
 
-  const { sent } = await sendOrLog("Rapid IQ weekly intelligence digest", body);
+  const { sent } = await sendOrLog("NexiQ weekly intelligence digest", body);
   return { sent };
 }

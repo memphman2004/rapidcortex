@@ -5,22 +5,22 @@ describe("NexiQ UI flag", () => {
     vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_IQ", "");
     let mod = await import("./runtime-flags.js");
-    expect(mod.isRapidIqUiEnabled()).toBe(true);
+    expect(mod.isNexiQUiEnabled()).toBe(true);
     vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_IQ", "0");
     mod = await import("./runtime-flags.js");
-    expect(mod.isRapidIqUiEnabled()).toBe(false);
+    expect(mod.isNexiQUiEnabled()).toBe(false);
   });
 
   it("intel UI defaults on when unset and honors explicit disable", async () => {
     vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL", "");
     let mod = await import("./runtime-flags.js");
-    expect(mod.isRapidIqIntelUiEnabled()).toBe(true);
+    expect(mod.isNexiQIntelUiEnabled()).toBe(true);
     vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL", "0");
     mod = await import("./runtime-flags.js");
-    expect(mod.isRapidIqIntelUiEnabled()).toBe(false);
+    expect(mod.isNexiQIntelUiEnabled()).toBe(false);
   });
 
   it("conferences UI defaults on when unset and honors explicit disable", async () => {

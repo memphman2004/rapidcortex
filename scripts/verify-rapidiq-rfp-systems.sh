@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # verify-rapidiq-rfp-systems.sh
 #
-# CLI verification for Rapid IQ RFP ingest (watches, web-search worker, unified
+# CLI verification for NexiQ RFP ingest (watches, web-search worker, unified
 # RFP snapshot) without browser access. Resolves table names, function names,
 # and API URLs from CloudFormation so nothing is hard-coded.
 #
@@ -36,7 +36,7 @@
 #
 # Live names (do not confuse with draft stack/output names):
 #   Root stack:     rapid-cortex-${STAGE}
-#   Pipeline nest:  ${root}-AppSamRapidIqPipelineStack  (or surgical stack of the same name)
+#   Pipeline nest:  ${root}-AppSamNexiQPipelineStack  (or surgical stack of the same name)
 #   Table:          RAPID_IQ_PIPELINE_SIGNALS_TABLE  (WATCH# / INTEL# / SIGNAL# / RFP_COUNTS)
 #   Watch field:    market = PSAP | CAMPUS | VENUE | TRANSIT  (not vertical / rc911)
 #   Snapshot:       pk=RFP_COUNTS sk=LATEST  shape opportunityFeed / pipeline / intel / total
@@ -126,14 +126,14 @@ DATA_STACK=""
 
 if stack_ok "$ROOT_STACK"; then
   pass "Root stack: $ROOT_STACK"
-  PIPELINE_STACK="$(first "$(clean "$(get_nested_physical "$ROOT_STACK" "AppSamRapidIqPipelineStack")")" "rapid-cortex-${STAGE}-AppSamRapidIqPipelineStack")"
-  FEED_STACK="$(first "$(clean "$(get_nested_physical "$ROOT_STACK" "AppSamRapidIqStack")")" "rapid-cortex-${STAGE}-AppSamRapidIqStack")"
+  PIPELINE_STACK="$(first "$(clean "$(get_nested_physical "$ROOT_STACK" "AppSamNexiQPipelineStack")")" "rapid-cortex-${STAGE}-AppSamNexiQPipelineStack")"
+  FEED_STACK="$(first "$(clean "$(get_nested_physical "$ROOT_STACK" "AppSamNexiQStack")")" "rapid-cortex-${STAGE}-AppSamNexiQStack")"
   DATA_STACK="$(first "$(clean "$(get_nested_physical "$ROOT_STACK" "DataLayerStack")")" "rapid-cortex-${STAGE}-DataLayerStack")"
 else
   warn "Root stack $ROOT_STACK not found — trying surgical pipeline stack"
 fi
 
-SURGICAL="rapid-cortex-${STAGE}-AppSamRapidIqPipelineStack"
+SURGICAL="rapid-cortex-${STAGE}-AppSamNexiQPipelineStack"
 if ! nz "$PIPELINE_STACK" || ! stack_ok "$PIPELINE_STACK"; then
   if stack_ok "$SURGICAL"; then
     PIPELINE_STACK="$SURGICAL"
@@ -144,14 +144,14 @@ fi
 if nz "$PIPELINE_STACK" && stack_ok "$PIPELINE_STACK"; then
   pass "Pipeline stack: $PIPELINE_STACK"
 else
-  fail "Cannot resolve Rapid IQ pipeline stack (tried $ROOT_STACK nested + $SURGICAL)"
+  fail "Cannot resolve NexiQ pipeline stack (tried $ROOT_STACK nested + $SURGICAL)"
   PIPELINE_STACK=""
 fi
 
 if nz "$FEED_STACK" && stack_ok "$FEED_STACK"; then
   pass "Feed stack: $FEED_STACK"
 else
-  FEED_STACK="$(first "$FEED_STACK" "rapid-cortex-${STAGE}-AppSamRapidIqStack")"
+  FEED_STACK="$(first "$FEED_STACK" "rapid-cortex-${STAGE}-AppSamNexiQStack")"
   if stack_ok "$FEED_STACK"; then pass "Feed stack: $FEED_STACK"; else warn "Feed stack not resolved (SAM.gov check will be skipped)"; FEED_STACK=""; fi
 fi
 

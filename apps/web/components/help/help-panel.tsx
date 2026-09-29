@@ -9,6 +9,7 @@ import { ArrowLeft, BookOpen, ExternalLink, X } from "lucide-react";
 import { useHelpPanel } from "./help-panel-context";
 import { fetchHelpArticle, type HelpArticleContent } from "@/lib/help/fetch-help-article";
 import { getHelpIndex, type HelpArticle, type HelpIndex } from "@/lib/help/help-content";
+import { getTrainingVideosForRole, type TrainingVideo } from "@/lib/help/video-library";
 import { fetchStaffGuideArticle } from "@/lib/staff-guide/fetch-article";
 import {
   getStaffGuideIndex,
@@ -173,11 +174,19 @@ function ArticleView({
   );
 }
 
+function statusLabel(status: TrainingVideo["status"]): string {
+  if (status === "live") return "LIVE";
+  if (status === "scripted") return "READY TO FILM";
+  return "PLANNED";
+}
+
 function ArticleIndex({
   index,
+  videos,
   onSelect,
 }: {
   index: HelpIndex;
+  videos: TrainingVideo[];
   onSelect: (article: HelpArticle) => void;
 }) {
   return (
@@ -229,6 +238,84 @@ function ArticleIndex({
         </div>
       ))}
 
+      {videos.length > 0 ? (
+        <div style={{ marginTop: 8 }}>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              color: V.muted,
+              padding: "8px 20px 4px",
+              fontFamily: "monospace",
+            }}
+          >
+            TRAINING VIDEOS
+          </div>
+          {videos.map((video) => {
+            const body = (
+              <>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 3,
+                  }}
+                >
+                  <div style={{ fontSize: 13, fontWeight: 600, color: V.text, flex: 1 }}>
+                    {video.title}
+                  </div>
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      letterSpacing: "0.06em",
+                      color: video.status === "live" ? "#4ade80" : V.dim,
+                      fontFamily: "monospace",
+                    }}
+                  >
+                    {statusLabel(video.status)}
+                  </span>
+                </div>
+                <div style={{ fontSize: 11, color: V.muted, lineHeight: 1.4 }}>
+                  {video.description} · {video.duration}
+                </div>
+              </>
+            );
+            if (video.status === "live" && video.url) {
+              return (
+                <a
+                  key={video.id}
+                  href={video.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "block",
+                    padding: "10px 20px",
+                    borderBottom: `1px solid ${V.border}`,
+                    textDecoration: "none",
+                  }}
+                >
+                  {body}
+                </a>
+              );
+            }
+            return (
+              <div
+                key={video.id}
+                style={{
+                  padding: "10px 20px",
+                  borderBottom: `1px solid ${V.border}`,
+                }}
+              >
+                {body}
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+
       <div style={{ padding: "16px 20px", borderTop: `1px solid ${V.border}`, marginTop: 8 }}>
         <div style={{ fontSize: 11, color: V.dim, marginBottom: 6 }}>Need more help?</div>
         <a
@@ -258,6 +345,7 @@ export function HelpPanel() {
   const vertical = staffGuideVerticalFromRole(role);
   const helpIndex: HelpIndex =
     staffGuide && vertical ? getStaffGuideIndex(vertical) : getHelpIndex(role);
+  const trainingVideos = getTrainingVideosForRole(role);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -399,7 +487,11 @@ export function HelpPanel() {
             }}
           />
         ) : (
-          <ArticleIndex index={helpIndex} onSelect={setActiveArticle} />
+          <ArticleIndex
+            index={helpIndex}
+            videos={trainingVideos}
+            onSelect={setActiveArticle}
+          />
         )}
       </div>
     </>

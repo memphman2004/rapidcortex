@@ -21,9 +21,16 @@ export const campusNotificationRecipientsSchema = z.object({
   escalationSms: z.array(z.string().min(7).max(32)).max(50).optional(),
 });
 
+export const campusInstitutionTypeSchema = z.enum(["higher_ed", "k12"]);
+
 export const campusAgencyConfigSchema = z.object({
   displayName: z.string().min(1).max(200).optional(),
   campusType: campusTypeSchema.optional(),
+  /**
+   * Product experience split: university/college vs K-12 district.
+   * Optional — parseCampusInstitutionType falls back to higher_ed (or campusType=k12).
+   */
+  institutionType: campusInstitutionTypeSchema.optional(),
   timezone: z.string().min(1).max(64).optional(),
   notificationPreferences: z
     .object({

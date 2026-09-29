@@ -4,7 +4,7 @@
 DataLayer does not create these resources; it only takes their names as parameters.
 Defaults in stack-data-layer.yaml are the live `-dev` names. Staging (engineering)
 must have its own empty tables/buckets before `deploy.sh staging`, or Lambdas would
-read/write production Rapid IQ, campus, venue, RCS, and marketing data.
+read/write production NexiQ, campus, venue, RCS, and marketing data.
 
 Copies schema only (key schema, GSIs, streams, SSE, TTL). Never copies items.
 Refuses target stage `dev` and any destination whose name equals the source.
@@ -22,7 +22,7 @@ from botocore.exceptions import ClientError
 PREFIX = "rapid-cortex"
 
 # Physical names DataLayer consumes via Existing* parameters (plus conferences,
-# which Rapid IQ references as ${prefix}-conferences-${stage} outside DataLayer).
+# which NexiQ references as ${prefix}-conferences-${stage} outside DataLayer).
 ORPHAN_TABLE_SLUGS = [
     "qr-locations",
     "campus-config",

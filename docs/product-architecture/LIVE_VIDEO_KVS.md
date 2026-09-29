@@ -11,9 +11,9 @@ These are **different use cases**, not alternatives. Keep both enabled in produc
 | **A — Live Video (KVS)** | `POST .../live-video/request`, stack 5 | Caller via SMS link (optional) **or** location/camera producers on KVS | Dispatcher / supervisor with `workspace.live_video` | **Kinesis Video Streams WebRTC** (+ optional ingest/recording). Custom TURN secret is only for `legacy_p2p` fallback; KVS uses `GetIceServerConfig`. |
 | **B — Video Assist (SMS MVP)** | `POST .../video-assist/sessions`, stack 3 | **Caller** opens SMS link and shares camera | Dispatcher in incident workspace | **Browser P2P WebRTC** — needs **TURN** (`WEBRTC_TURN_SECRET_ARN` / ICE JSON) for cellular/NAT. Sessions are **agencyId-scoped** on get/list/mutations. |
 
-Do **not** retire Video Assist for “live streams”: Assist is the SMS caller-share MVP; KVS Live Video is the location/dispatcher viewing + recorded ingest path. Gate UI copy so operators pick the right tool, not so one path replaces the other.
+Do **not** retire Video Assist for “live streams”: Assist is the SMS caller-share MVP; KVS Live Video is the location/dispatcher viewing + recorded ingest path. The dispatcher module dock exposes **Caller Mobile** (Live Video / KVS) and **Video Assist** as separate modules.
 
-**Ops wiring:** set root parameter `WebrtcTurnSecretArn` (or `WEBRTC_TURN_SECRET_ARN` in `deploy.sh` env). Empty ARN = STUN-only fallback (fine for lab; production Assist needs TURN).
+**Ops wiring:** set root parameter `WebrtcTurnSecretArn` (or `WEBRTC_TURN_SECRET_ARN` / `WEBRTC_ICE_SERVERS_JSON` in deploy env). On `DeploymentStage` of `dev`/`staging`/`pilot`/`prod`, Video Assist **rejects** session create without custom ICE/TURN (`VIDEO_ASSIST_TURN_REQUIRED`). Lab-only escape: `VIDEO_ASSIST_ALLOW_STUN_ONLY=1`.
 
 ## How AWS models this (matches the KVS console)
 

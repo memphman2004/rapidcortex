@@ -31,11 +31,14 @@ export function canAccessPsapProspectsCrm(role: string | undefined | null): bool
   return canAccessRcFinancePortal(roleToken(role) || "") || isSalesContractorRole(role);
 }
 
-/** NexiQ / Conferences workspace — Rapid IQ operators + sales contractors. */
+/** NexiQ / Conferences workspace — NexiQ operators + sales contractors. */
 export function canAccessRapidIqWorkspace(role: string | undefined | null): boolean {
   const r = roleToken(role);
   return r === "rcsuperadmin" || r === "rcadmin" || r === "salescontractor";
 }
+
+/** @deprecated Prefer canAccessRapidIqWorkspace — alias for web NexiQ rename. */
+export const canAccessNexiQWorkspace = canAccessRapidIqWorkspace;
 
 /** Grant Success Program (not Access Overrides) — RC admin + sales. */
 export function canAccessGrantSuccessProgram(role: string | undefined | null): boolean {

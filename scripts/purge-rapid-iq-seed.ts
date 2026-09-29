@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 /**
- * Deletes Rapid IQ seed / demo rows from DynamoDB (opportunityId / sourceId / signalId
+ * Deletes NexiQ seed / demo rows from DynamoDB (opportunityId / sourceId / signalId
  * prefixes `seed-` / `demo-`, plus sources/contacts GSI-linked to those opportunities).
  *
  * Does NOT touch the jurisdictions registry.
@@ -118,7 +118,7 @@ async function batchDelete(
 }
 
 async function main(): Promise<void> {
-  console.log(`Purging Rapid IQ seed/demo data (stage=${STAGE}, dryRun=${DRY_RUN})`);
+  console.log(`Purging NexiQ seed/demo data (stage=${STAGE}, dryRun=${DRY_RUN})`);
   console.log(`Tables: ${OPP}, ${SIG}, ${CON}, ${SRC}`);
 
   const opps = await scanAll(OPP);

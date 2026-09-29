@@ -1,12 +1,12 @@
 /**
- * Queue a Rapid IQ opportunity into the procurement pipeline (status: new)
+ * Queue a NexiQ opportunity into the procurement pipeline (status: new)
  * so it can be reviewed and pushed to CRM without converting immediately.
  */
 
 import { randomUUID } from "node:crypto";
 import {
   classifyProcurementStage,
-  type EnqueueRapidIqPipelineFromOpportunityBody,
+  type EnqueueNexiQPipelineFromOpportunityBody,
   type RapidIqPipelineSignal,
 } from "rapid-cortex-shared";
 import { applySignalIntelligence } from "./apply-signal-intelligence.js";
@@ -30,7 +30,7 @@ export function opportunityPipelineSourceUrl(opportunityId: string): string {
 }
 
 export async function enqueueOpportunityToPipeline(
-  body: EnqueueRapidIqPipelineFromOpportunityBody,
+  body: EnqueueNexiQPipelineFromOpportunityBody,
 ): Promise<{ signal: RapidIqPipelineSignal; alreadyQueued: boolean }> {
   const hash = opportunityPipelineHash(body.opportunityId);
   const existingId = await getSignalIdByHash(hash);

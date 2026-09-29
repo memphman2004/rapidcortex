@@ -123,10 +123,10 @@ function isRelevant(description: string): boolean {
 }
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: USASpending ingestion starting");
+  console.log("NexiQ pipeline: USASpending ingestion starting");
 
   if (await enqueueMockIfEnabled("usa-spending")) {
-    console.log("Rapid IQ pipeline: USASpending mock path complete");
+    console.log("NexiQ pipeline: USASpending mock path complete");
     return;
   }
 

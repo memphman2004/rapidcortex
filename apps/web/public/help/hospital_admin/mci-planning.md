@@ -1,3 +1,8 @@
-# MCI planning
+# MCI Planning
 
-Set mass-casualty capacity plans in the hospital portal when that module is on. Plans inform routing suggestions. They do not dispatch units or replace ICS.
+1. Open **MCI Planning**.
+2. Define surge bed targets and department roles for mass casualty.
+3. Keep plans aligned with regional EMS / trauma protocols.
+4. Drill the plan with HOSPITAL_STAFF so updates happen under stress.
+
+MCI tools prepare capacity. They do not replace incident command or 911.

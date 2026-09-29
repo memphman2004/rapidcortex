@@ -53,6 +53,11 @@ export type AgencyPlanTier = "starter" | "professional" | "command" | "enterpris
  */
 export interface AgencyTenant {
   agencyId: string;
+  /**
+   * Campus product split: `higher_ed` | `k12`. Optional — missing means higher_ed.
+   * Mirrored to Cognito `custom:institutionType` for campus seats.
+   */
+  institutionType?: "higher_ed" | "k12";
   /** Product vertical for tenant routing and RC admin segmentation. */
   vertical?: AgencyVertical;
   /** Enabled add-on keys mirrored to Cognito `custom:addons` for session routing. */

@@ -54,7 +54,7 @@ async function fetchRecentArticles(sourceUrl: string, sourceName: string): Promi
 
   try {
     const res = await fetch(sourceUrl, {
-      headers: { "user-agent": "RapidCortex-RapidIQ/1.0 (+https://rapidcortex.us)" },
+      headers: { "user-agent": "RapidCortex-NexiQ/1.0 (+https://rapidcortex.us)" },
       signal: AbortSignal.timeout(20_000),
     });
     if (!res.ok) return [];

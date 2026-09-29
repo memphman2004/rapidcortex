@@ -1,17 +1,24 @@
 # Caller Video Assist
 
-Request a live video stream from the caller’s phone when seeing the scene helps and the caller can do so safely.
+**Caller Video Assist** sends an SMS link so the caller can stream live video from their phone into your workspace. Use it when seeing the scene improves triage and the caller can safely participate.
 
-## How to request
+## When to use it
 
-1. Open the incident.
-2. Find **CALLER VIDEO ASSIST** (live video).
-3. Confirm the mobile number.
-4. Send the link. The caller opens it in a browser — no app required.
-5. When they join, the viewer appears in your workspace.
+- Caller can hold the phone and has a data connection
+- Visual confirmation would change response (fire/smoke, injury, vehicle description, scene safety)
+- Silent Text is not enough and the caller can show you the scene
 
-## Safety
+Do **not** push video if it would endanger the caller (domestic violence, active assailant, hiding). Prefer Silent Text or voice-only coaching.
 
-Do not ask a caller to video if it would reveal their location to a threat. Prefer **Silent Text** when they cannot speak or show themselves.
+## How to start a session
 
-If the SMS does not arrive, confirm the number is mobile. See **Silent Text Link** for the same SMS path.
+1. Select the incident.
+2. Open **CALLER VIDEO ASSIST**.
+3. Confirm the mobile number in E.164 format.
+4. Click **Send video link**.
+5. Coach: "Open the link and Allow Camera if asked. Point the camera at what you see."
+6. Watch the stream in the workspace. Capture notes for CAD — do not assume the recording is your CAD narrative.
+
+## Ending and audit
+
+Close the session when you have what you need or the caller must put the phone down. Session start, join, and end are audit-logged. Video Assist never replaces your SOP or CAD entry.

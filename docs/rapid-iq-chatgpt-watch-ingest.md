@@ -22,7 +22,7 @@ x-nexcort-watch-key: <api-key>
   `api.rapidcortex.us` maps to HttpApi1 only — do **not** use it for watch-ingest until a mapping exists.
 - **Body:** one object or an array (max 25) matching `rapidIqWatchIngestBodySchema` in `packages/shared`.
 
-Route is live on HttpApi3 (`POST /api/rapid-iq/pipeline/watch-ingest`, auth `NONE` at API Gateway; key checked in Lambda). CFN still needs an **import** of orphan signal/credits routes before the next `EnableRapidIqNewHttpRoutes=true` nested deploy (otherwise AlreadyExists rollback).
+Route is live on HttpApi3 (`POST /api/rapid-iq/pipeline/watch-ingest`, auth `NONE` at API Gateway; key checked in Lambda). CFN still needs an **import** of orphan signal/credits routes before the next `EnableNexiQNewHttpRoutes=true` nested deploy (otherwise AlreadyExists rollback).
 
 ## Deduplication
 
@@ -78,7 +78,7 @@ curl -sS -X POST "${API_BASE}/api/rapid-iq/pipeline/watch-ingest" \
   }'
 ```
 
-Then open NexiQ IQ → **Watch Feed** (or 911 tab) and confirm **CHATGPT WATCH** badge. Dismiss the smoke card.
+Then open NexiQ → **Watch Feed** (or 911 tab) and confirm **CHATGPT WATCH** badge. Dismiss the smoke card.
 
 ## ChatGPT Actions
 

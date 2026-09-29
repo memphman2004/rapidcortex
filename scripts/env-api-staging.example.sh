@@ -134,6 +134,11 @@ export ENABLE_CALL_ASSIST_RMS_DRAFT=false
 export ENABLE_CALL_ASSIST_DEMO_MODE=false
 export CALL_ASSIST_CONNECT_MOCK=true
 export CALL_ASSIST_LEX_MOCK=true
+# Live onboarding (when mocks are false) — deploy.sh auto-resolves from Lex stack + Connect if unset:
+#   CALL_ASSIST_LEX_BOT_ROLE_ARN      ← rapid-cortex-lex-${STAGE} LexServiceRoleArn
+#   CALL_ASSIST_FULFILLMENT_LAMBDA_ARN ← FulfillmentHookFunctionArn
+#   CALL_ASSIST_PRIMARY_QUEUE_ARN / CALL_ASSIST_EMERGENCY_QUEUE_ARN ← Demo Dispatcher / Call Assist Emergency
+#   CALL_ASSIST_RAPIDSOS_SECRET_ARN   ← optional (not for KCPD RFP)
 # Optional: seed Missouri Sunshine + 311/Parks/Water directory on first config write.
 # export CALL_ASSIST_SEED_PROFILE=kcpd
 # export CALL_ASSIST_SEED_AGENCY_ID=kcpd

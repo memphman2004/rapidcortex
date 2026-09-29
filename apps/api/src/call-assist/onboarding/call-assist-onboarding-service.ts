@@ -6,7 +6,7 @@ import {
 import { env } from "../../lib/env.js";
 import { ContactFlowProvisioner } from "../connect/contact-flow-provisioner.js";
 import { getOrCreateConfig } from "../config-service.js";
-import { LexBotProvisioner, mockLexModelsPort } from "../lex/lex-bot-provisioner.js";
+import { createLexModelsPort, LexBotProvisioner } from "../lex/lex-bot-provisioner.js";
 import { envLexQuotaPort } from "../lex/lex-quota.js";
 import { TranscribeVocabularyService } from "../lex/transcribe-vocabulary-service.js";
 import { callAssistStore } from "../store.js";
@@ -18,8 +18,8 @@ function stage(): string {
 
 export class CallAssistOnboardingService {
   constructor(
-    /** Live AWS Lex is not invoked while CALL_ASSIST_LEX_MOCK is the default. */
-    private readonly bots = new LexBotProvisioner(mockLexModelsPort(), envLexQuotaPort()),
+    /** Honors CALL_ASSIST_LEX_MOCK — live LexModelsV2 when false. */
+    private readonly bots = new LexBotProvisioner(createLexModelsPort(env.callAssistLexMock), envLexQuotaPort()),
     private readonly flows = new ContactFlowProvisioner(),
     private readonly vocab = new TranscribeVocabularyService(),
   ) {}

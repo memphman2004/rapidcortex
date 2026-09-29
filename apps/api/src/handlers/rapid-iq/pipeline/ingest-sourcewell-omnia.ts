@@ -15,10 +15,10 @@ const PAGES = [
 ];
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: Sourcewell/OMNIA ingestion starting");
+  console.log("NexiQ pipeline: Sourcewell/OMNIA ingestion starting");
 
   if (await enqueueMockIfEnabled("sourcewell-omnia")) {
-    console.log("Rapid IQ pipeline: sourcewell-omnia mock path complete");
+    console.log("NexiQ pipeline: sourcewell-omnia mock path complete");
     return;
   }
 

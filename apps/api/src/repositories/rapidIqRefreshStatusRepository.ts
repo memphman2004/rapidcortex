@@ -44,7 +44,7 @@ export class RapidIqRefreshStatusRepository {
         TableName: table(),
         Item: {
           stateCode: STATUS_KEY,
-          stateName: "Rapid IQ Refresh",
+          stateName: "NexiQ Refresh",
           ...status,
           updatedAt: new Date().toISOString(),
         },
@@ -73,7 +73,7 @@ export class RapidIqRefreshStatusRepository {
         TableName: table(),
         Item: {
           stateCode: RAMP_SCAN_KEY,
-          stateName: "Rapid IQ RAMP Scan",
+          stateName: "NexiQ RAMP Scan",
           status: "complete",
           completedAt,
           signalsFound,

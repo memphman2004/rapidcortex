@@ -1,7 +1,8 @@
-# Reading the audit log
+# Reading the Audit Log
 
 1. Open **Audit Log**.
-2. Filter by time, user, and event type.
-3. The trail is immutable. You cannot edit events.
+2. Filter by time, user, incident, or event type.
+3. Open an event to see immutable details.
+4. Export when counsel or accreditation requires a package.
 
-Export for counsel under your legal process. Do not screenshot JWTs or full CAD payloads into tickets.
+Audit events are append-only. If something looks missing, expand filters before assuming failure — some system jobs log as `system:{function}`.

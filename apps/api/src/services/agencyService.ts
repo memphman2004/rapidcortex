@@ -220,6 +220,11 @@ export class AgencyService {
       centerName: patch.centerName ?? row.centerName,
       state: patch.state ?? row.state,
       region: patch.region ?? row.region,
+      // Mirror campus.institutionType onto the agency root for Cognito + layout branching.
+      institutionType:
+        patch.campus?.institutionType ??
+        (patch.campus?.campusType === "k12" ? "k12" : undefined) ??
+        row.institutionType,
       updatedAt: now,
       config: {
         ...row.config,

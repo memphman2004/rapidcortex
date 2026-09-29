@@ -1,5 +1,5 @@
 /**
- * LA28 / RAMP (rampla.org) relevance filters for Rapid IQ.
+ * LA28 / RAMP (rampla.org) relevance filters for NexiQ.
  */
 
 /** Keywords that indicate an RC-relevant LA28 opportunity (title + description). */

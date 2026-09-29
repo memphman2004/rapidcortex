@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { campusAlertStatusSchema, campusGradeLevelSchema } from "./district-school.js";
 
 /** Session / UI value meaning every campus in the tenant. */
 export const CAMPUS_SITE_SCOPE_ALL = "all";
@@ -35,6 +36,15 @@ export const campusSiteSchema = z.object({
     .optional(),
   kind: campusSiteKindSchema.optional(),
   active: z.boolean().optional().default(true),
+  /** K-12: short badge on incident cards (CCHS, CCMS). */
+  shortName: z.string().trim().max(16).optional(),
+  /** K-12 grade band when this site is a district school. */
+  gradeLevel: campusGradeLevelSchema.optional(),
+  /** Cached alert rollup for district schools dashboard. */
+  alertStatus: campusAlertStatusSchema.optional(),
+  activeIncidentCount: z.number().int().min(0).optional(),
+  respondersOnDuty: z.number().int().min(0).optional(),
+  address: z.string().trim().max(300).optional(),
 });
 
 export type CampusSite = z.infer<typeof campusSiteSchema>;

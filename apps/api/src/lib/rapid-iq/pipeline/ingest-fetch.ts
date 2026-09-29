@@ -1,5 +1,5 @@
 /**
- * Polite HTML/RSS fetch helpers for Rapid IQ public-page crawlers.
+ * Polite HTML/RSS fetch helpers for NexiQ public-page crawlers.
  */
 
 export const RAPID_IQ_INGEST_UA = "RapidCortex-IQ/1.0 (public-safety-signals)";

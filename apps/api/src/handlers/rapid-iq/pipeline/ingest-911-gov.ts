@@ -25,10 +25,10 @@ const PAGES: Array<{ url: string; name: string; sourceId: "911-gov" | "fcc-repor
 ];
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: 911.gov ingestion starting");
+  console.log("NexiQ pipeline: 911.gov ingestion starting");
 
   if (await enqueueMockIfEnabled("911-gov")) {
-    console.log("Rapid IQ pipeline: 911.gov mock path complete");
+    console.log("NexiQ pipeline: 911.gov mock path complete");
     return;
   }
 

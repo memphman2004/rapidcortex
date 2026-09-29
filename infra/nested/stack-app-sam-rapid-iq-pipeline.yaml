@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  NexCort iQ — Rapid IQ Signal Intelligence Pipeline
+  NexCort iQ — NexiQ Signal Intelligence Pipeline
   (procurement signal ingest → SQS → NLP → DynamoDB → CRM push).
   Distinct from stack-app-sam-rapid-iq.yaml (opportunity feed).
 
@@ -79,7 +79,7 @@ Parameters:
   ApprovedCorsOrigins:
     Type: String
     Default: "https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us"
-  EnableRapidIqNewHttpRoutes:
+  EnableNexiQNewHttpRoutes:
     Type: String
     AllowedValues: ["true", "false"]
     Default: "false"
@@ -88,14 +88,14 @@ Parameters:
       (tbr4zvjlk5). Live rapid-cortex-dev must recreate SignalHttpIntegrationV2
       first — leftover standalone route IDs and nested x30c8uk are ghosts
       (NotFound on the API). Default false for staging; env-api-dev sets true.
-  EnableRapidIqNestedExpansion:
+  EnableNexiQNestedExpansion:
     Type: String
     AllowedValues: ["true", "false"]
     Default: "false"
     Description: >-
       Create intel-watch queues plus extra ingest/sales/digest Lambdas on the hashed
       nested stack (JWN4SGUYZXYF). Keep false on live rapid-cortex-dev: leftover
-      standalone rapid-cortex-dev-AppSamRapidIqPipelineStack already owns those
+      standalone rapid-cortex-dev-AppSamNexiQPipelineStack already owns those
       named EventBridge rules, named IAM policy, intel-watch queues, and Lambdas.
       Enabling this duplicates ingest and collides with AlreadyExists (2026-09-12).
   ExternalApiEncryptionKeyArn:
@@ -123,8 +123,8 @@ Parameters:
     AllowedValues: ["true", "false"]
 
 Conditions:
-  RapidIqNewHttpRoutes: !Equals [!Ref EnableRapidIqNewHttpRoutes, "true"]
-  RapidIqNestedExpansion: !Equals [!Ref EnableRapidIqNestedExpansion, "true"]
+  RapidIqNewHttpRoutes: !Equals [!Ref EnableNexiQNewHttpRoutes, "true"]
+  RapidIqNestedExpansion: !Equals [!Ref EnableNexiQNestedExpansion, "true"]
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
   HasAnthropicApiKeySecretArn: !Not [!Equals [!Ref AnthropicApiKeySecretArn, ""]]
   HasSamGovSecretArn: !Not [!Equals [!Ref RapidIqSamGovApiKeySecretArn, ""]]
@@ -195,7 +195,7 @@ Resources:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: !Sub "${ManagedPolicyNamePrefix}-rapidiq-pipeline-api-deps-${DeploymentStage}"
-      Description: Shared node_modules for Rapid IQ pipeline Lambdas (lean CodeUri builds)
+      Description: Shared node_modules for NexiQ pipeline Lambdas (lean CodeUri builds)
       ContentUri: ../../apps/api/layer/
       CompatibleRuntimes:
         - nodejs20.x
@@ -253,12 +253,12 @@ Resources:
         deadLetterTargetArn: !GetAtt IntelWatchDLQ.Arn
         maxReceiveCount: 3
 
-  AppManagedPolicyRapidIqPipeline:
+  AppManagedPolicyNexiQPipeline:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       # Do not set ManagedPolicyName. The nested stack already owns
-      # ...AppManagedPolicyRapidIqPipeline-o7F3kArSMh66. Adding a name forces
-      # replacement and collides with standalone stack rapid-cortex-dev-AppSamRapidIqPipelineStack
+      # ...AppManagedPolicyNexiQPipeline-o7F3kArSMh66. Adding a name forces
+      # replacement and collides with standalone stack rapid-cortex-dev-AppSamNexiQPipelineStack
       # which already has rapid-cortex-dev-sam-rapidiq-pipeline-dev.
       PolicyDocument:
         Version: "2012-10-17"
@@ -411,7 +411,7 @@ Resources:
               - HasOpenAiApiKeySecretArn
               - !Ref OpenAiApiKeySecretArn
               - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-openai-*
-          - Sid: SesSendRapidIqAlerts
+          - Sid: SesSendNexiQAlerts
             Effect: Allow
             Action:
               - ses:SendEmail
@@ -449,16 +449,16 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
-            # Do not set Name: leftover standalone stack rapid-cortex-dev-AppSamRapidIqPipelineStack
+            # Do not set Name: leftover standalone stack rapid-cortex-dev-AppSamNexiQPipelineStack
             # already owns rapid-cortex-dev-riq-pipe-*-dev rules (AlreadyExists 2026-09-12).
             Schedule: cron(0 6 * * ? *)
             Enabled: true
-            Description: Rapid IQ pipeline USASpending daily ingest
+            Description: NexiQ pipeline USASpending daily ingest
 
   IngestSamGovFunction:
     Type: AWS::Serverless::Function
@@ -473,14 +473,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(30 6 * * ? *)
             Enabled: true
-            Description: Rapid IQ pipeline SAM.gov daily ingest
+            Description: NexiQ pipeline SAM.gov daily ingest
 
   IngestNewsRssFunction:
     Type: AWS::Serverless::Function
@@ -495,14 +495,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: rate(4 hours)
             Enabled: true
-            Description: Rapid IQ pipeline news RSS ingest
+            Description: NexiQ pipeline news RSS ingest
 
   IngestLegistarBulkFunction:
     Type: AWS::Serverless::Function
@@ -518,14 +518,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(30 7 * * ? *)
             Enabled: true
-            Description: Rapid IQ pipeline Legistar bulk daily ingest
+            Description: NexiQ pipeline Legistar bulk daily ingest
 
   IngestSocrataFunction:
     Type: AWS::Serverless::Function
@@ -541,14 +541,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(0 8 * * ? *)
             Enabled: true
-            Description: Rapid IQ pipeline Socrata state contracts daily ingest
+            Description: NexiQ pipeline Socrata state contracts daily ingest
 
   IngestState911BoardsFunction:
     Type: AWS::Serverless::Function
@@ -564,14 +564,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(30 8 * * ? *)
             Enabled: true
-            Description: Rapid IQ pipeline state 911 boards daily ingest
+            Description: NexiQ pipeline state 911 boards daily ingest
 
   IngestStateArpaFunction:
     Type: AWS::Serverless::Function
@@ -587,14 +587,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(0 9 * * ? *)
             Enabled: true
-            Description: Rapid IQ pipeline state ARPA dashboards daily ingest
+            Description: NexiQ pipeline state ARPA dashboards daily ingest
 
   IngestOpenLegislativeFunction:
     Type: AWS::Serverless::Function
@@ -610,14 +610,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(30 9 * * ? *)
             Enabled: true
-            Description: Rapid IQ pipeline OpenStates legislative daily ingest
+            Description: NexiQ pipeline OpenStates legislative daily ingest
 
   IngestCountyProcurementFunction:
     Type: AWS::Serverless::Function
@@ -634,14 +634,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: rate(2 hours)
             Enabled: true
-            Description: Rapid IQ pipeline county procurement portals every 2 hours
+            Description: NexiQ pipeline county procurement portals every 2 hours
 
   IngestGrantsGovFunction:
     Type: AWS::Serverless::Function
@@ -657,14 +657,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(0 7 * * ? *)
             Enabled: true
-            Description: Rapid IQ pipeline Grants.gov daily ingest
+            Description: NexiQ pipeline Grants.gov daily ingest
 
   IngestNineOneOneGovFunction:
     Type: AWS::Serverless::Function
@@ -680,14 +680,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(0 8 * * ? *)
             Enabled: true
-            Description: Rapid IQ pipeline 911.gov and FCC daily ingest
+            Description: NexiQ pipeline 911.gov and FCC daily ingest
 
   IngestApcoNenaFunction:
     Type: AWS::Serverless::Function
@@ -703,14 +703,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(0 9 * * ? *)
             Enabled: true
-            Description: Rapid IQ pipeline APCO NENA NASNA daily ingest
+            Description: NexiQ pipeline APCO NENA NASNA daily ingest
 
   IngestCompetitorIntelFunction:
     Type: AWS::Serverless::Function
@@ -726,14 +726,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(0 10 * * ? *)
             Enabled: true
-            Description: Rapid IQ pipeline competitor intel daily ingest
+            Description: NexiQ pipeline competitor intel daily ingest
 
   IngestBoardDocsFunction:
     Type: AWS::Serverless::Function
@@ -749,14 +749,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(30 7 * * ? *)
             Enabled: true
-            Description: Rapid IQ pipeline BoardDocs daily ingest
+            Description: NexiQ pipeline BoardDocs daily ingest
 
   IngestCivicClerkFunction:
     Type: AWS::Serverless::Function
@@ -772,14 +772,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(0 8 * * ? *)
             Enabled: true
-            Description: Rapid IQ pipeline CivicClerk daily ingest
+            Description: NexiQ pipeline CivicClerk daily ingest
 
   IngestSourcewellFunction:
     Type: AWS::Serverless::Function
@@ -795,14 +795,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(0 11 * * ? *)
             Enabled: true
-            Description: Rapid IQ pipeline Sourcewell OMNIA NASPO HGAC daily ingest
+            Description: NexiQ pipeline Sourcewell OMNIA NASPO HGAC daily ingest
 
   IngestUniversityProcurementFunction:
     Type: AWS::Serverless::Function
@@ -818,14 +818,14 @@ Resources:
         Variables:
           RAW_SIGNALS_QUEUE_URL: !Ref RawSignalsQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(0 12 * * ? *)
             Enabled: true
-            Description: Rapid IQ pipeline university procurement daily ingest
+            Description: NexiQ pipeline university procurement daily ingest
 
   ProcessSignalFunction:
     Type: AWS::Serverless::Function
@@ -838,7 +838,7 @@ Resources:
       Timeout: 120
       ReservedConcurrentExecutions: 5
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         SqsTrigger:
           Type: SQS
@@ -862,14 +862,14 @@ Resources:
         Variables:
           INTEL_WATCH_QUEUE_URL: !Ref IntelWatchQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(15 13 * * ? *)
             Enabled: true
-            Description: Rapid IQ Opportunity Intelligence watch orchestrator
+            Description: NexiQ Opportunity Intelligence watch orchestrator
 
   IntelWatchWorkerFunction:
     Type: AWS::Serverless::Function
@@ -886,7 +886,7 @@ Resources:
         Variables:
           INTEL_WATCH_QUEUE_URL: !Ref IntelWatchQueue
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         SqsTrigger:
           Type: SQS
@@ -907,14 +907,14 @@ Resources:
       Handler: dist/handlers/rapid-iq/pipeline/rfp-unified-counter.handler
       Timeout: 180
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: rate(15 minutes)
             Enabled: true
-            Description: Rapid IQ unified RFP count snapshot across feed + pipeline + intel
+            Description: NexiQ unified RFP count snapshot across feed + pipeline + intel
 
   SalesAutomationComposerFunction:
     Type: AWS::Serverless::Function
@@ -927,35 +927,35 @@ Resources:
       Handler: dist/handlers/rapid-iq/pipeline/sales-automation-composer.handler
       Timeout: 240
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Newsletter:
           Type: Schedule
           Properties:
             Schedule: cron(0 8 ? * MON *)
             Enabled: true
-            Description: Rapid IQ Inside the Cortex newsletter draft
+            Description: NexiQ Inside the Cortex newsletter draft
             Input: '{"job":"newsletter"}'
         BudgetSeason:
           Type: Schedule
           Properties:
             Schedule: cron(0 12 1 10,11 ? *)
             Enabled: true
-            Description: Rapid IQ budget-season sequence drafts
+            Description: NexiQ budget-season sequence drafts
             Input: '{"job":"budget_season"}'
         ConferencePre:
           Type: Schedule
           Properties:
             Schedule: cron(0 6 ? * SUN *)
             Enabled: true
-            Description: Rapid IQ conference pre-outreach window check
+            Description: NexiQ conference pre-outreach window check
             Input: '{"job":"conference_pre"}'
         ReEngagement:
           Type: Schedule
           Properties:
             Schedule: cron(15 6 ? * SUN *)
             Enabled: true
-            Description: Rapid IQ 90-day re-engagement drafts
+            Description: NexiQ 90-day re-engagement drafts
             Input: '{"job":"re_engagement"}'
 
   SalesAutomationSendFunction:
@@ -969,14 +969,14 @@ Resources:
       Handler: dist/handlers/rapid-iq/pipeline/sales-automation-send.handler
       Timeout: 180
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: rate(15 minutes)
             Enabled: true
-            Description: Rapid IQ send approved scheduled outreach steps
+            Description: NexiQ send approved scheduled outreach steps
 
   SignalHttpFunction:
     Type: AWS::Serverless::Function
@@ -992,7 +992,7 @@ Resources:
         Variables:
           INTEL_WATCH_QUEUE_URL: !If [RapidIqNestedExpansion, !Ref IntelWatchQueue, ""]
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
 
   # Do not reuse logical id SignalHttpIntegration. Nested stack still records
   # physical id x30c8uk (DeletionPolicy: Retain) but that integration is gone from
@@ -1002,7 +1002,7 @@ Resources:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref HttpApiId
-      Description: Rapid IQ SignalHttp (recreated after orphan x30c8uk)
+      Description: NexiQ SignalHttp (recreated after orphan x30c8uk)
       IntegrationType: AWS_PROXY
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SignalHttpFunction.Arn}/invocations
       PayloadFormatVersion: "2.0"
@@ -1380,14 +1380,14 @@ Resources:
       Handler: dist/handlers/rapid-iq/pipeline/send-signal-alerts.handler
       Timeout: 60
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(0 */6 * * ? *)
             Enabled: true
-            Description: Rapid IQ high-intent alerts every 6 hours
+            Description: NexiQ high-intent alerts every 6 hours
 
   RapidIqWeeklyDigestFunction:
     Type: AWS::Serverless::Function
@@ -1400,14 +1400,14 @@ Resources:
       Handler: dist/handlers/rapid-iq/pipeline/send-weekly-digest.handler
       Timeout: 60
       Policies:
-        - !Ref AppManagedPolicyRapidIqPipeline
+        - !Ref AppManagedPolicyNexiQPipeline
       Events:
         Schedule:
           Type: Schedule
           Properties:
             Schedule: cron(0 8 ? * MON *)
             Enabled: true
-            Description: Rapid IQ weekly digest Monday 08:00 UTC
+            Description: NexiQ weekly digest Monday 08:00 UTC
 
 Outputs:
   RawSignalsQueueUrl:

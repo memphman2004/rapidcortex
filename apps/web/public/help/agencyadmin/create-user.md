@@ -1,9 +1,9 @@
-# Creating a new user
+# Creating a New User
 
-1. Open **Users** under administration.
-2. Invite / create user.
-3. Enter work email, role (`dispatcher`, `supervisor`, `agencyit`, and so on), and temporary password policy per your IT.
-4. Confirm **agency ID** is yours — never another tenant.
-5. Tell the user the agency URL and that MFA is required.
+1. Open **Users**.
+2. Invite the work email your agency uses for Cognito / SSO.
+3. Assign the canonical role (`dispatcher`, `supervisor`, `agencyit`, etc.). Do not invent role strings.
+4. Send the invite and confirm MFA enrollment completes before the first live shift.
+5. Point them to Help (unlimited) and any agency SOP packet.
 
-Do not assign `VENUE_*` or `CAMPUS_*` to PSAP staff, or the reverse.
+Never share passwords. Deactivate first if you must re-issue access for the same person under a new email.

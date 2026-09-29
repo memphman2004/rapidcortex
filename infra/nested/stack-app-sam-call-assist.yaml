@@ -31,6 +31,26 @@ Parameters:
     Type: String
     Default: ""
     Description: Secrets Manager ARN for Amazon Connect webhook shared secret. Empty = mock-only webhooks.
+  CallAssistRapidSosSecretArn:
+    Type: String
+    Default: ""
+    Description: Optional Secrets Manager ARN for RapidSOS read-only location API (not used for KCPD RFP).
+  CallAssistLexBotRoleArn:
+    Type: String
+    Default: ""
+    Description: IAM role ARN assumed by Lex V2 bots (from stack-lex LexServiceRole). Required when CALL_ASSIST_LEX_MOCK=false.
+  CallAssistPrimaryQueueArn:
+    Type: String
+    Default: ""
+    Description: Amazon Connect primary/demo dispatcher queue ARN for contact-flow provisioning.
+  CallAssistEmergencyQueueArn:
+    Type: String
+    Default: ""
+    Description: Amazon Connect emergency transfer queue ARN for contact-flow provisioning.
+  CallAssistFulfillmentLambdaArn:
+    Type: String
+    Default: ""
+    Description: Optional Lex fulfillment Lambda ARN referenced by parameterized contact flows.
   AppPublicBaseUrl:
     Type: String
     Default: ""
@@ -43,6 +63,8 @@ Conditions:
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
   CreateCallAssistTable: !Equals [!Ref ExistingCallAssistTableName, ""]
   HasConnectWebhookSecret: !Not [!Equals [!Ref CallAssistConnectWebhookSecretArn, ""]]
+  HasRapidSosSecret: !Not [!Equals [!Ref CallAssistRapidSosSecretArn, ""]]
+  HasLexBotRole: !Not [!Equals [!Ref CallAssistLexBotRoleArn, ""]]
 
 Globals:
   Function:
@@ -57,17 +79,23 @@ Globals:
         ENABLE_CALL_ASSIST_GREETING_CONFIG: "true"
         ENABLE_CALL_ASSIST_CAD_PUSH: "false"
         ENABLE_CALL_ASSIST_RMS_DRAFT: "false"
-        ENABLE_CALL_ASSIST_DEMO_MODE: "true"
+        ENABLE_CALL_ASSIST_DEMO_MODE: "false"
         ENABLE_CALL_ASSIST_RECORDING: "true"
         CAD_WRITEBACK_ENABLED: "false"
         CALL_ASSIST_CONNECT_MOCK: "false"
         CALL_ASSIST_LEX_MOCK: "false"
         CALL_ASSIST_RAPIDSOS_MOCK: "false"
+        CALL_ASSIST_TRANSCRIBE_MOCK: "false"
         CALL_ASSIST_VOICE_EMOTION_MOCK: "false"
         ENABLE_CALL_ASSIST_VOICE_EMOTION: "true"
         ENABLE_CALL_ASSIST_DIARIZATION: "true"
         CALL_ASSIST_TABLE: !Sub "rapid-cortex-call-assist-${DeploymentStage}"
         CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN: !Ref CallAssistConnectWebhookSecretArn
+        CALL_ASSIST_RAPIDSOS_SECRET_ARN: !Ref CallAssistRapidSosSecretArn
+        CALL_ASSIST_LEX_BOT_ROLE_ARN: !Ref CallAssistLexBotRoleArn
+        CALL_ASSIST_PRIMARY_QUEUE_ARN: !Ref CallAssistPrimaryQueueArn
+        CALL_ASSIST_EMERGENCY_QUEUE_ARN: !Ref CallAssistEmergencyQueueArn
+        CALL_ASSIST_FULFILLMENT_LAMBDA_ARN: !Ref CallAssistFulfillmentLambdaArn
         APP_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
         CALL_ASSIST_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
         CONNECT_INSTANCE_ID: "20772ba7-98e6-4afd-94cc-19e03c0619df"
@@ -164,10 +192,49 @@ Resources:
             Action:
               - connect:StartOutboundVoiceContact
               - connect:StopContact
+              - connect:CreateContactFlow
+              - connect:UpdateContactFlowContent
+              - connect:ListContactFlows
+              - connect:DescribeContactFlow
             Resource:
               - !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/20772ba7-98e6-4afd-94cc-19e03c0619df"
               - !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/20772ba7-98e6-4afd-94cc-19e03c0619df/contact/*"
               - !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/20772ba7-98e6-4afd-94cc-19e03c0619df/contact-flow/*"
+          - Sid: CallAssistLexModels
+            Effect: Allow
+            Action:
+              - lex:CreateBot
+              - lex:CreateBotLocale
+              - lex:CreateBotVersion
+              - lex:CreateBotAlias
+              - lex:UpdateBotAlias
+              - lex:CreateIntent
+              - lex:UpdateIntent
+              - lex:CreateSlot
+              - lex:CreateSlotType
+              - lex:BuildBotLocale
+              - lex:DescribeBotLocale
+              - lex:DescribeBot
+              - lex:ListBots
+              - lex:ListBotAliases
+              - lex:ListIntents
+              - lex:ListSlotTypes
+              - lex:TagResource
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+          - Sid: CallAssistTranscribeVocabulary
+            Effect: Allow
+            Action:
+              - transcribe:CreateVocabulary
+              - transcribe:UpdateVocabulary
+              - transcribe:GetVocabulary
+              - transcribe:ListVocabularies
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
           - Sid: CallAssistSmsSendText
             Effect: Allow
             Action:
@@ -194,6 +261,25 @@ Resources:
                 Action:
                   - secretsmanager:GetSecretValue
                 Resource: !Ref CallAssistConnectWebhookSecretArn
+              - !Ref AWS::NoValue
+          - !If
+              - HasRapidSosSecret
+              - Sid: CallAssistRapidSosSecret
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref CallAssistRapidSosSecretArn
+              - !Ref AWS::NoValue
+          - !If
+              - HasLexBotRole
+              - Sid: CallAssistPassLexBotRole
+                Effect: Allow
+                Action:
+                  - iam:PassRole
+                Resource: !Ref CallAssistLexBotRoleArn
+                Condition:
+                  StringEquals:
+                    iam:PassedToService: lexv2.amazonaws.com
               - !Ref AWS::NoValue
 
   CallAssistHttpFunction:

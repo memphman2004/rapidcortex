@@ -1,7 +1,12 @@
-# Dispatcher coaching notes
+# Dispatcher Coaching Notes
 
-1. Open the dispatcher’s record from QA or floor tools.
-2. Add a coaching note tied to a call or pattern.
-3. Notes are auditable. Write professionally.
+Coaching notes attach developmental feedback to a dispatcher without rewriting the incident record.
 
-You cannot create post-incident reviews from coaching notes unless that module is on and your role includes it.
+## How to add a note
+
+1. Open the dispatcher profile or the QA result you are coaching from.
+2. Choose **Coaching notes**.
+3. Write specific, actionable feedback (what to change, what went well).
+4. Save. Notes are auditable and visible to roles your agency grants.
+
+Keep notes professional and free of protected health details that do not belong in coaching storage. For wellness concerns, use wellness flags / EAP pathways per policy.

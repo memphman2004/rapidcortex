@@ -18,6 +18,11 @@ function mapErr(e: unknown) {
   if (msg === "NOT_FOUND") return notFound();
   if (msg === "VIDEO_ASSIST_TABLE_NOT_CONFIGURED")
     return serviceUnavailable("Video assist is not configured");
+  if (msg === "VIDEO_ASSIST_TURN_REQUIRED") {
+    return serviceUnavailable(
+      "Video Assist requires TURN/ICE (set WEBRTC_TURN_SECRET_ARN or WEBRTC_ICE_SERVERS_JSON).",
+    );
+  }
   if (msg === "SESSION_EXPIRED") return jsonStatus({ error: "session_expired" }, 410);
   if (msg === "SESSION_CANCELED" || msg === "SESSION_ENDED")
     return jsonStatus({ error: "session_closed" }, 409);

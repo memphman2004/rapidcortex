@@ -6,14 +6,14 @@
 
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
 import {
-  approveRapidIqSalesBulkBodySchema,
+  approveRapidIqSalesBulkBodySchema as approveNexiQSalesBulkBodySchema,
   canManageSalesAutomation,
-  createRapidIqSalesBulkCampaignBodySchema,
-  createRapidIqSalesSequenceBodySchema,
+  createRapidIqSalesBulkCampaignBodySchema as createNexiQSalesBulkCampaignBodySchema,
+  createRapidIqSalesSequenceBodySchema as createNexiQSalesSequenceBodySchema,
   rapidIqOutlookCallbackBodySchema,
-  updateRapidIqSalesBulkCopyBodySchema,
-  updateRapidIqSalesDraftBodySchema,
-  updateRapidIqSalesSequenceBodySchema,
+  updateRapidIqSalesBulkCopyBodySchema as updateNexiQSalesBulkCopyBodySchema,
+  updateRapidIqSalesDraftBodySchema as updateNexiQSalesDraftBodySchema,
+  updateRapidIqSalesSequenceBodySchema as updateNexiQSalesSequenceBodySchema,
   type UserContext,
 } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
@@ -190,7 +190,7 @@ export async function handleSalesAutomationHttp(
       if (denied) return denied;
       const body = parseBody(event);
       if (body === null) return badRequest("Invalid JSON");
-      const parsed = updateRapidIqSalesDraftBodySchema.safeParse(body);
+      const parsed = updateNexiQSalesDraftBodySchema.safeParse(body);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       try {
         const draft = await updateDraftCopy(draftId, parsed.data);
@@ -219,7 +219,7 @@ export async function handleSalesAutomationHttp(
   if (method === "POST" && (path.endsWith("/sales-automation/sequences") || path.endsWith("/sales-automation/sequences/"))) {
     const body = parseBody(event);
     if (body === null) return badRequest("Invalid JSON");
-    const parsed = createRapidIqSalesSequenceBodySchema.safeParse(body);
+    const parsed = createNexiQSalesSequenceBodySchema.safeParse(body);
     if (!parsed.success) return badRequestFromZod(parsed.error);
     const sequence = await createSequenceFromTrigger(parsed.data);
     await audit(user, AUDIT_EVENT_TYPES.RAPID_IQ_SALES_SEQ_CREATED, sequence.sequenceId, {
@@ -278,12 +278,12 @@ export async function handleSalesAutomationHttp(
       if (denied) return denied;
       const body = parseBody(event);
       if (body === null) return badRequest("Invalid JSON");
-      const parsed = updateRapidIqSalesSequenceBodySchema.safeParse(body);
+      const parsed = updateNexiQSalesSequenceBodySchema.safeParse(body);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       try {
         const sequence = await updateSequenceCopy(seqId, parsed.data);
         await audit(user, AUDIT_EVENT_TYPES.RAPID_IQ_SALES_SEQ_EDITED, seqId, {
-          stepNumbers: parsed.data.steps?.map((s) => s.stepNumber) ?? [],
+          stepNumbers: parsed.data.steps?.map((s: { stepNumber: number }) => s.stepNumber) ?? [],
         });
         return ok({ sequence });
       } catch (err) {
@@ -420,7 +420,7 @@ async function handleBulk(
     if (denied) return denied;
     const body = parseBody(event);
     if (body === null) return badRequest("Invalid JSON");
-    const parsed = approveRapidIqSalesBulkBodySchema.safeParse(body);
+    const parsed = approveNexiQSalesBulkBodySchema.safeParse(body);
     if (!parsed.success) return badRequestFromZod(parsed.error);
     try {
       const result = await approveBulkCampaign(parsed.data.campaignId, user.userId);
@@ -462,7 +462,7 @@ async function handleBulk(
     if (denied) return denied;
     const body = parseBody(event);
     if (body === null) return badRequest("Invalid JSON");
-    const parsed = updateRapidIqSalesBulkCopyBodySchema.safeParse(body);
+    const parsed = updateNexiQSalesBulkCopyBodySchema.safeParse(body);
     if (!parsed.success) return badRequestFromZod(parsed.error);
     try {
       const result = await updateBulkCampaignCopy(parsed.data.campaignId, { steps: parsed.data.steps });
@@ -479,7 +479,7 @@ async function handleBulk(
   if (method === "POST" && (path.endsWith("/sales-automation/bulk") || path.endsWith("/sales-automation/bulk/"))) {
     const body = parseBody(event);
     if (body === null) return badRequest("Invalid JSON");
-    const parsed = createRapidIqSalesBulkCampaignBodySchema.safeParse(body);
+    const parsed = createNexiQSalesBulkCampaignBodySchema.safeParse(body);
     if (!parsed.success) return badRequestFromZod(parsed.error);
     const result = await createBulkCampaign(parsed.data);
     await audit(user, AUDIT_EVENT_TYPES.RAPID_IQ_SALES_BULK_CREATED, result.campaignId, {

@@ -1,33 +1,319 @@
 {
-  "locales": ["zh_CN", "zh_HK", "tl_PH", "vi_VN", "ar_AE"],
+  "locales": [
+    "zh_CN",
+    "zh_HK",
+    "tl_PH",
+    "vi_VN",
+    "ar_AE"
+  ],
   "intents": {
     "Welcome": {
-      "utterancesZhCn": ["你好", "您好", "喂", "我需要帮助", "我要报案", "我有问题", "我要报告", "请帮帮我", "我要做笔录", "非紧急"],
-      "utterancesZhHk": ["你好", "喂", "我需要幫忙", "我要報案", "我有問題", "我想報告", "請幫我", "我要做紀錄", "非緊急"],
-      "utterancesTl": ["hello", "hi", "oo", "kailangan ko ng tulong", "gusto kong mag-report", "may tanong ako", "magfa-file ako ng report", "tulong po", "hindi emergency"],
-      "utterancesVi": ["xin chào", "alo", "tôi cần giúp", "tôi muốn báo cáo", "tôi có câu hỏi", "làm biên bản", "không khẩn cấp", "giúp tôi với"],
-      "utterancesAr": ["مرحبا", "نعم", "أحتاج مساعدة", "أريد أن أبلغ", "لدي سؤال", "أريد تقديم بلاغ", "ليست حالة طارئة"]
+      "utterancesZhCn": [
+        "你好",
+        "您好",
+        "喂",
+        "我需要帮助",
+        "我要报案",
+        "我有问题",
+        "我要报告",
+        "请帮帮我",
+        "我要做笔录",
+        "非紧急",
+        "早上好",
+        "下午好",
+        "晚上好",
+        "这是非紧急电话吗",
+        "有人告诉我打这个号码",
+        "我想报告一个问题",
+        "不是紧急情况但需要报案",
+        "你好有人吗"
+      ],
+      "utterancesZhHk": [
+        "你好",
+        "喂",
+        "我需要幫忙",
+        "我要報案",
+        "我有問題",
+        "我想報告",
+        "請幫我",
+        "我要做紀錄",
+        "非緊急",
+        "早晨",
+        "午安",
+        "晚安",
+        "呢個係非緊急電話嗎",
+        "有人叫我打呢個號碼",
+        "我想報告一個問題",
+        "唔係緊急但要報案"
+      ],
+      "utterancesTl": [
+        "hello",
+        "hi",
+        "oo",
+        "kailangan ko ng tulong",
+        "gusto kong mag-report",
+        "may tanong ako",
+        "magfa-file ako ng report",
+        "tulong po",
+        "hindi emergency",
+        "magandang umaga",
+        "magandang hapon",
+        "ito ba ang non emergency",
+        "sinabihan akong tumawag dito",
+        "gusto kong magreklamo",
+        "hindi urgent pero kailangan mag-report"
+      ],
+      "utterancesVi": [
+        "xin chào",
+        "alo",
+        "tôi cần giúp",
+        "tôi muốn báo cáo",
+        "tôi có câu hỏi",
+        "làm biên bản",
+        "không khẩn cấp",
+        "giúp tôi với",
+        "chào buổi sáng",
+        "chào buổi chiều",
+        "đây có phải đường dây không khẩn cấp",
+        "người ta bảo tôi gọi số này",
+        "tôi muốn báo một vấn đề",
+        "không khẩn cấp nhưng cần báo cáo"
+      ],
+      "utterancesAr": [
+        "مرحبا",
+        "نعم",
+        "أحتاج مساعدة",
+        "أريد أن أبلغ",
+        "لدي سؤال",
+        "أريد تقديم بلاغ",
+        "ليست حالة طارئة",
+        "صباح الخير",
+        "مساء الخير",
+        "هل هذا خط غير طارئ",
+        "قيل لي أن أتصل بهذا الرقم",
+        "أريد الإبلاغ عن مشكلة",
+        "ليس عاجلا لكن أحتاج للإبلاغ"
+      ]
     },
     "EmergencyEscalation": {
-      "utterancesZhCn": ["有人开枪", "有枪手", "枪声", "他有枪", "救命", "我现在需要帮助", "有人被刺", "没有呼吸", "有人昏迷", "着火了", "打911", "这是紧急情况", "马上派警察", "有人袭击我", "家庭暴力", "煤气味", "车祸有人受伤", "心脏病发作", "有刀", "有人破门"],
-      "utterancesZhHk": ["有人開槍", "有槍手", "槍聲", "佢有槍", "救命", "我而家需要幫忙", "有人被插", "冇呼吸", "有火", "打911", "呢個係緊急", "即刻派警察", "有人襲擊我", "家庭暴力", "煤氣味", "車禍有人受傷", "心臟病發", "有刀", "有人闖入"],
-      "utterancesTl": ["may nagbabaril", "may baril siya", "tulong", "kailangan ko ng tulong ngayon", "may sunog", "emergency ito", "tawag ng 911", "hindi siya humihinga", "may saksak", "domestic violence", "aksidente may nasugatan", "may kutsilyo", "inaatake ako", "may pumasok sa bahay"],
-      "utterancesVi": ["có người bắn súng", "có súng", "cứu tôi", "tôi cần giúp ngay", "có cháy", "đây là khẩn cấp", "gọi 911", "không thở được", "bạo lực gia đình", "tai nạn có người bị thương", "có dao", "đang bị tấn công", "đột nhập nhà"],
-      "utterancesAr": ["هناك إطلاق نار", "معه سلاح", "النجدة", "أحتاج مساعدة الآن", "هناك حريق", "هذه حالة طارئة", "اتصلوا بالتسعمئة وأحد عشر", "لا يتنفس", "عنف أسري", "حادث وفيه إصابات", "معه سكين", "يهاجمني", "اقتحام منزل"]
+      "utterancesZhCn": [
+        "有人开枪",
+        "有枪手",
+        "枪声",
+        "他有枪",
+        "救命",
+        "我现在需要帮助",
+        "有人被刺",
+        "没有呼吸",
+        "有人昏迷",
+        "着火了",
+        "打911",
+        "这是紧急情况",
+        "马上派警察",
+        "有人袭击我",
+        "家庭暴力",
+        "煤气味",
+        "车祸有人受伤",
+        "心脏病发作",
+        "有刀",
+        "有人破门"
+      ],
+      "utterancesZhHk": [
+        "有人開槍",
+        "有槍手",
+        "槍聲",
+        "佢有槍",
+        "救命",
+        "我而家需要幫忙",
+        "有人被插",
+        "冇呼吸",
+        "有火",
+        "打911",
+        "呢個係緊急",
+        "即刻派警察",
+        "有人襲擊我",
+        "家庭暴力",
+        "煤氣味",
+        "車禍有人受傷",
+        "心臟病發",
+        "有刀",
+        "有人闖入"
+      ],
+      "utterancesTl": [
+        "may nagbabaril",
+        "may baril siya",
+        "tulong",
+        "kailangan ko ng tulong ngayon",
+        "may sunog",
+        "emergency ito",
+        "tawag ng 911",
+        "hindi siya humihinga",
+        "may saksak",
+        "domestic violence",
+        "aksidente may nasugatan",
+        "may kutsilyo",
+        "inaatake ako",
+        "may pumasok sa bahay"
+      ],
+      "utterancesVi": [
+        "có người bắn súng",
+        "có súng",
+        "cứu tôi",
+        "tôi cần giúp ngay",
+        "có cháy",
+        "đây là khẩn cấp",
+        "gọi 911",
+        "không thở được",
+        "bạo lực gia đình",
+        "tai nạn có người bị thương",
+        "có dao",
+        "đang bị tấn công",
+        "đột nhập nhà"
+      ],
+      "utterancesAr": [
+        "هناك إطلاق نار",
+        "معه سلاح",
+        "النجدة",
+        "أحتاج مساعدة الآن",
+        "هناك حريق",
+        "هذه حالة طارئة",
+        "اتصلوا بالتسعمئة وأحد عشر",
+        "لا يتنفس",
+        "عنف أسري",
+        "حادث وفيه إصابات",
+        "معه سكين",
+        "يهاجمني",
+        "اقتحام منزل"
+      ]
     },
     "RequestHuman": {
-      "utterancesZhCn": ["我要跟真人说话", "转接人工", "我要跟警察说", "给我接调度员", "不要机器人", "转人工", "接线员"],
-      "utterancesZhHk": ["我要同真人講", "轉去人工", "我要同警察講", "俾我接調度員", "唔要機械人", "轉人工", "接線生"],
-      "utterancesTl": ["gusto kong kausapin ang tao", "i-transfer niyo ako", "kausapin ko ang pulis", "ayaw ko ng robot", "dispatcher naman", "operator"],
-      "utterancesVi": ["tôi muốn nói chuyện với người", "chuyển tôi sang nhân viên", "tôi muốn nói với cảnh sát", "đừng để máy trả lời", "gặp điều phối viên"],
-      "utterancesAr": ["أريد التحدث مع شخص", "حولني إلى موظف", "أريد التحدث مع الشرطة", "لا أريد الروبوت", "المحول"]
+      "utterancesZhCn": [
+        "我要跟真人说话",
+        "转接人工",
+        "我要跟警察说",
+        "给我接调度员",
+        "不要机器人",
+        "转人工",
+        "接线员",
+        "给我接真人接线员",
+        "不要人工智能",
+        "转接人工客服",
+        "我要跟调度员说话"
+      ],
+      "utterancesZhHk": [
+        "我要同真人講",
+        "轉去人工",
+        "我要同警察講",
+        "俾我接調度員",
+        "唔要機械人",
+        "轉人工",
+        "接線生",
+        "俾我接真人",
+        "唔要人工智能",
+        "轉去人工客服"
+      ],
+      "utterancesTl": [
+        "gusto kong kausapin ang tao",
+        "i-transfer niyo ako",
+        "kausapin ko ang pulis",
+        "ayaw ko ng robot",
+        "dispatcher naman",
+        "operator",
+        "kausapin ko ang tao po",
+        "ayaw ko ng AI",
+        "transfer sa operator"
+      ],
+      "utterancesVi": [
+        "tôi muốn nói chuyện với người",
+        "chuyển tôi sang nhân viên",
+        "tôi muốn nói với cảnh sát",
+        "đừng để máy trả lời",
+        "gặp điều phối viên",
+        "gặp người thật",
+        "không muốn AI",
+        "chuyển sang tổng đài viên"
+      ],
+      "utterancesAr": [
+        "أريد التحدث مع شخص",
+        "حولني إلى موظف",
+        "أريد التحدث مع الشرطة",
+        "لا أريد الروبوت",
+        "المحول",
+        "أريد موظفا حقيقيا",
+        "لا أريد الذكاء الاصطناعي",
+        "حولني إلى المشغل"
+      ]
     },
     "NoiseComplaint": {
-      "utterancesZhCn": ["邻居太吵了", "噪音投诉", "外面太吵", "有人办派对", "音乐太大声", "有人在外面喊", "狗一直叫", "放烟花", "汽车警报响个不停"],
-      "utterancesZhHk": ["隔離好嘈", "噪音投訴", "出面好大聲", "有人開派對", "音樂太大聲", "有人喺出面嗌", "狗唔停吠", "有人放煙花"],
-      "utterancesTl": ["maingay ang kapitbahay", "reklamo sa ingay", "malakas ang party", "malakas ang musika", "may sigawan sa labas", "tumatahol ang aso", "may paputok"],
-      "utterancesVi": ["hàng xóm ồn quá", "khiếu nại tiếng ồn", "tiệc quá ồn", "nhạc quá to", "có người la ngoài đường", "chó sủa suốt", "pháo nổ"],
-      "utterancesAr": ["الجيران مزعجون", "شكوى ضوضاء", "الحفلة صاخبة", "الموسيقى عالية جدا", "هناك صراخ في الخارج", "الكلب ينبح باستمرار", "ألعاب نارية"],
+      "utterancesZhCn": [
+        "邻居太吵了",
+        "噪音投诉",
+        "外面太吵",
+        "有人办派对",
+        "音乐太大声",
+        "有人在外面喊",
+        "狗一直叫",
+        "放烟花",
+        "汽车警报响个不停",
+        "噪音让我睡不着",
+        "他们又在大声放音乐",
+        "夜里施工噪音",
+        "超过安静时间还很吵",
+        "报告过度噪音"
+      ],
+      "utterancesZhHk": [
+        "隔離好嘈",
+        "噪音投訴",
+        "出面好大聲",
+        "有人開派對",
+        "音樂太大聲",
+        "有人喺出面嗌",
+        "狗唔停吠",
+        "有人放煙花",
+        "嘈到瞓唔着",
+        "佢哋又播好大聲音樂",
+        "夜晚施工好嘈",
+        "過咗安靜時間仲好嘈"
+      ],
+      "utterancesTl": [
+        "maingay ang kapitbahay",
+        "reklamo sa ingay",
+        "malakas ang party",
+        "malakas ang musika",
+        "may sigawan sa labas",
+        "tumatahol ang aso",
+        "may paputok",
+        "hindi ako makatulog sa ingay",
+        "malakas ulit ang musika",
+        "maingay ang construction sa gabi",
+        "lampas na sa quiet hours"
+      ],
+      "utterancesVi": [
+        "hàng xóm ồn quá",
+        "khiếu nại tiếng ồn",
+        "tiệc quá ồn",
+        "nhạc quá to",
+        "có người la ngoài đường",
+        "chó sủa suốt",
+        "pháo nổ",
+        "tiếng ồn khiến tôi mất ngủ",
+        "họ lại mở nhạc to",
+        "ồn ào xây dựng ban đêm",
+        "đã quá giờ yên tĩnh"
+      ],
+      "utterancesAr": [
+        "الجيران مزعجون",
+        "شكوى ضوضاء",
+        "الحفلة صاخبة",
+        "الموسيقى عالية جدا",
+        "هناك صراخ في الخارج",
+        "الكلب ينبح باستمرار",
+        "ألعاب نارية",
+        "الضوضاء تمنعني من النوم",
+        "يعزفون الموسيقى بصوت عال مرة أخرى",
+        "ضوضاء بناء ليلا",
+        "بعد ساعات الهدوء وما زالوا مرتفعين"
+      ],
       "prompts": {
         "NoiseLocation": {
           "zh_CN": "噪音是在哪个地址或地点？",
@@ -65,11 +351,59 @@
       "confirmationAr": "للتأكيد — شكوى ضوضاء في <break time=\"300ms\"/> {NoiseLocation}، <break time=\"200ms\"/> {NoiseType}، <break time=\"200ms\"/> {NoiseStillHappening, values: [\"Yes\": \"مستمرة\", \"No\": \"توقفت\"]} . هل هذا صحيح؟"
     },
     "SuspiciousPerson": {
-      "utterancesZhCn": ["有可疑的人", "有人行为很奇怪", "有人在窥探车子", "有人跟踪我", "可疑活动", "有人在附近徘徊"],
-      "utterancesZhHk": ["有可疑嘅人", "有人行為好怪", "有人喺度睇車", "有人跟蹤我", "可疑活動", "有人喺附近蕩"],
-      "utterancesTl": ["may kahina-hinalang tao", "may kakaibang kilos", "may tumitingin sa mga kotse", "may sumusunod sa akin", "suspicious activity"],
-      "utterancesVi": ["có người khả nghi", "có người hành động lạ", "có người nhìn vào xe", "có người theo tôi", "hoạt động đáng ngờ"],
-      "utterancesAr": ["هناك شخص مريب", "شخص يتصرف بغرابة", "شخص ينظر إلى السيارات", "شخص يتبعني", "نشاط مريب"],
+      "utterancesZhCn": [
+        "有可疑的人",
+        "有人行为很奇怪",
+        "有人在窥探车子",
+        "有人跟踪我",
+        "可疑活动",
+        "有人在附近徘徊",
+        "有人在试门把手",
+        "有陌生人在车里坐了很久",
+        "有人跟着我回家",
+        "好像有人在踩点"
+      ],
+      "utterancesZhHk": [
+        "有可疑嘅人",
+        "有人行為好怪",
+        "有人喺度睇車",
+        "有人跟蹤我",
+        "可疑活動",
+        "有人喺附近蕩",
+        "有人試門掣",
+        "有陌生人喺車度坐好耐",
+        "有人跟我返屋企"
+      ],
+      "utterancesTl": [
+        "may kahina-hinalang tao",
+        "may kakaibang kilos",
+        "may tumitingin sa mga kotse",
+        "may sumusunod sa akin",
+        "suspicious activity",
+        "may sumusubok ng mga door handle",
+        "may stranger na nakaupo sa kotse nang matagal",
+        "may sumunod sa akin pauwi"
+      ],
+      "utterancesVi": [
+        "có người khả nghi",
+        "có người hành động lạ",
+        "có người nhìn vào xe",
+        "có người theo tôi",
+        "hoạt động đáng ngờ",
+        "có người thử tay nắm cửa",
+        "người lạ ngồi trong xe rất lâu",
+        "có người theo tôi về nhà"
+      ],
+      "utterancesAr": [
+        "هناك شخص مريب",
+        "شخص يتصرف بغرابة",
+        "شخص ينظر إلى السيارات",
+        "شخص يتبعني",
+        "نشاط مريب",
+        "شخص يجرب مقابض الأبواب",
+        "غريب يجلس في سيارة منذ ساعات",
+        "شخص تبعني إلى المنزل"
+      ],
       "prompts": {
         "SuspiciousLocation": {
           "zh_CN": "这个人现在在哪里——地址或最近的路口？",
@@ -121,11 +455,37 @@
       "confirmationAr": "شخص مريب في <break time=\"300ms\"/> {SuspiciousLocation}. <break time=\"200ms\"/> الوصف: {PersonDescription}. <break time=\"200ms\"/> الاتجاه: {PersonDirection}. هل هذا صحيح؟"
     },
     "AbandonedVehicle": {
-      "utterancesZhCn": ["有一辆被遗弃的车", "车停了好几天没动", "没有车牌的车", "报废车停在街上", "废弃摩托车"],
-      "utterancesZhHk": ["有架被遺棄嘅車", "架車停咗好多日都冇郁", "冇車牌嘅車", "廢車停喺街"],
-      "utterancesTl": ["may inabandonang kotse", "hindi gumagalaw ang kotse ng ilang araw", "walang plaka", "abandoned vehicle"],
-      "utterancesVi": ["có xe bị bỏ", "xe để nhiều ngày không chạy", "xe không biển số", "xe bỏ trên đường"],
-      "utterancesAr": ["هناك سيارة متروكة", "السيارة لم تتحرك منذ أيام", "سيارة بلا لوحة", "مركبة مهجورة"],
+      "utterancesZhCn": [
+        "有一辆被遗弃的车",
+        "车停了好几天没动",
+        "没有车牌的车",
+        "报废车停在街上",
+        "废弃摩托车"
+      ],
+      "utterancesZhHk": [
+        "有架被遺棄嘅車",
+        "架車停咗好多日都冇郁",
+        "冇車牌嘅車",
+        "廢車停喺街"
+      ],
+      "utterancesTl": [
+        "may inabandonang kotse",
+        "hindi gumagalaw ang kotse ng ilang araw",
+        "walang plaka",
+        "abandoned vehicle"
+      ],
+      "utterancesVi": [
+        "có xe bị bỏ",
+        "xe để nhiều ngày không chạy",
+        "xe không biển số",
+        "xe bỏ trên đường"
+      ],
+      "utterancesAr": [
+        "هناك سيارة متروكة",
+        "السيارة لم تتحرك منذ أيام",
+        "سيارة بلا لوحة",
+        "مركبة مهجورة"
+      ],
       "prompts": {
         "VehicleLocation": {
           "zh_CN": "车辆在哪个地址或最近的路口？",
@@ -163,11 +523,37 @@
       "confirmationAr": "مركبة متروكة في <break time=\"300ms\"/> {VehicleLocation}. <break time=\"200ms\"/> {VehicleDescription}، <break time=\"200ms\"/> منذ حوالي {HowLongAbandoned}. هل هذا صحيح؟"
     },
     "VehicleBurglary": {
-      "utterancesZhCn": ["有人砸了我的车窗", "车里的东西被偷了", "车被撬了", "车窗碎了", "从车里偷东西"],
-      "utterancesZhHk": ["有人扑咗我車窗", "車入面嘅嘢被偷咗", "架車被撬", "車窗碎咗"],
-      "utterancesTl": ["binasag ang bintana ng kotse ko", "ninakawan ang kotse ko", "may kumuha sa loob ng sasakyan", "car break-in"],
-      "utterancesVi": ["có người đập kính xe tôi", "đồ trong xe bị lấy", "xe bị khoét", "trộm đồ trên xe"],
-      "utterancesAr": ["كسروا زجاج سيارتي", "سُرقت أغراض من السيارة", "اقتحموا سيارتي", "سرقة من المركبة"],
+      "utterancesZhCn": [
+        "有人砸了我的车窗",
+        "车里的东西被偷了",
+        "车被撬了",
+        "车窗碎了",
+        "从车里偷东西"
+      ],
+      "utterancesZhHk": [
+        "有人扑咗我車窗",
+        "車入面嘅嘢被偷咗",
+        "架車被撬",
+        "車窗碎咗"
+      ],
+      "utterancesTl": [
+        "binasag ang bintana ng kotse ko",
+        "ninakawan ang kotse ko",
+        "may kumuha sa loob ng sasakyan",
+        "car break-in"
+      ],
+      "utterancesVi": [
+        "có người đập kính xe tôi",
+        "đồ trong xe bị lấy",
+        "xe bị khoét",
+        "trộm đồ trên xe"
+      ],
+      "utterancesAr": [
+        "كسروا زجاج سيارتي",
+        "سُرقت أغراض من السيارة",
+        "اقتحموا سيارتي",
+        "سرقة من المركبة"
+      ],
       "prompts": {
         "BurglaryVehicleLocation": {
           "zh_CN": "您的车现在在哪个地址？",
@@ -226,11 +612,58 @@
       "confirmationAr": "سرقة من المركبة. {BurglaryVehicleDescription} في <break time=\"300ms\"/> {BurglaryVehicleLocation}. <break time=\"200ms\"/> المسروقات: {ItemsStolen}. هل هذا صحيح؟"
     },
     "TheftReport": {
-      "utterancesZhCn": ["我要报失窃", "有人偷了我的东西", "包裹被偷了", "自行车被偷了", "钱包被抢了", "手机被偷了"],
-      "utterancesZhHk": ["我要報失竊", "有人偷咗我啲嘢", "包裹被偷咗", "單車被偷咗", "銀包被搶咗", "手機被偷咗"],
-      "utterancesTl": ["magre-report ako ng nakaw", "ninakawan ako", "ninakaw ang package", "ninakaw ang bisikleta", "ninakaw ang cellphone"],
-      "utterancesVi": ["tôi muốn báo trộm", "có người lấy đồ của tôi", "bưu kiện bị lấy", "xe đạp bị lấy", "điện thoại bị lấy"],
-      "utterancesAr": ["أريد الإبلاغ عن سرقة", "سُرقت أغراضي", "سُرقت الطرد", "سُرقت الدراجة", "سُرق هاتفي"],
+      "utterancesZhCn": [
+        "我要报失窃",
+        "有人偷了我的东西",
+        "包裹被偷了",
+        "自行车被偷了",
+        "钱包被抢了",
+        "手机被偷了",
+        "我的包裹被偷了",
+        "要报告已经发生的盗窃",
+        "催化转换器被偷了"
+      ],
+      "utterancesZhHk": [
+        "我要報失竊",
+        "有人偷咗我啲嘢",
+        "包裹被偷咗",
+        "單車被偷咗",
+        "銀包被搶咗",
+        "手機被偷咗",
+        "我個包裹畀人偷咗",
+        "單車畀人偷咗",
+        "要報告已經發生嘅盜竊"
+      ],
+      "utterancesTl": [
+        "magre-report ako ng nakaw",
+        "ninakawan ako",
+        "ninakaw ang package",
+        "ninakaw ang bisikleta",
+        "ninakaw ang cellphone",
+        "ninakaw ang package ko",
+        "ninakaw ang bisikleta ko",
+        "gusto kong i-report ang nakaraang theft"
+      ],
+      "utterancesVi": [
+        "tôi muốn báo trộm",
+        "có người lấy đồ của tôi",
+        "bưu kiện bị lấy",
+        "xe đạp bị lấy",
+        "điện thoại bị lấy",
+        "bưu kiện của tôi bị lấy",
+        "xe đạp bị mất cắp",
+        "tôi muốn báo trộm đã xảy ra"
+      ],
+      "utterancesAr": [
+        "أريد الإبلاغ عن سرقة",
+        "سُرقت أغراضي",
+        "سُرقت الطرد",
+        "سُرقت الدراجة",
+        "سُرق هاتفي",
+        "سرقوا طردي",
+        "سرقت دراجتي",
+        "أريد الإبلاغ عن سرقة سابقة"
+      ],
       "prompts": {
         "TheftLocation": {
           "zh_CN": "盗窃发生在哪里？",
@@ -275,11 +708,53 @@
       "confirmationAr": "بلاغ سرقة. الموقع: <break time=\"300ms\"/> {TheftLocation}. <break time=\"200ms\"/> المسروقات: {TheftItemDescription}. <break time=\"200ms\"/> الوقت: {TheftWhenOccurred}. هل هذا صحيح؟"
     },
     "ParkingComplaint": {
-      "utterancesZhCn": ["违章停车", "堵住我家车道", "停在消防栓前", "停在禁停区", "无证占用残障车位"],
-      "utterancesZhHk": ["違例泊車", "擋住我家車路", "停喺消防栓前面", "停喺不准停車區", "無證停殘障車位"],
-      "utterancesTl": ["illegal na paradahan", "tinatakpan ang driveway ko", "nakaharang sa fire hydrant", "parking complaint"],
-      "utterancesVi": ["đỗ xe trái phép", "chặn lối vào nhà tôi", "đỗ trước trụ cứu hỏa", "khiếu nại đỗ xe"],
-      "utterancesAr": ["موقف مخالف", "يسدون مدخل بيتي", "موقف أمام صنبور الإطفاء", "شكوى مواقف"],
+      "utterancesZhCn": [
+        "违章停车",
+        "堵住我家车道",
+        "停在消防栓前",
+        "停在禁停区",
+        "无证占用残障车位",
+        "有人挡着我家车道",
+        "车停在消防栓前",
+        "双排停车我出不去"
+      ],
+      "utterancesZhHk": [
+        "違例泊車",
+        "擋住我家車路",
+        "停喺消防栓前面",
+        "停喺不准停車區",
+        "無證停殘障車位",
+        "有人擋住我條車路",
+        "車停喺消防龍頭前面",
+        "雙泊車我出唔到"
+      ],
+      "utterancesTl": [
+        "illegal na paradahan",
+        "tinatakpan ang driveway ko",
+        "nakaharang sa fire hydrant",
+        "parking complaint",
+        "nakaharang sa driveway ko",
+        "nakaparada sa harap ng hydrant",
+        "double parked hindi ako makalabas"
+      ],
+      "utterancesVi": [
+        "đỗ xe trái phép",
+        "chặn lối vào nhà tôi",
+        "đỗ trước trụ cứu hỏa",
+        "khiếu nại đỗ xe",
+        "xe chắn lối vào nhà tôi",
+        "đậu trước trụ nước chữa cháy",
+        "đỗ đôi tôi không ra được"
+      ],
+      "utterancesAr": [
+        "موقف مخالف",
+        "يسدون مدخل بيتي",
+        "موقف أمام صنبور الإطفاء",
+        "شكوى مواقف",
+        "سيارة تسد مدخل بيتي",
+        "موقوفة أمام صنبور الإطفاء",
+        "موقوفة مزدوجة ولا أستطيع الخروج"
+      ],
       "prompts": {
         "ParkingLocation": {
           "zh_CN": "违章停车的地址是哪里？",
@@ -310,11 +785,52 @@
       "confirmationAr": "شكوى موقف في {ParkingLocation}، {ParkingVehicleDescription}، المخالفة: {ParkingViolationType}. هل هذا صحيح؟"
     },
     "WelfareCheck": {
-      "utterancesZhCn": ["请派人查看一下安全", "我担心邻居", "好几天没见到邻居", "家人联系不上", "请帮我查看长辈"],
-      "utterancesZhHk": ["請派人睇吓安危", "我擔心隔離", "好多日冇見過隔離", "家人聯絡唔到", "請幫我睇吓長者"],
-      "utterancesTl": ["kailangan ko ng welfare check", "nag-aalala ako sa kapitbahay", "ilang araw ko nang hindi nakikita", "hindi sumasagot ang pamilya"],
-      "utterancesVi": ["cần kiểm tra an toàn", "tôi lo cho hàng xóm", "nhiều ngày không thấy hàng xóm", "không liên lạc được người nhà"],
-      "utterancesAr": ["أحتاج فحص سلامة", "أنا قلق على جاري", "لم أر جاري منذ أيام", "لا يرد أحد من العائلة"],
+      "utterancesZhCn": [
+        "请派人查看一下安全",
+        "我担心邻居",
+        "好几天没见到邻居",
+        "家人联系不上",
+        "请帮我查看长辈",
+        "能帮忙查看我邻居吗",
+        "好几天没见到邻居了",
+        "请做一次安危检查"
+      ],
+      "utterancesZhHk": [
+        "請派人睇吓安危",
+        "我擔心隔離",
+        "好多日冇見過隔離",
+        "家人聯絡唔到",
+        "請幫我睇吓長者",
+        "可唔可以睇下我隔離",
+        "好幾日冇見鄰居",
+        "請做一次安危檢查"
+      ],
+      "utterancesTl": [
+        "kailangan ko ng welfare check",
+        "nag-aalala ako sa kapitbahay",
+        "ilang araw ko nang hindi nakikita",
+        "hindi sumasagot ang pamilya",
+        "pwede bang i-check ang kapitbahay ko",
+        "ilang araw nang hindi ko nakikita",
+        "please gumawa ng wellness check"
+      ],
+      "utterancesVi": [
+        "cần kiểm tra an toàn",
+        "tôi lo cho hàng xóm",
+        "nhiều ngày không thấy hàng xóm",
+        "không liên lạc được người nhà",
+        "có thể kiểm tra hàng xóm giúp tôi",
+        "mấy ngày không thấy hàng xóm",
+        "làm kiểm tra sức khỏe giúp"
+      ],
+      "utterancesAr": [
+        "أحتاج فحص سلامة",
+        "أنا قلق على جاري",
+        "لم أر جاري منذ أيام",
+        "لا يرد أحد من العائلة",
+        "هل يمكنكم التحقق من جاري",
+        "يرجى إجراء فحص سلامة"
+      ],
       "prompts": {
         "WelfareCheckAddress": {
           "zh_CN": "您担心的人住在哪个地址？",
@@ -366,11 +882,43 @@
       "confirmationAr": "سأرسل ضباطاً للاطمئنان على {WelfareCheckPersonName} في <break time=\"300ms\"/> {WelfareCheckAddress}. <break time=\"200ms\"/> آخر تواصل: {WelfareCheckLastContact}. هل هذا صحيح؟"
     },
     "AnimalComplaint": {
-      "utterancesZhCn": ["流浪狗", "狗咬人", "攻击性的狗", "虐待动物", "车里有狗很热", "街上有动物"],
-      "utterancesZhHk": ["流浪狗", "狗咬人", "攻擊性嘅狗", "虐待動物", "車入面有狗好熱", "街上有動物"],
-      "utterancesTl": ["astray na aso", "kinagat ako ng aso", "mabangis na aso", "animal cruelty", "aso sa mainit na kotse"],
-      "utterancesVi": ["chó hoang", "chó cắn người", "chó dữ", "ngược đãi động vật", "chó trong xe nóng"],
-      "utterancesAr": ["كلب ضال", "عضني كلب", "كلب عدواني", "قسوة على الحيوانات", "كلب داخل سيارة حارة"],
+      "utterancesZhCn": [
+        "流浪狗",
+        "狗咬人",
+        "攻击性的狗",
+        "虐待动物",
+        "车里有狗很热",
+        "街上有动物"
+      ],
+      "utterancesZhHk": [
+        "流浪狗",
+        "狗咬人",
+        "攻擊性嘅狗",
+        "虐待動物",
+        "車入面有狗好熱",
+        "街上有動物"
+      ],
+      "utterancesTl": [
+        "astray na aso",
+        "kinagat ako ng aso",
+        "mabangis na aso",
+        "animal cruelty",
+        "aso sa mainit na kotse"
+      ],
+      "utterancesVi": [
+        "chó hoang",
+        "chó cắn người",
+        "chó dữ",
+        "ngược đãi động vật",
+        "chó trong xe nóng"
+      ],
+      "utterancesAr": [
+        "كلب ضال",
+        "عضني كلب",
+        "كلب عدواني",
+        "قسوة على الحيوانات",
+        "كلب داخل سيارة حارة"
+      ],
       "prompts": {
         "AnimalLocation": {
           "zh_CN": "动物现在在哪里？",
@@ -401,11 +949,36 @@
       "confirmationAr": "بلاغ حيوان — {AnimalType} في {AnimalLocation}، الحالة: {AnimalThreatLevel}. هل هذا صحيح؟"
     },
     "TowComplaint": {
-      "utterancesZhCn": ["车被拖走了", "非法拖车", "车上了锁靴", "拖车投诉"],
-      "utterancesZhHk": ["架車被拖走咗", "非法拖車", "車上咗鎖靴", "拖車投訴"],
-      "utterancesTl": ["tinow ang kotse ko", "illegal na tow", "may boot sa kotse ko", "towing complaint"],
-      "utterancesVi": ["xe tôi bị kéo", "kéo xe trái phép", "xe bị khóa bánh", "khiếu nại kéo xe"],
-      "utterancesAr": ["سحبت سيارتي", "سحب غير قانوني", "وضعوا قفلاً على السيارة", "شكوى سحب"],
+      "utterancesZhCn": [
+        "车被拖走了",
+        "非法拖车",
+        "车上了锁靴",
+        "拖车投诉"
+      ],
+      "utterancesZhHk": [
+        "架車被拖走咗",
+        "非法拖車",
+        "車上咗鎖靴",
+        "拖車投訴"
+      ],
+      "utterancesTl": [
+        "tinow ang kotse ko",
+        "illegal na tow",
+        "may boot sa kotse ko",
+        "towing complaint"
+      ],
+      "utterancesVi": [
+        "xe tôi bị kéo",
+        "kéo xe trái phép",
+        "xe bị khóa bánh",
+        "khiếu nại kéo xe"
+      ],
+      "utterancesAr": [
+        "سحبت سيارتي",
+        "سحب غير قانوني",
+        "وضعوا قفلاً على السيارة",
+        "شكوى سحب"
+      ],
       "prompts": {
         "TowLocation": {
           "zh_CN": "车辆是从哪里被拖走的？",
@@ -443,11 +1016,41 @@
       "confirmationAr": "شكوى سحب. {TowVehicleDescription} سُحبت من {TowLocation}. هل هذا صحيح؟"
     },
     "VandalismDamage": {
-      "utterancesZhCn": ["有人破坏财物", "涂鸦", "车被刮了", "窗户被砸了", "信箱被砸"],
-      "utterancesZhHk": ["有人破壞財物", "塗鴉", "架車被刮花", "窗被扑爆", "信箱被砸"],
-      "utterancesTl": ["vandalismo", "may graffiti", "kinudkod ang kotse ko", "binasag ang bintana", "nasira ang mailbox"],
-      "utterancesVi": ["phá hoại tài sản", "vẽ bậy", "xe bị cào", "cửa sổ bị đập", "hòm thư bị phá"],
-      "utterancesAr": ["تخريب ممتلكات", "كتابات على الجدران", "خدشوا السيارة", "كسروا النافذة", "حطموا صندوق البريد"],
+      "utterancesZhCn": [
+        "有人破坏财物",
+        "涂鸦",
+        "车被刮了",
+        "窗户被砸了",
+        "信箱被砸"
+      ],
+      "utterancesZhHk": [
+        "有人破壞財物",
+        "塗鴉",
+        "架車被刮花",
+        "窗被扑爆",
+        "信箱被砸"
+      ],
+      "utterancesTl": [
+        "vandalismo",
+        "may graffiti",
+        "kinudkod ang kotse ko",
+        "binasag ang bintana",
+        "nasira ang mailbox"
+      ],
+      "utterancesVi": [
+        "phá hoại tài sản",
+        "vẽ bậy",
+        "xe bị cào",
+        "cửa sổ bị đập",
+        "hòm thư bị phá"
+      ],
+      "utterancesAr": [
+        "تخريب ممتلكات",
+        "كتابات على الجدران",
+        "خدشوا السيارة",
+        "كسروا النافذة",
+        "حطموا صندوق البريد"
+      ],
       "prompts": {
         "VandalismLocation": {
           "zh_CN": "被损坏财产的地址是哪里？",
@@ -485,11 +1088,41 @@
       "confirmationAr": "بلاغ تخريب في {VandalismLocation}. الضرر: {VandalismDescription}. اكتشف: {VandalismWhenOccurred}. هل هذا صحيح؟"
     },
     "CodeEnforcementComplaint": {
-      "utterancesZhCn": ["物业违规", "房子堆满垃圾", "杂草很高", "院子里报废车", "无证施工"],
-      "utterancesZhHk": ["物業違規", "屋企堆滿垃圾", "草好高", "院子有廢車", "無證施工"],
-      "utterancesTl": ["code enforcement", "maraming basura sa bahay", "mataas na damo", "junk cars sa bakuran", "illegal na konstruksyon"],
-      "utterancesVi": ["vi phạm mã xây dựng", "nhà chất đầy rác", "cỏ mọc cao", "xe phế trong sân", "xây không phép"],
-      "utterancesAr": ["مخالفة تنظيم", "قمامة متراكمة عند بيت", "عشب طويل", "سيارات تالفة في الساحة", "بناء بلا ترخيص"],
+      "utterancesZhCn": [
+        "物业违规",
+        "房子堆满垃圾",
+        "杂草很高",
+        "院子里报废车",
+        "无证施工"
+      ],
+      "utterancesZhHk": [
+        "物業違規",
+        "屋企堆滿垃圾",
+        "草好高",
+        "院子有廢車",
+        "無證施工"
+      ],
+      "utterancesTl": [
+        "code enforcement",
+        "maraming basura sa bahay",
+        "mataas na damo",
+        "junk cars sa bakuran",
+        "illegal na konstruksyon"
+      ],
+      "utterancesVi": [
+        "vi phạm mã xây dựng",
+        "nhà chất đầy rác",
+        "cỏ mọc cao",
+        "xe phế trong sân",
+        "xây không phép"
+      ],
+      "utterancesAr": [
+        "مخالفة تنظيم",
+        "قمامة متراكمة عند بيت",
+        "عشب طويل",
+        "سيارات تالفة في الساحة",
+        "بناء بلا ترخيص"
+      ],
       "prompts": {
         "CodeEnforcementAddress": {
           "zh_CN": "该物业的地址是哪里？",
@@ -513,8 +1146,30 @@
       "confirmationAr": "شكوى تنظيم في {CodeEnforcementAddress} — {CodeViolationDescription}. هل هذا صحيح؟"
     },
     "PublicWorksIssue": {
-      "utterancesZhCn": ["水管爆了", "街上积水", "红绿灯坏了", "路灯不亮", "路面有坑", "树上倒在路上"],
-      "utterancesZhHk": ["水管爆咗", "街上浸水", "紅綠燈壞咗", "路燈唔着", "路面有坑", "樹倒咗喺路"],
+      "utterancesZhCn": [
+        "水管爆了",
+        "街上积水",
+        "红绿灯坏了",
+        "路灯不亮",
+        "路面有坑",
+        "树上倒在路上",
+        "有个大坑",
+        "路灯坏了",
+        "红绿灯不工作",
+        "自来水管漏水"
+      ],
+      "utterancesZhHk": [
+        "水管爆咗",
+        "街上浸水",
+        "紅綠燈壞咗",
+        "路燈唔着",
+        "路面有坑",
+        "樹倒咗喺路",
+        "有個大窿",
+        "路燈壞咗",
+        "紅綠燈唔掂",
+        "水管漏水"
+      ],
       "prompts": {
         "PublicWorksLocation": {
           "zh_CN": "地点是哪里——地址或最近的路口？",
@@ -531,16 +1186,81 @@
           "ar_AE": "ما المشكلة — أنبوب ماء، حفرة، إشارة، إنارة، أم شيء آخر؟"
         }
       },
-      "utterancesTl": ["sumabog ang tubo ng tubig", "baha sa kalsada", "sira ang traffic light", "patay ang streetlight", "may butas sa daan", "may natumbang puno"],
-      "utterancesVi": ["vỡ ống nước", "đường ngập", "đèn giao thông hỏng", "đèn đường tắt", "ổ gà", "cây đổ giữa đường"],
-      "utterancesAr": ["انفجر أنبوب ماء", "الشارع غارق", "الإشارة معطلة", "عمود الإنارة مطفأ", "حفرة في الطريق", "شجرة سقطت في الطريق"]
+      "utterancesTl": [
+        "sumabog ang tubo ng tubig",
+        "baha sa kalsada",
+        "sira ang traffic light",
+        "patay ang streetlight",
+        "may butas sa daan",
+        "may natumbang puno",
+        "may malaking lubak",
+        "sira ang street light",
+        "hindi gumagana ang traffic light",
+        "may water leak"
+      ],
+      "utterancesVi": [
+        "vỡ ống nước",
+        "đường ngập",
+        "đèn giao thông hỏng",
+        "đèn đường tắt",
+        "ổ gà",
+        "cây đổ giữa đường",
+        "có ổ gà lớn",
+        "đèn đường hỏng",
+        "đèn giao thông không hoạt động",
+        "rò nước"
+      ],
+      "utterancesAr": [
+        "انفجر أنبوب ماء",
+        "الشارع غارق",
+        "الإشارة معطلة",
+        "عمود الإنارة مطفأ",
+        "حفرة في الطريق",
+        "شجرة سقطت في الطريق",
+        "هناك حفرة كبيرة",
+        "عمود الإنارة معطل",
+        "إشارة المرور لا تعمل",
+        "تسرب مياه"
+      ]
     },
     "TrafficAccidentReportOnly": {
-      "utterancesZhCn": ["我出了车祸", "轻微碰撞", "肇事逃逸", "停着的车被撞了", "没有人受伤的事故", "需要事故报告给保险"],
-      "utterancesZhHk": ["我出咗車禍", "輕微碰撞", "肇事逃逸", "停住嘅車被撞", "冇人受傷嘅意外", "要意外報告俾保險"],
-      "utterancesTl": ["naaksidente ako", "minor accident", "hit and run", "tinamaan ang naka-park kong kotse", "aksidente walang nasugatan"],
-      "utterancesVi": ["tôi bị tai nạn", "va chạm nhẹ", "gây tai nạn rồi bỏ chạy", "xe đang đỗ bị đụng", "tai nạn không ai bị thương"],
-      "utterancesAr": ["تعرضت لحادث", "صدام بسيط", "صدام وهروب", "صدموا سيارتي المتوقفة", "حادث بلا إصابات"],
+      "utterancesZhCn": [
+        "我出了车祸",
+        "轻微碰撞",
+        "肇事逃逸",
+        "停着的车被撞了",
+        "没有人受伤的事故",
+        "需要事故报告给保险"
+      ],
+      "utterancesZhHk": [
+        "我出咗車禍",
+        "輕微碰撞",
+        "肇事逃逸",
+        "停住嘅車被撞",
+        "冇人受傷嘅意外",
+        "要意外報告俾保險"
+      ],
+      "utterancesTl": [
+        "naaksidente ako",
+        "minor accident",
+        "hit and run",
+        "tinamaan ang naka-park kong kotse",
+        "aksidente walang nasugatan"
+      ],
+      "utterancesVi": [
+        "tôi bị tai nạn",
+        "va chạm nhẹ",
+        "gây tai nạn rồi bỏ chạy",
+        "xe đang đỗ bị đụng",
+        "tai nạn không ai bị thương"
+      ],
+      "utterancesAr": [
+        "تعرضت لحادث",
+        "صدام بسيط",
+        "صدام وهروب",
+        "صدموا سيارتي المتوقفة",
+        "حادث بلا إصابات"
+      ],
       "prompts": {
         "AccidentLocation": {
           "zh_CN": "事故发生在哪里？",
@@ -585,18 +1305,70 @@
       "confirmationAr": "بلاغ حادث مروري في {AccidentLocation}، {AccidentWhen}، بدون إصابات. هل هذا صحيح؟"
     },
     "OnlineReportEligibility": {
-      "utterancesZhCn": ["可以上网报案吗", "怎么在网上报案", "我想自己填报告", "可以不打电话报案吗"],
-      "utterancesZhHk": ["可唔可以上網報案", "點樣喺網上報案", "我想自己填報告", "可唔可以唔打電話報案"],
-      "utterancesTl": ["pwede ba mag-file online", "paano mag-report sa website", "gusto ko online na lang", "pwede bang hindi tumawag"],
-      "utterancesVi": ["tôi có thể báo cáo trên mạng không", "làm sao nộp báo cáo online", "tôi muốn tự điền", "có cần gọi không"],
-      "utterancesAr": ["هل يمكن تقديم بلاغ عبر الإنترنت", "كيف أبلغ من الموقع", "أريد تقديم البلاغ بنفسي", "هل يجب أن أتصل"]
+      "utterancesZhCn": [
+        "可以上网报案吗",
+        "怎么在网上报案",
+        "我想自己填报告",
+        "可以不打电话报案吗"
+      ],
+      "utterancesZhHk": [
+        "可唔可以上網報案",
+        "點樣喺網上報案",
+        "我想自己填報告",
+        "可唔可以唔打電話報案"
+      ],
+      "utterancesTl": [
+        "pwede ba mag-file online",
+        "paano mag-report sa website",
+        "gusto ko online na lang",
+        "pwede bang hindi tumawag"
+      ],
+      "utterancesVi": [
+        "tôi có thể báo cáo trên mạng không",
+        "làm sao nộp báo cáo online",
+        "tôi muốn tự điền",
+        "có cần gọi không"
+      ],
+      "utterancesAr": [
+        "هل يمكن تقديم بلاغ عبر الإنترنت",
+        "كيف أبلغ من الموقع",
+        "أريد تقديم البلاغ بنفسي",
+        "هل يجب أن أتصل"
+      ]
     },
     "RepeatCallCheck": {
-      "utterancesZhCn": ["我已经打过电话了", "之前报过了", "没有人来", "我有编号", "跟进之前的报案"],
-      "utterancesZhHk": ["我已經打過電話", "之前報過", "冇人嚟", "我有編號", "跟進之前嘅報案"],
-      "utterancesTl": ["tumawag na ako kanina", "nagre-report na ako nito", "walang dumating", "may reference number ako"],
-      "utterancesVi": ["tôi đã gọi trước đó", "tôi đã báo rồi", "không ai tới", "tôi có số hồ sơ"],
-      "utterancesAr": ["اتصلت مسبقاً بهذا", "أبلغت عن هذا من قبل", "لم يأت أحد", "لدي رقم مرجع"],
+      "utterancesZhCn": [
+        "我已经打过电话了",
+        "之前报过了",
+        "没有人来",
+        "我有编号",
+        "跟进之前的报案"
+      ],
+      "utterancesZhHk": [
+        "我已經打過電話",
+        "之前報過",
+        "冇人嚟",
+        "我有編號",
+        "跟進之前嘅報案"
+      ],
+      "utterancesTl": [
+        "tumawag na ako kanina",
+        "nagre-report na ako nito",
+        "walang dumating",
+        "may reference number ako"
+      ],
+      "utterancesVi": [
+        "tôi đã gọi trước đó",
+        "tôi đã báo rồi",
+        "không ai tới",
+        "tôi có số hồ sơ"
+      ],
+      "utterancesAr": [
+        "اتصلت مسبقاً بهذا",
+        "أبلغت عن هذا من قبل",
+        "لم يأت أحد",
+        "لدي رقم مرجع"
+      ],
       "prompts": {
         "PriorReferenceNumber": {
           "zh_CN": "您之前的电话有编号吗？",
@@ -615,11 +1387,49 @@
       }
     },
     "InformationRequest": {
-      "utterancesZhCn": ["我有一个问题", "警察局在哪里", "怎么拿事故报告复印件", "非紧急电话是多少", "怎么申请限制令"],
-      "utterancesZhHk": ["我有個問題", "警察局喺邊", "點樣攞意外報告副本", "非緊急電話係幾多", "點樣申請限制令"],
-      "utterancesTl": ["may tanong ako", "nasaan ang pulisya", "paano kumuha ng kopya ng report", "ano ang non-emergency number"],
-      "utterancesVi": ["tôi có câu hỏi", "đồn công an ở đâu", "làm sao lấy bản sao biên bản", "số không khẩn cấp là gì"],
-      "utterancesAr": ["أحتاج معلومات", "أين مركز الشرطة", "كيف أحصل على نسخة من البلاغ", "ما رقم غير الطوارئ"],
+      "utterancesZhCn": [
+        "我有一个问题",
+        "警察局在哪里",
+        "怎么拿事故报告复印件",
+        "非紧急电话是多少",
+        "怎么申请限制令",
+        "非紧急电话的营业时间",
+        "怎么拿警察报告复印件"
+      ],
+      "utterancesZhHk": [
+        "我有個問題",
+        "警察局喺邊",
+        "點樣攞意外報告副本",
+        "非緊急電話係幾多",
+        "點樣申請限制令",
+        "非緊急電話嘅時間",
+        "點攞警察報告副本",
+        "差館喺邊"
+      ],
+      "utterancesTl": [
+        "may tanong ako",
+        "nasaan ang pulisya",
+        "paano kumuha ng kopya ng report",
+        "ano ang non-emergency number",
+        "ano oras ng non emergency",
+        "nasaan ang police station"
+      ],
+      "utterancesVi": [
+        "tôi có câu hỏi",
+        "đồn công an ở đâu",
+        "làm sao lấy bản sao biên bản",
+        "số không khẩn cấp là gì",
+        "giờ làm việc đường dây không khẩn cấp",
+        "làm sao lấy bản sao báo cáo",
+        "đồn cảnh sát ở đâu"
+      ],
+      "utterancesAr": [
+        "أحتاج معلومات",
+        "أين مركز الشرطة",
+        "كيف أحصل على نسخة من البلاغ",
+        "ما رقم غير الطوارئ",
+        "ما ساعات الخط غير الطارئ"
+      ],
       "prompts": {
         "InformationTopic": {
           "zh_CN": "好的——您需要了解什么？",

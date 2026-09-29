@@ -6601,43 +6601,43 @@
       }
     },
     "RapidIqOpportunitiesTable": {
-      "Description": "Rapid IQ opportunities",
+      "Description": "NexiQ opportunities",
       "Value": {
         "Ref": "ExistingRapidIqOpportunitiesTableName"
       }
     },
     "RapidIqSignalsTable": {
-      "Description": "Rapid IQ signals",
+      "Description": "NexiQ signals",
       "Value": {
         "Ref": "ExistingRapidIqSignalsTableName"
       }
     },
     "RapidIqPipelineSignalsTable": {
-      "Description": "Rapid IQ pipeline procurement signals",
+      "Description": "NexiQ pipeline procurement signals",
       "Value": {
         "Ref": "ExistingRapidIqPipelineSignalsTableName"
       }
     },
     "RapidIqContactsTable": {
-      "Description": "Rapid IQ contacts",
+      "Description": "NexiQ contacts",
       "Value": {
         "Ref": "ExistingRapidIqContactsTableName"
       }
     },
     "RapidIqSourcesTable": {
-      "Description": "Rapid IQ sources",
+      "Description": "NexiQ sources",
       "Value": {
         "Ref": "ExistingRapidIqSourcesTableName"
       }
     },
     "RapidIqJurisdictionsTable": {
-      "Description": "Rapid IQ jurisdiction registry",
+      "Description": "NexiQ jurisdiction registry",
       "Value": {
         "Ref": "ExistingRapidIqJurisdictionsTableName"
       }
     },
     "RapidIqStateCoverageTable": {
-      "Description": "Rapid IQ state coverage",
+      "Description": "NexiQ state coverage",
       "Value": {
         "Ref": "ExistingRapidIqStateCoverageTableName"
       }

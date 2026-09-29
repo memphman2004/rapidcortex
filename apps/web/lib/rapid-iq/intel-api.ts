@@ -1,10 +1,10 @@
 import type {
-  RapidIqIntelBidNoBid,
-  RapidIqIntelOpportunity,
-  RapidIqIntelOutreachAudience,
-  RapidIqIntelPursuitBrief,
-  RapidIqIntelWatch,
-  RapidIqRfpCountSnapshot,
+  NexiQIntelBidNoBid,
+  NexiQIntelOpportunity,
+  NexiQIntelOutreachAudience,
+  NexiQIntelPursuitBrief,
+  NexiQIntelWatch,
+  NexiQRfpCountSnapshot,
 } from "rapid-cortex-shared";
 
 const BASE = "/api/rapid-iq/intel";
@@ -23,7 +23,7 @@ export type IntelKpis = {
 };
 
 export type IntelListResponse = {
-  items: RapidIqIntelOpportunity[];
+  items: NexiQIntelOpportunity[];
   kpis: IntelKpis;
 };
 
@@ -47,45 +47,45 @@ export async function listIntelOpportunities(
   return parseJson<IntelListResponse>(res);
 }
 
-export async function getIntelOpportunity(id: string): Promise<RapidIqIntelOpportunity> {
+export async function getIntelOpportunity(id: string): Promise<NexiQIntelOpportunity> {
   const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(id)}`, { credentials: "include" });
-  const body = await parseJson<{ opportunity: RapidIqIntelOpportunity }>(res);
+  const body = await parseJson<{ opportunity: NexiQIntelOpportunity }>(res);
   return body.opportunity;
 }
 
 export async function patchIntelOpportunity(
   id: string,
   body: Partial<{
-    status: RapidIqIntelOpportunity["status"];
+    status: NexiQIntelOpportunity["status"];
     userFitScore: number;
     userWinSignal: number;
-    userRecommendation: RapidIqIntelOpportunity["recommendation"];
+    userRecommendation: NexiQIntelOpportunity["recommendation"];
     userProcurementStage: number;
     notes: string;
   }>,
-): Promise<RapidIqIntelOpportunity> {
+): Promise<NexiQIntelOpportunity> {
   const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(id)}`, {
     method: "PATCH",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const parsed = await parseJson<{ opportunity: RapidIqIntelOpportunity }>(res);
+  const parsed = await parseJson<{ opportunity: NexiQIntelOpportunity }>(res);
   return parsed.opportunity;
 }
 
-export async function analyzeIntelOpportunity(id: string): Promise<RapidIqIntelOpportunity> {
+export async function analyzeIntelOpportunity(id: string): Promise<NexiQIntelOpportunity> {
   const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(id)}/analyze`, {
     method: "POST",
     credentials: "include",
   });
-  const parsed = await parseJson<{ opportunity: RapidIqIntelOpportunity }>(res);
+  const parsed = await parseJson<{ opportunity: NexiQIntelOpportunity }>(res);
   return parsed.opportunity;
 }
 
 export async function generateIntelPursuitBrief(
   id: string,
-): Promise<{ brief: RapidIqIntelPursuitBrief; model: string }> {
+): Promise<{ brief: NexiQIntelPursuitBrief; model: string }> {
   const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(id)}/pursuit-brief`, {
     method: "POST",
     credentials: "include",
@@ -95,7 +95,7 @@ export async function generateIntelPursuitBrief(
 
 export async function generateIntelOutreach(
   id: string,
-  audience: RapidIqIntelOutreachAudience,
+  audience: NexiQIntelOutreachAudience,
 ): Promise<{ text: string; model: string }> {
   const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(id)}/outreach`, {
     method: "POST",
@@ -108,7 +108,7 @@ export async function generateIntelOutreach(
 
 export async function generateIntelBidNoBid(
   id: string,
-): Promise<{ analysis: RapidIqIntelBidNoBid; model: string }> {
+): Promise<{ analysis: NexiQIntelBidNoBid; model: string }> {
   const res = await fetch(`${BASE}/opportunities/${encodeURIComponent(id)}/bid-no-bid`, {
     method: "POST",
     credentials: "include",
@@ -116,23 +116,23 @@ export async function generateIntelBidNoBid(
   return parseJson(res);
 }
 
-export async function listIntelWatches(): Promise<RapidIqIntelWatch[]> {
+export async function listIntelWatches(): Promise<NexiQIntelWatch[]> {
   const res = await fetch(`${BASE}/watches`, { credentials: "include" });
-  const body = await parseJson<{ watches: RapidIqIntelWatch[] }>(res);
+  const body = await parseJson<{ watches: NexiQIntelWatch[] }>(res);
   return body.watches;
 }
 
 export async function patchIntelWatch(
   id: string,
-  body: Partial<Pick<RapidIqIntelWatch, "enabled" | "minimumFitScore" | "keywords" | "sourceUrls">>,
-): Promise<RapidIqIntelWatch> {
+  body: Partial<Pick<NexiQIntelWatch, "enabled" | "minimumFitScore" | "keywords" | "sourceUrls">>,
+): Promise<NexiQIntelWatch> {
   const res = await fetch(`${BASE}/watches/${encodeURIComponent(id)}`, {
     method: "PATCH",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const parsed = await parseJson<{ watch: RapidIqIntelWatch }>(res);
+  const parsed = await parseJson<{ watch: NexiQIntelWatch }>(res);
   return parsed.watch;
 }
 
@@ -144,7 +144,7 @@ export async function runIntelWatch(id: string): Promise<unknown> {
   return parseJson(res);
 }
 
-export async function fetchRfpCounts(): Promise<{ snapshot: RapidIqRfpCountSnapshot | null }> {
+export async function fetchRfpCounts(): Promise<{ snapshot: NexiQRfpCountSnapshot | null }> {
   const res = await fetch(`${BASE}/rfp-counts`, { credentials: "include", cache: "no-store" });
   return parseJson(res);
 }

@@ -257,7 +257,7 @@ export async function findAgendaDocuments(j: Jurisdiction): Promise<AgendaDocume
   for (const pageUrl of pageUrls) {
     try {
       const res = await fetch(pageUrl, {
-        headers: { "user-agent": "RapidCortex-RapidIQ/1.0 (+https://rapidcortex.us)" },
+        headers: { "user-agent": "RapidCortex-NexiQ/1.0 (+https://rapidcortex.us)" },
         signal: AbortSignal.timeout(12_000),
       });
       if (!res.ok) continue;
@@ -317,7 +317,7 @@ export async function extractDocumentText(docUrl: string): Promise<string> {
   }
   try {
     const res = await fetch(docUrl, {
-      headers: { "user-agent": "RapidCortex-RapidIQ/1.0 (+https://rapidcortex.us)" },
+      headers: { "user-agent": "RapidCortex-NexiQ/1.0 (+https://rapidcortex.us)" },
       signal: AbortSignal.timeout(20_000),
     });
     if (!res.ok) return "";

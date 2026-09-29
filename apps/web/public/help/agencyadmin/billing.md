@@ -1,7 +1,8 @@
-# Billing and subscriptions
+# Billing & Subscriptions
+
+View plan, invoices, and payment methods for your tenant.
 
 1. Open **Billing**.
-2. View invoices, payment method, and plan.
-3. Questions on invoices go to NexCort iQ billing with your agency ID.
-
-Add-ons are separate (see Feature Add-Ons). CAD write-back is not a self-serve toggle.
+2. Confirm seats / modules match what you contracted.
+3. Download invoices for finance.
+4. Escalate plan changes through your NexCort iQ account team — do not expect floor supervisors to change contracts mid-shift.

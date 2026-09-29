@@ -5,7 +5,7 @@
  */
 import type { CallAssistLocale } from "./provisioning-types.js";
 
-export const BOT_TEMPLATE_VERSION = "2026-09-12.1";
+export const BOT_TEMPLATE_VERSION = "2026-09-28.1";
 
 export const BOT_TEMPLATE_INTENT_NAMES = [
   "EmergencyEscalation",

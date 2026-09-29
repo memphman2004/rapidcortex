@@ -1,5 +1,5 @@
 /**
- * Vertical 3-touch copy for Rapid IQ sales automation.
+ * Vertical 3-touch copy for NexiQ sales automation.
  * Canonical long sequences (emails 4–6, lists, UTMs) live in
  * docs/go-to-market-sales/EMAIL_CAMPAIGN_911_VENUE_CAMPUS.md.
  *

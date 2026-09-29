@@ -69,10 +69,10 @@ function parseDate(pubDate: string): string {
 }
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: News RSS ingestion starting");
+  console.log("NexiQ pipeline: News RSS ingestion starting");
 
   if (await enqueueMockIfEnabled("news-rss")) {
-    console.log("Rapid IQ pipeline: News RSS mock path complete");
+    console.log("NexiQ pipeline: News RSS mock path complete");
     return;
   }
 
@@ -115,5 +115,5 @@ export async function handler(): Promise<void> {
     }
   }
 
-  console.log("Rapid IQ pipeline: News RSS ingestion complete");
+  console.log("NexiQ pipeline: News RSS ingestion complete");
 }

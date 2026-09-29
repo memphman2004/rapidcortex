@@ -18,7 +18,7 @@ import type { RapidIqIntelWatch } from "rapid-cortex-shared";
 import { isCollectorsMockEnabled } from "./agenda-finder.js";
 import { createJsonResponse } from "./openai-client.js";
 import {
-  isRapidIqWebSearchEnabled,
+  isNexiQWebSearchEnabled,
   rapidIqModelClassification,
 } from "./openai-config.js";
 
@@ -176,7 +176,7 @@ export async function discoverUrlsForWatch(watch: RapidIqIntelWatch): Promise<Wa
     );
     return result;
   }
-  if (!isRapidIqWebSearchEnabled()) {
+  if (!isNexiQWebSearchEnabled()) {
     result.skipped = true;
     result.skipReason = "OPENAI_WEB_SEARCH_ENABLED not true";
     console.log(

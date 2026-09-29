@@ -1,13 +1,23 @@
 # SOP Protocol AI
 
-**SOP-aware protocol** surfaces agency-approved pack content while you work a call. It is coaching, not medical direction and not a legal SOP substitute.
+**SOP Protocol AI** suggests the next protocol steps from your agency's uploaded SOP library and the live call context. Suggestions are coaching — you remain the authority.
 
-## How to use it
+## How it works
 
-1. Select the incident.
-2. Find **SOP-AWARE PROTOCOL** (or Protocol coach) in the workspace.
-3. Read the suggested protocol and the disclaimer on the card.
-4. Follow **your agency SOP** if it disagrees with the suggestion.
-5. Override or ignore the coach when the call does not match — you do not need NexCort iQ permission to use radio SOP.
+1. Select the incident so transcript and triage are flowing.
+2. Open **SOP-AWARE PROTOCOL** (or Protocol Coach) in the intelligence panel.
+3. Review the suggested protocol and next questions.
+4. Follow, skip, or override based on SOP and supervisor direction.
+5. Log material deviations in incident notes when policy requires.
 
-If the pack is missing or stale, tell Agency Admin. They upload protocols in the SOP library.
+## Overrides
+
+You can always override AI. Agency SOP and your supervisor win if they disagree with a suggestion. Overrides are normal — the system is fail-open to human judgment.
+
+## If suggestions look wrong
+
+- Confirm the correct incident type / nature code is selected
+- Re-run triage if the transcript changed substantially
+- Ask a supervisor to verify the SOP library version for that call type
+
+SOP Protocol AI never files CAD for you and never replaces medical direction.

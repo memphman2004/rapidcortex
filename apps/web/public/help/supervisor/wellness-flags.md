@@ -1,9 +1,12 @@
-# Wellness flags
+# Wellness Flags
 
-Dispatcher wellness flags surface when the module is on.
+Wellness flags surface when the product or a supervisor marks a seat for follow-up after difficult calls or fatigue indicators.
 
-1. Acknowledge flags you are responsible for.
-2. Follow EAP / floor wellness SOP — the software does not counsel.
-3. Do not discuss clinical detail in incident comments.
+## What to do
 
-Campus counselor wellness queues are a different product (Staff Guide).
+1. Open **Wellness flags**.
+2. Acknowledge the flag so the floor knows it was seen.
+3. Follow agency EAP / relief procedures — NexCort iQ does not provide clinical care.
+4. Document only what policy allows; do not put clinical diagnoses in free-text notes.
+
+Acknowledging a flag is an operational act. It is not therapy and it is not optional when your SOP requires supervisor response.

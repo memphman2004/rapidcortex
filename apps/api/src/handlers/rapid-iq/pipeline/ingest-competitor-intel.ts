@@ -132,10 +132,10 @@ async function searchSamForVendor(apiKey: string, vendor: string): Promise<numbe
 }
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: competitor intel ingestion starting");
+  console.log("NexiQ pipeline: competitor intel ingestion starting");
 
   if (await enqueueMockIfEnabled("competitor-intel")) {
-    console.log("Rapid IQ pipeline: competitor-intel mock path complete");
+    console.log("NexiQ pipeline: competitor-intel mock path complete");
     return;
   }
 

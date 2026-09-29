@@ -1,10 +1,18 @@
-# War rooms and incident command
+# War Rooms & Incident Command
 
-**War Rooms** (when enabled) coordinate multi-agency or MCI events inside NexCort iQ.
+A **war room** coordinates multi-agency or MCI activity without turning the supervisor console into a CAD replacement.
 
-1. Open **War Rooms** from supervisor command.
-2. Start a room only for events SOP allows (MCI, weather, multi-jurisdiction).
-3. Invite the NexCort iQ roles your plan names — not the public.
-4. Close the room when command stands down.
+## When to open one
 
-War rooms are not CAD and not a replacement for ICS paper or radio.
+- Active shooter / MCI
+- Weather or civil unrest with many related incidents
+- Multi-agency coordination where a shared status board helps
+
+## How to use it
+
+1. Open **War Rooms** from the supervisor console.
+2. Create or join the room tied to the lead incident(s).
+3. Share stakeholder status pages when command staff need a read-only view.
+4. Keep CAD and radio as systems of record; the war room is coordination.
+
+Close the room when the event winds down so the floor returns to normal queue operations.

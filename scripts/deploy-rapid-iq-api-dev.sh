@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Surgical Rapid IQ API for rapid-cortex-dev (AppSam3 HttpApi).
-# Creates Dynamo tables if missing, deploys nested Rapid IQ stack, seeds data.
+# Surgical NexiQ API for rapid-cortex-dev (AppSam3 HttpApi).
+# Creates Dynamo tables if missing, deploys nested NexiQ stack, seeds data.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -152,7 +152,7 @@ if [[ ! -f "${ROOT}/apps/api/dist/handlers/rc-admin/conferencesHttp.js" ]]; then
   echo "ERROR: conferencesHttp dist missing after build" >&2
   exit 1
 fi
-echo "── Using Rapid IQ handler dist ──"
+echo "── Using NexiQ handler dist ──"
 
 TEMPLATE="${ROOT}/infra/nested/stack-app-sam-rapid-iq.yaml"
 sam validate --lint --template-file "${TEMPLATE}"
@@ -164,7 +164,7 @@ sam build \
   --parallel \
   --build-in-source
 
-STACK_NAME="${RAPID_IQ_API_STACK_NAME:-rapid-cortex-dev-AppSamRapidIqStack}"
+STACK_NAME="${RAPID_IQ_API_STACK_NAME:-rapid-cortex-dev-AppSamNexiQStack}"
 HTTP_API_ID="${RAPID_IQ_HTTP_API_ID:-tbr4zvjlk5}"
 JWT_AUTHORIZER_ID="${RAPID_IQ_JWT_AUTHORIZER_ID:-}"
 ANTHROPIC_ARN="${ANTHROPIC_API_KEY_SECRET_ARN:-}"
@@ -235,11 +235,11 @@ sam deploy \
   --region "${AWS_REGION}" \
   --parameter-overrides "${PARAM_OVERRIDES[@]}"
 
-echo "Rapid IQ API stack status:"
+echo "NexiQ API stack status:"
 aws cloudformation describe-stacks --stack-name "${STACK_NAME}" \
   --query 'Stacks[0].StackStatus' --output text
 
-echo "Rapid IQ routes on ${HTTP_API_ID}:"
+echo "NexiQ routes on ${HTTP_API_ID}:"
 aws apigatewayv2 get-routes --api-id "${HTTP_API_ID}" \
   --query 'Items[?contains(RouteKey, `rapid-iq`)].[RouteKey,AuthorizationType]' \
   --output table
@@ -260,7 +260,7 @@ elif [[ "${RAPID_IQ_SKIP_SEED:-0}" != "1" ]]; then
     npx tsx scripts/seed-rapid-iq-jurisdictions.ts
   echo "── Skipping opportunity seed (set RAPID_IQ_SEED_OPPORTUNITIES=1 to force demo data) ──"
 else
-  echo "── Skipping all Rapid IQ seeds (RAPID_IQ_SKIP_SEED=1) ──"
+  echo "── Skipping all NexiQ seeds (RAPID_IQ_SKIP_SEED=1) ──"
 fi
 
-echo "✅ Rapid IQ API deploy complete"
+echo "✅ NexiQ API deploy complete"

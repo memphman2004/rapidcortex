@@ -1,16 +1,16 @@
 import type {
-  CreateRapidIqSalesBulkCampaignBody,
-  CreateRapidIqSalesSequenceBody,
-  RapidIqOutlookStatus,
-  RapidIqSalesBulkApproveResult,
-  RapidIqSalesBulkBatch,
-  RapidIqSalesBulkResult,
-  RapidIqSalesCampaignCard,
-  RapidIqSalesContentDraft,
-  RapidIqSalesMetrics,
-  RapidIqSalesSequence,
-  UpdateRapidIqSalesDraftBody,
-  UpdateRapidIqSalesSequenceBody,
+  CreateNexiQSalesBulkCampaignBody,
+  CreateNexiQSalesSequenceBody,
+  NexiQOutlookStatus,
+  NexiQSalesBulkApproveResult,
+  NexiQSalesBulkBatch,
+  NexiQSalesBulkResult,
+  NexiQSalesCampaignCard,
+  NexiQSalesContentDraft,
+  NexiQSalesMetrics,
+  NexiQSalesSequence,
+  UpdateNexiQSalesDraftBody,
+  UpdateNexiQSalesSequenceBody,
 } from "rapid-cortex-shared";
 
 const BASE = "/api/rapid-iq/sales-automation";
@@ -29,65 +29,65 @@ async function parseJson<T>(res: Response): Promise<T> {
   return body as T;
 }
 
-export async function listSalesSequences(): Promise<RapidIqSalesSequence[]> {
+export async function listSalesSequences(): Promise<NexiQSalesSequence[]> {
   const res = await fetch(`${BASE}/sequences`, { credentials: "include" });
-  const body = await parseJson<{ sequences: RapidIqSalesSequence[] }>(res);
+  const body = await parseJson<{ sequences: NexiQSalesSequence[] }>(res);
   return body.sequences ?? [];
 }
 
-export async function listSalesDrafts(): Promise<RapidIqSalesContentDraft[]> {
+export async function listSalesDrafts(): Promise<NexiQSalesContentDraft[]> {
   const res = await fetch(`${BASE}/drafts`, { credentials: "include" });
-  const body = await parseJson<{ drafts: RapidIqSalesContentDraft[] }>(res);
+  const body = await parseJson<{ drafts: NexiQSalesContentDraft[] }>(res);
   return body.drafts ?? [];
 }
 
 export async function listSalesCampaigns(): Promise<{
-  campaigns: RapidIqSalesCampaignCard[];
-  batches: RapidIqSalesBulkBatch[];
+  campaigns: NexiQSalesCampaignCard[];
+  batches: NexiQSalesBulkBatch[];
 }> {
   const res = await fetch(`${BASE}/campaigns`, { credentials: "include" });
   const body = await parseJson<{
-    campaigns: RapidIqSalesCampaignCard[];
-    batches?: RapidIqSalesBulkBatch[];
+    campaigns: NexiQSalesCampaignCard[];
+    batches?: NexiQSalesBulkBatch[];
   }>(res);
   return { campaigns: body.campaigns ?? [], batches: body.batches ?? [] };
 }
 
 export async function createSalesBulkCampaign(
-  body: CreateRapidIqSalesBulkCampaignBody,
-): Promise<RapidIqSalesBulkResult> {
+  body: CreateNexiQSalesBulkCampaignBody,
+): Promise<NexiQSalesBulkResult> {
   const res = await fetch(`${BASE}/bulk`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const parsed = await parseJson<{ result: RapidIqSalesBulkResult }>(res);
+  const parsed = await parseJson<{ result: NexiQSalesBulkResult }>(res);
   return parsed.result;
 }
 
 export async function approveSalesBulkCampaign(
   campaignId: string,
-): Promise<RapidIqSalesBulkApproveResult> {
+): Promise<NexiQSalesBulkApproveResult> {
   const res = await fetch(`${BASE}/bulk/approve`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ campaignId }),
   });
-  const parsed = await parseJson<{ result: RapidIqSalesBulkApproveResult }>(res);
+  const parsed = await parseJson<{ result: NexiQSalesBulkApproveResult }>(res);
   return parsed.result;
 }
 
-export async function getSalesMetrics(): Promise<RapidIqSalesMetrics> {
+export async function getSalesMetrics(): Promise<NexiQSalesMetrics> {
   const res = await fetch(`${BASE}/metrics`, { credentials: "include" });
-  const body = await parseJson<{ metrics: RapidIqSalesMetrics }>(res);
+  const body = await parseJson<{ metrics: NexiQSalesMetrics }>(res);
   return body.metrics;
 }
 
-export async function getSalesOutlookStatus(): Promise<RapidIqOutlookStatus> {
+export async function getSalesOutlookStatus(): Promise<NexiQOutlookStatus> {
   const res = await fetch(`${BASE}/outlook/status`, { credentials: "include" });
-  const body = await parseJson<{ outlook: RapidIqOutlookStatus }>(res);
+  const body = await parseJson<{ outlook: NexiQOutlookStatus }>(res);
   return body.outlook;
 }
 
@@ -119,77 +119,77 @@ export async function disconnectSalesOutlook(): Promise<void> {
   await parseJson(res);
 }
 
-export async function approveSalesSequence(sequenceId: string): Promise<RapidIqSalesSequence> {
+export async function approveSalesSequence(sequenceId: string): Promise<NexiQSalesSequence> {
   const res = await fetch(`${BASE}/sequences/${encodeURIComponent(sequenceId)}/approve`, {
     method: "POST",
     credentials: "include",
   });
-  const body = await parseJson<{ sequence: RapidIqSalesSequence }>(res);
+  const body = await parseJson<{ sequence: NexiQSalesSequence }>(res);
   return body.sequence;
 }
 
-export async function suppressSalesSequence(sequenceId: string): Promise<RapidIqSalesSequence> {
+export async function suppressSalesSequence(sequenceId: string): Promise<NexiQSalesSequence> {
   const res = await fetch(`${BASE}/sequences/${encodeURIComponent(sequenceId)}/suppress`, {
     method: "POST",
     credentials: "include",
   });
-  const body = await parseJson<{ sequence: RapidIqSalesSequence }>(res);
+  const body = await parseJson<{ sequence: NexiQSalesSequence }>(res);
   return body.sequence;
 }
 
-export async function approveSalesDraft(draftId: string): Promise<RapidIqSalesContentDraft> {
+export async function approveSalesDraft(draftId: string): Promise<NexiQSalesContentDraft> {
   const res = await fetch(`${BASE}/drafts/${encodeURIComponent(draftId)}/approve`, {
     method: "POST",
     credentials: "include",
   });
-  const body = await parseJson<{ draft: RapidIqSalesContentDraft }>(res);
+  const body = await parseJson<{ draft: NexiQSalesContentDraft }>(res);
   return body.draft;
 }
 
 export async function createSalesSequence(
-  body: CreateRapidIqSalesSequenceBody,
-): Promise<RapidIqSalesSequence> {
+  body: CreateNexiQSalesSequenceBody,
+): Promise<NexiQSalesSequence> {
   const res = await fetch(`${BASE}/sequences`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const parsed = await parseJson<{ sequence: RapidIqSalesSequence }>(res);
+  const parsed = await parseJson<{ sequence: NexiQSalesSequence }>(res);
   return parsed.sequence;
 }
 
 export async function updateSalesSequence(
   sequenceId: string,
-  body: UpdateRapidIqSalesSequenceBody,
-): Promise<RapidIqSalesSequence> {
+  body: UpdateNexiQSalesSequenceBody,
+): Promise<NexiQSalesSequence> {
   const res = await fetch(`${BASE}/sequences/${encodeURIComponent(sequenceId)}`, {
     method: "PATCH",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const parsed = await parseJson<{ sequence: RapidIqSalesSequence }>(res);
+  const parsed = await parseJson<{ sequence: NexiQSalesSequence }>(res);
   return parsed.sequence;
 }
 
 export async function updateSalesDraft(
   draftId: string,
-  body: UpdateRapidIqSalesDraftBody,
-): Promise<RapidIqSalesContentDraft> {
+  body: UpdateNexiQSalesDraftBody,
+): Promise<NexiQSalesContentDraft> {
   const res = await fetch(`${BASE}/drafts/${encodeURIComponent(draftId)}`, {
     method: "PATCH",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const parsed = await parseJson<{ draft: RapidIqSalesContentDraft }>(res);
+  const parsed = await parseJson<{ draft: NexiQSalesContentDraft }>(res);
   return parsed.draft;
 }
 
 export async function updateSalesBulkCopy(
   campaignId: string,
-  steps: UpdateRapidIqSalesSequenceBody["steps"],
+  steps: UpdateNexiQSalesSequenceBody["steps"],
 ): Promise<{ updated: number }> {
   const res = await fetch(`${BASE}/bulk`, {
     method: "PATCH",

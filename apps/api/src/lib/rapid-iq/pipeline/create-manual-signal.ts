@@ -1,10 +1,10 @@
 /**
- * Manual Rapid IQ signal from public-record sources.
+ * Manual NexiQ signal from public-record sources.
  */
 
 import { randomUUID } from "node:crypto";
 import type {
-  CreateManualRapidIqPipelineSignalBody,
+  CreateManualNexiQPipelineSignalBody,
   RapidIqPipelineSignal,
 } from "rapid-cortex-shared";
 import { applySignalIntelligence } from "./apply-signal-intelligence.js";
@@ -26,7 +26,7 @@ function parseDollar(raw?: string): number | undefined {
 }
 
 export async function createManualPipelineSignal(
-  body: CreateManualRapidIqPipelineSignalBody,
+  body: CreateManualNexiQPipelineSignalBody,
   enteredBy: string,
 ): Promise<{ signal: RapidIqPipelineSignal; alreadyQueued: boolean }> {
   const hay = `${body.title}\n${body.excerpt ?? ""}`;

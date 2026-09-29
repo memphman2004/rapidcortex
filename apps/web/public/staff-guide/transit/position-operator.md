@@ -1,20 +1,17 @@
 # Transit Operator
 
-Your home is **My vehicle**: fleet awareness and incident reporting from the operator console. Not transit admin and not 911.
+You work from your vehicle / assignment: fleet view, incident reporting, and cameras on your unit.
 
 ## You can
 
-- Open your vehicle dashboard and fleet list
-- Report on-system incidents
-- Use video wall when licensed
+- Report on-system incidents from the operator console
+- View cameras on your assigned vehicle when enabled
+- Follow supervisor broadcasts and alert levels
 
 ## You cannot
 
-- Manage tenant users or deactivate QR/NFC
-- Submit CAD
+- Administer users or system-wide QR registries (unless separately granted)
+- Use this app instead of radio procedures your agency requires
+- Skip calling 911 for in-progress emergencies
 
-## Passenger codes
-
-If your vehicle has a posted QR or NFC, treat it as a public reporting point. If the sticker is damaged, tell Supervisor. They reprint or deactivate from **QR Codes**. You can still read **Update QR codes and NFC tags** so you know what a good post looks like.
-
-For emergencies on the vehicle, **call 911** (or radio per SOP), then file or update the transit incident.
+Ask Transit Admin for Staff Guide onboarding if you did not receive it in week one.

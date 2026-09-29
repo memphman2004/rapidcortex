@@ -88,8 +88,8 @@ fi
 # (lastEnrichedAt updates with zero contacts).
 RAPID_IQ_HUNTER_API_KEY_SECRET_ARN="${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/hunter-api-key-LXEwMX}"
 RAPID_IQ_APOLLO_API_KEY_SECRET_ARN="${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:-arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/apollo-api-key-BDql0e}"
-PARAM_OVERRIDES+=("RapidIqHunterApiKeySecretArn=${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}")
-PARAM_OVERRIDES+=("RapidIqApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}")
+PARAM_OVERRIDES+=("NexiQHunterApiKeySecretArn=${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}")
+PARAM_OVERRIDES+=("NexiQApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}")
 if [[ -n "${CONTACT_COMPANIES_TABLE:-}" ]]; then
   PARAM_OVERRIDES+=("ContactCompaniesTable=${CONTACT_COMPANIES_TABLE}")
 fi

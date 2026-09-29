@@ -1,3 +1,6 @@
-# Access reports
+# Access Reports
 
-See who opened what and when. Use for investigations with Agency Admin. Cross-tenant access is not available (except NexCort iQ internal operators).
+1. Open **Access Reports**.
+2. Filter by user or resource type.
+3. Look for anomalous after-hours access or cross-feature browsing.
+4. Escalate true anomalies to Agency Admin / IT — do not confront staff from the auditor seat unless policy directs you.

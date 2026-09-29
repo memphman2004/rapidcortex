@@ -237,7 +237,7 @@ export const SALES_FEATURE_CATALOG: readonly SalesFeatureCatalogItem[] = [
   },
   {
     id: "rapid_iq",
-    name: "Rapid IQ sales & RFP intelligence",
+    name: "NexiQ sales & RFP intelligence",
     explanation: "PSAP/RFP signal pipeline, contact enrichment, and opportunity scoring for NexCort sales teams.",
     compatibleVerticals: ["all"],
     isFree: false,

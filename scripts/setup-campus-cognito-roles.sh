@@ -9,6 +9,8 @@ AGENCY_ID="${CAMPUS_TEST_AGENCY_ID:-test-campus-uga}"
 PASSWORD="${CAMPUS_TEST_PASSWORD:-${RAPID_CORTEX_TEST_TEMP_PASSWORD:-RapidTest2026!}}"
 PLAN_ID="${CAMPUS_TEST_PLAN_ID:-essential}"
 SUB_STATUS="${CAMPUS_TEST_SUB_STATUS:-active}"
+# higher_ed (default) | k12 — mirrored when custom:institutionType exists on the pool
+INSTITUTION_TYPE="${CAMPUS_INSTITUTION_TYPE:-higher_ed}"
 
 ensure_group() {
   local GROUP="$1"
@@ -37,7 +39,7 @@ create_campus_user() {
   local ROLE="$2"
 
   if aws cognito-idp admin-get-user --user-pool-id "$POOL_ID" --username "$EMAIL" --region "$REGION" &>/dev/null; then
-    echo "⚠️  Updating $EMAIL → $ROLE"
+    echo "⚠️  Updating $EMAIL → $ROLE (institutionType=$INSTITUTION_TYPE)"
     aws cognito-idp admin-update-user-attributes \
       --user-pool-id "$POOL_ID" \
       --username "$EMAIL" \
@@ -65,6 +67,14 @@ create_campus_user() {
     echo "✅ Created $EMAIL"
   fi
 
+  # Best-effort: pool may not have custom:institutionType yet
+  aws cognito-idp admin-update-user-attributes \
+    --user-pool-id "$POOL_ID" \
+    --username "$EMAIL" \
+    --user-attributes Name="custom:institutionType",Value="$INSTITUTION_TYPE" \
+    --region "$REGION" 2>/dev/null \
+    || echo "ℹ️  custom:institutionType not on pool (agency.institutionType still drives UI)"
+
   aws cognito-idp admin-set-user-password \
     --user-pool-id "$POOL_ID" \
     --username "$EMAIL" \
@@ -91,4 +101,7 @@ fi
 echo ""
 echo "Done. Campus groups provisioned in pool $POOL_ID (agencyId=$AGENCY_ID → campus code UGA)."
 echo "Set CREATE_CAMPUS_TEST_USERS=1 to provision test accounts."
+echo "CAMPUS_INSTITUTION_TYPE=k12       → K-12 school district users"
+echo "CAMPUS_INSTITUTION_TYPE=higher_ed → University / college users (default)"
 echo "Seed campus buildings/zones: CAMPUS_CONFIG_TABLE=... npx tsx apps/api/src/scripts/seed-campus-test-agency.ts UGA"
+echo "Seed K-12 Camden demo: npx tsx apps/api/src/scripts/seed-k12-camden-demo.ts"

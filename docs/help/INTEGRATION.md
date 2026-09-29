@@ -127,8 +127,13 @@ Where `normalizedRole` matches the key in `lib/help/help-content.ts`:
 - `campus_admin`, `campus_supervisor`, `campus_security`, `campus_counselor`, `campus_faculty`
 - `venue_admin`, `venue_supervisor`, `venue_security`
 - `hospital_admin`, `hospital_staff`
-- `transit_admin`, `transit_security`
-- `rcadmin`, `rcitadmin`
+- `transit_admin`, `transit_supervisor`, `transit_security`
+- `call_assist_admin`, `call_assist_supervisor`, `call_assist_operator`
+- `rcadmin`, `rcsuperadmin`, `rcitadmin`
+
+Campus / venue / transit interactive roles use **Staff Guide** (`lib/staff-guide/catalog.ts` + `public/staff-guide/`) when the staff-guide flag is on — not the 911 Help tab articles above.
+
+Training video suggestions live in `lib/help/video-library.ts` and render in the Help / Staff Guide panel under **TRAINING VIDEOS**.
 
 ---
 

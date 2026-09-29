@@ -1,15 +1,15 @@
 import type {
-  CreateManualRapidIqPipelineSignalBody,
-  EnqueueRapidIqPipelineFromOpportunityBody,
-  PatchRapidIqPipelineSignalBody,
-  PushRapidIqPipelineToCrmBody,
-  RapidIqAgencyContact,
-  RapidIqAgencyProfile,
-  RapidIqPipelineCreditsResponse,
-  RapidIqPipelineSignal,
-  RapidIqPipelineSignalStatus,
-  RapidIqResearchRequest,
-  RapidIqResearchResponse,
+  CreateManualNexiQPipelineSignalBody,
+  EnqueueNexiQPipelineFromOpportunityBody,
+  PatchNexiQPipelineSignalBody,
+  PushNexiQPipelineToCrmBody,
+  NexiQAgencyContact,
+  NexiQAgencyProfile,
+  NexiQPipelineCreditsResponse,
+  NexiQPipelineSignal,
+  NexiQPipelineSignalStatus,
+  NexiQResearchRequest,
+  NexiQResearchResponse,
 } from "rapid-cortex-shared";
 
 const BASE = "/api/rc-admin/rapid-iq/signals";
@@ -34,7 +34,7 @@ async function parseJson<T>(res: Response): Promise<T> {
 }
 
 export function countUnworkedPipelineItems(
-  items: Array<{ status: RapidIqPipelineSignalStatus; sourceId?: string }>,
+  items: Array<{ status: NexiQPipelineSignalStatus; sourceId?: string }>,
 ): number {
   return items.filter((i) => {
     if (i.status === "reviewed") return true;
@@ -43,7 +43,7 @@ export function countUnworkedPipelineItems(
 }
 
 export function pipelineOpportunityIdSet(
-  items: RapidIqPipelineSignal[],
+  items: NexiQPipelineSignal[],
 ): Set<string> {
   const ids = new Set<string>();
   for (const signal of items) {
@@ -62,46 +62,46 @@ export function pipelineOpportunityIdSet(
 }
 
 export async function getPipelineSignals(
-  status?: RapidIqPipelineSignalStatus,
-): Promise<RapidIqPipelineSignal[]> {
+  status?: NexiQPipelineSignalStatus,
+): Promise<NexiQPipelineSignal[]> {
   const url = status ? `${BASE}?status=${encodeURIComponent(status)}` : BASE;
   const res = await fetch(url, { credentials: "include" });
-  const body = await parseJson<{ signals?: RapidIqPipelineSignal[]; items?: RapidIqPipelineSignal[] }>(
+  const body = await parseJson<{ signals?: NexiQPipelineSignal[]; items?: NexiQPipelineSignal[] }>(
     res,
   );
   return body.signals ?? body.items ?? [];
 }
 
-export async function getPipelineCredits(): Promise<RapidIqPipelineCreditsResponse["credits"]> {
+export async function getPipelineCredits(): Promise<NexiQPipelineCreditsResponse["credits"]> {
   const res = await fetch(CREDITS_PATH, { credentials: "include" });
-  const body = await parseJson<RapidIqPipelineCreditsResponse>(res);
+  const body = await parseJson<NexiQPipelineCreditsResponse>(res);
   return body.credits;
 }
 
 export async function patchPipelineSignalStatus(
   signalId: string,
-  status: RapidIqPipelineSignalStatus,
-): Promise<RapidIqPipelineSignal> {
+  status: NexiQPipelineSignalStatus,
+): Promise<NexiQPipelineSignal> {
   return patchPipelineSignal(signalId, { status });
 }
 
 export async function patchPipelineSignal(
   signalId: string,
-  payload: PatchRapidIqPipelineSignalBody,
-): Promise<RapidIqPipelineSignal> {
+  payload: PatchNexiQPipelineSignalBody,
+): Promise<NexiQPipelineSignal> {
   const res = await fetch(`${BASE}/${encodeURIComponent(signalId)}`, {
     method: "PATCH",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  const resp = await parseJson<{ signal: RapidIqPipelineSignal }>(res);
+  const resp = await parseJson<{ signal: NexiQPipelineSignal }>(res);
   return resp.signal;
 }
 
 export async function pushPipelineSignalToCrm(
   signalId: string,
-  payload: PushRapidIqPipelineToCrmBody,
+  payload: PushNexiQPipelineToCrmBody,
 ): Promise<{
   leadId: string;
   enrichment?: {
@@ -121,8 +121,8 @@ export async function pushPipelineSignalToCrm(
 }
 
 export async function enqueuePipelineFromOpportunity(
-  body: EnqueueRapidIqPipelineFromOpportunityBody,
-): Promise<{ signal: RapidIqPipelineSignal; alreadyQueued: boolean }> {
+  body: EnqueueNexiQPipelineFromOpportunityBody,
+): Promise<{ signal: NexiQPipelineSignal; alreadyQueued: boolean }> {
   const res = await fetch(BASE, {
     method: "POST",
     credentials: "include",
@@ -130,9 +130,9 @@ export async function enqueuePipelineFromOpportunity(
     body: JSON.stringify(body),
   });
   const parsed = await parseJson<{
-    signal?: RapidIqPipelineSignal;
+    signal?: NexiQPipelineSignal;
     alreadyQueued?: boolean;
-    data?: { signal: RapidIqPipelineSignal; alreadyQueued?: boolean };
+    data?: { signal: NexiQPipelineSignal; alreadyQueued?: boolean };
   }>(res);
   const signal = parsed.signal ?? parsed.data?.signal;
   if (!signal) throw new Error("Missing pipeline signal in response");
@@ -143,8 +143,8 @@ export async function enqueuePipelineFromOpportunity(
 }
 
 export async function createManualPipelineSignal(
-  body: CreateManualRapidIqPipelineSignalBody,
-): Promise<{ signal: RapidIqPipelineSignal; alreadyQueued: boolean }> {
+  body: CreateManualNexiQPipelineSignalBody,
+): Promise<{ signal: NexiQPipelineSignal; alreadyQueued: boolean }> {
   const res = await fetch(BASE, {
     method: "POST",
     credentials: "include",
@@ -152,35 +152,38 @@ export async function createManualPipelineSignal(
     body: JSON.stringify(body),
   });
   const parsed = await parseJson<{
-    signal?: RapidIqPipelineSignal;
+    signal?: NexiQPipelineSignal;
     alreadyQueued?: boolean;
   }>(res);
   if (!parsed.signal) throw new Error("Missing pipeline signal in response");
   return { signal: parsed.signal, alreadyQueued: Boolean(parsed.alreadyQueued) };
 }
 
-export async function runRapidIqResearch(
-  body: RapidIqResearchRequest,
-): Promise<RapidIqResearchResponse> {
+export async function runNexiQResearch(
+  body: NexiQResearchRequest,
+): Promise<NexiQResearchResponse> {
   const res = await fetch(RESEARCH_PATH, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  return parseJson<RapidIqResearchResponse>(res);
+  return parseJson<NexiQResearchResponse>(res);
 }
 
-export async function getPipelineAgencies(): Promise<RapidIqAgencyProfile[]> {
+/** Alias — research panel still imports runRapidIqResearch during rename. */
+export const runRapidIqResearch = runNexiQResearch;
+
+export async function getPipelineAgencies(): Promise<NexiQAgencyProfile[]> {
   const res = await fetch(AGENCIES_PATH, { credentials: "include" });
-  const body = await parseJson<{ agencies?: RapidIqAgencyProfile[] }>(res);
+  const body = await parseJson<{ agencies?: NexiQAgencyProfile[] }>(res);
   return body.agencies ?? [];
 }
 
 export async function getPipelineAgencyDetail(agencyId: string): Promise<{
-  agency: RapidIqAgencyProfile;
-  contacts: RapidIqAgencyContact[];
-  signals: RapidIqPipelineSignal[];
+  agency: NexiQAgencyProfile;
+  contacts: NexiQAgencyContact[];
+  signals: NexiQPipelineSignal[];
 }> {
   const res = await fetch(`${AGENCIES_PATH}/${encodeURIComponent(agencyId)}`, {
     credentials: "include",

@@ -184,10 +184,10 @@ async function queryDataset(source: SocrataSource): Promise<void> {
 }
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: Socrata ingestion starting");
+  console.log("NexiQ pipeline: Socrata ingestion starting");
 
   if (await enqueueMockIfEnabled("socrata")) {
-    console.log("Rapid IQ pipeline: Socrata mock path complete");
+    console.log("NexiQ pipeline: Socrata mock path complete");
     return;
   }
 
@@ -200,5 +200,5 @@ export async function handler(): Promise<void> {
     }
   }
 
-  console.log("Rapid IQ pipeline: Socrata ingestion complete");
+  console.log("NexiQ pipeline: Socrata ingestion complete");
 }

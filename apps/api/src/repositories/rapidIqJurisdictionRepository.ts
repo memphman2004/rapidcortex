@@ -1,5 +1,5 @@
 /**
- * Rapid IQ jurisdiction + state coverage — RC-global platform tables (no agencyId).
+ * NexiQ jurisdiction + state coverage — RC-global platform tables (no agencyId).
  * Access is RBAC-gated at HTTP handlers (rcsuperadmin | rcadmin only).
  */
 import { GetCommand, PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";

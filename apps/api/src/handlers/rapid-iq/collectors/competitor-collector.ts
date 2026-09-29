@@ -138,7 +138,7 @@ export async function runCompetitorCollector(): Promise<{ signalsFound: number }
       gdeltUrl.searchParams.set("timespan", "1week");
 
       const res = await fetch(gdeltUrl.toString(), {
-        headers: { "user-agent": "RapidCortex-RapidIQ/1.0 (+https://rapidcortex.us)" },
+        headers: { "user-agent": "RapidCortex-NexiQ/1.0 (+https://rapidcortex.us)" },
         signal: AbortSignal.timeout(10_000),
       });
       if (!res.ok) {

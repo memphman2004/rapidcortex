@@ -72,7 +72,7 @@ function filterSignals(
 
 function heuristicAnswer(query: string, signals: RapidIqPipelineSignal[]): string {
   if (signals.length === 0) {
-    return `Insufficient public-record signals to answer “${query}”. No matching agencies were found in the current Rapid IQ corpus.`;
+    return `Insufficient public-record signals to answer “${query}”. No matching agencies were found in the current NexiQ corpus.`;
   }
   const lines = signals.slice(0, 8).map((s) => {
     const scores = displayPipelineScores(s);
@@ -88,7 +88,7 @@ function heuristicAnswer(query: string, signals: RapidIqPipelineSignal[]): strin
   ].join("\n");
 }
 
-export async function runRapidIqResearch(
+export async function runNexiQResearch(
   req: RapidIqResearchRequest,
 ): Promise<RapidIqResearchResponse> {
   const all = await listSignalsForResearch(200);

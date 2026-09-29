@@ -1,7 +1,7 @@
 import type { JurisdictionSeed, ScanTier } from "./jurisdiction-registry.js";
 
 /**
- * Large road races + national OCR corporates used as Rapid IQ venue seeds.
+ * Large road races + national OCR corporates used as NexiQ venue seeds.
  * National brands use stateCode "US" so they stay out of state-coverage tracking.
  */
 export const VENUE_JURISDICTIONS: JurisdictionSeed[] = [

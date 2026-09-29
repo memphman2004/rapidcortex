@@ -19,10 +19,10 @@ function civicClerkUrls(slug: string): string[] {
 }
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: CivicClerk ingestion starting");
+  console.log("NexiQ pipeline: CivicClerk ingestion starting");
 
   if (await enqueueMockIfEnabled("civiclerk")) {
-    console.log("Rapid IQ pipeline: CivicClerk mock path complete");
+    console.log("NexiQ pipeline: CivicClerk mock path complete");
     return;
   }
 

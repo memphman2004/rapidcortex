@@ -1,7 +1,8 @@
-# Managing hospital capacity
+# Managing Hospital Capacity
 
 1. Open **Capacity**.
-2. Update bed and department availability for your facility.
-3. Keep numbers current — PSAPs and EMS may read them for routing suggestions.
+2. Update bed / department availability by unit.
+3. Save so PSAP / EMS routing partners see current state (per your integration).
+4. Revisit after surge events — stale green/red status is an operational risk.
 
-This is not a diversion-order legal filing unless your hospital policy says you must also file elsewhere.
+Capacity is operational truth for routing partners. Do not leave weekend stubs without an on-call updater.

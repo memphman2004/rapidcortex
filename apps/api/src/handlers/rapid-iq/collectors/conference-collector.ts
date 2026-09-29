@@ -119,7 +119,7 @@ function conferenceAsJurisdiction(conf: (typeof CONFERENCES)[number]): Jurisdict
 async function fetchPageText(url: string): Promise<string> {
   try {
     const res = await fetch(url, {
-      headers: { "user-agent": "RapidCortex-RapidIQ/1.0 (+https://rapidcortex.us)" },
+      headers: { "user-agent": "RapidCortex-NexiQ/1.0 (+https://rapidcortex.us)" },
       signal: AbortSignal.timeout(20_000),
     });
     if (!res.ok) return "";

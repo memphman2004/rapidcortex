@@ -1,5 +1,5 @@
 /**
- * Rapid IQ — LA28 Olympic procurement monitor (RAMPLA.org).
+ * NexiQ — LA28 Olympic procurement monitor (RAMPLA.org).
  *
  * ## Live site inspection (2026-08-11)
  * - Correct base: https://www.rampla.org/s/  (https://www.rampla.org/opportunities → 404)

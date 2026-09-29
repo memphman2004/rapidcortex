@@ -1,15 +1,16 @@
 # QR Codes page (Transit)
 
-Passenger report codes sit on **vehicles and stations**. Riders scan or tap to report. This is not a 911 call.
+Passenger report codes live on vehicles and stations. Scans create on-system reports — not 911 CAD events.
 
-## Manage codes (Admin and Supervisor)
+## Create / print
 
-1. Open **QR Codes**.
-2. Create a code with a clear name (Bus 2145, Platform 3).
-3. Set **vehicle**, **station**, and **route** when you assign cameras or location.
-4. Download PNG, post it, program NFC in the Field app.
-5. **Deactivate** when the vehicle leaves service or the poster is retired.
+1. Open **QR Codes** as Transit Admin or Supervisor.
+2. Create a code for the vehicle ID or station name staff will recognize in the field.
+3. Print weather-resistant art; program NFC if your agency uses tags.
+4. Assign cameras when you want a scan to open the right views.
 
-Security and Operator do not deactivate codes. Tell Supervisor if a sticker is wrong or missing.
+## Deactivate
 
-Details: **Update QR codes and NFC tags** and **Delete locations from the dashboard**.
+Deactivate lost or rotated assets immediately so scans stop. See shared guide **Update QR codes and NFC tags** and **Delete locations from the dashboard**.
+
+Operators usually view/download only — they do not manage the registry unless Admin grants that job separately.

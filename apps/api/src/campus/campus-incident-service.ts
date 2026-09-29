@@ -23,7 +23,7 @@ import type {
 import { CAMPUS_KEYS } from "./campus-types.js";
 import type { createIncidentSchema, updateIncidentSchema } from "./campus-schemas.js";
 import { isConfidentialType, legalStatusTransition } from "./campus-schemas.js";
-import { suggestCleryCategory } from "./campus-clery-service.js";
+import { suggestCleryCategory } from "./campus-clery-suggest.js";
 import { listCampusAutomationRules, matchCampusEapForIncident } from "./campus-eap-service.js";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
@@ -66,13 +66,27 @@ export async function createCampusIncident(
   const assignee = defaultCounselorAssignment(input.type);
   const cleryCategorySuggested = suggestCleryCategory(input.type, input.description);
 
+  const siteCode = input.siteCode?.trim().toUpperCase() || undefined;
+  let siteShortName = input.siteShortName?.trim() || undefined;
+  if (siteCode && !siteShortName) {
+    try {
+      const { getResolvedCampusSites } = await import("./campus-sites-service.js");
+      const { sites } = await getResolvedCampusSites(input.campusCode, agencyId);
+      const match = sites.find((s) => s.code === siteCode);
+      siteShortName = match?.shortName?.trim() || match?.code || undefined;
+    } catch (err) {
+      console.warn("[createCampusIncident] siteShortName resolve skipped", err);
+    }
+  }
+
   const item: CampusIncident = {
     pk: CAMPUS_KEYS.incidentPk(input.campusCode),
     sk: CAMPUS_KEYS.incidentSk(id),
     id,
     campusCode: input.campusCode,
     agencyId,
-    siteCode: input.siteCode?.trim() || undefined,
+    siteCode,
+    siteShortName,
     buildingCode: input.buildingCode,
     buildingLabel: input.buildingCode,
     floor: input.floor ?? null,

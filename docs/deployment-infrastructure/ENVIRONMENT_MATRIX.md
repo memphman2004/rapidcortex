@@ -11,7 +11,7 @@ CloudFormation `DeploymentStage` names do **not** match how we operate the produ
 | Operator name | `DeploymentStage` | Stack | Public web | Purpose |
 |---------------|-------------------|-------|------------|---------|
 | **Live / production** | `dev` | `rapid-cortex-dev` | `https://app.rapidcortex.us` | Customer-facing. Source `scripts/env-api-dev.sh` (`I_UNDERSTAND_DEV_IS_PROD=1`). |
-| **Engineering** | `staging` | `rapid-cortex-staging` | `https://app-staging.rapidcortex.us` | Day-to-day development. Source `scripts/env-api-staging.sh`. Isolated Dynamo (including Rapid IQ / campus / venue / RCS orphans). |
+| **Engineering** | `staging` | `rapid-cortex-staging` | `https://app-staging.rapidcortex.us` | Day-to-day development. Source `scripts/env-api-staging.sh`. Isolated Dynamo (including NexiQ / campus / venue / RCS orphans). |
 | **Unused CFN name** | `prod` | `rapid-cortex-prod` | — | Reserved SAM stage; **not** the live host. |
 | **Pilot** | `pilot` | `rapid-cortex-pilot` | agency-specific | Controlled single-agency stack when used. |
 

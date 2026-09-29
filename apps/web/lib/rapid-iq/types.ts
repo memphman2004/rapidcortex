@@ -5,6 +5,11 @@ export type {
   IntentStage,
   MentionedEntity,
   OpportunityStatus,
+  NexiQContact,
+  NexiQOpportunity,
+  NexiQSignal,
+  NexiQSource,
+  NexiQVertical,
   RapidIqContact,
   RapidIqOpportunity,
   RapidIqSignal,
@@ -22,7 +27,7 @@ export type {
 
 import type { IntentStage, RapidIqVertical } from "rapid-cortex-shared";
 
-export type RapidIqVerticalFilter = RapidIqVertical | "all";
+export type NexiQVerticalFilter = RapidIqVertical | "all";
 export type IntentStageFilter = IntentStage | "all";
 export type StateFilter = string;
 
@@ -33,9 +38,12 @@ export type OpportunityListParams = {
   search?: string;
 };
 
-export type RapidIqStats = {
+export type NexiQStats = {
   opportunities: number;
   rfps: number;
   competitor: number;
   grantFunding: number;
 };
+
+/** Alias — components still import RapidIqStats during rename. */
+export type RapidIqStats = NexiQStats;

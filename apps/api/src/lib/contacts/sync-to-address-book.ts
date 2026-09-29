@@ -37,7 +37,7 @@ function splitName(full: string): { firstName: string; lastName: string } {
 }
 
 /**
- * Best-effort sync from Rapid IQ / PSAP enrichment into the Contacts address book.
+ * Best-effort sync from NexiQ / PSAP enrichment into the Contacts address book.
  * Silent no-op when tables are unset or writes fail.
  */
 export async function syncContactToAddressBook(
@@ -74,7 +74,7 @@ export async function syncContactToAddressBook(
         notes:
           source === "psap"
             ? "Auto-created from PSAP Prospect contact enrichment"
-            : "Auto-created from Rapid IQ contact enrichment",
+            : "Auto-created from NexiQ contact enrichment",
         tags: [tag],
         contactCount: 0,
         linkedSignalIds: context.opportunityId ? [context.opportunityId] : [],

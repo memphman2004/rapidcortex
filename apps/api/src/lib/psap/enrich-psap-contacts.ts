@@ -140,7 +140,7 @@ function mapSource(verificationSource: string | null | undefined): PsapProspectC
   return "manual";
 }
 
-export function adaptRapidIqContactToPsap(
+export function adaptNexiQContactToPsap(
   c: Awaited<ReturnType<typeof findContactsViaHunter>>["contacts"][number],
 ): PsapProspectContact {
   return {
@@ -310,7 +310,7 @@ export async function enrichPsapProspectContacts(
     merged = mergeContacts(merged, apollo.contacts);
   }
 
-  const contacts = dedupePsapContacts(merged.map(adaptRapidIqContactToPsap));
+  const contacts = dedupePsapContacts(merged.map(adaptNexiQContactToPsap));
   const hunterCount = contacts.filter((c) => c.source === "hunter").length;
   const apolloCount = contacts.filter((c) => c.source === "apollo").length;
 

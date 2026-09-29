@@ -1,7 +1,8 @@
-# Feature add-ons
+# Feature Add-Ons
 
-1. Open add-ons / feature modules.
-2. Enable only what your contract includes (video, pinpoint, war rooms, and so on).
-3. Turning a module off hides it for your agency. It does not delete historical records.
+Optional modules (Pinpoint, Video Assist, Call Assist, etc.) can be enabled per contract and feature flags.
 
-If a dispatcher still sees a retired module, have them sign out. Contact support with agency ID if it remains.
+1. Open **Add-Ons** / feature modules.
+2. Enable only what your agency has purchased and trained.
+3. Confirm Help articles and Staff Guide match what staff will see.
+4. Leave CAD write-back off until authorized — it is not a casual add-on.

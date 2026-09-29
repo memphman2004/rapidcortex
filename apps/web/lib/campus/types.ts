@@ -27,7 +27,27 @@ export type CampusIncidentType =
   | "property_crime"
   | "maintenance"
   | "active_threat"
-  | "other";
+  | "other"
+  | "theft"
+  | "assault"
+  | "dui"
+  | "vandalism"
+  | "sexual_offense"
+  | "bias_hate"
+  | "drug_offense"
+  | "trespassing"
+  | "weapon"
+  | "missing_person"
+  | "fire"
+  | "fight"
+  | "drug_substance"
+  | "bullying"
+  | "trespasser"
+  | "property_damage"
+  | "suspicious"
+  | "lockdown_threat"
+  | "parent_dispute"
+  | "welfare_check";
 
 export type CampusLocationSource = "GPS" | "CELL_TOWER" | "MANUAL";
 
@@ -48,6 +68,8 @@ export interface CampusIncident {
   id: string;
   campusCode: string;
   siteCode?: string;
+  /** K-12 school short badge denormalized at create. */
+  siteShortName?: string;
   buildingCode: string;
   buildingLabel: string;
   floor: number | null;

@@ -1,5 +1,5 @@
 /**
- * Deterministic fit scoring for Rapid IQ procurement pipeline signals.
+ * Deterministic fit scoring for NexiQ procurement pipeline signals.
  * Tuned to RC win conditions: Tyler/Hexagon/CentralSquare new CAD + grant funding.
  */
 

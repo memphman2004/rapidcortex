@@ -160,6 +160,7 @@ async function enrichSilentTextMessage(
 }
 
 function assertConfigured(): void {
+  if (!env.enableSilentText) throw new Error("SILENT_TEXT_DISABLED");
   if (!env.silentTextTable) throw new Error("SILENT_TEXT_TABLE_NOT_CONFIGURED");
 }
 

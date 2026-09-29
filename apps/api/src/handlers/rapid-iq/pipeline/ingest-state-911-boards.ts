@@ -457,11 +457,11 @@ async function crawlSource(source: State911Source): Promise<void> {
 
 export async function handler(): Promise<void> {
   console.log(
-    `Rapid IQ pipeline: State 911 boards ingestion starting — ${STATE_911_SOURCES.length} states`,
+    `NexiQ pipeline: State 911 boards ingestion starting — ${STATE_911_SOURCES.length} states`,
   );
 
   if (await enqueueMockIfEnabled("state-911-board")) {
-    console.log("Rapid IQ pipeline: State 911 boards mock path complete");
+    console.log("NexiQ pipeline: State 911 boards mock path complete");
     return;
   }
 
@@ -472,5 +472,5 @@ export async function handler(): Promise<void> {
     await new Promise((r) => setTimeout(r, 1_000));
   }
 
-  console.log("Rapid IQ pipeline: State 911 boards ingestion complete");
+  console.log("NexiQ pipeline: State 911 boards ingestion complete");
 }

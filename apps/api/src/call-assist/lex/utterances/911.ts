@@ -12,7 +12,22 @@ export const UTTERANCES_911 = {
     "can i get some help",
     "i have a non-emergency",
     "i need to make a report",
-    "i want to file a report"
+    "i want to file a report",
+    "hey",
+    "good morning",
+    "good afternoon",
+    "good evening",
+    "um hi",
+    "is this non emergency",
+    "is this the non emergency line",
+    "I was told to call this number",
+    "I'm not sure if this is an emergency",
+    "I need to speak with someone about a report",
+    "can someone help me file a complaint",
+    "I'd like to report a problem",
+    "calling about something that already happened",
+    "this isn't urgent but I need to report it",
+    "hello is anyone there"
   ],
   "EmergencyEscalation": [
     "someone is shooting",
@@ -60,7 +75,22 @@ export const UTTERANCES_911 = {
     "I think he has a weapon",
     "she threatened to kill me",
     "he threatened to shoot",
-    "they have a knife"
+    "they have a knife",
+    "there's a fight going on right now",
+    "people are fighting with weapons",
+    "someone just got shot",
+    "I hear gunshots",
+    "there's blood everywhere",
+    "she can't breathe",
+    "he's choking",
+    "overdose I think",
+    "someone overdosed",
+    "there's a car chasing me",
+    "I'm being followed and I'm scared",
+    "they have a firearm",
+    "knife fight",
+    "someone is holding a hostage",
+    "I need help immediately"
   ],
   "RequestHuman": [
     "let me talk to someone",
@@ -75,7 +105,17 @@ export const UTTERANCES_911 = {
     "connect me to dispatch",
     "operator",
     "talk to someone real",
-    "I'd rather talk to a person"
+    "I'd rather talk to a person",
+    "can I speak to a live person",
+    "please get me a call taker",
+    "I need an actual person",
+    "stop the robot",
+    "this AI isn't helping",
+    "put me through to an agent",
+    "I want customer service",
+    "transfer me please",
+    "let me speak with an operator now",
+    "human please"
   ],
   "NoiseComplaint": [
     "my neighbor is being too loud",
@@ -103,7 +143,19 @@ export const UTTERANCES_911 = {
     "dog won't stop barking",
     "there's a dog barking constantly",
     "there's noise outside my apartment",
-    "loud motorcycle"
+    "loud motorcycle",
+    "the noise is keeping me up",
+    "I can't sleep because of the noise",
+    "they're blasting music again",
+    "construction noise at night",
+    "someone is banging on the walls",
+    "loud arguing next door",
+    "karaoke going all night",
+    "drumming next door",
+    "the party next door won't quit",
+    "it's after quiet hours and they're still loud",
+    "can you send someone about the noise",
+    "reporting excessive noise"
   ],
   "SuspiciousPerson": [
     "there's a suspicious person",
@@ -131,7 +183,18 @@ export const UTTERANCES_911 = {
     "person looks like they're on drugs",
     "someone is wandering around confused",
     "there's a man yelling at people",
-    "a person is making people uncomfortable"
+    "a person is making people uncomfortable",
+    "there's someone hanging around who doesn't belong",
+    "a stranger has been sitting in a car for hours",
+    "someone is checking door handles",
+    "person looking into my garage",
+    "there's a guy taking pictures of houses",
+    "someone followed me home",
+    "a person is hiding behind the dumpster",
+    "suspicious vehicle with people just sitting there",
+    "someone tried my front door",
+    "there's a creep watching the playground",
+    "I think someone is casing the neighborhood"
   ],
   "AbandonedVehicle": [
     "there's an abandoned car",
@@ -149,7 +212,16 @@ export const UTTERANCES_911 = {
     "this vehicle looks like nobody owns it",
     "car has been here for three days",
     "junk car sitting on the street",
-    "can you tow this abandoned car"
+    "can you tow this abandoned car",
+    "there's a car that's been sitting here for days",
+    "abandoned truck on the street",
+    "a vehicle has been parked here forever",
+    "looks like someone dumped a car",
+    "car with flat tires left on the curb",
+    "van abandoned in the lot",
+    "there's a junk car on the grass",
+    "vehicle hasn't moved in over a week",
+    "reporting an abandoned automobile"
   ],
   "VehicleBurglary": [
     "someone broke into my car",
@@ -169,7 +241,16 @@ export const UTTERANCES_911 = {
     "someone stole things from my car",
     "my radio was stolen",
     "my laptop was stolen from my car",
-    "my car was ransacked"
+    "my car was ransacked",
+    "my car was broken into overnight",
+    "they smashed my window",
+    "my truck was broken into",
+    "someone stole stuff from my vehicle",
+    "car prowler in the parking lot",
+    "my glove box was rifled through",
+    "window shattered on my car",
+    "they got into my SUV",
+    "vehicle break-in to report"
   ],
   "TheftReport": [
     "I want to report a theft",
@@ -192,7 +273,15 @@ export const UTTERANCES_911 = {
     "can I report stolen property",
     "someone took my phone",
     "my phone was stolen",
-    "theft of services"
+    "theft of services",
+    "my bike was stolen",
+    "package theft from my porch",
+    "they stole my lawn equipment",
+    "catalytic converter was stolen",
+    "someone stole from my yard",
+    "I want to report a theft that already happened",
+    "my property was taken",
+    "shoplifting report from earlier"
   ],
   "ParkingComplaint": [
     "there's a parking violation",
@@ -211,7 +300,17 @@ export const UTTERANCES_911 = {
     "someone keeps parking in my spot",
     "car blocking my mailbox",
     "wrong way parking",
-    "expired tags parked on street"
+    "expired tags parked on street",
+    "someone is parked in front of my driveway",
+    "car blocking the hydrant",
+    "illegal parking on my street",
+    "vehicle is in a no parking zone",
+    "they're parked on the sidewalk",
+    "blocking the fire lane",
+    "handicapped spot without a placard",
+    "double parked and I can't get out",
+    "someone parked in my assigned spot",
+    "car left in a loading zone"
   ],
   "WelfareCheck": [
     "I need a welfare check",
@@ -233,7 +332,16 @@ export const UTTERANCES_911 = {
     "can you do a wellness check",
     "check on elderly person",
     "check on my mom",
-    "check on my dad"
+    "check on my dad",
+    "can you check on my neighbor",
+    "worried about an elderly relative",
+    "please do a wellness check",
+    "my friend isn't answering and I'm concerned",
+    "mail is piling up at their house",
+    "I think something might be wrong with them",
+    "can officers check if they're okay",
+    "welfare check on my mom",
+    "haven't heard from them and I'm worried"
   ],
   "AnimalComplaint": [
     "there's an animal complaint",
@@ -255,7 +363,17 @@ export const UTTERANCES_911 = {
     "there's a raccoon in my house",
     "animal in my yard",
     "coyote sighting",
-    "stray animal"
+    "stray animal",
+    "there's a stray dog running around",
+    "aggressive dog off leash",
+    "animal cruelty I want to report",
+    "injured animal on the side of the road",
+    "raccoon in the attic again",
+    "loose horse on the road",
+    "dogs fighting in the park",
+    "dead animal in the street",
+    "someone left a dog in a hot car",
+    "coyote in the neighborhood"
   ],
   "TowComplaint": [
     "I need a tow complaint",
@@ -270,7 +388,14 @@ export const UTTERANCES_911 = {
     "towing complaint",
     "predatory towing",
     "my car was booted",
-    "someone put a boot on my car"
+    "someone put a boot on my car",
+    "my car was towed and I don't know why",
+    "I think my vehicle was illegally towed",
+    "who towed my car",
+    "towing company took my truck",
+    "I need help finding my towed vehicle",
+    "dispute a tow",
+    "my car is gone and might have been towed"
   ],
   "VandalismDamage": [
     "vandalism",
@@ -288,7 +413,14 @@ export const UTTERANCES_911 = {
     "damage to my property",
     "eggs on my car",
     "someone threw rocks through my window",
-    "my fence was knocked over"
+    "my fence was knocked over",
+    "graffiti on my fence",
+    "my mailbox was smashed",
+    "windows were egged",
+    "damage to my building overnight",
+    "tagged the side of my house",
+    "vandalism to report from last night",
+    "my tires were slashed"
   ],
   "CodeEnforcementComplaint": [
     "code enforcement complaint",
@@ -306,7 +438,15 @@ export const UTTERANCES_911 = {
     "building without a permit",
     "health hazard",
     "property is a mess",
-    "nuisance property"
+    "nuisance property",
+    "overgrown lot next door",
+    "trash piled up at a property",
+    "illegal dumping in the alley",
+    "someone is running a business from home illegally",
+    "junk and debris in the yard",
+    "code violation next door",
+    "tall grass and weeds complaint",
+    "abandoned furniture on the curb for weeks"
   ],
   "PublicWorksIssue": [
     "public works issue",
@@ -328,7 +468,16 @@ export const UTTERANCES_911 = {
     "a pipe burst",
     "water coming up from the street",
     "water is gushing from the ground",
-    "the street caved in"
+    "the street caved in",
+    "there's a giant pothole",
+    "street light is out",
+    "traffic light not working",
+    "water main leak",
+    "sidewalk is broken and dangerous",
+    "storm drain is clogged",
+    "tree down blocking the road",
+    "missing street sign",
+    "flooding on the roadway"
   ],
   "TrafficAccidentReportOnly": [
     "I was in an accident",
@@ -344,7 +493,15 @@ export const UTTERANCES_911 = {
     "car crash no one was hurt",
     "accident report",
     "I need a report number for insurance",
-    "vehicle accident report"
+    "vehicle accident report",
+    "I was in a fender bender earlier",
+    "minor accident no injuries",
+    "I need an accident report for insurance",
+    "hit and run on my parked car",
+    "someone hit my car and left",
+    "property damage only crash",
+    "I need a crash report number",
+    "non injury accident to report"
   ],
   "OnlineReportEligibility": [
     "can I file a report online",
@@ -357,7 +514,12 @@ export const UTTERANCES_911 = {
     "where do I report vandalism online",
     "can this be done online",
     "I'd rather file this online",
-    "how do I make a report without calling"
+    "how do I make a report without calling",
+    "can I report this online",
+    "do I need to come in person",
+    "is this something I can file online",
+    "send me the online report link",
+    "I'd rather file online if possible"
   ],
   "RepeatCallCheck": [
     "I already called about this",
@@ -371,7 +533,12 @@ export const UTTERANCES_911 = {
     "I was told someone would come",
     "following up on my earlier call",
     "I have a reference number",
-    "checking on my report"
+    "checking on my report",
+    "this is a follow up call",
+    "I called earlier and nothing happened",
+    "calling back about the same issue",
+    "I reported this yesterday",
+    "second call about the same problem"
   ],
   "InformationRequest": [
     "I have a question",
@@ -389,7 +556,15 @@ export const UTTERANCES_911 = {
     "how do I register my alarm",
     "are there sex offenders in my area",
     "who do I call for noise complaints",
-    "how do I get a gun permit"
+    "how do I get a gun permit",
+    "what are your non emergency hours",
+    "how do I get a copy of a police report",
+    "what's the number for animal control",
+    "how do I pay a parking ticket",
+    "do you have information about a road closure",
+    "who do I call about trash pickup",
+    "can you tell me about filing a report",
+    "what documents do I need for a report"
   ]
 } as const;
 
@@ -403,7 +578,17 @@ export const UTTERANCES_911_ES = {
     "puedo recibir ayuda",
     "tengo una llamada que no es de emergencia",
     "necesito hacer un reporte",
-    "quiero presentar un reporte"
+    "quiero presentar un reporte",
+    "buenos días",
+    "buenas tardes",
+    "buenas noches",
+    "¿es la línea que no es de emergencia?",
+    "me dijeron que llamara a este número",
+    "no sé si es una emergencia",
+    "quiero presentar una queja",
+    "llamar por algo que ya pasó",
+    "no es urgente pero necesito reportarlo",
+    "hola ¿hay alguien?"
   ],
   "EmergencyEscalation": [
     "hay un tiroteo",
@@ -429,7 +614,17 @@ export const UTTERANCES_911_ES = {
     "infarto",
     "está convulsionando",
     "me amenazó con matarme",
-    "tiene un cuchillo"
+    "tiene un cuchillo",
+    "hay una pelea ahora mismo",
+    "alguien acaba de ser baleado",
+    "escucho disparos",
+    "hay sangre por todas partes",
+    "no puede respirar",
+    "creo que es una sobredosis",
+    "me están siguiendo y tengo miedo",
+    "tienen un arma de fuego",
+    "necesito ayuda inmediatamente",
+    "hay un accidente con heridos"
   ],
   "RequestHuman": [
     "quiero hablar con alguien",
@@ -438,7 +633,13 @@ export const UTTERANCES_911_ES = {
     "necesito un despachador",
     "transfiérame",
     "con una persona real",
-    "no quiero hablar con una máquina"
+    "no quiero hablar con una máquina",
+    "quiero hablar con una persona real",
+    "páseme con un operador",
+    "no quiero el robot",
+    "transfiera la llamada por favor",
+    "agente humano por favor",
+    "quiero hablar con alguien ahora"
   ],
   "NoiseComplaint": [
     "mis vecinos hacen mucho ruido",
@@ -451,7 +652,14 @@ export const UTTERANCES_911_ES = {
     "los vecinos tienen el estéreo muy alto",
     "el perro no deja de ladrar",
     "hay cohetes en el vecindario",
-    "alguien tiene el carro con la música muy fuerte"
+    "alguien tiene el carro con la música muy fuerte",
+    "el ruido no me deja dormir",
+    "están poniendo música muy alta otra vez",
+    "ruido de construcción de noche",
+    "están golpeando las paredes",
+    "hay una pelea de palabras al lado",
+    "es después del horario de silencio",
+    "quiero reportar ruido excesivo"
   ],
   "SuspiciousPerson": [
     "hay una persona sospechosa",
@@ -464,7 +672,13 @@ export const UTTERANCES_911_ES = {
     "un hombre está siguiendo a los niños",
     "alguien está viendo los carros",
     "comportamiento sospechoso",
-    "hay alguien acechando"
+    "hay alguien acechando",
+    "hay alguien que no pertenece al vecindario",
+    "un extraño lleva horas en un carro",
+    "alguien está probando las manijas de las puertas",
+    "alguien me siguió a casa",
+    "hay un vehículo sospechoso parado",
+    "creo que están vigilando las casas"
   ],
   "AbandonedVehicle": [
     "hay un carro abandonado",
@@ -473,7 +687,11 @@ export const UTTERANCES_911_ES = {
     "este carro no se ha movido",
     "hay un carro sin placas",
     "alguien dejó su carro aquí",
-    "un carro abandonado en la calle"
+    "un carro abandonado en la calle",
+    "hay un carro abandonado desde hace días",
+    "camioneta abandonada en la calle",
+    "parece que tiraron un carro",
+    "el vehículo no se ha movido en una semana"
   ],
   "VehicleBurglary": [
     "rompieron el vidrio de mi carro",
@@ -483,7 +701,12 @@ export const UTTERANCES_911_ES = {
     "alguien abrió mi carro",
     "me rompieron la ventana del carro",
     "me robaron del carro",
-    "entraron a mi vehículo"
+    "entraron a mi vehículo",
+    "alguien entró a mi carro",
+    "rompieron la ventana de mi carro anoche",
+    "robaron cosas de mi vehículo",
+    "alguien entró a mi camioneta",
+    "reporte de robo a vehículo"
   ],
   "TheftReport": [
     "quiero reportar un robo",
@@ -495,7 +718,11 @@ export const UTTERANCES_911_ES = {
     "alguien me robó la bolsa",
     "me robaron el teléfono",
     "me robaron la cartera",
-    "quiero hacer un reporte de robo"
+    "quiero hacer un reporte de robo",
+    "me robaron un paquete",
+    "robo de convertidor catalítico",
+    "quiero reportar un robo que ya ocurrió",
+    "me quitaron mi propiedad"
   ],
   "ParkingComplaint": [
     "un carro estacionado ilegalmente",
@@ -506,7 +733,12 @@ export const UTTERANCES_911_ES = {
     "están estacionados en el pavimento",
     "alguien se estacionó en mi espacio",
     "carro bloqueando el hidrante",
-    "estacionado en zona de discapacitados sin placa"
+    "estacionado en zona de discapacitados sin placa",
+    "están estacionados frente a mi entrada",
+    "carro bloqueando la boca de incendios",
+    "estacionamiento ilegal",
+    "bloqueando el carril de bomberos",
+    "doble estacionados y no puedo salir"
   ],
   "WelfareCheck": [
     "quiero un chequeo de bienestar",
@@ -517,7 +749,11 @@ export const UTTERANCES_911_ES = {
     "estoy preocupado por un familiar",
     "chequeo de bienestar para persona mayor",
     "mi mamá no contesta",
-    "no he sabido nada de mi amigo"
+    "no he sabido nada de mi amigo",
+    "pueden revisar a mi vecino",
+    "preocupado por un familiar anciano",
+    "por favor hagan una verificación de bienestar",
+    "no contesta y estoy preocupado"
   ],
   "AnimalComplaint": [
     "hay un perro suelto",
@@ -530,14 +766,22 @@ export const UTTERANCES_911_ES = {
     "coyote suelto",
     "un animal abandonado",
     "gato callejero",
-    "perro en el carro caliente"
+    "perro en el carro caliente",
+    "hay un perro suelto agresivo",
+    "quiero reportar crueldad animal",
+    "animal herido en la calle",
+    "perro dejado en un carro caliente",
+    "hay un coyote en el vecindario"
   ],
   "TowComplaint": [
     "me grúaron el carro",
     "se llevaron mi carro sin aviso",
     "queja de grúa",
     "me grúaron ilegalmente",
-    "pusieron una bota en mi carro"
+    "pusieron una bota en mi carro",
+    "me remolcaron el carro y no sé por qué",
+    "creo que remolcaron mi vehículo ilegalmente",
+    "necesito encontrar mi carro remolcado"
   ],
   "VandalismDamage": [
     "vandalismo",
@@ -548,7 +792,11 @@ export const UTTERANCES_911_ES = {
     "tiraron huevos a mi carro",
     "me rompieron el buzón",
     "pintaron mi barda",
-    "daños a la propiedad"
+    "daños a la propiedad",
+    "alguien vandalizó mi propiedad",
+    "hay grafiti en mi cerca",
+    "rayaron mi carro",
+    "me reventaron las llantas"
   ],
   "CodeEnforcementComplaint": [
     "queja de código de construcción",
@@ -557,7 +805,11 @@ export const UTTERANCES_911_ES = {
     "carros en el patio",
     "propiedad abandonada",
     "negocio ilegal en casa",
-    "construcción sin permiso"
+    "construcción sin permiso",
+    "terreno abandonado con hierba alta",
+    "basura acumulada en una propiedad",
+    "tiradero ilegal en el callejón",
+    "violación de código de vivienda"
   ],
   "PublicWorksIssue": [
     "problema de obras públicas",
@@ -569,7 +821,11 @@ export const UTTERANCES_911_ES = {
     "drenaje bloqueado",
     "se cayó un árbol en la calle",
     "la coladera no tiene tapa",
-    "está saliendo agua del suelo"
+    "está saliendo agua del suelo",
+    "hay un bache enorme",
+    "la luz de la calle no funciona",
+    "fuga de agua en la calle",
+    "árbol caído bloqueando la vía"
   ],
   "TrafficAccidentReportOnly": [
     "estuve en un accidente",
@@ -579,14 +835,21 @@ export const UTTERANCES_911_ES = {
     "choque y fuga",
     "alguien me golpeó el carro estacionado",
     "accidente sin heridos",
-    "necesito el número de reporte para el seguro"
+    "necesito el número de reporte para el seguro",
+    "tuve un choque menor sin heridos",
+    "necesito un reporte de accidente para el seguro",
+    "golpearon mi carro y se fueron",
+    "accidente solo con daños materiales"
   ],
   "OnlineReportEligibility": [
     "¿puedo hacer un reporte en línea?",
     "¿dónde puedo reportar esto?",
     "¿puedo hacerlo en el sitio web?",
     "quiero hacer un reporte por internet",
-    "¿cómo hago un reporte sin llamar?"
+    "¿cómo hago un reporte sin llamar?",
+    "puedo reportar esto en línea",
+    "pueden enviarme el enlace del reporte en línea",
+    "prefiero hacerlo por internet si se puede"
   ],
   "RepeatCallCheck": [
     "ya llamé antes sobre esto",
@@ -596,7 +859,11 @@ export const UTTERANCES_911_ES = {
     "llamé anoche",
     "tengo un número de referencia",
     "quiero saber qué pasó con mi reporte",
-    "nadie vino"
+    "nadie vino",
+    "ya llamé sobre esto",
+    "esta es una llamada de seguimiento",
+    "llamé antes y no pasó nada",
+    "es el mismo problema de ayer"
   ],
   "InformationRequest": [
     "tengo una pregunta",
@@ -608,7 +875,12 @@ export const UTTERANCES_911_ES = {
     "¿cómo solicito una orden de restricción?",
     "número de teléfono no emergencias",
     "¿cómo registro mi alarma?",
-    "¿cómo obtengo un permiso de arma?"
+    "¿cómo obtengo un permiso de arma?",
+    "cuál es el horario de no emergencia",
+    "cómo obtengo una copia de un reporte",
+    "dónde está la estación de policía",
+    "cómo pago una multa de estacionamiento",
+    "qué documentos necesito para un reporte"
   ]
 } as const;
 
@@ -623,7 +895,15 @@ export const UTTERANCES_911_ZH_CN = {
     "我要报告",
     "请帮帮我",
     "我要做笔录",
-    "非紧急"
+    "非紧急",
+    "早上好",
+    "下午好",
+    "晚上好",
+    "这是非紧急电话吗",
+    "有人告诉我打这个号码",
+    "我想报告一个问题",
+    "不是紧急情况但需要报案",
+    "你好有人吗"
   ],
   "EmergencyEscalation": [
     "有人开枪",
@@ -654,7 +934,11 @@ export const UTTERANCES_911_ZH_CN = {
     "给我接调度员",
     "不要机器人",
     "转人工",
-    "接线员"
+    "接线员",
+    "给我接真人接线员",
+    "不要人工智能",
+    "转接人工客服",
+    "我要跟调度员说话"
   ],
   "NoiseComplaint": [
     "邻居太吵了",
@@ -665,7 +949,12 @@ export const UTTERANCES_911_ZH_CN = {
     "有人在外面喊",
     "狗一直叫",
     "放烟花",
-    "汽车警报响个不停"
+    "汽车警报响个不停",
+    "噪音让我睡不着",
+    "他们又在大声放音乐",
+    "夜里施工噪音",
+    "超过安静时间还很吵",
+    "报告过度噪音"
   ],
   "SuspiciousPerson": [
     "有可疑的人",
@@ -673,7 +962,11 @@ export const UTTERANCES_911_ZH_CN = {
     "有人在窥探车子",
     "有人跟踪我",
     "可疑活动",
-    "有人在附近徘徊"
+    "有人在附近徘徊",
+    "有人在试门把手",
+    "有陌生人在车里坐了很久",
+    "有人跟着我回家",
+    "好像有人在踩点"
   ],
   "AbandonedVehicle": [
     "有一辆被遗弃的车",
@@ -695,21 +988,30 @@ export const UTTERANCES_911_ZH_CN = {
     "包裹被偷了",
     "自行车被偷了",
     "钱包被抢了",
-    "手机被偷了"
+    "手机被偷了",
+    "我的包裹被偷了",
+    "要报告已经发生的盗窃",
+    "催化转换器被偷了"
   ],
   "ParkingComplaint": [
     "违章停车",
     "堵住我家车道",
     "停在消防栓前",
     "停在禁停区",
-    "无证占用残障车位"
+    "无证占用残障车位",
+    "有人挡着我家车道",
+    "车停在消防栓前",
+    "双排停车我出不去"
   ],
   "WelfareCheck": [
     "请派人查看一下安全",
     "我担心邻居",
     "好几天没见到邻居",
     "家人联系不上",
-    "请帮我查看长辈"
+    "请帮我查看长辈",
+    "能帮忙查看我邻居吗",
+    "好几天没见到邻居了",
+    "请做一次安危检查"
   ],
   "AnimalComplaint": [
     "流浪狗",
@@ -745,7 +1047,11 @@ export const UTTERANCES_911_ZH_CN = {
     "红绿灯坏了",
     "路灯不亮",
     "路面有坑",
-    "树上倒在路上"
+    "树上倒在路上",
+    "有个大坑",
+    "路灯坏了",
+    "红绿灯不工作",
+    "自来水管漏水"
   ],
   "TrafficAccidentReportOnly": [
     "我出了车祸",
@@ -773,7 +1079,9 @@ export const UTTERANCES_911_ZH_CN = {
     "警察局在哪里",
     "怎么拿事故报告复印件",
     "非紧急电话是多少",
-    "怎么申请限制令"
+    "怎么申请限制令",
+    "非紧急电话的营业时间",
+    "怎么拿警察报告复印件"
   ]
 } as const;
 
@@ -787,7 +1095,14 @@ export const UTTERANCES_911_ZH_HK = {
     "我想報告",
     "請幫我",
     "我要做紀錄",
-    "非緊急"
+    "非緊急",
+    "早晨",
+    "午安",
+    "晚安",
+    "呢個係非緊急電話嗎",
+    "有人叫我打呢個號碼",
+    "我想報告一個問題",
+    "唔係緊急但要報案"
   ],
   "EmergencyEscalation": [
     "有人開槍",
@@ -817,7 +1132,10 @@ export const UTTERANCES_911_ZH_HK = {
     "俾我接調度員",
     "唔要機械人",
     "轉人工",
-    "接線生"
+    "接線生",
+    "俾我接真人",
+    "唔要人工智能",
+    "轉去人工客服"
   ],
   "NoiseComplaint": [
     "隔離好嘈",
@@ -827,7 +1145,11 @@ export const UTTERANCES_911_ZH_HK = {
     "音樂太大聲",
     "有人喺出面嗌",
     "狗唔停吠",
-    "有人放煙花"
+    "有人放煙花",
+    "嘈到瞓唔着",
+    "佢哋又播好大聲音樂",
+    "夜晚施工好嘈",
+    "過咗安靜時間仲好嘈"
   ],
   "SuspiciousPerson": [
     "有可疑嘅人",
@@ -835,7 +1157,10 @@ export const UTTERANCES_911_ZH_HK = {
     "有人喺度睇車",
     "有人跟蹤我",
     "可疑活動",
-    "有人喺附近蕩"
+    "有人喺附近蕩",
+    "有人試門掣",
+    "有陌生人喺車度坐好耐",
+    "有人跟我返屋企"
   ],
   "AbandonedVehicle": [
     "有架被遺棄嘅車",
@@ -855,21 +1180,30 @@ export const UTTERANCES_911_ZH_HK = {
     "包裹被偷咗",
     "單車被偷咗",
     "銀包被搶咗",
-    "手機被偷咗"
+    "手機被偷咗",
+    "我個包裹畀人偷咗",
+    "單車畀人偷咗",
+    "要報告已經發生嘅盜竊"
   ],
   "ParkingComplaint": [
     "違例泊車",
     "擋住我家車路",
     "停喺消防栓前面",
     "停喺不准停車區",
-    "無證停殘障車位"
+    "無證停殘障車位",
+    "有人擋住我條車路",
+    "車停喺消防龍頭前面",
+    "雙泊車我出唔到"
   ],
   "WelfareCheck": [
     "請派人睇吓安危",
     "我擔心隔離",
     "好多日冇見過隔離",
     "家人聯絡唔到",
-    "請幫我睇吓長者"
+    "請幫我睇吓長者",
+    "可唔可以睇下我隔離",
+    "好幾日冇見鄰居",
+    "請做一次安危檢查"
   ],
   "AnimalComplaint": [
     "流浪狗",
@@ -905,7 +1239,11 @@ export const UTTERANCES_911_ZH_HK = {
     "紅綠燈壞咗",
     "路燈唔着",
     "路面有坑",
-    "樹倒咗喺路"
+    "樹倒咗喺路",
+    "有個大窿",
+    "路燈壞咗",
+    "紅綠燈唔掂",
+    "水管漏水"
   ],
   "TrafficAccidentReportOnly": [
     "我出咗車禍",
@@ -933,7 +1271,10 @@ export const UTTERANCES_911_ZH_HK = {
     "警察局喺邊",
     "點樣攞意外報告副本",
     "非緊急電話係幾多",
-    "點樣申請限制令"
+    "點樣申請限制令",
+    "非緊急電話嘅時間",
+    "點攞警察報告副本",
+    "差館喺邊"
   ]
 } as const;
 
@@ -947,7 +1288,13 @@ export const UTTERANCES_911_TL = {
     "may tanong ako",
     "magfa-file ako ng report",
     "tulong po",
-    "hindi emergency"
+    "hindi emergency",
+    "magandang umaga",
+    "magandang hapon",
+    "ito ba ang non emergency",
+    "sinabihan akong tumawag dito",
+    "gusto kong magreklamo",
+    "hindi urgent pero kailangan mag-report"
   ],
   "EmergencyEscalation": [
     "may nagbabaril",
@@ -971,7 +1318,10 @@ export const UTTERANCES_911_TL = {
     "kausapin ko ang pulis",
     "ayaw ko ng robot",
     "dispatcher naman",
-    "operator"
+    "operator",
+    "kausapin ko ang tao po",
+    "ayaw ko ng AI",
+    "transfer sa operator"
   ],
   "NoiseComplaint": [
     "maingay ang kapitbahay",
@@ -980,14 +1330,21 @@ export const UTTERANCES_911_TL = {
     "malakas ang musika",
     "may sigawan sa labas",
     "tumatahol ang aso",
-    "may paputok"
+    "may paputok",
+    "hindi ako makatulog sa ingay",
+    "malakas ulit ang musika",
+    "maingay ang construction sa gabi",
+    "lampas na sa quiet hours"
   ],
   "SuspiciousPerson": [
     "may kahina-hinalang tao",
     "may kakaibang kilos",
     "may tumitingin sa mga kotse",
     "may sumusunod sa akin",
-    "suspicious activity"
+    "suspicious activity",
+    "may sumusubok ng mga door handle",
+    "may stranger na nakaupo sa kotse nang matagal",
+    "may sumunod sa akin pauwi"
   ],
   "AbandonedVehicle": [
     "may inabandonang kotse",
@@ -1006,19 +1363,28 @@ export const UTTERANCES_911_TL = {
     "ninakawan ako",
     "ninakaw ang package",
     "ninakaw ang bisikleta",
-    "ninakaw ang cellphone"
+    "ninakaw ang cellphone",
+    "ninakaw ang package ko",
+    "ninakaw ang bisikleta ko",
+    "gusto kong i-report ang nakaraang theft"
   ],
   "ParkingComplaint": [
     "illegal na paradahan",
     "tinatakpan ang driveway ko",
     "nakaharang sa fire hydrant",
-    "parking complaint"
+    "parking complaint",
+    "nakaharang sa driveway ko",
+    "nakaparada sa harap ng hydrant",
+    "double parked hindi ako makalabas"
   ],
   "WelfareCheck": [
     "kailangan ko ng welfare check",
     "nag-aalala ako sa kapitbahay",
     "ilang araw ko nang hindi nakikita",
-    "hindi sumasagot ang pamilya"
+    "hindi sumasagot ang pamilya",
+    "pwede bang i-check ang kapitbahay ko",
+    "ilang araw nang hindi ko nakikita",
+    "please gumawa ng wellness check"
   ],
   "AnimalComplaint": [
     "astray na aso",
@@ -1053,7 +1419,11 @@ export const UTTERANCES_911_TL = {
     "sira ang traffic light",
     "patay ang streetlight",
     "may butas sa daan",
-    "may natumbang puno"
+    "may natumbang puno",
+    "may malaking lubak",
+    "sira ang street light",
+    "hindi gumagana ang traffic light",
+    "may water leak"
   ],
   "TrafficAccidentReportOnly": [
     "naaksidente ako",
@@ -1078,7 +1448,9 @@ export const UTTERANCES_911_TL = {
     "may tanong ako",
     "nasaan ang pulisya",
     "paano kumuha ng kopya ng report",
-    "ano ang non-emergency number"
+    "ano ang non-emergency number",
+    "ano oras ng non emergency",
+    "nasaan ang police station"
   ]
 } as const;
 
@@ -1091,7 +1463,13 @@ export const UTTERANCES_911_VI = {
     "tôi có câu hỏi",
     "làm biên bản",
     "không khẩn cấp",
-    "giúp tôi với"
+    "giúp tôi với",
+    "chào buổi sáng",
+    "chào buổi chiều",
+    "đây có phải đường dây không khẩn cấp",
+    "người ta bảo tôi gọi số này",
+    "tôi muốn báo một vấn đề",
+    "không khẩn cấp nhưng cần báo cáo"
   ],
   "EmergencyEscalation": [
     "có người bắn súng",
@@ -1113,7 +1491,10 @@ export const UTTERANCES_911_VI = {
     "chuyển tôi sang nhân viên",
     "tôi muốn nói với cảnh sát",
     "đừng để máy trả lời",
-    "gặp điều phối viên"
+    "gặp điều phối viên",
+    "gặp người thật",
+    "không muốn AI",
+    "chuyển sang tổng đài viên"
   ],
   "NoiseComplaint": [
     "hàng xóm ồn quá",
@@ -1122,14 +1503,21 @@ export const UTTERANCES_911_VI = {
     "nhạc quá to",
     "có người la ngoài đường",
     "chó sủa suốt",
-    "pháo nổ"
+    "pháo nổ",
+    "tiếng ồn khiến tôi mất ngủ",
+    "họ lại mở nhạc to",
+    "ồn ào xây dựng ban đêm",
+    "đã quá giờ yên tĩnh"
   ],
   "SuspiciousPerson": [
     "có người khả nghi",
     "có người hành động lạ",
     "có người nhìn vào xe",
     "có người theo tôi",
-    "hoạt động đáng ngờ"
+    "hoạt động đáng ngờ",
+    "có người thử tay nắm cửa",
+    "người lạ ngồi trong xe rất lâu",
+    "có người theo tôi về nhà"
   ],
   "AbandonedVehicle": [
     "có xe bị bỏ",
@@ -1148,19 +1536,28 @@ export const UTTERANCES_911_VI = {
     "có người lấy đồ của tôi",
     "bưu kiện bị lấy",
     "xe đạp bị lấy",
-    "điện thoại bị lấy"
+    "điện thoại bị lấy",
+    "bưu kiện của tôi bị lấy",
+    "xe đạp bị mất cắp",
+    "tôi muốn báo trộm đã xảy ra"
   ],
   "ParkingComplaint": [
     "đỗ xe trái phép",
     "chặn lối vào nhà tôi",
     "đỗ trước trụ cứu hỏa",
-    "khiếu nại đỗ xe"
+    "khiếu nại đỗ xe",
+    "xe chắn lối vào nhà tôi",
+    "đậu trước trụ nước chữa cháy",
+    "đỗ đôi tôi không ra được"
   ],
   "WelfareCheck": [
     "cần kiểm tra an toàn",
     "tôi lo cho hàng xóm",
     "nhiều ngày không thấy hàng xóm",
-    "không liên lạc được người nhà"
+    "không liên lạc được người nhà",
+    "có thể kiểm tra hàng xóm giúp tôi",
+    "mấy ngày không thấy hàng xóm",
+    "làm kiểm tra sức khỏe giúp"
   ],
   "AnimalComplaint": [
     "chó hoang",
@@ -1195,7 +1592,11 @@ export const UTTERANCES_911_VI = {
     "đèn giao thông hỏng",
     "đèn đường tắt",
     "ổ gà",
-    "cây đổ giữa đường"
+    "cây đổ giữa đường",
+    "có ổ gà lớn",
+    "đèn đường hỏng",
+    "đèn giao thông không hoạt động",
+    "rò nước"
   ],
   "TrafficAccidentReportOnly": [
     "tôi bị tai nạn",
@@ -1220,7 +1621,10 @@ export const UTTERANCES_911_VI = {
     "tôi có câu hỏi",
     "đồn công an ở đâu",
     "làm sao lấy bản sao biên bản",
-    "số không khẩn cấp là gì"
+    "số không khẩn cấp là gì",
+    "giờ làm việc đường dây không khẩn cấp",
+    "làm sao lấy bản sao báo cáo",
+    "đồn cảnh sát ở đâu"
   ]
 } as const;
 
@@ -1232,7 +1636,13 @@ export const UTTERANCES_911_AR = {
     "أريد أن أبلغ",
     "لدي سؤال",
     "أريد تقديم بلاغ",
-    "ليست حالة طارئة"
+    "ليست حالة طارئة",
+    "صباح الخير",
+    "مساء الخير",
+    "هل هذا خط غير طارئ",
+    "قيل لي أن أتصل بهذا الرقم",
+    "أريد الإبلاغ عن مشكلة",
+    "ليس عاجلا لكن أحتاج للإبلاغ"
   ],
   "EmergencyEscalation": [
     "هناك إطلاق نار",
@@ -1254,7 +1664,10 @@ export const UTTERANCES_911_AR = {
     "حولني إلى موظف",
     "أريد التحدث مع الشرطة",
     "لا أريد الروبوت",
-    "المحول"
+    "المحول",
+    "أريد موظفا حقيقيا",
+    "لا أريد الذكاء الاصطناعي",
+    "حولني إلى المشغل"
   ],
   "NoiseComplaint": [
     "الجيران مزعجون",
@@ -1263,14 +1676,21 @@ export const UTTERANCES_911_AR = {
     "الموسيقى عالية جدا",
     "هناك صراخ في الخارج",
     "الكلب ينبح باستمرار",
-    "ألعاب نارية"
+    "ألعاب نارية",
+    "الضوضاء تمنعني من النوم",
+    "يعزفون الموسيقى بصوت عال مرة أخرى",
+    "ضوضاء بناء ليلا",
+    "بعد ساعات الهدوء وما زالوا مرتفعين"
   ],
   "SuspiciousPerson": [
     "هناك شخص مريب",
     "شخص يتصرف بغرابة",
     "شخص ينظر إلى السيارات",
     "شخص يتبعني",
-    "نشاط مريب"
+    "نشاط مريب",
+    "شخص يجرب مقابض الأبواب",
+    "غريب يجلس في سيارة منذ ساعات",
+    "شخص تبعني إلى المنزل"
   ],
   "AbandonedVehicle": [
     "هناك سيارة متروكة",
@@ -1289,19 +1709,27 @@ export const UTTERANCES_911_AR = {
     "سُرقت أغراضي",
     "سُرقت الطرد",
     "سُرقت الدراجة",
-    "سُرق هاتفي"
+    "سُرق هاتفي",
+    "سرقوا طردي",
+    "سرقت دراجتي",
+    "أريد الإبلاغ عن سرقة سابقة"
   ],
   "ParkingComplaint": [
     "موقف مخالف",
     "يسدون مدخل بيتي",
     "موقف أمام صنبور الإطفاء",
-    "شكوى مواقف"
+    "شكوى مواقف",
+    "سيارة تسد مدخل بيتي",
+    "موقوفة أمام صنبور الإطفاء",
+    "موقوفة مزدوجة ولا أستطيع الخروج"
   ],
   "WelfareCheck": [
     "أحتاج فحص سلامة",
     "أنا قلق على جاري",
     "لم أر جاري منذ أيام",
-    "لا يرد أحد من العائلة"
+    "لا يرد أحد من العائلة",
+    "هل يمكنكم التحقق من جاري",
+    "يرجى إجراء فحص سلامة"
   ],
   "AnimalComplaint": [
     "كلب ضال",
@@ -1336,7 +1764,11 @@ export const UTTERANCES_911_AR = {
     "الإشارة معطلة",
     "عمود الإنارة مطفأ",
     "حفرة في الطريق",
-    "شجرة سقطت في الطريق"
+    "شجرة سقطت في الطريق",
+    "هناك حفرة كبيرة",
+    "عمود الإنارة معطل",
+    "إشارة المرور لا تعمل",
+    "تسرب مياه"
   ],
   "TrafficAccidentReportOnly": [
     "تعرضت لحادث",
@@ -1358,9 +1790,10 @@ export const UTTERANCES_911_AR = {
     "لدي رقم مرجع"
   ],
   "InformationRequest": [
-    "لدي سؤال",
+    "أحتاج معلومات",
     "أين مركز الشرطة",
     "كيف أحصل على نسخة من البلاغ",
-    "ما رقم غير الطوارئ"
+    "ما رقم غير الطوارئ",
+    "ما ساعات الخط غير الطارئ"
   ]
 } as const;

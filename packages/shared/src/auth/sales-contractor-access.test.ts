@@ -34,7 +34,7 @@ describe("sales contractor CRM access helpers", () => {
     expect(canAccessGrantSuccessProgram("salescontractor")).toBe(true);
   });
 
-  it("keeps rcitadmin off Rapid IQ workspace", () => {
+  it("keeps rcitadmin off NexiQ workspace", () => {
     expect(canAccessRapidIqWorkspace("rcitadmin")).toBe(false);
   });
 

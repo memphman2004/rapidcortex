@@ -20,13 +20,13 @@ describe("env lazy PSAP required vars", () => {
     }
   });
 
-  it("imports and reads Rapid IQ flags without PSAP table env vars", () => {
+  it("imports and reads NexiQ flags without PSAP table env vars", () => {
     for (const key of PSAP_KEYS) {
       saved[key] = process.env[key];
       delete process.env[key];
     }
     expect(env.region).toBeTruthy();
-    expect(typeof env.enableRapidIqPipeline).toBe("boolean");
+    expect(typeof env.enableNexiQPipeline).toBe("boolean");
     expect(typeof env.rapidIqPipelineSignalsTable).toBe("string");
   });
 

@@ -1,8 +1,12 @@
-# Shift and incident reports
+# Shift & Incident Reports
+
+Run shift and incident reports to review volume, outcomes, and export CSV for command staff.
+
+## How to run a report
 
 1. Open **Reports**.
-2. Run shift or incident reports for your span of control.
-3. Export CSV when allowed.
-4. Analysts may have additional dashboards you do not.
+2. Select date range, queue, and metrics your agency exposes.
+3. Preview on screen, then **Export CSV** when needed.
+4. Share only through approved channels — exports may contain CJI-adjacent operational data.
 
-Exports follow retention and CJIS-aware handling. Do not email raw transcripts off-platform.
+Reports are agency-scoped. You will not see other tenants.

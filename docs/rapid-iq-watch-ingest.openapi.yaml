@@ -7,7 +7,7 @@ info:
     Does not create CRM Leads — operators use + Pipeline in the UI.
 servers:
   - url: https://tbr4zvjlk5.execute-api.us-east-1.amazonaws.com
-    description: Live HttpApi3 (Rapid IQ SignalHttp) — required for watch-ingest
+    description: Live HttpApi3 (NexiQ SignalHttp) — required for watch-ingest
   - url: https://api.rapidcortex.us
     description: HttpApi1 custom domain (does not serve watch-ingest as of 2026-09-25)
 paths:

@@ -66,10 +66,10 @@ function isRelevant(opp: SamOpportunity): boolean {
 }
 
 export async function handler(): Promise<void> {
-  console.log("Rapid IQ pipeline: SAM.gov ingestion starting");
+  console.log("NexiQ pipeline: SAM.gov ingestion starting");
 
   if (await enqueueMockIfEnabled("sam-gov")) {
-    console.log("Rapid IQ pipeline: SAM.gov mock path complete");
+    console.log("NexiQ pipeline: SAM.gov mock path complete");
     return;
   }
 

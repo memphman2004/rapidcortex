@@ -49,7 +49,22 @@
         "can i get some help",
         "i have a non-emergency",
         "i need to make a report",
-        "i want to file a report"
+        "i want to file a report",
+        "hey",
+        "good morning",
+        "good afternoon",
+        "good evening",
+        "um hi",
+        "is this non emergency",
+        "is this the non emergency line",
+        "I was told to call this number",
+        "I'm not sure if this is an emergency",
+        "I need to speak with someone about a report",
+        "can someone help me file a complaint",
+        "I'd like to report a problem",
+        "calling about something that already happened",
+        "this isn't urgent but I need to report it",
+        "hello is anyone there"
       ],
       "utterancesEs": [
         "hola",
@@ -60,7 +75,17 @@
         "puedo recibir ayuda",
         "tengo una llamada que no es de emergencia",
         "necesito hacer un reporte",
-        "quiero presentar un reporte"
+        "quiero presentar un reporte",
+        "buenos días",
+        "buenas tardes",
+        "buenas noches",
+        "¿es la línea que no es de emergencia?",
+        "me dijeron que llamara a este número",
+        "no sé si es una emergencia",
+        "quiero presentar una queja",
+        "llamar por algo que ya pasó",
+        "no es urgente pero necesito reportarlo",
+        "hola ¿hay alguien?"
       ],
       "slots": [],
       "confirmationEn": "",
@@ -114,7 +139,22 @@
         "I think he has a weapon",
         "she threatened to kill me",
         "he threatened to shoot",
-        "they have a knife"
+        "they have a knife",
+        "there's a fight going on right now",
+        "people are fighting with weapons",
+        "someone just got shot",
+        "I hear gunshots",
+        "there's blood everywhere",
+        "she can't breathe",
+        "he's choking",
+        "overdose I think",
+        "someone overdosed",
+        "there's a car chasing me",
+        "I'm being followed and I'm scared",
+        "they have a firearm",
+        "knife fight",
+        "someone is holding a hostage",
+        "I need help immediately"
       ],
       "utterancesEs": [
         "hay un tiroteo",
@@ -140,7 +180,17 @@
         "infarto",
         "está convulsionando",
         "me amenazó con matarme",
-        "tiene un cuchillo"
+        "tiene un cuchillo",
+        "hay una pelea ahora mismo",
+        "alguien acaba de ser baleado",
+        "escucho disparos",
+        "hay sangre por todas partes",
+        "no puede respirar",
+        "creo que es una sobredosis",
+        "me están siguiendo y tengo miedo",
+        "tienen un arma de fuego",
+        "necesito ayuda inmediatamente",
+        "hay un accidente con heridos"
       ],
       "slots": [],
       "confirmationEn": null,
@@ -161,7 +211,17 @@
         "connect me to dispatch",
         "operator",
         "talk to someone real",
-        "I'd rather talk to a person"
+        "I'd rather talk to a person",
+        "can I speak to a live person",
+        "please get me a call taker",
+        "I need an actual person",
+        "stop the robot",
+        "this AI isn't helping",
+        "put me through to an agent",
+        "I want customer service",
+        "transfer me please",
+        "let me speak with an operator now",
+        "human please"
       ],
       "utterancesEs": [
         "quiero hablar con alguien",
@@ -170,7 +230,13 @@
         "necesito un despachador",
         "transfiérame",
         "con una persona real",
-        "no quiero hablar con una máquina"
+        "no quiero hablar con una máquina",
+        "quiero hablar con una persona real",
+        "páseme con un operador",
+        "no quiero el robot",
+        "transfiera la llamada por favor",
+        "agente humano por favor",
+        "quiero hablar con alguien ahora"
       ],
       "slots": [],
       "confirmationEn": null,
@@ -204,7 +270,19 @@
         "dog won't stop barking",
         "there's a dog barking constantly",
         "there's noise outside my apartment",
-        "loud motorcycle"
+        "loud motorcycle",
+        "the noise is keeping me up",
+        "I can't sleep because of the noise",
+        "they're blasting music again",
+        "construction noise at night",
+        "someone is banging on the walls",
+        "loud arguing next door",
+        "karaoke going all night",
+        "drumming next door",
+        "the party next door won't quit",
+        "it's after quiet hours and they're still loud",
+        "can you send someone about the noise",
+        "reporting excessive noise"
       ],
       "utterancesEs": [
         "mis vecinos hacen mucho ruido",
@@ -217,7 +295,14 @@
         "los vecinos tienen el estéreo muy alto",
         "el perro no deja de ladrar",
         "hay cohetes en el vecindario",
-        "alguien tiene el carro con la música muy fuerte"
+        "alguien tiene el carro con la música muy fuerte",
+        "el ruido no me deja dormir",
+        "están poniendo música muy alta otra vez",
+        "ruido de construcción de noche",
+        "están golpeando las paredes",
+        "hay una pelea de palabras al lado",
+        "es después del horario de silencio",
+        "quiero reportar ruido excesivo"
       ],
       "slots": [
         {
@@ -280,7 +365,18 @@
         "person looks like they're on drugs",
         "someone is wandering around confused",
         "there's a man yelling at people",
-        "a person is making people uncomfortable"
+        "a person is making people uncomfortable",
+        "there's someone hanging around who doesn't belong",
+        "a stranger has been sitting in a car for hours",
+        "someone is checking door handles",
+        "person looking into my garage",
+        "there's a guy taking pictures of houses",
+        "someone followed me home",
+        "a person is hiding behind the dumpster",
+        "suspicious vehicle with people just sitting there",
+        "someone tried my front door",
+        "there's a creep watching the playground",
+        "I think someone is casing the neighborhood"
       ],
       "utterancesEs": [
         "hay una persona sospechosa",
@@ -293,7 +389,13 @@
         "un hombre está siguiendo a los niños",
         "alguien está viendo los carros",
         "comportamiento sospechoso",
-        "hay alguien acechando"
+        "hay alguien acechando",
+        "hay alguien que no pertenece al vecindario",
+        "un extraño lleva horas en un carro",
+        "alguien está probando las manijas de las puertas",
+        "alguien me siguió a casa",
+        "hay un vehículo sospechoso parado",
+        "creo que están vigilando las casas"
       ],
       "slots": [
         {
@@ -360,7 +462,16 @@
         "this vehicle looks like nobody owns it",
         "car has been here for three days",
         "junk car sitting on the street",
-        "can you tow this abandoned car"
+        "can you tow this abandoned car",
+        "there's a car that's been sitting here for days",
+        "abandoned truck on the street",
+        "a vehicle has been parked here forever",
+        "looks like someone dumped a car",
+        "car with flat tires left on the curb",
+        "van abandoned in the lot",
+        "there's a junk car on the grass",
+        "vehicle hasn't moved in over a week",
+        "reporting an abandoned automobile"
       ],
       "utterancesEs": [
         "hay un carro abandonado",
@@ -369,7 +480,11 @@
         "este carro no se ha movido",
         "hay un carro sin placas",
         "alguien dejó su carro aquí",
-        "un carro abandonado en la calle"
+        "un carro abandonado en la calle",
+        "hay un carro abandonado desde hace días",
+        "camioneta abandonada en la calle",
+        "parece que tiraron un carro",
+        "el vehículo no se ha movido en una semana"
       ],
       "slots": [
         {
@@ -424,7 +539,16 @@
         "someone stole things from my car",
         "my radio was stolen",
         "my laptop was stolen from my car",
-        "my car was ransacked"
+        "my car was ransacked",
+        "my car was broken into overnight",
+        "they smashed my window",
+        "my truck was broken into",
+        "someone stole stuff from my vehicle",
+        "car prowler in the parking lot",
+        "my glove box was rifled through",
+        "window shattered on my car",
+        "they got into my SUV",
+        "vehicle break-in to report"
       ],
       "utterancesEs": [
         "rompieron el vidrio de mi carro",
@@ -434,7 +558,12 @@
         "alguien abrió mi carro",
         "me rompieron la ventana del carro",
         "me robaron del carro",
-        "entraron a mi vehículo"
+        "entraron a mi vehículo",
+        "alguien entró a mi carro",
+        "rompieron la ventana de mi carro anoche",
+        "robaron cosas de mi vehículo",
+        "alguien entró a mi camioneta",
+        "reporte de robo a vehículo"
       ],
       "slots": [
         {
@@ -513,7 +642,15 @@
         "can I report stolen property",
         "someone took my phone",
         "my phone was stolen",
-        "theft of services"
+        "theft of services",
+        "my bike was stolen",
+        "package theft from my porch",
+        "they stole my lawn equipment",
+        "catalytic converter was stolen",
+        "someone stole from my yard",
+        "I want to report a theft that already happened",
+        "my property was taken",
+        "shoplifting report from earlier"
       ],
       "utterancesEs": [
         "quiero reportar un robo",
@@ -525,7 +662,11 @@
         "alguien me robó la bolsa",
         "me robaron el teléfono",
         "me robaron la cartera",
-        "quiero hacer un reporte de robo"
+        "quiero hacer un reporte de robo",
+        "me robaron un paquete",
+        "robo de convertidor catalítico",
+        "quiero reportar un robo que ya ocurrió",
+        "me quitaron mi propiedad"
       ],
       "slots": [
         {
@@ -586,7 +727,17 @@
         "someone keeps parking in my spot",
         "car blocking my mailbox",
         "wrong way parking",
-        "expired tags parked on street"
+        "expired tags parked on street",
+        "someone is parked in front of my driveway",
+        "car blocking the hydrant",
+        "illegal parking on my street",
+        "vehicle is in a no parking zone",
+        "they're parked on the sidewalk",
+        "blocking the fire lane",
+        "handicapped spot without a placard",
+        "double parked and I can't get out",
+        "someone parked in my assigned spot",
+        "car left in a loading zone"
       ],
       "utterancesEs": [
         "un carro estacionado ilegalmente",
@@ -597,7 +748,12 @@
         "están estacionados en el pavimento",
         "alguien se estacionó en mi espacio",
         "carro bloqueando el hidrante",
-        "estacionado en zona de discapacitados sin placa"
+        "estacionado en zona de discapacitados sin placa",
+        "están estacionados frente a mi entrada",
+        "carro bloqueando la boca de incendios",
+        "estacionamiento ilegal",
+        "bloqueando el carril de bomberos",
+        "doble estacionados y no puedo salir"
       ],
       "slots": [
         {
@@ -647,7 +803,16 @@
         "can you do a wellness check",
         "check on elderly person",
         "check on my mom",
-        "check on my dad"
+        "check on my dad",
+        "can you check on my neighbor",
+        "worried about an elderly relative",
+        "please do a wellness check",
+        "my friend isn't answering and I'm concerned",
+        "mail is piling up at their house",
+        "I think something might be wrong with them",
+        "can officers check if they're okay",
+        "welfare check on my mom",
+        "haven't heard from them and I'm worried"
       ],
       "utterancesEs": [
         "quiero un chequeo de bienestar",
@@ -658,7 +823,11 @@
         "estoy preocupado por un familiar",
         "chequeo de bienestar para persona mayor",
         "mi mamá no contesta",
-        "no he sabido nada de mi amigo"
+        "no he sabido nada de mi amigo",
+        "pueden revisar a mi vecino",
+        "preocupado por un familiar anciano",
+        "por favor hagan una verificación de bienestar",
+        "no contesta y estoy preocupado"
       ],
       "slots": [
         {
@@ -729,7 +898,17 @@
         "there's a raccoon in my house",
         "animal in my yard",
         "coyote sighting",
-        "stray animal"
+        "stray animal",
+        "there's a stray dog running around",
+        "aggressive dog off leash",
+        "animal cruelty I want to report",
+        "injured animal on the side of the road",
+        "raccoon in the attic again",
+        "loose horse on the road",
+        "dogs fighting in the park",
+        "dead animal in the street",
+        "someone left a dog in a hot car",
+        "coyote in the neighborhood"
       ],
       "utterancesEs": [
         "hay un perro suelto",
@@ -742,7 +921,12 @@
         "coyote suelto",
         "un animal abandonado",
         "gato callejero",
-        "perro en el carro caliente"
+        "perro en el carro caliente",
+        "hay un perro suelto agresivo",
+        "quiero reportar crueldad animal",
+        "animal herido en la calle",
+        "perro dejado en un carro caliente",
+        "hay un coyote en el vecindario"
       ],
       "slots": [
         {
@@ -785,14 +969,24 @@
         "towing complaint",
         "predatory towing",
         "my car was booted",
-        "someone put a boot on my car"
+        "someone put a boot on my car",
+        "my car was towed and I don't know why",
+        "I think my vehicle was illegally towed",
+        "who towed my car",
+        "towing company took my truck",
+        "I need help finding my towed vehicle",
+        "dispute a tow",
+        "my car is gone and might have been towed"
       ],
       "utterancesEs": [
         "me grúaron el carro",
         "se llevaron mi carro sin aviso",
         "queja de grúa",
         "me grúaron ilegalmente",
-        "pusieron una bota en mi carro"
+        "pusieron una bota en mi carro",
+        "me remolcaron el carro y no sé por qué",
+        "creo que remolcaron mi vehículo ilegalmente",
+        "necesito encontrar mi carro remolcado"
       ],
       "slots": [
         {
@@ -845,7 +1039,14 @@
         "damage to my property",
         "eggs on my car",
         "someone threw rocks through my window",
-        "my fence was knocked over"
+        "my fence was knocked over",
+        "graffiti on my fence",
+        "my mailbox was smashed",
+        "windows were egged",
+        "damage to my building overnight",
+        "tagged the side of my house",
+        "vandalism to report from last night",
+        "my tires were slashed"
       ],
       "utterancesEs": [
         "vandalismo",
@@ -856,7 +1057,11 @@
         "tiraron huevos a mi carro",
         "me rompieron el buzón",
         "pintaron mi barda",
-        "daños a la propiedad"
+        "daños a la propiedad",
+        "alguien vandalizó mi propiedad",
+        "hay grafiti en mi cerca",
+        "rayaron mi carro",
+        "me reventaron las llantas"
       ],
       "slots": [
         {
@@ -909,7 +1114,15 @@
         "building without a permit",
         "health hazard",
         "property is a mess",
-        "nuisance property"
+        "nuisance property",
+        "overgrown lot next door",
+        "trash piled up at a property",
+        "illegal dumping in the alley",
+        "someone is running a business from home illegally",
+        "junk and debris in the yard",
+        "code violation next door",
+        "tall grass and weeds complaint",
+        "abandoned furniture on the curb for weeks"
       ],
       "utterancesEs": [
         "queja de código de construcción",
@@ -918,7 +1131,11 @@
         "carros en el patio",
         "propiedad abandonada",
         "negocio ilegal en casa",
-        "construcción sin permiso"
+        "construcción sin permiso",
+        "terreno abandonado con hierba alta",
+        "basura acumulada en una propiedad",
+        "tiradero ilegal en el callejón",
+        "violación de código de vivienda"
       ],
       "slots": [
         {
@@ -961,7 +1178,16 @@
         "a pipe burst",
         "water coming up from the street",
         "water is gushing from the ground",
-        "the street caved in"
+        "the street caved in",
+        "there's a giant pothole",
+        "street light is out",
+        "traffic light not working",
+        "water main leak",
+        "sidewalk is broken and dangerous",
+        "storm drain is clogged",
+        "tree down blocking the road",
+        "missing street sign",
+        "flooding on the roadway"
       ],
       "utterancesEs": [
         "problema de obras públicas",
@@ -973,7 +1199,11 @@
         "drenaje bloqueado",
         "se cayó un árbol en la calle",
         "la coladera no tiene tapa",
-        "está saliendo agua del suelo"
+        "está saliendo agua del suelo",
+        "hay un bache enorme",
+        "la luz de la calle no funciona",
+        "fuga de agua en la calle",
+        "árbol caído bloqueando la vía"
       ],
       "slots": [
         {
@@ -1010,7 +1240,15 @@
         "car crash no one was hurt",
         "accident report",
         "I need a report number for insurance",
-        "vehicle accident report"
+        "vehicle accident report",
+        "I was in a fender bender earlier",
+        "minor accident no injuries",
+        "I need an accident report for insurance",
+        "hit and run on my parked car",
+        "someone hit my car and left",
+        "property damage only crash",
+        "I need a crash report number",
+        "non injury accident to report"
       ],
       "utterancesEs": [
         "estuve en un accidente",
@@ -1020,7 +1258,11 @@
         "choque y fuga",
         "alguien me golpeó el carro estacionado",
         "accidente sin heridos",
-        "necesito el número de reporte para el seguro"
+        "necesito el número de reporte para el seguro",
+        "tuve un choque menor sin heridos",
+        "necesito un reporte de accidente para el seguro",
+        "golpearon mi carro y se fueron",
+        "accidente solo con daños materiales"
       ],
       "slots": [
         {
@@ -1075,14 +1317,22 @@
         "where do I report vandalism online",
         "can this be done online",
         "I'd rather file this online",
-        "how do I make a report without calling"
+        "how do I make a report without calling",
+        "can I report this online",
+        "do I need to come in person",
+        "is this something I can file online",
+        "send me the online report link",
+        "I'd rather file online if possible"
       ],
       "utterancesEs": [
         "¿puedo hacer un reporte en línea?",
         "¿dónde puedo reportar esto?",
         "¿puedo hacerlo en el sitio web?",
         "quiero hacer un reporte por internet",
-        "¿cómo hago un reporte sin llamar?"
+        "¿cómo hago un reporte sin llamar?",
+        "puedo reportar esto en línea",
+        "pueden enviarme el enlace del reporte en línea",
+        "prefiero hacerlo por internet si se puede"
       ],
       "slots": [],
       "confirmationEn": null,
@@ -1102,7 +1352,12 @@
         "I was told someone would come",
         "following up on my earlier call",
         "I have a reference number",
-        "checking on my report"
+        "checking on my report",
+        "this is a follow up call",
+        "I called earlier and nothing happened",
+        "calling back about the same issue",
+        "I reported this yesterday",
+        "second call about the same problem"
       ],
       "utterancesEs": [
         "ya llamé antes sobre esto",
@@ -1112,7 +1367,11 @@
         "llamé anoche",
         "tengo un número de referencia",
         "quiero saber qué pasó con mi reporte",
-        "nadie vino"
+        "nadie vino",
+        "ya llamé sobre esto",
+        "esta es una llamada de seguimiento",
+        "llamé antes y no pasó nada",
+        "es el mismo problema de ayer"
       ],
       "slots": [
         {
@@ -1151,7 +1410,15 @@
         "how do I register my alarm",
         "are there sex offenders in my area",
         "who do I call for noise complaints",
-        "how do I get a gun permit"
+        "how do I get a gun permit",
+        "what are your non emergency hours",
+        "how do I get a copy of a police report",
+        "what's the number for animal control",
+        "how do I pay a parking ticket",
+        "do you have information about a road closure",
+        "who do I call about trash pickup",
+        "can you tell me about filing a report",
+        "what documents do I need for a report"
       ],
       "utterancesEs": [
         "tengo una pregunta",
@@ -1163,7 +1430,12 @@
         "¿cómo solicito una orden de restricción?",
         "número de teléfono no emergencias",
         "¿cómo registro mi alarma?",
-        "¿cómo obtengo un permiso de arma?"
+        "¿cómo obtengo un permiso de arma?",
+        "cuál es el horario de no emergencia",
+        "cómo obtengo una copia de un reporte",
+        "dónde está la estación de policía",
+        "cómo pago una multa de estacionamiento",
+        "qué documentos necesito para un reporte"
       ],
       "slots": [
         {

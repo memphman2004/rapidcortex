@@ -1,11 +1,11 @@
 import { resolvePlainOrSecretArn } from "../runtimeSecrets.js";
 
 /**
- * Load the OpenAI API key for RapidIQ.
+ * Load the OpenAI API key for NexiQ.
  * Supports Secrets Manager plaintext keys or JSON `{ "OPENAI_API_KEY": "..." }` / `{ "apiKey": "..." }`.
  * Never log the returned value.
  */
-export async function resolveRapidIqOpenAiKey(): Promise<string> {
+export async function resolveNexiQOpenAiKey(): Promise<string> {
   const arn =
     process.env.OPENAI_API_KEY_SECRET_ARN?.trim() ||
     process.env.RAPID_IQ_OPENAI_SECRET_ARN?.trim() ||
@@ -17,7 +17,7 @@ export async function resolveRapidIqOpenAiKey(): Promise<string> {
   });
 }
 
-export function isRapidIqAiEnabled(): boolean {
+export function isNexiQAiEnabled(): boolean {
   const alias = process.env.RAPIDIQ_AI_ENABLED?.trim();
   if (alias) {
     const v = alias.toLowerCase();
@@ -28,7 +28,7 @@ export function isRapidIqAiEnabled(): boolean {
   return true;
 }
 
-export function isRapidIqWebSearchEnabled(): boolean {
+export function isNexiQWebSearchEnabled(): boolean {
   const raw = (
     process.env.OPENAI_WEB_SEARCH_ENABLED ??
     process.env.RAPID_IQ_WEB_SEARCH_ENABLED ??

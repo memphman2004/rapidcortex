@@ -3,18 +3,29 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, MapPin, Plus, Save, Trash2 } from "lucide-react";
-import type { CampusSite } from "rapid-cortex-shared";
+import type { CampusGradeLevel, CampusSite } from "rapid-cortex-shared";
 import {
   fetchCampusBuildings,
   fetchCampusSites,
   saveCampusSites,
 } from "@/lib/campus/campus-dashboard-api";
+import { useCampusInstitutionType } from "@/lib/campus/use-campus-institution";
 
-function emptySite(): CampusSite {
-  return { code: "", name: "", city: "", state: "", kind: "other", active: true };
+function emptySite(isK12: boolean): CampusSite {
+  return {
+    code: "",
+    name: "",
+    city: "",
+    state: "",
+    kind: "other",
+    active: true,
+    ...(isK12 ? { shortName: "", gradeLevel: "es" as CampusGradeLevel, alertStatus: "clear" as const } : {}),
+  };
 }
 
 export function CampusSitesEditor({ agencyId }: { agencyId: string }) {
+  const { institutionType } = useCampusInstitutionType();
+  const isK12 = institutionType === "k12";
   const qc = useQueryClient();
   const sitesQuery = useQuery({
     queryKey: ["campus-sites", agencyId],
@@ -76,17 +87,23 @@ export function CampusSitesEditor({ agencyId }: { agencyId: string }) {
           <MapPin className="h-4 w-4 text-slate-400" />
         </div>
         <div>
-          <h2 className="text-sm font-semibold text-white">Campuses & locations</h2>
+          <h2 className="text-sm font-semibold text-white">
+            {isK12 ? "District schools" : "Campuses & locations"}
+          </h2>
           <p className="mt-0.5 text-xs text-slate-400">
-            Every campus this tenant operates. Dashboards, buildings, QR locations, and cameras can
-            switch across this list. Assign buildings so operators see the right map.
+            {isK12
+              ? "Every school in this district. Short names appear on incident cards and the district dashboard."
+              : "Every campus this tenant operates. Dashboards, buildings, QR locations, and cameras can switch across this list. Assign buildings so operators see the right map."}
           </p>
         </div>
       </div>
 
       <div className="space-y-3">
         {sites.map((site, index) => (
-          <div key={`${site.code}-${index}`} className="grid gap-2 sm:grid-cols-5">
+          <div
+            key={`${site.code}-${index}`}
+            className={`grid gap-2 ${isK12 ? "sm:grid-cols-6" : "sm:grid-cols-5"}`}
+          >
             <input
               value={site.code}
               onChange={(e) =>
@@ -106,38 +123,77 @@ export function CampusSitesEditor({ agencyId }: { agencyId: string }) {
                   rows.map((row, i) => (i === index ? { ...row, name: e.target.value } : row)),
                 )
               }
-              placeholder="Name"
+              placeholder={isK12 ? "School name" : "Name"}
               className="sm:col-span-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white"
             />
-            <input
-              value={site.city ?? ""}
-              onChange={(e) =>
-                setSites((rows) =>
-                  rows.map((row, i) => (i === index ? { ...row, city: e.target.value } : row)),
-                )
-              }
-              placeholder="City"
-              className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white"
-            />
-            <div className="flex gap-2">
+            {isK12 ? (
+              <>
+                <input
+                  value={site.shortName ?? ""}
+                  onChange={(e) =>
+                    setSites((rows) =>
+                      rows.map((row, i) =>
+                        i === index ? { ...row, shortName: e.target.value.toUpperCase() } : row,
+                      ),
+                    )
+                  }
+                  placeholder="Short"
+                  maxLength={16}
+                  className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white"
+                />
+                <select
+                  value={site.gradeLevel ?? "es"}
+                  onChange={(e) =>
+                    setSites((rows) =>
+                      rows.map((row, i) =>
+                        i === index
+                          ? { ...row, gradeLevel: e.target.value as CampusGradeLevel }
+                          : row,
+                      ),
+                    )
+                  }
+                  className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white"
+                >
+                  <option value="hs">HS</option>
+                  <option value="ms">MS</option>
+                  <option value="es">ES</option>
+                  <option value="k8">K-8</option>
+                  <option value="pk12">PK-12</option>
+                </select>
+              </>
+            ) : (
               <input
-                value={site.state ?? ""}
+                value={site.city ?? ""}
                 onChange={(e) =>
                   setSites((rows) =>
-                    rows.map((row, i) =>
-                      i === index ? { ...row, state: e.target.value.toUpperCase() } : row,
-                    ),
+                    rows.map((row, i) => (i === index ? { ...row, city: e.target.value } : row)),
                   )
                 }
-                placeholder="ST"
-                maxLength={2}
-                className="w-16 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white"
+                placeholder="City"
+                className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white"
               />
+            )}
+            <div className="flex gap-2">
+              {!isK12 ? (
+                <input
+                  value={site.state ?? ""}
+                  onChange={(e) =>
+                    setSites((rows) =>
+                      rows.map((row, i) =>
+                        i === index ? { ...row, state: e.target.value.toUpperCase() } : row,
+                      ),
+                    )
+                  }
+                  placeholder="ST"
+                  maxLength={2}
+                  className="w-16 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white"
+                />
+              ) : null}
               <button
                 type="button"
                 onClick={() => setSites((rows) => rows.filter((_, i) => i !== index))}
                 className="rounded-lg border border-slate-700 px-2 text-slate-400 hover:text-rose-300"
-                aria-label="Remove campus"
+                aria-label={isK12 ? "Remove school" : "Remove campus"}
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -146,11 +202,11 @@ export function CampusSitesEditor({ agencyId }: { agencyId: string }) {
         ))}
         <button
           type="button"
-          onClick={() => setSites((rows) => [...rows, emptySite()])}
+          onClick={() => setSites((rows) => [...rows, emptySite(isK12)])}
           className="inline-flex items-center gap-1 text-xs font-medium text-sky-300 hover:text-sky-200"
         >
           <Plus className="h-3.5 w-3.5" />
-          Add campus
+          {isK12 ? "Add school" : "Add campus"}
         </button>
       </div>
 
@@ -197,7 +253,7 @@ export function CampusSitesEditor({ agencyId }: { agencyId: string }) {
         className="mt-6 inline-flex items-center gap-2 rounded-lg bg-sky-700 px-4 py-2 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-50"
       >
         {saveMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-        Save campuses
+        {isK12 ? "Save schools" : "Save campuses"}
       </button>
     </section>
   );

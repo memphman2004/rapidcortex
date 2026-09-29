@@ -1,7 +1,8 @@
-# Data retention settings
+# Data Retention Settings
 
-1. Open **Compliance** / retention.
-2. Set how long incidents, transcripts, and media are kept — within law and your DPA.
-3. Shorter is not always safer if your records schedule requires longer.
+Retention controls how long incidents, transcripts, and exports remain available.
 
-Changes apply going forward per product rules. Ask counsel before shortening under litigation hold.
+1. Open **Data Retention** with your records officer.
+2. Set windows that match state records law and agency policy (e.g. Missouri Sunshine workflows).
+3. Document legal holds separately — retention UI does not replace counsel direction.
+4. Test an export before you shorten a window.

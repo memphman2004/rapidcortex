@@ -1,5 +1,12 @@
-# Hospital Admin overview
+# Hospital Admin Overview
 
-The hospital portal is **capacity and routing**, not 911 dispatch and not medical direction.
+The hospital portal manages **capacity, EMS pre-alerts, and MCI planning**. It is not a 911 dispatch console and not a CAD client.
 
-You manage bed availability, pre-alerts from EMS (when enabled), routing config, and hospital users. You will not see a dispatcher CAD workspace.
+## Admin tasks
+
+- Maintain hospital profile and department capacity
+- Acknowledge / configure pre-alert handling
+- Prepare MCI capacity plans
+- Ensure HOSPITAL_STAFF seats can update beds for their units
+
+When EMS asks for diversion status, update capacity promptly and accurately.

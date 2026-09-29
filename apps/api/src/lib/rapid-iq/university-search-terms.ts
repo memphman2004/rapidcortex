@@ -1,4 +1,4 @@
-/** Campus / higher-ed search terms for Rapid IQ collectors and classifiers. */
+/** Campus / higher-ed search terms for NexiQ collectors and classifiers. */
 
 export const UNIVERSITY_SEARCH_TERMS = [
   // Campus safety technology

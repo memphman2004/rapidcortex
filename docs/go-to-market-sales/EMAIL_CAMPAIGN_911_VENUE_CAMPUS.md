@@ -1,6 +1,6 @@
 # Email campaign — 911, Campus, and Venue
 
-**Audience:** sales, Rapid IQ operators, marketing.  
+**Audience:** sales, NexiQ operators, marketing.  
 **Cold outreach still requires human approval** before send. Bulk campaigns (100–500 prospects) are queued as drafts, then approved once on [Sales Automation](../../apps/web/app/rc-admin/sales-automation/page.tsx). Email 1 sends from the connected Outlook mailbox; the 15-minute worker drains up to 150 due emails per run.  
 **Scope guardrails:** [PROMISE_CONTROL.md](./PROMISE_CONTROL.md), [SALES_BOUNDARIES.md](./SALES_BOUNDARIES.md), [IDEAL_CUSTOMER_PROFILE.md](./IDEAL_CUSTOMER_PROFILE.md).
 
@@ -17,11 +17,11 @@ This is one program with **three vertical tracks**. Do not mix tracks. A PSAP di
 | **Primary CTA** | [Contact sales](https://www.rapidcortex.us/contact-sales?interest=demo) with vertical UTM (below). |
 | **Offer** | Assistive intelligence layer alongside existing CAD / campus PD / venue security — not a replacement for 911, CAD, radio, ENS, or VMS. |
 | **Duration** | Always-on 6-touch outbound + weekly *Inside the Cortex* for opted-in contacts. |
-| **Owner** | Sales. Rapid IQ drafts sequences; an `rcadmin` approves each send. |
+| **Owner** | Sales. NexiQ drafts sequences; an `rcadmin` approves each send. |
 
 **Success (90 days)**
 
-- Reply rate ≥ 3% on approved sends (track in Rapid IQ).
+- Reply rate ≥ 3% on approved sends (track in NexiQ).
 - ≥ 8 qualified walkthroughs (ICP scorecard passed).
 - ≥ 2 written pilot conversations (scope agreement path, not a verbal “we’ll try it”).
 
@@ -29,7 +29,7 @@ This is one program with **three vertical tracks**. Do not mix tracks. A PSAP di
 
 ## 2. Lists and who gets which track
 
-Build three suppression-clean lists. Source: Rapid IQ intel, PSAP prospect export, conference attendees, inbound `/contact-sales`.
+Build three suppression-clean lists. Source: NexiQ intel, PSAP prospect export, conference attendees, inbound `/contact-sales`.
 
 | Track | Include | Exclude | Primary titles |
 |-------|---------|---------|----------------|
@@ -50,7 +50,7 @@ Build three suppression-clean lists. Source: Rapid IQ intel, PSAP prospect expor
 | Reply-to | Same mailbox (replies land in Outlook Sent / Inbox) |
 | Send window | Tue–Thu, 09:30–11:30 **recipient local** |
 | Cadence | Day 0 → 5 → 12 → 19 → 26 → 33. Stop on reply, bounce, or unsubscribe. |
-| Rapid IQ | First three touches only (days 0 / 5 / 12), after human approval. Email 1 sends immediately from Outlook; 2 and 3 on the 15-minute worker. Emails 4–6 stay manual. |
+| NexiQ | First three touches only (days 0 / 5 / 12), after human approval. Email 1 sends immediately from Outlook; 2 and 3 on the 15-minute worker. Emails 4–6 stay manual. |
 
 **CTA URLs** (append `&utm_content=e01` … `e06`):
 
@@ -83,7 +83,7 @@ This email is for {{org_name}} operations leadership. Unsubscribe: https://www.r
 | `{{signal}}` | NG911 board agenda / Clery finding / season opener (omit the sentence if empty) |
 | `{{cta}}` | Vertical CTA URL with `utm_content` |
 
-If Rapid IQ has a procurement signal, keep **one** factual clause. Do not invent RFPs.
+If NexiQ has a procurement signal, keep **one** factual clause. Do not invent RFPs.
 
 ---
 
@@ -93,7 +93,7 @@ If Rapid IQ has a procurement signal, keep **one** factual clause. Do not invent
 
 **Asset links (email 5):** `/product/core` · `/psap-software` · `/cad-integration`
 
-### A1 · Day 0 — Problem (Rapid IQ step 1)
+### A1 · Day 0 — Problem (NexiQ step 1)
 
 **Subject:** `{{org_name}}: less typing while the call is still live`  
 **Alt subject:** `A second screen for {{org_name}} dispatch — not another CAD`  
@@ -115,7 +115,7 @@ Best,
 The NexCort iQ team
 ```
 
-### A2 · Day 5 — How it sits with CAD (Rapid IQ step 2)
+### A2 · Day 5 — How it sits with CAD (NexiQ step 2)
 
 **Subject:** `Re: {{org_name}} — CAD stays the system of record`  
 **Preheader:** Side-by-side with Motorola, Tyler, Hexagon, CentralSquare, and the rest.
@@ -133,7 +133,7 @@ Happy to send the one-page architecture note or walk the dispatcher workspace li
 {{cta}}
 ```
 
-### A3 · Day 12 — Supervisor + language (Rapid IQ step 3)
+### A3 · Day 12 — Supervisor + language (NexiQ step 3)
 
 **Subject:** `{{org_name}} — what supervisors actually see`  
 **Preheader:** Second-line review, not set-and-forget automation.
@@ -200,7 +200,7 @@ If a later grant, accreditation, or CAD project reopens the conversation, we can
 
 **Asset links:** `/product/campus` · `/campus-safety-software`
 
-### B1 · Day 0 — Problem (Rapid IQ step 1)
+### B1 · Day 0 — Problem (NexiQ step 1)
 
 **Subject:** `{{org_name}}: most students still will not call 911`  
 **Alt subject:** `QR on the lamp post vs another safety app`  
@@ -219,7 +219,7 @@ Fifteen minutes is enough to watch a scan land on the console:
 {{cta}}
 ```
 
-### B2 · Day 5 — Console + Clery (Rapid IQ step 2)
+### B2 · Day 5 — Console + Clery (NexiQ step 2)
 
 **Subject:** `Re: {{org_name}} — one console, not another ENS`  
 **Preheader:** Alongside Rave / Omnilert / Everbridge — not instead of them.
@@ -235,7 +235,7 @@ Demo the student path:
 {{cta}}
 ```
 
-### B3 · Day 12 — Speed to live (Rapid IQ step 3)
+### B3 · Day 12 — Speed to live (NexiQ step 3)
 
 **Subject:** `{{org_name}} — semester pilot, not a year-long CAD project`  
 **Preheader:** Typical campus path is weeks, not a dispatch rip-and-replace.
@@ -300,7 +300,7 @@ Unsubscribe: https://www.rapidcortex.us/unsubscribe
 
 **Asset links:** `/product/venue` · `/venue-safety-software` · `/stadium-security-software`
 
-### C1 · Day 0 — Problem (Rapid IQ step 1)
+### C1 · Day 0 — Problem (NexiQ step 1)
 
 **Subject:** `{{org_name}}: fan reports should not die on the radio`  
 **Alt subject:** `Section-level guest reports for {{org_name}}`  
@@ -319,7 +319,7 @@ Twenty minutes, including how a section report can pull registered cameras when 
 {{cta}}
 ```
 
-### C2 · Day 5 — Ops, not a new camera vendor (Rapid IQ step 2)
+### C2 · Day 5 — Ops, not a new camera vendor (NexiQ step 2)
 
 **Subject:** `Re: {{org_name}} — your cameras stay yours`  
 **Preheader:** RTSP / ONVIF into the console. No rip-and-replace of Genetec or Milestone.
@@ -335,7 +335,7 @@ Walkthrough:
 {{cta}}
 ```
 
-### C3 · Day 12 — Season / event-day (Rapid IQ step 3)
+### C3 · Day 12 — Season / event-day (NexiQ step 3)
 
 **Subject:** `{{org_name}} — one section, one event, then decide`  
 **Preheader:** Pilot a handful of sections. Pre-event test is mandatory.
@@ -395,7 +395,7 @@ Unsubscribe: https://www.rapidcortex.us/unsubscribe
 
 ## 8. Trigger overlays (do not stack on an active 6-touch)
 
-Use **instead of** email 1 when Rapid IQ has a hard signal. Then continue with emails 2–6 of that track.
+Use **instead of** email 1 when NexiQ has a hard signal. Then continue with emails 2–6 of that track.
 
 | Trigger | Who | First-line swap |
 |---------|-----|-----------------|
@@ -403,15 +403,15 @@ Use **instead of** email 1 when Rapid IQ has a hard signal. Then continue with e
 | Grant (BRIC, NG911) | 911 | “If {{org_name}} is lining up surcharge / grant spend, a standalone pilot is the piece that does not wait on a CAD vendor program.” |
 | Clery finding / new chief | Campus | “New chiefs usually want reporting they can demo in a week, not another ENS RFP.” |
 | Season opener / insurance audit | Venue | “Before {{signal}}, a section-level QR path is the piece you can test without touching radio.” |
-| 90-day silence | Any | Use Rapid IQ re-engagement job. Do not restart a full 6-touch. |
+| 90-day silence | Any | Use NexiQ re-engagement job. Do not restart a full 6-touch. |
 
-Conference pre-outreach (~30 days out) stays on the existing Rapid IQ `conference_pre` job. Invite a meeting; do not paste the whole sequence.
+Conference pre-outreach (~30 days out) stays on the existing NexiQ `conference_pre` job. Invite a meeting; do not paste the whole sequence.
 
 ---
 
 ## 9. Weekly newsletter (*Inside the Cortex*)
 
-Opted-in contacts only. Rapid IQ composes Monday drafts; approve before send.
+Opted-in contacts only. NexiQ composes Monday drafts; approve before send.
 
 - Mix 911 / campus / venue signals. Never imply one product fits all three floors.
 - No pricing, no certification claims, no competitor attacks.
@@ -437,4 +437,4 @@ Opted-in contacts only. Rapid IQ composes Monday drafts; approve before send.
 - [IDEAL_CUSTOMER_PROFILE.md](./IDEAL_CUSTOMER_PROFILE.md) — who to mail  
 - [PROMISE_CONTROL.md](./PROMISE_CONTROL.md) — what not to claim  
 - [GTM_EXECUTION_PLAN.md](./GTM_EXECUTION_PLAN.md) — 90-day motion  
-- Rapid IQ 3-touch copy lives in `apps/api/src/lib/rapid-iq/vertical-email-campaign.ts` (emails 1–3 of each track).
+- NexiQ 3-touch copy lives in `apps/api/src/lib/rapid-iq/vertical-email-campaign.ts` (emails 1–3 of each track).
