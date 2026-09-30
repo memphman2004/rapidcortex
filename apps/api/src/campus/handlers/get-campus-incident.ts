@@ -5,7 +5,6 @@ import { withCorrelationHeaders } from "../../lib/correlation.js";
 import { operationalPasswordBlock } from "../../lib/operationalPasswordGate.js";
 import { forbidden, notFound, ok, serverError, unauthorized } from "../../lib/response.js";
 import { getCampusIncident } from "../campus-incident-service.js";
-import { exportCampusAfterActionPdf } from "../campus-after-action-pdf.js";
 import { isCampusCounselorQueueType } from "rapid-cortex-shared";
 
 const authz = new AuthorizationService();
@@ -58,6 +57,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (event.queryStringParameters?.format === "pdf") {
+      // Lazy-load pdfkit path — top-level import pulls fontkit/@swc/helpers and breaks lean Lambdas.
+      const { exportCampusAfterActionPdf } = await import("../campus-after-action-pdf.js");
       const pdf = await exportCampusAfterActionPdf(incident);
       return withCorrelationHeaders(event, {
         statusCode: 200,

@@ -4,7 +4,8 @@ import { ScreenErrorBoundary } from '@/components/common/ScreenErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
 import { FieldProductProvider } from '@/navigation/field-product';
 import { Colors, ThemeProvider } from '@/theme';
-import { isCampusRole } from '@/utils/roles';
+import { isRcTranslateEnabled } from '@/utils/feature-flags';
+import { canStartFieldTranslate, isCampusRole } from '@/utils/roles';
 import { Strings } from '@/utils/strings';
 
 function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
@@ -12,6 +13,9 @@ function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
 }
 
 function CampusTabs() {
+  const { role } = useAuth();
+  const showTranslate = isRcTranslateEnabled() && canStartFieldTranslate(role);
+
   return (
     <Tabs
       screenOptions={{
@@ -36,6 +40,14 @@ function CampusTabs() {
         options={{
           title: Strings.campus.create,
           tabBarIcon: ({ focused }) => <TabIcon symbol="➕" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="translate"
+        options={{
+          title: Strings.campus.translate,
+          href: showTranslate ? undefined : null,
+          tabBarIcon: ({ focused }) => <TabIcon symbol="🗣️" focused={focused} />,
         }}
       />
       <Tabs.Screen

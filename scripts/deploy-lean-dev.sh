@@ -151,7 +151,11 @@ else
   npm install
 fi
 RC_API_PKG_BACKUP_SUFFIX=pre-lean rc_prepare_api_vendor_for_sam
-npm run build -w rapid-cortex-api
+if [[ "${SKIP_API_BUILD:-}" == "1" ]]; then
+  echo "Skipping rapid-cortex-api build (SKIP_API_BUILD=1) — using existing apps/api/dist"
+else
+  npm run build -w rapid-cortex-api
+fi
 
 restore_api_pkg() {
   if [[ "$REVERT_API_PKG" -eq 1 ]]; then
@@ -245,6 +249,8 @@ if [[ "${DEPLOY_SAM1}" -eq 1 ]]; then
   fi
   echo ""
   echo "▶ AppSamStackV2 (${SAM1_STACK})"
+  # SAM1 has no NodeDepsLayer — never lean-build (would omit jose and break auth).
+  unset SAM4_LEAN_BUILD SAM_LEAN_BUILD
   lean_sam_build "${ROOT}/infra/nested/stack-app-sam.yaml" "sam1"
   _sam1_extra=()
   if [[ -n "${MANAGE_API_DOMAIN_DNS:-}" ]]; then
@@ -264,6 +270,7 @@ if [[ "${DEPLOY_SAM2}" -eq 1 ]]; then
   echo ""
   echo "▶ AppSam2Stack (${SAM2_STACK})"
   # No NodeDepsLayer on SAM2 — full per-function deps. Prefer SAM_PARALLEL=0 to avoid rsync storms.
+  unset SAM4_LEAN_BUILD SAM_LEAN_BUILD
   lean_sam_build "${ROOT}/infra/nested/stack-app-sam-2.yaml" "sam2"
   lean_sam_deploy_nested "${SAM_BUILD_DIR}/sam2/template.yaml" "${SAM2_STACK}"
   echo "✅ AppSam2Stack deploy complete"
@@ -399,6 +406,10 @@ if [[ "${DEPLOY_SAM5}" -eq 1 ]]; then
   else
     echo "  AWS SMS: no configuration set — delivery events will not be emitted"
   fi
+  # K-12 visitor / pickup tables (condition HasCampusK12Tables) — not yet on nested stack params.
+  _sam5_extra+=("CampusVisitorsTable=rapid-cortex-campus-visitors-${STAGE}")
+  _sam5_extra+=("CampusPickupAuthTable=rapid-cortex-campus-pickup-auth-${STAGE}")
+  echo "  K-12 tables: CampusVisitorsTable=rapid-cortex-campus-visitors-${STAGE}"
   lean_sam_deploy_nested "${SAM_BUILD_DIR}/sam5/template.yaml" "${SAM5_STACK}" ${_sam5_extra[@]:+"${_sam5_extra[@]}"}
   echo "✅ AppSam5Stack deploy complete"
 fi

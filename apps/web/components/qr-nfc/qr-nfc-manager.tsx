@@ -1,8 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { CreateQRNFCInput, QRNFCRecord, ReportVertical } from "rapid-cortex-shared";
-import { formatPhoneDisplay, isMarketingSiteQrRecord, matchesCampusSiteScope, normalizePhoneE164 } from "rapid-cortex-shared";
+import type {
+  CampusZoneSummary,
+  CreateQRNFCInput,
+  QRNFCRecord,
+  ReportVertical,
+} from "rapid-cortex-shared";
+import {
+  CAMPUS_SITE_SCOPE_ALL,
+  formatPhoneDisplay,
+  isMarketingSiteQrRecord,
+  matchesCampusSiteScope,
+  normalizePhoneE164,
+} from "rapid-cortex-shared";
 import { features } from "@/lib/features";
 import { qrNfcSetupGuidePath } from "@/lib/marketing-links";
 import { NFCInstructions } from "./nfc-instructions";
@@ -13,6 +24,8 @@ import { fetchVenueCameraRegistry, type CameraApiVertical } from "@/lib/venue/ve
 import type { VenueCamera } from "rapid-cortex-shared";
 import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
 import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
+import { useCampusInstitutionType } from "@/lib/campus/use-campus-institution";
+import { createCampusZone, fetchCampusZones } from "@/lib/campus/campus-dashboard-api";
 
 type ListItem = Omit<QRNFCRecord, "qrImageBase64">;
 type MediumView = "qr" | "nfc" | "all";
@@ -89,6 +102,7 @@ export function QRNFCManager({
   const [form, setForm] = useState<CreateQRNFCInput & { callNumber?: string }>({
     name: "",
     description: "",
+    zoneId: "",
     zoneName: "",
     buildingId: "",
     floor: "",
@@ -113,6 +127,11 @@ export function QRNFCManager({
     stationId: string;
     routeId: string;
   }>({ buildingId: "", floor: "", cameraIds: [], siteCode: "", vehicleId: "", stationId: "", routeId: "" });
+  const [campusZones, setCampusZones] = useState<CampusZoneSummary[]>([]);
+  const [zonesLoading, setZonesLoading] = useState(false);
+  const [addingZone, setAddingZone] = useState(false);
+  const [newZoneLabel, setNewZoneLabel] = useState("");
+  const [zoneBusy, setZoneBusy] = useState(false);
 
   const locationCamerasEnabled = vertical === "campus" || vertical === "venue" || vertical === "transit";
   const cameraApiVertical: CameraApiVertical =
@@ -120,6 +139,9 @@ export function QRNFCManager({
   const { scope, setScope, sites, primarySiteCode } = useCampusSiteScope(
     vertical === "campus" ? agencyId : "",
   );
+  const { institutionType } = useCampusInstitutionType();
+  const isK12 = vertical === "campus" && institutionType === "k12";
+  const siteFieldLabel = isK12 ? "School" : "Campus";
 
   const flash = useCallback((tone: "ok" | "err", text: string) => {
     setActionMsg({ tone, text });
@@ -157,6 +179,35 @@ export function QRNFCManager({
       .catch(() => setRegistryCameras([]));
   }, [agencyId, cameraApiVertical, locationCamerasEnabled]);
 
+  const loadCampusZones = useCallback(async () => {
+    if (vertical !== "campus" || !agencyId.trim()) {
+      setCampusZones([]);
+      return;
+    }
+    setZonesLoading(true);
+    try {
+      setCampusZones(await fetchCampusZones(agencyId));
+    } catch {
+      setCampusZones([]);
+    } finally {
+      setZonesLoading(false);
+    }
+  }, [agencyId, vertical]);
+
+  useEffect(() => {
+    void loadCampusZones();
+  }, [loadCampusZones]);
+
+  const selectedSiteCode = (form.siteCode ?? "").trim();
+  const zonesForSchool = useMemo(() => {
+    if (vertical !== "campus") return [];
+    const siteFilter = selectedSiteCode || primarySiteCode;
+    if (!siteFilter) return campusZones;
+    return campusZones.filter((zone) =>
+      matchesCampusSiteScope(zone.siteCode, siteFilter, primarySiteCode || siteFilter),
+    );
+  }, [campusZones, primarySiteCode, selectedSiteCode, vertical]);
+
   const visibleItems = useMemo(() => {
     const byMedium =
       mediumView === "nfc" ? items.filter((row) => row.nfcEnabled) : items;
@@ -165,6 +216,90 @@ export function QRNFCManager({
       matchesCampusSiteScope(row.siteCode, scope, primarySiteCode),
     );
   }, [items, mediumView, vertical, scope, primarySiteCode]);
+
+  const emptyCreateForm = useCallback((): CreateQRNFCInput & { callNumber?: string } => {
+    const defaultSite =
+      vertical === "campus" && scope && scope !== CAMPUS_SITE_SCOPE_ALL ? scope : "";
+    return {
+      name: "",
+      description: "",
+      zoneId: "",
+      zoneName: "",
+      buildingId: "",
+      floor: "",
+      cameraIds: [],
+      vehicleId: "",
+      stationId: "",
+      routeId: "",
+      siteCode: defaultSite,
+      vertical,
+      reportType: "anonymous",
+      nfcEnabled: true,
+      callNumber: "",
+    };
+  }, [scope, vertical]);
+
+  const openCreateModal = () => {
+    setCreated(null);
+    setModalError(null);
+    setAddingZone(false);
+    setNewZoneLabel("");
+    setForm(emptyCreateForm());
+    setModalOpen(true);
+    void loadCampusZones();
+  };
+
+  const onSchoolChange = (siteCode: string) => {
+    setForm((f) => ({
+      ...f,
+      siteCode,
+      zoneId: "",
+      zoneName: "",
+    }));
+    setAddingZone(false);
+    setNewZoneLabel("");
+    setModalError(null);
+  };
+
+  const onZoneSelect = (zoneId: string) => {
+    const match = zonesForSchool.find((z) => z.zoneId === zoneId);
+    setForm((f) => ({
+      ...f,
+      zoneId: match?.zoneId ?? "",
+      zoneName: match?.zoneName ?? "",
+    }));
+  };
+
+  const onAddNewZone = async () => {
+    const label = newZoneLabel.trim();
+    const siteCode = selectedSiteCode || primarySiteCode;
+    if (!label) {
+      setModalError("Zone name is required");
+      return;
+    }
+    if (!siteCode) {
+      setModalError(`Select a ${siteFieldLabel.toLowerCase()} before adding a zone`);
+      return;
+    }
+    setZoneBusy(true);
+    setModalError(null);
+    try {
+      const createdZone = await createCampusZone(agencyId, { label, siteCode });
+      setCampusZones((prev) => [...prev, createdZone]);
+      setForm((f) => ({
+        ...f,
+        siteCode,
+        zoneId: createdZone.zoneId,
+        zoneName: createdZone.zoneName,
+      }));
+      setAddingZone(false);
+      setNewZoneLabel("");
+    } catch (err) {
+      setModalError(err instanceof Error ? err.message : "Failed to add zone");
+    } finally {
+      setZoneBusy(false);
+    }
+  };
 
   if (!features.qrNfc) {
     return <p className="text-sm text-slate-400">QR & NFC management is disabled for this environment.</p>;
@@ -175,12 +310,19 @@ export function QRNFCManager({
     setCreating(true);
     setModalError(null);
     try {
+      if (vertical === "campus" && sites.length > 0 && !form.siteCode?.trim()) {
+        setModalError(`Select a ${siteFieldLabel.toLowerCase()} for this code`);
+        setCreating(false);
+        return;
+      }
+
       const rawCall = form.callNumber?.trim();
       let callNumber: string | undefined;
       if (rawCall) {
         callNumber = normalizePhoneE164(rawCall);
         if (!/^\+[1-9]\d{6,14}$/.test(callNumber)) {
           setModalError("Phone must be E.164 format (e.g. +17065551234 or 7065551234)");
+          setCreating(false);
           return;
         }
       }
@@ -193,6 +335,8 @@ export function QRNFCManager({
           ...form,
           agencyId,
           callNumber,
+          zoneId: form.zoneId?.trim() || undefined,
+          zoneName: form.zoneName?.trim() || undefined,
           buildingId: form.buildingId?.trim() || undefined,
           floor: form.floor?.trim() || undefined,
           cameraIds: locationCamerasEnabled ? form.cameraIds ?? [] : undefined,
@@ -209,24 +353,12 @@ export function QRNFCManager({
       }
       setCreated(body.record ?? null);
       setModalOpen(false);
-      setForm({
-        name: "",
-        description: "",
-        zoneName: "",
-        buildingId: "",
-        floor: "",
-        cameraIds: [],
-        vehicleId: "",
-        stationId: "",
-        routeId: "",
-        siteCode: "",
-        vertical,
-        reportType: "anonymous",
-        nfcEnabled: true,
-        callNumber: "",
-      });
+      setAddingZone(false);
+      setNewZoneLabel("");
+      setForm(emptyCreateForm());
       if (body.record?.nfcEnabled) setMediumView("nfc");
       void load();
+      if (vertical === "campus") void loadCampusZones();
     } catch {
       setModalError("Network error — please try again.");
     } finally {
@@ -420,11 +552,7 @@ export function QRNFCManager({
         {canCreate ? (
           <button
             type="button"
-            onClick={() => {
-              setCreated(null);
-              setModalError(null);
-              setModalOpen(true);
-            }}
+            onClick={openCreateModal}
             className="rounded-md bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500"
           >
             + New QR / NFC Code
@@ -907,15 +1035,115 @@ export function QRNFCManager({
                 className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
               />
             </label>
-            <label className="mt-3 block text-sm text-slate-300">
-              {zoneLabel}
-              <input
-                value={form.zoneName ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, zoneName: e.target.value }))}
-                placeholder={zonePlaceholder}
-                className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
-              />
-            </label>
+            {vertical === "campus" && sites.length > 0 ? (
+              <label className="mt-3 block text-sm text-slate-300">
+                {siteFieldLabel} *
+                <select
+                  required
+                  value={form.siteCode ?? ""}
+                  onChange={(e) => onSchoolChange(e.target.value)}
+                  className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
+                >
+                  <option value="">{isK12 ? "Select a school…" : "Select a campus…"}</option>
+                  {sites.map((site) => (
+                    <option key={site.code} value={site.code}>
+                      {site.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            {vertical === "campus" ? (
+              <div className="mt-3 space-y-2">
+                <div className="flex flex-wrap items-end gap-2">
+                  <label className="block min-w-[12rem] flex-1 text-sm text-slate-300">
+                    Zone
+                    <select
+                      value={form.zoneId ?? ""}
+                      onChange={(e) => onZoneSelect(e.target.value)}
+                      disabled={!selectedSiteCode && sites.length > 0}
+                      className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5 disabled:opacity-50"
+                    >
+                      <option value="">
+                        {!selectedSiteCode && sites.length > 0
+                          ? `Select a ${siteFieldLabel.toLowerCase()} first`
+                          : zonesLoading
+                            ? "Loading zones…"
+                            : zonesForSchool.length === 0
+                              ? "No zones yet — add one"
+                              : "Select a zone…"}
+                      </option>
+                      {zonesForSchool.map((zone) => (
+                        <option key={zone.zoneId} value={zone.zoneId}>
+                          {zone.zoneName}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {canCreate ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAddingZone(true);
+                        setModalError(null);
+                      }}
+                      disabled={(!selectedSiteCode && sites.length > 0) || zoneBusy}
+                      className="rounded border border-sky-700/60 px-2.5 py-1.5 text-xs font-medium text-sky-200 hover:bg-sky-950/50 disabled:opacity-50"
+                    >
+                      Add new zone
+                    </button>
+                  ) : null}
+                </div>
+                {addingZone ? (
+                  <div className="rounded border border-sky-800/50 bg-slate-950/70 p-3 space-y-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      New zone name
+                      <input
+                        value={newZoneLabel}
+                        onChange={(e) => setNewZoneLabel(e.target.value)}
+                        placeholder={isK12 ? "e.g. North Gymnasium" : zonePlaceholder}
+                        maxLength={120}
+                        className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5 text-sm text-slate-100"
+                        autoFocus
+                      />
+                    </label>
+                    <p className="text-[11px] text-slate-500">
+                      Saves to this {siteFieldLabel.toLowerCase()} and selects it for the QR code.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        disabled={zoneBusy}
+                        onClick={() => void onAddNewZone()}
+                        className="rounded border border-sky-600 bg-sky-700/80 px-2.5 py-1 text-xs font-medium text-white hover:bg-sky-600 disabled:opacity-50"
+                      >
+                        {zoneBusy ? "Saving…" : "Save zone"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAddingZone(false);
+                          setNewZoneLabel("");
+                        }}
+                        className="rounded border border-slate-600 px-2.5 py-1 text-xs text-slate-300 hover:bg-slate-800"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <label className="mt-3 block text-sm text-slate-300">
+                {zoneLabel}
+                <input
+                  value={form.zoneName ?? ""}
+                  onChange={(e) => setForm((f) => ({ ...f, zoneName: e.target.value }))}
+                  placeholder={zonePlaceholder}
+                  className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
+                />
+              </label>
+            )}
             {locationCamerasEnabled ? (
               <>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -968,23 +1196,6 @@ export function QRNFCManager({
                   </label>
                     </>
                   )}
-                  {vertical === "campus" && sites.length > 0 ? (
-                    <label className="block text-sm text-slate-300 sm:col-span-2">
-                      Campus
-                      <select
-                        value={form.siteCode ?? ""}
-                        onChange={(e) => setForm((f) => ({ ...f, siteCode: e.target.value }))}
-                        className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
-                      >
-                        <option value="">Tenant primary</option>
-                        {sites.map((site) => (
-                          <option key={site.code} value={site.code}>
-                            {site.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  ) : null}
                 </div>
                 <fieldset className="mt-3">
                   <legend className="text-sm text-slate-300">Assigned cameras</legend>

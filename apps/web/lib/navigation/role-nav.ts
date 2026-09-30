@@ -1336,7 +1336,8 @@ export function getCampusSecurityNav(code: string): RoleNav {
           rcVideoWallNavItem(`${base}/video-wall`),
           { id: "qr",          label: "QR Codes",          href: `${base}/qr-codes`,        icon: "QrCode",
             badge: { type: "label", text: "VIEW ONLY", color: "slate" } },
-          { id: "zones",       label: "Zones",             href: `${base}/zones`,           icon: "Map" },
+          { id: "zones",       label: "Zones",             href: `${base}/zones`,           icon: "Map",
+            badge: { type: "label", text: "VIEW ONLY", color: "slate" } },
         ],
       },
     ],
@@ -1412,11 +1413,7 @@ export function getCampusFacultyNav(code: string): RoleNav {
         label: "CAMPUS SAFETY",
         items: [
           { id: "dashboard", label: "Dashboard", href: base, icon: "LayoutDashboard", exact: true },
-          rcTranslateNavItem(`${base}/translate`, "rcTranslateCampus", {
-            type: "label",
-            text: "VIEW ONLY",
-            color: "slate",
-          }),
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateCampus"),
           { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileBarChart" },
         ],
       },
@@ -1929,8 +1926,10 @@ export type NavContext = {
 };
 
 /**
- * Higher-ed keeps Clery compliance nav. K-12 swaps Clery for Incident Log /
- * School Safety Report and adds Visitor Verification + Pickup Authorization.
+ * Higher-ed keeps Clery Act compliance nav (Daily Crime Log, ASR, CSA, etc.).
+ * K-12 drops all Clery items, keeps a generic Reports hub, adds Daily Incident
+ * Log + School Safety Report, Visitor / Pickup under K-12 SAFETY, and relabels
+ * primary sections so the left rail is unmistakably a school console.
  */
 export function applyCampusInstitutionNav(
   nav: RoleNav,
@@ -1938,24 +1937,34 @@ export function applyCampusInstitutionNav(
   institutionType: CampusInstitutionType = "higher_ed",
 ): RoleNav {
   if (institutionType !== "k12") return nav;
+
   const base = `/app/campus/${campusCode}`;
-  const sections = nav.sections
+  const sections: NavSection[] = nav.sections
     .filter((section) => section.id !== "clery-compliance")
-    .map((section) => {
-      if (section.id !== "management" && section.id !== "safety") return section;
-      if (section.id === "management") {
+    .map((section): NavSection => {
+      const label: string =
+        section.id === "safety"
+          ? "SCHOOL SAFETY"
+          : section.id === "dispatch"
+            ? "SCHOOL DISPATCH"
+            : (section.label ?? section.id);
+
+      if (section.id === "management" || section.id === "reports") {
         return {
           ...section,
+          label,
           items: [
-            ...section.items.filter((item) => item.id !== "clery"),
+            ...section.items.filter(
+              (item) => item.id !== "clery" && !item.id.startsWith("clery-"),
+            ),
             {
-              id: "incident-log",
-              label: "Incident Log",
+              id: "daily-incident-log",
+              label: "Daily Incident Log",
               href: `${base}/reports/incidents`,
-              icon: "ClipboardList",
+              icon: "BookOpen",
             },
             {
-              id: "school-safety",
+              id: "school-safety-report",
               label: "School Safety Report",
               href: `${base}/reports/school-safety`,
               icon: "FileText",
@@ -1963,7 +1972,8 @@ export function applyCampusInstitutionNav(
           ],
         };
       }
-      return section;
+
+      return { ...section, label };
     });
 
   const k12Safety: NavSection = {
@@ -1987,11 +1997,22 @@ export function applyCampusInstitutionNav(
 
   const insertAt = Math.max(
     0,
-    sections.findIndex((s) => s.id === "management" || s.id === "config"),
+    sections.findIndex((s) => s.id === "management" || s.id === "config" || s.id === "reports"),
   );
   const next = [...sections];
-  next.splice(insertAt === -1 ? next.length : insertAt, 0, k12Safety);
-  return { ...nav, sections: next };
+  // Prefer inserting before management/config; for ops-only roles, before reports; else append.
+  const preferBefore = sections.findIndex(
+    (s) => s.id === "management" || s.id === "config",
+  );
+  const at =
+    preferBefore >= 0 ? preferBefore : insertAt === -1 ? next.length : insertAt;
+  next.splice(at, 0, k12Safety);
+
+  const roleBadge = nav.roleBadge.startsWith("K-12")
+    ? nav.roleBadge
+    : nav.roleBadge.replace(/^CAMPUS\s+/i, "K-12 ");
+
+  return { ...nav, roleBadge, sections: next };
 }
 
 export function getRoleNav(role: string, ctx: NavContext): RoleNav {
@@ -2060,15 +2081,22 @@ export function getRoleNav(role: string, ctx: NavContext): RoleNav {
         ),
         `/app/campus/${c}/staff-guide`,
       );
-    case "CAMPUS_FACULTY":
-      return appendStaffGuideNav(
-        applyCampusInstitutionNav(
-          getCampusFacultyNav(c),
-          c,
-          parseCampusInstitutionType(ctx.campusInstitutionType),
-        ),
-        `/app/campus/${c}/staff-guide`,
-      );
+    case "CAMPUS_FACULTY": {
+      const institutionType = parseCampusInstitutionType(ctx.campusInstitutionType);
+      let facultyNav = applyCampusInstitutionNav(getCampusFacultyNav(c), c, institutionType);
+      // Faculty K-12: Pickup Authorization only (no Visitor Verification).
+      if (institutionType === "k12") {
+        facultyNav = {
+          ...facultyNav,
+          sections: facultyNav.sections.map((section) =>
+            section.id === "k12-safety"
+              ? { ...section, items: section.items.filter((item) => item.id === "pickup-auth") }
+              : section,
+          ),
+        };
+      }
+      return appendStaffGuideNav(facultyNav, `/app/campus/${c}/staff-guide`);
+    }
     // Hospital
     case "HOSPITAL_ADMIN":      return HOSPITAL_ADMIN_NAV;
     case "HOSPITAL_COORDINATOR":return HOSPITAL_COORDINATOR_NAV;

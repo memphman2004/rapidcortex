@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		16180FBD3683BFA383D624B3 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654A542785A3A65C131D6BA0 /* SettingsView.swift */; };
+		A11F10000000000000000020 /* TranslateRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000021 /* TranslateRootView.swift */; };
+		A11F10000000000000000022 /* RCAPIClient+Translate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000023 /* RCAPIClient+Translate.swift */; };
+		A11F10000000000000000024 /* TranslateSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000025 /* TranslateSessionController.swift */; };
 		1A10B271CBEC16332E2A0C6D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1D67F9C6BA25D2460EB0B39F /* Assets.xcassets */; };
 		1FAE77695459CF7D7BBF77E9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 057FE9DD183AB56F2B705B77 /* PrivacyInfo.xcprivacy */; };
 		549C3397BB4147D7114D9784 /* SiteQrNfcView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCD7A49737FBDFF668306B5 /* SiteQrNfcView.swift */; };
@@ -52,6 +55,9 @@
 		5A518817267A64322DA4A72A /* CognitoAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CognitoAuthManager.swift; sourceTree = "<group>"; };
 		603AF2D2575FFC8F8DD842EF /* RapidCortexFieldApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RapidCortexFieldApp.swift; sourceTree = "<group>"; };
 		654A542785A3A65C131D6BA0 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A11F10000000000000000021 /* TranslateRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateRootView.swift; sourceTree = "<group>"; };
+		A11F10000000000000000023 /* RCAPIClient+Translate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+Translate.swift"; sourceTree = "<group>"; };
+		A11F10000000000000000025 /* TranslateSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateSessionController.swift; sourceTree = "<group>"; };
 		7822122D60E0CE42710DB109 /* NFCTagWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCTagWriter.swift; sourceTree = "<group>"; };
 		7F6237F881810AA1BB3C4415 /* NeuralFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeuralFieldView.swift; sourceTree = "<group>"; };
 		81ADA5F5FDE82F22CBF15AE8 /* CognitoSRPHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CognitoSRPHelper.swift; sourceTree = "<group>"; };
@@ -132,6 +138,9 @@
 				A11F10000000000000000012 /* RCRouter.swift */,
 				1C7EF1CC5076A69563443CFC /* RCTheme.swift */,
 				654A542785A3A65C131D6BA0 /* SettingsView.swift */,
+				A11F10000000000000000021 /* TranslateRootView.swift */,
+				A11F10000000000000000023 /* RCAPIClient+Translate.swift */,
+				A11F10000000000000000025 /* TranslateSessionController.swift */,
 				CBCD7A49737FBDFF668306B5 /* SiteQrNfcView.swift */,
 				D8AB2BDE52E6C56177C9F254 /* TradeShowSite.swift */,
 				A11F10000000000000000014 /* AgencySelectView.swift */,
@@ -260,6 +269,9 @@
 				A11F10000000000000000013 /* AgencySelectView.swift in Sources */,
 				7E1906EF5074FB17C815BBAA /* RapidCortexFieldApp.swift in Sources */,
 				16180FBD3683BFA383D624B3 /* SettingsView.swift in Sources */,
+				A11F10000000000000000020 /* TranslateRootView.swift in Sources */,
+				A11F10000000000000000022 /* RCAPIClient+Translate.swift in Sources */,
+				A11F10000000000000000024 /* TranslateSessionController.swift in Sources */,
 				549C3397BB4147D7114D9784 /* SiteQrNfcView.swift in Sources */,
 				63CE5E108DC5D24AEE053965 /* TradeShowSite.swift in Sources */,
 			);

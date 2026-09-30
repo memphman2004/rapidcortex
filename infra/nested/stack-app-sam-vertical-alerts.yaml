@@ -134,6 +134,18 @@ Globals:
           - ""
 
 Resources:
+  NodeDepsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${ManagedPolicyNamePrefix}-vertical-alerts-api-deps-${DeploymentStage}"
+      Description: Shared node_modules for Vertical Alerts Lambdas (lean CodeUri builds)
+      ContentUri: ../../apps/api/layer/
+      CompatibleRuntimes:
+        - nodejs20.x
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: makefile
+
   FourWindsApiSecret:
     Type: AWS::SecretsManager::Secret
     Condition: CreateFourWindsSecret
@@ -268,6 +280,8 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/alerts/http.handler
       Timeout: 60
+      Layers:
+        - !Ref NodeDepsLayer
       Policies:
         - !Ref AppManagedPolicyVerticalAlerts
         - !If
@@ -310,6 +324,8 @@ Resources:
       Handler: dist/handlers/alerts/ens-scheduler.handler
       Timeout: 300
       MemorySize: 512
+      Layers:
+        - !Ref NodeDepsLayer
       Policies:
         - !Ref AppManagedPolicyVerticalAlerts
       Events:

@@ -10,3 +10,11 @@ export async function GET(request: NextRequest, ctx: Ctx) {
     `/api/campus/${encodeURIComponent(agencyId)}/zones`,
   );
 }
+
+export async function POST(request: NextRequest, ctx: Ctx) {
+  const { agencyId } = await ctx.params;
+  return proxyToAuthUpstream(
+    request,
+    `/api/campus/${encodeURIComponent(agencyId)}/zones`,
+  );
+}

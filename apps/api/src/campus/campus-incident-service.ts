@@ -62,9 +62,11 @@ export async function createCampusIncident(
 ): Promise<CampusIncident> {
   const id = makeIncidentId(input.campusCode);
   const now = new Date().toISOString();
-  const confidential = input.confidential ?? isConfidentialType(input.type);
-  const assignee = defaultCounselorAssignment(input.type);
-  const cleryCategorySuggested = suggestCleryCategory(input.type, input.description);
+  // Schema validates against the catalog enum; widen is typed as string[] so cast after parse.
+  const incidentType = input.type as CampusIncidentType;
+  const confidential = input.confidential ?? isConfidentialType(incidentType);
+  const assignee = defaultCounselorAssignment(incidentType);
+  const cleryCategorySuggested = suggestCleryCategory(incidentType, input.description);
 
   const siteCode = input.siteCode?.trim().toUpperCase() || undefined;
   let siteShortName = input.siteShortName?.trim() || undefined;
@@ -97,7 +99,7 @@ export async function createCampusIncident(
       : [input.buildingCode, input.roomCode].filter(Boolean).join(" · "),
     qrRcli: input.qrRcli,
     qrLocationName: input.qrLocationName,
-    type: input.type,
+    type: incidentType,
     source: input.source,
     status: "open",
     description: input.description,
@@ -420,17 +422,25 @@ export async function updateCampusIncident(
   );
 
   if (update.status) {
-    await auditRepo.create({
-      eventId: makeId("audit"),
-      agencyId: campusCode,
-      incidentId,
-      actorId,
-      type: "CAMPUS_INCIDENT_STATUS_CHANGED",
-      details: { from: existing.status, to: update.status, actorName },
-      createdAt: now,
-      resourceType: "incident",
-      resourceId: incidentId,
-    });
+    try {
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: campusCode,
+        incidentId,
+        actorId,
+        type: "CAMPUS_INCIDENT_STATUS_CHANGED",
+        details: { from: existing.status, to: update.status, actorName },
+        createdAt: now,
+        resourceType: "incident",
+        resourceId: incidentId,
+      });
+    } catch (err) {
+      console.error("[campus-incident] audit status change failed", {
+        incidentId,
+        campusCode,
+        err,
+      });
+    }
   }
 
   return result.Attributes as CampusIncident;
@@ -475,17 +485,21 @@ export async function escalateCampusIncident(
 ): Promise<{ escalatedIncidentId: string }> {
   await updateCampusIncident(campusCode, incidentId, { status: "escalated" }, actorId, "system");
 
-  await auditRepo.create({
-    eventId: makeId("audit"),
-    agencyId: campusCode,
-    incidentId,
-    actorId,
-    type: "CAMPUS_INCIDENT_ESCALATED_TO_CORE",
-    details: { campusCode },
-    createdAt: new Date().toISOString(),
-    resourceType: "incident",
-    resourceId: incidentId,
-  });
+  try {
+    await auditRepo.create({
+      eventId: makeId("audit"),
+      agencyId: campusCode,
+      incidentId,
+      actorId,
+      type: "CAMPUS_INCIDENT_ESCALATED_TO_CORE",
+      details: { campusCode },
+      createdAt: new Date().toISOString(),
+      resourceType: "incident",
+      resourceId: incidentId,
+    });
+  } catch (err) {
+    console.error("[campus-incident] audit escalate failed", { incidentId, campusCode, err });
+  }
 
   return { escalatedIncidentId: incidentId };
 }

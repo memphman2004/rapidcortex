@@ -1,4 +1,9 @@
-import type { TranslateSegment, TranslateSession, TranslateVertical } from "rapid-cortex-shared";
+import type {
+  TranslateAssistanceEncounter,
+  TranslateSegment,
+  TranslateSession,
+  TranslateVertical,
+} from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { env } from "../lib/env.js";
 import { makeId } from "../lib/ids.js";
@@ -14,6 +19,16 @@ export function formatDuration(startedAt: string, endedAt: string): string {
   return `${Math.floor(s / 60)}m ${s % 60}s`;
 }
 
+export function linkedIncidentIdForSession(session: TranslateSession): string | undefined {
+  return (
+    session.incidentId ||
+    session.venueContext?.venueIncidentId ||
+    session.campusContext?.campusIncidentId ||
+    session.hospitalContext?.patientEncounterId ||
+    undefined
+  );
+}
+
 export function hasWritebackTarget(session: TranslateSession, vertical: TranslateVertical): boolean {
   switch (vertical) {
     case "law_enforcement":
@@ -25,6 +40,45 @@ export function hasWritebackTarget(session: TranslateSession, vertical: Translat
     case "hospital":
       return Boolean(session.hospitalContext?.patientEncounterId);
   }
+}
+
+export function buildAssistanceEncounter(
+  session: TranslateSession,
+  now = new Date().toISOString(),
+): TranslateAssistanceEncounter {
+  const endedAt = session.endedAt ?? now;
+  const durationSec = Math.max(
+    0,
+    Math.round((Date.parse(endedAt) - Date.parse(session.startedAt)) / 1000),
+  );
+  const linkedIncidentId = linkedIncidentIdForSession(session);
+  const assistMonth = endedAt.slice(0, 7);
+  return {
+    assistanceId: `assist_${session.sessionId}`,
+    agencyId: session.agencyId,
+    sessionId: session.sessionId,
+    vertical: session.vertical ?? "law_enforcement",
+    officerId: session.officerId,
+    officerName: session.officerName,
+    subjectLanguage: session.subjectLanguage,
+    primaryLanguage: session.primaryLanguage,
+    startedAt: session.startedAt,
+    endedAt,
+    durationSec,
+    segmentCount: session.segmentCount,
+    linkedIncidentId,
+    standalone: !linkedIncidentId,
+    assistMonth,
+    createdAt: now,
+  };
+}
+
+export async function persistTranslateAssistanceEncounter(
+  session: TranslateSession,
+): Promise<TranslateAssistanceEncounter> {
+  const row = buildAssistanceEncounter(session);
+  await translateStore.putAssistanceEncounter(row);
+  return row;
 }
 
 async function postInternalNote(url: string, body: unknown): Promise<boolean> {
@@ -45,10 +99,23 @@ export async function queueVerticalWriteback(opts: {
   summary: string;
   segments: TranslateSegment[];
   actorId: string;
-}): Promise<{ queued: boolean; cadQueued: boolean; noteId?: string }> {
+  /** When true, only persist the assistance encounter (no incident/hospital note). */
+  skipIncidentNote?: boolean;
+}): Promise<{
+  queued: boolean;
+  cadQueued: boolean;
+  noteId?: string;
+  assistanceId?: string;
+}> {
   const vertical = opts.session.vertical ?? "law_enforcement";
-  if (!hasWritebackTarget(opts.session, vertical)) {
-    return { queued: false, cadQueued: false };
+  const assistance = await persistTranslateAssistanceEncounter(opts.session);
+
+  if (opts.skipIncidentNote || !hasWritebackTarget(opts.session, vertical)) {
+    return {
+      queued: true,
+      cadQueued: false,
+      assistanceId: assistance.assistanceId,
+    };
   }
 
   const endedAt = opts.session.endedAt ?? new Date().toISOString();
@@ -59,7 +126,11 @@ export async function queueVerticalWriteback(opts: {
 
   if (vertical === "law_enforcement") {
     if (!env.cadWritebackEnabled) {
-      return { queued: false, cadQueued: false };
+      return {
+        queued: true,
+        cadQueued: false,
+        assistanceId: assistance.assistanceId,
+      };
     }
     cadQueued = true;
     queued = true;
@@ -160,6 +231,7 @@ export async function queueVerticalWriteback(opts: {
       cadQueued,
       noteId,
       incidentId: opts.session.incidentId,
+      assistanceId: assistance.assistanceId,
       transcriptChars: formatTranscript(opts.session, opts.segments).length,
     },
     createdAt: new Date().toISOString(),
@@ -167,5 +239,5 @@ export async function queueVerticalWriteback(opts: {
     resourceId: opts.session.sessionId,
   });
 
-  return { queued, cadQueued, noteId };
+  return { queued, cadQueued, noteId, assistanceId: assistance.assistanceId };
 }

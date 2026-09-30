@@ -18,3 +18,22 @@ describe('isEnterSplashEnabled', () => {
     expect(isEnterSplashEnabled()).toBe(true);
   });
 });
+
+describe('isRcTranslateEnabled', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it('defaults on when unset', async () => {
+    vi.stubEnv('EXPO_PUBLIC_ENABLE_RC_TRANSLATE', '');
+    const { isRcTranslateEnabled } = await import('./feature-flags');
+    expect(isRcTranslateEnabled()).toBe(true);
+  });
+
+  it('hides Translator when explicitly disabled', async () => {
+    vi.stubEnv('EXPO_PUBLIC_ENABLE_RC_TRANSLATE', '0');
+    const { isRcTranslateEnabled } = await import('./feature-flags');
+    expect(isRcTranslateEnabled()).toBe(false);
+  });
+});

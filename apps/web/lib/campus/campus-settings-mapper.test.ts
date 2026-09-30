@@ -34,6 +34,7 @@ describe("campus settings mapper", () => {
       general: {
         displayName: "Updated Campus Name",
         campusType: "university",
+        institutionType: "higher_ed",
         timezone: "America/New_York",
       },
       escalation: {

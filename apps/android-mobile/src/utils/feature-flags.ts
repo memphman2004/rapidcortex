@@ -16,3 +16,14 @@ export function isEnterSplashEnabled(): boolean {
   const raw = process.env.EXPO_PUBLIC_ENABLE_ENTER_SPLASH?.trim().toLowerCase();
   return raw === '1' || raw === 'true' || raw === 'yes';
 }
+
+/**
+ * Field Translator tab (campus / venue). Default ON when unset — mirrors web
+ * `NEXT_PUBLIC_ENABLE_RC_TRANSLATE`. Set to 0/false/no to hide.
+ */
+export function isRcTranslateEnabled(): boolean {
+  const raw = process.env.EXPO_PUBLIC_ENABLE_RC_TRANSLATE?.trim().toLowerCase();
+  if (!raw) return true;
+  if (raw === '0' || raw === 'false' || raw === 'no' || raw === 'off') return false;
+  return true;
+}

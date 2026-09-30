@@ -69,19 +69,39 @@ export function requiresOperationalPasswordRenewal(user: Pick<UserContext, "pass
 }
 
 export function canUserChangeOwnPassword(user: Pick<UserContext, "role">): boolean {
-  const r = user.role;
+  const r = String(user.role ?? "").trim();
+  const upper = r.toUpperCase();
+  const lower = r.toLowerCase();
   /** Human-operator roles — service principals would use separate auth (not modeled here). */
-  return (
-    r === "dispatcher" ||
-    r === "supervisor" ||
-    r === "agencyadmin" ||
-    r === "agencyit" ||
-    r === "analyst" ||
-    r === "auditor" ||
-    r === "rcsuperadmin" ||
-    r === "rcadmin" ||
-    r === "rcitadmin"
-  );
+  if (
+    lower === "dispatcher" ||
+    lower === "supervisor" ||
+    lower === "agencyadmin" ||
+    lower === "agencyit" ||
+    lower === "analyst" ||
+    lower === "auditor" ||
+    lower === "rcsuperadmin" ||
+    lower === "rcadmin" ||
+    lower === "rcitadmin"
+  ) {
+    return true;
+  }
+  // Product vertical seats (Cognito group or snake_case JWT)
+  if (
+    upper.startsWith("CAMPUS_") ||
+    upper.startsWith("VENUE_") ||
+    upper.startsWith("TRANSIT_") ||
+    upper.startsWith("CALL_ASSIST_") ||
+    upper.startsWith("HOSPITAL_") ||
+    lower.startsWith("campus_") ||
+    lower.startsWith("venue_") ||
+    lower.startsWith("transit_") ||
+    lower.startsWith("call_assist_") ||
+    lower.startsWith("hospital_")
+  ) {
+    return true;
+  }
+  return false;
 }
 
 /** Agency admins / IT, RC super-admin, or RC IT admin may force a password renewal flag on a target tenant. */

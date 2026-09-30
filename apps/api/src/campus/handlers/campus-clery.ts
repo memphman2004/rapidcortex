@@ -5,6 +5,7 @@ import {
   cleryEntryUpdateSchema,
   cleryExternalSyncBodySchema,
   cleryImportBodySchema,
+  cleryReportPostBodySchema,
   cleryReportQuerySchema,
   clerySyncFromPlatformBodySchema,
 } from "rapid-cortex-shared";
@@ -118,7 +119,69 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }
 
       if (parsed.data.format === "pdf") {
-        const pdf = await exportCleryReportPdf(report);
+        const pdf = await exportCleryReportPdf(report, {
+          preparedBy: event.queryStringParameters?.preparedBy,
+          notes: event.queryStringParameters?.notes,
+          institutionName: event.queryStringParameters?.institutionName,
+          addressLine: event.queryStringParameters?.addressLine,
+        });
+        return withCorrelationHeaders(event, {
+          statusCode: 200,
+          headers: {
+            "content-type": "application/pdf",
+            "content-disposition": `attachment; filename="clery-${parsed.data.campusCode}-${parsed.data.academicYear}.pdf"`,
+          },
+          body: pdf.toString("base64"),
+          isBase64Encoded: true,
+        });
+      }
+
+      return withCorrelationHeaders(event, ok({ report }));
+    }
+
+    // POST /api/campus/clery/report — same as GET, with template fields in JSON body
+    if (method === "POST" && path.endsWith("/clery/report")) {
+      authz.assertCanPerform(user, "campus.clery.view" as never);
+      let body: unknown;
+      try {
+        body = parseJson(event.body);
+      } catch {
+        return withCorrelationHeaders(event, badRequest("Invalid JSON body"));
+      }
+      const parsed = cleryReportPostBodySchema.safeParse(body);
+      if (!parsed.success) {
+        return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      }
+      if (!canAccessCampusTenant(user, parsed.data.campusCode)) {
+        return withCorrelationHeaders(event, forbidden("Campus code mismatch"));
+      }
+
+      const report = await buildCleryReport({
+        agencyId,
+        campusCode: parsed.data.campusCode,
+        academicYear: parsed.data.academicYear,
+        actorId: user.userId,
+      });
+
+      if (parsed.data.format === "csv") {
+        const csv = exportCleryReportCsv(report);
+        return withCorrelationHeaders(event, {
+          statusCode: 200,
+          headers: {
+            "content-type": "text/csv; charset=utf-8",
+            "content-disposition": `attachment; filename="clery-${parsed.data.campusCode}-${parsed.data.academicYear}.csv"`,
+          },
+          body: csv,
+        });
+      }
+
+      if (parsed.data.format === "pdf") {
+        const pdf = await exportCleryReportPdf(report, {
+          preparedBy: parsed.data.preparedBy,
+          notes: parsed.data.notes,
+          institutionName: parsed.data.institutionName,
+          addressLine: parsed.data.addressLine,
+        });
         return withCorrelationHeaders(event, {
           statusCode: 200,
           headers: {

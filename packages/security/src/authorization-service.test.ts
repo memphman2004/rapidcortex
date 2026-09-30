@@ -246,6 +246,23 @@ describe("AuthorizationService.assertAgencyAdminManagingSameAgency", () => {
   });
 });
 
+describe("AuthorizationService campus.zones.manage", () => {
+  const auth = new AuthorizationService();
+
+  it("allows CAMPUS_ADMIN and CAMPUS_SUPERVISOR; denies CAMPUS_SECURITY", () => {
+    expect(auth.canPerform(makeUser("CAMPUS_ADMIN" as UserRole), "campus.zones.manage")).toBe(true);
+    expect(auth.canPerform(makeUser("CAMPUS_SUPERVISOR" as UserRole), "campus.zones.manage")).toBe(
+      true,
+    );
+    expect(auth.canPerform(makeUser("CAMPUS_SECURITY" as UserRole), "campus.zones.manage")).toBe(
+      false,
+    );
+    expect(auth.canPerform(makeUser("CAMPUS_DISPATCH" as UserRole), "campus.zones.manage")).toBe(
+      false,
+    );
+  });
+});
+
 describe("AuthorizationService occupant mass-notification (alerts.*)", () => {
   const auth = new AuthorizationService();
 

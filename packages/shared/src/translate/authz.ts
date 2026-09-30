@@ -36,6 +36,11 @@ const VENUE_START = new Set([
   "venue_admin",
   "agencyadmin",
   "agencyit",
+  // Transit field apps share the venue product path / translate vertical.
+  "transit_admin",
+  "transit_supervisor",
+  "transit_security",
+  "transit_operator",
 ]);
 const VENUE_MONITOR = new Set([
   "venue_supervisor",
@@ -44,6 +49,8 @@ const VENUE_MONITOR = new Set([
   "agencyit",
   "analyst",
   "auditor",
+  "transit_admin",
+  "transit_supervisor",
 ]);
 
 const CAMPUS_START = new Set([
@@ -171,4 +178,17 @@ export function canMonitorTranslateSessionForVertical(
     case "hospital":
       return canStartTranslateSessionHospital(user, agencyId);
   }
+}
+
+/** Agency-scoped YTD/MTD language-assistance counts for security dashboards. */
+export function canViewTranslateAssistanceSummary(user: UserContext, agencyId: string): boolean {
+  if (platformOverride(user)) return true;
+  if (!sameAgency(user, agencyId)) return false;
+  return (
+    canMonitorTranslateSessionCampus(user, agencyId) ||
+    canStartTranslateSessionCampus(user, agencyId) ||
+    canMonitorTranslateSessionVenue(user, agencyId) ||
+    canStartTranslateSessionVenue(user, agencyId) ||
+    canMonitorTranslateSession(user, agencyId)
+  );
 }

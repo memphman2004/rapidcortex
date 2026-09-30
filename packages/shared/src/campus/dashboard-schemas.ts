@@ -66,6 +66,24 @@ export type CampusZoneSummary = {
   siteCode?: string;
 };
 
+export const campusZoneCreateBodySchema = z
+  .object({
+    label: z.string().trim().min(1).max(120),
+    /** School / campus site this zone belongs to (K-12: school code). */
+    siteCode: z.string().trim().min(2).max(20),
+    floor: z.number().int().min(0).max(100).optional(),
+  })
+  .strict();
+
+export const campusZoneUpdateBodySchema = z
+  .object({
+    label: z.string().trim().min(1).max(120),
+  })
+  .strict();
+
+export type CampusZoneCreateBody = z.infer<typeof campusZoneCreateBodySchema>;
+export type CampusZoneUpdateBody = z.infer<typeof campusZoneUpdateBodySchema>;
+
 export type CampusBuildingSummary = {
   buildingId: string;
   buildingName: string;

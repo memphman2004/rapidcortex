@@ -51,6 +51,41 @@ export async function fetchCampusZones(agencyId: string): Promise<CampusZoneSumm
   return readJson(await fetch(campusPath(agencyId, "/zones"), { cache: "no-store" }));
 }
 
+export async function createCampusZone(
+  agencyId: string,
+  body: { label: string; siteCode: string; floor?: number },
+): Promise<CampusZoneSummary> {
+  const res = await fetch(campusPath(agencyId, "/zones"), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const json = await readJson<{ zone: CampusZoneSummary }>(res);
+  return json.zone;
+}
+
+export async function updateCampusZone(
+  agencyId: string,
+  zoneId: string,
+  body: { label: string },
+): Promise<CampusZoneSummary> {
+  const res = await fetch(campusPath(agencyId, `/zones/${encodeURIComponent(zoneId)}`), {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const json = await readJson<{ zone: CampusZoneSummary }>(res);
+  return json.zone;
+}
+
+export async function deleteCampusZone(agencyId: string, zoneId: string): Promise<void> {
+  await readJson(
+    await fetch(campusPath(agencyId, `/zones/${encodeURIComponent(zoneId)}`), {
+      method: "DELETE",
+    }),
+  );
+}
+
 export async function fetchCampusBuildings(agencyId: string): Promise<CampusBuildingSummary[]> {
   return readJson(await fetch(campusPath(agencyId, "/buildings"), { cache: "no-store" }));
 }

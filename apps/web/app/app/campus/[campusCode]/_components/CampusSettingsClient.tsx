@@ -224,6 +224,7 @@ export function CampusSettingsClient({
     general: {
       displayName: "",
       campusType: "university",
+      institutionType: "higher_ed",
       timezone: "America/New_York",
       ...(data?.general ?? {}),
       ...(draft.general ?? {}),

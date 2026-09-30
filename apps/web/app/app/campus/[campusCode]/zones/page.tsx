@@ -29,5 +29,11 @@ export default async function CampusZonesPage({
     );
   }
 
-  return <CampusZonesClient campusCode={campusCode.toUpperCase()} agencyId={agencyId} />;
+  return (
+    <CampusZonesClient
+      campusCode={campusCode.toUpperCase()}
+      agencyId={agencyId}
+      userRole={role}
+    />
+  );
 }

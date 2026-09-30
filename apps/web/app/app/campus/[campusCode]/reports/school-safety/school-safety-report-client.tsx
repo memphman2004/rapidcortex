@@ -1,11 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getIncidentTypes, matchesCampusSiteScope } from "rapid-cortex-shared";
+import {
+  CAMPUS_SITE_SCOPE_ALL,
+  getIncidentTypes,
+  getK12GroupForType,
+  K12_INCIDENT_GROUPS,
+  matchesCampusSiteScope,
+  normalizeK12IncidentType,
+  type SchoolSafetyReportPdfBody,
+} from "rapid-cortex-shared";
 import { useCampusInstitutionType } from "@/lib/campus/use-campus-institution";
 import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 import { fetchCampusIncidents } from "@/lib/campus/campus-incidents-api";
+import { fetchCampusStats } from "@/lib/campus/campus-dashboard-api";
 import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
 import type { CampusIncident } from "@/lib/campus/types";
 
@@ -16,16 +25,6 @@ const C = {
   muted: "#5a4d7a",
   silver: "#7c6fa0",
   purple: "#8b5cf6",
-};
-
-/** Map operational / legacy types onto K-12 catalog buckets when possible. */
-const TYPE_ALIASES: Record<string, string> = {
-  suspicious_activity: "suspicious",
-  property_crime: "theft",
-  wellness_check: "welfare_check",
-  active_threat: "lockdown_threat",
-  security: "trespasser",
-  mental_health: "welfare_check",
 };
 
 export function SchoolSafetyReportClient({
@@ -45,6 +44,10 @@ export function SchoolSafetyReportClient({
   const [incidents, setIncidents] = useState<CampusIncident[]>([]);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [preparedBy, setPreparedBy] = useState("");
+  const [notes, setNotes] = useState("");
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [snapshot, setSnapshot] = useState<SchoolSafetyReportPdfBody["snapshot"]>();
   const types = useMemo(() => getIncidentTypes("k12"), []);
 
   useEffect(() => {
@@ -57,12 +60,21 @@ export function SchoolSafetyReportClient({
     if (institutionType !== "k12") return;
     let cancelled = false;
     setFetching(true);
-    void fetchCampusIncidents(campusCode)
-      .then((rows) => {
-        if (!cancelled) {
-          setIncidents(rows);
-          setError(null);
+    void Promise.all([
+      fetchCampusIncidents(campusCode),
+      fetchCampusStats(agencyId).catch(() => null),
+    ])
+      .then(([rows, stats]) => {
+        if (cancelled) return;
+        setIncidents(rows);
+        if (stats) {
+          setSnapshot({
+            activeIncidents: stats.activeIncidents,
+            respondersOnDuty: stats.respondersOnDuty,
+            buildingsMonitored: stats.buildingsMonitored,
+          });
         }
+        setError(null);
       })
       .catch((err: unknown) => {
         if (!cancelled) {
@@ -76,7 +88,12 @@ export function SchoolSafetyReportClient({
     return () => {
       cancelled = true;
     };
-  }, [campusCode, institutionType]);
+  }, [agencyId, campusCode, institutionType]);
+
+  const selectedSite = useMemo(() => {
+    if (!scope || scope === CAMPUS_SITE_SCOPE_ALL) return null;
+    return sites.find((s) => s.code === scope) ?? null;
+  }, [scope, sites]);
 
   const scopedInRange = useMemo(() => {
     const fromMs = new Date(`${from}T00:00:00`).getTime();
@@ -94,20 +111,57 @@ export function SchoolSafetyReportClient({
     const map = new Map<string, number>();
     for (const t of types) map.set(t.value, 0);
     for (const inc of scopedInRange) {
-      const bucket = TYPE_ALIASES[inc.type] ?? inc.type;
-      if (map.has(bucket)) {
-        map.set(bucket, (map.get(bucket) ?? 0) + 1);
-      } else {
-        map.set("other", (map.get("other") ?? 0) + 1);
-      }
+      const bucket = normalizeK12IncidentType(inc.type);
+      map.set(bucket, (map.get(bucket) ?? 0) + 1);
     }
     return map;
   }, [scopedInRange, types]);
 
   const total = scopedInRange.length;
 
+  const schoolName = selectedSite?.name
+    ?? sites.find((s) => s.code === primarySiteCode)?.name
+    ?? campusCode;
+
   if (loading || institutionType !== "k12") {
     return <p style={{ color: C.muted, fontSize: 13 }}>Loading…</p>;
+  }
+
+  function buildPdfPayload(): SchoolSafetyReportPdfBody {
+    const rows: SchoolSafetyReportPdfBody["rows"] = [];
+    for (const group of K12_INCIDENT_GROUPS) {
+      const groupTypes = types.filter((t) => getK12GroupForType(t.value) === group.id);
+      for (const t of groupTypes) {
+        rows.push({
+          groupLabel: group.label,
+          typeValue: t.value,
+          typeLabel: t.label,
+          severity: t.severity,
+          requiresEscalation: Boolean(t.requiresEscalation),
+          count: counts.get(t.value) ?? 0,
+        });
+      }
+    }
+    const addressParts = [
+      selectedSite?.address,
+      [selectedSite?.city, selectedSite?.state].filter(Boolean).join(", "),
+    ].filter(Boolean);
+    return {
+      from,
+      to,
+      siteCode: selectedSite?.code,
+      schoolName,
+      schoolShortName: selectedSite?.shortName,
+      gradeLevel: selectedSite?.gradeLevel,
+      addressLine: addressParts.length ? addressParts.join(" · ") : undefined,
+      districtName: campusCode,
+      campusCode,
+      notes: notes.trim() || undefined,
+      preparedBy: preparedBy.trim() || undefined,
+      total,
+      rows,
+      snapshot,
+    };
   }
 
   function exportCsv() {
@@ -128,11 +182,43 @@ export function SchoolSafetyReportClient({
     URL.revokeObjectURL(url);
   }
 
+  async function exportPdf() {
+    setPdfBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/campus/${encodeURIComponent(agencyId)}/reports/school-safety/pdf`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(buildPdfPayload()),
+        },
+      );
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? `PDF failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `school-safety-${schoolName.replace(/[^a-zA-Z0-9-_]+/g, "-")}-${from}_${to}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to export PDF");
+    } finally {
+      setPdfBusy(false);
+    }
+  }
+
   return (
     <div>
       <h1 style={{ margin: 0, fontSize: 18, color: C.text }}>School Safety Report</h1>
       <p style={{ margin: "6px 0 16px", fontSize: 12, color: C.muted }}>
-        K-12 incident type breakdown for the selected range. Not a Clery Act report.
+        Fill school period details, pull live platform counts, and export CSV or PDF. Not a Clery Act
+        report.
       </p>
       <div style={{ display: "flex", gap: 10, marginBottom: 16, alignItems: "end", flexWrap: "wrap" }}>
         <CampusSiteSwitcher sites={sites} value={scope} onChange={setScope} />
@@ -164,10 +250,72 @@ export function SchoolSafetyReportClient({
         >
           Export CSV
         </button>
+        <button
+          type="button"
+          onClick={() => void exportPdf()}
+          disabled={pdfBusy || fetching}
+          style={{
+            padding: "8px 12px",
+            borderRadius: 8,
+            border: `1px solid ${C.border}`,
+            background: "#0c1220",
+            color: C.text,
+            fontWeight: 700,
+            cursor: pdfBusy ? "wait" : "pointer",
+            opacity: pdfBusy ? 0.6 : 1,
+          }}
+        >
+          {pdfBusy ? "Building PDF…" : "Export PDF"}
+        </button>
         <span style={{ fontSize: 12, color: C.silver, marginBottom: 4 }}>
           {fetching ? "Loading…" : `${total} incident${total === 1 ? "" : "s"} in range`}
         </span>
       </div>
+
+      <div
+        style={{
+          display: "grid",
+          gap: 12,
+          marginBottom: 16,
+          gridTemplateColumns: "minmax(180px, 1fr) minmax(240px, 2fr)",
+        }}
+      >
+        <label style={{ fontSize: 11, color: C.muted }}>
+          Prepared by
+          <input
+            value={preparedBy}
+            onChange={(e) => setPreparedBy(e.target.value)}
+            placeholder="Name / title"
+            maxLength={120}
+            style={inputStyle}
+          />
+        </label>
+        <label style={{ fontSize: 11, color: C.muted }}>
+          Notes for this report
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Optional narrative for the selected school and period…"
+            maxLength={4000}
+            rows={3}
+            style={{ ...inputStyle, resize: "vertical", minHeight: 64 }}
+          />
+        </label>
+      </div>
+
+      {selectedSite ? (
+        <p style={{ fontSize: 12, color: C.silver, marginBottom: 12 }}>
+          Template header: <strong style={{ color: C.text }}>{selectedSite.name}</strong>
+          {selectedSite.gradeLevel ? ` · ${selectedSite.gradeLevel}` : ""}
+          {selectedSite.address ? ` · ${selectedSite.address}` : ""}
+        </p>
+      ) : (
+        <p style={{ fontSize: 12, color: C.muted, marginBottom: 12 }}>
+          Select a school to stamp that school’s name and address on the PDF (All schools uses
+          district-wide totals).
+        </p>
+      )}
+
       {error ? <p style={{ color: "#ef4444", fontSize: 12, marginBottom: 12 }}>{error}</p> : null}
       <div
         style={{
@@ -187,24 +335,51 @@ export function SchoolSafetyReportClient({
             </tr>
           </thead>
           <tbody>
-            {types.map((t) => {
-              const count = counts.get(t.value) ?? 0;
+            {K12_INCIDENT_GROUPS.map((group) => {
+              const groupTypes = types.filter((t) => getK12GroupForType(t.value) === group.id);
+              if (groupTypes.length === 0) return null;
+              const groupCount = groupTypes.reduce(
+                (sum, t) => sum + (counts.get(t.value) ?? 0),
+                0,
+              );
               return (
-                <tr key={t.value} style={{ borderTop: `1px solid ${C.border}`, color: C.text }}>
-                  <td style={td}>{t.label}</td>
-                  <td style={td}>{t.severity}</td>
-                  <td style={td}>{t.requiresEscalation ? "Yes" : "—"}</td>
-                  <td
-                    style={{
-                      ...td,
-                      textAlign: "right",
-                      fontWeight: count > 0 ? 700 : 400,
-                      color: count > 0 ? C.text : C.muted,
-                    }}
-                  >
-                    {count}
-                  </td>
-                </tr>
+                <Fragment key={group.id}>
+                  <tr style={{ borderTop: `1px solid ${C.border}`, background: "#0c1220" }}>
+                    <td colSpan={3} style={{ ...td, fontWeight: 700, color: C.silver }}>
+                      {group.label}
+                    </td>
+                    <td
+                      style={{
+                        ...td,
+                        textAlign: "right",
+                        fontWeight: 700,
+                        color: groupCount > 0 ? C.text : C.muted,
+                      }}
+                    >
+                      {groupCount}
+                    </td>
+                  </tr>
+                  {groupTypes.map((t) => {
+                    const count = counts.get(t.value) ?? 0;
+                    return (
+                      <tr key={t.value} style={{ borderTop: `1px solid ${C.border}`, color: C.text }}>
+                        <td style={{ ...td, paddingLeft: 24 }}>{t.label}</td>
+                        <td style={td}>{t.severity}</td>
+                        <td style={td}>{t.requiresEscalation ? "Yes" : "—"}</td>
+                        <td
+                          style={{
+                            ...td,
+                            textAlign: "right",
+                            fontWeight: count > 0 ? 700 : 400,
+                            color: count > 0 ? C.text : C.muted,
+                          }}
+                        >
+                          {count}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </Fragment>
               );
             })}
           </tbody>
@@ -217,11 +392,13 @@ export function SchoolSafetyReportClient({
 const inputStyle: React.CSSProperties = {
   display: "block",
   marginTop: 4,
+  width: "100%",
   padding: "6px 8px",
   borderRadius: 6,
   border: `1px solid ${C.border}`,
   background: "#080710",
   color: C.text,
+  boxSizing: "border-box",
 };
 
 const th: React.CSSProperties = { padding: "10px 12px", fontWeight: 600 };

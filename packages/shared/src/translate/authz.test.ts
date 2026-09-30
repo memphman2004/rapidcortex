@@ -7,6 +7,7 @@ import {
   canStartTranslateSessionForVertical,
   canStartTranslateSessionHospital,
   canStartTranslateSessionVenue,
+  canViewTranslateAssistanceSummary,
 } from "./authz.js";
 import { matchesTranslateAddon } from "./addon.js";
 import { HOSPITAL_PHRASES, interpolateTranslatePhrase, VENUE_PHRASES } from "./types.js";
@@ -54,6 +55,18 @@ describe("Translate RBAC", () => {
       true,
     );
     expect(canStartTranslateSessionForVertical(user("dispatcher"), "kcpd", "venue")).toBe(false);
+  });
+
+  it("allows transit security to start venue translate sessions", () => {
+    expect(canStartTranslateSessionVenue(user("transit_security"), "kcpd")).toBe(true);
+    expect(canStartTranslateSessionVenue(user("TRANSIT_SECURITY"), "kcpd")).toBe(true);
+  });
+
+  it("scopes assistance summary to the caller's agency", () => {
+    expect(canViewTranslateAssistanceSummary(user("CAMPUS_SECURITY"), "kcpd")).toBe(true);
+    expect(canViewTranslateAssistanceSummary(user("CAMPUS_SECURITY"), "other")).toBe(false);
+    expect(canViewTranslateAssistanceSummary(user("VENUE_SECURITY"), "kcpd")).toBe(true);
+    expect(canViewTranslateAssistanceSummary(user("VENUE_GUEST_SERVICES"), "kcpd")).toBe(false);
   });
 });
 

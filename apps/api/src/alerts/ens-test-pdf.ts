@@ -1,4 +1,3 @@
-import PDFDocument from "pdfkit";
 import type { EnsTestProgram, EnsTestRun } from "rapid-cortex-shared";
 import { ENS_TEST_KIND_LABELS } from "rapid-cortex-shared";
 
@@ -6,6 +5,8 @@ export async function buildEnsTestReportPdf(params: {
   program: EnsTestProgram;
   run: EnsTestRun;
 }): Promise<Buffer> {
+  // Lazy-load pdfkit — top-level import pulls fontkit/@swc/helpers and breaks lean Lambdas.
+  const { default: PDFDocument } = await import("pdfkit");
   const { program, run } = params;
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "LETTER", margin: 48 });

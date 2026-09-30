@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import type { QRNFCPublicRecord, ReportMedium } from "rapid-cortex-shared";
-import { qrNfcCallButtonLabel } from "rapid-cortex-shared";
+import {
+  formatK12FollowUpAnswers,
+  getK12FollowUpQuestions,
+  qrNfcCallButtonLabel,
+} from "rapid-cortex-shared";
 import {
   ReportLanguageProvider,
   useReportLanguage,
@@ -38,9 +42,12 @@ export function QRNfcIntakeClient(props: Props) {
 
 function QRNfcIntakeClientInner({ record, medium }: Props) {
   const { t, dir, code: langCode } = useReportLanguage();
-  const config = safetyConfigForVertical(record.vertical);
   const isCampus = record.vertical === "campus";
   const isVenue = record.vertical === "venue";
+  const isK12 = isCampus && record.institutionType === "k12";
+  const config = safetyConfigForVertical(record.vertical, {
+    institutionType: isCampus ? record.institutionType : undefined,
+  });
 
   const [values, setValues] = useState<ReportFormValues>({
     message: "",
@@ -49,6 +56,7 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
     reporterPhone: "",
     anonymous: record.reportType === "anonymous",
     category: null,
+    followUpAnswers: {},
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -80,7 +88,7 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
   const locationFieldLabel = t("locationZone");
   const submitLabel = t("submitReport");
   const categoryLabels =
-    isCampus && config.categories.length === 6
+    isCampus && !isK12 && config.categories.length === 6
       ? config.categories.map((_, i) => t(`cat.campus.${i}`))
       : isVenue && config.categories.length === 6
         ? config.categories.map((_, i) => t(`cat.venue.${i}`))
@@ -101,9 +109,23 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
     setSubmitting(true);
     setError(null);
     try {
-      // Category is UI-only: prepend into message so existing public report schema stays unchanged.
-      // Store English category values from config so ops queues stay language-stable.
-      const message = values.category ? `[${values.category}] ${trimmed}` : trimmed;
+      // Category / K-12 type is UI-only: prepend into message so public report schema stays unchanged.
+      // Store English labels (or type values for K-12) so ops queues stay language-stable.
+      let prefix = "";
+      if (isK12 && values.category) {
+        const typeMeta = config.k12Types?.find((x) => x.value === values.category);
+        const label = typeMeta?.label ?? values.category;
+        const followUpText = formatK12FollowUpAnswers(
+          values.followUpAnswers ?? {},
+          getK12FollowUpQuestions(values.category),
+        );
+        prefix = followUpText
+          ? `[${label}]\n${followUpText}\n\n`
+          : `[${label}] `;
+      } else if (values.category) {
+        prefix = `[${values.category}] `;
+      }
+      const message = `${prefix}${trimmed}`;
 
       const res = await fetch("/api/public/report", {
         method: "POST",
@@ -209,6 +231,7 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
           onChange={patchValues}
           categories={config.categories}
           categoryLabels={categoryLabels}
+          k12Types={isK12 ? config.k12Types : undefined}
           locationFieldLabel={locationFieldLabel}
           locationPlaceholder={config.defaultLocationPlaceholder}
           submitLabel={submitLabel}

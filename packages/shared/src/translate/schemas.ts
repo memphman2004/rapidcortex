@@ -56,3 +56,34 @@ export const translateSessionCloseRequestSchema = z.object({
   writebackNote: z.boolean().optional(),
   notes: z.string().max(4000).optional(),
 });
+
+export const translateAssistanceSummaryQuerySchema = z.object({
+  agencyId: z.string().min(1).max(128),
+  from: z
+    .string()
+    .optional()
+    .refine((v) => v === undefined || !Number.isNaN(Date.parse(v)), { message: "Invalid from" }),
+  to: z
+    .string()
+    .optional()
+    .refine((v) => v === undefined || !Number.isNaN(Date.parse(v)), { message: "Invalid to" }),
+});
+
+export const translateAssistanceEncounterSchema = z.object({
+  assistanceId: z.string().min(1),
+  agencyId: z.string().min(1),
+  sessionId: z.string().min(1),
+  vertical: z.enum(TRANSLATE_VERTICALS),
+  officerId: z.string().min(1),
+  officerName: z.string().max(200).optional(),
+  subjectLanguage: z.string().max(16),
+  primaryLanguage: z.string().max(16),
+  startedAt: z.string(),
+  endedAt: z.string(),
+  durationSec: z.number().int().nonnegative(),
+  segmentCount: z.number().int().nonnegative(),
+  linkedIncidentId: z.string().max(128).optional(),
+  standalone: z.boolean(),
+  assistMonth: z.string().regex(/^\d{4}-\d{2}$/),
+  createdAt: z.string(),
+});

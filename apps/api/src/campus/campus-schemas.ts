@@ -1,40 +1,42 @@
 import { z } from "zod";
+import { HIGHER_ED_INCIDENT_TYPES, K12_INCIDENT_TYPES } from "rapid-cortex-shared";
 
 /** Operational + catalog types (higher-ed and K-12). Unknown values rejected. */
-const campusIncidentTypeSchema = z.enum([
-  // Legacy / intake operational types
-  "medical",
-  "security",
-  "mental_health",
-  "suspicious_activity",
-  "wellness_check",
-  "property_crime",
-  "maintenance",
-  "active_threat",
-  "other",
-  // Higher-ed catalog (getIncidentTypes)
-  "theft",
-  "assault",
-  "dui",
-  "vandalism",
-  "sexual_offense",
-  "bias_hate",
-  "drug_offense",
-  "trespassing",
-  "weapon",
-  "missing_person",
-  "fire",
-  // K-12 catalog (getIncidentTypes)
-  "fight",
-  "drug_substance",
-  "bullying",
-  "trespasser",
-  "property_damage",
-  "suspicious",
-  "lockdown_threat",
-  "parent_dispute",
-  "welfare_check",
-]);
+const CAMPUS_INCIDENT_TYPE_VALUES = Array.from(
+  new Set([
+    // Legacy / intake operational types
+    "medical",
+    "security",
+    "mental_health",
+    "suspicious_activity",
+    "wellness_check",
+    "property_crime",
+    "maintenance",
+    "active_threat",
+    "other",
+    // Higher-ed catalog
+    ...HIGHER_ED_INCIDENT_TYPES.map((t) => t.value),
+    // K-12 catalog (full concern types)
+    ...K12_INCIDENT_TYPES.map((t) => t.value),
+    // Prior short K-12 codes (aliases still accepted on write)
+    "fight",
+    "drug_substance",
+    "bullying",
+    "trespasser",
+    "property_damage",
+    "suspicious",
+    "lockdown_threat",
+    "parent_dispute",
+    "welfare_check",
+    "weapon",
+    "theft",
+    "vandalism",
+    "fire",
+    "missing_person",
+  ]),
+) as [string, ...string[]];
+
+const campusIncidentTypeSchema = z.enum(CAMPUS_INCIDENT_TYPE_VALUES);
 
 export const createIncidentSchema = z.object({
   campusCode: z.string().min(2).max(20).transform((s) => s.toUpperCase()),

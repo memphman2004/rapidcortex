@@ -172,6 +172,46 @@ export const cleryReportQuerySchema = z.object({
 
 export type CleryReportQuery = z.infer<typeof cleryReportQuerySchema>;
 
+/** Optional template fields when generating a Clery PDF (extract or ASR). */
+export const cleryReportPdfOptionsSchema = z
+  .object({
+    preparedBy: z.string().trim().max(120).optional(),
+    notes: z.string().trim().max(4000).optional(),
+    institutionName: z.string().trim().max(200).optional(),
+    addressLine: z.string().trim().max(400).optional(),
+  })
+  .strict();
+
+export type CleryReportPdfOptions = z.infer<typeof cleryReportPdfOptionsSchema>;
+
+/** POST /api/campus/clery/report — generate with optional PDF template fields. */
+export const cleryReportPostBodySchema = z
+  .object({
+    campusCode: z.string().trim().min(2).max(32),
+    academicYear: cleryAcademicYearSchema,
+    format: z.enum(["json", "csv", "pdf"]).default("pdf"),
+    preparedBy: z.string().trim().max(120).optional(),
+    notes: z.string().trim().max(4000).optional(),
+    institutionName: z.string().trim().max(200).optional(),
+    addressLine: z.string().trim().max(400).optional(),
+  })
+  .strict();
+
+export type CleryReportPostBody = z.infer<typeof cleryReportPostBodySchema>;
+
+/** POST /api/campus/clery/asr/{year}/download — ASR PDF with template fields. */
+export const cleryAsrPdfPostBodySchema = z
+  .object({
+    campusCode: z.string().trim().min(2).max(32),
+    preparedBy: z.string().trim().max(120).optional(),
+    notes: z.string().trim().max(4000).optional(),
+    institutionName: z.string().trim().max(200).optional(),
+    addressLine: z.string().trim().max(400).optional(),
+  })
+  .strict();
+
+export type CleryAsrPdfPostBody = z.infer<typeof cleryAsrPdfPostBodySchema>;
+
 export interface CleryEntry {
   entryId: string;
   agencyId: string;

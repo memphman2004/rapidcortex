@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { putSession, getSession, listByAgencyStatus, listSegments } = vi.hoisted(() => ({
-  putSession: vi.fn(),
-  getSession: vi.fn(),
-  listByAgencyStatus: vi.fn(),
-  listSegments: vi.fn(),
-}));
+const { putSession, getSession, listByAgencyStatus, listSegments, listAssistanceEncounters } =
+  vi.hoisted(() => ({
+    putSession: vi.fn(),
+    getSession: vi.fn(),
+    listByAgencyStatus: vi.fn(),
+    listSegments: vi.fn(),
+    listAssistanceEncounters: vi.fn(),
+  }));
 
 vi.mock("../../translate/store.js", () => ({
   translateStore: {
@@ -13,6 +15,8 @@ vi.mock("../../translate/store.js", () => ({
     getSession,
     listByAgencyStatus,
     listSegments,
+    listAssistanceEncounters,
+    putAssistanceEncounter: vi.fn(),
     incrementSegmentCount: vi.fn(),
     putSegment: vi.fn(),
     putConnection: vi.fn(),
@@ -87,6 +91,7 @@ describe("RC Translate HTTP", () => {
     getSession.mockReset();
     listByAgencyStatus.mockReset().mockResolvedValue([]);
     listSegments.mockReset().mockResolvedValue([]);
+    listAssistanceEncounters.mockReset().mockResolvedValue([]);
   });
 
   it("creates a law-enforcement session for a dispatcher", async () => {
@@ -155,5 +160,58 @@ describe("RC Translate HTTP", () => {
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(String(res.body ?? "{}")) as { languages: unknown[] };
     expect(body.languages.length).toBeGreaterThan(5);
+  });
+
+  it("returns assistance summary for same-agency campus security", async () => {
+    listAssistanceEncounters.mockResolvedValue([
+      {
+        assistanceId: "assist_1",
+        agencyId: "ku",
+        sessionId: "xlat_1",
+        vertical: "campus",
+        officerId: "u1",
+        subjectLanguage: "es",
+        primaryLanguage: "en",
+        startedAt: "2026-03-01T00:00:00.000Z",
+        endedAt: "2026-03-01T00:05:00.000Z",
+        durationSec: 300,
+        segmentCount: 2,
+        standalone: true,
+        assistMonth: "2026-03",
+        createdAt: "2026-03-01T00:05:00.000Z",
+      },
+    ]);
+    const res = await invokeHttpHandler(
+      handler,
+      makeAuthenticatedEvent({
+        role: "CAMPUS_SECURITY",
+        agencyId: "ku",
+        routeKey: "GET /api/translate/{proxy+}",
+        rawPath: "/api/translate/assistance/summary",
+        queryStringParameters: { agencyId: "ku" },
+      }),
+    );
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(String(res.body ?? "{}")) as {
+      count: number;
+      byMonth: { month: string; count: number }[];
+    };
+    expect(body.count).toBe(1);
+    expect(body.byMonth).toEqual([{ month: "2026-03", count: 1 }]);
+  });
+
+  it("forbids assistance summary for a different agency", async () => {
+    const res = await invokeHttpHandler(
+      handler,
+      makeAuthenticatedEvent({
+        role: "CAMPUS_SECURITY",
+        agencyId: "ku",
+        routeKey: "GET /api/translate/{proxy+}",
+        rawPath: "/api/translate/assistance/summary",
+        queryStringParameters: { agencyId: "other-agency" },
+      }),
+    );
+    expect(res.statusCode).toBe(403);
+    expect(listAssistanceEncounters).not.toHaveBeenCalled();
   });
 });

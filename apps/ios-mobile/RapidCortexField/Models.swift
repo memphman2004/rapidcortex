@@ -155,6 +155,29 @@ struct RCUserClaims {
 
     var canManageCodes: Bool { isPlatformAdmin || isAgencyAdmin }
 
+    /// Field Translator tab — campus/venue/transit security and ops roles.
+    var canStartTranslate: Bool {
+        if isPlatformAdmin { return true }
+        let r = canonicalRole
+        return [
+            "campus_security",
+            "campus_dispatch",
+            "campus_supervisor",
+            "campus_admin",
+            "venue_security",
+            "venue_operator",
+            "venue_supervisor",
+            "venue_admin",
+            "venue_staff",
+            "transit_security",
+            "transit_operator",
+            "transit_supervisor",
+            "transit_admin",
+            "agencyadmin",
+            "agencyit",
+        ].contains(r)
+    }
+
     /// Supervisor-tier actions in 911 Dispatch (message, coach, flag, follow, log). View-only roles omit these.
     var canActInDispatch911: Bool {
         ["supervisor", "agencyadmin", "rcsuperadmin", "rcadmin"].contains(canonicalRole)

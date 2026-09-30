@@ -4,7 +4,8 @@ import { ScreenErrorBoundary } from '@/components/common/ScreenErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
 import { FieldProductProvider } from '@/navigation/field-product';
 import { Colors, ThemeProvider } from '@/theme';
-import { isTransitRole, isVenueRole } from '@/utils/roles';
+import { isRcTranslateEnabled } from '@/utils/feature-flags';
+import { canStartFieldTranslate, isTransitRole, isVenueRole } from '@/utils/roles';
 import { Strings } from '@/utils/strings';
 
 function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
@@ -12,6 +13,9 @@ function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
 }
 
 function VenueTabs() {
+  const { role } = useAuth();
+  const showTranslate = isRcTranslateEnabled() && canStartFieldTranslate(role);
+
   return (
     <Tabs
       screenOptions={{
@@ -36,6 +40,14 @@ function VenueTabs() {
         options={{
           title: Strings.venue.create,
           tabBarIcon: ({ focused }) => <TabIcon symbol="➕" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="translate"
+        options={{
+          title: Strings.venue.translate,
+          href: showTranslate ? undefined : null,
+          tabBarIcon: ({ focused }) => <TabIcon symbol="🗣️" focused={focused} />,
         }}
       />
       <Tabs.Screen

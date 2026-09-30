@@ -44,7 +44,6 @@ import {
   saveEnsBoundary,
   saveEnsProgram,
 } from "../../alerts/ens-service.js";
-import { buildEnsTestReportPdf } from "../../alerts/ens-test-pdf.js";
 
 const authz = new AuthorizationService();
 const auditRepo = new AuditRepository();
@@ -462,6 +461,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       const run = await alertsStore.getEnsRun(agencyId, parts[2]);
       if (!run) return withCorrelationHeaders(event, notFound("Run not found"));
       const program = await getOrCreateEnsProgram(agencyId, run.vertical, agencyId);
+      // Lazy-load pdfkit path — top-level import pulls fontkit/@swc/helpers and breaks lean Lambdas.
+      const { buildEnsTestReportPdf } = await import("../../alerts/ens-test-pdf.js");
       const pdf = await buildEnsTestReportPdf({ program, run });
       return withCorrelationHeaders(event, {
         statusCode: 200,

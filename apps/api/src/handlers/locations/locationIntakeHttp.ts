@@ -18,11 +18,13 @@ import {
   serviceUnavailable,
 } from "../../lib/response.js";
 import { QRLocationsRepository } from "../../repositories/qrLocationsRepository.js";
+import { PinpointService } from "../../services/pinpointService.js";
 import { createVenueQrIncident } from "../../venue/venue-incident-service.js";
 import { getVenueGuestMediaFlags } from "../../venue/venue-profile-service.js";
 
 const limiter = new PublicBurstLimiter(10, 3600_000);
 const repo = new QRLocationsRepository();
+const pinpointService = new PinpointService();
 
 function isVideoMediaKey(key: string): boolean {
   const lower = key.toLowerCase();
@@ -44,6 +46,32 @@ const helpTypeMap: Record<string, string> = {
   suspicious: "suspicious_activity",
   other: "other",
 };
+
+async function maybeCreateLiveShare(opts: {
+  shareLiveLocation: boolean;
+  agencyId: string;
+  incidentId: string;
+  rcli: string;
+  callerPhoneE164?: string | null;
+}): Promise<{ liveLocationToken: string; liveLocationExpiresHintMin: number } | Record<string, never>> {
+  if (!opts.shareLiveLocation) return {};
+  try {
+    const share = await pinpointService.createInlineQrShare({
+      agencyId: opts.agencyId,
+      incidentId: opts.incidentId,
+      rcli: opts.rcli,
+      callerPhoneE164: opts.callerPhoneE164,
+    });
+    if (!share) return {};
+    return {
+      liveLocationToken: share.token,
+      liveLocationExpiresHintMin: 30,
+    };
+  } catch (err) {
+    console.warn("[location-intake] live share create failed", err);
+    return {};
+  }
+}
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
@@ -110,6 +138,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           phoneNumber: payload.reporterPhone ?? null,
           photoDataUrl: null,
           siteCode: location.siteCode,
+          latitude: payload.lat ?? undefined,
+          longitude: payload.lng ?? undefined,
         },
         location.agencyId,
         undefined,
@@ -124,6 +154,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }
 
       const referenceId = await createAnonToken(campusCode, incident.id);
+      const live = await maybeCreateLiveShare({
+        shareLiveLocation: Boolean(payload.shareLiveLocation),
+        agencyId: location.agencyId,
+        incidentId: incident.id,
+        rcli,
+        callerPhoneE164: payload.reporterPhone,
+      });
       await repo.recordScan(rcli);
       return withCorrelationHeaders(
         event,
@@ -137,6 +174,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             cameras,
             receivedAt: new Date().toISOString(),
             message: "Your report has been received. Help is on the way.",
+            ...live,
           },
           201,
         ),
@@ -172,6 +210,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
               ? ["inline-photo"]
               : [],
       });
+      const live = await maybeCreateLiveShare({
+        shareLiveLocation: Boolean(payload.shareLiveLocation),
+        agencyId: location.agencyId,
+        incidentId: incident.incidentId,
+        rcli,
+        callerPhoneE164: payload.reporterPhone,
+      });
       await repo.recordScan(rcli);
       return withCorrelationHeaders(
         event,
@@ -185,24 +230,35 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             cameras,
             receivedAt: new Date().toISOString(),
             message: "Your report has been received. Help is on the way.",
+            ...live,
           },
           201,
         ),
       );
     }
 
+    // transit / hospital / 911 (and other QR verticals): acknowledge + optional live share session
     await repo.recordScan(rcli);
     const referenceId = `${location.orgCode}-${Date.now().toString(36).toUpperCase()}`;
+    const live = await maybeCreateLiveShare({
+      shareLiveLocation: Boolean(payload.shareLiveLocation),
+      agencyId: location.agencyId,
+      incidentId: referenceId,
+      rcli,
+      callerPhoneE164: payload.reporterPhone,
+    });
     return withCorrelationHeaders(
       event,
       ok(
         {
           referenceId,
+          incidentId: referenceId,
           rcli,
           locationName: location.locationName,
           zoneCode: location.zoneCode,
           receivedAt: new Date().toISOString(),
           message: "Your report has been received. Help is on the way.",
+          ...live,
         },
         201,
       ),

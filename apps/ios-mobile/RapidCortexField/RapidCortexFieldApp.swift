@@ -85,6 +85,7 @@ private enum QRNFCTab: Hashable {
     case codes
     case create
     case agencies
+    case translate
     case settings
 }
 
@@ -114,6 +115,11 @@ struct QRNFCRootView: View {
                 AgenciesView()
                     .tabItem { Label("Agencies", systemImage: "building.2") }
                     .tag(QRNFCTab.agencies)
+            }
+            if auth.claims?.canStartTranslate == true {
+                TranslateRootView()
+                    .tabItem { Label("Translator", systemImage: "globe") }
+                    .tag(QRNFCTab.translate)
             }
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gear") }

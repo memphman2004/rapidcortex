@@ -111,6 +111,29 @@ export function isVenueCampusRole(role: string): boolean {
   return isVenueRole(role) || isCampusRole(role) || isTransitRole(role);
 }
 
+/** Roles that can start a field Translator session (campus / venue / transit security+ops). */
+export function canStartFieldTranslate(role: string): boolean {
+  if (isRcInternalRole(role)) return true;
+  const c = canonicalizeMobileRole(role);
+  return (
+    c === 'campus_security' ||
+    c === 'campus_dispatch' ||
+    c === 'campus_supervisor' ||
+    c === 'campus_admin' ||
+    c === 'venue_security' ||
+    c === 'venue_operator' ||
+    c === 'venue_supervisor' ||
+    c === 'venue_admin' ||
+    c === 'venue_staff' ||
+    c === 'transit_security' ||
+    c === 'transit_operator' ||
+    c === 'transit_supervisor' ||
+    c === 'transit_admin' ||
+    c === 'agencyadmin' ||
+    c === 'agencyit'
+  );
+}
+
 export function isCommandRole(role: string): boolean {
   const c = canonicalizeMobileRole(role);
   if (!c) return false;

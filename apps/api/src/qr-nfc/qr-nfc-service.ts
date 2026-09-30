@@ -10,6 +10,7 @@ import {
   createQRNFCSchema,
   isMarketingSiteQrRecord,
   migrateLegacyRapidCortexRoleTokenValue,
+  resolveCampusInstitutionType,
   TRADE_SHOW_SITE_AGENCY_ID,
   tradeShowDestFromQrId,
   tradeShowSiteDisplayName,
@@ -407,6 +408,16 @@ export class QrNfcService {
     const agency = await agencies.get(record.agencyId);
     const callNumber =
       record.callNumber ?? (await resolveAgencyCallNumber(record.agencyId));
+    const institutionType =
+      record.vertical === "campus"
+        ? resolveCampusInstitutionType({
+            institutionType: (agency as { institutionType?: unknown } | null)?.institutionType
+              ?? (agency as { config?: { campus?: { institutionType?: unknown; campusType?: unknown } } } | null)
+                  ?.config?.campus?.institutionType,
+            campusType: (agency as { config?: { campus?: { campusType?: unknown } } } | null)?.config
+              ?.campus?.campusType,
+          })
+        : undefined;
     return {
       active: true,
       qrId: record.qrId,
@@ -417,6 +428,7 @@ export class QrNfcService {
       vertical: record.vertical,
       reportType: record.reportType,
       medium,
+      ...(institutionType ? { institutionType } : {}),
       ...(callNumber
         ? {
             callNumber,

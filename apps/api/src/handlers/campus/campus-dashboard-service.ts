@@ -159,7 +159,8 @@ export async function getCampusZonesSummary(agencyId: string): Promise<CampusZon
           incidentCount: 0,
           responderCount: 0,
           status: "clear",
-          siteCode: building.siteCode,
+          siteCode:
+            (zone as { siteCode?: string }).siteCode?.trim() || building.siteCode,
         });
       }
     }

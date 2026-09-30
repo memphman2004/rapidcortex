@@ -36,6 +36,7 @@ export const ALL_PERMISSIONS = [
   "campus.cameras.view",
   "campus.clery.manage",
   "campus.clery.view",
+  "campus.zones.manage",
   "clery.record.view",
   "clery.record.create",
   "clery.record.review",

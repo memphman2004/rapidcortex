@@ -34,13 +34,15 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
-import { matchesCampusSiteScope } from "rapid-cortex-shared";
+import { getZoneDefaults, matchesCampusSiteScope } from "rapid-cortex-shared";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { IncidentCameraPanel } from "@/components/venue/IncidentCameraPanel";
 import { SiteSquareMark } from "@/components/brand/site-logo-link";
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
 import { CampusOperationalMap } from "@/components/campus/operational-map/CampusOperationalMap";
-import { isCampusOperationalMapEnabled } from "@/lib/runtime-flags";
+import { isCampusOperationalMapEnabled, isRcTranslateCampusEnabled } from "@/lib/runtime-flags";
+import { useTranslateAssistanceYtd } from "@/components/translate/use-translate-assistance-ytd";
+import { translateAssistanceKpiCard } from "@/components/translate/TranslateAssistanceStat";
 import { loadMapTheme, saveMapTheme } from "@/lib/maps/persisted-map-prefs";
 import { campusIncidentsToMap } from "@/components/maps/map-incident-adapters";
 import { buildNavContext } from "@/lib/navigation/nav-context";
@@ -232,12 +234,18 @@ function formatReportedTime(iso: string, hour12: boolean): string {
 
 // ─── Zone map ─────────────────────────────────────────────────────────────────
 
-function ZoneMap({ zoneLabels }: { zoneLabels: string[] }) {
+function ZoneMap({
+  zoneLabels,
+  fallbackLabels,
+}: {
+  zoneLabels: string[];
+  fallbackLabels: readonly string[];
+}) {
   const labels = [
-    zoneLabels[0] ?? "North Campus",
-    zoneLabels[1] ?? "Central Quad",
-    zoneLabels[2] ?? "West Campus",
-    zoneLabels[3] ?? "East Campus",
+    zoneLabels[0] ?? fallbackLabels[0] ?? "Zone A",
+    zoneLabels[1] ?? fallbackLabels[1] ?? "Zone B",
+    zoneLabels[2] ?? fallbackLabels[2] ?? "Zone C",
+    zoneLabels[3] ?? fallbackLabels[3] ?? "Zone D",
   ];
 
   return (
@@ -579,6 +587,12 @@ function CampusConsoleHomeInner({
   const kpiResponders = stats?.respondersOnDuty ?? onDuty.length;
   const kpiZones = scopedZones.length > 0 ? scopedZones.length : "—";
 
+  const translateEnabled = isRcTranslateCampusEnabled();
+  const { count: assistYtd, loading: assistLoading } = useTranslateAssistanceYtd(
+    agencyId,
+    translateEnabled,
+  );
+
   const incidentsHref = findNavHref(navItems, "incidents");
   const buildingsHref = findNavHref(navItems, "buildings");
   const zonesHref = findNavHref(navItems, "zones");
@@ -846,7 +860,20 @@ function CampusConsoleHomeInner({
     },
   ];
 
+  const assistCard = translateAssistanceKpiCard({
+    agencyId,
+    enabled: translateEnabled,
+    loading: assistLoading,
+    count: assistYtd,
+    textColor: C.text,
+    iconBg: "rgba(56,189,248,0.15)",
+    accentColor: C.blue,
+    href: `${pathname.split("/").slice(0, 4).join("/")}/translate`,
+  });
+  if (assistCard) kpiCards.push(assistCard);
+
   const zoneLabels = zones.map((z) => z.zoneName);
+  const zoneFallbackLabels = getZoneDefaults(institutionType);
 
   return (
     <HelpChrome role={userRole ?? "CAMPUS_SECURITY"}>
@@ -1730,7 +1757,7 @@ function CampusConsoleHomeInner({
                         ) : null}
                       </div>
                       <div style={{ padding: "4px 10px 12px" }}>
-                        <ZoneMap zoneLabels={zoneLabels} />
+                        <ZoneMap zoneLabels={zoneLabels} fallbackLabels={zoneFallbackLabels} />
                       </div>
                     </>
                   )}

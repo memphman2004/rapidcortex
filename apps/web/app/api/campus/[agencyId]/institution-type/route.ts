@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { AgencyTenant } from "rapid-cortex-shared";
-import { isRcInternalOperator, resolveCampusInstitutionType } from "rapid-cortex-shared";
+import { isRcInternalOperator } from "rapid-cortex-shared";
 import { requireApiUser } from "@/lib/rapid-cortex/server-auth";
+import { campusSettingsFromAgency } from "@/lib/campus/campus-settings-mapper";
 import { campusUpstreamFetch } from "@/lib/campus/campus-upstream";
 
 type Ctx = { params: Promise<{ agencyId: string }> };
@@ -19,16 +20,20 @@ export async function GET(_request: Request, ctx: Ctx) {
 
   const res = await campusUpstreamFetch(`/api/agencies/${encodeURIComponent(agencyId)}`);
   if (!res.ok) {
-    return NextResponse.json({ institutionType: "higher_ed" as const });
+    // Fail closed to higher_ed only when the agency cannot be loaded.
+    return NextResponse.json({
+      institutionType: "higher_ed" as const,
+      agencyId,
+      error: "agency_unavailable",
+    });
   }
-  const agency = (await res.json()) as AgencyTenant;
-  const institutionType = resolveCampusInstitutionType({
-    institutionType: agency.institutionType ?? agency.config?.campus?.institutionType,
-    campusType: agency.config?.campus?.campusType,
-  });
+
+  const raw = (await res.json()) as AgencyTenant & { data?: AgencyTenant };
+  const agency = (raw.data ?? raw) as AgencyTenant;
+  const settings = campusSettingsFromAgency(agency);
   return NextResponse.json({
-    institutionType,
-    agencyId: agency.agencyId,
+    institutionType: settings.general.institutionType,
+    agencyId: agency.agencyId ?? agencyId,
     name: agency.name,
   });
 }

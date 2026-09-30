@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { proxyToAuthUpstream } from "@/lib/api/proxy-to-auth-upstream";
+import { proxyToAuthUpstream } from "@/lib/server/auth-upstream-proxy";
 
 type Ctx = { params: Promise<{ agencyId: string }> };
 

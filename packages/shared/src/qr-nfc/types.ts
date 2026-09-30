@@ -127,6 +127,8 @@ export interface QRNFCPublicRecord {
   medium?: ReportMedium;
   callNumber?: string;
   callNumberDisplay?: string;
+  /** Campus agencies only — drives K-12 vs higher-ed public concern categories. */
+  institutionType?: "higher_ed" | "k12";
 }
 
 export interface PublicReportSubmitInput {

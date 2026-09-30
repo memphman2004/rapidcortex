@@ -15,7 +15,7 @@ import {
   UserRound,
 } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { QRLocationPublic } from "rapid-cortex-shared";
 import { LanguageSelector } from "@/components/qr-nfc/safety-reporting/LanguageSelector";
 import { ScanIntentChooser } from "@/components/qr-nfc/safety-reporting/ScanIntentChooser";
@@ -126,11 +126,17 @@ function QRIntakeClientInner({
   const [error, setError] = useState<string | null>(null);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [shareLiveLocation, setShareLiveLocation] = useState(false);
+  const [liveLocationToken, setLiveLocationToken] = useState<string | null>(null);
+  const [liveSharing, setLiveSharing] = useState(false);
+  const [livePingCount, setLivePingCount] = useState(0);
+  const [liveShareError, setLiveShareError] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [screen, setScreen] = useState<"chooser" | "report">("chooser");
   const descRef = useRef<HTMLTextAreaElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const watchIdRef = useRef<number | null>(null);
+  const lastSentRef = useRef(0);
 
   const eventData = loc.currentEvent ?? null;
   const securityPhone = loc.securityPhone?.trim() || null;
@@ -160,6 +166,76 @@ function QRIntakeClientInner({
     );
   }, []);
 
+  const stopLiveSharing = useCallback(() => {
+    if (watchIdRef.current != null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    setLiveSharing(false);
+  }, []);
+
+  const startLiveSharing = useCallback((token: string) => {
+    if (!navigator.geolocation) {
+      setLiveShareError("This browser does not support live location.");
+      return;
+    }
+    const postPing = async (pos: GeolocationPosition) => {
+      const res = await fetch(`/api/public/pinpoint/${encodeURIComponent(token)}/location`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracyM: pos.coords.accuracy,
+          headingDeg:
+            pos.coords.heading != null && !Number.isNaN(pos.coords.heading)
+              ? pos.coords.heading
+              : undefined,
+          speedMps:
+            pos.coords.speed != null && !Number.isNaN(pos.coords.speed)
+              ? pos.coords.speed
+              : undefined,
+        }),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || "Could not send location update.");
+      }
+      setLivePingCount((c) => c + 1);
+      setLiveShareError(null);
+    };
+
+    setLiveShareError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        void postPing(pos)
+          .then(() => {
+            lastSentRef.current = Date.now();
+            watchIdRef.current = navigator.geolocation.watchPosition(
+              (update) => {
+                const now = Date.now();
+                if (now - lastSentRef.current < 4000) return;
+                lastSentRef.current = now;
+                void postPing(update).catch((e: Error) =>
+                  setLiveShareError(e.message || "Location updates stopped."),
+                );
+              },
+              () => setLiveShareError("Location updates stopped — check permissions."),
+              { enableHighAccuracy: true, timeout: 15_000, maximumAge: 0 },
+            );
+            setLiveSharing(true);
+          })
+          .catch((e: Error) =>
+            setLiveShareError(e.message || "Could not start live location."),
+          );
+      },
+      () => setLiveShareError("Location permission was denied or unavailable."),
+      { enableHighAccuracy: true, timeout: 20_000, maximumAge: 0 },
+    );
+  }, []);
+
+  useEffect(() => () => stopLiveSharing(), [stopLiveSharing]);
+
   const handlePhoto = async (file: File | null) => {
     if (!file) {
       setPhotoPreview(null);
@@ -181,6 +257,7 @@ function QRIntakeClientInner({
   };
 
   function resetForm() {
+    stopLiveSharing();
     setDescription("");
     setSelectedCategory(null);
     setLocationOverride(defaultLocation);
@@ -193,6 +270,9 @@ function QRIntakeClientInner({
     setError(null);
     setCoords(null);
     setShareLiveLocation(false);
+    setLiveLocationToken(null);
+    setLivePingCount(0);
+    setLiveShareError(null);
     setPhotoPreview(null);
     setPhotoFile(null);
   }
@@ -245,6 +325,7 @@ function QRIntakeClientInner({
         referenceId?: string;
         message?: string;
         error?: string;
+        liveLocationToken?: string;
       };
       if (!res.ok) {
         setError(body.error ?? body.message ?? "Unable to submit report. Please try again.");
@@ -252,6 +333,14 @@ function QRIntakeClientInner({
       }
       setReportId(body.referenceId ?? `RPT-${Date.now().toString(36).toUpperCase()}`);
       setSubmitted(true);
+      if (shareLiveLocation && body.liveLocationToken) {
+        setLiveLocationToken(body.liveLocationToken);
+        startLiveSharing(body.liveLocationToken);
+      } else if (shareLiveLocation && !body.liveLocationToken) {
+        setLiveShareError(
+          "Live tracking is unavailable right now. Your report was still received.",
+        );
+      }
     } catch {
       setError("Network error. Please check your connection and try again.");
     } finally {
@@ -344,6 +433,14 @@ function QRIntakeClientInner({
               isVenue={isVenue}
               reportId={reportId}
               onReset={resetForm}
+              liveSharing={liveSharing}
+              livePingCount={livePingCount}
+              liveShareError={liveShareError}
+              liveLocationToken={liveLocationToken}
+              onStopLiveSharing={stopLiveSharing}
+              onResumeLiveSharing={
+                liveLocationToken ? () => startLiveSharing(liveLocationToken) : undefined
+              }
             />
           ) : (
             <ReportForm
@@ -913,7 +1010,7 @@ function ReportForm({
           }}
         >
           <MapPin size={14} aria-hidden />{" "}
-          {shareLiveLocation ? t("locationShared") : t("shareLocation")}
+          {shareLiveLocation ? t("locationShared") : "Share live location"}
         </button>
       </div>
 
@@ -977,11 +1074,23 @@ function SuccessState({
   isVenue,
   reportId,
   onReset,
+  liveSharing,
+  livePingCount,
+  liveShareError,
+  liveLocationToken,
+  onStopLiveSharing,
+  onResumeLiveSharing,
 }: {
   theme: VerticalTheme;
   isVenue: boolean;
   reportId: string;
   onReset: () => void;
+  liveSharing: boolean;
+  livePingCount: number;
+  liveShareError: string | null;
+  liveLocationToken: string | null;
+  onStopLiveSharing: () => void;
+  onResumeLiveSharing?: () => void;
 }) {
   const { t } = useReportLanguage();
   return (
@@ -1014,6 +1123,60 @@ function SuccessState({
           }}
         >
           {reportId}
+        </div>
+      ) : null}
+
+      {liveLocationToken || liveSharing || liveShareError ? (
+        <div
+          className="mb-5 rounded-xl px-3 py-3 text-left"
+          style={{
+            border: `0.5px solid ${theme.inputBorder}`,
+            background: theme.inputBg,
+          }}
+        >
+          <p className="text-[13px] font-medium" style={{ color: theme.bodyText }}>
+            {liveSharing ? "Live location sharing is on" : "Live location"}
+          </p>
+          <p className="mt-1 text-[12px] leading-relaxed" style={{ color: theme.mutedText }}>
+            {liveSharing
+              ? "Keep this page open so responders can see your phone move. Updates every few seconds."
+              : "You can start or stop sharing any time while this page is open."}
+            {liveSharing && livePingCount > 0 ? ` · ${livePingCount} update${livePingCount === 1 ? "" : "s"} sent` : null}
+          </p>
+          {liveShareError ? (
+            <p className="mt-2 text-[12px]" style={{ color: "#dc2626" }}>
+              {liveShareError}
+            </p>
+          ) : null}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {liveSharing ? (
+              <button
+                type="button"
+                onClick={onStopLiveSharing}
+                className="rounded-lg px-3 py-2 text-[12px] font-medium"
+                style={{
+                  border: `0.5px solid ${theme.inputBorder}`,
+                  color: theme.labelText,
+                  background: "transparent",
+                }}
+              >
+                Stop sharing
+              </button>
+            ) : onResumeLiveSharing ? (
+              <button
+                type="button"
+                onClick={onResumeLiveSharing}
+                className="rounded-lg px-3 py-2 text-[12px] font-medium"
+                style={{
+                  border: `0.5px solid ${theme.pillBorder}`,
+                  color: theme.pillText,
+                  background: theme.pillSelected,
+                }}
+              >
+                Resume live location
+              </button>
+            ) : null}
+          </div>
         </div>
       ) : null}
 

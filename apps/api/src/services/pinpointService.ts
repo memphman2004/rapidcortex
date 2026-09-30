@@ -119,12 +119,95 @@ export class PinpointService {
     return { linkId, token, publicUrl };
   }
 
+  /**
+   * QR / public intake: create an active Pinpoint session without SMS.
+   * Caller already opted in on the report page and will stream GPS via the public token.
+   * Returns null when Pinpoint is disabled or misconfigured (intake must remain non-fatal).
+   */
+  async createInlineQrShare(opts: {
+    agencyId: string;
+    incidentId: string;
+    rcli?: string;
+    callerPhoneE164?: string | null;
+  }): Promise<{ linkId: string; token: string; publicUrl: string } | null> {
+    try {
+      assertPinpointEnabled();
+    } catch {
+      return null;
+    }
+    const agencyId = opts.agencyId.trim();
+    const incidentId = opts.incidentId.trim();
+    if (!agencyId || !incidentId) return null;
+
+    const token = newOpaqueToken();
+    const tokenHash = hashToken(token);
+    const linkId = makeId("ppl");
+    const now = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + PINPOINT_CONFIG.LINK_EXPIRY_MINUTES * 60 * 1000).toISOString();
+    const ttl = Math.floor(Date.parse(expiresAt) / 1000) + 3600;
+    const phone =
+      opts.callerPhoneE164 && /^\+[1-9]\d{6,14}$/.test(opts.callerPhoneE164.trim())
+        ? opts.callerPhoneE164.trim()
+        : "";
+
+    const base =
+      env.pinpointPublicBaseUrl?.replace(/\/$/, "") ||
+      env.silentTextPublicBaseUrl?.replace(/\/$/, "") ||
+      "";
+    const publicUrl = base
+      ? `${base}/pinpoint/t/${encodeURIComponent(token)}`
+      : `/pinpoint/t/${encodeURIComponent(token)}`;
+
+    const row: PinpointLinkDdbItem = {
+      linkId,
+      tokenHash,
+      agencyId,
+      incidentId,
+      status: "active",
+      createdAt: now,
+      updatedAt: now,
+      expiresAt,
+      pings: [],
+      callerPhoneE164: phone,
+      smsSentAt: null,
+      smsProviderRef: null,
+      ttl,
+    };
+    await linkRepo.put(row);
+
+    try {
+      await auditRepo.create({
+        eventId: makeId("aud"),
+        agencyId,
+        incidentId,
+        actorId: "system:qr-intake",
+        type: AUDIT_EVENT_TYPES.PINPOINT_LINK_GENERATED,
+        details: { linkId, smsStatus: "skipped", source: "qr_inline", rcli: opts.rcli ?? null },
+        createdAt: now,
+        resourceType: "incident",
+        resourceId: linkId,
+      });
+    } catch {
+      // non-fatal
+    }
+
+    return { linkId, token, publicUrl };
+  }
+
   async listLinksBrief(incidentId: string, user: UserContext): Promise<{ items: PinpointLinkDispatcherBrief[] }> {
     assertPinpointEnabled();
     const resolved = await resolveIncidentRead(incidentId, user);
-    if (!resolved) throw new Error("NOT_FOUND");
-    TenantAccessGuard.assertIncidentAccess(resolved.incident, user);
-    const items = await linkRepo.listByIncident(incidentId, resolved.incident.agencyId, 50);
+    let agencyId: string;
+    if (resolved) {
+      TenantAccessGuard.assertIncidentAccess(resolved.incident, user);
+      agencyId = resolved.incident.agencyId;
+    } else {
+      // Campus / venue / QR-created sessions are not in the PSAP incidents table.
+      agencyId = String(user.agencyId ?? "").trim();
+      if (!agencyId) throw new Error("NOT_FOUND");
+    }
+    const items = await linkRepo.listByIncident(incidentId, agencyId, 50);
+    if (!resolved && items.length === 0) throw new Error("NOT_FOUND");
     const brief: PinpointLinkDispatcherBrief[] = items.map((l) => ({
       linkId: l.linkId,
       status: l.status,
@@ -139,10 +222,15 @@ export class PinpointService {
   async getDispatcherLink(incidentId: string, linkId: string, user: UserContext): Promise<PinpointLinkDispatcherDetail> {
     assertPinpointEnabled();
     const resolved = await resolveIncidentRead(incidentId, user);
-    if (!resolved) throw new Error("NOT_FOUND");
-    TenantAccessGuard.assertIncidentAccess(resolved.incident, user);
     const row = await linkRepo.get(linkId);
-    if (!row || row.incidentId !== incidentId || row.agencyId !== resolved.incident.agencyId) throw new Error("NOT_FOUND");
+    if (!row || row.incidentId !== incidentId) throw new Error("NOT_FOUND");
+    if (resolved) {
+      TenantAccessGuard.assertIncidentAccess(resolved.incident, user);
+      if (row.agencyId !== resolved.incident.agencyId) throw new Error("NOT_FOUND");
+    } else {
+      const agencyId = String(user.agencyId ?? "").trim();
+      if (!agencyId || row.agencyId !== agencyId) throw new Error("NOT_FOUND");
+    }
     return {
       linkId: row.linkId,
       status: row.status,

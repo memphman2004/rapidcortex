@@ -307,6 +307,41 @@ export interface TranslateSessionCloseResponse {
   summaryGenerated: boolean;
   cadWritebackQueued: boolean;
   writebackQueued: boolean;
+  assistanceEncounterId?: string;
+}
+
+/** Closed translate session row used for annual language-assistance reporting. */
+export interface TranslateAssistanceEncounter {
+  assistanceId: string;
+  agencyId: string;
+  sessionId: string;
+  vertical: TranslateVertical;
+  officerId: string;
+  officerName?: string;
+  subjectLanguage: string;
+  primaryLanguage: string;
+  startedAt: string;
+  endedAt: string;
+  durationSec: number;
+  segmentCount: number;
+  linkedIncidentId?: string;
+  /** True when the session had no campus/venue/LE/hospital incident link. */
+  standalone: boolean;
+  assistMonth: string;
+  createdAt: string;
+}
+
+export interface TranslateAssistanceSummaryMonth {
+  month: string;
+  count: number;
+}
+
+export interface TranslateAssistanceSummaryResponse {
+  count: number;
+  byMonth: TranslateAssistanceSummaryMonth[];
+  from: string;
+  to: string;
+  agencyId: string;
 }
 
 export interface TranslateCadWritebackPayload {

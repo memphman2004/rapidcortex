@@ -69,6 +69,11 @@ export function CampusIncidentQueueHome({ campusCode }: { campusCode: string }) 
 
   return (
     <div className="space-y-5">
+      {mutate.isError ? (
+        <p className="rounded-md border border-red-800/60 bg-red-950/40 px-3 py-2 text-sm text-red-200" role="alert">
+          {mutate.error instanceof Error ? mutate.error.message : "Action failed. Try again."}
+        </p>
+      ) : null}
       <div className="flex flex-wrap items-center gap-3">
         <CampusSiteSwitcher sites={sites} value={scope} onChange={setScope} />
         <label className="text-sm text-slate-300">

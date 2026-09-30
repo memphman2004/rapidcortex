@@ -56,6 +56,11 @@ export function CampusCleryWorkspace({
     "occurredAt,category,geography,location,building,notes,externalRecordId,unfounded\n",
   );
   const [importSource, setImportSource] = useState("campus_pd_export");
+  const [preparedBy, setPreparedBy] = useState("");
+  const [reportNotes, setReportNotes] = useState("");
+  const [institutionName, setInstitutionName] = useState("");
+  const [addressLine, setAddressLine] = useState("");
+  const [pdfBusy, setPdfBusy] = useState(false);
 
   const qs = useMemo(
     () => `campusCode=${encodeURIComponent(code)}&academicYear=${encodeURIComponent(academicYear)}`,
@@ -227,6 +232,42 @@ export function CampusCleryWorkspace({
     window.open(`/api/campus/clery/report?${qs}&format=csv`, "_blank", "noopener,noreferrer");
   }
 
+  async function downloadPdf() {
+    setPdfBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/campus/clery/report", {
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          campusCode: code,
+          academicYear,
+          format: "pdf",
+          preparedBy: preparedBy.trim() || undefined,
+          notes: reportNotes.trim() || undefined,
+          institutionName: institutionName.trim() || undefined,
+          addressLine: addressLine.trim() || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? `PDF failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `clery-${code}-${academicYear}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to export PDF");
+    } finally {
+      setPdfBusy(false);
+    }
+  }
+
   const tabs: { id: Tab; label: string }[] = [
     { id: "report", label: "ASR report" },
     { id: "entries", label: "Entries" },
@@ -270,12 +311,11 @@ export function CampusCleryWorkspace({
           </button>
           <button
             type="button"
-            onClick={() =>
-              window.open(`/api/campus/clery/report?${qs}&format=pdf`, "_blank", "noopener,noreferrer")
-            }
-            className="rounded bg-sky-800 px-3 py-2 text-sm text-white hover:bg-sky-700"
+            onClick={() => void downloadPdf()}
+            disabled={pdfBusy}
+            className="rounded bg-sky-800 px-3 py-2 text-sm text-white hover:bg-sky-700 disabled:opacity-50"
           >
-            Download PDF
+            {pdfBusy ? "Building PDF…" : "Download PDF"}
           </button>
           {canManage && (
             <button
@@ -287,6 +327,49 @@ export function CampusCleryWorkspace({
               Sync from NexCort iQ
             </button>
           )}
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <label className="text-xs text-slate-400">
+            Institution / campus name
+            <input
+              className="mt-1 block w-full rounded border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-white"
+              value={institutionName}
+              onChange={(e) => setInstitutionName(e.target.value)}
+              placeholder={`e.g. ${code} University`}
+              maxLength={200}
+            />
+          </label>
+          <label className="text-xs text-slate-400">
+            Prepared by
+            <input
+              className="mt-1 block w-full rounded border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-white"
+              value={preparedBy}
+              onChange={(e) => setPreparedBy(e.target.value)}
+              placeholder="Name / title"
+              maxLength={120}
+            />
+          </label>
+          <label className="text-xs text-slate-400 sm:col-span-2">
+            Address / location line
+            <input
+              className="mt-1 block w-full rounded border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-white"
+              value={addressLine}
+              onChange={(e) => setAddressLine(e.target.value)}
+              placeholder="Optional campus address for the PDF header"
+              maxLength={400}
+            />
+          </label>
+          <label className="text-xs text-slate-400 sm:col-span-2">
+            Notes for this extract
+            <textarea
+              className="mt-1 block w-full rounded border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-white"
+              value={reportNotes}
+              onChange={(e) => setReportNotes(e.target.value)}
+              placeholder="Optional narrative — appears on the PDF with live Clery totals from the platform"
+              maxLength={4000}
+              rows={3}
+            />
+          </label>
         </div>
         {error && (
           <p className="mt-3 rounded border border-red-800/60 bg-red-950/40 px-3 py-2 text-sm text-red-200">

@@ -1,11 +1,12 @@
-import PDFDocument from "pdfkit";
 import type { CampusIncident } from "./campus-types.js";
 
 /**
  * Campus after-action / Clery extract PDF (UM-025). Institutional review copy —
  * not a Clery determination and not a 911 CAD record.
  */
-export function exportCampusAfterActionPdf(incident: CampusIncident): Promise<Buffer> {
+export async function exportCampusAfterActionPdf(incident: CampusIncident): Promise<Buffer> {
+  // Lazy-load pdfkit — top-level import pulls fontkit/@swc/helpers and breaks lean Lambdas.
+  const { default: PDFDocument } = await import("pdfkit");
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "LETTER", margin: 54 });
     const chunks: Buffer[] = [];

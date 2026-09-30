@@ -21,7 +21,7 @@ export function CampusCleryDclClient({ campusCode }: { campusCode: string }) {
 
   return (
     <div className="space-y-3">
-      <h1 className="text-xl font-semibold text-white">Daily Crime Log (internal)</h1>
+      <h1 className="text-xl font-semibold text-white">Daily Incident Log (internal)</h1>
       <p className="text-sm text-slate-400">
         Public log:{" "}
         <a className="text-sky-400 underline" href={`/crime-log/${code.toLowerCase()}`} target="_blank" rel="noreferrer">

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { dashboardRouteFromRole } from "rapid-cortex-shared";
-import { CampusDashboardHome } from "@/components/dashboards/DashboardHomeRenderer";
+import { CampusConsoleHome } from "@/components/campus/campus-console-home";
+import { resolveCampusDisplayName } from "@/lib/campus/campus-admin-page";
 import { dashboardDisplayName } from "@/lib/dashboards/dashboard-display-name";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 
@@ -21,12 +22,17 @@ export default async function CampusHomePage({
     redirect(dashboardRouteFromRole(user.role, user.agencyId));
   }
 
+  const agencyName = await resolveCampusDisplayName(normalizedCode);
+
   return (
-    <CampusDashboardHome
-      campusCode={normalizedCode}
-      role={user.role}
+    <CampusConsoleHome
       agencyId={user.agencyId}
+      campusCode={normalizedCode}
+      agencyName={agencyName}
       displayName={dashboardDisplayName(user)}
+      userEmail={user.email ?? ""}
+      userRole={user.role}
+      userId={user.userId}
     />
   );
 }

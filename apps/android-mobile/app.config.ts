@@ -87,7 +87,7 @@ const config: ExpoConfig = {
       NSLocationAlwaysUsageDescription:
         'NexCort iQ can use location in the background only when you enable Guardian device tracking.',
       NSMicrophoneUsageDescription:
-        'NexCort iQ may use the microphone when you record video while scanning a QR code.',
+        'NexCort iQ uses the microphone for live language translation between staff and individuals.',
       NSPhotoLibraryUsageDescription:
         'NexCort iQ saves QR code images to your photo library when you choose Save.',
       NSPhotoLibraryAddUsageDescription:
@@ -117,16 +117,19 @@ const config: ExpoConfig = {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#00040e',
     },
-    permissions: ['android.permission.NFC', 'android.permission.VIBRATE'],
+    permissions: [
+      'android.permission.NFC',
+      'android.permission.VIBRATE',
+      'android.permission.RECORD_AUDIO',
+    ],
     /**
-     * Play v1 is QR/NFC field codes only. Linked Safe & Sound native modules
-     * (BLE, maps, camera, background location, FCM) still autolink — strip
-     * their dangerous permissions so Data safety / Photos / Nearby devices
-     * declarations match the shipped product.
+     * Play v1 is QR/NFC field codes + Translator (STT). Linked Safe & Sound
+     * native modules (BLE, maps, camera, background location, FCM) still
+     * autolink — strip their dangerous permissions so Data safety / Photos /
+     * Nearby devices declarations match the shipped product.
      */
     blockedPermissions: [
       'android.permission.CAMERA',
-      'android.permission.RECORD_AUDIO',
       'android.permission.ACCESS_FINE_LOCATION',
       'android.permission.ACCESS_COARSE_LOCATION',
       'android.permission.ACCESS_BACKGROUND_LOCATION',
@@ -194,8 +197,19 @@ const config: ExpoConfig = {
         cameraPermission:
           'NexCort iQ uses the camera to scan QR codes for sign location setup.',
         microphonePermission:
-          'NexCort iQ may use the microphone when you record video while scanning a QR code.',
+          'NexCort iQ uses the microphone for live language translation between staff and individuals.',
         recordAudioAndroid: false,
+      },
+    ],
+    'expo-av',
+    [
+      'expo-speech-recognition',
+      {
+        microphonePermission:
+          'NexCort iQ uses the microphone for live language translation between staff and individuals.',
+        speechRecognitionPermission:
+          'NexCort iQ uses speech recognition to translate conversations in the field.',
+        androidSpeechServicePackages: ['com.google.android.googlequicksearchbox'],
       },
     ],
     [

@@ -213,7 +213,8 @@ describe("getRoleNav", () => {
     );
     const faculty = getRoleNav("CAMPUS_FACULTY", { campusCode: "LINCOLNHIGH" });
     const facultyItem = faculty.sections.flatMap((s) => s.items).find((i) => i.id === "translate");
-    expect(facultyItem?.badge).toEqual({ type: "label", text: "VIEW ONLY", color: "slate" });
+    expect(facultyItem?.href).toBe("/app/campus/LINCOLNHIGH/translate");
+    expect(facultyItem?.badge).toBeUndefined();
   });
 
   it("exposes Call Assist QA to supervisors and analytics on the Call Assist page", () => {
@@ -407,6 +408,81 @@ describe("getRoleNav", () => {
       .sections.flatMap((s) => s.items)
       .find((i) => i.id === "clery-review");
     expect(dispatcher).toBeUndefined();
+  });
+
+  it("strips Clery for K-12 campus admin but keeps Reports + K-12 Safety", () => {
+    const nav = getRoleNav("CAMPUS_ADMIN", {
+      campusCode: "CAMDEN",
+      campusInstitutionType: "k12",
+    });
+    const items = nav.sections.flatMap((s) => s.items);
+    const sectionIds = nav.sections.map((s) => s.id);
+
+    expect(sectionIds).not.toContain("clery-compliance");
+    expect(sectionIds).toContain("k12-safety");
+    expect(items.find((i) => i.id === "clery")).toBeUndefined();
+    expect(items.find((i) => i.id === "clery-review")).toBeUndefined();
+    expect(items.find((i) => i.id === "reports")?.href).toBe("/app/campus/CAMDEN/reports");
+    expect(items.find((i) => i.id === "daily-incident-log")?.label).toBe("Daily Incident Log");
+    expect(items.find((i) => i.id === "daily-incident-log")?.href).toBe(
+      "/app/campus/CAMDEN/reports/incidents",
+    );
+    expect(items.find((i) => i.id === "school-safety-report")?.href).toBe(
+      "/app/campus/CAMDEN/reports/school-safety",
+    );
+    expect(items.find((i) => i.id === "visitors")?.href).toBe("/app/campus/CAMDEN/visitors");
+    expect(items.find((i) => i.id === "pickup-auth")?.href).toBe(
+      "/app/campus/CAMDEN/pickup-auth",
+    );
+  });
+
+  it("labels the Clery daily log as Daily Crime Log for higher-ed", () => {
+    const item = getRoleNav("CAMPUS_ADMIN", {
+      campusCode: "IU",
+      campusInstitutionType: "higher_ed",
+    })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "clery-dcl");
+    expect(item?.label).toBe("Daily Crime Log");
+  });
+
+  it("relabels K-12 primary sections and role badge", () => {
+    const nav = getRoleNav("CAMPUS_SUPERVISOR", {
+      campusCode: "CAMDEN",
+      campusInstitutionType: "k12",
+    });
+    expect(nav.roleBadge).toBe("K-12 SUPERVISOR");
+    expect(nav.sections.find((s) => s.id === "safety")?.label).toBe("SCHOOL SAFETY");
+    expect(nav.sections.find((s) => s.id === "k12-safety")).toBeTruthy();
+    expect(nav.sections.flatMap((s) => s.items).find((i) => i.id === "clery-dcl")).toBeUndefined();
+  });
+
+  it("marks campus security Zones as VIEW ONLY for higher-ed and K-12", () => {
+    for (const campusInstitutionType of ["higher_ed", "k12"] as const) {
+      const zones = getRoleNav("CAMPUS_SECURITY", { campusCode: "DEMO", campusInstitutionType })
+        .sections.flatMap((s) => s.items)
+        .find((i) => i.id === "zones");
+      expect(zones?.badge).toEqual({ type: "label", text: "VIEW ONLY", color: "slate" });
+    }
+  });
+
+  it("faculty Translate has no VIEW ONLY badge; K-12 faculty only gets Pickup Authorization", () => {
+    const higherEd = getRoleNav("CAMPUS_FACULTY", {
+      campusCode: "DEMO",
+      campusInstitutionType: "higher_ed",
+    })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "translate");
+    expect(higherEd?.badge).toBeUndefined();
+
+    const k12 = getRoleNav("CAMPUS_FACULTY", {
+      campusCode: "DEMO",
+      campusInstitutionType: "k12",
+    });
+    const k12Items = k12.sections.flatMap((s) => s.items);
+    expect(k12Items.find((i) => i.id === "translate")?.badge).toBeUndefined();
+    const k12Safety = k12.sections.find((s) => s.id === "k12-safety");
+    expect(k12Safety?.items.map((i) => i.id)).toEqual(["pickup-auth"]);
   });
 
   it("exposes NexiQ Vision™ on dispatcher media, not supervisor or guest services", () => {

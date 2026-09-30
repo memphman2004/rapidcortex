@@ -202,6 +202,7 @@ export const Strings = {
   venue: {
     codes: 'Reporting Points',
     create: 'Add',
+    translate: 'Translator',
     account: 'Account',
     agencyCodes: 'Reporting Points',
     searchPlaceholder: 'Search by name or location',
@@ -311,6 +312,7 @@ export const Strings = {
   campus: {
     codes: 'Reporting Points',
     create: 'Add',
+    translate: 'Translator',
     account: 'Account',
   },
 

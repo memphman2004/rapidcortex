@@ -30,6 +30,10 @@
 	<true/>
 	<key>NFCReaderUsageDescription</key>
 	<string>NexCort iQ Mobile uses NFC to program location reporting tags and NexCort iQ site signs.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>NexCort iQ Mobile uses the microphone for live language translation between staff and individuals.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>NexCort iQ Mobile uses speech recognition for live language translation in the field.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>NexCort iQ Mobile saves QR code images to your photo library when you choose Save.</string>
 	<key>RC_API_BASE_URL</key>

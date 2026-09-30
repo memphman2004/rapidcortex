@@ -6,6 +6,7 @@ import {
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 import type {
+  TranslateAssistanceEncounter,
   TranslateSegment,
   TranslateSession,
   TranslateSessionStatus,
@@ -48,6 +49,14 @@ export function sessionPk(agencyId: string, sessionId: string): string {
   return `${agencyId}#${sessionId}`;
 }
 
+export function assistancePk(agencyId: string): string {
+  return `AGENCY#${agencyId}`;
+}
+
+export function assistanceSk(assistMonth: string, sessionId: string): string {
+  return `ASSIST#${assistMonth}#${sessionId}`;
+}
+
 function stripSession(item: Record<string, unknown>): TranslateSession {
   const { pk: _pk, sk: _sk, ...rest } = item;
   const vertical = (rest.vertical as TranslateVertical | undefined) ?? "law_enforcement";
@@ -61,6 +70,11 @@ function stripSession(item: Record<string, unknown>): TranslateSession {
 function stripSegment(item: Record<string, unknown>): TranslateSegment {
   const { sk: _sk, ...rest } = item;
   return rest as unknown as TranslateSegment;
+}
+
+function stripAssistance(item: Record<string, unknown>): TranslateAssistanceEncounter {
+  const { pk: _pk, sk: _sk, entityType: _et, ...rest } = item;
+  return rest as unknown as TranslateAssistanceEncounter;
 }
 
 export const translateStore = {
@@ -134,6 +148,49 @@ export const translateStore = {
       }),
     );
     return (out.Items ?? []).map((row) => stripSession(row));
+  },
+
+  async putAssistanceEncounter(row: TranslateAssistanceEncounter): Promise<void> {
+    await ddb.send(
+      new PutCommand({
+        TableName: sessionsTable(),
+        Item: {
+          ...row,
+          pk: assistancePk(row.agencyId),
+          sk: assistanceSk(row.assistMonth, row.sessionId),
+          entityType: "ASSISTANCE",
+        },
+      }),
+    );
+  },
+
+  async listAssistanceEncounters(
+    agencyId: string,
+    opts: { fromIso: string; toIso: string; limit?: number },
+  ): Promise<TranslateAssistanceEncounter[]> {
+    const fromMonth = opts.fromIso.slice(0, 7);
+    const toMonth = opts.toIso.slice(0, 7);
+    const out = await ddb.send(
+      new QueryCommand({
+        TableName: sessionsTable(),
+        KeyConditionExpression: "pk = :pk AND sk BETWEEN :fromSk AND :toSk",
+        ExpressionAttributeValues: {
+          ":pk": assistancePk(agencyId),
+          ":fromSk": `ASSIST#${fromMonth}`,
+          ":toSk": `ASSIST#${toMonth}\uffff`,
+        },
+        ScanIndexForward: true,
+        Limit: opts.limit ?? 5000,
+      }),
+    );
+    const fromMs = Date.parse(opts.fromIso);
+    const toMs = Date.parse(opts.toIso);
+    return (out.Items ?? [])
+      .map((row) => stripAssistance(row))
+      .filter((row) => {
+        const ended = Date.parse(row.endedAt);
+        return Number.isFinite(ended) && ended >= fromMs && ended <= toMs;
+      });
   },
 
   async putSegment(segment: TranslateSegment): Promise<void> {

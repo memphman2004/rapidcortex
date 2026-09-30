@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getIncidentTypes, matchesCampusSiteScope } from "rapid-cortex-shared";
+import { getIncidentTypes, getIncidentTypeLabel, matchesCampusSiteScope } from "rapid-cortex-shared";
 import { useCampusInstitutionType } from "@/lib/campus/use-campus-institution";
 import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 import { fetchCampusIncidents } from "@/lib/campus/campus-incidents-api";
@@ -26,10 +26,7 @@ const C = {
 type StatusFilter = "all" | CampusIncidentStatus;
 
 function typeLabel(type: string): string {
-  const catalog = getIncidentTypes("k12");
-  const hit = catalog.find((t) => t.value === type);
-  if (hit) return hit.label;
-  return type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return getIncidentTypeLabel("k12", type);
 }
 
 function statusColor(status: CampusIncidentStatus): string {
@@ -122,9 +119,9 @@ export function IncidentLogClient({
 
   return (
     <div>
-      <h1 style={{ margin: 0, fontSize: 18, color: C.text }}>Incident Log</h1>
+      <h1 style={{ margin: 0, fontSize: 18, color: C.text }}>Daily Incident Log</h1>
       <p style={{ margin: "6px 0 16px", fontSize: 12, color: C.silver }}>
-        District-wide incident history for K-12 (replaces the higher-ed Daily Crime Log).
+        District-wide school safety incidents and concerns for K-12 follow-up.
       </p>
 
       <div

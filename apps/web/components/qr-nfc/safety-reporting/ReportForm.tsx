@@ -1,7 +1,9 @@
 "use client";
 
 import { Camera, Check, MapPin, MessageSquare, UserRound } from "lucide-react";
+import type { CampusIncidentTypeConfig } from "rapid-cortex-shared";
 import { useReportLanguage } from "@/components/intake/report-language";
+import { K12ConcernPicker, type K12FollowUpAnswers } from "./K12ConcernPicker";
 import { SAFETY_BRAND } from "./tokens";
 import { TrustNote } from "./TrustNote";
 
@@ -11,7 +13,10 @@ export type ReportFormValues = {
   anonymous: boolean;
   reporterName: string;
   reporterPhone: string;
+  /** Flat-category label (higher-ed / venue) or K-12 type value. */
   category: string | null;
+  /** K-12 dynamic follow-up answers keyed by question id. */
+  followUpAnswers?: K12FollowUpAnswers;
 };
 
 type ReportFormProps = {
@@ -21,6 +26,8 @@ type ReportFormProps = {
   categories: string[];
   /** Optional translated labels aligned by index with `categories`. */
   categoryLabels?: string[];
+  /** When set, use grouped K-12 picker instead of flat chips. */
+  k12Types?: readonly CampusIncidentTypeConfig[];
   locationFieldLabel: string;
   locationPlaceholder: string;
   submitLabel: string;
@@ -41,6 +48,7 @@ export function ReportForm({
   onChange,
   categories,
   categoryLabels,
+  k12Types,
   locationFieldLabel,
   locationPlaceholder,
   submitLabel,
@@ -52,6 +60,7 @@ export function ReportForm({
   showOptionalActions = false,
 }: ReportFormProps) {
   const { t } = useReportLanguage();
+  const useK12Picker = Boolean(k12Types && k12Types.length > 0);
 
   return (
     <section
@@ -69,7 +78,17 @@ export function ReportForm({
       </div>
 
       <form onSubmit={onSubmit} noValidate>
-        {categories.length > 0 ? (
+        {useK12Picker && k12Types ? (
+          <K12ConcernPicker
+            types={k12Types}
+            selectedType={values.category}
+            followUpAnswers={values.followUpAnswers ?? {}}
+            onSelectType={(typeValue) =>
+              onChange({ category: typeValue, followUpAnswers: {} })
+            }
+            onFollowUpChange={(followUpAnswers) => onChange({ followUpAnswers })}
+          />
+        ) : categories.length > 0 ? (
           <fieldset className="mb-4">
             <legend className="text-sm font-medium" style={{ color: SAFETY_BRAND.textDark }}>
               {t("category")}{" "}

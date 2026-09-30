@@ -23,11 +23,19 @@ rc_prepare_api_vendor_for_sam() {
   local backup_suffix="${RC_API_PKG_BACKUP_SUFFIX:-pre-sam}"
   local vendor_dir="${ROOT}/apps/api/vendor-packs"
 
-  echo "── API vendor prep: scripts/refresh-api-vendor-packs.sh ──"
-  bash "${ROOT}/scripts/refresh-api-vendor-packs.sh"
+  if [[ "${SKIP_API_VENDOR_REFRESH:-}" == "1" ]]; then
+    echo "── Skipping refresh-api-vendor-packs.sh (SKIP_API_VENDOR_REFRESH=1) ──"
+  else
+    echo "── API vendor prep: scripts/refresh-api-vendor-packs.sh ──"
+    bash "${ROOT}/scripts/refresh-api-vendor-packs.sh"
+  fi
 
-  echo "── Building rapid-cortex-protocols (API compile dependency) ──"
-  npm run build -w rapid-cortex-protocols
+  if [[ "${SKIP_API_VENDOR_REFRESH:-}" == "1" && -d "${ROOT}/packages/protocols/dist" ]]; then
+    echo "── Skipping rapid-cortex-protocols build (SKIP_API_VENDOR_REFRESH=1) ──"
+  else
+    echo "── Building rapid-cortex-protocols (API compile dependency) ──"
+    npm run build -w rapid-cortex-protocols
+  fi
 
   local t_shared t_int t_sec
   t_shared="$(ls -1 "${vendor_dir}"/rapid-cortex-shared-*.tgz 2>/dev/null | sort | tail -1)"

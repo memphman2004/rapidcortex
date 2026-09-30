@@ -7,7 +7,6 @@ import {
   QueryCommand,
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
-import PDFDocument from "pdfkit";
 import {
   AUDIT_EVENT_TYPES,
 } from "rapid-cortex-security";
@@ -461,7 +460,17 @@ export function exportCleryReportCsv(report: CleryReport): string {
   return [...header, ...rows, ...matrixHeader, ...matrixRows].join("\n");
 }
 
-export function exportCleryReportPdf(report: CleryReport): Promise<Buffer> {
+export async function exportCleryReportPdf(
+  report: CleryReport,
+  opts?: {
+    preparedBy?: string;
+    notes?: string;
+    institutionName?: string;
+    addressLine?: string;
+  },
+): Promise<Buffer> {
+  // Lazy-load pdfkit — top-level import pulls fontkit/@swc/helpers and breaks lean Lambdas.
+  const { default: PDFDocument } = await import("pdfkit");
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "LETTER", margin: 48 });
     const chunks: Buffer[] = [];
@@ -469,26 +478,94 @@ export function exportCleryReportPdf(report: CleryReport): Promise<Buffer> {
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    doc.font("Helvetica-Bold").fontSize(16).text(`Clery extract — ${report.campusCode}`);
-    doc.font("Helvetica").fontSize(9).text(`Academic year ${report.academicYear} · ${report.generatedAt}`);
-    doc.moveDown(0.4);
-    doc.fontSize(8).fillColor("#64748B").text(report.disclaimer);
-    doc.moveDown(0.6).fillColor("#0F172A").fontSize(10);
+    const NAVY = "#0A1628";
+    const T1 = "#0F172A";
+    const T2 = "#334155";
+    const MUTED = "#64748B";
+    const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const title =
+      opts?.institutionName?.trim() || `Campus ${report.campusCode}`;
+
+    doc.rect(0, 0, doc.page.width, 64).fill(NAVY);
+    doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(15).text("NexCort iQ Campus", 48, 16);
+    doc
+      .font("Helvetica")
+      .fontSize(9)
+      .text("Clery Act extract — institutional review (not a final ASR determination)", 48, 38);
+
+    doc.fillColor(T1).font("Helvetica-Bold").fontSize(13).text(title, 48, 84);
+    doc.fillColor(T2).font("Helvetica").fontSize(10);
+    doc.text(`Campus code: ${report.campusCode}`);
+    if (opts?.addressLine?.trim()) doc.text(opts.addressLine.trim(), { width: pageWidth });
+    doc.text(`Academic year: ${report.academicYear}`);
+    doc.text(`Period: ${report.period.start.slice(0, 10)} → ${report.period.end.slice(0, 10)}`);
+    doc.text(`Generated: ${report.generatedAt}`);
+    if (opts?.preparedBy?.trim()) doc.text(`Prepared by: ${opts.preparedBy.trim()}`);
+
+    doc.moveDown(0.5);
+    doc.fillColor(MUTED).fontSize(8).text(report.disclaimer, { width: pageWidth });
+
+    doc.moveDown(0.6).fillColor(T1).font("Helvetica-Bold").fontSize(11).text("Platform totals");
+    doc.fillColor(T2).font("Helvetica").fontSize(10);
     doc.text(
       `Entries: ${report.totals.entries} · Included in ASR: ${report.totals.includedInAsr} · Unfounded: ${report.totals.unfounded}`,
     );
-    doc.moveDown(0.5);
+    const src = report.totals.bySource;
+    doc.text(
+      `By source — platform: ${src.platform_incident ?? 0} · manual: ${src.manual ?? 0} · import: ${src.import ?? 0} · external: ${src.external_sync ?? 0}`,
+    );
+
+    if (opts?.notes?.trim()) {
+      doc.moveDown(0.5);
+      doc.fillColor(T1).font("Helvetica-Bold").fontSize(11).text("Operator notes");
+      doc.fillColor(T2).font("Helvetica").fontSize(10).text(opts.notes.trim(), { width: pageWidth });
+    }
+
+    if (report.matrix.length > 0) {
+      doc.moveDown(0.6);
+      doc.fillColor(T1).font("Helvetica-Bold").fontSize(11).text("ASR matrix (category × geography)");
+      doc.moveDown(0.2);
+      for (const cell of report.matrix.slice(0, 60)) {
+        if (doc.y > doc.page.height - 72) doc.addPage();
+        doc
+          .fillColor(T2)
+          .font("Helvetica")
+          .fontSize(8)
+          .text(
+            `${cell.category} · ${CLERY_GEOGRAPHY_LABELS[cell.geography]} — count ${cell.count}` +
+              (cell.unfounded ? ` (unfounded ${cell.unfounded})` : ""),
+          );
+      }
+    }
+
+    doc.moveDown(0.6);
+    doc.fillColor(T1).font("Helvetica-Bold").fontSize(11).text("Entries (up to 80)");
+    doc.moveDown(0.3);
     for (const entry of report.entries.slice(0, 80)) {
+      if (doc.y > doc.page.height - 72) doc.addPage();
       doc
+        .fillColor(T1)
         .font("Helvetica-Bold")
         .fontSize(9)
         .text(`${entry.occurredAt.slice(0, 10)} · ${entry.category} · ${CLERY_GEOGRAPHY_LABELS[entry.geography]}`);
       doc
+        .fillColor(T2)
         .font("Helvetica")
         .fontSize(8)
         .text(`${entry.building} — ${entry.location}${entry.notes ? ` — ${entry.notes.slice(0, 160)}` : ""}`);
-      doc.moveDown(0.25);
+      doc.moveDown(0.2);
     }
+
+    doc.moveDown(0.8);
+    doc
+      .fillColor(MUTED)
+      .font("Helvetica")
+      .fontSize(8)
+      .text(
+        "NexCort iQ does not make Clery Act determinations. Designated Campus Security Authorities must verify before ASR publication. Not a 911 CAD record.",
+        { width: pageWidth },
+      );
+
     doc.end();
   });
 }

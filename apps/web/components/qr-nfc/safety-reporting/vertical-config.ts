@@ -1,4 +1,5 @@
-import type { ReportVertical } from "rapid-cortex-shared";
+import type { CampusIncidentTypeConfig, ReportVertical } from "rapid-cortex-shared";
+import { getIncidentTypes } from "rapid-cortex-shared";
 
 export type SafetyVerticalConfig = {
   productLabel: string;
@@ -10,8 +11,11 @@ export type SafetyVerticalConfig = {
   locationFieldLabel: string;
   defaultLocationPlaceholder: string;
   categories: string[];
+  /** When set, ReportForm uses grouped K-12 picker + follow-ups instead of flat chips. */
+  k12Types?: CampusIncidentTypeConfig[];
 };
 
+/** Higher-ed campus public form (i18n keys `cat.campus.0`… assume length 6). */
 export const campusConfig: SafetyVerticalConfig = {
   productLabel: "NexCort iQ Campus",
   contextLabel: "Campus Safety Reporting",
@@ -30,6 +34,15 @@ export const campusConfig: SafetyVerticalConfig = {
     "Facility hazard",
     "Other",
   ],
+};
+
+/** K-12 school public form — grouped concern catalog (not a flat chip dump). */
+export const campusK12Config: SafetyVerticalConfig = {
+  ...campusConfig,
+  contextLabel: "School Safety Reporting",
+  callButtonFallback: "Call School Safety",
+  categories: [],
+  k12Types: getIncidentTypes("k12"),
 };
 
 export const venueConfig: SafetyVerticalConfig = {
@@ -90,10 +103,13 @@ const transitConfig: SafetyVerticalConfig = {
   categories: ["Safety concern", "Suspicious activity", "Facility hazard", "Other"],
 };
 
-export function safetyConfigForVertical(vertical: ReportVertical | string): SafetyVerticalConfig {
+export function safetyConfigForVertical(
+  vertical: ReportVertical | string,
+  opts?: { institutionType?: "higher_ed" | "k12" },
+): SafetyVerticalConfig {
   switch (vertical) {
     case "campus":
-      return campusConfig;
+      return opts?.institutionType === "k12" ? campusK12Config : campusConfig;
     case "venue":
       return venueConfig;
     case "hospital":

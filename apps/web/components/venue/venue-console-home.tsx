@@ -46,8 +46,10 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
 import { loadMapTheme, saveMapTheme } from "@/lib/maps/persisted-map-prefs";
 import { venueIncidentsToMap } from "@/components/maps/map-incident-adapters";
-import { isVenueOperationalAwarenessEnabled } from "@/lib/runtime-flags";
+import { isVenueOperationalAwarenessEnabled, isRcTranslateVenueEnabled } from "@/lib/runtime-flags";
 import { VenueTranslateMonitorStrip } from "@/components/translate/VenueTranslateMonitorStrip";
+import { useTranslateAssistanceYtd } from "@/components/translate/use-translate-assistance-ytd";
+import { translateAssistanceKpiCard } from "@/components/translate/TranslateAssistanceStat";
 import { OperationalAwarenessWorkspace } from "@/components/venue/operational-awareness/OperationalAwarenessWorkspace";
 import { resolveVenueOperationalMap } from "@/lib/venue/operational-awareness/resolve-operational-map";
 import { useAgencyWebSocket } from "@/hooks/use-agency-websocket";
@@ -860,6 +862,12 @@ function VenueConsoleHomeInner({
         ? `${sections.length} / ${sections.length}`
         : "—";
   const kpiGuestReports = stats?.guestReportsToday ?? 0;
+
+  const translateEnabled = isRcTranslateVenueEnabled();
+  const { count: assistYtd, loading: assistLoading } = useTranslateAssistanceYtd(
+    agencyId,
+    translateEnabled,
+  );
   const operationalMap = useMemo(
     () => resolveVenueOperationalMap(venueCode, venueName),
     [venueCode, venueName],
@@ -1037,6 +1045,18 @@ function VenueConsoleHomeInner({
       href: guestHref,
     },
   ];
+
+  const assistCard = translateAssistanceKpiCard({
+    agencyId,
+    enabled: translateEnabled,
+    loading: assistLoading,
+    count: assistYtd,
+    textColor: C.text,
+    iconBg: "rgba(245,158,11,0.15)",
+    accentColor: C.orange,
+    href: `${pathname.split("/").slice(0, 4).join("/")}/translate`,
+  });
+  if (assistCard) kpiCards.push(assistCard);
 
   return (
     <HelpChrome role={userRole ?? "VENUE_SECURITY"}>

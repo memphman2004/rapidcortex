@@ -3,14 +3,17 @@ import {
   canMonitorTranslateSessionForVertical,
   canSendTranslateLink,
   canStartTranslateSessionForVertical,
+  canViewTranslateAssistanceSummary,
   findSupportedLanguage,
   isRcInternalOperator,
   OFFICER_LANGUAGE,
   PHRASES_BY_VERTICAL,
   SUPPORTED_LANGUAGES,
+  translateAssistanceSummaryQuerySchema,
   translateSessionCloseRequestSchema,
   translateLinkRequestSchema,
   translateSessionCreateRequestSchema,
+  type TranslateAssistanceSummaryMonth,
   type TranslateSession,
   type TranslateVertical,
   type UserContext,
@@ -119,6 +122,44 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const method = event.requestContext.http?.method ?? "GET";
     const parts = rest(event.rawPath ?? "");
     const query = event.queryStringParameters ?? {};
+
+    if (method === "GET" && parts[0] === "assistance" && parts[1] === "summary") {
+      const parsed = translateAssistanceSummaryQuerySchema.safeParse({
+        agencyId: query.agencyId ?? user.agencyId,
+        from: query.from,
+        to: query.to,
+      });
+      if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      const agencyId = parsed.data.agencyId;
+      if (!canViewTranslateAssistanceSummary(user, agencyId)) {
+        return withCorrelationHeaders(event, forbidden());
+      }
+      const now = new Date();
+      const yearStart = new Date(Date.UTC(now.getUTCFullYear(), 0, 1)).toISOString();
+      const fromIso = parsed.data.from ?? yearStart;
+      const toIso = parsed.data.to ?? now.toISOString();
+      const rows = await translateStore.listAssistanceEncounters(agencyId, {
+        fromIso,
+        toIso,
+      });
+      const monthMap = new Map<string, number>();
+      for (const row of rows) {
+        monthMap.set(row.assistMonth, (monthMap.get(row.assistMonth) ?? 0) + 1);
+      }
+      const byMonth: TranslateAssistanceSummaryMonth[] = [...monthMap.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([month, count]) => ({ month, count }));
+      return withCorrelationHeaders(
+        event,
+        ok({
+          agencyId,
+          from: fromIso,
+          to: toIso,
+          count: rows.length,
+          byMonth,
+        }),
+      );
+    }
 
     if (method === "GET" && parts[0] === "languages") {
       return withCorrelationHeaders(
@@ -422,20 +463,20 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         };
         await translateStore.putSession(session);
 
-        const wantWriteback =
+        const wantNoteWriteback =
           Boolean(summary) &&
           (parsed.data.writebackNote === true || parsed.data.cadWriteback === true);
-        let cadWritebackQueued = false;
-        let writebackQueued = false;
-        if (wantWriteback && summary) {
-          const result = await queueVerticalWriteback({
-            session,
-            summary,
-            segments,
-            actorId: user.userId,
-          });
-          writebackQueued = result.queued;
-          cadWritebackQueued = result.cadQueued;
+        const result = await queueVerticalWriteback({
+          session,
+          summary: summary ?? "",
+          segments,
+          actorId: user.userId,
+          skipIncidentNote: !wantNoteWriteback,
+        });
+        const writebackQueued = result.queued;
+        const cadWritebackQueued = result.cadQueued;
+        const assistanceEncounterId = result.assistanceId;
+        if (wantNoteWriteback) {
           const refreshed = await translateStore.getSession(user.agencyId, sessionId);
           if (refreshed) session = refreshed;
         }
@@ -450,6 +491,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             vertical: session.vertical,
             segmentCount: session.segmentCount,
             writebackQueued,
+            assistanceEncounterId,
           },
           createdAt: now,
           resourceType: "session",
@@ -463,6 +505,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             summaryGenerated: Boolean(summary),
             cadWritebackQueued,
             writebackQueued,
+            assistanceEncounterId,
           }),
         );
       }

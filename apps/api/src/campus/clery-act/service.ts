@@ -1,4 +1,3 @@
-import PDFDocument from "pdfkit";
 import {
   AUDIT_EVENT_TYPES,
 } from "rapid-cortex-security";
@@ -773,12 +772,17 @@ export async function saveAsrPolicy(
   });
 }
 
-export function buildAsrPdf(opts: {
+export async function buildAsrPdf(opts: {
   institutionName: string;
   reportYear: number;
   coverageYears: [number, number, number];
   statistics: ReturnType<typeof generateAsrStatistics>;
+  preparedBy?: string;
+  notes?: string;
+  addressLine?: string;
 }): Promise<Buffer> {
+  // Lazy-load pdfkit — top-level import pulls fontkit/@swc/helpers and breaks lean Lambdas.
+  const { default: PDFDocument } = await import("pdfkit");
   const disclaimer = formatAsrDisclaimer(opts.institutionName);
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "LETTER", margin: 48 });
@@ -787,16 +791,35 @@ export function buildAsrPdf(opts: {
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    doc.font("Helvetica-Bold").fontSize(16).text(`Annual Security Report — ${opts.institutionName}`);
-    doc.font("Helvetica").fontSize(9).text(`Publication year ${opts.reportYear} · Coverage ${opts.coverageYears.join(", ")}`);
+    const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const NAVY = "#0A1628";
+
+    doc.rect(0, 0, doc.page.width, 64).fill(NAVY);
+    doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(15).text("NexCort iQ Campus", 48, 16);
+    doc.font("Helvetica").fontSize(9).text("Annual Security Report draft — institutional review", 48, 38);
+
+    doc.fillColor("#0F172A").font("Helvetica-Bold").fontSize(14).text(`Annual Security Report — ${opts.institutionName}`, 48, 84);
+    doc.fillColor("#334155").font("Helvetica").fontSize(10);
+    if (opts.addressLine?.trim()) doc.text(opts.addressLine.trim(), { width: pageWidth });
+    doc.text(`Publication year ${opts.reportYear} · Coverage ${opts.coverageYears.join(", ")}`);
+    doc.text(`Generated: ${new Date().toISOString()}`);
+    if (opts.preparedBy?.trim()) doc.text(`Prepared by: ${opts.preparedBy.trim()}`);
+
     doc.moveDown(0.5);
-    doc.fontSize(8).fillColor("#64748B").text(disclaimer, { align: "left" });
+    doc.fontSize(8).fillColor("#64748B").text(disclaimer, { align: "left", width: pageWidth });
+
+    if (opts.notes?.trim()) {
+      doc.moveDown(0.5).fillColor("#0F172A").font("Helvetica-Bold").fontSize(11).text("Operator notes");
+      doc.fillColor("#334155").font("Helvetica").fontSize(10).text(opts.notes.trim(), { width: pageWidth });
+    }
+
     doc.moveDown(0.6).fillColor("#0F172A").fontSize(9);
     doc.font("Helvetica-Bold").text("CRIMINAL OFFENSES");
     doc.font("Helvetica").fontSize(8);
     doc.text("OC = On Campus (total) · RES = Residential (subset of OC) · NC = Non-Campus · PP = Public Property");
     doc.moveDown(0.4);
     for (const row of opts.statistics.offenses) {
+      if (doc.y > doc.page.height - 72) doc.addPage();
       doc.text(
         `${row.calendarYear} ${CLERY_OFFENSE_DISPLAY_NAMES[row.offenseCategory]}  OC ${row.onCampus}  RES ${row.onCampusResidential}  NC ${row.nonCampus}  PP ${row.publicProperty}  Unfounded ${row.unfounded}`,
       );
@@ -804,6 +827,7 @@ export function buildAsrPdf(opts: {
     doc.moveDown(0.5).font("Helvetica-Bold").fontSize(9).text("VAWA OFFENSES");
     doc.font("Helvetica").fontSize(8);
     for (const row of opts.statistics.vawa) {
+      if (doc.y > doc.page.height - 72) doc.addPage();
       doc.text(
         `${row.calendarYear} ${row.offenseType}  OC ${row.onCampus}  RES ${row.onCampusResidential}  NC ${row.nonCampus}  PP ${row.publicProperty}`,
       );

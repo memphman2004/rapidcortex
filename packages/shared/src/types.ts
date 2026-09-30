@@ -436,6 +436,7 @@ export type AuditResourceType =
   | "campus_camera"
   | "campus_eap"
   | "campus_automation"
+  | "campus_zone"
   | "transit_camera"
   | "venue_section"
   | "venue_profile"

@@ -65,6 +65,18 @@ Globals:
         COGNITO_REGION: !Ref AWS::Region
 
 Resources:
+  NodeDepsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${ManagedPolicyNamePrefix}-clery-act-api-deps-${DeploymentStage}"
+      Description: Shared node_modules for Clery Act Lambdas (lean CodeUri builds)
+      ContentUri: ../../apps/api/layer/
+      CompatibleRuntimes:
+        - nodejs20.x
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: makefile
+
   CleryActTable:
     Type: AWS::DynamoDB::Table
     Condition: CreateCleryActTable
@@ -130,6 +142,8 @@ Resources:
       Handler: dist/campus/handlers/clery-act-http.handler
       Timeout: 60
       MemorySize: 1024
+      Layers:
+        - !Ref NodeDepsLayer
       Policies:
         - !Ref AppManagedPolicyCleryAct
 
@@ -158,6 +172,8 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/campus/handlers/public-crime-log.handler
       Timeout: 30
+      Layers:
+        - !Ref NodeDepsLayer
       Policies:
         - !Ref AppManagedPolicyCleryAct
 

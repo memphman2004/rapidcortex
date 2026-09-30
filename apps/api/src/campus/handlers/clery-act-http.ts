@@ -2,6 +2,7 @@ import type { APIGatewayProxyHandlerV2, APIGatewayProxyStructuredResultV2 } from
 import { AuthorizationService, type Permission } from "rapid-cortex-security";
 import {
   cleryAsrPolicyPatchBodySchema,
+  cleryAsrPdfPostBodySchema,
   cleryClassifyBodySchema,
   cleryCreateRecordBodySchema,
   cleryCsaCreateBodySchema,
@@ -401,6 +402,47 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           reportYear: year,
           coverageYears: preview.coverageYears,
           statistics: preview.statistics,
+          preparedBy: event.queryStringParameters?.preparedBy,
+          notes: event.queryStringParameters?.notes,
+          addressLine: event.queryStringParameters?.addressLine,
+        });
+        return withCorrelationHeaders(event, {
+          statusCode: 200,
+          headers: {
+            "content-type": "application/pdf",
+            "content-disposition": `attachment; filename="asr-${year}.pdf"`,
+          },
+          body: pdf.toString("base64"),
+          isBase64Encoded: true,
+        });
+      }
+
+      if (method === "POST" && cleryParts[2] === "download") {
+        requirePerm(user, "clery.asr.view");
+        let body: unknown;
+        try {
+          body = parseJson(event.body);
+        } catch {
+          return withCorrelationHeaders(event, badRequest("Invalid JSON body"));
+        }
+        const parsed = cleryAsrPdfPostBodySchema.safeParse(body);
+        if (!parsed.success) {
+          return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+        }
+        if (!canAccessCampusTenant(user, parsed.data.campusCode)) {
+          return withCorrelationHeaders(event, forbidden("Campus code mismatch"));
+        }
+        const preview = await getAsrPreview(agencyId, year);
+        const institutionFromPreview =
+          preview.disclaimer.match(/reviewed by (.+?)'s designated/)?.[1] ?? parsed.data.campusCode;
+        const pdf = await buildAsrPdf({
+          institutionName: parsed.data.institutionName?.trim() || institutionFromPreview,
+          reportYear: year,
+          coverageYears: preview.coverageYears,
+          statistics: preview.statistics,
+          preparedBy: parsed.data.preparedBy,
+          notes: parsed.data.notes,
+          addressLine: parsed.data.addressLine,
         });
         return withCorrelationHeaders(event, {
           statusCode: 200,

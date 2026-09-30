@@ -1,11 +1,12 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { CAMPUS_INSTITUTION_LABELS, buildPsapAvailabilityNotice } from "rapid-cortex-shared";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
 import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
 import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
+import { useCampusInstitutionType } from "@/lib/campus/use-campus-institution";
 import { PSAPAvailabilityNotice } from "@/components/psap/psap-availability-notice";
-import { buildPsapAvailabilityNotice } from "rapid-cortex-shared";
 
 const C = {
   surface: "var(--rc-surface)",
@@ -17,13 +18,13 @@ const C = {
   crestBg: "var(--rc-crest)",
 } as const;
 
-const roleBadgeMap: Record<string, string> = {
-  CAMPUS_ADMIN: "CAMPUS ADMIN",
-  CAMPUS_SUPERVISOR: "SUPERVISOR",
-  CAMPUS_SECURITY: "SECURITY",
-  CAMPUS_DISPATCH: "DISPATCH",
-  CAMPUS_FACULTY: "FACULTY",
-  CAMPUS_COUNSELOR: "COUNSELOR",
+const roleBadgeMap: Record<string, { higher_ed: string; k12: string }> = {
+  CAMPUS_ADMIN: { higher_ed: "CAMPUS ADMIN", k12: "K-12 ADMIN" },
+  CAMPUS_SUPERVISOR: { higher_ed: "SUPERVISOR", k12: "K-12 SUPERVISOR" },
+  CAMPUS_SECURITY: { higher_ed: "SECURITY", k12: "K-12 SECURITY" },
+  CAMPUS_DISPATCH: { higher_ed: "DISPATCH", k12: "K-12 DISPATCH" },
+  CAMPUS_FACULTY: { higher_ed: "FACULTY", k12: "K-12 STAFF" },
+  CAMPUS_COUNSELOR: { higher_ed: "COUNSELOR", k12: "K-12 COUNSELOR" },
 };
 
 function crestAbbr(campusCode: string): string {
@@ -46,9 +47,17 @@ export function CampusShellHeader({
   /** Rendered immediately left of Help / Font (e.g. ThemeToggle). */
   leadingSlot?: ReactNode;
 }) {
-  const badge = roleBadgeMap[role.trim().toUpperCase()] ?? role;
+  const { institutionType } = useCampusInstitutionType();
+  const badges = roleBadgeMap[role.trim().toUpperCase()];
+  const badge = badges?.[institutionType] ?? role;
   const abbr = crestAbbr(campusCode);
   const { scope, setScope, sites } = useCampusSiteScope(agencyId ?? "");
+  const productLine =
+    institutionType === "k12" ? "NEXCORT IQ · K-12" : "NEXCORT IQ · UNIVERSITY / COLLEGE";
+  const productSub =
+    institutionType === "k12"
+      ? `${CAMPUS_INSTITUTION_LABELS.k12} · NOT A 911 DISPATCH CONSOLE`
+      : `${CAMPUS_INSTITUTION_LABELS.higher_ed} · NOT A 911 DISPATCH CONSOLE`;
 
   return (
     <header
@@ -74,7 +83,7 @@ export function CampusShellHeader({
               className="text-[9px] font-bold tracking-[2.5px]"
               style={{ color: C.blue }}
             >
-              NEXCORT IQ · CAMPUS
+              {productLine}
             </p>
             <div className="mt-0.5 flex flex-wrap items-center gap-2">
               <h1 className="text-lg font-bold" style={{ color: C.text }}>
@@ -92,7 +101,7 @@ export function CampusShellHeader({
               </span>
             </div>
             <p className="mt-0.5 text-[11px]" style={{ color: C.textMuted }}>
-              Public Safety · NOT A 911 DISPATCH CONSOLE
+              {productSub}
             </p>
           </div>
         </div>

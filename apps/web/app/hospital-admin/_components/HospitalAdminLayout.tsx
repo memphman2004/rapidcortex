@@ -20,6 +20,7 @@ import { SupportHelpButton } from "@/components/support/SupportHelpButton";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { DashboardTypographyControls } from "@/components/ui/dashboard-typography-controls";
 import { useSession } from "@/components/auth/session-context";
 import {
   isHospitalAdminRole,
@@ -148,6 +149,9 @@ function HospitalAdminLayoutInner({ children, role, facilityName }: Props) {
 
       {/* Main content */}
       <main className="flex-1 overflow-auto">
+        <div className="flex items-center justify-end gap-2 border-b border-slate-800 bg-[var(--rc-surface)] px-4 py-2">
+          <DashboardTypographyControls />
+        </div>
         {children}
       </main>
     </div>

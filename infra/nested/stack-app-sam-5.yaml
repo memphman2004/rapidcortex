@@ -2346,18 +2346,36 @@ Resources:
       BuildTarget: build-function
     Properties:
       CodeUri: ../../apps/api/
-      Handler: dist/handlers/campus/dashboard-handlers.getZones
+      Handler: dist/handlers/campus/campus-zones-handlers.handler
       Timeout: 30
       Policies:
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
       Events:
-        Route:
+        Get:
           Type: HttpApi
           Properties:
             ApiId: !Ref Api
             Path: /api/campus/{agencyId}/zones
             Method: GET
+        Post:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/zones
+            Method: POST
+        Patch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/zones/{zoneId}
+            Method: PATCH
+        Delete:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/zones/{zoneId}
+            Method: DELETE
 
   GetCampusBuildingsDashboardFunction:
     Type: AWS::Serverless::Function
@@ -4005,6 +4023,8 @@ Resources:
       Handler: dist/campus/handlers/get-campus-incident.handler
       Timeout: 30
       Policies:
+        # ShardA: audit + agencies (after-action PDF path may emit audit; status reads stay on C/D)
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
       Events:
@@ -4025,6 +4045,8 @@ Resources:
       Handler: dist/campus/handlers/patch-campus-incident.handler
       Timeout: 30
       Policies:
+        # ShardA required for AuditRepository PutItem on status transitions
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
       Events:
@@ -4045,6 +4067,7 @@ Resources:
       Handler: dist/campus/handlers/post-campus-incident-note.handler
       Timeout: 30
       Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
       Events:
@@ -4065,6 +4088,8 @@ Resources:
       Handler: dist/campus/handlers/post-campus-incident-escalate.handler
       Timeout: 30
       Policies:
+        # ShardA required for AuditRepository PutItem on escalate
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
       Events:
@@ -4140,6 +4165,12 @@ Resources:
             ApiId: !Ref Api
             Path: /api/campus/clery/report
             Method: GET
+        PostReport:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/clery/report
+            Method: POST
         GetEntries:
           Type: HttpApi
           Properties:
@@ -4193,6 +4224,8 @@ Resources:
       Handler: dist/campus/handlers/post-campus-public-report.handler
       Timeout: 30
       Policies:
+        # ShardA: AgenciesTable (resolveCampusAgencyId → AgencyRepository.get)
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
         - !Ref AppManagedPolicyDynamoLambdaCrudShardC
         - !Ref AppManagedPolicyDynamoLambdaCrudShardD
         - !Ref AppManagedPolicyS3ApplicationBucketsCrud
