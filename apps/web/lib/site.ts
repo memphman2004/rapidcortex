@@ -33,12 +33,12 @@ export const SITE_BRAND_ASSETS_BASE = "/Logo";
 
 /**
  * Primary NexCort iQ web mark used on marketing/header surfaces.
- * File: `public/Logo/nexcort-iq-logo-transparent.png` (1024×857 wordmark + mark).
+ * File: `public/Logo/nexcort-iq-logo-transparent.png` (1024×682 glossy brain-signal wordmark).
  * Opaque square mark: `nexcort-iq-logo.png` (1254×1254).
  */
 export const SITE_BRAND_MARK_PATH = `${SITE_BRAND_ASSETS_BASE}/nexcort-iq-logo-transparent.png`;
 export const SITE_BRAND_MARK_WIDTH = 1024;
-export const SITE_BRAND_MARK_HEIGHT = 857;
+export const SITE_BRAND_MARK_HEIGHT = 682;
 
 /** Primary web mark (same as brand mark). */
 export const SITE_LOGO_PATH = SITE_BRAND_MARK_PATH;
