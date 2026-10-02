@@ -20,97 +20,97 @@ export type IntakeQuestion = {
 
 const ALWAYS_LOCATION: IntakeQuestion = {
   id: "location",
-  prompt: "What is the address or closest intersection?",
-  promptEs: "¿Cuál es la dirección o la intersección más cercana?",
+  prompt: "What's the address?",
+  promptEs: "¿Cuál es la dirección?",
   field: "locationText",
   policy: "ask",
   required: true,
-  clarifyPrompt: "I need a street address or intersection if you have one.",
-  clarifyPromptEs: "Necesito una dirección o intersección, si la tiene.",
+  clarifyPrompt: "Street address or intersection?",
+  clarifyPromptEs: "¿Dirección o intersección?",
 };
 
 const CALLBACK: IntakeQuestion = {
   id: "callback",
-  prompt: "What number can we call you back on?",
-  promptEs: "¿A qué número podemos devolverle la llamada?",
+  prompt: "Callback number?",
+  promptEs: "¿Número de devolución?",
   field: "callbackNumber",
   policy: "ask",
   required: true,
-  clarifyPrompt: "Please give a callback number, even if it is this line.",
-  clarifyPromptEs: "Por favor dé un número de devolución, aunque sea esta línea.",
+  clarifyPrompt: "What number can we call you back on?",
+  clarifyPromptEs: "¿A qué número podemos llamar?",
 };
 
 const IN_PROGRESS: IntakeQuestion = {
   id: "in_progress",
-  prompt: "Is this happening right now, or did it already happen?",
-  promptEs: "¿Esto está pasando ahora, o ya ocurrió?",
+  prompt: "Is this happening right now?",
+  promptEs: "¿Esto está pasando ahora?",
   field: "isInProgress",
   policy: "clarify",
   required: true,
-  clarifyPrompt: "Is this happening right now? Yes or no is enough.",
-  clarifyPromptEs: "¿Esto está pasando ahora? Sí o no es suficiente.",
+  clarifyPrompt: "Happening right now — yes or no?",
+  clarifyPromptEs: "¿Está pasando ahora? Sí o no.",
 };
 
 const APT: IntakeQuestion = {
   id: "apartment",
-  prompt: "Is there an apartment, suite, or unit number?",
-  promptEs: "¿Hay número de apartamento, suite o unidad?",
+  prompt: "Apartment or unit number?",
+  promptEs: "¿Apartamento o unidad?",
   field: "apartmentSuite",
   policy: "never_repeat",
 };
 
 const CROSS: IntakeQuestion = {
   id: "cross_streets",
-  prompt: "What are the nearest cross streets?",
-  promptEs: "¿Cuáles son las calles transversales más cercanas?",
+  prompt: "Nearest cross streets?",
+  promptEs: "¿Calles transversales más cercanas?",
   field: "crossStreets",
   policy: "never_repeat",
 };
 
 const DIRECTION: IntakeQuestion = {
   id: "direction",
-  prompt: "Which direction were they traveling, or are they still there?",
-  promptEs: "¿En qué dirección iban, o todavía están ahí?",
+  prompt: "Which way were they going?",
+  promptEs: "¿En qué dirección iban?",
   field: "directionOfTravel",
   policy: "never_repeat",
 };
 
 const VEHICLE: IntakeQuestion = {
   id: "vehicle",
-  prompt: "Do you have the vehicle make, model, color, or license plate?",
-  promptEs: "¿Tiene la marca, modelo, color o placa del vehículo?",
+  prompt: "What does the vehicle look like?",
+  promptEs: "¿Cómo se ve el vehículo?",
   field: "vehicleMake",
   policy: "never_repeat",
 };
 
 const VEHICLE_MODEL: IntakeQuestion = {
   id: "vehicle_model",
-  prompt: "Do you know the vehicle model?",
-  promptEs: "¿Sabe el modelo del vehículo?",
+  prompt: "Vehicle model?",
+  promptEs: "¿Modelo del vehículo?",
   field: "vehicleModel",
   policy: "never_repeat",
 };
 
 const VEHICLE_COLOR: IntakeQuestion = {
   id: "vehicle_color",
-  prompt: "What color is the vehicle?",
-  promptEs: "¿De qué color es el vehículo?",
+  prompt: "What color?",
+  promptEs: "¿De qué color?",
   field: "vehicleColor",
   policy: "never_repeat",
 };
 
 const VEHICLE_PLATE: IntakeQuestion = {
   id: "vehicle_plate",
-  prompt: "Do you have a license plate number?",
-  promptEs: "¿Tiene el número de placa?",
+  prompt: "Can you see the plate number?",
+  promptEs: "¿Ve el número de placa?",
   field: "vehiclePlate",
   policy: "never_repeat",
 };
 
 const SUSPECT: IntakeQuestion = {
   id: "suspect",
-  prompt: "Can you describe the person involved — clothing, height, anything that stands out?",
-  promptEs: "¿Puede describir a la persona — ropa, estatura, algo que destaque?",
+  prompt: "What do they look like?",
+  promptEs: "¿Cómo se ven?",
   field: "suspectDescription",
   policy: "never_repeat",
 };

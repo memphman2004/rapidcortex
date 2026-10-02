@@ -1,0 +1,129 @@
+import { z } from "zod";
+import { HIGHER_ED_INCIDENT_TYPES, K12_INCIDENT_TYPES } from "rapid-cortex-shared";
+
+/** Operational + catalog types (higher-ed and K-12). Unknown values rejected. */
+const CAMPUS_INCIDENT_TYPE_VALUES = Array.from(
+  new Set([
+    // Legacy / intake operational types
+    "medical",
+    "security",
+    "mental_health",
+    "suspicious_activity",
+    "wellness_check",
+    "property_crime",
+    "maintenance",
+    "active_threat",
+    "other",
+    // Higher-ed catalog
+    ...HIGHER_ED_INCIDENT_TYPES.map((t) => t.value),
+    // K-12 catalog (full concern types)
+    ...K12_INCIDENT_TYPES.map((t) => t.value),
+    // Prior short K-12 codes (aliases still accepted on write)
+    "fight",
+    "drug_substance",
+    "bullying",
+    "trespasser",
+    "property_damage",
+    "suspicious",
+    "lockdown_threat",
+    "parent_dispute",
+    "welfare_check",
+    "weapon",
+    "theft",
+    "vandalism",
+    "fire",
+    "missing_person",
+  ]),
+) as [string, ...string[]];
+
+const campusIncidentTypeSchema = z.enum(CAMPUS_INCIDENT_TYPE_VALUES);
+
+export const createIncidentSchema = z.object({
+  campusCode: z.string().min(2).max(20).transform((s) => s.toUpperCase()),
+  buildingCode: z.string().min(1).max(50),
+  floor: z.number().int().min(0).max(100).nullable().optional(),
+  roomCode: z.string().max(20).optional().default(""),
+  type: campusIncidentTypeSchema,
+  source: z.enum([
+    "qr",
+    "sms",
+    "manual",
+    "phone",
+    "vms",
+    "alpr",
+    "alarm",
+    "sensor",
+    "webhook",
+    "physical_security",
+  ]),
+  description: z.string().min(1).max(2000),
+  isAnonymous: z.boolean().default(true),
+  confidential: z.boolean().optional(),
+  phoneNumber: z.string().optional().nullable(),
+  photoDataUrl: z.string().optional().nullable(),
+  zoneCode: z.string().max(16).optional(),
+  qrRcli: z.string().max(32).optional(),
+  qrLocationName: z.string().max(200).optional(),
+  /** Cameras assigned to the scanned QR / area during inprocessing. */
+  cameraIds: z.array(z.string().min(1).max(64)).max(8).optional(),
+  siteCode: z.string().trim().max(20).optional(),
+  /** K-12 school badge (CCHS, CCMS) — denormalized at create for cards/logs. */
+  siteShortName: z.string().trim().max(16).optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+});
+
+export const updateIncidentSchema = z.object({
+  status: z
+    .enum(["open", "assigned", "responding", "resolved", "referred", "escalated"])
+    .optional(),
+  assignedTo: z.string().nullable().optional(),
+  assignedToName: z.string().nullable().optional(),
+  cleryCategory: z.string().nullable().optional(),
+  cleryGeography: z
+    .enum(["on_campus", "on_campus_residential", "noncampus", "public_property"])
+    .nullable()
+    .optional(),
+});
+
+export const addNoteSchema = z.object({
+  content: z.string().min(1).max(1000),
+});
+
+export const publicReportSchema = z.object({
+  campusCode: z.string().min(2).max(20).transform((s) => s.toUpperCase()),
+  buildingCode: z.string().max(50).optional().default(""),
+  roomCode: z.string().max(20).optional().default(""),
+  helpType: z.enum([
+    "medical",
+    "security",
+    "mental_health",
+    "suspicious",
+    "wellness_check",
+    "property",
+    "maintenance",
+    "other",
+  ]),
+  isConfidential: z.boolean(),
+  description: z.string().max(500).optional().default(""),
+  phoneNumber: z.string().optional().nullable(),
+  photoDataUrl: z.string().max(5_000_000).optional().nullable(),
+  submittedAt: z.string().datetime().optional(),
+  userAgent: z.string().max(300).optional(),
+});
+
+export function isConfidentialType(type: string): boolean {
+  return ["mental_health", "wellness_check", "suspicious_activity", "suspicious"].includes(type);
+}
+
+export function legalStatusTransition(from: string, to: string): boolean {
+  const allowed: Record<string, string[]> = {
+    open: ["assigned", "responding", "resolved", "escalated"],
+    assigned: ["responding", "resolved", "referred", "escalated"],
+    responding: ["resolved", "referred", "escalated"],
+    resolved: [],
+    referred: ["resolved"],
+    escalated: ["resolved"],
+  };
+  return allowed[from]?.includes(to) ?? false;
+}

@@ -151,6 +151,12 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
           icon: "Clapperboard",
           feature: "scenarioCenter",
         },
+        {
+          id: "document-library",
+          label: "Document Library",
+          href: "/rc-admin/document-library",
+          icon: "BookOpen",
+        },
       ],
     },
     {
@@ -382,6 +388,12 @@ export const SALES_CONTRACTOR_NAV: RoleNav = {
           icon: "Package",
           badge: { type: "label", text: "NO PRICES", color: "slate" },
         },
+        {
+          id: "document-library",
+          label: "Document Library",
+          href: "/sales/document-library",
+          icon: "BookOpen",
+        },
       ],
     },
     {
@@ -424,6 +436,12 @@ export const RC_ADMIN_NAV: RoleNav = {
           href: "/rc-admin/scenario-center",
           icon: "Clapperboard",
           feature: "scenarioCenter",
+        },
+        {
+          id: "document-library",
+          label: "Document Library",
+          href: "/rc-admin/document-library",
+          icon: "BookOpen",
         },
       ],
     },
@@ -563,6 +581,18 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
   accent: "violet",
   roleBadge: "RC IT",
   sections: [
+    {
+      id: "docs",
+      label: "DOCUMENTATION",
+      items: [
+        {
+          id: "document-library",
+          label: "Document Library",
+          href: "/rc-admin/document-library",
+          icon: "BookOpen",
+        },
+      ],
+    },
     {
       id: "infra",
       label: "INFRASTRUCTURE",
@@ -732,6 +762,10 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
             feature: "callAssist" },
           { id: "team",          label: "Team Performance",href: `${j}/supervisor/team-performance`, icon: "Users" },
           { id: "reports",       label: "Reports",         href: `${j}/supervisor/reports`, icon: "BarChart3" },
+          { id: "command-intelligence", label: "Command Intelligence", href: `${j}/supervisor/command-intelligence`, icon: "BarChart3",
+            feature: "commandIntelligence" },
+          { id: "nexiq-vault", label: "NexiQ Vault", href: `${j}/supervisor/vault`, icon: "FolderOpen",
+            feature: "nexiqVault" },
           { id: "sop-intelligence", label: "SOP Intelligence", href: `${j}/supervisor/sop-intelligence`, icon: "BookOpen",
             feature: "sopIntelligence",
             badge: { type: "count", key: "pendingSopUpdates" } },
@@ -793,6 +827,12 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
             icon: "Clapperboard",
             feature: "scenarioCenter",
           },
+          {
+            id: "document-library",
+            label: "Document Library",
+            href: `${j}/admin/document-library`,
+            icon: "BookOpen",
+          },
         ],
       },
       {
@@ -839,6 +879,10 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
             feature: "ng911Assist" },
           { id: "call-assist-admin", label: "Call Assist", href: `${j}/call-assist/admin`, icon: "PhoneIncoming",
             feature: "callAssist" },
+          { id: "nexiq-vault-admin", label: "NexiQ Vault", href: `${j}/admin/vault`, icon: "FolderOpen",
+            feature: "nexiqVault" },
+          { id: "command-intelligence", label: "Command Intelligence", href: `${j}/supervisor/command-intelligence`, icon: "BarChart3",
+            feature: "commandIntelligence" },
           rcTranslateNavItem(`${j}/translate`, "rcTranslate"),
         ],
       },
@@ -885,6 +929,12 @@ export function getAgencyItNav(jurisdiction: string): RoleNav {
         label: "TECHNICAL",
         items: [
           { id: "overview",      label: "Overview",        href: `${j}/admin/it`,           icon: "LayoutDashboard", exact: true },
+          {
+            id: "document-library",
+            label: "Document Library",
+            href: `${j}/admin/document-library`,
+            icon: "BookOpen",
+          },
           { id: "integrations",  label: "Integrations",    href: `${j}/admin/integrations`, icon: "Plug" },
           {
             id: "onboarding-packets",

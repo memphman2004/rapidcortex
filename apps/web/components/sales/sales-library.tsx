@@ -1,5 +1,7 @@
 "use client";
 
+import { FeatureArchitectureMaps } from "@/components/help/feature-architecture-maps";
+
 export function SalesLibrary() {
   const sections = [
     {
@@ -29,13 +31,33 @@ export function SalesLibrary() {
   ];
 
   return (
-    <div className="grid gap-3 md:grid-cols-2">
-      {sections.map((s) => (
-        <article key={s.title} className="rounded-xl border border-white/5 bg-[#0a1628] p-4">
-          <h3 className="text-sm font-semibold text-white">{s.title}</h3>
-          <p className="mt-2 text-xs leading-relaxed text-slate-400">{s.body}</p>
-        </article>
-      ))}
+    <div className="space-y-8">
+      <section className="space-y-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Feature architecture maps
+        </h2>
+        <p className="max-w-3xl text-sm text-slate-400">
+          Interactive product path diagrams for demos and technical discovery. Same maps as Admin /
+          IT Document Library.
+        </p>
+        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4 md:p-5">
+          <FeatureArchitectureMaps />
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Free-tier talking points
+        </h2>
+        <div className="grid gap-3 md:grid-cols-2">
+          {sections.map((s) => (
+            <article key={s.title} className="rounded-xl border border-white/5 bg-[#0a1628] p-4">
+              <h3 className="text-sm font-semibold text-white">{s.title}</h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-400">{s.body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

@@ -50,3 +50,8 @@ export function canAccessGrantSuccessProgram(role: string | undefined | null): b
 export function canAccessSalesOpsReadSurfaces(role: string | undefined | null): boolean {
   return isRcInternalOperator(roleToken(role) || "") || isSalesContractorRole(role);
 }
+
+/** Pricing / service catalog read — finance portal operators + sales (prices stripped in sales BFF). */
+export function canAccessPricingCatalog(role: string | undefined | null): boolean {
+  return canAccessRcFinancePortal(roleToken(role) || "") || isSalesContractorRole(role);
+}

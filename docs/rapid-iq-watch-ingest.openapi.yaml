@@ -72,7 +72,7 @@ components:
           enum: [rfp, planning, funded, early_signal, competitor]
         vertical:
           type: string
-          enum: [911_psap, campus, venue, transit, competitors]
+          enum: [911_psap, campus, venue, transit, competitors, law_enforcement]
         agency:
           type: object
           required: [name, state]
@@ -89,6 +89,12 @@ components:
             posted_date: { type: string, nullable: true }
             due_date: { type: string, nullable: true }
             estimated_value: { type: number, nullable: true }
+            estimated_contract_value: { type: number, nullable: true }
+            project_budget: { type: number, nullable: true }
+            funding_amount: { type: number, nullable: true }
+            annual_recurring_budget: { type: number, nullable: true }
+            funding_source: { type: string, nullable: true }
+            funding_notes: { type: string, nullable: true }
             procurement_url: { type: string, format: uri }
             status:
               type: string
@@ -116,12 +122,14 @@ components:
                   award,
                   contact_change,
                   budget_change,
+                  scope_change,
+                  status_change,
                   none,
                 ]
             summary: { type: string }
         evidence:
           type: array
-          maxItems: 20
+          maxItems: 25
           items:
             type: object
             required: [url]
@@ -129,4 +137,4 @@ components:
               url: { type: string, format: uri }
               source_type:
                 type: string
-                enum: [official_procurement, board_agenda, news, other]
+                enum: [official_procurement, board_agenda, budget, grant, news, other]

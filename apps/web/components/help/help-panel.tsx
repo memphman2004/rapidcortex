@@ -6,7 +6,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, BookOpen, ExternalLink, X } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useHelpPanel } from "./help-panel-context";
+import { FeatureArchitectureMaps } from "@/components/help/feature-architecture-maps";
 import { fetchHelpArticle, type HelpArticleContent } from "@/lib/help/fetch-help-article";
 import { getHelpIndex, type HelpArticle, type HelpIndex } from "@/lib/help/help-content";
 import { getTrainingVideosForRole, type TrainingVideo } from "@/lib/help/video-library";
@@ -18,23 +21,57 @@ import {
 } from "@/lib/staff-guide/catalog";
 import { isStaffGuideEnabled } from "@/lib/runtime-flags";
 import { V } from "@/lib/theme/rc-theme-tokens";
+import { defaultJurisdictionSlug } from "@/lib/marketing-links";
+
+const INTERACTIVE_ARCHITECTURE_TOPIC = "feature-architecture-maps";
+
+function jurisdictionFromPath(pathname: string | null): string | null {
+  if (!pathname) return null;
+  const parts = pathname.split("/").filter(Boolean);
+  const first = parts[0] ?? "";
+  if (!first || first === "rc-admin" || first === "app" || first === "api" || first === "help" || first === "docs" || first === "sales") {
+    return null;
+  }
+  return first;
+}
+
+function documentLibraryHref(role: string, pathname: string | null): string {
+  const r = role.toLowerCase().replace(/-/g, "_");
+  if (r === "rcsuperadmin" || r === "rcadmin" || r === "rcitadmin") {
+    return "/rc-admin/document-library";
+  }
+  if (r === "salescontractor" || r === "sales_contractor") {
+    return "/sales/document-library";
+  }
+  const j = jurisdictionFromPath(pathname) ?? defaultJurisdictionSlug();
+  return `/${j}/admin/document-library`;
+}
 
 function ArticleView({
   role,
   article,
   staffGuide,
   onBack,
+  libraryHref,
 }: {
   role: string;
   article: HelpArticle;
   staffGuide: boolean;
   onBack: () => void;
+  libraryHref: string;
 }) {
+  const isArchitectureMaps = article.topic === INTERACTIVE_ARCHITECTURE_TOPIC;
   const [content, setContent] = useState<HelpArticleContent | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!isArchitectureMaps);
   const [missing, setMissing] = useState(false);
 
   useEffect(() => {
+    if (isArchitectureMaps) {
+      setLoading(false);
+      setMissing(false);
+      setContent(null);
+      return;
+    }
     let cancelled = false;
     setLoading(true);
     setMissing(false);
@@ -52,7 +89,7 @@ function ArticleView({
     return () => {
       cancelled = true;
     };
-  }, [role, article.topic, staffGuide]);
+  }, [role, article.topic, staffGuide, isArchitectureMaps]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -94,11 +131,31 @@ function ArticleView({
           {article.description}
         </p>
 
-        {loading ? (
+        {isArchitectureMaps ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <FeatureArchitectureMaps compact />
+            <Link
+              href={libraryHref}
+              style={{
+                fontSize: 12,
+                color: V.purple,
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
+              <ExternalLink size={11} />
+              Open full Document Library
+            </Link>
+          </div>
+        ) : null}
+
+        {!isArchitectureMaps && loading ? (
           <div style={{ fontSize: 12, color: V.dim, fontFamily: "monospace" }}>Loading…</div>
         ) : null}
 
-        {missing && !loading ? (
+        {!isArchitectureMaps && missing && !loading ? (
           <div
             style={{
               background: V.surfaceAlt,
@@ -123,7 +180,7 @@ function ArticleView({
           </div>
         ) : null}
 
-        {content && !loading ? (
+        {!isArchitectureMaps && content && !loading ? (
           <>
             <div
               style={{ fontSize: 13, lineHeight: 1.7, color: V.text }}
@@ -339,6 +396,7 @@ function ArticleIndex({
 
 export function HelpPanel() {
   const { isOpen, activeTopic, role, closeHelp, openHelp } = useHelpPanel();
+  const pathname = usePathname();
   const [activeArticle, setActiveArticle] = useState<HelpArticle | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const staffGuide = isStaffGuideEnabled() && isStaffGuideRole(role);
@@ -346,6 +404,8 @@ export function HelpPanel() {
   const helpIndex: HelpIndex =
     staffGuide && vertical ? getStaffGuideIndex(vertical) : getHelpIndex(role);
   const trainingVideos = getTrainingVideosForRole(role);
+  const libraryHref = documentLibraryHref(role, pathname);
+  const architectureOpen = activeArticle?.topic === INTERACTIVE_ARCHITECTURE_TOPIC;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -397,7 +457,7 @@ export function HelpPanel() {
           top: 0,
           right: 0,
           bottom: 0,
-          width: 380,
+          width: architectureOpen ? "min(720px, calc(100vw - 24px))" : 380,
           background: V.surface,
           borderLeft: `1px solid ${V.border}`,
           zIndex: 1000,
@@ -481,6 +541,7 @@ export function HelpPanel() {
             role={role}
             article={activeArticle}
             staffGuide={staffGuide}
+            libraryHref={libraryHref}
             onBack={() => {
               setActiveArticle(null);
               openHelp("index");

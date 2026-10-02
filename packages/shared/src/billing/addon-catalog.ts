@@ -1451,6 +1451,44 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     oneTimePrice: 2500,
     planAvailability: professionalPlus,
   }),
+
+  // Communications Intelligence
+  withLegacyIncludedInPlans({
+    key: "comms_intel.context_cards",
+    name: "Incident Context Cards",
+    category: "Communications Intelligence",
+    description:
+      "Read-only location and caller context during live 911 calls — prior calls, officer-safety flags, and CAD/Vault data source labels. Included in all plans.",
+    billingType: "monthly",
+    monthlyPrice: 0,
+    oneTimePrice: 0,
+    planAvailability: allPlans,
+    featureFlag: "context_cards",
+  }),
+  withLegacyIncludedInPlans({
+    key: "comms_intel.command_intelligence",
+    name: "Command Intelligence",
+    category: "Communications Intelligence",
+    description:
+      "Communications operations intelligence for supervisors and command staff — call volume, Call Assist containment, translation breakdown, repeat locations, and drill-down. Distinct from Incident Command Dashboard.",
+    billingType: "monthly",
+    monthlyPrice: 1500,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+    featureFlag: "command_intelligence",
+  }),
+  withLegacyIncludedInPlans({
+    key: "comms_intel.nexiq_vault",
+    name: "NexiQ Vault",
+    category: "Communications Intelligence",
+    description:
+      "Read-only historical CAD/call-record archive for CAD migrations — ingest prior-system exports, search by address, and enrich Context Cards with all-time location intelligence. No JMS or criminal-history data.",
+    billingType: "monthly",
+    monthlyPrice: 1200,
+    oneTimePrice: 0,
+    planAvailability: commandPlus,
+    featureFlag: "nexiq_vault",
+  }),
 ];
 
 export function getAddonByKey(key: AddonKey): AddonDefinition {

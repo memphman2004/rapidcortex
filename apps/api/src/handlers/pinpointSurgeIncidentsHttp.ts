@@ -1,5 +1,14 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { AuthorizationService } from "rapid-cortex-security";
+import {
+  AuthorizationService,
+  isCampusRole,
+  isTransitRole,
+  isVenueRole,
+} from "rapid-cortex-security";
+import {
+  migrateLegacyRapidCortexRoleTokenValue,
+  type UserContext,
+} from "rapid-cortex-shared";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../lib/auth.js";
 import {
   badRequest,
@@ -16,6 +25,14 @@ import { SurgeService } from "../services/surgeService.js";
 const pinpoint = new PinpointService();
 const surge = new SurgeService();
 const authz = new AuthorizationService();
+
+/** PSAP dispatch roles plus campus/venue/transit ops that receive QR live Pinpoint shares. */
+function canUsePinpoint(user: UserContext): boolean {
+  if (user.role === "auditor") return false;
+  if (authz.canDispatch(user)) return true;
+  const role = (migrateLegacyRapidCortexRoleTokenValue(user.role) ?? user.role).trim().toUpperCase();
+  return isCampusRole(role) || isVenueRole(role) || isTransitRole(role);
+}
 
 function mapErr(e: unknown) {
   const msg = e instanceof Error ? e.message : String(e);
@@ -42,12 +59,21 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const user = await getUserContext(event);
     if (!user) return unauthorized();
     if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
-    // INTENTIONAL: Pinpoint (caller location SMS) and Surge (related-call
-    // clustering) are not in the Role Access Matrix v2.0 — they are
-    // dispatcher/supervisor operational tools gated by canDispatch with auditor
-    // excluded. When a `workspace.pinpoint` or `workspace.surge` permission is
-    // added to the matrix, replace this with assertCanPerform.
-    if (!authz.canDispatch(user) || user.role === "auditor") {
+    // INTENTIONAL: Pinpoint/Surge are not in Role Access Matrix v2.0.
+    // Pinpoint GET/live view: PSAP + campus/venue/transit ops (QR inline shares).
+    // Surge + Pinpoint SMS create/revoke: PSAP dispatch roles only (auditor excluded).
+    const isPinpointRoute = routeKey.includes("/pinpoint/");
+    const isPinpointMutate =
+      routeKey.startsWith("POST /api/incidents/") && routeKey.includes("/pinpoint/");
+    if (isPinpointRoute) {
+      if (!canUsePinpoint(user)) {
+        return forbidden("Role cannot use Pinpoint");
+      }
+      // SMS create + revoke stay PSAP-only; campus/venue view QR-created shares.
+      if (isPinpointMutate && (!authz.canDispatch(user) || user.role === "auditor")) {
+        return forbidden("Role cannot create or revoke Pinpoint links");
+      }
+    } else if (!authz.canDispatch(user) || user.role === "auditor") {
       return forbidden("Role cannot use Pinpoint or Surge");
     }
 

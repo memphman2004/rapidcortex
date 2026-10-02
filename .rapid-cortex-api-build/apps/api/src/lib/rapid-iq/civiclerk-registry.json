@@ -1,0 +1,33 @@
+{
+  "_meta": {
+    "description": "CivicClerk agenda hosts for large counties and cities. URL pattern: https://www.civicclerk.com/web/{slug}/agendas.aspx",
+    "last_updated": "2026-08-20"
+  },
+  "entities": [
+    { "slug": "charlotte", "name": "City of Charlotte", "state": "NC" },
+    { "slug": "raleigh", "name": "City of Raleigh", "state": "NC" },
+    { "slug": "durham", "name": "City of Durham", "state": "NC" },
+    { "slug": "greensboro", "name": "City of Greensboro", "state": "NC" },
+    { "slug": "winston-salem", "name": "City of Winston-Salem", "state": "NC" },
+    { "slug": "fayetteville", "name": "City of Fayetteville", "state": "NC" },
+    { "slug": "charleston", "name": "City of Charleston", "state": "SC" },
+    { "slug": "columbia", "name": "City of Columbia", "state": "SC" },
+    { "slug": "greenville", "name": "City of Greenville", "state": "SC" },
+    { "slug": "richmond", "name": "City of Richmond", "state": "VA" },
+    { "slug": "norfolk", "name": "City of Norfolk", "state": "VA" },
+    { "slug": "virginia-beach", "name": "City of Virginia Beach", "state": "VA" },
+    { "slug": "knoxville", "name": "City of Knoxville", "state": "TN" },
+    { "slug": "chattanooga", "name": "City of Chattanooga", "state": "TN" },
+    { "slug": "memphis", "name": "City of Memphis", "state": "TN" },
+    { "slug": "lexington", "name": "Lexington-Fayette Urban County", "state": "KY" },
+    { "slug": "louisville", "name": "Louisville Metro", "state": "KY" },
+    { "slug": "indianapolis", "name": "City of Indianapolis", "state": "IN" },
+    { "slug": "columbusoh", "name": "City of Columbus", "state": "OH" },
+    { "slug": "cincinnati", "name": "City of Cincinnati", "state": "OH" },
+    { "slug": "cleveland", "name": "City of Cleveland", "state": "OH" },
+    { "slug": "pittsburgh", "name": "City of Pittsburgh", "state": "PA" },
+    { "slug": "baltimore", "name": "City of Baltimore", "state": "MD" },
+    { "slug": "atlanta", "name": "City of Atlanta", "state": "GA" },
+    { "slug": "savannah", "name": "City of Savannah", "state": "GA" }
+  ]
+}

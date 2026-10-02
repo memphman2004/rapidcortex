@@ -1,0 +1,20 @@
+/** Stable machine-readable AI pipeline error codes (API + logs + audit). */
+export const AI_ERROR_CODES = {
+  AI_TIMEOUT: "AI_TIMEOUT",
+  AI_RATE_LIMIT: "AI_RATE_LIMIT",
+  AI_AUTH_ERROR: "AI_AUTH_ERROR",
+  AI_NETWORK_ERROR: "AI_NETWORK_ERROR",
+  AI_PROVIDER_5XX: "AI_PROVIDER_5XX",
+  AI_INVALID_RESPONSE: "AI_INVALID_RESPONSE",
+  /** Zod contract failures after JSON was parsed */
+  AI_SCHEMA_VALIDATION_FAILED: "AI_SCHEMA_VALIDATION_FAILED",
+  AI_DISABLED: "AI_DISABLED",
+  AI_CONFIG_ERROR: "AI_CONFIG_ERROR",
+  AI_UNKNOWN_ERROR: "AI_UNKNOWN_ERROR",
+  /** User-visible guardrails (debounce, hourly cap, in-flight lock). */
+  AI_REQUEST_THROTTLED: "AI_REQUEST_THROTTLED",
+  AI_TRANSCRIPT_UNCHANGED: "AI_TRANSCRIPT_UNCHANGED",
+  AI_ALL_PROVIDERS_FAILED: "AI_ALL_PROVIDERS_FAILED",
+} as const;
+
+export type AiErrorCode = (typeof AI_ERROR_CODES)[keyof typeof AI_ERROR_CODES];

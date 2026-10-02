@@ -1,0 +1,226 @@
+import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
+import {
+  ADDON_CATALOG,
+  isAddonIncludedInPlan,
+  matchesTranslateAddon,
+  type TranslateVertical,
+  type UserContext,
+} from "rapid-cortex-shared";
+import { AuditRepository } from "../repositories/auditRepository.js";
+import { AgencyRepository } from "../repositories/agencyRepository.js";
+import { getVerifiedJwtClaims } from "../lib/auth.js";
+import { makeId } from "../lib/ids.js";
+import { jsonStatus } from "../lib/response.js";
+
+type LambdaMiddleware = (
+  event: APIGatewayProxyEventV2,
+  user: UserContext,
+) => Promise<APIGatewayProxyResultV2 | null>;
+
+const TIER_SUFFIXES = new Set([
+  "tier1",
+  "tier2",
+  "tier3",
+  "tier4",
+  "basic",
+  "standard",
+  "premium",
+  "advanced",
+  "full",
+  "small",
+  "medium",
+  "large",
+]);
+
+const FAMILY_ALIASES: Record<string, string[]> = {
+  "caller_media.photo.": ["caller_media.photo.", "media.photo."],
+  "caller_media.video.": ["caller_media.video.", "media.video."],
+  "caller_media.live_stream.": ["caller_media.live_stream.", "media.livestream."],
+  "caller_media.sms_link": ["caller_media.sms_link", "media.", "media.photo.", "media.video."],
+  "supervisor_qa.": ["supervisor_qa.", "qa."],
+  "incident_command.": ["incident_command.", "incident.command."],
+};
+
+const agencies = new AgencyRepository();
+
+function normalizeAddonFamily(key: string): string {
+  const parts = key.split(".");
+  const last = parts[parts.length - 1] ?? "";
+  if (parts.length > 2 && TIER_SUFFIXES.has(last)) {
+    return parts.slice(0, -1).join(".");
+  }
+  return key;
+}
+
+export function parseClaimAddons(raw: unknown): string[] {
+  const csv = typeof raw === "string" ? raw : "";
+  if (!csv) return [];
+  return Array.from(
+    new Set(
+      csv
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
+function resolvePrefixes(familyPrefix: string): string[] {
+  const normalized = familyPrefix.trim().replace(/\*+$/, "");
+  if (!normalized) return [];
+
+  // Handles values like "hospital.routing or hospital.*"
+  if (normalized.includes(" or ")) {
+    return normalized
+      .split(/\s+or\s+/i)
+      .map((part) => part.trim().replace(/\*+$/, ""))
+      .filter(Boolean);
+  }
+  return FAMILY_ALIASES[normalized] ?? [normalized];
+}
+
+export function hasFamilyMatch(enabledAddons: string[], familyPrefix: string): boolean {
+  const prefixes = resolvePrefixes(familyPrefix);
+  if (prefixes.length === 0) return false;
+
+  const candidates = enabledAddons.flatMap((addon) => {
+    const family = normalizeAddonFamily(addon);
+    return family === addon ? [addon] : [addon, family];
+  });
+  return candidates.some((candidate) => prefixes.some((prefix) => candidate.startsWith(prefix)));
+}
+
+/** Plan-included and agency.addons list — used when JWT `custom:addons` is stale/empty. */
+export function agencySatisfiesAddonFamily(input: {
+  familyPrefix: string;
+  agencyAddons?: string[] | null;
+  planId?: string | null;
+}): boolean {
+  const listed = (input.agencyAddons ?? []).map((k) => k.trim()).filter(Boolean);
+  if (hasFamilyMatch(listed, input.familyPrefix)) return true;
+
+  const plan = input.planId?.trim();
+  if (!plan) return false;
+  for (const def of ADDON_CATALOG) {
+    if (!hasFamilyMatch([def.key], input.familyPrefix)) continue;
+    if (isAddonIncludedInPlan(def, plan)) return true;
+  }
+  return false;
+}
+
+async function writeAddonRejectionAudit(
+  event: APIGatewayProxyEventV2,
+  user: UserContext,
+  familyPrefix: string,
+): Promise<void> {
+  const ip = (event.requestContext as { http?: { sourceIp?: string } }).http?.sourceIp;
+  const userAgent = event.headers?.["user-agent"] ?? event.headers?.["User-Agent"];
+  const routeKey = event.routeKey ?? "";
+  const method = event.requestContext.http?.method ?? "UNKNOWN";
+  const rawPath = event.rawPath ?? "";
+
+  const repo = new AuditRepository();
+  await repo.create({
+    eventId: makeId("audit"),
+    agencyId: user.agencyId,
+    actorId: user.userId,
+    type: "auth.addon_denied",
+    details: {
+      family: familyPrefix,
+      method,
+      routeKey,
+      path: rawPath,
+      actorRole: user.role,
+    },
+    createdAt: new Date().toISOString(),
+    resourceType: "agency",
+    resourceId: user.agencyId,
+  });
+}
+
+/**
+ * Checks whether the tenant has ANY enabled add-on whose key starts with familyPrefix.
+ * Order: JWT `custom:addons` → agency.addons list → plan-included catalog SKUs.
+ */
+export function requireAddon(familyPrefix: string): LambdaMiddleware {
+  return async (event, user) => {
+    const claims = await getVerifiedJwtClaims(event);
+    const enabledAddons = parseClaimAddons(claims?.["custom:addons"]);
+    if (hasFamilyMatch(enabledAddons, familyPrefix)) return null;
+
+    try {
+      const agency = await agencies.get(user.agencyId);
+      if (
+        agency &&
+        agencySatisfiesAddonFamily({
+          familyPrefix,
+          agencyAddons: agency.addons,
+          planId: agency.monetizationPlanId ?? agency.planId,
+        })
+      ) {
+        return null;
+      }
+    } catch (error) {
+      console.warn(
+        JSON.stringify({
+          type: "addon_gate.agency_lookup_failed",
+          agencyId: user.agencyId,
+          family: familyPrefix,
+          error: error instanceof Error ? error.message : String(error),
+        }),
+      );
+    }
+
+    try {
+      await writeAddonRejectionAudit(event, user, familyPrefix);
+    } catch {
+      // Do not mask 403 with audit write errors.
+    }
+    return jsonStatus({ error: "addon_not_enabled", family: familyPrefix }, 403);
+  };
+}
+
+/**
+ * Exact-key addon gate for RC Translate verticals.
+ * Prefix-matching `rc.translate` would also unlock `rc.translate.venue`.
+ */
+export function requireTranslateAddon(vertical: TranslateVertical): LambdaMiddleware {
+  const family = vertical === "law_enforcement" ? "rc.translate" : `rc.translate.${vertical}`;
+  return async (event, user) => {
+    const claims = await getVerifiedJwtClaims(event);
+    const jwtAddons = parseClaimAddons(claims?.["custom:addons"]);
+    let agencyAddons: string[] = [];
+    let planId: string | null = null;
+    try {
+      const agency = await agencies.get(user.agencyId);
+      agencyAddons = (agency?.addons ?? []).map((k) => k.trim()).filter(Boolean);
+      planId = agency?.monetizationPlanId ?? agency?.planId ?? null;
+    } catch (error) {
+      console.warn(
+        JSON.stringify({
+          type: "addon_gate.agency_lookup_failed",
+          agencyId: user.agencyId,
+          family,
+          error: error instanceof Error ? error.message : String(error),
+        }),
+      );
+    }
+
+    const listed = [...jwtAddons, ...agencyAddons];
+    if (matchesTranslateAddon(listed, vertical)) return null;
+
+    if (planId) {
+      for (const def of ADDON_CATALOG) {
+        if (!matchesTranslateAddon([def.key], vertical)) continue;
+        if (isAddonIncludedInPlan(def, planId)) return null;
+      }
+    }
+
+    try {
+      await writeAddonRejectionAudit(event, user, family);
+    } catch {
+      // Do not mask 403 with audit write errors.
+    }
+    return jsonStatus({ error: "addon_not_enabled", family }, 403);
+  };
+}

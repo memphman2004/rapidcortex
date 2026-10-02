@@ -13,8 +13,10 @@ import { VenueAuditTimeline } from "./rfp/venue-audit-timeline";
 import { VenueCaseWorkflowPanel } from "./rfp/venue-case-workflow-panel";
 import { VenueEvidencePanel } from "./rfp/venue-evidence-panel";
 import { VenueReportDistributePanel } from "./rfp/venue-report-distribute-panel";
+import { PinpointPanel } from "@/components/dispatch/pinpoint-panel";
+import { isPinpointEnabled } from "@/lib/runtime-flags";
 
-type RfpTab = "cameras" | "evidence" | "case" | "audit" | "reports";
+type RfpTab = "cameras" | "live" | "evidence" | "case" | "audit" | "reports";
 
 export function VenueIncidentOpsDetailClient({
   agencyId,
@@ -91,6 +93,7 @@ export function VenueIncidentOpsDetailClient({
 
   const tabs: { id: RfpTab; label: string }[] = [
     { id: "cameras", label: "Cameras" },
+    ...(isPinpointEnabled() ? ([{ id: "live", label: "Live GPS" }] as { id: RfpTab; label: string }[]) : []),
     ...(rfpEnabled
       ? ([
           { id: "evidence", label: "Evidence" },
@@ -137,7 +140,7 @@ export function VenueIncidentOpsDetailClient({
           ))}
         </div>
       ) : null}
-      {tab === "cameras" || !rfpEnabled ? (
+      {tab === "cameras" || (!rfpEnabled && tab !== "live") ? (
         <IncidentCameraPanel
           agencyId={agencyId}
           incident={panel}
@@ -146,6 +149,14 @@ export function VenueIncidentOpsDetailClient({
           mode="detail"
           onClose={() => router.push(linkBase)}
         />
+      ) : null}
+      {tab === "live" && isPinpointEnabled() ? (
+        <div style={{ padding: 14 }}>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", color: "#f59e0b", marginBottom: 8 }}>
+            NexiQ Pinpoint
+          </div>
+          <PinpointPanel incidentId={incidentId} embedded liveOnly />
+        </div>
       ) : null}
       {rfpEnabled && tab === "evidence" ? (
         <VenueEvidencePanel venueCode={venueCode} incidentId={incidentId} canMutate={canMutate} />

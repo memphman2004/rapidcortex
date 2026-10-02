@@ -2342,7 +2342,9 @@ Resources:
           # Keep this function under Lambda's 4KB env limit when WAF/secret ARNs grow.
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          ENABLE_SOP_PROTOCOL_AI: !If [PilotTestFeaturesOn, "true", "false"]
+          # Operational flag — default ON (matches featureEnabled / NEXT_PUBLIC_ENABLE_SOP_PROTOCOL_AI).
+          # Not pilot-gated: supervisors/dispatchers rely on protocol assist in live traffic.
+          ENABLE_SOP_PROTOCOL_AI: "true"
           SOP_DETECT_EVERY_N_SEGMENTS: "0"
           SOP_DETECTION_MOCK: "false"
       CodeUri: ../../apps/api/
@@ -2378,7 +2380,7 @@ Resources:
           BEDROCK_MODEL_PRIMARY: !Sub "us.${AiBedrockFoundationModelId}"
           BEDROCK_MODEL_SECONDARY: !Sub "us.${AiBedrockFoundationModelId}"
           BEDROCK_MODEL_TERTIARY: !Sub "us.${AiBedrockFoundationModelId}"
-          ENABLE_SOP_PROTOCOL_AI: !If [PilotTestFeaturesOn, "true", "false"]
+          ENABLE_SOP_PROTOCOL_AI: "true"
           SOP_DETECT_EVERY_N_SEGMENTS: "0"
           SOP_DETECTION_MOCK: "false"
       CodeUri: ../../apps/api/
@@ -2408,7 +2410,7 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
-          ENABLE_SOP_PROTOCOL_AI: !If [PilotTestFeaturesOn, "true", "false"]
+          ENABLE_SOP_PROTOCOL_AI: "true"
           SOP_UPLOAD_URL_TTL_SECONDS: "900"
       CodeUri: ../../apps/api/
       Handler: dist/handlers/protocols/detectIncidentType.handler

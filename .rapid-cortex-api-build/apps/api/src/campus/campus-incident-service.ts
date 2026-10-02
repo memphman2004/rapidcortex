@@ -1,0 +1,649 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+  UpdateCommand,
+} from "@aws-sdk/lib-dynamodb";
+import type { z } from "zod";
+import type { VenueIncidentCameraSummary } from "rapid-cortex-shared";
+import { campusAutomationRuleMatches, isCampusCounselorQueueType } from "rapid-cortex-shared";
+import { makeId } from "../lib/ids.js";
+import { AuditRepository } from "../repositories/auditRepository.js";
+import { getCamerasForBuildingFloor } from "../handlers/campus/cameras/campus-camera-registry-service.js";
+import { notifyMilestoneOfCampusIncident } from "../integrations/milestone/milestone-service.js";
+import { broadcastVenueIncidentCreated } from "../venue/venue-incident-realtime.js";
+import type {
+  CampusIncident,
+  CampusIncidentNote,
+  CampusIncidentStatus,
+  CampusIncidentType,
+} from "./campus-types.js";
+import { CAMPUS_KEYS } from "./campus-types.js";
+import type { createIncidentSchema, updateIncidentSchema } from "./campus-schemas.js";
+import { isConfidentialType, legalStatusTransition } from "./campus-schemas.js";
+import { suggestCleryCategory } from "./campus-clery-suggest.js";
+import { listCampusAutomationRules, matchCampusEapForIncident } from "./campus-eap-service.js";
+
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+const auditRepo = new AuditRepository();
+
+function campusIncidentsTable(): string {
+  const t = process.env.CAMPUS_INCIDENTS_TABLE?.trim();
+  if (!t) throw new Error("CAMPUS_INCIDENTS_TABLE not set");
+  return t;
+}
+
+export function campusMediaBucket(): string {
+  return process.env.ASSETS_BUCKET?.trim() ?? "";
+}
+
+export function makeIncidentId(campusCode: string): string {
+  const year = new Date().getFullYear();
+  const seq = String(Date.now()).slice(-6);
+  return `${campusCode}-${year}-${seq}`;
+}
+
+function defaultCounselorAssignment(type: CampusIncidentType): {
+  assignedTo: string | null;
+  assignedToName: string | null;
+} {
+  if (isCampusCounselorQueueType(type)) {
+    return { assignedTo: "campus_counselor", assignedToName: "Counseling queue" };
+  }
+  return { assignedTo: null, assignedToName: null };
+}
+
+export async function createCampusIncident(
+  input: z.infer<typeof createIncidentSchema>,
+  agencyId: string,
+  actorId?: string,
+): Promise<CampusIncident> {
+  const id = makeIncidentId(input.campusCode);
+  const now = new Date().toISOString();
+  // Schema validates against the catalog enum; widen is typed as string[] so cast after parse.
+  const incidentType = input.type as CampusIncidentType;
+  const confidential = input.confidential ?? isConfidentialType(incidentType);
+  const assignee = defaultCounselorAssignment(incidentType);
+  const cleryCategorySuggested = suggestCleryCategory(incidentType, input.description);
+
+  const siteCode = input.siteCode?.trim().toUpperCase() || undefined;
+  let siteShortName = input.siteShortName?.trim() || undefined;
+  if (siteCode && !siteShortName) {
+    try {
+      const { getResolvedCampusSites } = await import("./campus-sites-service.js");
+      const { sites } = await getResolvedCampusSites(input.campusCode, agencyId);
+      const match = sites.find((s) => s.code === siteCode);
+      siteShortName = match?.shortName?.trim() || match?.code || undefined;
+    } catch (err) {
+      console.warn("[createCampusIncident] siteShortName resolve skipped", err);
+    }
+  }
+
+  const item: CampusIncident = {
+    pk: CAMPUS_KEYS.incidentPk(input.campusCode),
+    sk: CAMPUS_KEYS.incidentSk(id),
+    id,
+    campusCode: input.campusCode,
+    agencyId,
+    siteCode,
+    siteShortName,
+    buildingCode: input.buildingCode,
+    buildingLabel: input.buildingCode,
+    floor: input.floor ?? null,
+    roomCode: input.roomCode ?? "",
+    zoneCode: input.zoneCode ?? input.roomCode ?? undefined,
+    zoneLabel: input.qrLocationName
+      ? `${input.qrLocationName} · Zone ${input.zoneCode ?? input.roomCode}`
+      : [input.buildingCode, input.roomCode].filter(Boolean).join(" · "),
+    qrRcli: input.qrRcli,
+    qrLocationName: input.qrLocationName,
+    type: incidentType,
+    source: input.source,
+    status: "open",
+    description: input.description,
+    isAnonymous: input.isAnonymous,
+    confidential,
+    assignedTo: assignee.assignedTo,
+    assignedToName: assignee.assignedToName,
+    cameraRefs: input.cameraIds ?? [],
+    hasMedia: false,
+    mediaUrls: [],
+    createdAt: now,
+    updatedAt: now,
+    resolvedAt: null,
+    cleryCategory: null,
+    cleryCategorySuggested,
+    eapChecklist: null,
+    suggestedActions: assignee.assignedTo
+      ? { assignRole: assignee.assignedTo }
+      : undefined,
+    locationData:
+      input.latitude != null && input.longitude != null
+        ? [
+            {
+              source: "MANUAL" as const,
+              accuracyMeters: 25,
+              receivedAt: now,
+              coordinates: {
+                latitude: input.latitude,
+                longitude: input.longitude,
+                accuracy: 25,
+              },
+            },
+          ]
+        : undefined,
+  };
+
+  try {
+    const rules = await listCampusAutomationRules(input.campusCode);
+    for (const rule of rules) {
+      if (!campusAutomationRuleMatches(rule, { type: item.type, zoneCode: item.zoneCode })) continue;
+      // SOC-043: notify role / attach checklist / open war room. Never CAD write-back or lockdown.
+      if (rule.actions.assignRole) {
+        item.assignedTo = rule.actions.assignRole;
+        item.assignedToName = `${rule.actions.assignRole} queue`;
+        item.suggestedActions = { ...item.suggestedActions, assignRole: rule.actions.assignRole };
+      }
+      if (rule.actions.openWarRoom) {
+        item.suggestedActions = { ...item.suggestedActions, openWarRoom: true };
+      }
+    }
+  } catch (err) {
+    console.warn("[createCampusIncident] automation rules skipped", err);
+  }
+
+  await ddb.send(
+    new PutCommand({
+      TableName: campusIncidentsTable(),
+      Item: item,
+      ConditionExpression: "attribute_not_exists(pk)",
+    }),
+  );
+
+  await auditRepo.create({
+    eventId: makeId("audit"),
+    agencyId,
+    incidentId: id,
+    actorId: actorId ?? "anonymous",
+    type: "CAMPUS_INCIDENT_CREATED",
+    details: { campusCode: input.campusCode, type: input.type, source: input.source },
+    createdAt: now,
+    resourceType: "incident",
+    resourceId: id,
+  });
+
+  return item;
+}
+
+export type CreateCampusIntakeIncidentResult = {
+  incident: CampusIncident;
+  cameras: VenueIncidentCameraSummary[];
+};
+
+export async function finalizeCampusIntakeIncident(
+  agencyId: string,
+  incident: CampusIncident,
+): Promise<CreateCampusIntakeIncidentResult> {
+  const lastLoc = incident.locationData?.[incident.locationData.length - 1];
+  const origin =
+    lastLoc?.coordinates &&
+    Number.isFinite(lastLoc.coordinates.latitude) &&
+    Number.isFinite(lastLoc.coordinates.longitude)
+      ? {
+          latitude: lastLoc.coordinates.latitude,
+          longitude: lastLoc.coordinates.longitude,
+        }
+      : null;
+
+  let cameras: VenueIncidentCameraSummary[] = [];
+  try {
+    cameras = await getCamerasForBuildingFloor(
+      agencyId,
+      incident.buildingCode,
+      incident.floor != null ? String(incident.floor) : undefined,
+      origin ? 4 : 2,
+      {
+        zoneCode: incident.zoneCode,
+        qrRcli: incident.qrRcli,
+        assignedCameraIds: incident.cameraRefs,
+        latitude: origin?.latitude,
+        longitude: origin?.longitude,
+      },
+    );
+  } catch (err) {
+    console.warn("[finalizeCampusIntakeIncident] camera lookup failed", err);
+  }
+
+  let eapChecklist = incident.eapChecklist ?? null;
+  try {
+    eapChecklist = await matchCampusEapForIncident(
+      incident.campusCode,
+      incident.buildingCode,
+      incident.type,
+    );
+  } catch (err) {
+    console.warn("[finalizeCampusIntakeIncident] EAP lookup failed", err);
+  }
+
+  const now = new Date().toISOString();
+  const updates: string[] = [];
+  const values: Record<string, unknown> = { ":now": now };
+  if (cameras.length > 0) {
+    updates.push("cameraRefs = :refs");
+    values[":refs"] = cameras.map((c) => c.cameraId);
+  }
+  if (eapChecklist) {
+    updates.push("eapChecklist = :eap");
+    values[":eap"] = eapChecklist;
+  }
+  if (updates.length > 0) {
+    try {
+      await ddb.send(
+        new UpdateCommand({
+          TableName: campusIncidentsTable(),
+          Key: { pk: incident.pk, sk: incident.sk },
+          UpdateExpression: `SET ${updates.join(", ")}, updatedAt = :now`,
+          ExpressionAttributeValues: values,
+        }),
+      );
+      incident = {
+        ...incident,
+        cameraRefs: cameras.length ? cameras.map((c) => c.cameraId) : incident.cameraRefs,
+        eapChecklist: eapChecklist ?? incident.eapChecklist,
+        updatedAt: now,
+      };
+    } catch (err) {
+      console.warn("[finalizeCampusIntakeIncident] persist cameras/EAP failed", err);
+    }
+  }
+
+  await broadcastVenueIncidentCreated({
+    agencyId,
+    incident: {
+      incidentId: incident.id,
+      zoneCode: incident.buildingCode,
+      zoneLabel: incident.zoneLabel,
+      type: incident.type,
+      source: incident.source,
+      status: incident.status,
+      qrRcli: incident.qrRcli,
+    },
+    cameras,
+  });
+
+  void notifyMilestoneOfCampusIncident({
+    agencyId,
+    incidentId: incident.id,
+    title: `${incident.type} · ${incident.buildingCode}`,
+    description: incident.description,
+    severity: incident.type === "active_threat" ? "critical" : "high",
+    latitude: origin?.latitude,
+    longitude: origin?.longitude,
+    cameraIds: cameras.map((c) => c.cameraId),
+    raiseAlarm: true,
+  });
+
+  return { incident, cameras };
+}
+
+export async function createCampusQrIncident(
+  input: z.infer<typeof createIncidentSchema>,
+  agencyId: string,
+  actorId?: string,
+): Promise<CreateCampusIntakeIncidentResult> {
+  const incident = await createCampusIncident(input, agencyId, actorId);
+  return finalizeCampusIntakeIncident(agencyId, incident);
+}
+
+export async function getCampusIncident(
+  campusCode: string,
+  incidentId: string,
+): Promise<CampusIncident | null> {
+  const result = await ddb.send(
+    new GetCommand({
+      TableName: campusIncidentsTable(),
+      Key: {
+        pk: CAMPUS_KEYS.incidentPk(campusCode),
+        sk: CAMPUS_KEYS.incidentSk(incidentId),
+      },
+    }),
+  );
+  return (result.Item as CampusIncident) ?? null;
+}
+
+export async function listCampusIncidents(opts: {
+  campusCode: string;
+  status?: CampusIncidentStatus[];
+  type?: CampusIncidentType[];
+  confidentialOnly?: boolean;
+  counselorQueue?: boolean;
+  limit?: number;
+  cursor?: string;
+}): Promise<{ incidents: CampusIncident[]; cursor?: string; total: number }> {
+  const limit = opts.limit ?? 25;
+  const result = await ddb.send(
+    new QueryCommand({
+      TableName: campusIncidentsTable(),
+      KeyConditionExpression: "pk = :pk",
+      ExpressionAttributeValues: { ":pk": CAMPUS_KEYS.incidentPk(opts.campusCode) },
+      Limit: limit + 1,
+      ExclusiveStartKey: opts.cursor
+        ? JSON.parse(Buffer.from(opts.cursor, "base64").toString())
+        : undefined,
+      ScanIndexForward: false,
+    }),
+  );
+
+  let items = (result.Items ?? []).filter(
+    (i) => typeof (i as { sk?: string }).sk === "string" && String((i as { sk: string }).sk).startsWith("INCIDENT#"),
+  ) as CampusIncident[];
+
+  if (opts.status?.length) {
+    items = items.filter((i) => opts.status!.includes(i.status));
+  }
+  if (opts.type?.length) {
+    items = items.filter((i) => opts.type!.includes(i.type));
+  }
+  if (opts.confidentialOnly) {
+    items = items.filter((i) => i.confidential);
+  }
+  if (opts.counselorQueue) {
+    items = items.filter(
+      (i) => isCampusCounselorQueueType(i.type) || i.assignedTo === "campus_counselor",
+    );
+  }
+
+  const hasMore = items.length > limit;
+  const page = hasMore ? items.slice(0, limit) : items;
+  const nextCursor =
+    hasMore && result.LastEvaluatedKey
+      ? Buffer.from(JSON.stringify(result.LastEvaluatedKey)).toString("base64")
+      : undefined;
+
+  return { incidents: page, cursor: nextCursor, total: page.length };
+}
+
+export async function updateCampusIncident(
+  campusCode: string,
+  incidentId: string,
+  update: z.infer<typeof updateIncidentSchema>,
+  actorId: string,
+  actorName: string,
+): Promise<CampusIncident> {
+  const existing = await getCampusIncident(campusCode, incidentId);
+  if (!existing) throw new Error("NOT_FOUND");
+
+  if (update.status && !legalStatusTransition(existing.status, update.status)) {
+    throw new Error(`ILLEGAL_TRANSITION:${existing.status}->${update.status}`);
+  }
+
+  const now = new Date().toISOString();
+  const updates: string[] = ["updatedAt = :now"];
+  const values: Record<string, unknown> = { ":now": now };
+
+  if (update.status) {
+    updates.push("#st = :status");
+    values[":status"] = update.status;
+    if (update.status === "resolved") {
+      updates.push("resolvedAt = :now");
+    }
+  }
+  if (update.assignedTo !== undefined) {
+    updates.push("assignedTo = :at");
+    values[":at"] = update.assignedTo;
+  }
+  if (update.assignedToName !== undefined) {
+    updates.push("assignedToName = :atn");
+    values[":atn"] = update.assignedToName;
+  }
+  if (update.cleryCategory !== undefined) {
+    updates.push("cleryCategory = :cc");
+    values[":cc"] = update.cleryCategory;
+  }
+  if (update.cleryGeography !== undefined) {
+    updates.push("cleryGeography = :cg");
+    values[":cg"] = update.cleryGeography;
+  }
+
+  const result = await ddb.send(
+    new UpdateCommand({
+      TableName: campusIncidentsTable(),
+      Key: {
+        pk: CAMPUS_KEYS.incidentPk(campusCode),
+        sk: CAMPUS_KEYS.incidentSk(incidentId),
+      },
+      UpdateExpression: `SET ${updates.join(", ")}`,
+      ExpressionAttributeNames: update.status ? { "#st": "status" } : undefined,
+      ExpressionAttributeValues: values,
+      ReturnValues: "ALL_NEW",
+    }),
+  );
+
+  if (update.status) {
+    try {
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: campusCode,
+        incidentId,
+        actorId,
+        type: "CAMPUS_INCIDENT_STATUS_CHANGED",
+        details: { from: existing.status, to: update.status, actorName },
+        createdAt: now,
+        resourceType: "incident",
+        resourceId: incidentId,
+      });
+    } catch (err) {
+      console.error("[campus-incident] audit status change failed", {
+        incidentId,
+        campusCode,
+        err,
+      });
+    }
+  }
+
+  return result.Attributes as CampusIncident;
+}
+
+export async function addIncidentNote(
+  campusCode: string,
+  incidentId: string,
+  content: string,
+  authorId: string,
+  authorName: string,
+): Promise<CampusIncidentNote> {
+  const noteId = makeId("note");
+  const now = new Date().toISOString();
+  const note: CampusIncidentNote = {
+    noteId,
+    incidentId,
+    authorId,
+    authorName,
+    content,
+    createdAt: now,
+  };
+
+  await ddb.send(
+    new PutCommand({
+      TableName: campusIncidentsTable(),
+      Item: {
+        pk: CAMPUS_KEYS.incidentPk(campusCode),
+        sk: `NOTE#${incidentId}#${noteId}`,
+        ...note,
+      },
+    }),
+  );
+
+  return note;
+}
+
+export async function escalateCampusIncident(
+  campusCode: string,
+  incidentId: string,
+  actorId: string,
+): Promise<{ escalatedIncidentId: string }> {
+  await updateCampusIncident(campusCode, incidentId, { status: "escalated" }, actorId, "system");
+
+  try {
+    await auditRepo.create({
+      eventId: makeId("audit"),
+      agencyId: campusCode,
+      incidentId,
+      actorId,
+      type: "CAMPUS_INCIDENT_ESCALATED_TO_CORE",
+      details: { campusCode },
+      createdAt: new Date().toISOString(),
+      resourceType: "incident",
+      resourceId: incidentId,
+    });
+  } catch (err) {
+    console.error("[campus-incident] audit escalate failed", { incidentId, campusCode, err });
+  }
+
+  return { escalatedIncidentId: incidentId };
+}
+
+const OPEN_STATUSES: CampusIncidentStatus[] = ["open", "assigned", "responding"];
+
+export async function findOpenCampusIncidentByPhoneHash(
+  campusCode: string,
+  phoneHash: string,
+  withinMinutes = 30,
+): Promise<CampusIncident | null> {
+  const cutoff = new Date(Date.now() - withinMinutes * 60 * 1000).toISOString();
+  const { incidents } = await listCampusIncidents({ campusCode, limit: 40 });
+  const match = incidents.find(
+    (i) =>
+      i.phoneHash === phoneHash &&
+      OPEN_STATUSES.includes(i.status) &&
+      i.createdAt >= cutoff,
+  );
+  return match ?? null;
+}
+
+export async function createCampusSmsIncident(params: {
+  campusCode: string;
+  /** Tenant agencyId — required for camera registry + websocket broadcast. */
+  agencyId: string;
+  type: CampusIncidentType;
+  description: string;
+  buildingHint: string;
+  roomHint: string;
+  phoneHash: string;
+  reporterLast4: string;
+}): Promise<CreateCampusIntakeIncidentResult> {
+  const incident = await createCampusIncident(
+    {
+      campusCode: params.campusCode,
+      buildingCode: params.buildingHint || "UNKNOWN",
+      roomCode: params.roomHint || "",
+      type: params.type,
+      source: "sms",
+      description: params.description,
+      isAnonymous: true,
+    },
+    params.agencyId,
+    "sms-inbound",
+  ).then(async (base) => {
+    const now = new Date().toISOString();
+    await ddb.send(
+      new UpdateCommand({
+        TableName: campusIncidentsTable(),
+        Key: {
+          pk: CAMPUS_KEYS.incidentPk(params.campusCode),
+          sk: CAMPUS_KEYS.incidentSk(base.id),
+        },
+        UpdateExpression:
+          "SET phoneHash = :ph, reporterLast4 = :rl4, locationLinkSent = :lls, locationData = :ld, updatedAt = :now",
+        ExpressionAttributeValues: {
+          ":ph": params.phoneHash,
+          ":rl4": params.reporterLast4,
+          ":lls": false,
+          ":ld": [],
+          ":now": now,
+        },
+      }),
+    );
+    return {
+      ...base,
+      phoneHash: params.phoneHash,
+      reporterLast4: params.reporterLast4,
+      locationLinkSent: false,
+      locationData: [],
+    };
+  });
+  return finalizeCampusIntakeIncident(params.agencyId, incident);
+}
+
+export async function markCampusLocationLinkSent(
+  campusCode: string,
+  incidentId: string,
+): Promise<void> {
+  await ddb.send(
+    new UpdateCommand({
+      TableName: campusIncidentsTable(),
+      Key: {
+        pk: CAMPUS_KEYS.incidentPk(campusCode),
+        sk: CAMPUS_KEYS.incidentSk(incidentId),
+      },
+      UpdateExpression: "SET locationLinkSent = :t, updatedAt = :now",
+      ExpressionAttributeValues: {
+        ":t": true,
+        ":now": new Date().toISOString(),
+      },
+    }),
+  );
+}
+
+export async function appendCampusIncidentLocation(
+  campusCode: string,
+  incidentId: string,
+  entry: import("./campus-types.js").CampusIncidentLocationEntry,
+): Promise<void> {
+  await ddb.send(
+    new UpdateCommand({
+      TableName: campusIncidentsTable(),
+      Key: {
+        pk: CAMPUS_KEYS.incidentPk(campusCode),
+        sk: CAMPUS_KEYS.incidentSk(incidentId),
+      },
+      UpdateExpression:
+        "SET locationData = list_append(if_not_exists(locationData, :empty), :entry), updatedAt = :now",
+      ExpressionAttributeValues: {
+        ":empty": [],
+        ":entry": [entry],
+        ":now": new Date().toISOString(),
+      },
+    }),
+  );
+}
+
+export async function appendCampusSmsChatMessage(
+  campusCode: string,
+  incidentId: string,
+  body: string,
+): Promise<void> {
+  const message = {
+    messageId: makeId("sms"),
+    body,
+    receivedAt: new Date().toISOString(),
+  };
+  await ddb.send(
+    new UpdateCommand({
+      TableName: campusIncidentsTable(),
+      Key: {
+        pk: CAMPUS_KEYS.incidentPk(campusCode),
+        sk: CAMPUS_KEYS.incidentSk(incidentId),
+      },
+      UpdateExpression:
+        "SET smsChatMessages = list_append(if_not_exists(smsChatMessages, :empty), :msg), description = :desc, updatedAt = :now",
+      ExpressionAttributeValues: {
+        ":empty": [],
+        ":msg": [message],
+        ":desc": body,
+        ":now": new Date().toISOString(),
+      },
+    }),
+  );
+}

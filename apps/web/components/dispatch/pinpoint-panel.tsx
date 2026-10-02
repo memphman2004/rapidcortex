@@ -17,10 +17,13 @@ export function PinpointPanel({
   incidentId,
   ani,
   embedded = false,
+  /** Campus/venue: show live QR shares only (no SMS create). */
+  liveOnly = false,
 }: {
   incidentId: string | null;
   ani?: string | null;
   embedded?: boolean;
+  liveOnly?: boolean;
 }) {
   const queryClient = useQueryClient();
   const [phoneE164, setPhoneE164] = useState<string | null>(null);
@@ -85,6 +88,7 @@ export function PinpointPanel({
   if (!pinpointOn) return null;
 
   const rootClass = embedded ? "p-3" : "rounded-lg border border-slate-800 bg-slate-950/40 p-3";
+  const hasLinks = (q.data?.length ?? 0) > 0;
 
   return (
     <section className={rootClass}>
@@ -92,7 +96,9 @@ export function PinpointPanel({
         <>
           <div className="text-[10px] font-semibold tracking-wide text-sky-400">NexiQ Pinpoint</div>
           <p className="mt-1 text-[11px] leading-snug text-slate-500">
-            Send a secure SMS link for live GPS — accuracy radius, movement, and location history on this incident.
+            {liveOnly
+              ? "Live GPS from the reporter when they opted in on the QR report page."
+              : "Send a secure SMS link for live GPS — accuracy radius, movement, and location history on this incident."}
           </p>
         </>
       ) : null}
@@ -107,17 +113,21 @@ export function PinpointPanel({
               {localErr}
             </p>
           ) : null}
-          <div className="mt-2 flex flex-col gap-2">
-            <PhoneInput label="Caller mobile" ani={ani} onChange={setPhoneE164} disabled={createMut.isPending} />
-            <button
-              type="button"
-              disabled={createMut.isPending}
-              onClick={() => createMut.mutate()}
-              className="rounded bg-sky-700 px-2 py-1.5 text-xs font-medium text-white hover:bg-sky-600 disabled:opacity-50"
-            >
-              {createMut.isPending ? "Sending…" : "Send Pinpoint link"}
-            </button>
-          </div>
+          {!liveOnly ? (
+            <div className="mt-2 flex flex-col gap-2">
+              <PhoneInput label="Caller mobile" ani={ani} onChange={setPhoneE164} disabled={createMut.isPending} />
+              <button
+                type="button"
+                disabled={createMut.isPending}
+                onClick={() => createMut.mutate()}
+                className="rounded bg-sky-700 px-2 py-1.5 text-xs font-medium text-white hover:bg-sky-600 disabled:opacity-50"
+              >
+                {createMut.isPending ? "Sending…" : "Send Pinpoint link"}
+              </button>
+            </div>
+          ) : !hasLinks && !q.isLoading ? (
+            <p className="mt-2 text-xs text-slate-500">No live location share on this report yet.</p>
+          ) : null}
           <ul className="mt-3 max-h-28 space-y-1 overflow-y-auto text-[11px] text-slate-400">
             {(q.data ?? []).map((l) => (
               <li key={l.linkId} className="flex items-center justify-between gap-2 border-t border-slate-800/80 pt-1">
@@ -129,7 +139,7 @@ export function PinpointPanel({
                   {l.linkId.slice(0, 14)}… · {l.status}
                   {l.lastPingAt ? ` · ${new Date(l.lastPingAt).toLocaleTimeString()}` : ""}
                 </button>
-                {l.status === "active" ? (
+                {!liveOnly && l.status === "active" ? (
                   <button
                     type="button"
                     className="shrink-0 text-rose-400 underline"

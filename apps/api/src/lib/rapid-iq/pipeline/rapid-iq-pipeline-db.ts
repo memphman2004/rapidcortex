@@ -108,6 +108,42 @@ export async function putExternalKeyPointer(externalKey: string, signalId: strin
   );
 }
 
+/** Correlation pointer for multi-document opportunity merge (STATE|AGENCY|TECH). */
+export async function getSignalIdByCorrelationKey(
+  correlationKey: string,
+): Promise<string | null> {
+  const key = correlationKey.trim().toUpperCase().slice(0, 200);
+  if (!key) return null;
+  const res = await ddb.send(
+    new GetCommand({
+      TableName: table(),
+      Key: { pk: `CORR#${key}`, sk: "META" },
+    }),
+  );
+  const id = res.Item?.signalId;
+  return typeof id === "string" && id.trim() ? id : null;
+}
+
+export async function putCorrelationPointer(
+  correlationKey: string,
+  signalId: string,
+): Promise<void> {
+  const key = correlationKey.trim().toUpperCase().slice(0, 200);
+  if (!key) return;
+  await ddb.send(
+    new PutCommand({
+      TableName: table(),
+      Item: {
+        pk: `CORR#${key}`,
+        sk: "META",
+        signalId,
+        correlationKey: key,
+        updatedAt: new Date().toISOString(),
+      },
+    }),
+  );
+}
+
 export async function signalExistsByHash(hash: string): Promise<boolean> {
   return (await getSignalIdByHash(hash)) != null;
 }
@@ -315,6 +351,7 @@ export async function updateSignalFields(
     procurementStage?: RapidIqProcurementStage;
     agencyProfileId?: string;
     recommendedAction?: string;
+    watched?: boolean;
   },
 ): Promise<RapidIqPipelineSignal> {
   const current = await getSignal(signalId);
@@ -348,6 +385,14 @@ export async function updateSignalFields(
     values[":recommendedAction"] = fields.recommendedAction;
     sets.push("recommendedAction = :recommendedAction");
   }
+  if (fields.watched != null) {
+    names["#watched"] = "watched";
+    values[":watched"] = fields.watched;
+    sets.push("#watched = :watched");
+    if (fields.watched) {
+      sets.push("watchedAt = :now");
+    }
+  }
 
   await ddb.send(
     new UpdateCommand({
@@ -356,6 +401,7 @@ export async function updateSignalFields(
       UpdateExpression: `SET ${sets.join(", ")}`,
       ExpressionAttributeValues: values,
       ...(Object.keys(names).length > 0 ? { ExpressionAttributeNames: names } : {}),
+      ReturnValues: "ALL_NEW",
     }),
   );
   const updated = await getSignal(signalId);

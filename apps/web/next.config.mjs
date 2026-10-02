@@ -224,6 +224,9 @@ const nextConfig = {
         destination: "/example-city/dashboard/:path*",
         permanent: false,
       },
+      // Legacy NaxiQ slug → NexiQ (preserve bookmarks / deep links).
+      { source: "/rc-admin/naxiq", destination: "/rc-admin/nexiq", permanent: true },
+      { source: "/rc-admin/naxiq/:path*", destination: "/rc-admin/nexiq/:path*", permanent: true },
       {
         source: "/integrations/ring-review",
         destination: "https://www.rapidcortex.us/connect/ring/start/",

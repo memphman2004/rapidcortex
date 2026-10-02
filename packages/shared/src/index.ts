@@ -134,3 +134,4 @@ export * from "./escalation/index.js";
 export * from "./rms/index.js";
 export * from "./contacts/index.js";
 export * from "./ai-gate/index.js";
+export * from "./comms-intel/index.js";

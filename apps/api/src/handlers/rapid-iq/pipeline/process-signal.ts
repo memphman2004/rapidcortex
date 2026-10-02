@@ -14,6 +14,8 @@ import {
   rapidIqPipelineRawSignalSchema,
 } from "rapid-cortex-shared";
 import { applySignalIntelligence } from "../../../lib/rapid-iq/pipeline/apply-signal-intelligence.js";
+import { applyBuyingIntelligence } from "../../../lib/rapid-iq/pipeline/apply-buying-intelligence.js";
+import { correlateOrKeep } from "../../../lib/rapid-iq/pipeline/correlate-buying-signals.js";
 import { enrichAgencyIntelligence } from "../../../lib/rapid-iq/pipeline/enrich-agency-contacts.js";
 import { computeFitScore } from "../../../lib/rapid-iq/pipeline/fit-scorer.js";
 import { extractSignalData } from "../../../lib/rapid-iq/pipeline/nlp-extract.js";
@@ -114,6 +116,15 @@ export async function handler(event: SQSEvent): Promise<SQSBatchResponse> {
         legacyExtractScore: extractScore,
       });
 
+      const buying = applyBuyingIntelligence({
+        title: raw.rawTitle,
+        text: hay,
+        sourceUrl: raw.sourceUrl,
+        agencyName: extraction.agencyName ?? meta.agencyName,
+        state: extraction.state,
+        procurementStage,
+      });
+
       const signal = {
         signalId,
         sourceId: raw.sourceId,
@@ -141,20 +152,28 @@ export async function handler(event: SQSEvent): Promise<SQSBatchResponse> {
         estimatedContractEnd: meta.estimatedContractEnd,
         status: "new" as const,
         ...intel,
+        ...buying,
       };
 
-      await putSignal(signal);
+      const correlated = await correlateOrKeep(signal);
+      if (correlated.action === "created") {
+        await putSignal(correlated.signal);
+      }
+      // merged path already persisted inside correlateOrKeep
 
       try {
-        const agencyId = await resolveAgency(signal);
+        const agencyId = await resolveAgency(correlated.signal);
         if (agencyId) {
-          await enrichAgencyIntelligence(agencyId, { ...signal, agencyProfileId: agencyId });
+          await enrichAgencyIntelligence(agencyId, {
+            ...correlated.signal,
+            agencyProfileId: agencyId,
+          });
         }
       } catch (err) {
         console.warn(
           JSON.stringify({
             msg: "rapid_iq_agency_resolve_failed",
-            signalId,
+            signalId: correlated.signal.signalId,
             error: err instanceof Error ? err.message : "unknown",
           }),
         );
@@ -163,11 +182,15 @@ export async function handler(event: SQSEvent): Promise<SQSBatchResponse> {
       console.log(
         JSON.stringify({
           msg: "rapid_iq_pipeline_signal_processed",
-          signalId,
+          signalId: correlated.signal.signalId,
+          correlateAction: correlated.action,
           score: intel.fitScore,
           combinedScore: intel.combinedScore,
           buyingIntentScore: intel.buyingIntentScore,
           productFitScore: intel.productFitScore,
+          buyingStage: buying.buyingStage,
+          signalStrength: buying.signalStrength,
+          priorityBand: buying.priorityBand,
           label: intel.fitLabel,
           sourceId: raw.sourceId,
         }),

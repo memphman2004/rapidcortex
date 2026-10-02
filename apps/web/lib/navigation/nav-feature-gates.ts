@@ -43,6 +43,8 @@ import {
   isScenarioCenterUiEnabled,
   isStaffGuideEnabled,
   isLoadoutPortalEnabled,
+  isCommandIntelligenceEnabled,
+  isNexiqVaultEnabled,
 } from "@/lib/runtime-flags";
 import { isVerticalEnabled } from "@/lib/features";
 
@@ -69,6 +71,10 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isNonEmergencyTriageEnabled();
     case "sopIntelligence":
       return isSopIntelligenceEnabled();
+    case "commandIntelligence":
+      return isCommandIntelligenceEnabled();
+    case "nexiqVault":
+      return isNexiqVaultEnabled();
     case "ng911Assist":
       return isNg911AssistEnabled();
     case "callAssist":

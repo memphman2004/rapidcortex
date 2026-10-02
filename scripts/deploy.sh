@@ -228,6 +228,7 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-location
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-cad-bridge.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-cad-mesh.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-features.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-comms-intel.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-c2c.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-call-assist.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-sop-intel.yaml"

@@ -1,11 +1,12 @@
 import {
+  COMMS_INTEL_AUDIT_EVENT_TYPES,
   FEATURES_AUDIT_EVENT_TYPES,
   MILESTONE_AUDIT_EVENT_TYPES,
   NEST_AUDIT_EVENT_TYPES,
   WYZE_AUDIT_EVENT_TYPES,
 } from "rapid-cortex-shared/audit-schema";
 
-export { FEATURES_AUDIT_EVENT_TYPES };
+export { FEATURES_AUDIT_EVENT_TYPES, COMMS_INTEL_AUDIT_EVENT_TYPES };
 
 /**
  * CJIS-aligned audit vocabulary — align API `AuditEvent.type` strings with these constants.
@@ -476,6 +477,10 @@ export const AUDIT_EVENT_TYPES = {
   CALL_ASSIST_CALLBACK_TAKEOVER: "call_assist.callback.takeover",
   CALL_ASSIST_SMS_SELF_SERVICE_SENT: "call_assist.sms.self_service_sent",
   CALL_ASSIST_SMS_SELF_SERVICE_COMPLETED: "call_assist.sms.self_service_completed",
+  CALL_ASSIST_CONFIRMATION_CREATED: "call_assist.confirmation.created",
+  CALL_ASSIST_ROUTED: "call_assist.routed",
+  CALL_ASSIST_ACKNOWLEDGED: "call_assist.acknowledged",
+  CALL_ASSIST_SMS_CONFIRMATION_SENT: "call_assist.sms.confirmation_sent",
   CALL_ASSIST_RMS_FILED: "call_assist.rms.filed",
   CALL_ASSIST_RMS_FILE_BLOCKED: "call_assist.rms.file_blocked",
   CALL_ASSIST_QA_SCORED: "call_assist.qa.scored",
@@ -554,6 +559,7 @@ export const AUDIT_EVENT_TYPES = {
   ...NEST_AUDIT_EVENT_TYPES,
   ...MILESTONE_AUDIT_EVENT_TYPES,
   ...FEATURES_AUDIT_EVENT_TYPES,
+  ...COMMS_INTEL_AUDIT_EVENT_TYPES,
 
   VISION_CAMERA_DISCOVERED: "vision.camera.discovered",
   VISION_CONSENT_REQUESTED: "vision.consent.requested",

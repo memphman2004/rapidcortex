@@ -44,8 +44,8 @@ export function responseVoiceFromConfig(config: {
 }
 
 /**
- * ALL spoken Call Assist responses. The Lex bot is universal intake machinery;
- * Lambda personalizes from CallAssistAgencyVoiceConfig. No agency name lives here.
+ * Spoken Call Assist responses — Absolute Speech Rules (short, no corporate filler).
+ * Lex personalizes from CallAssistAgencyVoiceConfig; no agency name is hardcoded here.
  */
 export class ResponseGenerator {
   constructor(private readonly config: ResponseVoice) {}
@@ -61,12 +61,9 @@ export class ResponseGenerator {
   }
 
   emergencyTransfer(): string {
-    const { agencyShortName, officerLabel, emergencyLine } = this.config;
     return this.override(
       "emergencyTransfer",
-      `This is the non-emergency line. For life-threatening emergencies, ` +
-        `please hang up and dial ${emergencyLine} now. ` +
-        `I'm also alerting ${articleFor(agencyShortName)} ${agencyShortName} ${officerLabel}.`,
+      "This sounds like an emergency — let me connect you now.",
     );
   }
 
@@ -74,17 +71,14 @@ export class ResponseGenerator {
     const { agencyShortName, officerLabel } = this.config;
     return this.override(
       "humanTransfer",
-      `Of course. I'm connecting you to ${articleFor(agencyShortName)} ` +
-        `${agencyShortName} ${officerLabel} now. Stay on the line.`,
+      `Connecting you to ${articleFor(agencyShortName)} ${agencyShortName} ${officerLabel} now. Stay on the line.`,
     );
   }
 
   incidentCreated(referenceNumber: string): string {
-    const { agencyDisplayName, officerLabel } = this.config;
     const fallback =
-      `I've created a report for ${agencyDisplayName}. ` +
-      `Your reference number is ${referenceNumber}. ` +
-      `${articleFor(officerLabel) === "an" ? "An" : "A"} ${officerLabel} will follow up.`;
+      `Okay. We've got it. Your report number is ${referenceNumber}. ` +
+      `Use that if you call back with updates.`;
     const raw = this.config.promptOverrides?.incidentCreated?.trim();
     if (!raw) return fallback;
     return interpolateCallAssistVoice(raw, { ...this.config, referenceNumber });
@@ -94,31 +88,25 @@ export class ResponseGenerator {
     const override = this.config.promptOverrides?.onlineReportEligible?.trim();
     if (override) return interpolateCallAssistVoice(override, this.config);
     if (portalUrl ?? this.config.onlineReportPortalUrl) {
-      return (
-        `This incident may be eligible for online reporting. ` +
-        `Would you like me to text you a secure link to file your report online?`
-      );
+      return "Want me to text you a link to finish this online?";
     }
     return "";
   }
 
   callbackOffer(): string {
-    return this.override(
-      "callbackOffer",
-      "If you prefer, we can schedule a callback instead of holding. Would you like us to call you back at this number?",
-    );
+    return this.override("callbackOffer", "Want a callback at this number instead of holding?");
   }
 
   smsOffer(): string {
-    return this.override("smsOffer", this.onlineReportEligible() || "Would you like me to text you a secure link to finish this report online?");
+    return this.override(
+      "smsOffer",
+      this.onlineReportEligible() || "Want me to text you a secure link to finish online?",
+    );
   }
 
   carfaxEligible(portalUrl?: string): string {
     if (portalUrl ?? this.config.carfaxPortalUrl) {
-      return (
-        `Your vehicle incident may be eligible for the vehicle reporting program. ` +
-        `Would you like me to text you a secure link?`
-      );
+      return "Want a text link for the vehicle reporting program?";
     }
     return "";
   }
@@ -126,23 +114,16 @@ export class ResponseGenerator {
   opening(): string {
     const override = this.config.promptOverrides?.opening?.trim();
     if (override) return interpolateCallAssistVoice(override, this.config);
-    const raw =
-      this.config.disclosureText ||
-      `Thank you for calling ${this.config.agencyDisplayName} non-emergency. ` +
-        `I'm an automated assistant that will gather your information and route your call. ` +
-        `This call may be recorded. ` +
-        `If this is a life-threatening emergency, please hang up and dial ${this.config.emergencyLine}, ` +
-        `or say emergency now. How can I help you today?`;
-    return interpolateCallAssistVoice(raw, this.config);
+    if (this.config.disclosureText?.trim()) {
+      return interpolateCallAssistVoice(this.config.disclosureText, this.config);
+    }
+    return "How can I help you today?";
   }
 
   fallbackTransfer(): string {
-    const { agencyDisplayName, officerLabel } = this.config;
     return this.override(
       "fallbackTransfer",
-      `I'm sorry, I'm having trouble understanding. ` +
-        `Let me connect you to ${articleFor(agencyDisplayName)} ${agencyDisplayName} ${officerLabel} ` +
-        `who can help. Stay on the line.`,
+      "Having trouble with that — connecting you to someone who can help.",
     );
   }
 }

@@ -104,6 +104,16 @@ const AGENCY_ADMIN_HELP: HelpIndex = [
     ],
   },
   {
+    section: "Document Library",
+    articles: [
+      {
+        topic: "feature-architecture-maps",
+        title: "Feature Architecture Maps",
+        description: "Interactive flowcharts for major NexCort iQ product paths — select a feature to explore.",
+      },
+    ],
+  },
+  {
     section: "User Management",
     articles: [
       { topic: "create-user",      title: "Creating a New User",             description: "Inviting and provisioning a new dispatcher, supervisor, or admin." },
@@ -135,6 +145,16 @@ const AGENCY_IT_HELP: HelpIndex = [
     section: "Getting Started",
     articles: [
       { topic: "index",            title: "Agency IT Overview",              description: "What you can access and what requires Agency Admin." },
+    ],
+  },
+  {
+    section: "Document Library",
+    articles: [
+      {
+        topic: "feature-architecture-maps",
+        title: "Feature Architecture Maps",
+        description: "Interactive flowcharts for major NexCort iQ product paths — select a feature to explore.",
+      },
     ],
   },
   {
@@ -362,6 +382,16 @@ const RC_ADMIN_HELP: HelpIndex = [
       { topic: "notices",          title: "Platform Notices",                description: "Broadcasting notices to one or all agencies." },
     ],
   },
+  {
+    section: "Document Library",
+    articles: [
+      {
+        topic: "feature-architecture-maps",
+        title: "Feature Architecture Maps",
+        description: "Interactive flowcharts for major NexCort iQ product paths — select a feature to explore.",
+      },
+    ],
+  },
 ];
 
 const RC_IT_ADMIN_HELP: HelpIndex = [
@@ -371,6 +401,16 @@ const RC_IT_ADMIN_HELP: HelpIndex = [
       { topic: "index",            title: "NexCort IT Admin Overview",            description: "Cross-tenant user support and diagnostics access." },
       { topic: "user-support",     title: "User Account Support",            description: "Password resets, unlocks, MFA re-enrollment." },
       { topic: "diagnostics",      title: "Infrastructure Diagnostics",      description: "Accessing system diagnostics across tenants." },
+    ],
+  },
+  {
+    section: "Document Library",
+    articles: [
+      {
+        topic: "feature-architecture-maps",
+        title: "Feature Architecture Maps",
+        description: "Interactive flowcharts for major NexCort iQ product paths — select a feature to explore.",
+      },
     ],
   },
 ];
@@ -383,6 +423,16 @@ const RC_SUPERADMIN_HELP: HelpIndex = [
       { topic: "agency-onboard", title: "Onboarding an Agency", description: "Provisioning tenants with correct agency type and roles." },
       { topic: "platform-health", title: "Platform Health Dashboard", description: "Alarms, latency, and cross-stack health." },
       { topic: "notices", title: "Platform Notices", description: "Broadcasting operational notices to agencies." },
+    ],
+  },
+  {
+    section: "Document Library",
+    articles: [
+      {
+        topic: "feature-architecture-maps",
+        title: "Feature Architecture Maps",
+        description: "Interactive flowcharts for major NexCort iQ product paths — select a feature to explore.",
+      },
     ],
   },
 ];
@@ -440,6 +490,29 @@ const CALL_ASSIST_ADMIN_HELP: HelpIndex = [
   },
 ];
 
+const SALES_CONTRACTOR_HELP: HelpIndex = [
+  {
+    section: "Getting Started",
+    articles: [
+      {
+        topic: "index",
+        title: "Sales Portal Overview",
+        description: "Pipeline, quotes, catalogs, and enablement tools for NexCort iQ contractors.",
+      },
+    ],
+  },
+  {
+    section: "Document Library",
+    articles: [
+      {
+        topic: "feature-architecture-maps",
+        title: "Feature Architecture Maps",
+        description: "Interactive flowcharts for demos and technical discovery — select a feature to explore.",
+      },
+    ],
+  },
+];
+
 // ── Role → help index map ──────────────────────────────────────────────────
 
 /**
@@ -483,6 +556,8 @@ export function normalizeHelpRole(role: string): string {
     transit_supervisor: "transit_supervisor",
     transit_security: "transit_security",
     transit_operator: "transit_security",
+    salescontractor: "salescontractor",
+    sales_contractor: "salescontractor",
   };
   return map[r] ?? r;
 }
@@ -513,6 +588,7 @@ const HELP_INDEX: Record<string, HelpIndex> = {
   call_assist_admin: CALL_ASSIST_ADMIN_HELP,
   call_assist_supervisor: CALL_ASSIST_SUPERVISOR_HELP,
   call_assist_operator: CALL_ASSIST_OPERATOR_HELP,
+  salescontractor:   SALES_CONTRACTOR_HELP,
 };
 
 export function getHelpIndex(role: string): HelpIndex {

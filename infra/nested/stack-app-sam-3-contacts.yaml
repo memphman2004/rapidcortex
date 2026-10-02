@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   NexCort iQ — Contacts address book (companies + persons) on AppSam3 HttpApi.
-  Creates DynamoDB tables and /api/contacts/* routes without a full AppSam3 deploy.
+  Routes + Lambda only; tables are Retain leftovers — pass Existing* names.
 
 Parameters:
   DeploymentStage:
@@ -37,9 +37,12 @@ Parameters:
   ApprovedCorsOrigins:
     Type: String
     Default: "https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us"
-  DynamoTableNamePrefix:
+  ExistingContactCompaniesTable:
     Type: String
-    Default: rapid-cortex
+    Default: rapid-cortex-contact-companies-dev
+  ExistingContactPersonsTable:
+    Type: String
+    Default: rapid-cortex-contact-persons-dev
 
 Globals:
   Function:
@@ -50,8 +53,8 @@ Globals:
       Variables:
         DEPLOYMENT_STAGE: !Ref DeploymentStage
         ALLOW_UNAUTHENTICATED_API: "false"
-        CONTACT_COMPANIES_TABLE: !Ref ContactCompaniesTable
-        CONTACT_PERSONS_TABLE: !Ref ContactPersonsTable
+        CONTACT_COMPANIES_TABLE: !Ref ExistingContactCompaniesTable
+        CONTACT_PERSONS_TABLE: !Ref ExistingContactPersonsTable
         AUDIT_TABLE: !Ref AuditTable
         AGENCIES_TABLE: !Ref AgenciesTable
         INCIDENTS_TABLE: !Ref IncidentsTable
@@ -65,64 +68,6 @@ Globals:
         APPROVED_CORS_ORIGINS: !Ref ApprovedCorsOrigins
 
 Resources:
-  ContactCompaniesTable:
-    Type: AWS::DynamoDB::Table
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      TableName: !Sub "${DynamoTableNamePrefix}-contact-companies-${DeploymentStage}"
-      BillingMode: PAY_PER_REQUEST
-      PointInTimeRecoverySpecification:
-        PointInTimeRecoveryEnabled: true
-      AttributeDefinitions:
-        - AttributeName: companyId
-          AttributeType: S
-        - AttributeName: relationshipType
-          AttributeType: S
-        - AttributeName: createdAt
-          AttributeType: S
-      KeySchema:
-        - AttributeName: companyId
-          KeyType: HASH
-      GlobalSecondaryIndexes:
-        - IndexName: type-created-index
-          KeySchema:
-            - AttributeName: relationshipType
-              KeyType: HASH
-            - AttributeName: createdAt
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
-
-  ContactPersonsTable:
-    Type: AWS::DynamoDB::Table
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      TableName: !Sub "${DynamoTableNamePrefix}-contact-persons-${DeploymentStage}"
-      BillingMode: PAY_PER_REQUEST
-      PointInTimeRecoverySpecification:
-        PointInTimeRecoveryEnabled: true
-      AttributeDefinitions:
-        - AttributeName: contactId
-          AttributeType: S
-        - AttributeName: companyId
-          AttributeType: S
-        - AttributeName: createdAt
-          AttributeType: S
-      KeySchema:
-        - AttributeName: contactId
-          KeyType: HASH
-      GlobalSecondaryIndexes:
-        - IndexName: company-created-index
-          KeySchema:
-            - AttributeName: companyId
-              KeyType: HASH
-            - AttributeName: createdAt
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
-
   AppManagedPolicyContactsDdb:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -141,10 +86,10 @@ Resources:
               - dynamodb:Query
               - dynamodb:DescribeTable
             Resource:
-              - !GetAtt ContactCompaniesTable.Arn
-              - !Sub "${ContactCompaniesTable.Arn}/index/*"
-              - !GetAtt ContactPersonsTable.Arn
-              - !Sub "${ContactPersonsTable.Arn}/index/*"
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingContactCompaniesTable}
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingContactCompaniesTable}/index/*
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingContactPersonsTable}
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingContactPersonsTable}/index/*
           - Sid: AuditAppend
             Effect: Allow
             Action:
@@ -273,6 +218,6 @@ Outputs:
   ContactsHttpFunctionArn:
     Value: !GetAtt ContactsHttpFunction.Arn
   ContactCompaniesTableName:
-    Value: !Ref ContactCompaniesTable
+    Value: !Ref ExistingContactCompaniesTable
   ContactPersonsTableName:
-    Value: !Ref ContactPersonsTable
+    Value: !Ref ExistingContactPersonsTable

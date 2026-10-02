@@ -16,7 +16,7 @@ import { useCallAssistConfig } from "@/contexts/call-assist-config-context";
 import { isApiConfigured } from "@/lib/api";
 import { useSession } from "@/components/auth/session-context";
 import { useCallAssistProductBase, useJurisdictionLink } from "@/lib/jurisdiction-context";
-import { getCallAssistAnalytics, getCallAssistAnalyticsDashboard, getCallAssistQaDashboard, getCallAssistSchedule, listCallAssistSessions } from "@/lib/call-assist/call-assist-api";
+import { getCallAssistAnalytics, getCallAssistAnalyticsDashboard, getCallAssistQaDashboard, getCallAssistSchedule, listCallAssistCallRecords, listCallAssistSessions, acknowledgeCallAssistCallRecord } from "@/lib/call-assist/call-assist-api";
 import { canViewCallAssistQa, canViewCallAssistAnalytics } from "@/lib/call-assist/access";
 import { isCallAssistEnabled } from "@/lib/runtime-flags";
 import { CallAssistChrome } from "./call-assist-chrome";
@@ -27,6 +27,7 @@ import { PSAPAvailabilityNotice } from "@/components/psap/psap-availability-noti
 type SessionRow = {
   sessionId: string;
   state: string;
+  caseNumber?: string;
   aniLast4?: string;
   language?: string;
   createdAt?: string;
@@ -40,6 +41,7 @@ type SessionRow = {
   routingConfidence?: number;
   cadTypeLabel?: string;
   cadPriority?: number;
+  routing?: { destinationId?: string; displayName?: string };
   intake?: { locationText?: string; incidentTypeHint?: string; addressConfidence?: number; locationSource?: string };
   triage?: { primaryClassification?: string; confidence?: number };
 };
@@ -172,6 +174,9 @@ export function CallAssistMonitor({
         ) : null}
       </div>
       <CallAssistCallbackQueue />
+      {variant === "supervisor" || variant === "operator" ? (
+        <CallAssistRoutedRecords agencyId={agencyId} requestAgencyId={requestAgencyId} enabled={enabled} />
+      ) : null}
       <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-950/40">
         <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2 text-[11px] text-slate-500">
           <span>
@@ -229,7 +234,15 @@ export function CallAssistMonitor({
                         <span className={`text-[11px] ${S.color}`}>{S.label}</span>
                       </Link>
                     </td>
-                    <td className="px-3 py-2.5 font-mono text-[12px] text-slate-100">{cid}</td>
+                    <td className="px-3 py-2.5 font-mono text-[12px] text-slate-100">
+                      <div>{cid}</div>
+                      {row.caseNumber ? (
+                        <div className="mt-0.5 text-[10px] text-sky-400/90">{row.caseNumber}</div>
+                      ) : null}
+                      {row.routing?.destinationId ? (
+                        <div className="mt-0.5 text-[10px] text-emerald-400/90">→ {row.routing.destinationId}</div>
+                      ) : null}
+                    </td>
                     <td className="px-3 py-2.5 text-[12px] text-slate-400">{loc}</td>
                     <td className="px-3 py-2.5 text-[12px] text-slate-200">{type}</td>
                     <td className="px-3 py-2.5">
@@ -260,6 +273,73 @@ export function CallAssistMonitor({
         </table>
       </div>
       {canViewCallAssistAnalytics(user?.role) ? <CallAssistAnalyticsPage embedded /> : null}
+    </div>
+  );
+}
+
+function CallAssistRoutedRecords({
+  agencyId,
+  requestAgencyId,
+  enabled,
+}: {
+  agencyId: string | null | undefined;
+  requestAgencyId: string | null | undefined;
+  enabled: boolean;
+}) {
+  const date = new Date().toISOString().slice(0, 10);
+  const qc = useQuery({
+    queryKey: ["call-assist-call-records", agencyId, date],
+    queryFn: () => listCallAssistCallRecords(date, requestAgencyId),
+    refetchInterval: 15_000,
+    enabled,
+  });
+  const items = qc.data?.items ?? [];
+
+  async function onAck(confirmationNumber: string) {
+    await acknowledgeCallAssistCallRecord(confirmationNumber, requestAgencyId);
+    await qc.refetch();
+  }
+
+  return (
+    <div className="mb-4 overflow-hidden rounded-lg border border-slate-800 bg-slate-950/40">
+      <div className="border-b border-slate-800 px-3 py-2 text-[11px] text-slate-500">
+        Routed today ({date}) · {items.length} record{items.length === 1 ? "" : "s"}
+      </div>
+      {items.length === 0 ? (
+        <p className="px-3 py-4 text-[12px] text-slate-500">
+          {qc.isLoading ? "Loading routed calls…" : "No routed call records yet today."}
+        </p>
+      ) : (
+        <ul className="divide-y divide-slate-800">
+          {items.map((row) => (
+            <li key={row.confirmationNumber} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
+              <div>
+                <p className="font-mono text-[12px] text-sky-300">{row.confirmationNumber}</p>
+                <p className="text-[11px] text-slate-400">
+                  {row.status}
+                  {row.department ? ` → ${row.department}` : ""}
+                  {row.incidentType ? ` · ${row.incidentType}` : ""}
+                  {row.slaMinutes != null ? ` · SLA ${row.slaMinutes}m` : ""}
+                </p>
+                {row.incidentLocation ? (
+                  <p className="text-[11px] text-slate-500">{row.incidentLocation}</p>
+                ) : null}
+              </div>
+              {row.status === "ROUTED" ? (
+                <button
+                  type="button"
+                  className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-emerald-300"
+                  onClick={() => void onAck(row.confirmationNumber)}
+                >
+                  Acknowledge
+                </button>
+              ) : (
+                <span className="text-[10px] text-slate-500">{row.status}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

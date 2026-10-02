@@ -1,0 +1,739 @@
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import {
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+  ScanCommand,
+  UpdateCommand,
+} from "@aws-sdk/lib-dynamodb";
+import {
+  createBillingInvoiceBodySchema,
+  canAccessRcFinancePortal,
+  isRcsuperadmin,
+  patchBillingInvoiceBodySchema,
+  type UserContext,
+} from "rapid-cortex-shared";
+import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
+import { z } from "zod";
+import { env } from "../../lib/env.js";
+import { makeId } from "../../lib/ids.js";
+import { nextInvoiceNumber } from "../../lib/billing/invoice-sequence.js";
+import { computeTotalsCents, dollarsToCents, resolveAmountDollars } from "../../lib/billing/money-cents.js";
+import { validatePaymentInstructionsForSend } from "../../lib/billing/payment-instructions.js";
+import {
+  generateInvoicePdfBuffer,
+  loadPaymentInstructions,
+  uploadInvoicePdfToS3,
+} from "../../lib/billing/invoicePdfGenerator.js";
+import {
+  badRequest,
+  badRequestFromZod,
+  forbidden,
+  jsonStatus,
+  notFound,
+  ok,
+  serverError,
+} from "../../lib/response.js";
+import { AuditRepository } from "../../repositories/auditRepository.js";
+import { ddb } from "../../repositories/baseRepository.js";
+import { BillingAuditService } from "../../services/billingAuditService.js";
+import { sendInvoiceEmail } from "../../services/billingEmailService.js";
+
+const auditRepo = new AuditRepository();
+const billingAuditService = new BillingAuditService();
+const s3 = new S3Client({ region: env.region });
+const invoiceIdSchema = z.string().min(1).max(120);
+const markPaidSchema = z
+  .object({
+    amountPaid: z.number().positive().optional(),
+    paymentMethod: z.string().min(1).max(120).optional(),
+    paidDate: z.string().min(1).optional(),
+    notes: z.string().max(2000).optional(),
+  })
+  .strict();
+
+type InvoiceStatus = "DRAFT" | "SENT" | "PAID" | "VOID" | "CANCELED";
+
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+function invoicesTail(rawPath: string): string[] {
+  const clean = rawPath.split("?")[0] ?? "";
+  const parts = clean.split("/").filter(Boolean);
+  const idx = parts.findIndex((p, i) => p === "billing" && parts[i + 1] === "invoices");
+  if (idx < 0) return [];
+  return parts.slice(idx + 2);
+}
+
+function getAgencyScope(user: UserContext, queryAgencyId?: string): string | null {
+  if (isRcsuperadmin(user) || canAccessRcFinancePortal(user.role)) {
+    return (queryAgencyId ?? user.agencyId ?? "").trim() || null;
+  }
+  return user.agencyId;
+}
+
+async function createAudit(
+  user: UserContext,
+  agencyId: string,
+  action: string,
+  entityType: string,
+  resourceId: string,
+  details: Record<string, unknown>,
+): Promise<void> {
+  await auditRepo.create({
+    eventId: makeId("audit"),
+    agencyId,
+    actorId: user.userId,
+    type: AUDIT_EVENT_TYPES.BILLING_PROFILE_UPDATED,
+    resourceType: "billing",
+    resourceId,
+    details,
+    createdAt: nowIso(),
+  });
+  await billingAuditService.logBillingAction(action, entityType, resourceId, user.userId, {
+    agencyId,
+    ...details,
+    invoiceId: entityType === "invoice" ? resourceId : undefined,
+  });
+}
+
+function assertTransition(current: InvoiceStatus, next: InvoiceStatus): void {
+  const allowed: Record<InvoiceStatus, InvoiceStatus[]> = {
+    DRAFT: ["SENT", "CANCELED", "VOID"],
+    SENT: ["PAID", "VOID"],
+    PAID: [],
+    VOID: [],
+    CANCELED: [],
+  };
+  if (!allowed[current].includes(next)) {
+    const err = new Error(`Invalid status transition: ${current} -> ${next}`);
+    (err as Error & { code?: string }).code = "INVALID_TRANSITION";
+    throw err;
+  }
+}
+
+async function loadInvoiceScoped(invoiceId: string, agencyId: string) {
+  const out = await ddb.send(
+    new GetCommand({
+      TableName: env.invoicesTable,
+      Key: { invoiceId },
+    }),
+  );
+  const item = out.Item as (Record<string, unknown> & { status?: InvoiceStatus }) | undefined;
+  if (!item || item.agencyId !== agencyId) return null;
+  return item;
+}
+
+async function invoiceItems(invoiceId: string, agencyId: string) {
+  const out = await ddb.send(
+    new QueryCommand({
+      TableName: env.invoiceItemsTable,
+      IndexName: "invoiceId-index",
+      KeyConditionExpression: "invoiceId = :invoiceId",
+      ExpressionAttributeValues: { ":invoiceId": invoiceId },
+    }),
+  );
+  return (out.Items ?? []).filter((x) => (x as { agencyId?: string }).agencyId === agencyId);
+}
+
+export async function handleBillingInvoicesRoute(event: {
+  rawPath?: string;
+  body?: string | null;
+  queryStringParameters?: Record<string, string | undefined>;
+  requestContext: { http: { method: string } };
+  isBase64Encoded?: boolean;
+}, user: UserContext) {
+  try {
+    const method = event.requestContext.http.method;
+    const tail = invoicesTail(event.rawPath ?? "");
+    const invoiceId = tail[0];
+    const action = tail[1];
+    const scopeAgencyId = getAgencyScope(user, event.queryStringParameters?.agencyId);
+    if (!scopeAgencyId) return badRequest("agencyId query required when acting as RC Super Admin (rcsuperadmin)");
+
+    if (tail.length === 0 && method === "POST") {
+      const bodyRaw =
+        event.isBase64Encoded && event.body
+          ? Buffer.from(event.body, "base64").toString("utf8")
+          : (event.body ?? "{}");
+      const parsed = createBillingInvoiceBodySchema.safeParse(JSON.parse(bodyRaw));
+      if (!parsed.success) return badRequestFromZod(parsed.error);
+      const payload = parsed.data;
+
+      if (!env.customersTable?.trim()) {
+        return jsonStatus(
+          { error: "Billing customers table is not configured on this API. Contact platform ops." },
+          503,
+        );
+      }
+      if (!env.invoicesTable?.trim() || !env.invoiceItemsTable?.trim()) {
+        return jsonStatus(
+          { error: "Billing invoices tables are not configured on this API. Contact platform ops." },
+          503,
+        );
+      }
+
+      const customer = await ddb.send(
+        new GetCommand({
+          TableName: env.customersTable,
+          Key: { customerId: payload.customerId },
+        }),
+      );
+      const customerItem = customer.Item as { agencyId?: string; requiresPO?: boolean } | undefined;
+      if (!customerItem || customerItem.agencyId !== scopeAgencyId) return badRequest("Customer not found");
+      if (customerItem.requiresPO && !payload.poNumber) {
+        return badRequest("PO number is required for this customer");
+      }
+
+      const t = nowIso();
+      const invoiceIdValue = makeId("inv");
+      const invoiceNumber = await nextInvoiceNumber(scopeAgencyId, payload.invoiceDate);
+      const totals = computeTotalsCents({
+        lineItems: payload.lineItems.map((li) => ({
+          quantity: li.quantity,
+          unitPriceDollars: li.unitPrice,
+        })),
+        discountDollars: payload.discount,
+        taxDollars: payload.tax,
+      });
+      const invoiceRow = {
+        invoiceId: invoiceIdValue,
+        agencyId: scopeAgencyId,
+        customerId: payload.customerId,
+        invoiceNumber,
+        status: "DRAFT" as InvoiceStatus,
+        ...totals,
+        currency: payload.currency,
+        invoiceDate: payload.invoiceDate,
+        dueDate: payload.dueDate,
+        poNumber: payload.poNumber,
+        notes: payload.notes,
+        createdBy: user.userId,
+        createdAt: t,
+        updatedAt: t,
+      };
+      await ddb.send(new PutCommand({ TableName: env.invoicesTable, Item: invoiceRow }));
+      for (const [i, li] of payload.lineItems.entries()) {
+        const unitPriceCents = dollarsToCents(li.unitPrice);
+        const lineTotalCents = dollarsToCents(li.quantity * li.unitPrice);
+        await ddb.send(
+          new PutCommand({
+            TableName: env.invoiceItemsTable,
+            Item: {
+              invoiceItemId: makeId("invitem"),
+              invoiceId: invoiceIdValue,
+              agencyId: scopeAgencyId,
+              serviceId: li.serviceId,
+              serviceName: li.serviceName,
+              description: li.description,
+              quantity: li.quantity,
+              unitPrice: li.unitPrice,
+              unitPriceCents,
+              lineTotal: Number((li.quantity * li.unitPrice).toFixed(2)),
+              lineTotalCents,
+              sortOrder: li.sortOrder ?? i,
+              createdAt: t,
+            },
+          }),
+        );
+      }
+      await createAudit(user, scopeAgencyId, "invoice_created", "invoice", invoiceIdValue, {
+        action: "invoice_created",
+        status: "DRAFT",
+        invoiceNumber,
+      });
+      return ok(invoiceRow, 201);
+    }
+
+    if (tail.length === 0 && method === "GET") {
+      if (!env.invoicesTable?.trim()) {
+        return jsonStatus(
+          { error: "Billing invoices table is not configured on this API. Contact platform ops." },
+          503,
+        );
+      }
+      const qs = event.queryStringParameters ?? {};
+      const out = await ddb.send(
+        new ScanCommand({
+          TableName: env.invoicesTable,
+          FilterExpression: "agencyId = :agencyId",
+          ExpressionAttributeValues: { ":agencyId": scopeAgencyId },
+        }),
+      );
+      let items = (out.Items ?? []) as Array<Record<string, unknown>>;
+      const status = (qs.status ?? "").trim().toUpperCase();
+      const customerIdFilter = (qs.customer ?? "").trim();
+      const dateFrom = (qs.dateFrom ?? "").trim();
+      const dateTo = (qs.dateTo ?? "").trim();
+      if (status) items = items.filter((x) => String(x.status ?? "") === status);
+      if (customerIdFilter) items = items.filter((x) => String(x.customerId ?? "") === customerIdFilter);
+      if (dateFrom) items = items.filter((x) => String(x.invoiceDate ?? "") >= dateFrom);
+      if (dateTo) items = items.filter((x) => String(x.invoiceDate ?? "") <= dateTo);
+      items = items.filter((x) => String(x.invoiceId ?? "") !== "INVOICE_SEQUENCE");
+      items.sort((a, b) => String(b.createdAt ?? "").localeCompare(String(a.createdAt ?? "")));
+      return ok({ items });
+    }
+
+    if (!invoiceId) return notFound();
+    const parsedInvoiceId = invoiceIdSchema.safeParse(invoiceId);
+    if (!parsedInvoiceId.success) return badRequestFromZod(parsedInvoiceId.error);
+
+    if (tail.length === 1 && method === "GET") {
+      const invoice = await loadInvoiceScoped(invoiceId, scopeAgencyId);
+      if (!invoice) return notFound("Invoice not found");
+      const items = await invoiceItems(invoiceId, scopeAgencyId);
+      return ok({ ...invoice, lineItems: items });
+    }
+
+    if (tail.length === 1 && method === "PATCH") {
+      const existing = await loadInvoiceScoped(invoiceId, scopeAgencyId);
+      if (!existing) return notFound("Invoice not found");
+      if (existing.status !== "DRAFT") return badRequest("Only draft invoices can be updated");
+      const bodyRaw =
+        event.isBase64Encoded && event.body
+          ? Buffer.from(event.body, "base64").toString("utf8")
+          : (event.body ?? "{}");
+      const parsed = patchBillingInvoiceBodySchema.safeParse(JSON.parse(bodyRaw));
+      if (!parsed.success) return badRequestFromZod(parsed.error);
+      if (Object.keys(parsed.data).length === 0) return badRequest("No fields to update");
+
+      const nextLineItems = parsed.data.lineItems;
+      const existingItems = nextLineItems
+        ? nextLineItems.map((li) => ({
+            quantity: li.quantity,
+            unitPriceDollars: li.unitPrice,
+          }))
+        : (await invoiceItems(invoiceId, scopeAgencyId)).map((x) => ({
+            quantity: Number((x as { quantity?: number }).quantity ?? 0),
+            unitPriceDollars: resolveAmountDollars(
+              x as { unitPriceCents?: number; unitPrice?: number },
+              "unitPrice",
+            ),
+          }));
+      const totals = computeTotalsCents({
+        lineItems: existingItems,
+        discountDollars:
+          parsed.data.discount ??
+          resolveAmountDollars(
+            {
+              amountCents: (existing as { discountCents?: number }).discountCents,
+              amount: existing.discount,
+            },
+            "amount",
+          ),
+        taxDollars:
+          parsed.data.tax ??
+          resolveAmountDollars(
+            {
+              amountCents: (existing as { taxCents?: number }).taxCents,
+              amount: existing.tax,
+            },
+            "amount",
+          ),
+      });
+
+      const names: Record<string, string> = {
+        "#updatedAt": "updatedAt",
+        "#subtotal": "subtotal",
+        "#discount": "discount",
+        "#tax": "tax",
+        "#total": "total",
+        "#subtotalCents": "subtotalCents",
+        "#discountCents": "discountCents",
+        "#taxCents": "taxCents",
+        "#totalCents": "totalCents",
+      };
+      const values: Record<string, unknown> = {
+        ":updatedAt": nowIso(),
+        ":subtotal": totals.subtotal,
+        ":discount": totals.discount,
+        ":tax": totals.tax,
+        ":total": totals.total,
+        ":subtotalCents": totals.subtotalCents,
+        ":discountCents": totals.discountCents,
+        ":taxCents": totals.taxCents,
+        ":totalCents": totals.totalCents,
+      };
+      const setParts = [
+        "#updatedAt = :updatedAt",
+        "#subtotal = :subtotal",
+        "#discount = :discount",
+        "#tax = :tax",
+        "#total = :total",
+        "#subtotalCents = :subtotalCents",
+        "#discountCents = :discountCents",
+        "#taxCents = :taxCents",
+        "#totalCents = :totalCents",
+      ];
+      for (const [k, v] of Object.entries(parsed.data)) {
+        if (k === "lineItems") continue;
+        const nk = `#${k}`;
+        const vk = `:${k}`;
+        names[nk] = k;
+        values[vk] = v;
+        setParts.push(`${nk} = ${vk}`);
+      }
+      const updated = await ddb.send(
+        new UpdateCommand({
+          TableName: env.invoicesTable,
+          Key: { invoiceId },
+          UpdateExpression: `SET ${setParts.join(", ")}`,
+          ExpressionAttributeNames: names,
+          ExpressionAttributeValues: values,
+          ReturnValues: "ALL_NEW",
+        }),
+      );
+      if (nextLineItems) {
+        for (const [i, li] of nextLineItems.entries()) {
+          const unitPriceCents = dollarsToCents(li.unitPrice);
+          const lineTotalCents = dollarsToCents(li.quantity * li.unitPrice);
+          await ddb.send(
+            new PutCommand({
+              TableName: env.invoiceItemsTable,
+              Item: {
+                invoiceItemId: makeId("invitem"),
+                invoiceId,
+                agencyId: scopeAgencyId,
+                serviceId: li.serviceId,
+                serviceName: li.serviceName,
+                description: li.description,
+                quantity: li.quantity,
+                unitPrice: li.unitPrice,
+                unitPriceCents,
+                lineTotal: Number((li.quantity * li.unitPrice).toFixed(2)),
+                lineTotalCents,
+                sortOrder: li.sortOrder ?? i,
+                createdAt: nowIso(),
+              },
+            }),
+          );
+        }
+      }
+      await createAudit(user, scopeAgencyId, "invoice_updated", "invoice", invoiceId, { action: "invoice_updated" });
+      return ok(updated.Attributes ?? {});
+    }
+
+    if (tail.length === 1 && method === "DELETE") {
+      const existing = await loadInvoiceScoped(invoiceId, scopeAgencyId);
+      if (!existing) return notFound("Invoice not found");
+      if (existing.status !== "DRAFT") return badRequest("Only draft invoices can be canceled");
+      assertTransition("DRAFT", "CANCELED");
+      const updatedAt = nowIso();
+      await ddb.send(
+        new UpdateCommand({
+          TableName: env.invoicesTable,
+          Key: { invoiceId },
+          UpdateExpression: "SET #status = :status, updatedAt = :updatedAt",
+          ExpressionAttributeNames: { "#status": "status" },
+          ExpressionAttributeValues: {
+            ":status": "CANCELED",
+            ":updatedAt": updatedAt,
+          },
+        }),
+      );
+      await createAudit(user, scopeAgencyId, "invoice_deleted", "invoice", invoiceId, { action: "invoice_canceled" });
+      return ok({ invoiceId, status: "CANCELED" });
+    }
+
+    if (action === "send" && method === "POST") {
+      const existing = await loadInvoiceScoped(invoiceId, scopeAgencyId);
+      if (!existing) return notFound("Invoice not found");
+      assertTransition((existing.status ?? "DRAFT") as InvoiceStatus, "SENT");
+      const customer = await ddb.send(
+        new GetCommand({ TableName: env.customersTable, Key: { customerId: existing.customerId } }),
+      );
+      const customerItem = customer.Item as { email?: string; billingContactEmail?: string; requiresPO?: boolean } | undefined;
+
+      // PO enforcement gate (MSA §4.4)
+      if (customerItem?.requiresPO && !String(existing.poNumber ?? "").trim()) {
+        return badRequest("Invoice blocked: this customer requires a PO number before sending. Add a PO number and retry.");
+      }
+
+      // Validate billing contact email is not a placeholder (MSA §2b)
+      const toEmail = (customerItem?.billingContactEmail ?? customerItem?.email ?? "").trim();
+      if (!toEmail || toEmail.endsWith("@example.com") || toEmail.endsWith("@example.invalid") || toEmail === "") {
+        return badRequest(`Invoice blocked: billing contact email "${toEmail}" is not a valid delivery address. Update the customer billing profile.`);
+      }
+
+      // Banking details must be present before email (PDF + HTML body)
+      try {
+        validatePaymentInstructionsForSend(await loadPaymentInstructions());
+      } catch (error) {
+        return badRequest(error instanceof Error ? error.message : "Payment instructions incomplete");
+      }
+
+      // Send the email first; only update status on success (MSA §4.4)
+      await sendInvoiceEmail(invoiceId, toEmail);
+
+      const sentAt = nowIso();
+      await ddb.send(
+        new UpdateCommand({
+          TableName: env.invoicesTable,
+          Key: { invoiceId },
+          UpdateExpression: "SET #status = :status, sentAt = :sentAt, emailedTo = :emailedTo, emailedAt = :sentAt, updatedAt = :sentAt",
+          ExpressionAttributeNames: { "#status": "status" },
+          ExpressionAttributeValues: {
+            ":status": "SENT",
+            ":sentAt": sentAt,
+            ":emailedTo": toEmail,
+          },
+        }),
+      );
+      await createAudit(user, scopeAgencyId, "invoice_sent", "invoice", invoiceId, { action: "invoice_sent", emailedTo: toEmail });
+      return ok({ invoiceId, status: "SENT", sentAt, emailedTo: toEmail });
+    }
+
+    if (action === "mark-paid" && method === "POST") {
+      const existing = await loadInvoiceScoped(invoiceId, scopeAgencyId);
+      if (!existing) return notFound("Invoice not found");
+      assertTransition((existing.status ?? "DRAFT") as InvoiceStatus, "PAID");
+      const bodyRaw =
+        event.isBase64Encoded && event.body
+          ? Buffer.from(event.body, "base64").toString("utf8")
+          : (event.body ?? "{}");
+      const parsed = markPaidSchema.safeParse(JSON.parse(bodyRaw));
+      if (!parsed.success) return badRequestFromZod(parsed.error);
+      const paidAt = parsed.data.paidDate ?? nowIso();
+      await ddb.send(
+        new UpdateCommand({
+          TableName: env.invoicesTable,
+          Key: { invoiceId },
+          UpdateExpression:
+            "SET #status = :status, paidDate = :paidDate, amountPaid = :amountPaid, paymentMethod = :paymentMethod, paymentNotes = :paymentNotes, updatedAt = :updatedAt",
+          ExpressionAttributeNames: { "#status": "status" },
+          ExpressionAttributeValues: {
+            ":status": "PAID",
+            ":paidDate": paidAt,
+            ":amountPaid": parsed.data.amountPaid ?? Number(existing.total ?? 0),
+            ":paymentMethod": parsed.data.paymentMethod ?? "manual",
+            ":paymentNotes": parsed.data.notes,
+            ":updatedAt": paidAt,
+          },
+        }),
+      );
+      await createAudit(user, scopeAgencyId, "invoice_paid", "invoice", invoiceId, { action: "invoice_paid" });
+      return ok({ invoiceId, status: "PAID", paidDate: paidAt });
+    }
+
+    if (action === "void" && method === "POST") {
+      const existing = await loadInvoiceScoped(invoiceId, scopeAgencyId);
+      if (!existing) return notFound("Invoice not found");
+      assertTransition((existing.status ?? "DRAFT") as InvoiceStatus, "VOID");
+      const bodyRaw =
+        event.isBase64Encoded && event.body
+          ? Buffer.from(event.body, "base64").toString("utf8")
+          : (event.body ?? "{}");
+      let voidReason: string | undefined;
+      try {
+        const parsed = JSON.parse(bodyRaw) as Record<string, unknown>;
+        if (typeof parsed.voidReason === "string" && parsed.voidReason.trim()) {
+          voidReason = parsed.voidReason.trim().slice(0, 500);
+        }
+      } catch { /* body is optional */ }
+      const voidedAt = nowIso();
+      await ddb.send(
+        new UpdateCommand({
+          TableName: env.invoicesTable,
+          Key: { invoiceId },
+          UpdateExpression: "SET #status = :status, voidedAt = :voidedAt, voidReason = :voidReason, updatedAt = :voidedAt",
+          ExpressionAttributeNames: { "#status": "status" },
+          ExpressionAttributeValues: {
+            ":status": "VOID",
+            ":voidedAt": voidedAt,
+            ":voidReason": voidReason ?? null,
+          },
+        }),
+      );
+      await createAudit(user, scopeAgencyId, "invoice_voided", "invoice", invoiceId, { action: "invoice_voided", voidReason });
+      return ok({ invoiceId, status: "VOID", voidedAt, voidReason });
+    }
+
+    if (action === "pdf" && method === "GET") {
+      const existing = await loadInvoiceScoped(invoiceId, scopeAgencyId);
+      if (!existing) return notFound("Invoice not found");
+      // Always regenerate on download so branding updates are not stuck on stale S3 objects.
+      const customer = await ddb.send(
+        new GetCommand({
+          TableName: env.customersTable,
+          Key: { customerId: existing.customerId },
+        }),
+      );
+      const customerItem = (customer.Item ?? {}) as {
+        agencyName?: string;
+        billingContact?: string;
+        email?: string;
+        address?: string;
+        paymentTerms?: string;
+      };
+      const lineItemsRaw = (await invoiceItems(invoiceId, scopeAgencyId)) as Array<{
+        serviceName?: string;
+        description?: string;
+        quantity?: number;
+        unitPrice?: number;
+        unitPriceCents?: number;
+        lineTotal?: number;
+        lineTotalCents?: number;
+      }>;
+      const pdf = await generateInvoicePdfBuffer(
+        {
+          invoiceId,
+          invoiceNumber: String(existing.invoiceNumber ?? invoiceId),
+          invoiceDate: String(existing.invoiceDate ?? ""),
+          dueDate: String(existing.dueDate ?? ""),
+          customerName: customerItem.agencyName ?? "Customer",
+          billingContactName: customerItem.billingContact,
+          billingContactEmail: customerItem.email,
+          billingAddress: customerItem.address ? { street: customerItem.address } : undefined,
+          poNumber: (existing.poNumber as string | undefined) ?? undefined,
+          subtotal: resolveAmountDollars(existing as { subtotalCents?: number; subtotal?: number }, "subtotal"),
+          discount: resolveAmountDollars(
+            {
+              amountCents: (existing as { discountCents?: number }).discountCents,
+              amount: existing.discount,
+            },
+            "amount",
+          ),
+          tax: resolveAmountDollars(
+            {
+              amountCents: (existing as { taxCents?: number }).taxCents,
+              amount: existing.tax,
+            },
+            "amount",
+          ),
+          total: resolveAmountDollars(existing as { totalCents?: number; total?: number }, "total"),
+          currency: String(existing.currency ?? "USD"),
+          paymentTerms: customerItem.paymentTerms,
+        },
+        lineItemsRaw.map((li) => ({
+          serviceName: li.serviceName ?? "Service",
+          description: li.description,
+          quantity: Number(li.quantity ?? 0),
+          unitPrice: resolveAmountDollars(li, "unitPrice"),
+          lineTotal: resolveAmountDollars(li, "lineTotal"),
+        })),
+        await loadPaymentInstructions(),
+      );
+      const key = await uploadInvoicePdfToS3(pdf, invoiceId, scopeAgencyId);
+      await ddb.send(
+        new UpdateCommand({
+          TableName: env.invoicesTable,
+          Key: { invoiceId },
+          UpdateExpression: "SET pdfS3Key = :pdfS3Key, updatedAt = :updatedAt",
+          ExpressionAttributeValues: {
+            ":pdfS3Key": key,
+            ":updatedAt": nowIso(),
+          },
+        }),
+      );
+
+      const url = await getSignedUrl(
+        s3,
+        new GetObjectCommand({
+          Bucket: env.billingInvoicesBucket,
+          Key: key,
+        }),
+        { expiresIn: 3600 },
+      );
+      return ok({ invoiceId, pdfUrl: url, expiresInSeconds: 3600 });
+    }
+
+    if (action === "regenerate-pdf" && method === "POST") {
+      const existing = await loadInvoiceScoped(invoiceId, scopeAgencyId);
+      if (!existing) return notFound("Invoice not found");
+      const customer = await ddb.send(
+        new GetCommand({
+          TableName: env.customersTable,
+          Key: { customerId: existing.customerId },
+        }),
+      );
+      const customerItem = (customer.Item ?? {}) as {
+        agencyName?: string;
+        billingContact?: string;
+        email?: string;
+        address?: string;
+        paymentTerms?: string;
+      };
+      const lineItemsRaw = (await invoiceItems(invoiceId, scopeAgencyId)) as Array<{
+        serviceName?: string;
+        description?: string;
+        quantity?: number;
+        unitPrice?: number;
+        unitPriceCents?: number;
+        lineTotal?: number;
+        lineTotalCents?: number;
+      }>;
+      const pdf = await generateInvoicePdfBuffer(
+        {
+          invoiceId,
+          invoiceNumber: String(existing.invoiceNumber ?? invoiceId),
+          invoiceDate: String(existing.invoiceDate ?? ""),
+          dueDate: String(existing.dueDate ?? ""),
+          customerName: customerItem.agencyName ?? "Customer",
+          billingContactName: customerItem.billingContact,
+          billingContactEmail: customerItem.email,
+          billingAddress: customerItem.address ? { street: customerItem.address } : undefined,
+          poNumber: (existing.poNumber as string | undefined) ?? undefined,
+          subtotal: resolveAmountDollars(existing as { subtotalCents?: number; subtotal?: number }, "subtotal"),
+          discount: resolveAmountDollars(
+            {
+              amountCents: (existing as { discountCents?: number }).discountCents,
+              amount: existing.discount,
+            },
+            "amount",
+          ),
+          tax: resolveAmountDollars(
+            {
+              amountCents: (existing as { taxCents?: number }).taxCents,
+              amount: existing.tax,
+            },
+            "amount",
+          ),
+          total: resolveAmountDollars(existing as { totalCents?: number; total?: number }, "total"),
+          currency: String(existing.currency ?? "USD"),
+          paymentTerms: customerItem.paymentTerms,
+        },
+        lineItemsRaw.map((li) => ({
+          serviceName: li.serviceName ?? "Service",
+          description: li.description,
+          quantity: Number(li.quantity ?? 0),
+          unitPrice: resolveAmountDollars(li, "unitPrice"),
+          lineTotal: resolveAmountDollars(li, "lineTotal"),
+        })),
+        await loadPaymentInstructions(),
+      );
+      const key = await uploadInvoicePdfToS3(pdf, invoiceId, scopeAgencyId);
+      await ddb.send(
+        new UpdateCommand({
+          TableName: env.invoicesTable,
+          Key: { invoiceId },
+          UpdateExpression: "SET pdfS3Key = :pdfS3Key, updatedAt = :updatedAt",
+          ExpressionAttributeValues: {
+            ":pdfS3Key": key,
+            ":updatedAt": nowIso(),
+          },
+        }),
+      );
+      await createAudit(user, scopeAgencyId, "invoice_pdf_regenerated", "invoice", invoiceId, {
+        action: "invoice_pdf_regenerated",
+        pdfS3Key: key,
+      });
+      return ok({ invoiceId, pdfS3Key: key });
+    }
+
+    return jsonStatus({ error: "Not found" }, 404);
+  } catch (error) {
+    if (error instanceof SyntaxError) return badRequest("Invalid JSON body");
+    if ((error as Error & { code?: string }).code === "INVALID_TRANSITION") {
+      return badRequest((error as Error).message);
+    }
+    if (error instanceof Error && error.message === "FORBIDDEN") return forbidden();
+    console.error("[handleBillingInvoicesRoute]", error);
+    const msg = error instanceof Error ? error.message : "";
+    if (msg.includes("BILLING_SES_SENDER_EMAIL") || msg.includes("BILLING_INVOICES_BUCKET")) {
+      return jsonStatus({ error: msg }, 500);
+    }
+    return serverError();
+  }
+}

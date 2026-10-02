@@ -85,7 +85,8 @@ sam deploy \
     ImportedCognitoUserPoolId=us-east-1_0z6tA6WBs \
     ImportedCognitoWebClientId=7moi6sgc2uf4o31omgvo77h3v5 \
     ManagedPolicyNamePrefix=rapid-cortex-dev \
-    DynamoTableNamePrefix=rapid-cortex
+    ExistingContactCompaniesTable=rapid-cortex-contact-companies-dev \
+    ExistingContactPersonsTable=rapid-cortex-contact-persons-dev
 
 echo "Contacts API stack status:"
 aws cloudformation describe-stacks --stack-name "${STACK_NAME}" \

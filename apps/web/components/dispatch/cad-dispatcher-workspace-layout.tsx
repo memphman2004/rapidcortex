@@ -35,6 +35,7 @@ import { formatRelativeOpened } from "@/lib/format";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import { TriageBadge } from "@/components/triage/triage-badge";
 import { isFieldConfidenceEnabled, isNonEmergencyTriageEnabled, isRapidVisionSceneIntelEnabled, isRcsEnabled } from "@/lib/runtime-flags";
+import { ContextCardsPanel } from "@/components/dispatch/context-cards-panel";
 import { canManageRcsCall, canViewRcsMonitor } from "@/lib/rcs/rcs-authz";
 import { RcsSilentMonitorTrigger } from "@/components/rcs/RcsSilentMonitorTrigger";
 import { EscalationInbox } from "@/components/dispatcher/escalation-inbox";
@@ -755,6 +756,7 @@ export function CadDispatcherWorkspaceLayout({
           <div className="shrink-0 border-b p-2" style={{ borderColor: "var(--rc-border)" }}>
             <CadReadyPanel incident={incidentForUi} />
           </div>
+          <ContextCardsPanel incidentId={selectedIdForPanels} />
           <div className="grid min-h-0 flex-1 grid-rows-2 overflow-hidden">
             <CadIncidentsTable
               title="Active incidents"

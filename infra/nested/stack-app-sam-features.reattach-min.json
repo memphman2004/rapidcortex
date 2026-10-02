@@ -1,0 +1,1242 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Description": "Features reattach (Existing tables/buckets): Http+AiGate routes only",
+  "Metadata": {
+    "cfn-lint": {
+      "config": {
+        "ignore_checks": [
+          "W1030",
+          "W2531"
+        ]
+      }
+    }
+  },
+  "Parameters": {
+    "DeploymentStage": {
+      "Type": "String",
+      "AllowedValues": [
+        "dev",
+        "staging",
+        "prod",
+        "pilot"
+      ]
+    },
+    "HttpApiId": {
+      "Type": "String"
+    },
+    "HttpApiJwtAuthorizerId": {
+      "Type": "String",
+      "Default": ""
+    },
+    "ImportedCognitoUserPoolId": {
+      "Type": "String"
+    },
+    "ImportedCognitoWebClientId": {
+      "Type": "String"
+    },
+    "ImportedCognitoIssuer": {
+      "Type": "String"
+    },
+    "AuditTable": {
+      "Type": "String"
+    },
+    "AgenciesTable": {
+      "Type": "String"
+    },
+    "ManagedPolicyNamePrefix": {
+      "Type": "String",
+      "Default": "rapid-cortex"
+    },
+    "WebUrl": {
+      "Type": "String",
+      "Default": "",
+      "Description": "Origin allowed for PrePlan/Evidence S3 CORS PUT. Empty \u2192 \"*\"."
+    },
+    "OpsAlertsTopicArn": {
+      "Type": "String",
+      "Default": ""
+    },
+    "BedrockModelArn": {
+      "Type": "String",
+      "Default": "",
+      "Description": "Optional Bedrock model/inference-profile ARN for learning/assessment. Empty omits the Bedrock IAM statement (statement-level !If \u2014 never NoValue in Resource lists).\n"
+    },
+    "ActiveAgencyIds": {
+      "Type": "String",
+      "Default": "",
+      "Description": "Comma-separated agency IDs for scheduled feature workers (check-in expiry, Bluesky poll, learning). Empty \u2192 workers no-op until set.\n"
+    },
+    "SocialAgencyConfigs": {
+      "Type": "String",
+      "Default": "",
+      "Description": "Optional JSON array of {agencyId,cityHints,lat,lon,radiusKm,blueskyEnabled} for social jurisdiction filtering. Prefer Secrets Manager for large configs.\n"
+    },
+    "RingNeighborsWebhookSecretArn": {
+      "Type": "String",
+      "Default": "",
+      "Description": "Secrets Manager ARN for Ring Neighbors webhook HMAC secret (rapid-cortex/social/ring-neighbors-webhook-secret*). Empty \u2192 Ring Lambda returns 503 until configured (statement-level !If \u2014 never NoValue in Resource).\n"
+    },
+    "WebSocketConnectionsTable": {
+      "Type": "String",
+      "Default": "",
+      "Description": "Connections table for CHECKIN_EXPIRED agency broadcast. Empty \u2192 soft no-op."
+    },
+    "WebSocketApiEndpoint": {
+      "Type": "String",
+      "Default": "",
+      "Description": "https://{api-id}.execute-api.{region}.amazonaws.com/{stage}"
+    },
+    "WebSocketApiId": {
+      "Type": "String",
+      "Default": "",
+      "Description": "API Gateway WebSocket API id for execute-api:ManageConnections IAM."
+    },
+    "AgencyKMSKeyArn": {
+      "Type": "String",
+      "Default": "",
+      "Description": "Optional customer-managed KMS key ARN for Features DynamoDB tables and S3 buckets. Empty \u2192 AWS-managed AES256. When set, SSE uses KMS + this key.\n"
+    },
+    "SIEMEnabled": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Description": "When true (and SIEMEndpointUrl is set), provisions a Firehose HTTP delivery stream + S3 backup bucket for SIEM log export. Default off.\n"
+    },
+    "SIEMEndpointUrl": {
+      "Type": "String",
+      "Default": "",
+      "Description": "HTTPS URL of the customer SIEM HTTP collector. Required when SIEMEnabled=true. Empty disables SIEM resources even if SIEMEnabled is true.\n"
+    },
+    "ExistingCitizensTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-citizens-dev",
+      "Description": "Physical name of existing CitizensTable (table); do not CREATE."
+    },
+    "ExistingAddressIntelTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-address-intel-dev",
+      "Description": "Physical name of existing AddressIntelTable (table); do not CREATE."
+    },
+    "ExistingAltResponseTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-alt-response-dev",
+      "Description": "Physical name of existing AltResponseTable (table); do not CREATE."
+    },
+    "ExistingCoRespondersTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-co-responders-dev",
+      "Description": "Physical name of existing CoRespondersTable (table); do not CREATE."
+    },
+    "ExistingMutualAidTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-mutual-aid-dev",
+      "Description": "Physical name of existing MutualAidTable (table); do not CREATE."
+    },
+    "ExistingMCITableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-mci-dev",
+      "Description": "Physical name of existing MCITable (table); do not CREATE."
+    },
+    "ExistingInfraTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-infrastructure-dev",
+      "Description": "Physical name of existing InfraTable (table); do not CREATE."
+    },
+    "ExistingInterpreterTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-interpreter-dev",
+      "Description": "Physical name of existing InterpreterTable (table); do not CREATE."
+    },
+    "ExistingEvidenceTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-evidence-dev",
+      "Description": "Physical name of existing EvidenceTable (table); do not CREATE."
+    },
+    "ExistingAssessmentTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-assessment-dev",
+      "Description": "Physical name of existing AssessmentTable (table); do not CREATE."
+    },
+    "ExistingLearningTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-learning-dev",
+      "Description": "Physical name of existing LearningTable (table); do not CREATE."
+    },
+    "ExistingPublicEventsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-public-events-dev",
+      "Description": "Physical name of existing PublicEventsTable (table); do not CREATE."
+    },
+    "ExistingCheckinTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-checkin-dev",
+      "Description": "Physical name of existing CheckinTable (table); do not CREATE."
+    },
+    "ExistingSocialSignalsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-social-signals-dev",
+      "Description": "Physical name of existing SocialSignalsTable (table); do not CREATE."
+    },
+    "ExistingAgencyAiGateTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-agency-ai-gate-dev",
+      "Description": "Physical name of existing AgencyAiGateTable (table); do not CREATE."
+    },
+    "ExistingPrePlanBucketName": {
+      "Type": "String",
+      "Default": "rapid-cortex-preplans-dev-158961537080",
+      "Description": "Physical name of existing PrePlanBucket (bucket); do not CREATE."
+    },
+    "ExistingEvidenceBucketName": {
+      "Type": "String",
+      "Default": "rapid-cortex-evidence-dev-158961537080",
+      "Description": "Physical name of existing EvidenceBucket (bucket); do not CREATE."
+    }
+  },
+  "Conditions": {
+    "HasHttpApiJwtAuthorizer": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "HttpApiJwtAuthorizerId"
+            },
+            ""
+          ]
+        }
+      ]
+    },
+    "HasOpsAlertsTopic": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "OpsAlertsTopicArn"
+            },
+            ""
+          ]
+        }
+      ]
+    },
+    "HasWebUrl": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "WebUrl"
+            },
+            ""
+          ]
+        }
+      ]
+    },
+    "HasBedrockModelArn": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "BedrockModelArn"
+            },
+            ""
+          ]
+        }
+      ]
+    },
+    "HasRingNeighborsWebhookSecret": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "RingNeighborsWebhookSecretArn"
+            },
+            ""
+          ]
+        }
+      ]
+    },
+    "HasWebSocketConnectionsTable": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "WebSocketConnectionsTable"
+            },
+            ""
+          ]
+        }
+      ]
+    },
+    "HasWebSocketApiId": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "WebSocketApiId"
+            },
+            ""
+          ]
+        }
+      ]
+    },
+    "HasWebSocketBroadcast": {
+      "Fn::And": [
+        {
+          "Condition": "HasWebSocketConnectionsTable"
+        },
+        {
+          "Fn::Not": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "WebSocketApiEndpoint"
+                },
+                ""
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "UseCustomKMS": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AgencyKMSKeyArn"
+            },
+            ""
+          ]
+        }
+      ]
+    },
+    "SIEMActive": {
+      "Fn::And": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "SIEMEnabled"
+            },
+            "true"
+          ]
+        },
+        {
+          "Fn::Not": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "SIEMEndpointUrl"
+                },
+                ""
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "Globals": {
+    "Function": {
+      "Runtime": "nodejs22.x",
+      "Timeout": 30,
+      "MemorySize": 512,
+      "Tracing": "Active",
+      "Environment": {
+        "Variables": {
+          "DEPLOYMENT_STAGE": {
+            "Ref": "DeploymentStage"
+          },
+          "ALLOW_UNAUTHENTICATED_API": "false",
+          "ENABLE_FEATURES_SUITE": "true",
+          "WEB_URL": {
+            "Ref": "WebUrl"
+          },
+          "CITIZENS_TABLE": {
+            "Ref": "ExistingCitizensTableName"
+          },
+          "ADDRESS_INTEL_TABLE": {
+            "Ref": "ExistingAddressIntelTableName"
+          },
+          "ALT_RESPONSE_TABLE": {
+            "Ref": "ExistingAltResponseTableName"
+          },
+          "CO_RESPONDERS_TABLE": {
+            "Ref": "ExistingCoRespondersTableName"
+          },
+          "MUTUAL_AID_TABLE": {
+            "Ref": "ExistingMutualAidTableName"
+          },
+          "MCI_TABLE": {
+            "Ref": "ExistingMCITableName"
+          },
+          "INFRA_TABLE": {
+            "Ref": "ExistingInfraTableName"
+          },
+          "INTERPRETER_TABLE": {
+            "Ref": "ExistingInterpreterTableName"
+          },
+          "EVIDENCE_TABLE": {
+            "Ref": "ExistingEvidenceTableName"
+          },
+          "EVIDENCE_BUCKET": {
+            "Ref": "ExistingEvidenceBucketName"
+          },
+          "PREPLAN_BUCKET": {
+            "Ref": "ExistingPrePlanBucketName"
+          },
+          "ASSESSMENT_TABLE": {
+            "Ref": "ExistingAssessmentTableName"
+          },
+          "LEARNING_TABLE": {
+            "Ref": "ExistingLearningTableName"
+          },
+          "PUBLIC_EVENTS_TABLE": {
+            "Ref": "ExistingPublicEventsTableName"
+          },
+          "CHECKIN_TABLE": {
+            "Ref": "ExistingCheckinTableName"
+          },
+          "SOCIAL_SIGNALS_TABLE": {
+            "Ref": "ExistingSocialSignalsTableName"
+          },
+          "AGENCY_AI_GATE_TABLE": {
+            "Ref": "ExistingAgencyAiGateTableName"
+          },
+          "ENABLE_AI_FEATURE_GATE": "true",
+          "PANIC_ALERT_SNS_TOPIC": {
+            "Ref": "PanicAlertTopic"
+          },
+          "SOCIAL_ALERT_SNS_TOPIC": {
+            "Ref": "SocialAlertTopic"
+          },
+          "DEFAULT_INTERPRETER_SERVICE": "language-line",
+          "AUDIT_TABLE": {
+            "Ref": "AuditTable"
+          },
+          "AGENCIES_TABLE": {
+            "Ref": "AgenciesTable"
+          },
+          "ACTIVE_AGENCY_IDS": {
+            "Ref": "ActiveAgencyIds"
+          },
+          "SOCIAL_AGENCY_CONFIGS": {
+            "Ref": "SocialAgencyConfigs"
+          },
+          "SOCIAL_BLUESKY_ENABLED": "true",
+          "RING_NEIGHBORS_WEBHOOK_SECRET_ARN": {
+            "Ref": "RingNeighborsWebhookSecretArn"
+          },
+          "WEBSOCKET_CONNECTIONS_TABLE": {
+            "Fn::If": [
+              "HasWebSocketBroadcast",
+              {
+                "Ref": "WebSocketConnectionsTable"
+              },
+              ""
+            ]
+          },
+          "WEBSOCKET_API_ENDPOINT": {
+            "Fn::If": [
+              "HasWebSocketBroadcast",
+              {
+                "Ref": "WebSocketApiEndpoint"
+              },
+              ""
+            ]
+          },
+          "COGNITO_USER_POOL_ID": {
+            "Ref": "ImportedCognitoUserPoolId"
+          },
+          "COGNITO_CLIENT_ID": {
+            "Ref": "ImportedCognitoWebClientId"
+          },
+          "COGNITO_ISSUER": {
+            "Ref": "ImportedCognitoIssuer"
+          },
+          "COGNITO_REGION": {
+            "Ref": "AWS::Region"
+          }
+        }
+      }
+    }
+  },
+  "Resources": {
+    "PanicAlertTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "KmsMasterKeyId": "alias/aws/sns",
+        "TopicName": {
+          "Fn::Sub": "rapid-cortex-panic-alerts-${DeploymentStage}"
+        },
+        "DisplayName": "NexCort iQ Panic Alerts"
+      }
+    },
+    "SocialAlertTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "KmsMasterKeyId": "alias/aws/sns",
+        "TopicName": {
+          "Fn::Sub": "rapid-cortex-social-alerts-${DeploymentStage}"
+        },
+        "DisplayName": "NexCort iQ Social Awareness Alerts"
+      }
+    },
+    "AppManagedPolicyFeaturesData": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": {
+          "Fn::Sub": "${ManagedPolicyNamePrefix}-features-data-${DeploymentStage}"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "FeaturesTables",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:Query",
+                "dynamodb:DescribeTable",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": [
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingCitizensTableName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingCitizensTableName}/index/*"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingAddressIntelTableName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingAddressIntelTableName}/index/*"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingAltResponseTableName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingAltResponseTableName}/index/*"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingCoRespondersTableName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingCoRespondersTableName}/index/*"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingMutualAidTableName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingMutualAidTableName}/index/*"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingMCITableName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingMCITableName}/index/*"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingInfraTableName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingInfraTableName}/index/*"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingInterpreterTableName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingInterpreterTableName}/index/*"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingEvidenceTableName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingEvidenceTableName}/index/*"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingAssessmentTableName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingAssessmentTableName}/index/*"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingLearningTableName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingLearningTableName}/index/*"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingPublicEventsTableName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingPublicEventsTableName}/index/*"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingCheckinTableName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingCheckinTableName}/index/*"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingSocialSignalsTableName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingSocialSignalsTableName}/index/*"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingAgencyAiGateTableName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingAgencyAiGateTableName}/index/*"
+                }
+              ]
+            },
+            {
+              "Sid": "AgencyAndAuditReadWrite",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:Query"
+              ],
+              "Resource": [
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*"
+                }
+              ]
+            },
+            {
+              "Fn::If": [
+                "HasWebSocketConnectionsTable",
+                {
+                  "Sid": "WebSocketConnectionsRead",
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:Query",
+                    "dynamodb:DeleteItem"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}"
+                    },
+                    {
+                      "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTable}/index/*"
+                    }
+                  ]
+                },
+                {
+                  "Ref": "AWS::NoValue"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "AppManagedPolicyFeaturesWebSocket": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Condition": "HasWebSocketApiId",
+      "Properties": {
+        "ManagedPolicyName": {
+          "Fn::Sub": "${ManagedPolicyNamePrefix}-features-ws-${DeploymentStage}"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "CheckInExpiredBroadcast",
+              "Effect": "Allow",
+              "Action": [
+                "execute-api:ManageConnections"
+              ],
+              "Resource": {
+                "Fn::Sub": "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApiId}/${DeploymentStage}/POST/@connections/*"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "AppManagedPolicyFeaturesS3": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": {
+          "Fn::Sub": "${ManagedPolicyNamePrefix}-features-s3-${DeploymentStage}"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "PrePlanAndEvidenceObjects",
+              "Effect": "Allow",
+              "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:AbortMultipartUpload",
+                "s3:ListBucket",
+                "s3:GetBucketLocation"
+              ],
+              "Resource": [
+                {
+                  "Fn::Sub": "arn:aws:s3:::${ExistingPrePlanBucketName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:s3:::${ExistingPrePlanBucketName}/*"
+                },
+                {
+                  "Fn::Sub": "arn:aws:s3:::${ExistingEvidenceBucketName}"
+                },
+                {
+                  "Fn::Sub": "arn:aws:s3:::${ExistingEvidenceBucketName}/*"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "AppManagedPolicyFeaturesSns": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": {
+          "Fn::Sub": "${ManagedPolicyNamePrefix}-features-sns-${DeploymentStage}"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "PanicAndSocialPublish",
+              "Effect": "Allow",
+              "Action": [
+                "sns:Publish"
+              ],
+              "Resource": [
+                {
+                  "Ref": "PanicAlertTopic"
+                },
+                {
+                  "Ref": "SocialAlertTopic"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "AppManagedPolicyFeaturesComprehend": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": {
+          "Fn::Sub": "${ManagedPolicyNamePrefix}-features-pii-${DeploymentStage}"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "ComprehendPiiRegional",
+              "Effect": "Allow",
+              "Action": [
+                "comprehend:DetectPiiEntities"
+              ],
+              "Resource": "*",
+              "Condition": {
+                "StringEquals": {
+                  "aws:RequestedRegion": {
+                    "Ref": "AWS::Region"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "AppManagedPolicyFeaturesBedrock": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Condition": "HasBedrockModelArn",
+      "Properties": {
+        "ManagedPolicyName": {
+          "Fn::Sub": "${ManagedPolicyNamePrefix}-features-bedrock-${DeploymentStage}"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "InvokeConfiguredBedrockModel",
+              "Effect": "Allow",
+              "Action": [
+                "bedrock:InvokeModel",
+                "bedrock:InvokeModelWithResponseStream"
+              ],
+              "Resource": {
+                "Ref": "BedrockModelArn"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "AppManagedPolicyFeaturesCognitoIdp": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": {
+          "Fn::Sub": "${ManagedPolicyNamePrefix}-features-cognito-idp-${DeploymentStage}"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "ManageAgencySamlIdp",
+              "Effect": "Allow",
+              "Action": [
+                "cognito-idp:CreateIdentityProvider",
+                "cognito-idp:UpdateIdentityProvider",
+                "cognito-idp:DeleteIdentityProvider",
+                "cognito-idp:DescribeIdentityProvider",
+                "cognito-idp:ListIdentityProviders",
+                "cognito-idp:DescribeUserPoolClient",
+                "cognito-idp:UpdateUserPoolClient"
+              ],
+              "Resource": {
+                "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${ImportedCognitoUserPoolId}"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "AppManagedPolicyFeaturesKms": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Condition": "UseCustomKMS",
+      "Properties": {
+        "ManagedPolicyName": {
+          "Fn::Sub": "${ManagedPolicyNamePrefix}-features-kms-${DeploymentStage}"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AgencyCustomerManagedKms",
+              "Effect": "Allow",
+              "Action": [
+                "kms:Encrypt",
+                "kms:Decrypt",
+                "kms:GenerateDataKey",
+                "kms:DescribeKey"
+              ],
+              "Resource": {
+                "Ref": "AgencyKMSKeyArn"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "FeaturesHttpFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Metadata": {
+        "BuildMethod": "makefile",
+        "BuildTarget": "build-function"
+      },
+      "Properties": {
+        "CodeUri": "../../apps/api/",
+        "Handler": "dist/handlers/features/http.handler",
+        "Timeout": 30,
+        "Policies": [
+          {
+            "Ref": "AppManagedPolicyFeaturesData"
+          },
+          {
+            "Ref": "AppManagedPolicyFeaturesS3"
+          },
+          {
+            "Ref": "AppManagedPolicyFeaturesSns"
+          },
+          {
+            "Ref": "AppManagedPolicyFeaturesComprehend"
+          },
+          {
+            "Ref": "AppManagedPolicyFeaturesCognitoIdp"
+          },
+          {
+            "Fn::If": [
+              "HasBedrockModelArn",
+              {
+                "Ref": "AppManagedPolicyFeaturesBedrock"
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          },
+          {
+            "Fn::If": [
+              "UseCustomKMS",
+              {
+                "Ref": "AppManagedPolicyFeaturesKms"
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "AiGateHttpFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Metadata": {
+        "BuildMethod": "makefile",
+        "BuildTarget": "build-function"
+      },
+      "Properties": {
+        "CodeUri": "../../apps/api/",
+        "Handler": "dist/handlers/ai-gate/aiGateHttp.handler",
+        "Timeout": 15,
+        "MemorySize": 256,
+        "Environment": {
+          "Variables": {
+            "AGENCY_AI_GATE_TABLE": {
+              "Ref": "ExistingAgencyAiGateTableName"
+            },
+            "ENABLE_AI_FEATURE_GATE": "true"
+          }
+        },
+        "Policies": [
+          {
+            "Ref": "AppManagedPolicyFeaturesData"
+          },
+          {
+            "Fn::If": [
+              "HasWebSocketApiId",
+              {
+                "Ref": "AppManagedPolicyFeaturesWebSocket"
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          },
+          {
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "cloudwatch:PutMetricData"
+                ],
+                "Resource": "*"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "AiGateHttpIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApiId"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AiGateHttpFunction.Arn}/invocations"
+        },
+        "PayloadFormatVersion": "2.0"
+      }
+    },
+    "AiGateHttpInvokePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Ref": "AiGateHttpFunction"
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*"
+        }
+      }
+    },
+    "RouteAiGateConfig": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApiId"
+        },
+        "RouteKey": "GET /api/agency/{agencyId}/config/ai-mode",
+        "Target": {
+          "Fn::Sub": "integrations/${AiGateHttpIntegration}"
+        },
+        "AuthorizationType": {
+          "Fn::If": [
+            "HasHttpApiJwtAuthorizer",
+            "JWT",
+            "NONE"
+          ]
+        },
+        "AuthorizerId": {
+          "Fn::If": [
+            "HasHttpApiJwtAuthorizer",
+            {
+              "Ref": "HttpApiJwtAuthorizerId"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        }
+      }
+    },
+    "RouteAiGateConfigPut": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApiId"
+        },
+        "RouteKey": "PUT /api/agency/{agencyId}/config/ai-mode",
+        "Target": {
+          "Fn::Sub": "integrations/${AiGateHttpIntegration}"
+        },
+        "AuthorizationType": {
+          "Fn::If": [
+            "HasHttpApiJwtAuthorizer",
+            "JWT",
+            "NONE"
+          ]
+        },
+        "AuthorizerId": {
+          "Fn::If": [
+            "HasHttpApiJwtAuthorizer",
+            {
+              "Ref": "HttpApiJwtAuthorizerId"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        }
+      }
+    },
+    "RouteAiGateAudit": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApiId"
+        },
+        "RouteKey": "GET /api/agency/{agencyId}/config/ai-mode/audit",
+        "Target": {
+          "Fn::Sub": "integrations/${AiGateHttpIntegration}"
+        },
+        "AuthorizationType": {
+          "Fn::If": [
+            "HasHttpApiJwtAuthorizer",
+            "JWT",
+            "NONE"
+          ]
+        },
+        "AuthorizerId": {
+          "Fn::If": [
+            "HasHttpApiJwtAuthorizer",
+            {
+              "Ref": "HttpApiJwtAuthorizerId"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        }
+      }
+    },
+    "FeaturesHttpIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApiId"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FeaturesHttpFunction.Arn}/invocations"
+        },
+        "PayloadFormatVersion": "2.0"
+      }
+    },
+    "FeaturesHttpInvokePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Ref": "FeaturesHttpFunction"
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*"
+        }
+      }
+    },
+    "RouteFeaturesProxy": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApiId"
+        },
+        "RouteKey": "ANY /api/features/{proxy+}",
+        "Target": {
+          "Fn::Sub": "integrations/${FeaturesHttpIntegration}"
+        },
+        "AuthorizationType": {
+          "Fn::If": [
+            "HasHttpApiJwtAuthorizer",
+            "JWT",
+            "NONE"
+          ]
+        },
+        "AuthorizerId": {
+          "Fn::If": [
+            "HasHttpApiJwtAuthorizer",
+            {
+              "Ref": "HttpApiJwtAuthorizerId"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        }
+      }
+    },
+    "AlarmFeaturesHttpErrors": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Condition": "HasOpsAlertsTopic",
+      "Properties": {
+        "AlarmName": {
+          "Fn::Sub": "${ManagedPolicyNamePrefix}-features-http-errors-${DeploymentStage}"
+        },
+        "AlarmDescription": "Features HTTP Lambda errors.",
+        "Namespace": "AWS/Lambda",
+        "MetricName": "Errors",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "FeaturesHttpFunction"
+            }
+          }
+        ],
+        "Statistic": "Sum",
+        "Period": 60,
+        "EvaluationPeriods": 1,
+        "Threshold": 1,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "TreatMissingData": "notBreaching",
+        "AlarmActions": [
+          {
+            "Ref": "OpsAlertsTopicArn"
+          }
+        ]
+      }
+    },
+    "AlarmPanicAlertDelivery": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Condition": "HasOpsAlertsTopic",
+      "Properties": {
+        "AlarmName": {
+          "Fn::Sub": "${ManagedPolicyNamePrefix}-features-panic-delivery-${DeploymentStage}"
+        },
+        "AlarmDescription": "Panic alert SNS delivery failures.",
+        "Namespace": "AWS/SNS",
+        "MetricName": "NumberOfNotificationsFailed",
+        "Dimensions": [
+          {
+            "Name": "TopicName",
+            "Value": {
+              "Fn::GetAtt": [
+                "PanicAlertTopic",
+                "TopicName"
+              ]
+            }
+          }
+        ],
+        "Statistic": "Sum",
+        "Period": 60,
+        "EvaluationPeriods": 1,
+        "Threshold": 1,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "TreatMissingData": "notBreaching",
+        "AlarmActions": [
+          {
+            "Ref": "OpsAlertsTopicArn"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "FeaturesHttpFunctionArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "FeaturesHttpFunction",
+          "Arn"
+        ]
+      }
+    },
+    "CitizensTableName": {
+      "Value": {
+        "Ref": "ExistingCitizensTableName"
+      }
+    },
+    "AddressIntelTableName": {
+      "Value": {
+        "Ref": "ExistingAddressIntelTableName"
+      }
+    },
+    "EvidenceBucketName": {
+      "Value": {
+        "Ref": "ExistingEvidenceBucketName"
+      }
+    },
+    "PanicAlertTopicArn": {
+      "Value": {
+        "Ref": "PanicAlertTopic"
+      }
+    },
+    "SocialAlertTopicArn": {
+      "Value": {
+        "Ref": "SocialAlertTopic"
+      }
+    },
+    "AgencyAiGateTableName": {
+      "Value": {
+        "Ref": "ExistingAgencyAiGateTableName"
+      }
+    },
+    "AiGateHttpFunctionArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "AiGateHttpFunction",
+          "Arn"
+        ]
+      }
+    },
+    "RingNeighborsWebhookPath": {
+      "Value": "/api/webhooks/ring-neighbors"
+    },
+    "NextdoorWebhookPath": {
+      "Value": "/api/webhooks/nextdoor"
+    }
+  }
+}

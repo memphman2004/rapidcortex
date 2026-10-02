@@ -1,0 +1,42 @@
+import type { BridgeEvent, CADBridgeConfig, CanonicalIncident } from "rapid-cortex-shared";
+import {
+  CadBridgeTransferError,
+  acceptIncidentTransfer,
+  cancelIncidentTransfer,
+  defaultTransferDestination,
+  requestIncidentTransfer,
+} from "rapid-cortex-shared";
+
+export function applyTransferEvent(
+  incident: CanonicalIncident,
+  event: BridgeEvent,
+  config: CADBridgeConfig,
+): CanonicalIncident {
+  const nowIso = new Date().toISOString();
+  try {
+    if (event.eventType === "TRANSFER_REQUESTED") {
+      return requestIncidentTransfer({
+        incident,
+        requestedBy: "CAD",
+        toSlot: event.sourceSlot === incident.owner
+          ? (event.canonical?.transferState?.toSlot ?? defaultTransferDestination(incident))
+          : event.sourceSlot,
+        nowIso,
+        timeoutSeconds: config.transferTimeoutSeconds,
+      });
+    }
+    if (event.eventType === "TRANSFER_ACCEPTED") {
+      return acceptIncidentTransfer({ incident, acceptedBy: "CAD", nowIso });
+    }
+    if (event.eventType === "TRANSFER_CANCELLED") {
+      return cancelIncidentTransfer({ incident, nowIso });
+    }
+  } catch (err) {
+    if (err instanceof CadBridgeTransferError) {
+      console.warn("[cad-bridge.transfer] ignored invalid transfer event", { message: err.message });
+      return incident;
+    }
+    throw err;
+  }
+  return incident;
+}

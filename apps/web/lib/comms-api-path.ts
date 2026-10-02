@@ -61,6 +61,12 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /** 13-feature suite (AppSamFeaturesStack on AppSam2 HttpApi). Not the local Next entitlements GET /api/features. */
   /^\/api\/features\//,
   /^\/api\/agency\/[^/]+\/config\/ai-mode/,
+  /** Communications Intelligence (AppSamCommsIntelStack on AppSam2 HttpApi). */
+  /^\/api\/comms-intel\//,
+  /^\/api\/context-cards\//,
+  /^\/api\/command\//,
+  /^\/api\/vault\//,
+  /^\/api\/incidents\/[^/]+\/context-card$/,
 ];
 
 /** Billing, payments, network policy — stack-app-sam-4 (AppSam4Stack). */

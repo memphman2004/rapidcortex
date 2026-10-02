@@ -51,9 +51,18 @@ const SOURCE_TAG_STYLES: Record<string, string> = {
   "FCC 911": "bg-rose-500/15 text-rose-300 border border-rose-500/30",
   "CHATGPT WATCH": "bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-500/30",
   UPDATED: "bg-amber-500/20 text-amber-200 border border-amber-500/40",
+  "EARLY SIGNAL": "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30",
+  "POSSIBLE DUPLICATE": "bg-rose-500/20 text-rose-200 border border-rose-500/40",
+  DIRECT: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30",
+  PARTNER: "bg-sky-500/15 text-sky-300 border border-sky-500/30",
+  MONITOR: "bg-slate-500/15 text-slate-300 border border-slate-500/30",
+  URGENT: "bg-red-500/20 text-red-200 border border-red-500/40",
+  HIGH: "bg-orange-500/20 text-orange-200 border border-orange-500/40",
+  WATCHING: "bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-500/30",
   911: "bg-blue-500/15 text-blue-300 border border-blue-500/30",
   CAMPUS: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30",
   VENUE: "bg-violet-500/15 text-violet-300 border border-violet-500/30",
+  TRANSIT: "bg-orange-500/15 text-orange-300 border border-orange-500/30",
 };
 
 function isCompetitorSignal(signal: RapidIqPipelineSignal): boolean {
@@ -65,9 +74,19 @@ function synthesizedTags(signal: RapidIqPipelineSignal, vertical: FeedVertical):
   const sourceLabel = RAPID_IQ_PIPELINE_SOURCE_LABELS[signal.sourceId] ?? signal.sourceId;
   tags.push(sourceLabel.toUpperCase());
   if (signal.watchUpdated) tags.push("UPDATED");
+  if (signal.procurementStage === "early-awareness") tags.push("EARLY SIGNAL");
+  if (signal.possibleDuplicate) tags.push("POSSIBLE DUPLICATE");
+  if (signal.watchStrategy === "direct") tags.push("DIRECT");
+  if (signal.watchStrategy === "partner") tags.push("PARTNER");
+  if (signal.watchStrategy === "monitor") tags.push("MONITOR");
+  if (signal.priorityBand === "urgent" || signal.priorityBand === "high") {
+    tags.push(signal.priorityBand.toUpperCase());
+  }
+  if (signal.watched) tags.push("WATCHING");
   if (vertical === "911") tags.push("911");
   if (vertical === "campus") tags.push("CAMPUS");
   if (vertical === "venue") tags.push("VENUE");
+  if (vertical === "transit") tags.push("TRANSIT");
   if (isCompetitorSignal(signal)) tags.push("COMPETITOR");
   if (signal.vendorNamed) tags.push("DISPLACEMENT");
   return tags;
@@ -208,6 +227,17 @@ export function IncomingSignalCard({
       </div>
 
       {headline && <div className="mt-2 text-xs font-semibold text-slate-200">{headline}</div>}
+      {signal.solicitationNumber && (
+        <div className="mt-1 text-[10px] text-slate-500">
+          Solicitation: <span className="text-slate-300">{signal.solicitationNumber}</span>
+        </div>
+      )}
+      {signal.recommendedAction && (
+        <div className="mt-1 text-[11px] text-slate-400">
+          <span className="font-semibold uppercase tracking-wide text-slate-500">Next: </span>
+          {signal.recommendedAction}
+        </div>
+      )}
       <div className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-slate-400">
         {signal.excerpt || signal.summary || signal.rawSnippet || signal.rawTitle}
       </div>
@@ -249,11 +279,29 @@ export function IncomingSignalCard({
           <Calendar size={9} />
           {formatShortDate(signal.signalDate || signal.ingestedAt)}
         </span>
-        {signal.dollarAmount != null && signal.dollarAmount > 0 && (
-          <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">
-            {formatCurrency(signal.dollarAmount)}
+        {signal.deadline && (
+          <span className="text-[10px] font-medium text-amber-200/90">
+            Due {formatShortDate(signal.deadline)}
           </span>
         )}
+        {(signal.estimatedContractValue ?? signal.dollarAmount) != null &&
+          (signal.estimatedContractValue ?? signal.dollarAmount)! > 0 && (
+            <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+              Contract est. {formatCurrency(signal.estimatedContractValue ?? signal.dollarAmount!)}
+            </span>
+          )}
+        {signal.projectBudget != null && signal.projectBudget > 0 && (
+          <span className="rounded bg-slate-700/50 px-2 py-0.5 text-[10px] font-bold text-slate-300">
+            Project/Funding Signal: {formatCurrency(signal.projectBudget)}
+          </span>
+        )}
+        {signal.fundingAmount != null &&
+          signal.fundingAmount > 0 &&
+          signal.fundingAmount !== signal.projectBudget && (
+            <span className="rounded bg-slate-700/50 px-2 py-0.5 text-[10px] font-bold text-slate-300">
+              Funding: {formatCurrency(signal.fundingAmount)}
+            </span>
+          )}
       </div>
 
       <div className="mt-2.5">

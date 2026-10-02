@@ -116,7 +116,74 @@ export const rapidIqPipelineSignalSchema = z.object({
   agencyType: z.string().optional(),
   vendorNamed: z.string().optional(),
   fundingSource: z.string().optional(),
+  /** Project / CIP / grant envelope — NOT NexCort contract value. */
+  projectBudget: z.number().optional(),
+  fundingAmount: z.number().optional(),
+  annualRecurringBudget: z.number().optional(),
+  fundingNotes: z.string().max(2000).optional(),
+  /** Explicit NexCort-addressable contract estimate when known (mirrors dollarAmount when set). */
+  estimatedContractValue: z.number().optional(),
+  solicitationNumber: z.string().max(120).optional(),
+  watchStrategy: z.enum(["direct", "partner", "monitor"]).optional(),
+  watchPayloadHash: z.string().max(128).optional(),
+  possibleDuplicate: z.boolean().optional(),
+  possibleDuplicateOf: z.string().max(128).optional(),
+  /** Buying-intelligence extensions (pre-RFP discovery). */
+  buyingStage: z
+    .enum([
+      "awareness",
+      "planning",
+      "funded",
+      "evaluating",
+      "procurement_live",
+      "award_pending",
+      "implementation",
+      "renewal",
+      "closed",
+    ])
+    .optional(),
+  signalStrength: z.enum(["weak", "moderate", "strong", "confirmed"]).optional(),
+  buyingSignalType: z
+    .enum([
+      "procurement",
+      "evaluation",
+      "planning",
+      "funded",
+      "pain_signal",
+      "competitor_activity",
+      "renewal",
+      "implementation",
+      "award",
+      "early_signal",
+    ])
+    .optional(),
+  signalCategory: z.string().max(80).optional(),
+  primaryVertical: z.string().max(64).optional(),
+  verticals: z.array(z.string().max(64)).max(8).optional(),
+  matchedCapabilities: z.array(z.string().max(64)).max(20).optional(),
+  painPoints: z
+    .array(
+      z.object({
+        type: z.string().max(64),
+        description: z.string().max(500),
+        source: z.string().max(2000).optional(),
+        confidence: z.enum(["high", "medium", "low"]).optional(),
+      }),
+    )
+    .max(20)
+    .optional(),
+  facts: z.array(z.string().max(500)).max(20).optional(),
+  inferences: z.array(z.string().max(500)).max(20).optional(),
+  competitors: z.array(z.string().max(120)).max(20).optional(),
+  priorityBand: z.enum(["urgent", "high", "medium", "monitor"]).optional(),
+  priorityReasons: z.array(z.string().max(200)).max(12).optional(),
+  correlationKey: z.string().max(200).optional(),
+  techCategory: z.string().max(80).optional(),
+  /** Operator pinned this for aggressive monitoring (not Pipeline). */
+  watched: z.boolean().optional(),
+  watchedAt: z.string().optional(),
   procurementType: z.enum(RAPID_IQ_PIPELINE_PROCUREMENT_TYPES).optional(),
+  /** Estimated NexCort contract value only — never auto-filled from projectBudget. */
   dollarAmount: z.number().optional(),
   summary: z.string().optional(),
   contactHints: z.array(rapidIqPipelineContactHintSchema).optional(),
@@ -136,7 +203,7 @@ export const rapidIqPipelineSignalSchema = z.object({
   documentDate: z.string().optional(),
   pageLocation: z.string().max(200).optional(),
   taxonomyTags: z.array(z.string().min(1).max(80)).max(40).optional(),
-  recommendedAction: z.string().max(400).optional(),
+  recommendedAction: z.string().max(3000).optional(),
   /** Linked NexiQ agency profile (pipeline table pk AGENCY#…). */
   agencyProfileId: z.string().min(1).max(128).optional(),
   manualEntry: z.boolean().optional(),
@@ -172,19 +239,26 @@ export const rapidIqPipelineSignalSchema = z.object({
       z.object({
         url: z.string().url().max(2000),
         sourceType: z
-          .enum(["official_procurement", "board_agenda", "news", "other"])
+          .enum([
+            "official_procurement",
+            "board_agenda",
+            "budget",
+            "grant",
+            "news",
+            "other",
+          ])
           .default("other"),
         retrievedAt: z.string().optional(),
       }),
     )
-    .max(20)
+    .max(25)
     .optional(),
   activities: z
     .array(
       z.object({
         at: z.string().min(1),
         changeType: z.string().min(1).max(80),
-        summary: z.string().min(1).max(500),
+        summary: z.string().min(1).max(3000),
       }),
     )
     .max(40)
@@ -230,10 +304,13 @@ export const patchRapidIqPipelineSignalBodySchema = z
   .object({
     status: z.enum(RAPID_IQ_PIPELINE_SIGNAL_STATUSES).optional(),
     procurementStage: z.enum(RAPID_IQ_PROCUREMENT_STAGES).optional(),
+    /** Pin for aggressive monitoring without promoting to Pipeline. */
+    watched: z.boolean().optional(),
   })
-  .refine((body) => body.status != null || body.procurementStage != null, {
-    message: "status or procurementStage is required",
-  });
+  .refine(
+    (body) => body.status != null || body.procurementStage != null || body.watched != null,
+    { message: "status, procurementStage, or watched is required" },
+  );
 export type PatchRapidIqPipelineSignalBody = z.infer<typeof patchRapidIqPipelineSignalBodySchema>;
 
 export const createManualRapidIqPipelineSignalBodySchema = z.object({
@@ -441,6 +518,7 @@ export const RAPID_IQ_WATCH_INGEST_VERTICALS = [
   "venue",
   "transit",
   "competitors",
+  "law_enforcement",
 ] as const;
 export type RapidIqWatchIngestVertical = (typeof RAPID_IQ_WATCH_INGEST_VERTICALS)[number];
 
@@ -452,16 +530,26 @@ export const RAPID_IQ_WATCH_INGEST_SIGNAL_TYPES = [
   "competitor",
 ] as const;
 
+export const RAPID_IQ_WATCH_INGEST_SOURCES = [
+  "chatgpt_watch",
+  "civiciq",
+  "sam_gov",
+  "bidnet",
+  "state_portal",
+  "manual_import",
+  "internal_crawler",
+] as const;
+
 export const rapidIqWatchIngestEvidenceSchema = z.object({
   url: z.string().url().max(2000),
   source_type: z
-    .enum(["official_procurement", "board_agenda", "news", "other"])
+    .enum(["official_procurement", "board_agenda", "budget", "grant", "news", "other"])
     .optional()
     .default("other"),
 });
 
 export const rapidIqWatchIngestBodySchema = z.object({
-  source: z.literal("chatgpt_watch").default("chatgpt_watch"),
+  source: z.enum(RAPID_IQ_WATCH_INGEST_SOURCES).default("chatgpt_watch"),
   watch: z.string().min(1).max(80),
   external_key: z.string().min(3).max(300),
   signal_type: z.enum(RAPID_IQ_WATCH_INGEST_SIGNAL_TYPES),
@@ -475,8 +563,15 @@ export const rapidIqWatchIngestBodySchema = z.object({
     title: z.string().min(1).max(500),
     solicitation_number: z.string().max(120).nullable().optional(),
     posted_date: z.string().max(32).nullable().optional(),
-    due_date: z.string().max(40).nullable().optional(),
+    due_date: z.string().max(64).nullable().optional(),
+    /** @deprecated Prefer estimated_contract_value — kept for ChatGPT Action compat. */
     estimated_value: z.number().nullable().optional(),
+    estimated_contract_value: z.number().nullable().optional(),
+    project_budget: z.number().nullable().optional(),
+    funding_amount: z.number().nullable().optional(),
+    annual_recurring_budget: z.number().nullable().optional(),
+    funding_source: z.string().max(300).nullable().optional(),
+    funding_notes: z.string().max(2000).nullable().optional(),
     procurement_url: z.string().url().max(2000),
     status: z
       .enum(["open", "updated", "cancelled", "awarded", "unknown"])
@@ -487,7 +582,7 @@ export const rapidIqWatchIngestBodySchema = z.object({
     .object({
       name: z.string().max(200).nullable().optional(),
       title: z.string().max(200).nullable().optional(),
-      email: z.string().max(320).nullable().optional(),
+      email: z.union([z.string().email().max(320), z.literal(""), z.null()]).optional(),
       phone: z.string().max(40).nullable().optional(),
     })
     .optional(),
@@ -495,10 +590,10 @@ export const rapidIqWatchIngestBodySchema = z.object({
     .object({
       fit: z.enum(["high", "medium", "low"]).optional().default("medium"),
       strategy: z.enum(["direct", "partner", "monitor"]).optional().default("monitor"),
-      reason: z.string().max(500).optional(),
+      reason: z.string().max(3000).optional(),
     })
     .optional(),
-  next_action: z.string().max(400).optional(),
+  next_action: z.string().max(3000).optional(),
   lifecycle: z
     .object({
       change_type: z
@@ -511,14 +606,16 @@ export const rapidIqWatchIngestBodySchema = z.object({
           "award",
           "contact_change",
           "budget_change",
+          "scope_change",
+          "status_change",
           "none",
         ])
         .optional()
         .default("new"),
-      summary: z.string().max(500).optional(),
+      summary: z.string().max(3000).optional(),
     })
     .optional(),
-  evidence: z.array(rapidIqWatchIngestEvidenceSchema).max(20).optional(),
+  evidence: z.array(rapidIqWatchIngestEvidenceSchema).max(25).optional(),
 });
 export type RapidIqWatchIngestBody = z.infer<typeof rapidIqWatchIngestBodySchema>;
 
@@ -528,6 +625,18 @@ export const rapidIqWatchIngestRequestSchema = z.union([
   z.array(rapidIqWatchIngestBodySchema).min(1).max(25),
 ]);
 export type RapidIqWatchIngestRequest = z.infer<typeof rapidIqWatchIngestRequestSchema>;
+
+/** Canonical single-finding response for ChatGPT Actions / connectors. */
+export const rapidIqWatchIngestItemResultSchema = z.object({
+  success: z.literal(true),
+  action: z.enum(["created", "updated", "unchanged"]),
+  external_key: z.string(),
+  id: z.string(),
+  changes: z.array(z.string()).optional(),
+  possible_duplicate: z.boolean().optional(),
+  possible_duplicate_of: z.string().optional(),
+});
+export type RapidIqWatchIngestItemResult = z.infer<typeof rapidIqWatchIngestItemResultSchema>;
 
 export const enqueueRapidIqPipelineFromOpportunityBodySchema = z.object({
   opportunityId: z.string().min(1).max(128),

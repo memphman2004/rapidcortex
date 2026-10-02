@@ -1,0 +1,511 @@
+import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
+import { AUDIT_EVENT_TYPES, AuthorizationService } from "rapid-cortex-security";
+import {
+  cadCapIncidentsQuerySchema,
+  cadIncidentsQuerySchema,
+  canonicalizeCadNatureMappings,
+  cadNatureCodeMappingsSchema,
+  isRcsuperadmin,
+  patchCadIntegrationBodySchema,
+  postCadIntegrationBodySchema,
+} from "rapid-cortex-shared";
+import type { UserContext } from "rapid-cortex-shared";
+import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
+import { env } from "../../lib/env.js";
+import { getCadParser } from "../../lib/cad/parsers/index.js";
+import type { CadIntegrationSetupContext } from "../../lib/cad/types.js";
+import { makeId } from "../../lib/ids.js";
+import { AuditRepository } from "../../repositories/auditRepository.js";
+import { CadCapIncidentsRepository } from "../../repositories/cadCapIncidentsRepository.js";
+import { CadIncidentRawRepository, type CadIncidentRawRecord } from "../../repositories/cadIncidentRawRepository.js";
+import { CadIntegrationRepository, type CadIntegrationRecord } from "../../repositories/cadIntegrationRepository.js";
+import { generateCadWebhookToken, hashCadWebhookToken } from "../../services/cad/cadWebhookSecret.js";
+import type { CadWebhookIngressMessage } from "../../services/cad/cadWebhookProcessService.js";
+import {
+  badRequest,
+  badRequestFromZod,
+  forbidden,
+  notFound,
+  ok,
+  serverError,
+  serviceUnavailable,
+  unauthorized,
+} from "../../lib/response.js";
+import { ulid } from "ulid";
+import {
+  cadPollTestConnectionBodySchema,
+  testApiPollConnection,
+} from "../../lib/cad/testApiPollConnection.js";
+import { pollCadIntegration } from "../../lib/cad/poll/cad-poller-service.js";
+import type { CadPollHistoryPoint } from "../../repositories/cadIntegrationRepository.js";
+
+const authz = new AuthorizationService();
+const integrationRepo = new CadIntegrationRepository();
+const rawIncidentRepo = new CadIncidentRawRepository();
+const capIncidentsRepo = new CadCapIncidentsRepository();
+const auditRepo = new AuditRepository();
+const sns = new SNSClient({ region: env.region });
+
+function cors204() {
+  return {
+    statusCode: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET,POST,PATCH,DELETE,OPTIONS",
+      "Access-Control-Allow-Headers": "authorization,content-type",
+    },
+  };
+}
+
+function canViewCadIntegrations(user: UserContext): boolean {
+  return authz.canAccessAdminRoutes(user) || user.role === "supervisor" || isRcsuperadmin(user);
+}
+
+function canMutateCadIntegration(user: UserContext): boolean {
+  return user.role === "agencyadmin" || user.role === "agencyit" || isRcsuperadmin(user);
+}
+
+function canListCadIncidents(user: UserContext): boolean {
+  return (
+    user.role === "dispatcher" ||
+    authz.canAccessSupervisorRoutes(user) ||
+    user.role === "agencyit" ||
+    user.role === "analyst" ||
+    user.role === "auditor" ||
+    isRcsuperadmin(user)
+  );
+}
+
+function publicBase(): string {
+  const b = env.cadPublicApiBaseUrl.trim();
+  return (b || "https://api.rapidcortex.us").replace(/\/$/, "");
+}
+
+function toHealthSummary(row: CadIntegrationRecord) {
+  const history = Array.isArray(row.pollHistory) ? row.pollHistory : [];
+  const recentOk = history.filter((h) => h.ok);
+  const avgLatencyMs =
+    recentOk.length > 0
+      ? Math.round(recentOk.reduce((sum, h) => sum + h.latencyMs, 0) / recentOk.length)
+      : undefined;
+
+  return {
+    integrationId: row.id,
+    agencyId: row.agencyId,
+    vendor: row.vendor,
+    name: row.name,
+    connectionType: row.connectionType,
+    status: row.status,
+    lastSuccessfulPollAt: row.lastSuccessfulPollAt,
+    circuitBreaker: row.circuitBreaker,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    pollHistory: history as CadPollHistoryPoint[],
+    avgLatencyMs,
+    recentIncidentCount: history.slice(-20).reduce((sum, h) => sum + (h.ok ? h.incidentCount : 0), 0),
+  };
+}
+
+function toPublicIntegration(
+  row: CadIntegrationRecord,
+  opts?: { tokenPreview?: string },
+): Omit<CadIntegrationRecord, "webhookSecretHash"> & {
+  hasWebhookSecret: boolean;
+  webhookUrl: string;
+  setupInstructions: string;
+} {
+  const { webhookSecretHash: _h, ...rest } = row;
+  const parser = getCadParser(row.vendor);
+  const tokenPreview = opts?.tokenPreview?.trim() || "****";
+  const webhookUrl = `${publicBase()}/api/cad/webhook/${encodeURIComponent(row.agencyId)}/${encodeURIComponent(row.id)}`;
+  const setupCtx: CadIntegrationSetupContext = {
+    id: row.id,
+    agencyId: row.agencyId,
+    name: row.name,
+    vendor: row.vendor,
+    webhookUrl,
+    connectionType: row.connectionType,
+    config: row.config as Record<string, unknown> | undefined,
+    tokenPreview,
+  };
+  return {
+    ...rest,
+    hasWebhookSecret: Boolean(_h),
+    webhookUrl,
+    setupInstructions: parser.generateSetupInstructions(setupCtx),
+  };
+}
+
+export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+  try {
+    const method = event.requestContext.http.method;
+    if (method === "OPTIONS") return cors204();
+
+    if (!env.cadIntegrationsTable || !env.cadIncidentsRawTable) {
+      return serviceUnavailable("CAD integration storage is not configured.");
+    }
+
+    const user = await getUserContext(event);
+    if (!user) return unauthorized();
+    if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
+
+    const rawPath = event.rawPath ?? "";
+    const pathCadIncidents = "/api/admin/cad-incidents";
+    const pathCadCapIncidents = "/api/admin/cad-cap-incidents";
+    const pathIntegrationsRoot = "/api/admin/cad-integrations";
+
+    if (rawPath === pathCadCapIncidents && method === "GET") {
+      if (!canListCadIncidents(user)) return forbidden();
+      if (!env.cadCapIncidentsTable) {
+        return serviceUnavailable("CAD CAP incidents storage is not configured.");
+      }
+      const parsed = cadCapIncidentsQuerySchema.safeParse(event.queryStringParameters ?? {});
+      if (!parsed.success) return badRequestFromZod(parsed.error);
+      const items = await capIncidentsRepo.listByAgency(user.agencyId, {
+        status: parsed.data.status,
+        limit: parsed.data.limit,
+      });
+      return ok({ items });
+    }
+
+    if (rawPath === pathCadIncidents && method === "GET") {
+      if (!canListCadIncidents(user)) return forbidden();
+      const parsed = cadIncidentsQuerySchema.safeParse(event.queryStringParameters ?? {});
+      if (!parsed.success) return badRequestFromZod(parsed.error);
+      const { integrationId, ...listOpts } = parsed.data;
+      let items: CadIncidentRawRecord[];
+      if (integrationId?.trim()) {
+        const integ = await integrationRepo.getById(user.agencyId, integrationId.trim());
+        if (!integ) {
+          items = [];
+        } else {
+          items = await rawIncidentRepo.listByIntegration(user.agencyId, integrationId.trim(), {
+            from: listOpts.from,
+            limit: listOpts.limit,
+          });
+        }
+      } else {
+        items = await rawIncidentRepo.listByAgency(user.agencyId, listOpts);
+      }
+      return ok({ items });
+    }
+
+    if (rawPath === pathIntegrationsRoot && method === "GET") {
+      if (!canViewCadIntegrations(user)) return forbidden();
+      const rows = await integrationRepo.listByAgency(user.agencyId);
+      const includeMetrics = event.queryStringParameters?.includeMetrics === "true";
+      if (includeMetrics) {
+        return ok({
+          items: rows.map((r) => toPublicIntegration(r)),
+          integrations: rows.map((r) => toHealthSummary(r)),
+        });
+      }
+      return ok({ items: rows.map((r) => toPublicIntegration(r)) });
+    }
+
+    if (rawPath === pathIntegrationsRoot && method === "POST") {
+      if (!canMutateCadIntegration(user)) return forbidden();
+      const parsed = postCadIntegrationBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      if (!parsed.success) return badRequestFromZod(parsed.error);
+      const salt = env.cadWebhookSecretSalt;
+      if (!salt) return serviceUnavailable("CAD_WEBHOOK_SECRET_SALT is not configured.");
+      const id = ulid();
+      const now = new Date().toISOString();
+      const token = generateCadWebhookToken();
+      const row: CadIntegrationRecord = {
+        id,
+        agencyId: user.agencyId,
+        name: parsed.data.name,
+        vendor: parsed.data.vendor,
+        status: "testing",
+        connectionType: parsed.data.connectionType,
+        config: parsed.data.config as Record<string, unknown>,
+        webhookSecretHash: hashCadWebhookToken(salt, token),
+        incidentCount: 0,
+        createdAt: now,
+        updatedAt: now,
+      };
+      await integrationRepo.create(row);
+      await auditRepo.create({
+        eventId: makeId("aud"),
+        agencyId: user.agencyId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.CAD_INTEGRATION_CREATED,
+        details: { integrationId: id, vendor: row.vendor, connectionType: row.connectionType },
+        createdAt: now,
+        resourceType: "integration",
+        resourceId: id,
+      });
+      const tokenPreview = token.length > 4 ? `…${token.slice(-4)}` : "****";
+      return ok({
+        integration: toPublicIntegration(row, { tokenPreview }),
+        webhookSecret: token,
+      });
+    }
+
+    const prefix = `${pathIntegrationsRoot}/`;
+    if (!rawPath.startsWith(prefix)) return notFound();
+
+    const tail = rawPath.slice(prefix.length);
+    const testConnectionSuffix = "/test-connection";
+    const forcePollSuffix = "/force-poll";
+    const testSuffix = "/test";
+    const isTestConnection = tail.endsWith(testConnectionSuffix);
+    const isForcePoll = !isTestConnection && tail.endsWith(forcePollSuffix);
+    const isTest = !isTestConnection && !isForcePoll && tail.endsWith(testSuffix);
+    const id = isTestConnection
+      ? tail.slice(0, -testConnectionSuffix.length)
+      : isForcePoll
+        ? tail.slice(0, -forcePollSuffix.length)
+        : isTest
+          ? tail.slice(0, -testSuffix.length)
+          : tail;
+    if (!id) return notFound();
+
+    if (method === "GET") {
+      if (!canViewCadIntegrations(user)) return forbidden();
+      const row = await integrationRepo.getById(user.agencyId, id);
+      if (!row) return notFound();
+      return ok({ integration: toPublicIntegration(row) });
+    }
+
+    if (method === "PATCH") {
+      if (!canMutateCadIntegration(user)) return forbidden();
+      const parsed = patchCadIntegrationBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      if (!parsed.success) return badRequestFromZod(parsed.error);
+      const existing = await integrationRepo.getById(user.agencyId, id);
+      if (!existing) return notFound();
+      const { regenerateToken, config, circuitBreaker, ...rest } = parsed.data;
+      let nextConfig = config;
+      if (config && Object.prototype.hasOwnProperty.call(config, "natureCodeMappings")) {
+        const parsedMappings = cadNatureCodeMappingsSchema.safeParse(config.natureCodeMappings);
+        if (!parsedMappings.success) return badRequestFromZod(parsedMappings.error);
+        const canon = canonicalizeCadNatureMappings(parsedMappings.data, () => ulid());
+        if (!canon.ok) return badRequest(canon.error);
+        nextConfig = { ...config, natureCodeMappings: canon.mappings };
+      }
+      const salt = env.cadWebhookSecretSalt;
+      const updatePayload: Parameters<typeof integrationRepo.update>[2] = { ...rest };
+      if (nextConfig) updatePayload.config = nextConfig;
+      if (circuitBreaker) updatePayload.circuitBreaker = circuitBreaker;
+      let newPlainToken: string | undefined;
+      if (regenerateToken) {
+        if (!salt) return serviceUnavailable("CAD_WEBHOOK_SECRET_SALT is not configured.");
+        newPlainToken = generateCadWebhookToken();
+        updatePayload.webhookSecretHash = hashCadWebhookToken(salt, newPlainToken);
+      }
+      if (Object.keys(updatePayload).length === 0) {
+        return ok({ integration: toPublicIntegration(existing) });
+      }
+      await integrationRepo.update(user.agencyId, id, updatePayload);
+      const now = new Date().toISOString();
+      const mappingTouched = Boolean(nextConfig && Object.prototype.hasOwnProperty.call(nextConfig, "natureCodeMappings"));
+      const auditFields = [
+        ...Object.keys(rest),
+        ...(nextConfig ? ["config"] : []),
+        ...(regenerateToken ? ["regenerateToken"] : []),
+        ...(mappingTouched ? ["natureCodeMappings"] : []),
+      ];
+      await auditRepo.create({
+        eventId: makeId("aud"),
+        agencyId: user.agencyId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.CAD_INTEGRATION_UPDATED,
+        details: {
+          integrationId: id,
+          fields: auditFields,
+          ...(mappingTouched
+            ? { mappingCount: Array.isArray(nextConfig?.natureCodeMappings) ? nextConfig.natureCodeMappings.length : 0 }
+            : {}),
+        },
+        createdAt: now,
+        resourceType: "integration",
+        resourceId: id,
+      });
+      const refreshed = await integrationRepo.getById(user.agencyId, id);
+      const tokenPreview =
+        newPlainToken && newPlainToken.length > 4 ? `…${newPlainToken.slice(-4)}` : undefined;
+      return ok({
+        integration: refreshed ? toPublicIntegration(refreshed, tokenPreview ? { tokenPreview } : undefined) : null,
+        ...(newPlainToken ? { webhookSecret: newPlainToken } : {}),
+      });
+    }
+
+    if (method === "DELETE") {
+      if (!canMutateCadIntegration(user)) return forbidden();
+      const existing = await integrationRepo.getById(user.agencyId, id);
+      if (!existing) return notFound();
+      await integrationRepo.delete(user.agencyId, id);
+      const now = new Date().toISOString();
+      await auditRepo.create({
+        eventId: makeId("aud"),
+        agencyId: user.agencyId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.CAD_INTEGRATION_DELETED,
+        details: { integrationId: id },
+        createdAt: now,
+        resourceType: "integration",
+        resourceId: id,
+      });
+      return ok({ deleted: true });
+    }
+
+    if (method === "POST" && isForcePoll) {
+      if (!canMutateCadIntegration(user)) return forbidden();
+      const row = await integrationRepo.getById(user.agencyId, id);
+      if (!row) return notFound();
+      if (row.connectionType !== "api_poll") {
+        return ok({
+          success: false,
+          incidentCount: 0,
+          message: "Force poll is only available for API poll integrations.",
+        });
+      }
+      const outcome = await pollCadIntegration(row, { force: true });
+      const now = new Date().toISOString();
+      await auditRepo.create({
+        eventId: makeId("aud"),
+        agencyId: user.agencyId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.CAD_INTEGRATION_TESTED,
+        details: {
+          integrationId: id,
+          mode: "force_poll",
+          success: outcome.success,
+          incidentCount: outcome.incidentCount,
+          authError: outcome.authError,
+          circuitBreakerOpened: outcome.circuitBreakerOpened,
+        },
+        createdAt: now,
+        resourceType: "integration",
+        resourceId: id,
+      });
+      return ok({
+        success: outcome.success,
+        incidentCount: outcome.incidentCount,
+        latencyMs: outcome.latencyMs,
+        authError: outcome.authError,
+        circuitBreakerOpened: outcome.circuitBreakerOpened,
+        rateLimited: outcome.rateLimited,
+        skipped: outcome.skipped,
+        message: outcome.skipped
+          ? `Poll skipped (${outcome.skipReason ?? "unknown"})`
+          : outcome.success
+            ? `Poll complete — ${outcome.incidentCount} incident(s) ingested`
+            : outcome.authError
+              ? "Poll failed — credentials rejected (auth_error)"
+              : "Poll failed — see circuit breaker and poll history",
+      });
+    }
+
+    if (method === "POST" && isTestConnection) {
+      if (!canMutateCadIntegration(user)) return forbidden();
+      const row = await integrationRepo.getById(user.agencyId, id);
+      if (!row) return notFound();
+      const parsed = cadPollTestConnectionBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      if (!parsed.success) return badRequestFromZod(parsed.error);
+      const cfg = row.config ?? {};
+      const body = parsed.data;
+      const apiKey =
+        body.apiKey?.trim() ||
+        (typeof cfg.apiKey === "string" ? cfg.apiKey.trim() : "");
+      const result = await testApiPollConnection({
+        apiUrl: body.apiUrl,
+        authType: body.authType,
+        apiKey: apiKey || undefined,
+        apiKeyHeader: body.apiKeyHeader ?? (typeof cfg.apiKeyHeader === "string" ? cfg.apiKeyHeader : undefined),
+        agencyCode: body.agencyCode ?? (typeof cfg.agencyCode === "string" ? cfg.agencyCode : undefined),
+      });
+      const now = new Date().toISOString();
+      await auditRepo.create({
+        eventId: makeId("aud"),
+        agencyId: user.agencyId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.CAD_INTEGRATION_TESTED,
+        details: {
+          integrationId: id,
+          mode: "api_poll_connection",
+          ok: result.ok,
+          latencyMs: result.latencyMs,
+          sampleCount: result.sampleCount,
+        },
+        createdAt: now,
+        resourceType: "integration",
+        resourceId: id,
+      });
+      if (result.ok) {
+        await integrationRepo.update(user.agencyId, id, { lastPingAt: now });
+      }
+      return ok(result);
+    }
+
+    if (method === "POST" && isTest) {
+      if (!canMutateCadIntegration(user)) return forbidden();
+      const row = await integrationRepo.getById(user.agencyId, id);
+      if (!row) return notFound();
+      const t0 = Date.now();
+      await integrationRepo.update(user.agencyId, id, { lastPingAt: new Date().toISOString() });
+      const latencyMs = Date.now() - t0;
+      const now = new Date().toISOString();
+
+      let details: Record<string, unknown> = { integrationId: id, latencyMs };
+
+      if (row.connectionType === "webhook_inbound" && env.cadWebhookIngressTopicArn) {
+        const msg: CadWebhookIngressMessage = {
+          v: 1,
+          agencyId: user.agencyId,
+          integrationId: id,
+          rawBody: "{}",
+          receivedAt: now,
+          internalSelfTest: true,
+        };
+        await sns.send(
+          new PublishCommand({
+            TopicArn: env.cadWebhookIngressTopicArn,
+            Message: JSON.stringify(msg),
+          }),
+        );
+        details = { ...details, pipeline: "sns_ingress_self_test" };
+      }
+
+      await auditRepo.create({
+        eventId: makeId("aud"),
+        agencyId: user.agencyId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.CAD_INTEGRATION_TESTED,
+        details,
+        createdAt: now,
+        resourceType: "integration",
+        resourceId: id,
+      });
+      if (env.cadWebhookSnsTopicArn) {
+        await sns.send(
+          new PublishCommand({
+            TopicArn: env.cadWebhookSnsTopicArn,
+            Message: JSON.stringify({
+              type: "cad.integration.test",
+              agencyId: user.agencyId,
+              integrationId: id,
+              at: now,
+            }),
+          }),
+        );
+      }
+      return ok({
+        success: true,
+        latencyMs,
+        message:
+          row.connectionType === "webhook_inbound" && env.cadWebhookIngressTopicArn ?
+            "Published vendor-shaped self-test to the CAD ingress pipeline."
+          : "Connectivity check recorded (no outbound vendor API in this phase).",
+        details,
+      });
+    }
+
+    return notFound();
+  } catch (e) {
+    console.error(JSON.stringify({ type: "cad.admin.error", message: e instanceof Error ? e.message : "unknown" }));
+    return serverError();
+  }
+};

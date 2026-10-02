@@ -6,7 +6,9 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, ImageIcon, MapPin } from "lucide-react";
 import { useSession } from "@/components/auth/session-context";
 import { QrIncidentLocation } from "@/components/incidents/qr-incident-location";
+import { PinpointPanel } from "@/components/dispatch/pinpoint-panel";
 import { fetchVenueIncident } from "@/lib/venue/venue-incident-api";
+import { isPinpointEnabled } from "@/lib/runtime-flags";
 import { IncidentSourceBadge } from "../../_components/IncidentSourceBadge";
 import { IncidentStatusBadge } from "../../_components/IncidentStatusBadge";
 import { incidentTypeLabel } from "../../_components/IncidentTypeIcon";
@@ -137,6 +139,14 @@ export function VenueIncidentDetailClient({
               <MapPin className="mb-1 h-6 w-6" />
               <p className="text-xs">Zone {incident.zoneCode}</p>
             </div>
+            {isPinpointEnabled() ? (
+              <div className="mt-4">
+                <div className="mb-1 text-[10px] font-semibold tracking-wide text-orange-300">
+                  NexiQ Pinpoint
+                </div>
+                <PinpointPanel incidentId={incident.id} embedded liveOnly />
+              </div>
+            ) : null}
           </section>
         </div>
       ) : (

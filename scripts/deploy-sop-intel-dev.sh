@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
-# Surgical SOP Intelligence deploy for rapid-cortex-dev (HttpApi2 nested-style stack).
-# Creates four Dynamo tables, HTTP + pattern-analyzer Lambdas, and
+# Live SOP Intelligence deploy for rapid-cortex-dev (HttpApi2 / stack 2).
+#
+# Production path for app.rapidcortex.us until AppSamSopIntel is imported into
+# the parent nested tree (tables + route already exist as this surgical stack —
+# nesting a second CREATE would AlreadyExists). Redeploy this after SopIntel
+# code or IAM changes.
+#
+# Creates/updates four Dynamo tables, HTTP + pattern-analyzer Lambdas, and
 # ANY /api/sop-intelligence/{proxy+} on stack 2 (t4bdwpjfs5).
 set -euo pipefail
 

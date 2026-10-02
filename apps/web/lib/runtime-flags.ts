@@ -13,6 +13,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_NG911_ASSIST: process.env.NEXT_PUBLIC_ENABLE_NG911_ASSIST,
   NEXT_PUBLIC_ENABLE_CALL_ASSIST: process.env.NEXT_PUBLIC_ENABLE_CALL_ASSIST,
   NEXT_PUBLIC_ENABLE_CALL_ASSIST_GREETING_CONFIG: process.env.NEXT_PUBLIC_ENABLE_CALL_ASSIST_GREETING_CONFIG,
+  NEXT_PUBLIC_ENABLE_CALL_ASSIST_SMS_CONFIRMATION: process.env.NEXT_PUBLIC_ENABLE_CALL_ASSIST_SMS_CONFIRMATION,
   NEXT_PUBLIC_ENABLE_RC_TRANSLATE: process.env.NEXT_PUBLIC_ENABLE_RC_TRANSLATE,
   NEXT_PUBLIC_ENABLE_RC_TRANSLATE_VENUE: process.env.NEXT_PUBLIC_ENABLE_RC_TRANSLATE_VENUE,
   NEXT_PUBLIC_ENABLE_RC_TRANSLATE_CAMPUS: process.env.NEXT_PUBLIC_ENABLE_RC_TRANSLATE_CAMPUS,
@@ -114,6 +115,9 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_LOADOUT_PORTAL: process.env.NEXT_PUBLIC_ENABLE_LOADOUT_PORTAL,
   NEXT_PUBLIC_ENABLE_AI_FEATURE_GATE: process.env.NEXT_PUBLIC_ENABLE_AI_FEATURE_GATE,
   NEXT_PUBLIC_ENABLE_CONTENT_PROTECTION: process.env.NEXT_PUBLIC_ENABLE_CONTENT_PROTECTION,
+  NEXT_PUBLIC_ENABLE_CONTEXT_CARDS: process.env.NEXT_PUBLIC_ENABLE_CONTEXT_CARDS,
+  NEXT_PUBLIC_ENABLE_COMMAND_INTELLIGENCE: process.env.NEXT_PUBLIC_ENABLE_COMMAND_INTELLIGENCE,
+  NEXT_PUBLIC_ENABLE_NEXIQ_VAULT: process.env.NEXT_PUBLIC_ENABLE_NEXIQ_VAULT,
 };
 
 const CAD_WRITEBACK_FLAG = "NEXT_PUBLIC_ENABLE_CAD_WRITEBACK";
@@ -225,6 +229,11 @@ export function isCallAssistEnabled(): boolean {
 /** Per-agency greeting / escalation mode config. Default on when unset. */
 export function isCallAssistGreetingConfigEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CALL_ASSIST_GREETING_CONFIG");
+}
+
+/** SMS confirmation of report number after intake. Default on when unset. */
+export function isCallAssistSmsConfirmationEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CALL_ASSIST_SMS_CONFIRMATION");
 }
 
 /** Translate — field / venue / campus / clinical voice translation. Default on when unset. */
@@ -373,6 +382,21 @@ export function isDispatcherWellnessUiEnabled(): boolean {
 /** F7 caller card API + panel (must match API ENABLE_CALLER_CARD). */
 export function isCallerCardEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CALLER_CARD");
+}
+
+/** Incident Context Cards — included on all plans. Default on when unset. */
+export function isContextCardsEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CONTEXT_CARDS");
+}
+
+/** Command Intelligence dashboard (billable add-on). Default on when unset. */
+export function isCommandIntelligenceEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_COMMAND_INTELLIGENCE");
+}
+
+/** NexiQ Vault historical CAD archive (billable add-on). Default on when unset. */
+export function isNexiqVaultEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_NEXIQ_VAULT");
 }
 
 /** F9 supervisor performance + coaching (API routes always on when deployed). */

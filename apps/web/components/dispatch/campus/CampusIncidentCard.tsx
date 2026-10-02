@@ -4,8 +4,9 @@ import { ImageIcon, MapPin, Radio } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { QrIncidentLocation } from "@/components/incidents/qr-incident-location";
 import { SmsLocationPanel } from "@/components/dispatch/campus/sms-location-panel";
+import { PinpointPanel } from "@/components/dispatch/pinpoint-panel";
 import { CampusWarRoomLauncher } from "@/components/campus/campus-war-room-launcher";
-import { isSmsLocationEnabled } from "@/lib/runtime-flags";
+import { isPinpointEnabled, isSmsLocationEnabled } from "@/lib/runtime-flags";
 import type { CampusIncident, CampusIncidentStatus } from "@/lib/campus/types";
 
 function elapsedLabel(iso: string): string {
@@ -159,6 +160,12 @@ export function CampusIncidentCard({
           locationLinkSent={incident.locationLinkSent}
           reporterLast4={incident.reporterLast4}
         />
+      ) : null}
+
+      {isPinpointEnabled() ? (
+        <div className="mt-3">
+          <PinpointPanel incidentId={incident.id} embedded liveOnly />
+        </div>
       ) : null}
 
       <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-200">

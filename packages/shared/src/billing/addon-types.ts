@@ -129,6 +129,9 @@ export const ADDON_KEYS = [
   "feature_addons.rc_connect_professional",
   "feature_addons.rc_connect_enterprise",
   "feature_addons.grant_success_package",
+  "comms_intel.context_cards",
+  "comms_intel.command_intelligence",
+  "comms_intel.nexiq_vault",
 ] as const;
 
 export type AddonKey = (typeof ADDON_KEYS)[number];

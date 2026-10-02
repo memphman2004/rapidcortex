@@ -121,6 +121,34 @@ export function getCallAssistRecordsRequests(agencyId?: string | null) {
   );
 }
 
+export function listCallAssistCallRecords(date?: string, agencyId?: string | null) {
+  const q = withCallAssistAgencyQuery("/api/call-assist/call-records", agencyId);
+  const url = date ? `${q}${q.includes("?") ? "&" : "?"}date=${encodeURIComponent(date)}` : q;
+  return callAssistRequest<{
+    items: Array<{
+      confirmationNumber: string;
+      status: string;
+      department?: string;
+      incidentType?: string;
+      incidentLocation?: string;
+      slaMinutes?: number;
+      sessionId: string;
+      createdAt: string;
+    }>;
+    date: string;
+  }>(url);
+}
+
+export function acknowledgeCallAssistCallRecord(confirmationNumber: string, agencyId?: string | null) {
+  return callAssistRequest<{ record: Record<string, unknown> }>(
+    withCallAssistAgencyQuery(
+      `/api/call-assist/call-records/${encodeURIComponent(confirmationNumber)}/acknowledge`,
+      agencyId,
+    ),
+    { method: "POST", body: "{}" },
+  );
+}
+
 export function postCallAssistRecordsRequest(body: Record<string, unknown>, agencyId?: string | null) {
   return callAssistRequest(withCallAssistAgencyQuery("/api/call-assist/records-requests", agencyId), {
     method: "POST",

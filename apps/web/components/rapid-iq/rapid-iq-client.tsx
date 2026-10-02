@@ -23,6 +23,7 @@ import {
 import {
   enqueuePipelineFromOpportunity,
   getPipelineSignals,
+  patchPipelineSignal,
   patchPipelineSignalStatus,
   PIPELINE_AGENCIES_QUERY_KEY,
   PIPELINE_SIGNALS_QUERY_KEY,
@@ -339,6 +340,30 @@ export function RapidIqClient() {
     }
   }
 
+  async function handleWatchSignal(signal: RapidIqPipelineSignal) {
+    setDismissingId(signal.signalId);
+    setPipelineActionError(null);
+    try {
+      if (demo) {
+        qc.setQueryData<RapidIqPipelineSignal[]>(PIPELINE_SIGNALS_QUERY_KEY, (prev) =>
+          (prev ?? []).map((s) =>
+            s.signalId === signal.signalId
+              ? { ...s, watched: true, watchedAt: new Date().toISOString() }
+              : s,
+          ),
+        );
+      } else {
+        await patchPipelineSignal(signal.signalId, { watched: true });
+        await qc.invalidateQueries({ queryKey: PIPELINE_SIGNALS_QUERY_KEY });
+      }
+      setPipelineToast(`Watching — ${signal.agencyName ?? signal.rawTitle}`);
+    } catch (err) {
+      setPipelineActionError(err instanceof Error ? err.message : "Could not watch signal");
+    } finally {
+      setDismissingId(null);
+    }
+  }
+
   return (
     <div className="flex min-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#050c1a]">
       <RapidIqStatsBar
@@ -554,6 +579,7 @@ export function RapidIqClient() {
               onClose={() => setSelectedSignalId(null)}
               onAddToPipeline={() => void handleAddSignalToPipeline(selectedIncoming)}
               onDismiss={() => void handleDismissSignal(selectedIncoming)}
+              onWatch={() => void handleWatchSignal(selectedIncoming)}
             />
           ) : panelOpp ? (
             <OpportunityDetailPanel

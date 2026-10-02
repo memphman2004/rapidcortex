@@ -1,0 +1,380 @@
+/**
+ * Rapid Vision™ — live transcript session API.
+ *
+ * POST /api/vision/sessions/{sessionId}/transcript/start
+ * POST /api/vision/sessions/{sessionId}/transcript/stop
+ * GET  /api/incidents/{id}/vision/transcript
+ *
+ * Auth/response sequence:
+ *   getUserContext → isUserAccountActive → operationalPasswordBlock
+ *   → canRequestVisionAccess (mutate) / canViewVision (read) → jsonOk / jsonError
+ *
+ * Session keys: pk INCIDENT#{incidentId} / sk SESSION#{sessionId}
+ */
+import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
+import { InvocationType, InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
+import {
+  canRequestVisionAccess,
+  canViewVision,
+  visionTranscriptQuerySchema,
+  visionTranscriptSessionBodySchema,
+  type UserContext,
+} from "rapid-cortex-shared";
+import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
+import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
+import { env } from "../../lib/env.js";
+import { makeId } from "../../lib/ids.js";
+import { jsonError, jsonOk } from "../../lib/http-json.js";
+import { operationalPasswordBlock } from "../../lib/operationalPasswordGate.js";
+import { requireActiveIncident } from "../../integrations/incidents/require-active-incident.js";
+import { AuditRepository } from "../../repositories/auditRepository.js";
+import { LiveVideoRepository } from "../../repositories/liveVideoRepository.js";
+import {
+  isKvsHlsMediaStreamRef,
+  resolveTranscriptHlsStreamRef,
+} from "../../rapid-vision/kvs-media-ref.js";
+import { visionStore } from "../../rapid-vision/store.js";
+
+const auditRepo = new AuditRepository();
+const liveVideoRepo = new LiveVideoRepository();
+const lambda = new LambdaClient({});
+
+type GateOk = { user: UserContext };
+type GateErr = { response: APIGatewayProxyResultV2 };
+
+async function gateTranscriptUser(
+  event: APIGatewayProxyEventV2,
+  mode: "mutate" | "view",
+): Promise<GateOk | GateErr> {
+  const user = await getUserContext(event);
+  if (!user) return { response: jsonError("Unauthorized", 401) };
+  if (!isUserAccountActive(user)) {
+    return { response: jsonError(ACCOUNT_INACTIVE_MESSAGE, 403) };
+  }
+  const pwd = operationalPasswordBlock(user);
+  if (pwd) {
+    return {
+      response: jsonError("Password update is required before continuing.", 403),
+    };
+  }
+  if (!env.enableRapidVision || !env.enableRapidVisionTranscript) {
+    return { response: jsonError("Rapid Vision™ transcript is disabled", 503) };
+  }
+  const allowed =
+    mode === "mutate"
+      ? canRequestVisionAccess(user, user.agencyId)
+      : canViewVision(user, user.agencyId);
+  if (!allowed) return { response: jsonError("Forbidden", 403) };
+  return { user };
+}
+
+function parseJsonBody(raw: string | undefined): unknown {
+  if (!raw?.trim()) return {};
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function sessionIdFromEvent(event: APIGatewayProxyEventV2): string {
+  const fromParams = event.pathParameters?.sessionId?.trim() ?? "";
+  if (fromParams) return fromParams;
+  const path = event.rawPath ?? event.requestContext?.http?.path ?? "";
+  const match = path.match(/\/sessions\/([^/]+)\/transcript\//);
+  return match?.[1] ? decodeURIComponent(match[1]).trim() : "";
+}
+
+function incidentIdFromEvent(event: APIGatewayProxyEventV2): string {
+  const fromPath = event.pathParameters?.id?.trim() ?? "";
+  const parsed = parseJsonBody(event.body);
+  if (parsed === null) return fromPath;
+  const fromBody =
+    typeof parsed === "object" &&
+    parsed !== null &&
+    "incidentId" in parsed &&
+    typeof (parsed as { incidentId?: unknown }).incidentId === "string"
+      ? (parsed as { incidentId: string }).incidentId.trim()
+      : "";
+  if (fromBody && fromPath && fromBody !== fromPath) return "";
+  return fromBody || fromPath;
+}
+
+export async function startHandler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
+  try {
+    const gated = await gateTranscriptUser(event, "mutate");
+    if ("response" in gated) return gated.response;
+    const { user } = gated;
+
+    const sessionId = sessionIdFromEvent(event);
+    const body = parseJsonBody(event.body);
+    if (body === null) {
+      return jsonError("Invalid JSON body.", 400);
+    }
+    const parsedBody = visionTranscriptSessionBodySchema.safeParse(
+      typeof body === "object" && body !== null && "incidentId" in body
+        ? body
+        : { incidentId: event.pathParameters?.id ?? "" },
+    );
+    if (!parsedBody.success) {
+      return jsonError("sessionId (path) and incidentId (body) are required.", 400);
+    }
+    const incidentId = parsedBody.data.incidentId;
+    if (!sessionId || !incidentId) {
+      return jsonError("sessionId (path) and incidentId (body) are required.", 400);
+    }
+
+    const incidentResult = await requireActiveIncident(incidentId, user);
+    if (!incidentResult.ok) {
+      return jsonError(incidentResult.message, incidentResult.statusCode);
+    }
+
+    const session = await visionStore.getSession(incidentId, sessionId, user.agencyId);
+    if (!session) return jsonError("Session not found.", 404);
+    if (session.agencyId !== user.agencyId) {
+      return jsonError("Forbidden", 403);
+    }
+    if (session.status !== "active") {
+      return jsonError(`Session is ${session.status}, not active.`, 409);
+    }
+    if (session.transcriptStatus === "active") {
+      return jsonError("Transcript is already running for this session.", 409);
+    }
+
+    const { assertAIGateFeature } = await import("../../lib/ai-gate-check.js");
+    const gate = await assertAIGateFeature(user.agencyId, "transcription");
+    if (!gate.allowed) {
+      return jsonOk({
+        aiDisabled: true,
+        sessionId,
+        incidentId,
+        transcriptStatus: session.transcriptStatus ?? "stopped",
+        message: "Live transcription AI is disabled for this agency (Manual Mode).",
+      });
+    }
+
+    // Live closed-captioning needs a KVS *video stream* (HLS), not a WebRTC signaling channel.
+    // Prefer the Vision session ARN; if missing, attach the incident's live-video media stream.
+    // Mock mode may start without media so demos still show scripted segments.
+    if (!env.visionTranscriptMock) {
+      let hlsRef = resolveTranscriptHlsStreamRef(session);
+      if (!hlsRef && env.liveVideoSessionsTable) {
+        try {
+          const live = await liveVideoRepo.getByIncidentId(user.agencyId, incidentId);
+          const liveArn = live?.kvsVideoStreamArn?.trim() ?? "";
+          if (
+            live &&
+            live.agencyId === user.agencyId &&
+            live.status !== "ended" &&
+            isKvsHlsMediaStreamRef(liveArn)
+          ) {
+            await visionStore.attachHlsStreamArn({
+              incidentId,
+              sessionId,
+              agencyId: user.agencyId,
+              kvsStreamArn: liveArn,
+            });
+            hlsRef = liveArn;
+          }
+        } catch (err) {
+          console.warn(
+            JSON.stringify({
+              msg: "transcript_live_video_hls_lookup_failed",
+              error: err instanceof Error ? err.message : String(err),
+            }),
+          );
+        }
+      }
+      if (!hlsRef) {
+        return jsonError(
+          "Live captions require KVS media storage on this session (a video stream ARN). WebRTC signaling alone cannot feed closed captioning.",
+          422,
+        );
+      }
+    }
+
+    if (!env.visionTranscriptWorkerFunction) {
+      return jsonError("Transcript worker is not configured", 503);
+    }
+
+    await visionStore.updateTranscriptStatus({
+      incidentId,
+      sessionId,
+      agencyId: user.agencyId,
+      status: "active",
+      startedBy: user.userId,
+    });
+
+    try {
+      await lambda.send(
+        new InvokeCommand({
+          FunctionName: env.visionTranscriptWorkerFunction,
+          InvocationType: InvocationType.Event,
+          Payload: Buffer.from(
+            JSON.stringify({
+              sessionId,
+              incidentId,
+              agencyId: user.agencyId,
+              cameraId: session.cameraId,
+            }),
+          ),
+        }),
+      );
+    } catch (err) {
+      await visionStore.updateTranscriptStatus({
+        incidentId,
+        sessionId,
+        agencyId: user.agencyId,
+        status: "stopped",
+      });
+      console.error(JSON.stringify({ msg: "transcript_worker_invoke_failed", error: String(err) }));
+      return jsonError("Failed to start transcript.", 500);
+    }
+
+    try {
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: user.agencyId,
+        incidentId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.VISION_TRANSCRIPT_STARTED,
+        details: { sessionId, cameraId: session.cameraId, mock: env.visionTranscriptMock },
+        createdAt: new Date().toISOString(),
+        resourceType: "incident",
+        resourceId: sessionId,
+      });
+    } catch {
+      /* audit failure is never fatal */
+    }
+
+    return jsonOk({
+      sessionId,
+      incidentId,
+      transcriptStatus: "active",
+      message: "Transcript worker starting. Segments will appear within a few seconds.",
+    });
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        msg: "vision_transcript_start_error",
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+    return jsonError("Failed to start transcript.", 500);
+  }
+}
+
+export async function stopHandler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
+  try {
+    const gated = await gateTranscriptUser(event, "mutate");
+    if ("response" in gated) return gated.response;
+    const { user } = gated;
+
+    const sessionId = sessionIdFromEvent(event);
+    const body = parseJsonBody(event.body);
+    if (body === null) {
+      return jsonError("Invalid JSON body.", 400);
+    }
+    const parsedBody = visionTranscriptSessionBodySchema.safeParse(
+      typeof body === "object" && body !== null && "incidentId" in body
+        ? body
+        : { incidentId: event.pathParameters?.id ?? "" },
+    );
+    if (!parsedBody.success) {
+      return jsonError("sessionId (path) and incidentId (body) are required.", 400);
+    }
+    const incidentId = parsedBody.data.incidentId;
+    if (!sessionId || !incidentId) {
+      return jsonError("sessionId (path) and incidentId (body) are required.", 400);
+    }
+
+    const session = await visionStore.getSession(incidentId, sessionId, user.agencyId);
+    if (!session) return jsonError("Session not found.", 404);
+    if (session.agencyId !== user.agencyId) {
+      return jsonError("Forbidden", 403);
+    }
+
+    await visionStore.updateTranscriptStatus({
+      incidentId,
+      sessionId,
+      agencyId: user.agencyId,
+      status: "stopped",
+    });
+
+    try {
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: user.agencyId,
+        incidentId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.VISION_TRANSCRIPT_STOPPED,
+        details: { sessionId, cameraId: session.cameraId },
+        createdAt: new Date().toISOString(),
+        resourceType: "incident",
+        resourceId: sessionId,
+      });
+    } catch {
+      /* audit failure is never fatal */
+    }
+
+    return jsonOk({ sessionId, incidentId, transcriptStatus: "stopped" });
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        msg: "vision_transcript_stop_error",
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+    return jsonError("Failed to stop transcript.", 500);
+  }
+}
+
+export async function getHandler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
+  try {
+    const gated = await gateTranscriptUser(event, "view");
+    if ("response" in gated) return gated.response;
+    const { user } = gated;
+
+    const incidentId = event.pathParameters?.id?.trim() ?? incidentIdFromEvent(event);
+    if (!incidentId) {
+      return jsonError("incidentId path parameter required.", 400);
+    }
+
+    const parsed = visionTranscriptQuerySchema.safeParse(event.queryStringParameters ?? {});
+    if (!parsed.success) {
+      return jsonError("Invalid transcript query.", 400);
+    }
+
+    const segments = await visionStore.listTranscriptSegments({
+      agencyId: user.agencyId,
+      incidentId,
+      sessionId: parsed.data.sessionId,
+      limit: parsed.data.limit ?? 100,
+    });
+
+    return jsonOk({
+      incidentId,
+      sessionId: parsed.data.sessionId ?? null,
+      segments,
+      count: segments.length,
+    });
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        msg: "vision_transcript_get_error",
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+    return jsonError("Failed to load transcript.", 500);
+  }
+}
+
+export function withVisionPathParams(
+  event: APIGatewayProxyEventV2,
+  extra: Record<string, string>,
+): APIGatewayProxyEventV2 {
+  return {
+    ...event,
+    pathParameters: { ...(event.pathParameters ?? {}), ...extra },
+  };
+}

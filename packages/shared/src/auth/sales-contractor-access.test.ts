@@ -7,6 +7,7 @@ import {
 import {
   canAccessDeploymentsMap,
   canAccessGrantSuccessProgram,
+  canAccessPricingCatalog,
   canAccessPsapProspectsCrm,
   canAccessRapidIqWorkspace,
 } from "./sales-contractor-access.js";
@@ -32,6 +33,9 @@ describe("sales contractor CRM access helpers", () => {
     expect(canAccessDeploymentsMap("salescontractor")).toBe(true);
     expect(canAccessRapidIqWorkspace("salescontractor")).toBe(true);
     expect(canAccessGrantSuccessProgram("salescontractor")).toBe(true);
+    expect(canAccessPricingCatalog("salescontractor")).toBe(true);
+    expect(canAccessPricingCatalog("rcadmin")).toBe(true);
+    expect(canAccessPricingCatalog("dispatcher")).toBe(false);
   });
 
   it("keeps rcitadmin off NexiQ workspace", () => {

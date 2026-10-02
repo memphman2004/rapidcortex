@@ -32,7 +32,7 @@ export function SignalEvidenceBlock({ signal }: { signal: RapidIqPipelineSignal 
               <a
                 href={signal.sourceUrl}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="text-sky-400 hover:underline"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -63,7 +63,7 @@ export function SignalEvidenceBlock({ signal }: { signal: RapidIqPipelineSignal 
                   <a
                     href={ev.url}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="text-sky-400 hover:underline"
                     onClick={(e) => e.stopPropagation()}
                   >

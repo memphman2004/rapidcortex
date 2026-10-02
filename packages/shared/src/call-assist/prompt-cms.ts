@@ -140,22 +140,16 @@ export function rollbackPrompt(
 }
 
 export const DEFAULT_CALL_ASSIST_PROMPTS: Record<Exclude<CallAssistPromptKey, "dispatchTriage">, string> = {
-  opening:
-    "How can I help you today?",
-  emergencyTransfer:
-    "This is the non-emergency line. For life-threatening emergencies, please hang up and dial {emergencyLine} now. I'm also alerting a {agencyShortName} {officerLabel}.",
-  humanTransfer: "Of course. I'm connecting you to a {agencyShortName} {officerLabel} now. Stay on the line.",
-  fallbackTransfer:
-    "I'm sorry, I'm having trouble understanding. Let me connect you to a {agencyDisplayName} {officerLabel} who can help. Stay on the line.",
+  opening: "How can I help you today?",
+  emergencyTransfer: "This sounds like an emergency — let me connect you now.",
+  humanTransfer: "Connecting you to a {agencyShortName} {officerLabel} now. Stay on the line.",
+  fallbackTransfer: "Having trouble with that — connecting you to someone who can help.",
   incidentCreated:
-    "I've created a report for {agencyDisplayName}. Your reference number is {referenceNumber}. A {officerLabel} will follow up.",
-  onlineReportEligible:
-    "This incident may be eligible for online reporting. Would you like me to text you a secure link to file your report online?",
-  carfaxEligible:
-    "Your vehicle incident may be eligible for the vehicle reporting program. Would you like me to text you a secure link?",
-  callbackOffer:
-    "If you prefer, we can schedule a callback instead of holding. Would you like us to call you back at this number?",
-  smsOffer: "Would you like me to text you a secure link to finish this report online?",
+    "Okay. We've got it. Your report number is {referenceNumber}. Use that if you call back with updates.",
+  onlineReportEligible: "Want me to text you a link to finish this online?",
+  carfaxEligible: "Want a text link for the vehicle reporting program?",
+  callbackOffer: "Want a callback at this number instead of holding?",
+  smsOffer: "Want me to text you a secure link to finish online?",
 };
 
 export function promptPackVersionLabel(records: CallAssistPromptRecord[]): string {

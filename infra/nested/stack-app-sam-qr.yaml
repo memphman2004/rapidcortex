@@ -80,6 +80,19 @@ Parameters:
     Type: String
     Default: ""
     Description: When set, use this existing DynamoDB table instead of creating GuardianEventsTable (Retain orphans after DELETE_SKIPPED).
+  PinpointLinksTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table for QR inline live-location (Pinpoint) shares.
+  EnablePinpoint:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: When true, LocationIntake can create inline Pinpoint shares for QR reporters.
+  AppPublicBaseUrl:
+    Type: String
+    Default: "https://app.rapidcortex.us"
+    Description: Public app origin for Pinpoint token URLs (no trailing slash).
 
 Conditions:
   HasQRLocationsTable: !Not [!Equals [!Ref QRLocationsTable, ""]]
@@ -97,6 +110,7 @@ Conditions:
     Fn::And:
       - !Not [!Equals [!Ref WebSocketConnectionsTable, ""]]
       - !Not [!Equals [!Ref WebSocketApiId, ""]]
+  HasPinpointLinksTable: !Not [!Equals [!Ref PinpointLinksTable, ""]]
 
 Globals:
   Function:
@@ -153,6 +167,12 @@ Globals:
           - HasWebSocketBroadcast
           - !Sub https://${WebSocketApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}
           - ""
+        PINPOINT_LINKS_TABLE: !If
+          - HasPinpointLinksTable
+          - !Ref PinpointLinksTable
+          - ""
+        ENABLE_PINPOINT: !Ref EnablePinpoint
+        PINPOINT_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
 
 Resources:
   QRNFCCodesTable:
@@ -480,6 +500,22 @@ Resources:
         - !If
           - HasWebSocketBroadcast
           - !Ref AppManagedPolicyQrWebSocketBroadcast
+          - !Ref AWS::NoValue
+        - !If
+          - HasPinpointLinksTable
+          - Version: "2012-10-17"
+            Statement:
+              - Sid: QrIntakePinpointLinks
+                Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:Query
+                  - dynamodb:DescribeTable
+                Resource:
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PinpointLinksTable}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PinpointLinksTable}/index/*
           - !Ref AWS::NoValue
 
   LocationMediaUploadFunction:

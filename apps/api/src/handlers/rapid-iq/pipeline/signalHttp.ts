@@ -103,21 +103,46 @@ async function handleWatchIngest(event: APIGatewayProxyEventV2): Promise<JsonRes
   }
 
   const body = parseBody(event);
-  if (body === null) return badRequest("Invalid JSON");
+  if (body === null) {
+    return ok(
+      { success: false, error: "VALIDATION_ERROR", details: [{ message: "Invalid JSON" }] },
+      400,
+    );
+  }
   const parsed = rapidIqWatchIngestRequestSchema.safeParse(body);
-  if (!parsed.success) return badRequestFromZod(parsed.error);
+  if (!parsed.success) {
+    return ok(
+      {
+        success: false,
+        error: "VALIDATION_ERROR",
+        details: parsed.error.issues.map((i) => ({
+          path: i.path.join("."),
+          message: i.message,
+        })),
+      },
+      400,
+    );
+  }
 
   const items = Array.isArray(parsed.data) ? parsed.data : [parsed.data];
   const results = [];
   for (const item of items) {
     const result = await ingestWatchSignal(item);
-    results.push({
+    const row = {
+      success: true as const,
       action: result.action,
+      external_key: result.signal.externalKey ?? item.external_key,
+      id: result.signal.signalId,
+      changes: result.changes?.length ? result.changes : undefined,
+      possible_duplicate: result.signal.possibleDuplicate || undefined,
+      possible_duplicate_of: result.signal.possibleDuplicateOf,
+      // Back-compat fields for existing smoke scripts / dashboards
       signalId: result.signal.signalId,
       externalKey: result.signal.externalKey,
       status: result.signal.status,
       watchUpdated: result.signal.watchUpdated ?? false,
-    });
+    };
+    results.push(row);
     try {
       await auditRepo.create({
         eventId: makeId("audit"),
@@ -126,10 +151,11 @@ async function handleWatchIngest(event: APIGatewayProxyEventV2): Promise<JsonRes
         type: AUDIT_EVENT_TYPES.RAPID_IQ_PIPELINE_SIGNAL_UPDATED,
         details: {
           action: result.action,
-          source: "chatgpt_watch",
+          source: item.source ?? "chatgpt_watch",
           watch: item.watch,
           externalKey: item.external_key,
           signalId: result.signal.signalId,
+          changes: result.changes ?? [],
         },
         createdAt: new Date().toISOString(),
         resourceType: "rapid_iq_pipeline_signal",
@@ -140,7 +166,24 @@ async function handleWatchIngest(event: APIGatewayProxyEventV2): Promise<JsonRes
     }
   }
 
+  // Single finding → canonical ChatGPT Action response shape
+  if (results.length === 1) {
+    const r = results[0]!;
+    return ok({
+      success: true,
+      action: r.action,
+      external_key: r.external_key,
+      id: r.id,
+      changes: r.changes,
+      possible_duplicate: r.possible_duplicate,
+      possible_duplicate_of: r.possible_duplicate_of,
+      ingested: 1,
+      results,
+    });
+  }
+
   return ok({
+    success: true,
     ingested: results.length,
     results,
   });
@@ -338,12 +381,11 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       const parsed = patchNexiQPipelineSignalBodySchema.safeParse(body);
       if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
 
-      const updated = parsed.data.status
-        ? await updateSignalFields(signalId, {
-            status: parsed.data.status,
-            procurementStage: parsed.data.procurementStage,
-          })
-        : await updateSignalFields(signalId, { procurementStage: parsed.data.procurementStage });
+      const updated = await updateSignalFields(signalId, {
+        status: parsed.data.status,
+        procurementStage: parsed.data.procurementStage,
+        watched: parsed.data.watched,
+      });
 
       await auditRepo.create({
         eventId: makeId("audit"),
@@ -353,6 +395,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         details: {
           status: parsed.data.status,
           procurementStage: parsed.data.procurementStage,
+          watched: parsed.data.watched,
         },
         createdAt: new Date().toISOString(),
         resourceType: "rapid_iq_pipeline_signal",
