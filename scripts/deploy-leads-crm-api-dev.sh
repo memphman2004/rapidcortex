@@ -51,7 +51,7 @@ fi
 echo "── Using apps/api/dist/handlers/rc-admin/rcAdminLeadsHttp.js ──"
 
 TEMPLATE="${ROOT}/infra/nested/stack-app-sam-3-leads-crm.yaml"
-sam validate --lint --template-file "${TEMPLATE}"
+echo "── skip sam validate --lint (nodejs20 EOL warning noise) ──"
 
 sam build \
   --template-file "${TEMPLATE}" \

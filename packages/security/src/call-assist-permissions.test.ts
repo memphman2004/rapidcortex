@@ -24,15 +24,28 @@ describe("Call Assist RBAC", () => {
     expect(defaultPermissionForRole("call_assist_operator", "workspace.live_call")).toBe(false);
     expect(defaultPermissionForRole("call_assist_operator", "incidents.view")).toBe(false);
     expect(defaultPermissionForRole("call_assist_operator", "call_assist.admin.config")).toBe(false);
+    expect(defaultPermissionForRole("call_assist_operator", "call_assist.transfer.force")).toBe(true);
+    expect(defaultPermissionForRole("call_assist_operator", "call_assist.session.takeover")).toBe(true);
+    expect(defaultPermissionForRole("call_assist_operator", "call_assist.analytics.view")).toBe(false);
     expect(defaultPermissionForRole("call_assist_supervisor", "call_assist.qa.view")).toBe(true);
+    expect(defaultPermissionForRole("call_assist_supervisor", "call_assist.analytics.view")).toBe(true);
+    expect(defaultPermissionForRole("call_assist_supervisor", "call_assist.transfer.force")).toBe(true);
     expect(defaultPermissionForRole("call_assist_supervisor", "call_assist.admin.config")).toBe(false);
     expect(defaultPermissionForRole("call_assist_admin", "call_assist.admin.config")).toBe(true);
     expect(defaultPermissionForRole("call_assist_admin", "call_assist.demo.run")).toBe(true);
+    expect(defaultPermissionForRole("call_assist_admin", "call_assist.records.request")).toBe(true);
+    expect(defaultPermissionForRole("call_assist_admin", "call_assist.legal_hold.manage")).toBe(true);
     expect(defaultPermissionForRole("call_assist_admin", "users.create")).toBe(true);
     expect(defaultPermissionForRole("call_assist_operator", "users.create")).toBe(false);
     expect(defaultPermissionForRole("call_assist_admin", "workspace.live_call")).toBe(false);
     expect(defaultPermissionForRole("CALL_ASSIST_OPERATOR" as "call_assist_operator", "call_assist.session.view")).toBe(
       true,
     );
+  });
+
+  it("denies hospital staff from Call Assist transfer and admin", () => {
+    expect(defaultPermissionForRole("hospitalstaff", "call_assist.transfer.force")).toBe(false);
+    expect(defaultPermissionForRole("hospitalstaff", "call_assist.admin.config")).toBe(false);
+    expect(defaultPermissionForRole("hospitalstaff", "call_assist.session.view")).toBe(false);
   });
 });

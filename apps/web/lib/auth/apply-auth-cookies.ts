@@ -31,7 +31,12 @@ export function applyCognitoAuthCookies(
   }
 }
 
-/** Lets middleware admit one navigation when Cognito accepted the new password but ID-token claims are stale. */
+/**
+ * Lets middleware admit a short post-change navigation when Cognito accepted the new password
+ * but ID-token `custom:pwdChangedAt` / `custom:pwdChangeReq` may still lag.
+ * Keep this brief — a long TTL lets the dashboard HTML load while APIs keep returning
+ * `password_change_required` 403 (operationalPasswordBlock).
+ */
 export function applyPasswordRotationNavBypassCookie(res: NextResponse): void {
   const secure = process.env.NODE_ENV === "production";
   res.cookies.set(COOKIE_PASSWORD_ROTATION_NAV_BYPASS, "1", {
@@ -39,7 +44,18 @@ export function applyPasswordRotationNavBypassCookie(res: NextResponse): void {
     secure,
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24,
+    maxAge: 5 * 60,
+  });
+}
+
+export function clearPasswordRotationNavBypassCookie(res: NextResponse): void {
+  const secure = process.env.NODE_ENV === "production";
+  res.cookies.set(COOKIE_PASSWORD_ROTATION_NAV_BYPASS, "", {
+    httpOnly: true,
+    secure,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
   });
 }
 
@@ -49,4 +65,5 @@ export function clearAuthCookiesOnResponse(res: NextResponse): void {
   res.cookies.set(COOKIE_ID_TOKEN, "", opts);
   res.cookies.set(COOKIE_ACCESS_TOKEN, "", opts);
   res.cookies.set(COOKIE_REFRESH_TOKEN, "", opts);
+  clearPasswordRotationNavBypassCookie(res);
 }

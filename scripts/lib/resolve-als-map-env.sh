@@ -1,24 +1,50 @@
 #!/usr/bin/env bash
 # Resolve ALS public map env from CloudFormation / SSM without printing secrets.
 # Usage: source scripts/lib/resolve-als-map-env.sh && resolve_als_map_env
+#
+# Canonical live values come from AppSamLocation / rapid-cortex-{stage} outputs:
+#   AlsMapName / AlsMapNameDark / MapIdentityPoolId
+# Do NOT hardcode Esri `rc-map-{stage}` when stack outputs say HERE maps, and do not
+# ship Maps V2 without geo-maps:GetStyleDescriptor on the Cognito map roles.
 
 resolve_als_map_env() {
-  local stage="${DEPLOYMENT_STAGE:-${STAGE:-${ENVIRONMENT:-dev}}}"
+  local stage="${DEPLOYMENT_STAGE:-${STAGE:-${ENVIRONMENT:-${WEB_DEPLOY_ENVIRONMENT:-dev}}}}"
   local region="${AWS_REGION:-${AWS_DEFAULT_REGION:-us-east-1}}"
   local stack="${API_STACK:-rapid-cortex-${stage}}"
   local ssm_name="${ALS_IDENTITY_POOL_SSM_PARAMETER:-/rapidcortex/${stage}/als/identity-pool-id}"
 
   export NEXT_PUBLIC_ALS_REGION="${NEXT_PUBLIC_ALS_REGION:-${region}}"
-  export NEXT_PUBLIC_ALS_MAP_NAME="${NEXT_PUBLIC_ALS_MAP_NAME:-rc-map-${stage}}"
-  export NEXT_PUBLIC_ALS_MAP_NAME_DARK="${NEXT_PUBLIC_ALS_MAP_NAME_DARK:-rc-map-dark-${stage}}"
-  # Maps V2 style descriptors include live traffic (`traffic=All`). Unset or `v1`
-  # keeps named Esri/HERE maps (no traffic on Esri `rc-map-{stage}`).
+  # Maps V2 style descriptors (traffic-capable). Unset or `v1` keeps named V1 maps.
   export NEXT_PUBLIC_ALS_MAP_API_VERSION="${NEXT_PUBLIC_ALS_MAP_API_VERSION:-v2}"
   export NEXT_PUBLIC_ALS_MAP_STYLE="${NEXT_PUBLIC_ALS_MAP_STYLE:-Standard}"
   export NEXT_PUBLIC_ALS_PLACE_INDEX_NAME="${NEXT_PUBLIC_ALS_PLACE_INDEX_NAME:-rc-places-${stage}}"
   export NEXT_PUBLIC_ALS_ROUTE_CALCULATOR_NAME="${NEXT_PUBLIC_ALS_ROUTE_CALCULATOR_NAME:-rc-routes-${stage}}"
   export NEXT_PUBLIC_ALS_GEOFENCE_COLLECTION="${NEXT_PUBLIC_ALS_GEOFENCE_COLLECTION:-rc-geofences-${stage}}"
   export NEXT_PUBLIC_ALS_TRACKER_NAME="${NEXT_PUBLIC_ALS_TRACKER_NAME:-rc-tracker-${stage}}"
+
+  # Prefer CloudFormation AlsMapName* so print/env/scripts cannot drift from the Location stack.
+  if [[ -z "${NEXT_PUBLIC_ALS_MAP_NAME:-}" || -z "${NEXT_PUBLIC_ALS_MAP_NAME_DARK:-}" ]]; then
+    local map_name map_dark
+    map_name="$(aws cloudformation describe-stacks \
+      --stack-name "${stack}" \
+      --region "${region}" \
+      --query "Stacks[0].Outputs[?OutputKey=='AlsMapName' || OutputKey=='MapName'].OutputValue | [0]" \
+      --output text 2>/dev/null || true)"
+    map_dark="$(aws cloudformation describe-stacks \
+      --stack-name "${stack}" \
+      --region "${region}" \
+      --query "Stacks[0].Outputs[?OutputKey=='AlsMapNameDark' || OutputKey=='MapNameDark'].OutputValue | [0]" \
+      --output text 2>/dev/null || true)"
+    if [[ -n "${map_name}" && "${map_name}" != "None" ]]; then
+      export NEXT_PUBLIC_ALS_MAP_NAME="${NEXT_PUBLIC_ALS_MAP_NAME:-${map_name}}"
+    fi
+    if [[ -n "${map_dark}" && "${map_dark}" != "None" ]]; then
+      export NEXT_PUBLIC_ALS_MAP_NAME_DARK="${NEXT_PUBLIC_ALS_MAP_NAME_DARK:-${map_dark}}"
+    fi
+  fi
+  # Fallback: Location stack creates HERE-named maps (see stack-app-sam-location.yaml).
+  export NEXT_PUBLIC_ALS_MAP_NAME="${NEXT_PUBLIC_ALS_MAP_NAME:-rc-map-here-${stage}}"
+  export NEXT_PUBLIC_ALS_MAP_NAME_DARK="${NEXT_PUBLIC_ALS_MAP_NAME_DARK:-rc-map-here-dark-${stage}}"
 
   if [[ -z "${NEXT_PUBLIC_ALS_IDENTITY_POOL_ID:-}" || "${NEXT_PUBLIC_ALS_IDENTITY_POOL_ID}" == "us-east-1:REPLACE_WITH_IDENTITY_POOL_ID" ]]; then
     local from_ssm
@@ -34,6 +60,13 @@ resolve_als_map_env() {
         --output text 2>/dev/null || true)"
       if [[ -n "${from_cf}" && "${from_cf}" != "None" ]]; then
         export NEXT_PUBLIC_ALS_IDENTITY_POOL_ID="${from_cf}"
+        # Persist so the next deploy does not depend on a CFN round-trip.
+        aws ssm put-parameter \
+          --name "${ssm_name}" \
+          --type String \
+          --value "${from_cf}" \
+          --overwrite \
+          --region "${region}" >/dev/null 2>&1 || true
       fi
     fi
   fi

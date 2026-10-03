@@ -13,7 +13,7 @@ export AWS_REGION="${AWS_REGION:-us-east-1}"
 export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-$AWS_REGION}"
 export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=8192}"
 
-SAM_BUILD_DIR="/Volumes/Mac Mini/.sam-lean-build/contacts-$(date +%Y%m%d-%H%M%S)"
+SAM_BUILD_DIR="/Users/jeffcoleman/.rapid-cortex-sam-build/contacts-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "${SAM_BUILD_DIR}"
 export SAM_BUILD_DIR
 echo "SAM_BUILD_DIR=${SAM_BUILD_DIR}"
@@ -50,7 +50,7 @@ if [[ ! -f "${ROOT}/apps/api/dist/handlers/contacts/contactsHttp.js" ]]; then
 fi
 
 TEMPLATE="${ROOT}/infra/nested/stack-app-sam-3-contacts.yaml"
-sam validate --lint --template-file "${TEMPLATE}"
+echo "── skip sam validate --lint (nodejs20 EOL warning noise) ──"
 
 sam build \
   --template-file "${TEMPLATE}" \

@@ -578,6 +578,22 @@ Parameters:
     Type: String
     Default: ""
     Description: Optional Lex fulfillment Lambda ARN for parameterized contact flows.
+  ConnectInstanceId:
+    Type: String
+    Default: ""
+    Description: Amazon Connect instance ID for Call Assist outbound/transfer (not ARN).
+  CallAssistContactFlowId:
+    Type: String
+    Default: ""
+    Description: Call Assist contact flow ID for outbound callbacks and TransferContact.
+  CallAssistOutboundCallerId:
+    Type: String
+    Default: ""
+    Description: E.164 outbound caller ID for Call Assist StartOutboundVoiceContact.
+  AwsSmsConfigurationSetName:
+    Type: String
+    Default: ""
+    Description: AWS End User Messaging SMS configuration set (stage-specific).
   EnableRapidVisionNest:
     Type: String
     Default: "true"
@@ -3905,6 +3921,10 @@ Resources:
         CallAssistEmergencyQueueArn: !Ref CallAssistEmergencyQueueArn
         CallAssistFulfillmentLambdaArn: !Ref CallAssistFulfillmentLambdaArn
         AppPublicBaseUrl: !Ref AppPublicBaseUrl
+        ConnectInstanceId: !Ref ConnectInstanceId
+        CallAssistContactFlowId: !Ref CallAssistContactFlowId
+        CallAssistOutboundCallerId: !Ref CallAssistOutboundCallerId
+        AwsSmsConfigurationSetName: !Ref AwsSmsConfigurationSetName
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
   AppSamTranslateStack2:

@@ -452,7 +452,11 @@ export function postCallAssistTransfer(
   body: { reason: string; destinationType?: string },
   agencyId?: string | null,
 ) {
-  return callAssistRequest<{ session: Record<string, unknown> }>(
+  return callAssistRequest<{
+    session: Record<string, unknown>;
+    connectTransfer?: { ok: boolean; reason: string; contactId?: string };
+    advisoryOnly?: boolean;
+  }>(
     withCallAssistAgencyQuery(`/api/call-assist/sessions/${encodeURIComponent(sessionId)}/transfer`, agencyId),
     {
       method: "POST",

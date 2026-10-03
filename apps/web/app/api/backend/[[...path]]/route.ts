@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { clearPasswordRotationNavBypassCookie } from "@/lib/auth/apply-auth-cookies";
 import { isSam3ApiPath, isSam4ApiPath, isSam5ApiPath, isStack2ApiPath, resolveUpstreamApiBase } from "@/lib/comms-api-path";
 import { applyRotatedAuthCookies, resolveBffBearerToken } from "@/lib/server/bff-auth-token";
 import { joinUpstreamApiUrl, normalizeUpstreamApiPath } from "@/lib/upstream-url";
@@ -60,7 +61,23 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
   const ct = upstream.headers.get("content-type");
   if (ct) resHeaders.set("content-type", ct);
 
-  const response = new NextResponse(upstream.body, { status: upstream.status, headers: resHeaders });
+  // Buffer body when we may need to inspect JSON for password-gate handling.
+  const mustInspectPwdGate = upstream.status === 403 && (ct ?? "").includes("application/json");
+  const payload = mustInspectPwdGate ? await upstream.arrayBuffer() : null;
+  const response = new NextResponse(payload ?? upstream.body, {
+    status: upstream.status,
+    headers: resHeaders,
+  });
+  if (mustInspectPwdGate && payload) {
+    try {
+      const body = JSON.parse(new TextDecoder().decode(payload)) as { error?: unknown };
+      if (body?.error === "password_change_required") {
+        clearPasswordRotationNavBypassCookie(response);
+      }
+    } catch {
+      /* ignore */
+    }
+  }
   if (auth.token && "rotated" in auth && auth.rotated) {
     applyRotatedAuthCookies(response, auth.rotated);
   }

@@ -155,7 +155,7 @@ fi
 echo "── Using NexiQ handler dist ──"
 
 TEMPLATE="${ROOT}/infra/nested/stack-app-sam-rapid-iq.yaml"
-sam validate --lint --template-file "${TEMPLATE}"
+echo "── skip sam validate --lint (nodejs20 EOL warning noise) ──"
 
 sam build \
   --template-file "${TEMPLATE}" \

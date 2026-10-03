@@ -126,4 +126,12 @@ export class ResponseGenerator {
       "Having trouble with that — connecting you to someone who can help.",
     );
   }
+
+  /** Phase 2 — brief correction ack before the next question. */
+  correctionAck(value: string): string {
+    const v = value.trim();
+    if (!v) return "Got it.";
+    const short = v.length > 40 ? `${v.slice(0, 37)}…` : v;
+    return `${short.charAt(0).toUpperCase()}${short.slice(1)}. Got it.`;
+  }
 }

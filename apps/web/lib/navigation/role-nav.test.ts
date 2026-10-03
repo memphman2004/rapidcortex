@@ -252,9 +252,13 @@ describe("getRoleNav", () => {
     const supervisorHrefs = supervisor.sections.flatMap((s) => s.items).map((i) => i.href);
     expect(supervisorHrefs).toContain("/app/call-assist/supervisor");
     expect(supervisorHrefs).toContain("/app/call-assist/qa");
-    expect(supervisorHrefs).not.toContain("/app/call-assist/analytics");
+    expect(supervisorHrefs).toContain("/app/call-assist/analytics");
     expect(supervisorHrefs).not.toContain("/app/call-assist/admin");
     expect(hrefs).not.toContain("/app/call-assist/qa");
+    const callAssistAdmin = getRoleNav("call_assist_admin", {});
+    expect(callAssistAdmin.sections.flatMap((s) => s.items).map((i) => i.href)).toContain(
+      "/app/call-assist/analytics",
+    );
   });
 
   it("sales contractor nav includes CRM tools and feature-only catalogs", () => {
@@ -485,12 +489,12 @@ describe("getRoleNav", () => {
     expect(k12Safety?.items.map((i) => i.id)).toEqual(["pickup-auth"]);
   });
 
-  it("exposes NexiQ Vision™ on dispatcher media, not supervisor or guest services", () => {
+  it("exposes NexiQ Vision on dispatcher nav, not supervisor or guest services", () => {
     const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
       .sections.flatMap((s) => s.items)
       .find((i) => i.id === "rapid-vision");
-    expect(dispatcher?.label).toBe("NexiQ Vision™");
-    expect(dispatcher?.href).toBe("/test-psap/media?vision=1");
+    expect(dispatcher?.label).toBe("NexiQ Vision");
+    expect(dispatcher?.href).toBe("/test-psap/vision");
     expect(dispatcher?.feature).toBe("rapidVision");
 
     const supervisor = getRoleNav("supervisor", { jurisdiction: "test-psap" })

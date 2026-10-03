@@ -182,8 +182,10 @@ Resources:
   TranslateConnectionsTable:
     Type: AWS::DynamoDB::Table
     Condition: CreateConnectionsTable
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
+    # Retain — matches sessions/segments. Delete previously dropped the live
+    # rapid-cortex-translate-connections-{stage} table while Existing* still pointed at it.
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       TableName: !Sub "rapid-cortex-translate-connections-${DeploymentStage}"
       BillingMode: PAY_PER_REQUEST

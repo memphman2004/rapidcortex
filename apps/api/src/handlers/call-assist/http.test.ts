@@ -62,6 +62,15 @@ vi.mock("../../call-assist/build-ui-profile.js", () => ({
   })),
 }));
 
+vi.mock("../../call-assist/transfer-ledger.js", () => ({
+  recordTransferAttempt: vi.fn(async (opts: { outcome?: string }) => ({
+    ledgerId: "xfer-1",
+    attempt: 1,
+    outcome: opts.outcome ?? "INITIATED",
+  })),
+  closeOpenTransferAttempts: vi.fn(async () => []),
+}));
+
 vi.mock("../../middleware/requireAddon.js", () => ({
   requireAddon: () => async () => null,
 }));
@@ -317,5 +326,55 @@ describe("call-assist P3 RBAC", () => {
     const body = JSON.parse(String(res.body ?? "{}")) as { lastOutcome?: string; items?: unknown[] };
     expect(body.lastOutcome).toBe("INITIATED");
     expect(Array.isArray(body.items)).toBe(true);
+  });
+
+  it("rejects force-transfer without call_assist.transfer.force", async () => {
+    getSession.mockResolvedValue({
+      sessionId: "s1",
+      agencyId: "kcpd",
+      source: "DEMO",
+      state: "AI_ACTIVE",
+    });
+    const res = await invokeHttpHandler(
+      handler,
+      makeAuthenticatedEvent({
+        role: "analyst",
+        agencyId: "kcpd",
+        routeKey: "POST /api/call-assist/sessions/{sessionId}/transfer",
+        rawPath: "/api/call-assist/sessions/s1/transfer",
+        body: JSON.stringify({ reason: "Need human", destinationType: "CALL_TAKER" }),
+      }),
+    );
+    expect(res.statusCode).toBe(403);
+  });
+
+  it("records advisory force-transfer for demo sessions without Connect contact", async () => {
+    getSession.mockResolvedValue({
+      sessionId: "s1",
+      agencyId: "kcpd",
+      source: "DEMO",
+      state: "AI_ACTIVE",
+      continueAiConversation: true,
+    });
+    const res = await invokeHttpHandler(
+      handler,
+      makeAuthenticatedEvent({
+        role: "call_assist_operator",
+        agencyId: "kcpd",
+        routeKey: "POST /api/call-assist/sessions/{sessionId}/transfer",
+        rawPath: "/api/call-assist/sessions/s1/transfer",
+        body: JSON.stringify({ reason: "Operator takeover", destinationType: "CALL_TAKER" }),
+      }),
+    );
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(String(res.body ?? "{}")) as {
+      advisoryOnly?: boolean;
+      connectTransfer?: { ok?: boolean; reason?: string };
+      session?: { continueAiConversation?: boolean };
+    };
+    expect(body.advisoryOnly).toBe(true);
+    expect(body.connectTransfer?.ok).toBe(true);
+    expect(body.connectTransfer?.reason).toBe("demo_advisory_transfer");
+    expect(body.session?.continueAiConversation).toBe(false);
   });
 });

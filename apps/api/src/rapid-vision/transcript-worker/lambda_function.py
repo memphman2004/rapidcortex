@@ -67,9 +67,10 @@ def handler(event: dict, context: Any) -> dict:
     session_id = str(params.get("sessionId") or "")
     incident_id = str(params.get("incidentId") or "")
     agency_id = str(params.get("agencyId") or "")
-    camera_id = str(params.get("cameraId") or "")
+    # Caller live-video sessions may omit cameraId; keep a stable segment label.
+    camera_id = str(params.get("cameraId") or "").strip() or "caller-live-video"
 
-    if not all([session_id, incident_id, agency_id, camera_id]):
+    if not all([session_id, incident_id, agency_id]):
         logger.error(json.dumps({"msg": "transcript_worker_bad_params"}))
         return {"statusCode": 400, "body": "Missing required parameters"}
 

@@ -379,6 +379,10 @@ echo "→ Export for AppSamCallAssist / deploy.sh:"
 echo "   export CALL_ASSIST_PRIMARY_QUEUE_ARN=${QUEUE_ARN}"
 echo "   export CALL_ASSIST_EMERGENCY_QUEUE_ARN=${EMERGENCY_QUEUE_ARN}"
 echo "   export CONNECT_INSTANCE_ID=${INSTANCE_ID}"
+echo "   export CALL_ASSIST_CONTACT_FLOW_ID=${FLOW_ID}"
+if [[ -n "${PHONE:-}" && "${PHONE}" != "None" ]]; then
+  echo "   export CALL_ASSIST_OUTBOUND_CALLER_ID=${PHONE}"
+fi
 echo "Language menu: 1 English, 2 Spanish, 3 Mandarin, 4 Cantonese, 5 Tagalog, 6 Vietnamese, 7 Arabic."
 echo "Dial this number for live Call Assist tests. Do not hand it out as a 911 number."
 exit 0

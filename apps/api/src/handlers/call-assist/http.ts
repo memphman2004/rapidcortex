@@ -491,6 +491,34 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       session.continueAiConversation = false;
       session.updatedAt = new Date().toISOString();
       const destType = dest ?? "CALL_TAKER";
+
+      const config = await getOrCreateConfig(agencyId);
+      const queueArn =
+        destType === "EMERGENCY_911"
+          ? config.connectEmergencyQueueArn?.trim() ||
+            process.env.CALL_ASSIST_EMERGENCY_QUEUE_ARN?.trim() ||
+            ""
+          : config.connectQueueArn?.trim() ||
+            process.env.CALL_ASSIST_PRIMARY_QUEUE_ARN?.trim() ||
+            "";
+
+      let connectTransfer: { ok: boolean; reason: string; contactId?: string } | undefined;
+      if (session.connectContactId && queueArn && session.source !== "DEMO") {
+        const { AmazonConnectProvider } = await import("../../call-assist/telephony/amazon-connect.js");
+        const telephony = new AmazonConnectProvider();
+        connectTransfer = await telephony.transferActiveContact({
+          contactId: session.connectContactId,
+          queueArnOrId: queueArn,
+          demo: false,
+        });
+      } else if (session.source === "DEMO") {
+        connectTransfer = { ok: true, reason: "demo_advisory_transfer" };
+      } else if (!session.connectContactId) {
+        connectTransfer = { ok: false, reason: "no_live_connect_contact" };
+      } else {
+        connectTransfer = { ok: false, reason: "queue_not_configured" };
+      }
+
       const xfer = await recordTransferAttempt({
         agencyId,
         sessionId: session.sessionId,
@@ -499,8 +527,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         destinationId: destType,
         destinationDisplay: destType,
         channel: destType === "PHONE_NUMBER" ? "PSTN" : "QUEUE",
-        outcome: "INITIATED",
-        failureReason: parsed.data.reason,
+        outcome: connectTransfer.ok ? "INITIATED" : "FAILED",
+        failureReason: connectTransfer.ok
+          ? parsed.data.reason
+          : `${parsed.data.reason} (${connectTransfer.reason})`,
       });
       session.lastTransferOutcome = xfer.outcome;
       await callAssistStore.putSession(session);
@@ -514,12 +544,26 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             : dest === "EXTERNAL_AGENCY" || dest === "PHONE_NUMBER"
               ? AUDIT_EVENT_TYPES.CALL_ASSIST_EXTERNAL_TRANSFER
               : AUDIT_EVENT_TYPES.CALL_ASSIST_HUMAN_TRANSFER,
-        details: { reason: parsed.data.reason, destinationType: dest ?? "CALL_TAKER" },
+        details: {
+          reason: parsed.data.reason,
+          destinationType: dest ?? "CALL_TAKER",
+          connectTransferOk: connectTransfer.ok,
+          connectTransferReason: connectTransfer.reason,
+          connectContactId: session.connectContactId,
+        },
         createdAt: session.updatedAt,
         resourceType: "session",
         resourceId: session.sessionId,
       });
-      return withCorrelationHeaders(event, ok({ session }));
+      return withCorrelationHeaders(
+        event,
+        ok({
+          session,
+          connectTransfer,
+          // Advisory-only when no live ContactId — Lex/Contact Flow still owns PSTN path
+          advisoryOnly: !session.connectContactId || session.source === "DEMO",
+        }),
+      );
     }
 
     if (method === "POST" && parts[0] === "sessions" && parts[2] === "cad-push") {

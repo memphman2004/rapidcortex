@@ -1276,6 +1276,7 @@ async function runMiddleware(request: NextRequest) {
       "/transcription",
       "/translation",
       "/media",
+      "/vision",
       "/cad",
       "/incidents",
       "/ai-summary",

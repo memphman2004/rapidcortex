@@ -268,6 +268,25 @@ NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=8192}"
 export NODE_OPTIONS
 export SAM_NODE_MODULES_SRC="${SAM_NODE_MODULES_SRC:-${ROOT}/apps/api/node_modules}"
 
+# Resolve ffmpeg layer early so VISION_DOCKER_BUILD can be set before sam build.
+# Live captions need amazon-transcribe wheels compiled for Amazon Linux; without
+# VISION_DOCKER_BUILD=1 the transcript worker packages as ~6KB source-only.
+if [[ -z "${FFMPEG_LAYER_ARN:-}" ]]; then
+  FFMPEG_LAYER_ARN="$(
+    aws lambda list-layer-versions \
+      --layer-name rapid-cortex-ffmpeg \
+      --region "${AWS_REGION:-us-east-1}" \
+      --query 'LayerVersions[0].LayerVersionArn' \
+      --output text 2>/dev/null || true
+  )"
+  if [[ -z "${FFMPEG_LAYER_ARN}" || "${FFMPEG_LAYER_ARN}" == "None" ]]; then
+    FFMPEG_LAYER_ARN=""
+  fi
+fi
+if [[ -n "${FFMPEG_LAYER_ARN:-}" && -z "${VISION_DOCKER_BUILD:-}" ]]; then
+  export VISION_DOCKER_BUILD=1
+fi
+
 echo "═══════════════════════════════════════════════════════"
 echo " NexCort iQ SAM backend deployment"
 echo "═══════════════════════════════════════════════════════"
@@ -860,11 +879,35 @@ fi
 if [[ -z "${CALL_ASSIST_PRIMARY_QUEUE_ARN:-}" || -z "${CALL_ASSIST_EMERGENCY_QUEUE_ARN:-}" ]]; then
   echo "WARN: Call Assist Connect queue ARNs incomplete. Run scripts/configure-call-assist-connect.sh or export CALL_ASSIST_PRIMARY_QUEUE_ARN / CALL_ASSIST_EMERGENCY_QUEUE_ARN." >&2
 fi
+# Live TransferContact / StartOutboundVoiceContact — fail soft with WARN when unset (Lambdas still deploy).
+if [[ -n "${CONNECT_INSTANCE_ID:-}" ]]; then
+  PARAMS="${PARAMS} ConnectInstanceId=${CONNECT_INSTANCE_ID}"
+fi
+if [[ -n "${CALL_ASSIST_CONTACT_FLOW_ID:-}" ]]; then
+  PARAMS="${PARAMS} CallAssistContactFlowId=${CALL_ASSIST_CONTACT_FLOW_ID}"
+fi
+if [[ -n "${CALL_ASSIST_OUTBOUND_CALLER_ID:-}" ]]; then
+  PARAMS="${PARAMS} CallAssistOutboundCallerId=${CALL_ASSIST_OUTBOUND_CALLER_ID}"
+fi
+if [[ -z "${CONNECT_INSTANCE_ID:-}" || -z "${CALL_ASSIST_CONTACT_FLOW_ID:-}" ]]; then
+  echo "WARN: Call Assist live telephony incomplete (CONNECT_INSTANCE_ID / CALL_ASSIST_CONTACT_FLOW_ID). Console force-transfer stays advisory until set." >&2
+fi
 if [[ -n "${CALL_ASSIST_FULFILLMENT_LAMBDA_ARN:-}" ]]; then
   PARAMS="${PARAMS} CallAssistFulfillmentLambdaArn=${CALL_ASSIST_FULFILLMENT_LAMBDA_ARN}"
 fi
 if [[ -n "${CALL_ASSIST_RAPIDSOS_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} CallAssistRapidSosSecretArn=${CALL_ASSIST_RAPIDSOS_SECRET_ARN}"
+fi
+# Call Assist CAD push stays fail-closed unless explicitly enabled AFTER CAD writeback addendum.
+if [[ "${ENABLE_CALL_ASSIST_CAD_PUSH:-}" == "true" || "${ENABLE_CALL_ASSIST_CAD_PUSH:-}" == "1" ]]; then
+  if [[ "${CAD_WRITEBACK_ENABLED:-}" != "true" && "${CAD_WRITEBACK_ENABLED:-}" != "1" ]]; then
+    echo "ERROR: ENABLE_CALL_ASSIST_CAD_PUSH requires CAD_WRITEBACK_ENABLED=true (dual fail-closed). Refusing deploy." >&2
+    exit 1
+  fi
+  if [[ "$STAGE" == "prod" || "$STAGE" == "dev" ]]; then
+    echo "ERROR: ENABLE_CALL_ASSIST_CAD_PUSH is not allowed on ${STAGE} until pilot CAD writeback criteria are met." >&2
+    exit 1
+  fi
 fi
 
 PARAMS="${PARAMS} WyzeEnabled=${WYZE_ENABLED:-false}"

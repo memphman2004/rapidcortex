@@ -36,9 +36,17 @@ const LABEL_BADGE_CLASS: Record<"red" | "yellow" | "blue" | "slate", string> = {
   slate: "bg-slate-800/80 text-slate-400 ring-slate-700/60",
 };
 
+function navHrefPath(href: string): string {
+  const q = href.indexOf("?");
+  const h = href.indexOf("#");
+  const cut = Math.min(q >= 0 ? q : href.length, h >= 0 ? h : href.length);
+  return href.slice(0, cut) || href;
+}
+
 function navItemIsActive(pathname: string, item: NavItem): boolean {
-  if (item.exact) return pathname === item.href || pathname === `${item.href}/`;
-  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+  const path = navHrefPath(item.href);
+  if (item.exact) return pathname === path || pathname === `${path}/`;
+  return pathname === path || pathname.startsWith(`${path}/`);
 }
 
 /** Section label with extending rule — visual boundary without competing with items. */

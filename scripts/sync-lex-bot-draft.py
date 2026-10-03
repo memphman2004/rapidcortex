@@ -162,11 +162,11 @@ def recreate_locale(lex, locale: str) -> None:
     if locale not in LIMITED_ASR_LOCALES:
         create_kwargs["voiceSettings"] = {"voiceId": voice["voiceId"], "engine": voice["engine"]}
     else:
+        # Botocore/Lex accept enabled only — assistedNluMode is not on CreateBotLocale.
         create_kwargs["generativeAISettings"] = {
             "runtimeSettings": {
                 "nluImprovement": {
                     "enabled": True,
-                    "assistedNluMode": "Primary",
                 }
             }
         }

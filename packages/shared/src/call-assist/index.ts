@@ -4,6 +4,7 @@ export * from "./greeting.js";
 export * from "./safety.js";
 export * from "./triage.js";
 export * from "./intake.js";
+export * from "./conversation-memory.js";
 export * from "./routing.js";
 export * from "./carfax.js";
 export * from "./grounding.js";

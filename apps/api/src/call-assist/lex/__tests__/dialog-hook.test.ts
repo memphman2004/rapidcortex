@@ -1,10 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { KCPD_LEX_DEMO_SCENARIOS } from "rapid-cortex-shared";
 import { defaultTenantConfig } from "../../config-service.js";
 import { classifyWithBedrock } from "../intent-classifier.js";
 import { asLexSlot } from "../slot-extractor.js";
 import { handleDialog, handler, type DialogHookDeps } from "../dialog-hook.js";
 import type { LexSlotValue, LexV2Event } from "../types.js";
+
+vi.mock("../../../repositories/auditRepository.js", () => ({
+  AuditRepository: class {
+    create = vi.fn(async () => undefined);
+  },
+}));
 
 process.env.CALL_ASSIST_LEX_BEDROCK_MOCK = "1";
 
@@ -303,6 +309,68 @@ describe("Dialog hook — confidence control plane", () => {
     expect(result.sessionState.intent.name).toBe("FallbackIntent");
     expect(result.sessionState.sessionAttributes?.confidenceAction).toBe("escalate_human");
     expect(result.sessionState.sessionAttributes?.transferReason).toBe("LOW_CONFIDENCE");
+  });
+});
+
+describe("Dialog hook — Phase 2 conversation memory", () => {
+  it("loads prior session intake so location is not re-asked", async () => {
+    const event = buildLexEvent({
+      utterance: "It's a red Toyota Camry",
+      intent: "ParkingComplaint",
+      slots: {
+        ParkingLocation: null,
+        ParkingVehicleDescription: null,
+        ParkingViolationType: null,
+      },
+      sessionAttrs: { agencyId: "kcpd", callId: "test-call", promptSlot: "ParkingVehicleDescription" },
+    });
+    const result = await handleDialog(
+      event,
+      testDeps({
+        getSession: async () =>
+          ({
+            agencyId: "kcpd",
+            sessionId: "test-call",
+            intake: { locationText: "742 Elm Street", locationSource: "CALLER" },
+          }) as never,
+      }),
+    );
+    expect(result.sessionState.dialogAction).toMatchObject({
+      type: "ElicitSlot",
+      slotToElicit: "ParkingViolationType",
+    });
+    expect(result.sessionState.sessionAttributes?.collectedFields).toMatch(/locationText/);
+    expect(result.sessionState.sessionAttributes?.["x-amz-lex:audio:end-timeout-ms"]).toBeTruthy();
+  });
+
+  it("acks a vehicle make correction and lengthens end-timeout", async () => {
+    const event = buildLexEvent({
+      utterance: "It's a Toyota — wait, Honda Accord",
+      intent: "ParkingComplaint",
+      slots: {
+        ParkingLocation: slot("742 Elm Street"),
+        ParkingVehicleDescription: null,
+        ParkingViolationType: null,
+      },
+      sessionAttrs: { agencyId: "kcpd", callId: "test-call", promptSlot: "ParkingVehicleDescription" },
+    });
+    const result = await handleDialog(
+      event,
+      testDeps({
+        getSession: async () =>
+          ({
+            agencyId: "kcpd",
+            sessionId: "test-call",
+            intake: { locationText: "742 Elm Street", vehicleMake: "Toyota" },
+          }) as never,
+      }),
+    );
+    expect(result.sessionState.sessionAttributes?.lastTurnCorrection).toBe("1");
+    expect(result.sessionState.sessionAttributes?.endpointingProfile).toBe("correction");
+    const messages = result.messages ?? [];
+    const content = messages.map((m) => ("content" in m ? String(m.content) : "")).join(" ");
+    expect(content).toMatch(/Honda/i);
+    expect(content).toMatch(/Got it/i);
   });
 });
 

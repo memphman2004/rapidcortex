@@ -164,12 +164,19 @@ fi
 echo ""
 echo "# --- Amazon Location Service (MapLibre tiles; Cognito Identity Pool) ---"
 echo "NEXT_PUBLIC_ALS_REGION=${REGION}"
-echo "NEXT_PUBLIC_ALS_MAP_NAME=rc-map-${STAGE}"
-echo "NEXT_PUBLIC_ALS_MAP_NAME_DARK=rc-map-dark-${STAGE}"
-echo "# After bash scripts/create-als-ops-maps.sh, V1 rollback names:"
-echo "# NEXT_PUBLIC_ALS_MAP_NAME=rc-map-here-${STAGE}"
-echo "# NEXT_PUBLIC_ALS_MAP_NAME_DARK=rc-map-here-dark-${STAGE}"
-echo "# Maps V2 (no named map). Unset or v1 = named maps above."
+# Prefer live stack outputs (HERE maps from AppSamLocation). Do not hardcode Esri rc-map-{stage}
+# while AlsMapName is rc-map-here-{stage} — that mismatch is a recurring blank-map regression.
+ALS_MAP_NAME="$(get_output AlsMapName)"
+ALS_MAP_NAME_DARK="$(get_output AlsMapNameDark)"
+if [[ -z "${ALS_MAP_NAME}" || "${ALS_MAP_NAME}" == "None" ]]; then
+  ALS_MAP_NAME="$(get_output MapName)"
+fi
+if [[ -z "${ALS_MAP_NAME_DARK}" || "${ALS_MAP_NAME_DARK}" == "None" ]]; then
+  ALS_MAP_NAME_DARK="$(get_output MapNameDark)"
+fi
+echo "NEXT_PUBLIC_ALS_MAP_NAME=${ALS_MAP_NAME:-rc-map-here-${STAGE}}"
+echo "NEXT_PUBLIC_ALS_MAP_NAME_DARK=${ALS_MAP_NAME_DARK:-rc-map-here-dark-${STAGE}}"
+echo "# Maps V2 (Standard descriptor + traffic). Set NEXT_PUBLIC_ALS_MAP_API_VERSION=v1 to force named maps."
 echo "NEXT_PUBLIC_ALS_MAP_API_VERSION=v2"
 echo "NEXT_PUBLIC_ALS_MAP_STYLE=Standard"
 MAP_IDENTITY_POOL_ID="$(get_output MapIdentityPoolId)"

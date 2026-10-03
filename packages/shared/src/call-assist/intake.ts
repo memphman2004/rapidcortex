@@ -70,22 +70,58 @@ function merge(base: CallIntakeData, patch: CallIntakeData): CallIntakeData {
   return next;
 }
 
-export function parseVehicleDescription(text: string, prior: CallIntakeData = {}): CallIntakeData {
+/** Caller is revising a prior answer ("wait, Honda" / "actually 1520"). */
+const CORRECTION_CUE_RE =
+  /\b(wait|actually|i mean|sorry[, ]|no[, ]+(?:it'?s|wait)|not (?:a |the )?|correction|hold on)\b/i;
+
+export function utteranceHasCorrectionCue(text: string): boolean {
+  return CORRECTION_CUE_RE.test(text);
+}
+
+/**
+ * Prefer the clause after the last correction cue so "Toyota — wait, Honda"
+ * yields Honda, not Toyota.
+ */
+export function textAfterLastCorrectionCue(text: string): string {
+  if (!utteranceHasCorrectionCue(text)) return text;
+  const parts = text.split(CORRECTION_CUE_RE);
+  const tail = parts[parts.length - 1]?.trim();
+  return tail && tail.length >= 2 ? tail : text;
+}
+
+function lastMatch(re: RegExp, text: string): RegExpExecArray | null {
+  const flags = re.flags.includes("g") ? re.flags : `${re.flags}g`;
+  const global = new RegExp(re.source, flags);
+  let last: RegExpExecArray | null = null;
+  let m: RegExpExecArray | null;
+  while ((m = global.exec(text)) !== null) {
+    last = m;
+    if (m.index === global.lastIndex) global.lastIndex += 1;
+  }
+  return last;
+}
+
+export function parseVehicleDescription(
+  text: string,
+  prior: CallIntakeData = {},
+  opts?: { force?: boolean },
+): CallIntakeData {
+  const force = Boolean(opts?.force);
   const patch: CallIntakeData = {};
-  const year = YEAR_RE.exec(text);
-  if (year?.[1] && !prior.vehicleYear) patch.vehicleYear = year[1];
-  const make = MAKE_RE.exec(text);
-  if (make?.[1] && !prior.vehicleMake) patch.vehicleMake = make[1];
-  const model = MODEL_RE.exec(text);
-  if (model?.[1] && !prior.vehicleModel) patch.vehicleModel = model[1].replace(/\s+/g, " ");
-  const body = BODY_STYLE_RE.exec(text);
-  if (body?.[1] && !prior.vehicleModel && !patch.vehicleModel) {
+  const year = lastMatch(YEAR_RE, text);
+  if (year?.[1] && (force || !prior.vehicleYear)) patch.vehicleYear = year[1];
+  const make = lastMatch(MAKE_RE, text);
+  if (make?.[1] && (force || !prior.vehicleMake)) patch.vehicleMake = make[1];
+  const model = lastMatch(MODEL_RE, text);
+  if (model?.[1] && (force || !prior.vehicleModel)) patch.vehicleModel = model[1].replace(/\s+/g, " ");
+  const body = lastMatch(BODY_STYLE_RE, text);
+  if (body?.[1] && (force || (!prior.vehicleModel && !patch.vehicleModel))) {
     patch.vehicleModel = body[1].replace(/\s+/g, " ");
   }
-  const color = COLOR_RE.exec(text);
-  if (color?.[1] && !prior.vehicleColor) patch.vehicleColor = color[1];
-  const plate = PLATE_RE.exec(text);
-  if (plate?.[1] && !prior.vehiclePlate) patch.vehiclePlate = plate[1].toUpperCase();
+  const color = lastMatch(COLOR_RE, text);
+  if (color?.[1] && (force || !prior.vehicleColor)) patch.vehicleColor = color[1];
+  const plate = lastMatch(PLATE_RE, text);
+  if (plate?.[1] && (force || !prior.vehiclePlate)) patch.vehiclePlate = plate[1].toUpperCase();
   if (VEHICLE_DECLINE_RE.test(text)) patch.vehicleUnknown = true;
   return patch;
 }
@@ -102,43 +138,53 @@ export function vehicleDescriptionSatisfied(intake: CallIntakeData): boolean {
   );
 }
 
-/** Deterministic field extraction. LLM extraction may enrich later but cannot delete confirmed fields. */
+/**
+ * Deterministic field extraction.
+ * Correction cues allow overwrite of already-collected fields (Phase 2).
+ * Without a cue, confirmed fields are not replaced by weaker re-mentions.
+ */
 export function extractIntakeFields(utterance: string, prior: CallIntakeData = {}): CallIntakeData {
-  const patch: CallIntakeData = { ...parseVehicleDescription(utterance, prior) };
-  const loc = LOCATION_RE.exec(utterance);
-  if (loc?.[1]) {
+  const correcting = utteranceHasCorrectionCue(utterance);
+  const text = correcting ? textAfterLastCorrectionCue(utterance) : utterance;
+  const patch: CallIntakeData = { ...parseVehicleDescription(text, correcting ? {} : prior, { force: correcting }) };
+  const loc = LOCATION_RE.exec(text);
+  if (loc?.[1] && (correcting || !prior.locationText?.trim())) {
     patch.locationText = loc[1].trim();
-    patch.locationSource = prior.locationSource === "ANI_ALI" ? "ANI_ALI" : "CALLER";
+    patch.locationSource = prior.locationSource === "ANI_ALI" && !correcting ? "ANI_ALI" : "CALLER";
   }
-  const apt = APT_RE.exec(utterance);
-  if (apt?.[1]) patch.apartmentSuite = apt[1].toUpperCase();
-  const cross = CROSS_RE.exec(utterance) ?? AND_STREETS_RE.exec(utterance);
-  if (cross) {
+  const apt = APT_RE.exec(text);
+  if (apt?.[1] && (correcting || !prior.apartmentSuite?.trim())) patch.apartmentSuite = apt[1].toUpperCase();
+  const cross = CROSS_RE.exec(text) ?? AND_STREETS_RE.exec(text);
+  if (cross && (correcting || !prior.crossStreets?.trim())) {
     patch.crossStreets = (cross[1] && cross[2] ? `${cross[1]} and ${cross[2]}` : cross[1]).trim();
   }
-  const dir = DIRECTION_RE.exec(utterance);
-  if (dir?.[1]) patch.directionOfTravel = dir[1].toLowerCase();
-  if (/\b(happening (right )?now|still going on|in progress)\b/i.test(utterance)) patch.isInProgress = true;
-  if (/\b(yesterday|last night|earlier today|already happened|not happening now)\b/i.test(utterance)) {
+  const dir = DIRECTION_RE.exec(text);
+  if (dir?.[1] && (correcting || !prior.directionOfTravel?.trim())) {
+    patch.directionOfTravel = dir[1].toLowerCase();
+  }
+  if (/\b(happening (right )?now|still going on|in progress)\b/i.test(text)) patch.isInProgress = true;
+  if (/\b(yesterday|last night|earlier today|already happened|not happening now)\b/i.test(text)) {
     patch.isInProgress = false;
   }
-  const injuryDetail = INJURY_DETAIL_RE.exec(utterance);
+  const injuryDetail = INJURY_DETAIL_RE.exec(text);
   if (injuryDetail?.[1]) {
     patch.injuries = true;
     patch.injuriesDetail = injuryDetail[1];
   }
-  if (/\bno one (is |was )?hurt\b|\bno injur/i.test(utterance)) patch.injuries = false;
-  const weaponDetail = WEAPON_DETAIL_RE.exec(utterance);
+  if (/\bno one (is |was )?hurt\b|\bno injur/i.test(text)) patch.injuries = false;
+  const weaponDetail = WEAPON_DETAIL_RE.exec(text);
   if (weaponDetail?.[1]) {
     patch.weaponsMentioned = true;
     patch.weaponsDetail = weaponDetail[1];
   }
-  const suspect = SUSPECT_RE.exec(utterance);
-  if (suspect?.[1] && suspect[1].length >= 8) patch.suspectDescription = suspect[1].trim().slice(0, 500);
-  const cb = CALLBACK_RE.exec(utterance);
-  if (cb?.[1]) patch.callbackNumber = cb[1];
-  const name = NAME_RE.exec(utterance);
-  if (name?.[1]) patch.callerName = name[1];
+  const suspect = SUSPECT_RE.exec(text);
+  if (suspect?.[1] && suspect[1].length >= 8 && (correcting || !prior.suspectDescription?.trim())) {
+    patch.suspectDescription = suspect[1].trim().slice(0, 500);
+  }
+  const cb = CALLBACK_RE.exec(text);
+  if (cb?.[1] && (correcting || !prior.callbackNumber?.trim())) patch.callbackNumber = cb[1];
+  const name = NAME_RE.exec(text);
+  if (name?.[1] && (correcting || !prior.callerName?.trim())) patch.callerName = name[1];
   return merge(prior, patch);
 }
 

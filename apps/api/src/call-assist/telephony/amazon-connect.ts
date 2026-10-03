@@ -1,4 +1,8 @@
-import { ConnectClient, StartOutboundVoiceContactCommand } from "@aws-sdk/client-connect";
+import {
+  ConnectClient,
+  StartOutboundVoiceContactCommand,
+  TransferContactCommand,
+} from "@aws-sdk/client-connect";
 import {
   emergencyTransferAction,
   type TelephonyAction,
@@ -14,16 +18,34 @@ function connectClient(): ConnectClient {
   return connect;
 }
 
+function connectConfigured(): boolean {
+  return Boolean(process.env.CONNECT_INSTANCE_ID?.trim());
+}
+
+/** Extract Connect queue ID from a full queue ARN (or return raw if already an ID). */
+export function connectQueueIdFromArn(queueArnOrId: string): string {
+  const raw = queueArnOrId.trim();
+  if (!raw) return "";
+  const m = raw.match(/\/queue\/([^/]+)$/i);
+  return m?.[1] ?? raw;
+}
+
+export type ConnectTransferResult = {
+  ok: boolean;
+  reason: string;
+  contactId?: string;
+};
+
 /**
  * Amazon Connect is the live TelephonyProvider for Call Assist.
  *
- * Barge-in / interrupt / resume:
- * Lex V2 prompts are imported with allowInterrupt=true. When the caller speaks
- * over TTS, Connect delivers the new utterance with existing Lex slots. Resume
- * keeps those slots and elicits the next missing field (see barge-in.ts).
+ * Lex↔Connect barge-in: Lex prompts use allowInterrupt=true; Connect delivers the
+ * new utterance with existing slots (see barge-in.ts).
  *
- * KVS StartMediaStreaming is an optional media fork for Contact Lens / recording,
- * not the barge-in control path. NexCort iQ does not operate a second 911 SIP switch.
+ * Emergency / warm transfer:
+ * - Lex-owned live calls: Contact Flow transfers via emergency queue attributes.
+ * - Console force-transfer: TransferContact when connectContactId + queue/flow are set.
+ * - Without a live ContactId, methods return advisory TelephonyAction only (ledger still records).
  */
 export class AmazonConnectProvider implements TelephonyProvider {
   readonly name = "amazon-connect";
@@ -49,12 +71,50 @@ export class AmazonConnectProvider implements TelephonyProvider {
     };
   }
 
-  async offerCallback(opts: { spokenCallerScript: string }): Promise<TelephonyAction> {
-    return {
-      action: "OFFER_CALLBACK",
-      spokenCallerScript: opts.spokenCallerScript,
-      continueAiConversation: true,
-    };
+  /** Offer callback wording for the current caller (spoken prompt only; dial is startOutboundCallback). */
+  async offerCallback(opts: { spokenCallerScript: string }): Promise<{ spokenCallerScript: string }> {
+    return { spokenCallerScript: opts.spokenCallerScript };
+  }
+
+  /**
+   * Live queue transfer for an active Connect contact (console force-transfer / emergency).
+   * Requires CONNECT_INSTANCE_ID, CALL_ASSIST_CONTACT_FLOW_ID, and a queue ARN/ID.
+   */
+  async transferActiveContact(opts: {
+    contactId: string;
+    queueArnOrId: string;
+    demo?: boolean;
+  }): Promise<ConnectTransferResult> {
+    if (opts.demo) {
+      return { ok: true, contactId: opts.contactId, reason: "mock_transfer" };
+    }
+    const instanceId = process.env.CONNECT_INSTANCE_ID?.trim() ?? "";
+    const contactFlowId = process.env.CALL_ASSIST_CONTACT_FLOW_ID?.trim() ?? "";
+    const queueId = connectQueueIdFromArn(opts.queueArnOrId);
+    if (!instanceId || !contactFlowId || !queueId || !opts.contactId.trim()) {
+      return { ok: false, reason: "connect_transfer_not_configured" };
+    }
+    if (!connectConfigured()) {
+      return { ok: false, reason: "connect_instance_missing" };
+    }
+    try {
+      const out = await connectClient().send(
+        new TransferContactCommand({
+          InstanceId: instanceId,
+          ContactId: opts.contactId.trim(),
+          QueueId: queueId,
+          ContactFlowId: contactFlowId,
+        }),
+      );
+      return {
+        ok: true,
+        contactId: out.ContactId ?? opts.contactId,
+        reason: "connect_transfer",
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "connect_transfer_failed";
+      return { ok: false, reason: message.slice(0, 180) };
+    }
   }
 
   async startOutboundCallback(opts: {

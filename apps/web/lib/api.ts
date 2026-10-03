@@ -248,6 +248,18 @@ function formatJsonErrorMessage(body: unknown, status: number): string {
   return parts.join(" · ");
 }
 
+/** API operational gate — keep UI from sitting on a broken dashboard with 403 spam. */
+function redirectIfPasswordChangeRequired(status: number, body: unknown): void {
+  if (status !== 403 || typeof window === "undefined" || !body || typeof body !== "object") return;
+  const err = (body as { error?: unknown }).error;
+  if (err !== "password_change_required") return;
+  const next = `/change-password?from=${encodeURIComponent(
+    `${window.location.pathname}${window.location.search}`,
+  )}`;
+  if (window.location.pathname.startsWith("/change-password")) return;
+  window.location.assign(next);
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const API_BASE = resolveApiBaseForPath(path);
   if (!API_BASE) {
@@ -261,6 +273,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const text = await res.text();
   const body = text ? (JSON.parse(text) as unknown) : null;
   if (!res.ok) {
+    redirectIfPasswordChangeRequired(res.status, body);
     throw new Error(formatJsonErrorMessage(body, res.status));
   }
   return body as T;

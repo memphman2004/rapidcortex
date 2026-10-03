@@ -1,6 +1,8 @@
 import {
+  applyConversationTurn,
   callerRequestedHuman,
   callLanguageToLexLocale,
+  conversationMemorySessionPatch,
   detectCallAssistLanguage,
   detectTtyMode,
   evaluateConfidenceDecision,
@@ -11,12 +13,14 @@ import {
   mergeIntakeFromLexSlots,
   resolveAgencyTaxonomy,
   shouldTryBedrockFallback,
+  spokenCorrectionAck,
   topKnowledgeHit,
   vehicleDescriptionSatisfied,
   type AgencyTaxonomy,
   type CallIntakeData,
   type KnowledgeArticleLike,
 } from "rapid-cortex-shared";
+import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { ingestConnectCallerIdentity, intakeFromCallerIdentity } from "../telephony/ani-ali.js";
 import type { CallAssistKnowledgeArticle, CallAssistTenantConfig } from "../store.js";
 import { classifyWithBedrock, findCallTypeForIntent } from "./intent-classifier.js";
@@ -52,11 +56,17 @@ import {
   readBargeInState,
 } from "../telephony/barge-in.js";
 import {
+  applyAdaptiveEndpointing,
+  readEndpointingState,
+} from "../telephony/adaptive-endpointing.js";
+import {
   escalationCloseParts,
   isCallAssistGreetingConfigEnabled,
   lexWelcomeResponse,
   startCallAssistSession,
 } from "./session-start.js";
+import { makeId } from "../../lib/ids.js";
+import { AuditRepository } from "../../repositories/auditRepository.js";
 
 export { EMERGENCY_INTENT, FALLBACK_INTENT };
 /** @deprecated Agency thresholds from tenant config are the control plane. */
@@ -64,6 +74,7 @@ export const MIN_LEX_CONFIDENCE = 0.7;
 
 const INFORMATION_REQUEST_INTENT = "InformationRequest";
 const IMPLICIT_FILLED = new Set(["incidentType", "concernType", "reportType"]);
+const bargeAuditRepo = new AuditRepository();
 
 export type DialogHookDeps = {
   getConfig: (agencyId: string) => Promise<CallAssistTenantConfig>;
@@ -226,18 +237,31 @@ export async function handleDialog(
     ani: sessionAttrs.ani ?? sessionAttrs.ANI,
     attributes: sessionAttrs,
   });
-  let intake = mergeIntakeFromLexSlots(
+  const priorSession =
+    agencyId && callId ? await deps.getSession(agencyId, callId).catch(() => null) : null;
+  const priorIntake = intakeFromCallerIdentity(identity, priorSession?.intake ?? {});
+  const memory = applyConversationTurn({
+    prior: {
+      ...priorIntake,
+      language: priorIntake.language ?? language,
+      preferredLanguage: priorIntake.preferredLanguage ?? language,
+    },
+    utterance,
     slotMap,
-    extractIntakeFields(utterance, {
-      ...intakeFromCallerIdentity(identity),
-      language,
-      preferredLanguage: language,
-    }),
-  );
+  });
+  let intake = memory.intake;
   if (!intake.preferredLanguage) {
     intake.preferredLanguage = language;
     intake.language = language;
   }
+  const correctionAck = spokenCorrectionAck(memory.correctedFields, intake);
+  const endpointing = applyAdaptiveEndpointing({
+    utterance,
+    hadCorrectionCue: memory.hadCorrectionCue,
+    sentiment: sessionAttrs.sentiment,
+    bargeInCount: Number.parseInt(sessionAttrs.bargeInCount ?? "0", 10) || 0,
+    waitingForFinalValue: readEndpointingState(sessionAttrs).waitingForFinalValue,
+  });
 
   const decision = evaluateConfidenceDecision({
     score: effectiveScore,
@@ -299,6 +323,8 @@ export async function handleDialog(
     ttyMode: tty.ttyMode ? "1" : "0",
     smsFallbackRecommended: tty.smsFallbackRecommended ? "1" : "0",
     ...bargeInSessionPatch(barge),
+    ...conversationMemorySessionPatch(memory),
+    ...endpointing.sessionPatch,
     ...(animalThreatIsAggressive(currentSlots) ? { officerPriority: "ELEVATED" } : {}),
     ...(identity.ani ? { ani: identity.ani } : {}),
     ...(identity.aliAddress ? { aliAddress: identity.aliAddress } : {}),
@@ -311,6 +337,7 @@ export async function handleDialog(
       transferred: false,
       bargeInCount: barge.bargeInCount,
       lastBargeInAt: barge.lastBargeInAt,
+      bargeInterrupted: interrupted,
       qaLowConfidence: decision.belowSelfService,
       language,
       ttyMode: tty.ttyMode,
@@ -358,9 +385,11 @@ export async function handleDialog(
 
   if (missingSlotId) {
     const prompt = slotPrompt(tenant, missingSlotId, localeId, activeIntent);
-    const spoken = tty.ttyMode ? formatTtySms(prompt) : prompt;
+    const spokenBase = tty.ttyMode ? formatTtySms(prompt) : prompt;
+    const spoken =
+      correctionAck && !tty.ttyMode ? `${correctionAck} ${spokenBase}` : spokenBase;
     if (tty.smsFallbackRecommended) updatedAttrs.ttySmsScript = formatTtySms(prompt);
-    const slotMessage = tty.ttyMode ? plain(spoken) : plain(prompt);
+    const slotMessage = tty.ttyMode ? plain(spoken) : plain(spoken);
     const messages = greetingPrefix ? [plain(greetingPrefix), slotMessage] : [slotMessage];
     return elicitSlotResponse(activeIntent, missingSlotId, currentSlots, updatedAttrs, messages);
   }
@@ -384,6 +413,7 @@ async function persistTurn(
     transferred: boolean;
     bargeInCount?: number;
     lastBargeInAt?: string;
+    bargeInterrupted?: boolean;
     knowledgeHit?: boolean;
     knowledgeArticleId?: string;
     qaLowConfidence?: boolean;
@@ -414,6 +444,27 @@ async function persistTurn(
     });
   } catch {
     /* session row may not exist yet */
+  }
+
+  if (opts.bargeInterrupted) {
+    try {
+      await bargeAuditRepo.create({
+        eventId: makeId("audit"),
+        agencyId,
+        actorId: "lex-dialog-hook",
+        type: AUDIT_EVENT_TYPES.CALL_ASSIST_BARGE_IN,
+        details: {
+          bargeInCount: opts.bargeInCount ?? 0,
+          lastBargeInAt: opts.lastBargeInAt,
+          utterancePreview: opts.utterance.slice(0, 80),
+        },
+        createdAt: opts.lastBargeInAt ?? new Date().toISOString(),
+        resourceType: "session",
+        resourceId: callId,
+      });
+    } catch {
+      /* audit must never abort dialog */
+    }
   }
 }
 

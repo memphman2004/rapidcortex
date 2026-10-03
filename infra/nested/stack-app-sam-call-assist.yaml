@@ -55,6 +55,22 @@ Parameters:
     Type: String
     Default: ""
     Description: Public origin (no trailing slash) for SMS self-service token pages.
+  ConnectInstanceId:
+    Type: String
+    Default: ""
+    Description: Amazon Connect instance ID (not ARN). Required for live outbound/transfer.
+  CallAssistContactFlowId:
+    Type: String
+    Default: ""
+    Description: Contact flow ID used for outbound callbacks and TransferContact.
+  CallAssistOutboundCallerId:
+    Type: String
+    Default: ""
+    Description: E.164 DID for StartOutboundVoiceContact SourcePhoneNumber.
+  AwsSmsConfigurationSetName:
+    Type: String
+    Default: ""
+    Description: AWS End User Messaging SMS configuration set name (stage-specific).
   ManagedPolicyNamePrefix:
     Type: String
     Default: rapid-cortex
@@ -65,6 +81,8 @@ Conditions:
   HasConnectWebhookSecret: !Not [!Equals [!Ref CallAssistConnectWebhookSecretArn, ""]]
   HasRapidSosSecret: !Not [!Equals [!Ref CallAssistRapidSosSecretArn, ""]]
   HasLexBotRole: !Not [!Equals [!Ref CallAssistLexBotRoleArn, ""]]
+  HasConnectInstanceId: !Not [!Equals [!Ref ConnectInstanceId, ""]]
+  HasSmsConfigurationSet: !Not [!Equals [!Ref AwsSmsConfigurationSetName, ""]]
 
 Globals:
   Function:
@@ -99,10 +117,10 @@ Globals:
         CALL_ASSIST_FULFILLMENT_LAMBDA_ARN: !Ref CallAssistFulfillmentLambdaArn
         APP_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
         CALL_ASSIST_PUBLIC_BASE_URL: !Ref AppPublicBaseUrl
-        CONNECT_INSTANCE_ID: "20772ba7-98e6-4afd-94cc-19e03c0619df"
-        CALL_ASSIST_CONTACT_FLOW_ID: "a1dd0cd7-9860-4155-866c-12ebc3dbdcee"
-        CALL_ASSIST_OUTBOUND_CALLER_ID: "+18168395256"
-        AWS_SMS_CONFIGURATION_SET_NAME: "rapid-cortex-sms-dev"
+        CONNECT_INSTANCE_ID: !Ref ConnectInstanceId
+        CALL_ASSIST_CONTACT_FLOW_ID: !Ref CallAssistContactFlowId
+        CALL_ASSIST_OUTBOUND_CALLER_ID: !Ref CallAssistOutboundCallerId
+        AWS_SMS_CONFIGURATION_SET_NAME: !Ref AwsSmsConfigurationSetName
         SMS_PROVIDER: "aws"
         AUDIT_TABLE: !Ref AuditTable
         AGENCIES_TABLE: !Ref AgenciesTable
@@ -200,19 +218,25 @@ Resources:
             Condition:
               StringEquals:
                 aws:RequestedRegion: !Ref AWS::Region
-          - Sid: CallAssistConnectOutbound
-            Effect: Allow
-            Action:
-              - connect:StartOutboundVoiceContact
-              - connect:StopContact
-              - connect:CreateContactFlow
-              - connect:UpdateContactFlowContent
-              - connect:ListContactFlows
-              - connect:DescribeContactFlow
-            Resource:
-              - !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/20772ba7-98e6-4afd-94cc-19e03c0619df"
-              - !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/20772ba7-98e6-4afd-94cc-19e03c0619df/contact/*"
-              - !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/20772ba7-98e6-4afd-94cc-19e03c0619df/contact-flow/*"
+          - !If
+              - HasConnectInstanceId
+              - Sid: CallAssistConnectOutbound
+                Effect: Allow
+                Action:
+                  - connect:StartOutboundVoiceContact
+                  - connect:StopContact
+                  - connect:TransferContact
+                  - connect:CreateContactFlow
+                  - connect:UpdateContactFlowContent
+                  - connect:ListContactFlows
+                  - connect:DescribeContactFlow
+                  - connect:UpdateContactAttributes
+                Resource:
+                  - !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/${ConnectInstanceId}"
+                  - !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/${ConnectInstanceId}/contact/*"
+                  - !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/${ConnectInstanceId}/contact-flow/*"
+                  - !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/${ConnectInstanceId}/queue/*"
+              - !Ref AWS::NoValue
           - Sid: CallAssistLexModels
             Effect: Allow
             Action:

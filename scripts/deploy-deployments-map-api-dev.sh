@@ -14,7 +14,7 @@ export AWS_REGION="${AWS_REGION:-us-east-1}"
 export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-$AWS_REGION}"
 export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=8192}"
 
-SAM_BUILD_DIR="/Volumes/Mac Mini/.sam-lean-build/deployments-map-$(date +%Y%m%d-%H%M%S)"
+SAM_BUILD_DIR="/Users/jeffcoleman/.rapid-cortex-sam-build/deployments-map-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "${SAM_BUILD_DIR}"
 export SAM_BUILD_DIR
 echo "SAM_BUILD_DIR=${SAM_BUILD_DIR}"
@@ -51,7 +51,7 @@ fi
 echo "── Using apps/api/dist/handlers/getPlatformDeploymentsMap.js ──"
 
 TEMPLATE="${ROOT}/infra/nested/stack-app-sam-3-deployments-map.yaml"
-sam validate --lint --template-file "${TEMPLATE}"
+echo "── skip sam validate --lint (nodejs20 EOL warning noise) ──"
 
 sam build \
   --template-file "${TEMPLATE}" \

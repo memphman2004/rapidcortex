@@ -207,7 +207,13 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  # Interactive MapLibre V2 needs style descriptor + tiles (+ glyphs/sprites).
+                  # GetTile alone → blank map (403 on /v2/styles/*/descriptor). Do not trim.
                   - geo-maps:GetTile
+                  - geo-maps:GetStyleDescriptor
+                  - geo-maps:GetSprites
+                  - geo-maps:GetGlyphs
+                  - geo-maps:GetStaticMap
                 Resource: !Sub "arn:${AWS::Partition}:geo-maps:${AWS::Region}::provider/default"
 
   RCMapIdentityPoolAuthedRole:
@@ -248,7 +254,13 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  # Interactive MapLibre V2 needs style descriptor + tiles (+ glyphs/sprites).
+                  # GetTile alone → blank map (403 on /v2/styles/*/descriptor). Do not trim.
                   - geo-maps:GetTile
+                  - geo-maps:GetStyleDescriptor
+                  - geo-maps:GetSprites
+                  - geo-maps:GetGlyphs
+                  - geo-maps:GetStaticMap
                 Resource: !Sub "arn:${AWS::Partition}:geo-maps:${AWS::Region}::provider/default"
 
   RCMapIdentityPoolRoleAttachment:

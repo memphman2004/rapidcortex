@@ -215,7 +215,8 @@ export async function startHandler(event: APIGatewayProxyEventV2): Promise<APIGa
               sessionId,
               incidentId,
               agencyId: user.agencyId,
-              cameraId: session.cameraId,
+              // Caller live-video may not have a registry cameraId.
+              cameraId: session.cameraId?.trim() || "caller-live-video",
             }),
           ),
         }),

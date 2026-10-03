@@ -143,11 +143,36 @@ export function CallAssistSessionDetail({ sessionId }: { sessionId: string }) {
 
   const takeOver = useMutation({
     mutationFn: () => postCallAssistTransfer(sessionId, { reason: "Operator takeover", destinationType: "CALL_TAKER" }, requestAgencyId),
-    onSuccess: () => {
-      setActionMsg("Takeover recorded. AI conversation stopped.");
+    onSuccess: (data) => {
+      const reason = data.connectTransfer?.reason;
+      if (data.advisoryOnly) {
+        setActionMsg(`Takeover recorded (advisory — no live Connect contact). AI stopped.${reason ? ` [${reason}]` : ""}`);
+      } else if (data.connectTransfer && !data.connectTransfer.ok) {
+        setActionMsg(`Takeover recorded but Connect transfer failed: ${reason ?? "unknown"}`);
+      } else {
+        setActionMsg("Takeover recorded. Live Connect transfer initiated; AI conversation stopped.");
+      }
       void qc.invalidateQueries({ queryKey: ["call-assist-session", sessionId] });
+      void qc.invalidateQueries({ queryKey: ["call-assist-session-transfers", sessionId] });
     },
     onError: (err) => setActionMsg(err instanceof Error ? err.message : "Takeover failed"),
+  });
+
+  const emergencyTransfer = useMutation({
+    mutationFn: () =>
+      postCallAssistTransfer(sessionId, { reason: "Operator emergency transfer", destinationType: "EMERGENCY_911" }, requestAgencyId),
+    onSuccess: (data) => {
+      if (data.advisoryOnly) {
+        setActionMsg("Emergency transfer recorded (advisory — no live Connect contact).");
+      } else if (data.connectTransfer && !data.connectTransfer.ok) {
+        setActionMsg(`Emergency transfer failed on Connect: ${data.connectTransfer.reason}`);
+      } else {
+        setActionMsg("Emergency queue transfer initiated.");
+      }
+      void qc.invalidateQueries({ queryKey: ["call-assist-session", sessionId] });
+      void qc.invalidateQueries({ queryKey: ["call-assist-session-transfers", sessionId] });
+    },
+    onError: (err) => setActionMsg(err instanceof Error ? err.message : "Emergency transfer failed"),
   });
 
   const cadPush = useMutation({
@@ -166,9 +191,16 @@ export function CallAssistSessionDetail({ sessionId }: { sessionId: string }) {
         reason: `Warm transfer requested to ${name}`,
         destinationType: "EXTERNAL_AGENCY",
       }, requestAgencyId),
-    onSuccess: () => {
-      setActionMsg("Transfer requested. Outbound telephony is queued when the voice path is connected.");
+    onSuccess: (data) => {
+      if (data.advisoryOnly) {
+        setActionMsg("Transfer requested (advisory). Outbound telephony queues when a live Connect contact is present.");
+      } else if (data.connectTransfer && !data.connectTransfer.ok) {
+        setActionMsg(`Transfer recorded but Connect failed: ${data.connectTransfer.reason}`);
+      } else {
+        setActionMsg("Transfer initiated on Connect.");
+      }
       void qc.invalidateQueries({ queryKey: ["call-assist-session", sessionId] });
+      void qc.invalidateQueries({ queryKey: ["call-assist-session-transfers", sessionId] });
     },
     onError: (err) => setActionMsg(err instanceof Error ? err.message : "Transfer failed"),
   });
@@ -215,6 +247,8 @@ export function CallAssistSessionDetail({ sessionId }: { sessionId: string }) {
           actionMsg={actionMsg}
           onTakeOver={() => takeOver.mutate()}
           takeOverPending={takeOver.isPending}
+          onEmergencyTransfer={() => emergencyTransfer.mutate()}
+          emergencyPending={emergencyTransfer.isPending}
           onCadPush={() => cadPush.mutate()}
           cadPending={cadPush.isPending}
           onExternal={(name) => extTransfer.mutate(name)}
@@ -245,6 +279,8 @@ function SessionBody({
   actionMsg,
   onTakeOver,
   takeOverPending,
+  onEmergencyTransfer,
+  emergencyPending,
   onCadPush,
   cadPending,
   onExternal,
@@ -266,6 +302,8 @@ function SessionBody({
   actionMsg: string | null;
   onTakeOver: () => void;
   takeOverPending: boolean;
+  onEmergencyTransfer: () => void;
+  emergencyPending: boolean;
   onCadPush: () => void;
   cadPending: boolean;
   onExternal: (name: string) => void;
@@ -407,15 +445,29 @@ function SessionBody({
           {session.nextQuestion ? (
             <span className="text-[11px] text-slate-500">— {session.nextQuestion}</span>
           ) : null}
-          {profile.capabilities.takeover ? (
-            <button
-              type="button"
-              className="ml-auto rounded border border-slate-700 bg-slate-950 px-2.5 py-1 text-[11px] text-slate-300 hover:text-white"
-              onClick={onTakeOver}
-              disabled={takeOverPending}
-            >
-              Take over call
-            </button>
+          {profile.capabilities.takeover || profile.capabilities.forceTransfer ? (
+            <div className="ml-auto flex shrink-0 gap-1">
+              {profile.capabilities.forceTransfer ? (
+                <button
+                  type="button"
+                  className="rounded border border-rose-500/40 bg-rose-500/10 px-2.5 py-1 text-[11px] text-rose-300 hover:bg-rose-500/20"
+                  onClick={onEmergencyTransfer}
+                  disabled={emergencyPending || takeOverPending}
+                >
+                  Force 911 queue
+                </button>
+              ) : null}
+              {profile.capabilities.takeover ? (
+                <button
+                  type="button"
+                  className="rounded border border-slate-700 bg-slate-950 px-2.5 py-1 text-[11px] text-slate-300 hover:text-white"
+                  onClick={onTakeOver}
+                  disabled={takeOverPending || emergencyPending}
+                >
+                  Take over call
+                </button>
+              ) : null}
+            </div>
           ) : null}
         </div>
       ) : null}
@@ -606,16 +658,28 @@ function SessionBody({
         </div>
       </div>
 
-      {isAi && profile.capabilities.takeover ? (
+      {isAi && (profile.capabilities.takeover || profile.capabilities.forceTransfer) ? (
         <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            className="rounded border border-rose-500/30 bg-rose-500/15 px-3 py-1.5 text-[11px] font-medium text-rose-300"
-            onClick={onTakeOver}
-            disabled={takeOverPending}
-          >
-            Take over call
-          </button>
+          {profile.capabilities.forceTransfer ? (
+            <button
+              type="button"
+              className="rounded border border-rose-500/40 bg-rose-500/10 px-3 py-1.5 text-[11px] font-medium text-rose-300"
+              onClick={onEmergencyTransfer}
+              disabled={emergencyPending || takeOverPending}
+            >
+              Force 911 queue
+            </button>
+          ) : null}
+          {profile.capabilities.takeover ? (
+            <button
+              type="button"
+              className="rounded border border-rose-500/30 bg-rose-500/15 px-3 py-1.5 text-[11px] font-medium text-rose-300"
+              onClick={onTakeOver}
+              disabled={takeOverPending || emergencyPending}
+            >
+              Take over call
+            </button>
+          ) : null}
         </div>
       ) : null}
     </>
