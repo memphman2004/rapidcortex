@@ -73,6 +73,7 @@ import {
   writeLocalStorage,
 } from "@/lib/account/account-picture";
 import { C } from "@/lib/theme/rc-theme-tokens";
+import { IqReportingMount } from "@/components/analytics/iq-reporting/IqReportingMount";
 
 // ─── Design tokens (theme-aware CSS vars via C) ───────────────────────────────
 
@@ -2910,6 +2911,7 @@ function PsapConsoleHomeInner({
           style={{ display: "none" }}
           onChange={handleFile}
         />
+        {!isDispatcher ? <IqReportingMount agencyId={agencyId} vertical="911" /> : null}
       </div>
     </HelpChrome>
   );

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { CAMPUS_SITE_SCOPE_ALL } from "rapid-cortex-shared";
 import { useSession } from "@/components/auth/session-context";
+import { IqReportingMount } from "@/components/analytics/iq-reporting/IqReportingMount";
 import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 
 type DateRange = "today" | "week" | "month";
@@ -211,6 +212,7 @@ export function CampusAnalyticsClient({ campusCode }: { campusCode: string }) {
           )}
         </ul>
       </section>
+      {user?.agencyId ? <IqReportingMount agencyId={user.agencyId} vertical="campus" /> : null}
     </div>
   );
 }

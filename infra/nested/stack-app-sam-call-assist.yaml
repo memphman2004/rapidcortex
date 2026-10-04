@@ -82,7 +82,6 @@ Conditions:
   HasRapidSosSecret: !Not [!Equals [!Ref CallAssistRapidSosSecretArn, ""]]
   HasLexBotRole: !Not [!Equals [!Ref CallAssistLexBotRoleArn, ""]]
   HasConnectInstanceId: !Not [!Equals [!Ref ConnectInstanceId, ""]]
-  HasSmsConfigurationSet: !Not [!Equals [!Ref AwsSmsConfigurationSetName, ""]]
 
 Globals:
   Function:

@@ -37,7 +37,7 @@ phases:
           fi
           echo "WARN: continuing without ALS identity pool — map tiles will not authenticate until Location stack outputs are baked."
         else
-          echo "ALS map config present for image bake (map=${NEXT_PUBLIC_ALS_MAP_NAME} api=${NEXT_PUBLIC_ALS_MAP_API_VERSION:-v1} pool=set)"
+          echo "ALS map config present for image bake (map=${NEXT_PUBLIC_ALS_MAP_NAME} api=${NEXT_PUBLIC_ALS_MAP_API_VERSION:-v2} pool=set)"
         fi
       # Must match ECS task runtimePlatform: use rapid-cortex-web-prod task definition with X86_64 + this amd64 image.
       - >-

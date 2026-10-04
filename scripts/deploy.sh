@@ -241,6 +241,7 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-data-layer-grant
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-grants.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-data-layer-nexiq-intel.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-nexiq-intel.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-analytics.yaml"
 fi
 
 echo "IAM managed policy size preflight (6,144-byte cap)..."

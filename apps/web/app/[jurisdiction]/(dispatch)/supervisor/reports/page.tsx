@@ -2,6 +2,7 @@
 
 import { useSession } from "@/components/auth/session-context";
 import { ReportsDashboard } from "@/components/reports/reports-dashboard";
+import { IqReportingMount } from "@/components/analytics/iq-reporting/IqReportingMount";
 import { isReportsApiConfigured } from "@/lib/reports-api";
 import { isReportsEnabled } from "@/lib/runtime-flags";
 import { isSupervisorOrStaffRole, SupervisorAccessRestricted } from "../_components/supervisor-access";
@@ -31,6 +32,7 @@ export default function SupervisorReportsPage() {
           Reporting isn’t enabled yet. Contact NexCort iQ support.
         </p>
       )}
+      <IqReportingMount agencyId={user?.agencyId ?? ""} vertical="911" />
     </div>
   );
 }

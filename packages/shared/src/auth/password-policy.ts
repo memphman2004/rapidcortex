@@ -1,12 +1,19 @@
 import type { UserContext } from "../types.js";
 
-/** Default enforced password rotation (days). Override with `PASSWORD_MAX_AGE_DAYS`. */
+/**
+ * Default enforced password rotation (days) after the initial password is set.
+ * Unset / blank `PASSWORD_MAX_AGE_DAYS` keeps this value (not 0).
+ */
 export const PASSWORD_MAX_AGE_DAYS_DEFAULT = 60;
 /** Grace period after expiry (days). Override with `PASSWORD_EXPIRY_GRACE_DAYS`; `0` = block immediately when expired. */
 export const PASSWORD_EXPIRY_GRACE_DAYS_DEFAULT = 0;
 
 function readIntEnv(v: string | undefined, fallback: number): number {
-  const n = Number(v?.trim());
+  // Empty / whitespace must fall back — `Number("") === 0` would collapse
+  // PASSWORD_MAX_AGE_DAYS to "expire immediately" when SAM Globals pass "".
+  const trimmed = v?.trim();
+  if (trimmed == null || trimmed === "") return fallback;
+  const n = Number(trimmed);
   return Number.isFinite(n) && n >= 0 ? Math.floor(n) : fallback;
 }
 

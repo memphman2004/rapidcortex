@@ -1,9 +1,11 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import {
   getPasswordAgeDays,
+  getPasswordMaxAgeDays,
   isPasswordExpired,
   requiresOperationalPasswordRenewal,
   canAdminForcePasswordReset,
+  PASSWORD_MAX_AGE_DAYS_DEFAULT,
 } from "./password-policy.js";
 import type { UserContext } from "../types.js";
 
@@ -49,6 +51,18 @@ describe("password-policy", () => {
     expect(
       requiresOperationalPasswordRenewal(baseUser({ passwordLastChangedAt: iso, passwordChangeRequired: false })),
     ).toBe(true);
+  });
+
+  it("unset or blank PASSWORD_MAX_AGE_DAYS keeps the 60-day default", () => {
+    delete process.env.PASSWORD_MAX_AGE_DAYS;
+    expect(getPasswordMaxAgeDays()).toBe(PASSWORD_MAX_AGE_DAYS_DEFAULT);
+    process.env.PASSWORD_MAX_AGE_DAYS = "";
+    expect(getPasswordMaxAgeDays()).toBe(PASSWORD_MAX_AGE_DAYS_DEFAULT);
+    process.env.PASSWORD_MAX_AGE_DAYS = "   ";
+    expect(getPasswordMaxAgeDays()).toBe(PASSWORD_MAX_AGE_DAYS_DEFAULT);
+    // Age 61 days with blank env → expired under the 60-day default (not "0-day" collapse).
+    expect(isPasswordExpired("2025-12-30T12:00:00.000Z")).toBe(true);
+    expect(isPasswordExpired("2026-01-15T12:00:00.000Z")).toBe(false);
   });
 
   it("password at day 59 does not expire", () => {

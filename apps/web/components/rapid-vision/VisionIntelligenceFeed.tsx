@@ -91,7 +91,7 @@ export function VisionIntelligenceFeed({
             ? `${unverifiedCount} observation${unverifiedCount !== 1 ? "s" : ""} awaiting review`
             : observations.length > 0
               ? "All observations reviewed"
-              : "Watching authorized cameras…"}
+              : "Watching connected cameras…"}
         </span>
         <div style={{ flex: 1 }} />
         {(["all", "unverified", "relevant", "verified"] as const).map((id) => (
@@ -408,8 +408,8 @@ function ActionButton({
 function EmptyFeedState({ filter, V }: { filter: string; V: Record<string, string> }) {
   const messages: Record<string, { title: string; sub: string }> = {
     all: {
-      title: "Watching authorized cameras…",
-      sub: "Claude is analyzing active video sessions. Observations will appear here.",
+      title: "Watching connected cameras…",
+      sub: "Nex iQ is analyzing live video. Observations will appear here.",
     },
     unverified: { title: "No unverified observations", sub: "All observations have been reviewed." },
     relevant: {

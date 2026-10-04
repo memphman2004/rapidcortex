@@ -72,6 +72,7 @@ export function IncidentContextMap({
         incidents={mapIncidents}
         selectedIncidentId={incidentId ?? mapIncidents[0]?.id}
         liveCallers={liveCallers}
+        allowNamedMapFallback
       />
     </div>
   );

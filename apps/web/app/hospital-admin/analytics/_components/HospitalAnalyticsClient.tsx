@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { IqReportingMount } from "@/components/analytics/iq-reporting/IqReportingMount";
 
 export function HospitalAnalyticsClient({
   agencyId, canExport,
@@ -118,6 +119,7 @@ export function HospitalAnalyticsClient({
           </div>
         </section>
       </div>
+      <IqReportingMount agencyId={agencyId} vertical="hospital" />
     </div>
   );
 }

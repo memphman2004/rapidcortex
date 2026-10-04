@@ -58,6 +58,16 @@ function rcVideoWallNavItem(href: string): NavItem {
   };
 }
 
+function iqReportingNavItem(href: string): NavItem {
+  return {
+    id: "iq-reporting",
+    label: "iQ Reporting",
+    href,
+    icon: "BarChart2",
+    feature: "iqReporting",
+  };
+}
+
 function cameraAiNavItem(href: string): NavItem {
   return {
     id: "vision-ai",
@@ -762,6 +772,7 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
             feature: "callAssist" },
           { id: "team",          label: "Team Performance",href: `${j}/supervisor/team-performance`, icon: "Users" },
           { id: "reports",       label: "Reports",         href: `${j}/supervisor/reports`, icon: "BarChart3" },
+          iqReportingNavItem(`${j}/supervisor/iq-reporting`),
           { id: "command-intelligence", label: "Command Intelligence", href: `${j}/supervisor/command-intelligence`, icon: "BarChart3",
             feature: "commandIntelligence" },
           { id: "nexiq-vault", label: "NexiQ Vault", href: `${j}/supervisor/vault`, icon: "FolderOpen",
@@ -910,6 +921,7 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
         label: "DATA",
         items: [
           { id: "reports",       label: "Reports",         href: `${j}/reports`,            icon: "BarChart3" },
+          iqReportingNavItem(`${j}/admin/analytics`),
           { id: "audit",         label: "Audit Log",       href: `${j}/admin/audit-logs`,   icon: "ScrollText" },
           { id: "history",       label: "History",         href: `${j}/history`,            icon: "Clock" },
         ],
@@ -1022,6 +1034,7 @@ export function getAgencyItNav(jurisdiction: string): RoleNav {
         items: [
           { id: "audit",         label: "Audit Log",       href: `${j}/admin/audit-logs`,   icon: "ScrollText" },
           { id: "reports",       label: "Reports",         href: `${j}/reports`,            icon: "BarChart3" },
+          iqReportingNavItem(`${j}/admin/analytics`),
         ],
       },
     ],
@@ -1175,6 +1188,7 @@ export function getCampusAdminNav(code: string): RoleNav {
         items: [
           { id: "users",       label: "Users",             href: `${base}/users`,           icon: "Users" },
           { id: "analytics",   label: "Analytics",         href: `${base}/analytics`,       icon: "BarChart3" },
+          iqReportingNavItem(`${base}/analytics`),
           { id: "reports",     label: "Reports",           href: `${base}/reports`,         icon: "FileBarChart" },
           {
             id: "clery",
@@ -1326,6 +1340,7 @@ export function getCampusSupervisorNav(code: string): RoleNav {
         label: "REPORTS",
         items: [
           { id: "reports",     label: "Reports",           href: `${base}/reports`,         icon: "FileBarChart" },
+          iqReportingNavItem(`${base}/analytics`),
           {
             id: "clery",
             label: "Clery Report",
@@ -1494,6 +1509,7 @@ export const HOSPITAL_ADMIN_NAV: RoleNav = {
       items: [
         { id: "users",       label: "Users",             href: "/hospital-admin/users",      icon: "Users" },
         { id: "analytics",   label: "Analytics",         href: "/hospital-admin/analytics",  icon: "BarChart3" },
+        iqReportingNavItem("/hospital-admin/analytics"),
         { id: "reports",     label: "Reports",           href: "/hospital-admin/reports",    icon: "FileBarChart" },
       ],
     },
@@ -1603,6 +1619,7 @@ export function getVenueAdminNav(code: string): RoleNav {
           { id: "qr",          label: "QR Codes",          href: `${base}/qr-codes`,         icon: "QrCode" },
           { id: "zones",       label: "Zones",             href: `${base}/zones`,            icon: "Map" },
           { id: "analytics",   label: "Analytics",         href: `${base}/analytics`,        icon: "BarChart3" },
+          iqReportingNavItem(`${base}/analytics`),
           { id: "reports",     label: "Reports",           href: `${base}/reports`,          icon: "FileBarChart" },
         ],
       },
@@ -1681,6 +1698,7 @@ export function getVenueSupervisorNav(code: string): RoleNav {
           { id: "qr",          label: "QR Codes",          href: `${base}/qr-codes`,         icon: "QrCode" },
           { id: "zones",       label: "Zones",             href: `${base}/zones`,            icon: "Map" },
           { id: "analytics",   label: "Analytics",         href: `${base}/analytics`,        icon: "BarChart3" },
+          iqReportingNavItem(`${base}/analytics`),
           { id: "reports",     label: "Reports",           href: `${base}/reports`,          icon: "FileBarChart" },
         ],
       },
@@ -1773,6 +1791,7 @@ export function getTransitAdminNav(code: string): RoleNav {
             feature: "verticalAlerts",
           },
           { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileText", feature: "verticalTransit" },
+          iqReportingNavItem(`${base}/analytics`),
           { id: "operators", label: "Operators", href: `${base}/operators`, icon: "Users", feature: "verticalTransit" },
           { id: "cameras", label: "Cameras", href: `${base}/cameras`, icon: "Camera", feature: "transitCameras" },
           cameraAiNavItem(`${base}/vision-ai`),
@@ -1829,6 +1848,7 @@ export function getTransitSupervisorNav(code: string): RoleNav {
             feature: "verticalAlerts",
           },
           { id: "reports", label: "Reports", href: `${base}/reports`, icon: "FileText", feature: "verticalTransit" },
+          iqReportingNavItem(`${base}/analytics`),
           { id: "operators", label: "Operators", href: `${base}/operators`, icon: "Users", feature: "verticalTransit" },
           { id: "cameras", label: "Cameras", href: `${base}/cameras`, icon: "Camera", feature: "transitCameras" },
           cameraAiNavItem(`${base}/vision-ai`),

@@ -14,7 +14,8 @@ resolve_als_map_env() {
   local ssm_name="${ALS_IDENTITY_POOL_SSM_PARAMETER:-/rapidcortex/${stage}/als/identity-pool-id}"
 
   export NEXT_PUBLIC_ALS_REGION="${NEXT_PUBLIC_ALS_REGION:-${region}}"
-  # Maps V2 style descriptors (traffic-capable). Unset or `v1` keeps named V1 maps.
+  # Live default is Maps V2. Named V1 maps are a runtime fallback on the live-incident
+  # map only — do not bake v1 unless V2 is globally broken.
   export NEXT_PUBLIC_ALS_MAP_API_VERSION="${NEXT_PUBLIC_ALS_MAP_API_VERSION:-v2}"
   export NEXT_PUBLIC_ALS_MAP_STYLE="${NEXT_PUBLIC_ALS_MAP_STYLE:-Standard}"
   export NEXT_PUBLIC_ALS_PLACE_INDEX_NAME="${NEXT_PUBLIC_ALS_PLACE_INDEX_NAME:-rc-places-${stage}}"

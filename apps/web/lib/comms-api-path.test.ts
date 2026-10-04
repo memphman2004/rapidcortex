@@ -208,6 +208,8 @@ describe("isCommsPlatformApiPath", () => {
     expect(resolveUpstreamApiBase("/api/translate/sessions")).toBe("https://stack2.example.com");
     expect(isStack2ApiPath("/api/vision/settings")).toBe(true);
     expect(isStack2ApiPath("/api/vision/events")).toBe(true);
+    expect(isStack2ApiPath("/api/analytics/reporting")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/analytics/reporting")).toBe("https://stack2.example.com");
     expect(isStack2ApiPath("/api/vision/events/scene-1")).toBe(true);
     expect(isStack2ApiPath("/api/vision/cameras")).toBe(true);
     expect(isStack2ApiPath("/api/vision/cameras/cam-1/config")).toBe(true);

@@ -6321,6 +6321,83 @@
     "SalesDataReuseMarker": {
       "Type": "AWS::CloudFormation::WaitConditionHandle",
       "Condition": "ReuseSalesDataResources"
+    },
+    "AnalyticsDailyTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-analytics-daily-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        },
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "rapid-cortex"
+          },
+          {
+            "Key": "Component",
+            "Value": "iq-reporting"
+          }
+        ]
+      }
+    },
+    "AnalyticsDailyTableNameParameter": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Name": {
+          "Fn::Sub": "/rapid-cortex/${DeploymentStage}/AnalyticsDailyTable"
+        },
+        "Type": "String",
+        "Value": {
+          "Ref": "AnalyticsDailyTable"
+        },
+        "Description": "iQ reporting daily aggregates table name"
+      }
     }
   },
   "Outputs": {
@@ -6778,6 +6855,12 @@
       "Description": "Physical table name for IncidentsTable",
       "Value": {
         "Ref": "IncidentsTable"
+      }
+    },
+    "AnalyticsDailyTable": {
+      "Description": "Physical table name for iQ reporting daily aggregates (pk AGENCY#…#VERTICAL#… / sk DATE#yyyy-mm-dd)",
+      "Value": {
+        "Ref": "AnalyticsDailyTable"
       }
     },
     "TranscriptsTable": {

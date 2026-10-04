@@ -69,6 +69,7 @@ import {
   IncidentCameraPanel,
   type VenueActiveIncidentPanel,
 } from "./IncidentCameraPanel";
+import { IqReportingMount } from "@/components/analytics/iq-reporting/IqReportingMount";
 import { VENUE_DASHBOARD_FONT_FAMILY } from "./venue-dashboard-font";
 import { VenueGuestServicesDisclaimer } from "./venue-guest-services-disclaimer";
 import {
@@ -3029,6 +3030,7 @@ function VenueConsoleHomeInner({
             onClose={() => setActiveIncident(null)}
           />
         ) : null}
+        <IqReportingMount agencyId={agencyId} vertical="venue" />
       </div>
     </HelpChrome>
   );

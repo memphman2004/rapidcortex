@@ -32,6 +32,7 @@ import { TransitUsersClient } from "./transit-users-client";
 import { VideoWallClient } from "@/components/video/video-wall-client";
 import { isRcVideoEnabled, isTransitCamerasUiEnabled } from "@/lib/runtime-flags";
 import { IncidentCameraPanel } from "@/components/venue/IncidentCameraPanel";
+import { IqReportingMount } from "@/components/analytics/iq-reporting/IqReportingMount";
 
 export function TransitConsoleHome(props: {
   agencyId: string;
@@ -72,6 +73,7 @@ export function TransitConsoleHome(props: {
     if (pathname.includes("/stations")) return "stations";
     if (pathname.includes("/operators")) return "operators";
     if (pathname.includes("/incidents")) return "incidents";
+    if (pathname.includes("/analytics")) return "analytics";
     if (pathname.includes("/reports")) return "reports";
     return "home";
   }, [pathname, vehicleId]);
@@ -142,18 +144,24 @@ export function TransitConsoleHome(props: {
         ) : data ? (
           <>
             {view === "home" ? (
-              <TransitOperationsDashboard
-                vehicles={data.vehicles}
-                incidents={data.incidents}
-                operators={data.operators}
-                stats={data.stats}
-                linkBase={linkBase}
-                canDispatch={canDispatch}
-                canSupervisor={canSupervisor}
-                onNewIncident={() => setIncidentOpen(true)}
-                onBroadcast={() => setBroadcastOpen(true)}
-                onEscalate={(id) => void ops.patchIncident(id, { escalatedTo911: true })}
-              />
+              <>
+                <TransitOperationsDashboard
+                  vehicles={data.vehicles}
+                  incidents={data.incidents}
+                  operators={data.operators}
+                  stats={data.stats}
+                  linkBase={linkBase}
+                  canDispatch={canDispatch}
+                  canSupervisor={canSupervisor}
+                  onNewIncident={() => setIncidentOpen(true)}
+                  onBroadcast={() => setBroadcastOpen(true)}
+                  onEscalate={(id) => void ops.patchIncident(id, { escalatedTo911: true })}
+                />
+                <IqReportingMount agencyId={props.agencyId} vertical="transit" />
+              </>
+            ) : null}
+            {view === "analytics" ? (
+              <IqReportingMount agencyId={props.agencyId} vertical="transit" />
             ) : null}
             {view === "fleet" ? (
               <>

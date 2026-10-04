@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { ClipboardList } from "lucide-react";
-import { postCreateIncident } from "@/lib/api";
+import { isPasswordChangeRequiredError, postCreateIncident } from "@/lib/api";
 import { geocodeAddress } from "@/lib/geocode-address";
 import { PhoneInput } from "@/components/ui/phone-input";
 import {
@@ -390,6 +390,11 @@ export function CreateIncidentSlideOver({
         onClose();
       }, 1400);
     } catch (e) {
+      if (isPasswordChangeRequiredError(e)) {
+        // Redirect to /change-password is already in flight — suppress the error
+        // toast so the UI doesn't flash an opaque "password_change_required" message.
+        return;
+      }
       setSubmitError(e instanceof Error ? e.message : "Failed to create incident");
     } finally {
       setSubmitting(false);

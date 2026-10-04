@@ -17,7 +17,7 @@
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { alsMapStyleUrl, getMapAuthenticationOptions, isAlsMapApiV2 } from "rapid-cortex-maps";
+import { alsMapStyleUrl, alsNamedMapStyleUrl, getMapAuthenticationOptions, isAlsMapApiV2, shouldFallbackAlsV2ToNamedMap } from "rapid-cortex-maps";
 import { useALSMap } from "@/lib/map/als-map-context";
 
 import {
@@ -214,8 +214,12 @@ function hospitalDistanceOrigin(
   return undefined;
 }
 
-function styleUrlFor(theme: "dark" | "light", layers: RCMapLayerVisibility): string {
-  if (!isAlsMapApiV2()) return alsMapStyleUrl(theme);
+function styleUrlFor(
+  theme: "dark" | "light",
+  layers: RCMapLayerVisibility,
+  namedMapFallback: boolean,
+): string {
+  if (namedMapFallback || !isAlsMapApiV2()) return alsNamedMapStyleUrl(theme);
   return alsMapStyleUrl(theme, {
     traffic: layers.liveTraffic,
     terrain: layers.basemapTerrain,
@@ -256,6 +260,7 @@ export default function RapidCortexMapCore({
   sectionPolygons = null,
   sectionExtrusion = false,
   onPolygonFeatureClick,
+  allowNamedMapFallback = false,
 }: RCMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef       = useRef<maplibregl.Map | null>(null);
@@ -274,6 +279,7 @@ export default function RapidCortexMapCore({
   const bearingRef = useRef(bearingProp);
   const appliedThemeRef = useRef<"dark" | "light" | null>(null);
   const appliedStyleUrlRef = useRef<string | null>(null);
+  const usingNamedMapFallbackRef = useRef(false);
   const styleLoadHandlerRef = useRef<(() => void) | null>(null);
   const clickHandlerRef = useRef<MapClickHandler>(() => undefined);
   const lastCommandIdRef = useRef<number | null>(null);
@@ -403,7 +409,7 @@ export default function RapidCortexMapCore({
 
     const initialTheme = themeProp;
     appliedThemeRef.current = initialTheme;
-    const initialStyle = styleUrlFor(initialTheme, layersRef.current);
+    const initialStyle = styleUrlFor(initialTheme, layersRef.current, usingNamedMapFallbackRef.current);
     appliedStyleUrlRef.current = initialStyle;
 
     const initCenter: [number, number] = [
@@ -439,8 +445,7 @@ export default function RapidCortexMapCore({
       clickHandlerRef.current(e);
     };
 
-    // ── After style loads ────────────────────────────────────────────────────
-    map.on("load", () => {
+    const reattachOverlays = () => {
       ensureLiveLayers(
         map,
         layersRef.current,
@@ -474,6 +479,13 @@ export default function RapidCortexMapCore({
         if (overlay) overlayClickRef.current?.(overlay);
       });
       bindPolygonInteractions(map, (props) => polygonClickRef.current?.(props));
+      map.resize();
+      setMapReady(true);
+    };
+
+    // ── After style loads ────────────────────────────────────────────────────
+    map.on("load", () => {
+      reattachOverlays();
       // ALS style-descriptor center/zoom can overwrite constructor camera.
       map.jumpTo({
         center: initCenter,
@@ -488,16 +500,23 @@ export default function RapidCortexMapCore({
         bearingRef.current,
         initZoom,
       );
-      map.resize();
-      setMapReady(true);
       onMapReady?.();
     });
 
-    // Handle style load errors
+    // Live-incident maps may fall back to named V1 once if Maps V2 will not paint.
     map.on("error", (e) => {
-      if (process.env.NODE_ENV === "development") {
-        console.error("[RapidCortexMap] MapLibre error:", e);
-      }
+      console.error("[RapidCortexMap] MapLibre error:", e);
+      if (!allowNamedMapFallback || usingNamedMapFallbackRef.current) return;
+      if (!shouldFallbackAlsV2ToNamedMap(e, appliedStyleUrlRef.current)) return;
+      usingNamedMapFallbackRef.current = true;
+      const fallbackTheme = appliedThemeRef.current === "light" ? "light" : "dark";
+      const fallbackStyle = alsNamedMapStyleUrl(fallbackTheme);
+      appliedStyleUrlRef.current = fallbackStyle;
+      console.warn("[RapidCortexMap] Maps V2 failed; using named map fallback for this live incident.");
+      map.once("style.load", () => {
+        reattachOverlays();
+      });
+      map.setStyle(fallbackStyle);
     });
 
     let resizeRaf = 0;
@@ -534,7 +553,7 @@ export default function RapidCortexMapCore({
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const nextStyle = styleUrlFor(theme, layers);
+    const nextStyle = styleUrlFor(theme, layers, usingNamedMapFallbackRef.current);
     if (appliedStyleUrlRef.current === nextStyle) return;
 
     if (styleLoadHandlerRef.current) {

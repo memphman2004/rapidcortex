@@ -1,0 +1,117 @@
+import type { IQVertical, IQVerticalConfig } from "./iq-reporting-types";
+
+export const IQ_VERTICAL_ACCENT: Record<IQVertical, string> = {
+  "911": "#2a78d6",
+  campus: "#6250d6",
+  venue: "#eda100",
+  transit: "#1baf7a",
+  hospital: "#008300",
+};
+
+export const IQ_VERTICAL_CONFIGS: Record<IQVertical, IQVerticalConfig> = {
+  "911": {
+    name: "NC 911",
+    badge: "PSAP",
+    dashboards: "Supervisor and agency admin dashboards — not the dispatcher workspace",
+    lineChartLabel: "Avg hourly 9-1-1 call volume",
+    barBreakdownMetricPrefix: "lang_",
+    kpis: [
+      { key: "calls_911", label: "9-1-1 calls", format: "count", direction: "higher-better" },
+      { key: "cad_calls_for_service", label: "CAD calls for service", format: "count", direction: "neutral" },
+      { key: "avg_answer_time_seconds", label: "Avg answer time", format: "seconds", direction: "lower-better" },
+      { key: "abandon_rate_pct", label: "Abandon rate", format: "percentage", direction: "lower-better" },
+      { key: "translation_sessions", label: "Translation sessions", format: "count", direction: "higher-better" },
+      {
+        key: "avg_qa_score",
+        label: "Avg QA score",
+        format: "score",
+        direction: "higher-better",
+        internalOnly: true,
+      },
+    ],
+  },
+  campus: {
+    name: "NC Campus",
+    badge: "CAMPUS",
+    dashboards: "Campus admin and supervisor dashboards — not security or counselor workspaces",
+    lineChartLabel: "Avg hourly reports",
+    barBreakdownMetricPrefix: "src_",
+    kpis: [
+      { key: "total_reports", label: "Total reports", format: "count", direction: "higher-better" },
+      { key: "qr_nfc_reports", label: "QR / NFC reports", format: "count", direction: "higher-better" },
+      { key: "sms_reports", label: "SMS reports", format: "count", direction: "neutral" },
+      { key: "avg_response_time_minutes", label: "Avg response time", format: "minutes", direction: "lower-better" },
+      { key: "translation_sessions", label: "Translation sessions", format: "count", direction: "higher-better" },
+      {
+        key: "clery_eligible_count",
+        label: "Clery-eligible incidents",
+        format: "count",
+        direction: "neutral",
+        internalOnly: true,
+      },
+    ],
+  },
+  venue: {
+    name: "NC Venue",
+    badge: "VENUE",
+    dashboards: "Venue admin and supervisor dashboards — not operator or guest-services workspaces",
+    lineChartLabel: "Avg hourly guest reports",
+    barBreakdownMetricPrefix: "type_",
+    kpis: [
+      { key: "guest_reports", label: "Guest reports", format: "count", direction: "neutral" },
+      { key: "medical_assists", label: "Medical assists", format: "count", direction: "neutral" },
+      { key: "security_responses", label: "Security responses", format: "count", direction: "lower-better" },
+      { key: "avg_response_time_minutes", label: "Avg response time", format: "minutes", direction: "lower-better" },
+      { key: "ejections", label: "Ejections", format: "count", direction: "lower-better" },
+      { key: "translation_sessions", label: "Translation sessions", format: "count", direction: "higher-better" },
+    ],
+  },
+  transit: {
+    name: "NC Transit",
+    badge: "TRANSIT",
+    dashboards: "Transit admin and supervisor dashboards — not operator or security workspaces",
+    lineChartLabel: "Avg hourly passenger reports",
+    barBreakdownMetricPrefix: "loc_",
+    kpis: [
+      { key: "passenger_reports", label: "Passenger reports", format: "count", direction: "neutral" },
+      { key: "on_vehicle_reports", label: "On-vehicle reports", format: "count", direction: "neutral" },
+      { key: "station_reports", label: "Station reports", format: "count", direction: "neutral" },
+      { key: "avg_response_time_minutes", label: "Avg response time", format: "minutes", direction: "lower-better" },
+      { key: "translation_sessions", label: "Translation sessions", format: "count", direction: "higher-better" },
+      {
+        key: "operator_incidents",
+        label: "Operator incidents",
+        format: "count",
+        direction: "lower-better",
+        internalOnly: true,
+      },
+    ],
+  },
+  hospital: {
+    name: "NC Hospital",
+    badge: "HOSPITAL",
+    dashboards: "Hospital admin dashboards — not staff capacity workspaces",
+    lineChartLabel: "Avg hourly EMS pre-alerts",
+    barBreakdownMetricPrefix: "partner_",
+    kpis: [
+      { key: "ems_pre_alerts", label: "EMS pre-alerts", format: "count", direction: "neutral" },
+      {
+        key: "mci_activations",
+        label: "MCI activations",
+        format: "count",
+        direction: "neutral",
+        internalOnly: true,
+      },
+      { key: "avg_handoff_time_minutes", label: "Avg handoff time", format: "minutes", direction: "lower-better" },
+      {
+        key: "staff_safety_reports",
+        label: "Staff safety reports",
+        format: "count",
+        direction: "lower-better",
+        internalOnly: true,
+      },
+      { key: "active_ems_partners", label: "Active EMS partners", format: "count", direction: "neutral" },
+      { key: "translation_sessions", label: "Translation sessions", format: "count", direction: "higher-better" },
+    ],
+  },
+};

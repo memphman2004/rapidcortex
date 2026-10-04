@@ -226,8 +226,14 @@ export interface RCMapProps {
   /** Use fill-extrusion instead of flat fill (isometric 3D). */
   sectionExtrusion?: boolean;
 
-  /** Fired when a section/building polygon is clicked. */
+  /** Fired when a section / campus polygon feature is clicked. */
   onPolygonFeatureClick?: (properties: GeoJSON.GeoJsonProperties) => void;
+
+  /**
+   * Live-incident map only: if Maps V2 style/tiles fail to authenticate, switch
+   * this instance to named V1 maps. Other consoles stay on V2.
+   */
+  allowNamedMapFallback?: boolean;
 }
 
 export type RCOperationalOverlayKind =

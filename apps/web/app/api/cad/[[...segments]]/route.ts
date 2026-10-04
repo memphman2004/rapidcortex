@@ -46,10 +46,16 @@ export async function GET(_request: Request, ctx: Ctx) {
   }
 
   if (segments[0] === "units" && segments.length === 1) {
-    return withFeatureContract("cad_read_only_integration", async () => {
+    // CAD read-only is off by default — return an empty board (200) so the
+    // dispatcher Unit Board soft-fails without a noisy 403 in the network panel.
+    const gated = await withFeatureContract("cad_read_only_integration", async () => {
       const units = await readProvider.listUnits();
       return NextResponse.json({ units, mode: "read_only_preview" });
     });
+    if (gated.status === 403) {
+      return NextResponse.json({ units: [], mode: "feature_disabled" });
+    }
+    return gated;
   }
 
   if (segments[0] === "events" && segments[1] === "recent") {

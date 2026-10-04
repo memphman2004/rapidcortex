@@ -27,6 +27,7 @@ HTTP_API_URL_2="$(get_output HttpApi2Url)"
 HTTP_API_URL_3="$(get_output HttpApi3Url)"
 HTTP_API_URL_4="$(get_output HttpApi4Url)"
 HTTP_API_URL_5="$(get_output HttpApi5Url)"
+ANALYTICS_DAILY_TABLE="$(get_output AnalyticsDailyTable)"
 GRANT_GENERATE_FUNCTION_NAME="$(get_output GenerateGrantPackageFunctionName)"
 GRANT_GENERATE_FUNCTION_ARN="$(get_output GenerateGrantPackageFunctionArn)"
 API_CUSTOM_DOMAIN_URL="$(get_output ApiCustomDomainUrl)"
@@ -140,6 +141,9 @@ echo ""
 echo "# Recommended: same-origin BFF proxy (cookies; no token in browser JS)"
 echo "NEXT_PUBLIC_AUTH_PROXY=1"
 echo "API_UPSTREAM_BASE=${API_BASE}"
+if [[ -n "${ANALYTICS_DAILY_TABLE:-}" && "$ANALYTICS_DAILY_TABLE" != "None" ]]; then
+  echo "ANALYTICS_DAILY_TABLE=${ANALYTICS_DAILY_TABLE}"
+fi
 if [[ -n "${HTTP_API_URL_2:-}" && "$HTTP_API_URL_2" != "None" ]]; then
   echo "API_UPSTREAM_BASE_2=${HTTP_API_URL_2}"
   echo "NEXT_PUBLIC_API_BASE_2=${HTTP_API_URL_2}"
@@ -176,7 +180,7 @@ if [[ -z "${ALS_MAP_NAME_DARK}" || "${ALS_MAP_NAME_DARK}" == "None" ]]; then
 fi
 echo "NEXT_PUBLIC_ALS_MAP_NAME=${ALS_MAP_NAME:-rc-map-here-${STAGE}}"
 echo "NEXT_PUBLIC_ALS_MAP_NAME_DARK=${ALS_MAP_NAME_DARK:-rc-map-here-dark-${STAGE}}"
-echo "# Maps V2 (Standard descriptor + traffic). Set NEXT_PUBLIC_ALS_MAP_API_VERSION=v1 to force named maps."
+echo "# Maps V2 (live). Named V1 is a runtime fallback on the live-incident map only."
 echo "NEXT_PUBLIC_ALS_MAP_API_VERSION=v2"
 echo "NEXT_PUBLIC_ALS_MAP_STYLE=Standard"
 MAP_IDENTITY_POOL_ID="$(get_output MapIdentityPoolId)"

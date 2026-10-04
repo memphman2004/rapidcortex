@@ -53,6 +53,10 @@ Globals:
     Runtime: nodejs20.x
     Timeout: 30
     MemorySize: 512
+    # Lean SAM builds skip per-function node_modules; ship shared deps via layer.
+    # Without this, EscalationHttp fails: Cannot find module 'rapid-cortex-shared'.
+    Layers:
+      - !Ref NodeDepsLayer
     Environment:
       Variables:
         DEPLOYMENT_STAGE: !Ref DeploymentStage
@@ -75,6 +79,18 @@ Globals:
         APPROVED_CORS_ORIGINS: !Ref ApprovedCorsOrigins
 
 Resources:
+  NodeDepsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${ManagedPolicyNamePrefix}-escalation-api-deps-${DeploymentStage}"
+      Description: Shared node_modules for Escalation Bridge Lambdas (lean CodeUri builds)
+      ContentUri: ../../apps/api/layer/
+      CompatibleRuntimes:
+        - nodejs20.x
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: makefile
+
   AppManagedPolicyEscalation:
     Type: AWS::IAM::ManagedPolicy
     Properties:

@@ -40,6 +40,7 @@ export function ALSMapProvider({ children }: { children: React.ReactNode }) {
         if (cancelled) return;
         setAuthHelper(helper);
         const opts = helper.getMapAuthenticationOptions();
+        // getMapAuthenticationOptions() also wraps V2 tile signing; set the raw helper fn.
         setMapTransformRequest(opts.transformRequest);
       } catch (err) {
         console.error("ALS auth helper init failed:", err);

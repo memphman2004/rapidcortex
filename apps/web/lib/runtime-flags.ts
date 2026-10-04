@@ -62,6 +62,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_LIVE_STT: process.env.NEXT_PUBLIC_ENABLE_LIVE_STT,
   NEXT_PUBLIC_ENABLE_SURGE: process.env.NEXT_PUBLIC_ENABLE_SURGE,
   NEXT_PUBLIC_ENABLE_REPORTS: process.env.NEXT_PUBLIC_ENABLE_REPORTS,
+  NEXT_PUBLIC_ENABLE_IQ_REPORTING: process.env.NEXT_PUBLIC_ENABLE_IQ_REPORTING,
   NEXT_PUBLIC_ENABLE_EMERGENCY_CONNECT: process.env.NEXT_PUBLIC_ENABLE_EMERGENCY_CONNECT,
   NEXT_PUBLIC_ENABLE_HOSPITAL_ROUTING: process.env.NEXT_PUBLIC_ENABLE_HOSPITAL_ROUTING,
   NEXT_PUBLIC_ENABLE_HOSPITAL_PORTAL: process.env.NEXT_PUBLIC_ENABLE_HOSPITAL_PORTAL,
@@ -541,6 +542,11 @@ export function isSurgeEnabled(): boolean {
 /** Agency reporting (call volume, SLA, QA, dispatcher performance). */
 export function isReportsEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_REPORTS");
+}
+
+/** Multi-vertical iQ reporting on supervisor/admin dashboards. Default on when unset. */
+export function isIqReportingEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_IQ_REPORTING");
 }
 
 /** Emergency Connect — hospital pre-arrival alerts (must match API ENABLE_EMERGENCY_CONNECT). */

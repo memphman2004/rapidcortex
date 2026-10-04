@@ -28,18 +28,23 @@ export { useMapControls } from "./hooks/useMapControls";
 export { useLocationTracking } from "./hooks/useLocationTracking";
 
 export {
+  alsV2ResourceTypeForSigning,
   getMapAuthenticationOptions,
   isMapAuthReady,
   markMapAuthReady,
   setMapTransformRequest,
   subscribeMapAuthReady,
+  wrapAlsTransformRequest,
 } from "./utils/map-auth";
 export {
   RAPID_CORTEX_MAP_STYLES,
   alsMapStyleUrl,
   alsMapV2StyleName,
+  alsNamedMapStyleUrl,
   buildAlsMapV2StyleUrl,
   isAlsMapApiV2,
+  isAlsV2MapsUrl,
+  shouldFallbackAlsV2ToNamedMap,
   type AlsMapV2StyleName,
   type AlsMapV2StyleOptions,
   type AlsMapV2Terrain,

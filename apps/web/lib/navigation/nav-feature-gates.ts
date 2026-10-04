@@ -42,6 +42,7 @@ import {
   isWarRoomsEnabled,
   isScenarioCenterUiEnabled,
   isStaffGuideEnabled,
+  isIqReportingEnabled,
   isLoadoutPortalEnabled,
   isCommandIntelligenceEnabled,
   isNexiqVaultEnabled,
@@ -143,6 +144,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isScenarioCenterUiEnabled();
     case "staffGuide":
       return isStaffGuideEnabled();
+    case "iqReporting":
+      return isIqReportingEnabled();
     case "loadout":
       return isLoadoutPortalEnabled();
     default:

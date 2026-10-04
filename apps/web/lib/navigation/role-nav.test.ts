@@ -566,4 +566,27 @@ describe("getRoleNav", () => {
       .find((i) => i.id === "staff-guide");
     expect(dispatcher).toBeUndefined();
   });
+
+  it("adds iQ Reporting for supervisor/admin verticals, never dispatcher", () => {
+    const supervisor = getRoleNav("supervisor", { jurisdiction: "test-psap" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "iq-reporting");
+    expect(supervisor?.href).toBe("/test-psap/supervisor/iq-reporting");
+    expect(supervisor?.feature).toBe("iqReporting");
+
+    const campus = getRoleNav("CAMPUS_SUPERVISOR", { campusCode: "LINCOLNHIGH" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "iq-reporting");
+    expect(campus?.href).toBe("/app/campus/LINCOLNHIGH/analytics");
+
+    const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "iq-reporting");
+    expect(dispatcher).toBeUndefined();
+
+    const venueOps = getRoleNav("VENUE_OPERATOR", { venueCode: "MBS" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "iq-reporting");
+    expect(venueOps).toBeUndefined();
+  });
 });

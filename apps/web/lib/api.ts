@@ -248,16 +248,37 @@ function formatJsonErrorMessage(body: unknown, status: number): string {
   return parts.join(" · ");
 }
 
+/**
+ * Thrown when the API returns 403 `password_change_required`.
+ * Components should check `isPasswordChangeRequiredError(e)` and suppress
+ * error UI — the redirect to /change-password is already in flight.
+ */
+export class PasswordChangeRequiredError extends Error {
+  readonly code = "password_change_required" as const;
+  constructor() {
+    super("Your password must be updated before continuing.");
+    this.name = "PasswordChangeRequiredError";
+  }
+}
+
+/** Returns true when the caught error is a mandatory password-renewal gate. */
+export function isPasswordChangeRequiredError(err: unknown): err is PasswordChangeRequiredError {
+  return err instanceof PasswordChangeRequiredError;
+}
+
 /** API operational gate — keep UI from sitting on a broken dashboard with 403 spam. */
-function redirectIfPasswordChangeRequired(status: number, body: unknown): void {
-  if (status !== 403 || typeof window === "undefined" || !body || typeof body !== "object") return;
+function redirectIfPasswordChangeRequired(status: number, body: unknown): boolean {
+  if (status !== 403 || typeof window === "undefined" || !body || typeof body !== "object") {
+    return false;
+  }
   const err = (body as { error?: unknown }).error;
-  if (err !== "password_change_required") return;
+  if (err !== "password_change_required") return false;
   const next = `/change-password?from=${encodeURIComponent(
     `${window.location.pathname}${window.location.search}`,
   )}`;
-  if (window.location.pathname.startsWith("/change-password")) return;
+  if (window.location.pathname.startsWith("/change-password")) return false;
   window.location.assign(next);
+  return true;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -273,7 +294,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const text = await res.text();
   const body = text ? (JSON.parse(text) as unknown) : null;
   if (!res.ok) {
-    redirectIfPasswordChangeRequired(res.status, body);
+    if (redirectIfPasswordChangeRequired(res.status, body)) {
+      // Navigation is already queued — throw a typed sentinel so callers can
+      // suppress error toasts/UI while the redirect happens.
+      throw new PasswordChangeRequiredError();
+    }
     throw new Error(formatJsonErrorMessage(body, res.status));
   }
   return body as T;

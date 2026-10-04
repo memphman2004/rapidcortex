@@ -12,6 +12,7 @@ import { isHospitalPortalEnabled, isHospitalRoutingEnabled } from "@/lib/runtime
 import { CurrentStatusPanel } from "./current-status-panel";
 import { HospitalDashboard } from "./hospital-dashboard";
 import { RecentUpdatesPanel } from "./recent-updates-panel";
+import { IqReportingMount } from "@/components/analytics/iq-reporting/IqReportingMount";
 
 /** Demo regional reference for facility network map (Tampa Bay — matches routing seed data). */
 const REGIONAL_ROUTING_REFERENCE = { lat: 27.3364, lon: -82.5306 } as const;
@@ -177,6 +178,9 @@ export function HospitalHomeDashboard({
           Regional routing map isn’t enabled for this agency. Contact NexCort iQ support.
         </section>
       )}
+      {variant === "hospital-admin" ? (
+        <IqReportingMount agencyId={user.agencyId} vertical="hospital" />
+      ) : null}
     </div>
   );
 }

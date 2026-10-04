@@ -8,6 +8,8 @@ import {
   isApiConfigured,
   postAdminAnalyticsRefresh,
 } from "@/lib/api";
+import { IqReportingMount } from "@/components/analytics/iq-reporting/IqReportingMount";
+import { useSession } from "@/components/auth/session-context";
 
 async function downloadCsv(agencyId?: string) {
   const url = buildAdminAnalyticsCsvUrl(agencyId);
@@ -24,6 +26,7 @@ async function downloadCsv(agencyId?: string) {
 
 export default function AdminAnalyticsPage() {
   const qc = useQueryClient();
+  const { user } = useSession();
   const [agencyId, setAgencyId] = useState("");
 
   const summaryQuery = useQuery({
@@ -89,6 +92,7 @@ export default function AdminAnalyticsPage() {
         {summaryQuery.isLoading ? "Loading…" : null}
         <pre className="whitespace-pre-wrap">{JSON.stringify(s ?? {}, null, 2)}</pre>
       </section>
+      <IqReportingMount agencyId={agencyId.trim() || user?.agencyId || ""} vertical="911" />
     </div>
   );
 }

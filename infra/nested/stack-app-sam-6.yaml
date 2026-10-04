@@ -609,6 +609,18 @@ Resources:
                   - kinesisvideo:GetIceServerConfig
                 Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/*/*"
 
+  NodeDepsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${ManagedPolicyNamePrefix}-vision-api-deps-${DeploymentStage}"
+      Description: Shared node_modules for Rapid Vision HTTP Lambdas (lean CodeUri builds)
+      ContentUri: ../../apps/api/layer/
+      CompatibleRuntimes:
+        - nodejs20.x
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: makefile
+
   VisionHttpFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -618,6 +630,9 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/rapid-vision/http.handler
       Timeout: 30
+      # Lean builds omit node_modules; without this layer VisionHttp fails ImportModuleError.
+      Layers:
+        - !Ref NodeDepsLayer
       Environment:
         Variables:
           KVS_BROWSER_TOKEN_ROLE_ARN: !GetAtt VisionKvsBrowserTokenRole.Arn
@@ -651,6 +666,8 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/rapid-vision/consent.handler
       Timeout: 15
+      Layers:
+        - !Ref NodeDepsLayer
       Policies:
         - !Ref AppManagedPolicyVision
 

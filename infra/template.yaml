@@ -3798,6 +3798,49 @@ Resources:
         CognitoClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         CognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
 
+  AppSamIqAnalyticsStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - DataLayerStack
+      - AppSam2Stack
+      - AppSamStackV2
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-analytics.yaml
+      Parameters:
+        AppName: !Ref AppName
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam2Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: "3ui9q4"
+        AnalyticsDailyTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AnalyticsDailyTable
+            - !Sub "${DynamoTableNamePrefix}-analytics-daily-${DeploymentStage}"
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
   AppSamGrantsStack:
     Type: AWS::CloudFormation::Stack
     Metadata:
@@ -4530,6 +4573,13 @@ Outputs:
   HttpApi3Id:
     Description: Tertiary HTTP API ID (stack-app-sam-3)
     Value: !GetAtt AppSam3Stack.Outputs.HttpApiId
+  AnalyticsDailyTable:
+    Description: iQ reporting daily aggregates table (ANALYTICS_DAILY_TABLE)
+    Value:
+      Fn::If:
+        - HasDataLayerNestedStack
+        - !GetAtt DataLayerStack.Outputs.AnalyticsDailyTable
+        - !Sub "${DynamoTableNamePrefix}-analytics-daily-${DeploymentStage}"
   LoadoutApiEndpoint:
     Description: Loadout external REST API base URL (/v1/*)
     Value: !GetAtt LoadoutAppStack.Outputs.LoadoutApiEndpoint

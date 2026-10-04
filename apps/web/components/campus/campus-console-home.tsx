@@ -36,6 +36,7 @@ import {
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import { getZoneDefaults, matchesCampusSiteScope } from "rapid-cortex-shared";
 import { HelpChrome } from "@/components/help/help-chrome";
+import { IqReportingMount } from "@/components/analytics/iq-reporting/IqReportingMount";
 import { IncidentCameraPanel } from "@/components/venue/IncidentCameraPanel";
 import { SiteSquareMark } from "@/components/brand/site-logo-link";
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
@@ -2571,6 +2572,7 @@ function CampusConsoleHomeInner({
             enableDispatchControls={false}
           />
         ) : null}
+        <IqReportingMount agencyId={agencyId} vertical="campus" />
       </div>
     </HelpChrome>
   );

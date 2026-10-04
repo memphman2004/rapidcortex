@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { SalesLeadCrmRecord } from "rapid-cortex-shared";
 import { PIPELINE_STAGES, STAGE_CONFIG } from "rapid-cortex-shared";
+import { flattenPipelineLeads } from "@/components/rc-admin/leads/leads-api";
 import { scoreLead } from "@/lib/sales/lead-scoring";
 
 type Props = { assigneeFilter?: string };
@@ -16,12 +17,8 @@ export function KpiDashboard({ assigneeFilter }: Props) {
       try {
         const res = await fetch("/api/rc-admin/leads/pipeline", { credentials: "include" });
         if (!res.ok) return;
-        const data = (await res.json()) as {
-          leads?: SalesLeadCrmRecord[];
-          stages?: Record<string, SalesLeadCrmRecord[]>;
-        };
-        const flat = data.leads ?? Object.values(data.stages ?? {}).flatMap((x) => x);
-        if (!cancelled) setLeads(flat);
+        const data: unknown = await res.json();
+        if (!cancelled) setLeads(flattenPipelineLeads(data));
       } catch {
         /* ignore */
       }

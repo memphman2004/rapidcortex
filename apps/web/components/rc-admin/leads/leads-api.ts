@@ -49,11 +49,36 @@ function unwrapLead(body: ApiEnvelope<SalesLeadCrmRecord>): SalesLeadCrmRecord {
   return lead;
 }
 
+/** Unwrap `{ success, data }` or a bare `{ stages, metrics }` payload. */
+export function unwrapPipelinePayload(body: unknown): PipelineData | null {
+  if (!body || typeof body !== "object") return null;
+  const rec = body as Record<string, unknown>;
+  const inner =
+    rec.data && typeof rec.data === "object" ? (rec.data as Record<string, unknown>) : rec;
+  const stages = inner.stages;
+  const metrics = inner.metrics;
+  if (!stages || typeof stages !== "object") return null;
+  return { stages, metrics } as PipelineData;
+}
+
+export function flattenPipelineLeads(body: unknown): SalesLeadCrmRecord[] {
+  const payload = unwrapPipelinePayload(body);
+  if (payload) {
+    return Object.values(payload.stages).flatMap((x) => x);
+  }
+  const rec = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
+  const inner =
+    rec.data && typeof rec.data === "object" ? (rec.data as Record<string, unknown>) : rec;
+  if (Array.isArray(inner.leads)) return inner.leads as SalesLeadCrmRecord[];
+  return [];
+}
+
 export async function getPipelineData(): Promise<PipelineData> {
   const res = await fetch(`${BASE}/pipeline`, { credentials: "include" });
-  const body = await parseJson<ApiEnvelope<PipelineData>>(res);
-  if (!body.data) throw new Error("Missing pipeline data");
-  return body.data;
+  const body = await parseJson<unknown>(res);
+  const data = unwrapPipelinePayload(body);
+  if (!data) throw new Error("Missing pipeline data");
+  return data;
 }
 
 export async function updateLead(

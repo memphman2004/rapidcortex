@@ -19,11 +19,36 @@ function alsRegion(): string {
   return (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_ALS_REGION?.trim()) || "us-east-1";
 }
 
-/** Maps V2 when baked as `v2`; unset/anything else keeps named V1 maps (HERE rollback). */
+/** Maps V2 unless explicitly baked as `v1` (named HERE maps). */
 export function isAlsMapApiV2(): boolean {
   const version =
     typeof process !== "undefined" ? process.env?.NEXT_PUBLIC_ALS_MAP_API_VERSION?.trim().toLowerCase() : "";
-  return version === "v2";
+  return version !== "v1";
+}
+
+export function isAlsV2MapsUrl(url: string): boolean {
+  return /maps\.geo(?:-fips)?\.[^/]+\/v2\//i.test(url);
+}
+
+/**
+ * True when a MapLibre error means V2 tiles/style will not paint.
+ * Used only by the live-incident map to switch to named V1 maps.
+ */
+export function shouldFallbackAlsV2ToNamedMap(
+  event: unknown,
+  currentStyleUrl: string | null | undefined,
+): boolean {
+  if (!currentStyleUrl || !isAlsV2MapsUrl(currentStyleUrl)) return false;
+  const rec = event && typeof event === "object" ? (event as Record<string, unknown>) : {};
+  const nested = rec.error;
+  const errObj = nested && typeof nested === "object" ? (nested as Record<string, unknown>) : rec;
+  const statusRaw = errObj.status ?? rec.status;
+  const status = typeof statusRaw === "number" ? statusRaw : Number(statusRaw);
+  const message = [errObj.message, rec.message, nested]
+    .filter((part) => typeof part === "string")
+    .join(" ");
+  if (status === 401 || status === 403 || status === 404) return true;
+  return /403|401|AccessDenied|Unauthorized/i.test(message);
 }
 
 export function alsMapV2StyleName(): AlsMapV2StyleName {
@@ -55,18 +80,19 @@ export function buildAlsMapV2StyleUrl(options: AlsMapV2StyleOptions = {}): strin
   return url.toString();
 }
 
-function alsNamedMapStyleUrl(kind: "dark" | "standard"): string {
+/** Named Location maps (V1). Live incident fallback only — not the default basemap. */
+export function alsNamedMapStyleUrl(theme: "dark" | "light" = "dark"): string {
   const name =
-    kind === "dark"
+    theme === "dark"
       ? (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_ALS_MAP_NAME_DARK?.trim()) ||
-        "rc-map-dark-dev"
-      : (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_ALS_MAP_NAME?.trim()) || "rc-map-dev";
+        "rc-map-here-dark-dev"
+      : (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_ALS_MAP_NAME?.trim()) || "rc-map-here-dev";
   return `https://maps.geo.${alsRegion()}.amazonaws.com/maps/v0/maps/${name}/style-descriptor`;
 }
 
 /**
- * Style URL for MapLibre. V2 uses Standard/Hybrid descriptors; V1 uses named maps
- * (`rc-map-here-dev` / `rc-map-here-dark-dev`) as the rollback path.
+ * Style URL for MapLibre. Live default is Maps V2. Named V1 maps only when
+ * `NEXT_PUBLIC_ALS_MAP_API_VERSION=v1` or an incident map falls back at runtime.
  */
 export function alsMapStyleUrl(theme: "dark" | "light" = "dark", extras?: AlsMapV2StyleOptions): string {
   if (isAlsMapApiV2()) {
@@ -75,7 +101,7 @@ export function alsMapStyleUrl(theme: "dark" | "light" = "dark", extras?: AlsMap
       dark: extras?.dark ?? theme === "dark",
     });
   }
-  return alsNamedMapStyleUrl(theme === "dark" ? "dark" : "standard");
+  return alsNamedMapStyleUrl(theme);
 }
 
 export const RAPID_CORTEX_MAP_STYLES: Record<MapTheme, string> = {
@@ -83,6 +109,6 @@ export const RAPID_CORTEX_MAP_STYLES: Record<MapTheme, string> = {
   light: alsMapStyleUrl("light"),
   satellite: isAlsMapApiV2()
     ? buildAlsMapV2StyleUrl({ style: "Hybrid", dark: false })
-    : alsNamedMapStyleUrl("standard"),
+    : alsNamedMapStyleUrl("light"),
   streets: alsMapStyleUrl("light"),
 };

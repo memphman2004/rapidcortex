@@ -11,7 +11,12 @@ import {
 } from "@/components/dispatcher/create-incident-slide-over";
 import { TranscriptChunkPlayer } from "@/components/dispatch/transcript-chunk-player";
 import { LiveCallSttCapture } from "@/components/dispatch/live-call-stt-capture";
-import { AnalyzeIncidentError, isApiConfigured, postTranscriptSegment } from "@/lib/api";
+import {
+  AnalyzeIncidentError,
+  isApiConfigured,
+  isPasswordChangeRequiredError,
+  postTranscriptSegment,
+} from "@/lib/api";
 import { isAddonNotEnabledError } from "@/lib/addon-gate-errors";
 import { CallerTranslationSection } from "@/components/dispatch/caller-translation-section";
 import { resolveIncidentCallerLanguage } from "@/lib/dispatch/caller-language";
@@ -295,18 +300,36 @@ export function DashboardWorkspace() {
   const analysisBlockedByAddon =
     analysisQuery.isError && isAddonNotEnabledError(analysisQuery.error);
 
+  const incidentsBlockedByPassword = isPasswordChangeRequiredError(incidentsQuery.error);
+  const incidentBlockedByPassword = isPasswordChangeRequiredError(incidentQuery.error);
+  const transcriptBlockedByPassword = isPasswordChangeRequiredError(transcriptQuery.error);
+  const analysisBlockedByPassword = isPasswordChangeRequiredError(analysisQuery.error);
+  const passwordRenewalInFlight =
+    incidentsBlockedByPassword ||
+    incidentBlockedByPassword ||
+    transcriptBlockedByPassword ||
+    analysisBlockedByPassword;
+
   const loadError =
-    incidentsQuery.isError ||
-    incidentQuery.isError ||
-    transcriptQuery.isError ||
-    (analysisQuery.isError && !analysisBlockedByAddon);
+    !passwordRenewalInFlight &&
+    ((incidentsQuery.isError && !incidentsBlockedByPassword) ||
+      (incidentQuery.isError && !incidentBlockedByPassword) ||
+      (transcriptQuery.isError && !transcriptBlockedByPassword) ||
+      (analysisQuery.isError && !analysisBlockedByAddon && !analysisBlockedByPassword));
 
   const loadErrorMessage =
-    (incidentsQuery.error instanceof Error && incidentsQuery.error.message) ||
-    (incidentQuery.error instanceof Error && incidentQuery.error.message) ||
-    (transcriptQuery.error instanceof Error && transcriptQuery.error.message) ||
+    (incidentsQuery.error instanceof Error &&
+      !incidentsBlockedByPassword &&
+      incidentsQuery.error.message) ||
+    (incidentQuery.error instanceof Error &&
+      !incidentBlockedByPassword &&
+      incidentQuery.error.message) ||
+    (transcriptQuery.error instanceof Error &&
+      !transcriptBlockedByPassword &&
+      transcriptQuery.error.message) ||
     (analysisQuery.error instanceof Error &&
       !analysisBlockedByAddon &&
+      !analysisBlockedByPassword &&
       analysisQuery.error.message) ||
     null;
 

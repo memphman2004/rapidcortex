@@ -3,7 +3,8 @@
  * Pure functions — safe for web and Lambda.
  */
 
-import { createHash } from "node:crypto";
+/** Prefer unprefixed `crypto` so Next/webpack client traces do not hit `node:` scheme errors. */
+import { createHash } from "crypto";
 
 /** Normalize external_key for lookup without inventing a new key on title edits. */
 export function normalizeWatchExternalKey(key: string): string {
