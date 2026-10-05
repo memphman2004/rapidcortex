@@ -10,6 +10,7 @@ import {
   type PsapProspectListQuery,
 } from "rapid-cortex-shared";
 import { List, Map as MapIcon, Sparkles } from "lucide-react";
+import { SafetySourceLookupLink } from "@/components/psap/safety-source-lookup-link";
 import {
   enrichAllPsapContacts,
   getPsapMapPins,
@@ -172,6 +173,7 @@ export function PsapProspectsClient() {
           {bulkMsg && <p className="mt-1 text-xs text-slate-500">{bulkMsg}</p>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <SafetySourceLookupLink variant="chip" />
           <button
             type="button"
             onClick={() => void handleBulkEnrich()}

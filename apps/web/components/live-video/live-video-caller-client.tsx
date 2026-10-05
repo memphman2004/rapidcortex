@@ -27,7 +27,25 @@ export function LiveVideoCallerClient({ token }: { token: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error(`Join failed (${res.status})`);
+      if (!res.ok) {
+        let detail = "";
+        try {
+          const body = (await res.json()) as { error?: string };
+          detail = body.error ? `: ${body.error}` : "";
+        } catch {
+          /* ignore */
+        }
+        if (res.status === 409 || detail.includes("session_closed")) {
+          throw new Error("This live video link is no longer active. Ask the dispatcher to send a new link.");
+        }
+        if (res.status === 404) {
+          throw new Error("This live video link was not found. Ask the dispatcher to send a new link.");
+        }
+        if (res.status === 410) {
+          throw new Error("This live video link has expired. Ask the dispatcher to send a new link.");
+        }
+        throw new Error(`Join failed (${res.status})${detail}`);
+      }
       const data = (await res.json()) as JoinLiveVideoResponse;
       setSession(data);
       if (data.status === "ended" || data.status === "expired" || data.status === "failed") setEnded(true);

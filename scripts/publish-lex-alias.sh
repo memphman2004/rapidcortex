@@ -22,19 +22,47 @@ rapid_cortex_assert_aws_account
 
 DIALOG_ARN="$(aws lambda get-function --function-name "rapid-cortex-lex-dialog-hook-${STAGE}" --query 'Configuration.FunctionArn' --output text --region "${REGION}")"
 
-export ROOT TMPDIR_LEX DIALOG_ARN
-ROOT="${ROOT}" DIALOG_ARN="${DIALOG_ARN}" TMPDIR_LEX="${TMPDIR_LEX}" python3 - <<'PY'
-import json, os, sys
+export ROOT TMPDIR_LEX DIALOG_ARN BOT_ID REGION
+ROOT="${ROOT}" DIALOG_ARN="${DIALOG_ARN}" TMPDIR_LEX="${TMPDIR_LEX}" BOT_ID="${BOT_ID}" REGION="${REGION}" python3 - <<'PY'
+import json, os, subprocess, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(os.environ["ROOT"]) / "scripts"))
 from lex_bot_locales import alias_locale_settings, bot_version_locale_specification, load_merged_spec, spec_locales
 root = Path(os.environ["ROOT"])
 out = Path(os.environ["TMPDIR_LEX"])
-locales = spec_locales(load_merged_spec(root))
+bot_id = os.environ["BOT_ID"]
+region = os.environ["REGION"]
+wanted = spec_locales(load_merged_spec(root))
+built = []
+skipped = []
+for locale in wanted:
+    proc = subprocess.run(
+        [
+            "aws", "lexv2-models", "describe-bot-locale",
+            "--bot-id", bot_id,
+            "--bot-version", "DRAFT",
+            "--locale-id", locale,
+            "--region", region,
+            "--query", "botLocaleStatus",
+            "--output", "text",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    status = (proc.stdout or "").strip()
+    if status == "Built":
+        built.append(locale)
+    else:
+        skipped.append(f"{locale}:{status or proc.stderr.strip() or 'unknown'}")
+if not built:
+    raise SystemExit("ERROR: no DRAFT locales are Built; cannot create a bot version")
+if skipped:
+    print("→ Skipping locales that are not Built: " + ", ".join(skipped), flush=True)
 arn = os.environ["DIALOG_ARN"]
-(out / "version-spec.json").write_text(json.dumps(bot_version_locale_specification(locales)), encoding="utf-8")
-(out / "alias-settings.json").write_text(json.dumps(alias_locale_settings(arn, locales)), encoding="utf-8")
-(out / "locales.txt").write_text(" ".join(locales), encoding="utf-8")
+(out / "version-spec.json").write_text(json.dumps(bot_version_locale_specification(built)), encoding="utf-8")
+(out / "alias-settings.json").write_text(json.dumps(alias_locale_settings(arn, built)), encoding="utf-8")
+(out / "locales.txt").write_text(" ".join(built), encoding="utf-8")
 PY
 
 LOCALES="$(cat "${TMPDIR_LEX}/locales.txt")"

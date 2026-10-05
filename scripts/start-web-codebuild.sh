@@ -8,11 +8,19 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export WEB_DEPLOY_ENVIRONMENT="${ENVIRONMENT}"
 echo "Starting CodeBuild project ${PROJECT_NAME}…"
 
+# Live web ECR/env is `prod`, but ALS + Cognito Identity Pool live on rapid-cortex-dev.
+if [[ "${ENVIRONMENT}" == "prod" ]]; then
+  export API_STACK="${API_STACK:-rapid-cortex-dev}"
+  export ALS_DEPLOYMENT_STAGE="${ALS_DEPLOYMENT_STAGE:-dev}"
+fi
+
 # Amazon Location Service map tiles (Cognito Identity Pool). No public token.
 # shellcheck source=scripts/lib/resolve-als-map-env.sh
 source "${ROOT}/scripts/lib/resolve-als-map-env.sh"
+# Clear stale Esri names so resolve can replace them from CFN / HERE fallbacks.
+unset NEXT_PUBLIC_ALS_MAP_NAME NEXT_PUBLIC_ALS_MAP_NAME_DARK
 if resolve_als_map_env; then
-  echo "✓ ALS map env resolved for web image bake"
+  echo "✓ ALS map env resolved for web image bake (map=${NEXT_PUBLIC_ALS_MAP_NAME} api=${NEXT_PUBLIC_ALS_MAP_API_VERSION} pool=set)"
 else
   echo "WARN: NEXT_PUBLIC_ALS_IDENTITY_POOL_ID unresolved — maps will not authenticate until stack outputs are set." >&2
 fi

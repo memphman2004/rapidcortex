@@ -23,6 +23,7 @@ export function asLexSlot(value: string): LexSlotValue {
 
 const VEHICLE_DESCRIPTION_SLOT_NAMES = new Set([
   "VehicleDescription",
+  "VehicleDetails",
   "ParkingVehicleDescription",
   "BurglaryVehicleDescription",
   "TowVehicleDescription",

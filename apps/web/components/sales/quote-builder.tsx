@@ -246,8 +246,14 @@ export function QuoteBuilder({ proposedBy }: Props) {
                         </span>
                       )}
                     </span>
-                    <span className="mt-1 block text-xs leading-relaxed text-slate-400">
+                    <span className="mt-1 block text-xs leading-relaxed text-slate-300">
                       {item.explanation}
+                    </span>
+                    <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
+                      {item.detail}
+                    </span>
+                    <span className="mt-1.5 block text-xs font-medium leading-relaxed text-sky-300/90">
+                      Sales emphasis: {item.buyerValue}
                     </span>
                     <span className="mt-2 flex flex-wrap gap-1">
                       {item.compatibleVerticals.map((v) => (

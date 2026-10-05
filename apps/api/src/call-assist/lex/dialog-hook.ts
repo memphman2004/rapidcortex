@@ -36,6 +36,8 @@ import {
   weaponVisibleYes,
 } from "./dialog-intercept.js";
 import { LEX_SPEC_CONFIRMATION_INTENTS, LEX_SPEC_SLOTS } from "./lex-spec-slots.js";
+import { apply311Dialog } from "./taxonomy-311/apply-311-dialog.js";
+import { INTENT_MAP as LEX_311_INTENT_MAP } from "./taxonomy-311/intents.js";
 import {
   closeTransferResponse,
   delegateResponse,
@@ -203,6 +205,19 @@ export async function handleDialog(
   let confidenceSource: "lex" | "bedrock" = "lex";
   let effectiveScore = lexConfidence;
 
+  if (activeIntent === "RedirectToEmergencyServices") {
+    return emergencyClose(deps, event, config, shortName, emergencySpoken, {
+      ...sessionAttrs,
+      agencyId,
+      callId,
+      transcript,
+    });
+  }
+
+  if (activeIntent === "TransferToLiveAgent") {
+    activeIntent = REQUEST_HUMAN_INTENT;
+  }
+
   if (callerRequestedHuman(utterance) || activeIntent === REQUEST_HUMAN_INTENT) {
     if (sessionAttrs.enableLiveAgentHandoff !== "false") {
       return closeTransferResponse(
@@ -231,6 +246,9 @@ export async function handleDialog(
       effectiveScore = bedrockResult.confidence;
     }
   }
+
+  const taxonomy311 = apply311Dialog(event, activeIntent, currentSlots, sessionAttrs);
+  if (taxonomy311) return taxonomy311;
 
   const slotMap = extractCurrentSlots(event);
   const identity = ingestConnectCallerIdentity({
@@ -564,6 +582,15 @@ export function nextMissingSlot(
   taxonomy: AgencyTaxonomy,
   intake?: CallIntakeData,
 ): string | null {
+  const taxonomy311Slots = LEX_311_INTENT_MAP[intentId]?.slots;
+  if (taxonomy311Slots?.length) {
+    for (const slot of taxonomy311Slots) {
+      if (!slot.isRequired) continue;
+      if (slotFilled(currentSlots[slot.name])) continue;
+      return slot.name;
+    }
+    return null;
+  }
   const specSlots = LEX_SPEC_SLOTS[intentId];
   const usesLegacyLocation = "location" in currentSlots;
   const usesSpecKeys = Boolean(specSlots?.some((slot) => slot.name in currentSlots));

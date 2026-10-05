@@ -90,6 +90,8 @@ export type PostSilentTextMessageBody = z.infer<typeof postSilentTextMessageBody
 
 export const silentTextPresenceBodySchema = z.object({
   surface: z.enum(["caller_web", "dispatcher_console"]).optional(),
+  /** Caller UI language selection (BCP-47 primary tag, e.g. en, es, zh). */
+  locale: z.string().min(2).max(16).optional(),
 });
 
 export type SilentTextPresenceBody = z.infer<typeof silentTextPresenceBodySchema>;

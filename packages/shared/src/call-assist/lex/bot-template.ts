@@ -5,7 +5,7 @@
  */
 import type { CallAssistLocale } from "./provisioning-types.js";
 
-export const BOT_TEMPLATE_VERSION = "2026-09-28.1";
+export const BOT_TEMPLATE_VERSION = "2026-10-04.1";
 
 export const BOT_TEMPLATE_INTENT_NAMES = [
   "EmergencyEscalation",
@@ -28,6 +28,26 @@ export const BOT_TEMPLATE_INTENT_NAMES = [
   "InformationRequest",
   "Welcome",
   "FallbackIntent",
+  "ReportRoadsInfrastructure",
+  "ReportStreetLighting",
+  "ReportTrafficSignsMarkings",
+  "ReportSanitationWaste",
+  "ReportWaterSewerDrainage",
+  "ReportNoiseComplaint",
+  "ReportVehicleIssue",
+  "ReportGraffitiVandalism",
+  "ReportAnimalsPests",
+  "ReportTreesVegetation",
+  "ReportParksPublicSpaces",
+  "ReportBuildingsHousing",
+  "ReportHomelessSocialServices",
+  "ReportEnvironmentalHealth",
+  "ReportLawEnforcementNonEmergency",
+  "ReportFireEMSNonEmergency",
+  "ReportTransitIssue",
+  "RequestGovernmentInformation",
+  "ReportSpecialEventIssue",
+  "CheckServiceRequestStatus",
 ] as const;
 
 export type BotTemplateIntentName = (typeof BOT_TEMPLATE_INTENT_NAMES)[number];

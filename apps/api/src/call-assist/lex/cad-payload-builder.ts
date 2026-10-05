@@ -79,6 +79,7 @@ export function buildCadPayload(
 function buildVehicleDesc(slots: Record<string, string | null>): string | null {
   const blob =
     slots.VehicleDescription ??
+    slots.VehicleDetails ??
     slots.BurglaryVehicleDescription ??
     slots.ParkingVehicleDescription ??
     slots.TowVehicleDescription ??

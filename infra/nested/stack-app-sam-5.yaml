@@ -4564,9 +4564,12 @@ Resources:
                 Action:
                   - kinesisvideo:DescribeMappedResourceConfiguration
                 Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*/*"
+              # CreateStream with Tags requires TagStream/TagResource or IAM denies CreateStream.
               - Effect: Allow
                 Action:
                   - kinesisvideo:CreateStream
+                  - kinesisvideo:TagStream
+                  - kinesisvideo:TagResource
                 Resource: "*"
                 Condition:
                   StringEquals:

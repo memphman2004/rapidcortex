@@ -3,37 +3,54 @@
 import { useState } from "react";
 import type { RoiVertical } from "rapid-cortex-shared";
 import { verticalLabelForSales } from "rapid-cortex-shared";
+import { SafetySourceLookupLink } from "@/components/psap/safety-source-lookup-link";
 
 const QUESTIONS: Record<RoiVertical, string[]> = {
   rc911: [
+    "How many dispatcher seats per shift / total?",
     "What CAD vendor and version are you on today?",
+    "Approximate monthly / annual call volume?",
+    "Live transcription or call recording today?",
     "Where do language calls create the most friction?",
     "How is QA currently staffed and scored?",
+    "How do you handle callers who cannot or will not speak?",
+    "NG911 upgrade status?",
     "What would make a pilot low-risk for your IT team?",
+    "Budget cycle and grant funding for tech upgrades?",
   ],
   campus: [
     "How do tip reports reach security today?",
+    "Higher-ed Clery tracking vs K-12 daily incident / school safety logging?",
     "Clery documentation — what is manual vs automated?",
     "How many physical zones need coverage?",
+    "QR vs app adoption reality on campus?",
     "Who owns student safety vs facilities?",
+    "How does campus security hand off to local LE?",
   ],
   venue: [
+    "How do fans report issues today?",
+    "Seat / section / gate labeling?",
     "Peak event volume and guest assistance channels?",
+    "Security vs guest-services split?",
     "How are section/gate incidents coordinated?",
     "What is in vs out of scope vs 911?",
-    "Who approves guest-facing QR placement?",
+    "Camera / VMS vendor? Who approves guest-facing QR placement?",
   ],
   hospital: [
-    "How is ER diversion communicated to EMS?",
-    "Who updates live capacity today?",
-    "MCI coordination gaps?",
+    "Diversion frequency and how is it communicated to EMS?",
+    "Who updates live capacity / bed board today?",
+    "EMS pre-alert process today?",
+    "MCI coordination gaps with the local PSAP?",
+    "Internal staff safety reporting?",
     "HL7 / bed-board integrations in place?",
   ],
   transit: [
-    "Passenger report channels today?",
+    "Fleet size by mode?",
+    "Passenger report channels today — on-vehicle vs station?",
     "Route vs station coverage priorities?",
-    "Security vs ops ownership?",
-    "Peak corridor pain points?",
+    "CAD / AVL vendor?",
+    "Security vs ops ownership? After-hours model?",
+    "Peak corridor pain points and rider language mix?",
   ],
 };
 
@@ -84,6 +101,11 @@ export function PreCallPlanner() {
             value={agency}
             onChange={(e) => setAgency(e.target.value)}
           />
+          {vertical === "rc911" && (
+            <span className="mt-1.5 block">
+              <SafetySourceLookupLink hint="Look up missing PSAP contacts in the national directory." />
+            </span>
+          )}
         </label>
         <label className="text-xs text-slate-400">
           Vertical

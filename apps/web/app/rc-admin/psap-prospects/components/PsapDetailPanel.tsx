@@ -12,6 +12,7 @@ import {
   type PsapProspectContact,
 } from "rapid-cortex-shared";
 import { AlertCircle, CheckCircle, Copy, Mail, Phone, Sparkles, X } from "lucide-react";
+import { SafetySourceLookupLink } from "@/components/psap/safety-source-lookup-link";
 import { addPsapActivity, enrichPsapContacts, patchPsapProspect } from "@/lib/psap/psap-api";
 import { PsapStatusBadge } from "./PsapStatusBadge";
 
@@ -402,19 +403,22 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
               Save value
             </button>
 
-            <div className="mb-2 flex items-center justify-between">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-[9px] font-bold uppercase tracking-widest text-slate-500">
                 Contacts
               </h3>
-              <button
-                type="button"
-                onClick={() => void handleEnrichContacts()}
-                disabled={enriching || saving}
-                className="flex items-center gap-1.5 rounded border border-slate-700 bg-slate-800 px-2.5 py-1 text-[10px] font-semibold text-slate-300 transition-colors hover:bg-slate-700 disabled:opacity-50"
-              >
-                <Sparkles size={10} />
-                {enriching ? "Finding contacts…" : "Enrich Contacts"}
-              </button>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <SafetySourceLookupLink variant="chip" />
+                <button
+                  type="button"
+                  onClick={() => void handleEnrichContacts()}
+                  disabled={enriching || saving}
+                  className="flex items-center gap-1.5 rounded border border-slate-700 bg-slate-800 px-2.5 py-1 text-[10px] font-semibold text-slate-300 transition-colors hover:bg-slate-700 disabled:opacity-50"
+                >
+                  <Sparkles size={10} />
+                  {enriching ? "Finding contacts…" : "Enrich Contacts"}
+                </button>
+              </div>
             </div>
             {draft.lastEnrichedAt && (
               <div className="mb-2 text-[9px] text-slate-600">
@@ -433,12 +437,25 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
                 ))}
               </div>
             ) : (
-              <p className="mb-3 text-[11px] text-slate-600">
-                No enriched contacts yet — click Enrich Contacts to run Hunter.io + Apollo.
-              </p>
+              <div className="mb-3 space-y-1.5 rounded border border-[#1e2130] bg-[#0a0b0f] px-2.5 py-2">
+                <p className="text-[11px] text-slate-500">
+                  No enriched contacts yet — run Enrich Contacts, or look up the PSAP directory
+                  without leaving this workflow.
+                </p>
+                <SafetySourceLookupLink
+                  hint="Opens Safety Source (National Public Safety Information Bureau) in a new tab."
+                />
+              </div>
             )}
 
             <SectionHeader title="Primary Contact (manual)" />
+            {(!draft.primaryContactName?.trim() ||
+              !draft.primaryContactEmail?.trim() ||
+              !draft.primaryContactPhone?.trim()) && (
+              <div className="mb-2">
+                <SafetySourceLookupLink hint="Fill missing name, email, or phone from the national directory." />
+              </div>
+            )}
             <Field
               label="Name"
               value={draft.primaryContactName ?? ""}

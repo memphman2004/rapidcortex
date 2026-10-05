@@ -579,9 +579,11 @@ export class SilentTextService {
     if (!item) throw new Error("NOT_FOUND");
     assertLive(item);
     const now = new Date().toISOString();
+    const locale = parsed.data.locale?.trim();
     let next = append(item, { at: now, type: "presence.caller", meta: parsed.data });
     next = {
       ...next,
+      ...(locale ? { callerLocale: locale.slice(0, 16) } : {}),
       lastCallerPresenceAt: now,
       lastActivityAt: now,
       updatedAt: now,
@@ -602,6 +604,10 @@ export class SilentTextService {
     if (item.endedAt || item.canceledAt) throw new Error("SESSION_ENDED");
 
     const now = new Date().toISOString();
+    const localeFromClient = body.client?.language?.trim();
+    if (localeFromClient) {
+      item = { ...item, callerLocale: localeFromClient.slice(0, 16) };
+    }
     let message: SilentTextMessage = {
       messageId: makeId("stm"),
       at: now,
@@ -617,6 +623,7 @@ export class SilentTextService {
     });
     next = {
       ...next,
+      ...(localeFromClient ? { callerLocale: localeFromClient.slice(0, 16) } : {}),
       messages,
       lastActivityAt: now,
       lastCallerPresenceAt: now,
