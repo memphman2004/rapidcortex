@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { PricingPriceCell } from "./pricing-price-cell";
-import { PSAP_TIERS, VERTICALS, type TabProps } from "@/lib/pricing/pricing-catalog";
+import { VERTICALS, type TabProps } from "@/lib/pricing/pricing-catalog";
 
 const tableClass = "w-full border-collapse text-sm text-slate-200";
 const thClass =
@@ -71,7 +71,7 @@ export function PricingVerticalsTab(props: TabProps) {
                 </tr>
               </thead>
               <tbody>
-                {PSAP_TIERS.map((tier) => {
+                {vertical.annualTiers.map((tier) => {
                   const key = `${vertical.id}.${tier.id}.annual`;
                   return (
                     <tr key={tier.id}>
@@ -104,7 +104,7 @@ export function PricingVerticalsTab(props: TabProps) {
               </tr>
             </thead>
             <tbody>
-              {(vertical.id === "campus" ? vertical.implSizes : PSAP_TIERS).map((size) => {
+              {vertical.implSizes.map((size) => {
                 const sizeId = size.id;
                 const label = size.label;
                 const key =

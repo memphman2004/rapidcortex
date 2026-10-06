@@ -320,7 +320,7 @@ function AddSourceModal({ onClose }: { onClose: () => void }) {
   const qc = useQueryClient();
   const [form, setForm] = useState<Partial<CreateIntelligenceSourceRequest>>({
     connectorType: "HTML",
-    checkFrequencyMinutes: 720,
+    checkFrequencyMinutes: 120,
     verticals: [],
   });
   const [error, setError] = useState("");
@@ -467,10 +467,11 @@ function AddSourceModal({ onClose }: { onClose: () => void }) {
                 Check Frequency
               </label>
               <select
-                value={form.checkFrequencyMinutes ?? 720}
+                value={form.checkFrequencyMinutes ?? 120}
                 onChange={(e) => setForm((f) => ({ ...f, checkFrequencyMinutes: parseInt(e.target.value, 10) }))}
                 className="w-full rounded border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100 outline-none"
               >
+                <option value={120}>Every 2 hours</option>
                 <option value={30}>Every 30 min</option>
                 <option value={60}>Every hour</option>
                 <option value={360}>Every 6 hours</option>

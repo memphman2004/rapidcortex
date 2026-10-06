@@ -80,6 +80,7 @@ import {
 } from "../../call-assist/tenant-agency.js";
 import { handleCallAssistP2 } from "./p2.js";
 import { handleCallAssistP3 } from "./p3.js";
+import { getMediaForConfirmation } from "../../call-assist/sms-channel/media-viewer.js";
 
 const authz = new AuthorizationService();
 const auditRepo = new AuditRepository();
@@ -985,6 +986,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }
       if (!record) return withCorrelationHeaders(event, notFound("Call record not found"));
       return withCorrelationHeaders(event, ok({ record }));
+    }
+
+    if (method === "GET" && parts[0] === "call-records" && parts[2] === "media" && parts[1]) {
+      requirePerm(user, "call_assist.session.view");
+      const confirmation = decodeURIComponent(parts[1]);
+      const media = await getMediaForConfirmation(agencyId, confirmation);
+      return withCorrelationHeaders(event, ok({ confirmationNumber: confirmation, media, count: media.length }));
     }
 
     if (method === "POST" && parts[0] === "call-records" && parts[2] === "acknowledge" && parts[1]) {

@@ -502,6 +502,18 @@ export const env = {
   enableCallAssistVoiceEmotion: featureEnabled("ENABLE_CALL_ASSIST_VOICE_EMOTION"),
   enableCallAssistDiarization: featureEnabled("ENABLE_CALL_ASSIST_DIARIZATION"),
   enableCallAssistSmsConfirmation: featureEnabled("ENABLE_CALL_ASSIST_SMS_CONFIRMATION"),
+  enableCallAssistSmsChannel: featureEnabled("ENABLE_CALL_ASSIST_SMS_CHANNEL"),
+  enableCallAssistSmsMedia: featureEnabled("ENABLE_CALL_ASSIST_SMS_MEDIA"),
+  callAssistSmsMediaBucket: process.env.CALL_ASSIST_SMS_MEDIA_BUCKET?.trim() ?? "",
+  callAssistRekognitionMock:
+    process.env.CALL_ASSIST_REKOGNITION_MOCK === "true" || process.env.CALL_ASSIST_REKOGNITION_MOCK === "1",
+  callAssistLexBotId: process.env.CALL_ASSIST_LEX_BOT_ID?.trim() ?? "",
+  callAssistLexBotAliasId: process.env.CALL_ASSIST_LEX_BOT_ALIAS_ID?.trim() ?? "",
+  callAssistSmsOriginationNumber:
+    process.env.CALL_ASSIST_SMS_ORIGINATION_NUMBER?.trim() ||
+    process.env.CALL_ASSIST_OUTBOUND_CALLER_ID?.trim() ||
+    "",
+  callAssistSmsDefaultAgencyId: process.env.CALL_ASSIST_SMS_DEFAULT_AGENCY_ID?.trim() ?? "",
   /**
    * Field app — 911 Dispatch (view/coach/log) + workspace access requests.
    * Operational default on when unset.

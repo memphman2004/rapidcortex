@@ -232,7 +232,7 @@ async function createSource(
     geography: body.geography,
     connectorType: body.connectorType,
     enabled: true,
-    checkFrequencyMinutes: body.checkFrequencyMinutes ?? 720, // 12h default
+    checkFrequencyMinutes: body.checkFrequencyMinutes ?? 120,
     consecutiveFailures: 0,
     health: "HEALTHY",
     documentLinkPattern: body.documentLinkPattern,

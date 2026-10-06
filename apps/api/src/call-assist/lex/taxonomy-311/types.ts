@@ -91,6 +91,8 @@ export interface SlotDefinition {
 
 export interface IntentDefinition {
   name: string;
+  /** Lex V2 intentDisplayName — human-readable label in console / analytics */
+  displayName: string;
   description: string;
   category: ServiceCategory;
   primaryDepartment: CityDepartment;

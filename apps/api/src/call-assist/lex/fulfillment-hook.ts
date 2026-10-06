@@ -20,7 +20,7 @@ import {
   weaponVisibleYes,
   type TransferReason,
 } from "./dialog-intercept.js";
-import { closeTransferResponse, ssml } from "./lex-responses.js";
+import { closeTransferResponse, plain, ssml } from "./lex-responses.js";
 import { buildTransferSummary } from "./safety-gate.js";
 import type { LexV2Event, LexV2Response } from "./types.js";
 import { escalationCloseParts, handleSessionStart } from "./session-start.js";
@@ -39,6 +39,7 @@ export type FulfillmentAction =
 export function resolveFulfillmentAction(event: LexV2Event): FulfillmentAction {
   const intent = event.sessionState.intent.name;
   const slots = event.sessionState.intent.slots ?? {};
+  const smsChannel = event.sessionState.sessionAttributes?.channel === "sms";
   if (intent === EMERGENCY_INTENT || weaponVisibleYes(slots)) {
     return { type: "emergency", reason: "EMERGENCY" };
   }
@@ -55,6 +56,7 @@ export function resolveFulfillmentAction(event: LexV2Event): FulfillmentAction {
     return { type: "human", intentName: FALLBACK_INTENT, reason: "LOW_CONFIDENCE" };
   }
   if (intent === PUBLIC_WORKS_INTENT) {
+    if (smsChannel) return { type: "complete" };
     return { type: "human", intentName: PUBLIC_WORKS_INTENT, reason: "EXTERNAL_311" };
   }
   if (intent === "InformationRequest") {
@@ -70,6 +72,7 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
   const sessionAttrs = { ...(event.sessionState.sessionAttributes ?? {}) };
   const agencyId = sessionAttrs.agencyId ?? "";
   const callId = sessionAttrs.callId ?? event.sessionId;
+  const smsChannel = sessionAttrs.channel === "sms";
   const config = await getLexTenantConfig(agencyId || "unknown");
   const slots = extractCurrentSlots(event);
   const locale = event.bot?.localeId ?? sessionAttrs.locale ?? "en-US";
@@ -88,6 +91,16 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
       slots,
       shortName,
     );
+    if (smsChannel) {
+      return closeTransferResponse(
+        EMERGENCY_INTENT,
+        summary,
+        { ...sessionAttrs, agencyId, callId, classification: EMERGENCY_INTENT },
+        [plain("This sounds like an emergency. Do not continue by text. Call 911 now.")],
+        action.reason,
+        { endSession: true },
+      );
+    }
     const parts = escalationCloseParts(
       config,
       locale,
@@ -106,6 +119,17 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
   }
 
   if (action.type === "human") {
+    if (smsChannel) {
+      const spoken =
+        "A team member can follow up if needed. If this is an emergency, call 911. You can also call this number to speak with someone.";
+      return closeTransferResponse(
+        action.intentName,
+        utterance || action.intentName,
+        { ...sessionAttrs, agencyId, callId, classification: sessionAttrs.classification ?? action.intentName },
+        [plain(spoken)],
+        action.reason,
+      );
+    }
     const spoken =
       action.reason === "EXTERNAL_311"
         ? `This sounds like a public works issue. I'm going to transfer you now, and I'll share a summary of what you've told me. One moment.`
@@ -127,7 +151,7 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
     locationText: cadPayload.location ?? undefined,
     apartmentSuite: cadPayload.aptBusiness ?? undefined,
     crossStreets: cadPayload.crossStreets ?? undefined,
-    callbackNumber: cadPayload.callbackNumber ?? undefined,
+    callbackNumber: cadPayload.callbackNumber ?? sessionAttrs.callbackNumber ?? undefined,
     callerName: cadPayload.callerName ?? undefined,
     vehiclePlate: cadPayload.licensePlate ?? undefined,
     suspectDescription: cadPayload.suspectDesc ?? undefined,
@@ -202,13 +226,17 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
     session: sessionDraft,
     config,
     confirmationNumber: caseNumber,
+    skipConfirmationSms: smsChannel,
   });
   await putLexSession(finalized.session);
 
-  const closing = spokenClosingWithConfirmation({
-    closingBase: closingPrompt(config, classification, finalized.confirmationNumber),
-    confirmationNumber: finalized.confirmationNumber,
-  });
+  const closingBase = closingPrompt(config, classification, finalized.confirmationNumber);
+  const closing = smsChannel
+    ? closingBase
+    : spokenClosingWithConfirmation({
+        closingBase,
+        confirmationNumber: finalized.confirmationNumber,
+      });
   return {
     sessionState: {
       sessionAttributes: {

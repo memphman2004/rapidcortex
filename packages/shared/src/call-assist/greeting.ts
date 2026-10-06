@@ -355,6 +355,39 @@ export function buildGreeting(config: CallAssistGreetingConfig, locale = "en-US"
   return interpolateGreeting(GREETING_TEMPLATES[templateMode], config);
 }
 
+/** Format +13198358230 → (319) 835-8230 for spoken/welcome copy. */
+export function formatE164AsUsNational(e164: string | null | undefined): string | null {
+  const digits = (e164 ?? "").replace(/\D/g, "");
+  const ten =
+    digits.length === 11 && digits.startsWith("1")
+      ? digits.slice(1)
+      : digits.length === 10
+        ? digits
+        : "";
+  if (!ten) return null;
+  return `(${ten.slice(0, 3)}) ${ten.slice(3, 6)}-${ten.slice(6)}`;
+}
+
+/**
+ * Append SMS channel tip to the voice welcome.
+ * Note: Connect language menu already uses DTMF 1–7, so we do not say "press 6".
+ */
+export function appendVoiceSmsChannelTip(
+  greeting: string,
+  smsE164: string | null | undefined,
+  locale = "en-US",
+): string {
+  const national = formatE164AsUsNational(smsE164);
+  if (!national || !greeting.trim()) return greeting;
+  if (greeting.includes(national)) return greeting;
+  const normalized = normalizeGreetingLocale(locale);
+  const tip =
+    normalized === "es-US"
+      ? `También puede enviarnos un mensaje de texto al ${national}.`
+      : `You can also text us at ${national}.`;
+  return `${greeting.trim()} ${tip}`;
+}
+
 export function buildEscalationAnnouncement(
   config: CallAssistGreetingConfig,
   locale = "en-US",

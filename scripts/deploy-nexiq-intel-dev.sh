@@ -129,11 +129,14 @@ sam deploy \
     "NexiQIntelCollectionQueueArn=${COLL_ARN}" \
     "NexiQIntelProcessingQueueUrl=${PROC_URL}" \
     "NexiQIntelProcessingQueueArn=${PROC_ARN}" \
-    "        LeadsTableName=${LEADS}" \
+    "LeadsTableName=${LEADS}" \
     "AuditTable=${AUDIT}" \
     "CognitoUserPoolId=${POOL}" \
     "CognitoClientId=${CLIENT}" \
-    "CognitoIssuer=${ISSUER}"
+    "CognitoIssuer=${ISSUER}" \
+    "RapidIqRawSignalsQueueUrl=https://sqs.${AWS_REGION}.amazonaws.com/158961537080/rapid-cortex-${STAGE}-rapid-iq-pipeline-raw-signals-${STAGE}.fifo" \
+    "RapidIqRawSignalsQueueArn=arn:aws:sqs:${AWS_REGION}:158961537080:rapid-cortex-${STAGE}-rapid-iq-pipeline-raw-signals-${STAGE}.fifo" \
+    "RapidIqPipelineSignalsTable=rapid-cortex-rapid-iq-pipeline-signals-${STAGE}"
 
 echo "DONE: rapid-cortex-nexiq-intel-app-${STAGE}"
 aws cloudformation describe-stacks --stack-name "rapid-cortex-nexiq-intel-app-${STAGE}" \

@@ -92,6 +92,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 1. ROADS & INFRASTRUCTURE ───────────────────────────────────────────────
   {
     name: 'ReportRoadsInfrastructure',
+    displayName: 'Roads & Infrastructure',
     description: 'Report road damage, sidewalk issues, manholes, flooding, debris, snow removal, or infrastructure problems',
     category: 'ROADS_INFRASTRUCTURE',
     primaryDepartment: 'PUBLIC_WORKS',
@@ -144,6 +145,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 2. STREET LIGHTING ───────────────────────────────────────────────────────
   {
     name: 'ReportStreetLighting',
+    displayName: 'Street Lighting & Signals',
     description: 'Report streetlight outages, flickering lights, pole damage, traffic signal malfunctions, or pedestrian signal issues',
     category: 'STREET_LIGHTING',
     primaryDepartment: 'PUBLIC_WORKS_ELECTRICAL',
@@ -193,6 +195,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 3. TRAFFIC SIGNS & MARKINGS ──────────────────────────────────────────────
   {
     name: 'ReportTrafficSignsMarkings',
+    displayName: 'Traffic Signs & Markings',
     description: 'Report missing, damaged, faded, or incorrect traffic signs and road markings',
     category: 'TRAFFIC_SIGNS_MARKINGS',
     primaryDepartment: 'PUBLIC_WORKS',
@@ -238,6 +241,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 4. SANITATION & WASTE ────────────────────────────────────────────────────
   {
     name: 'ReportSanitationWaste',
+    displayName: 'Sanitation & Waste',
     description: 'Report missed pickups, illegal dumping, overflowing trash cans, request bin replacement, dead animal pickup, or get disposal information',
     category: 'SANITATION_WASTE',
     primaryDepartment: 'SANITATION',
@@ -288,6 +292,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 5. WATER, SEWER & DRAINAGE ───────────────────────────────────────────────
   {
     name: 'ReportWaterSewerDrainage',
+    displayName: 'Water, Sewer & Drainage',
     description: 'Report water main breaks, fire hydrant issues, low pressure, water quality problems, sewer backups, blocked drains, or billing disputes',
     category: 'WATER_SEWER_DRAINAGE',
     primaryDepartment: 'WATER_SEWER_AUTHORITY',
@@ -349,6 +354,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 6. NOISE COMPLAINT ───────────────────────────────────────────────────────
   {
     name: 'ReportNoiseComplaint',
+    displayName: 'Noise Complaint',
     description: 'Report noise disturbances including loud music, parties, construction, vehicles, animals, or fireworks',
     category: 'NOISE_COMPLAINT',
     primaryDepartment: 'CODE_ENFORCEMENT',
@@ -399,6 +405,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 7. ABANDONED & ILLEGALLY PARKED VEHICLES ─────────────────────────────────
   {
     name: 'ReportVehicleIssue',
+    displayName: 'Abandoned & Illegal Vehicles',
     description: 'Report abandoned vehicles, illegal parking, vehicles blocking hydrants, driveways, sidewalks, or bike lanes',
     category: 'ABANDONED_ILLEGAL_VEHICLES',
     primaryDepartment: 'PARKING_ENFORCEMENT',
@@ -456,6 +463,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 8. GRAFFITI & VANDALISM ──────────────────────────────────────────────────
   {
     name: 'ReportGraffitiVandalism',
+    displayName: 'Graffiti & Vandalism',
     description: 'Report graffiti on public or private property, vandalized street furniture, bus shelters, park equipment, or public art',
     category: 'GRAFFITI_VANDALISM',
     primaryDepartment: 'PUBLIC_WORKS',
@@ -510,6 +518,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 9. ANIMALS & PESTS ──────────────────────────────────────────────────────
   {
     name: 'ReportAnimalsPests',
+    displayName: 'Animals & Pests',
     description: 'Report stray animals, animal neglect or cruelty, wildlife complaints, rodent infestations, bees, mosquitoes, or dead animal pickup',
     category: 'ANIMALS_PESTS',
     primaryDepartment: 'ANIMAL_CONTROL',
@@ -576,6 +585,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 10. TREES & VEGETATION ───────────────────────────────────────────────────
   {
     name: 'ReportTreesVegetation',
+    displayName: 'Trees & Vegetation',
     description: 'Report fallen trees, dead street trees, trees blocking signs or roads, overgrown vegetation, or request trimming and new tree planting',
     category: 'TREES_VEGETATION',
     primaryDepartment: 'URBAN_FORESTRY',
@@ -624,6 +634,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 11. PARKS & PUBLIC SPACES ────────────────────────────────────────────────
   {
     name: 'ReportParksPublicSpaces',
+    displayName: 'Parks & Public Spaces',
     description: 'Report broken playground equipment, park lighting, restroom issues, vandalism, overgrown areas, unsafe courts, or unauthorized use in parks',
     category: 'PARKS_PUBLIC_SPACES',
     primaryDepartment: 'PARKS_RECREATION',
@@ -681,6 +692,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 12. BUILDINGS & HOUSING CODE ─────────────────────────────────────────────
   {
     name: 'ReportBuildingsHousing',
+    displayName: 'Buildings & Housing',
     description: 'Report building code violations, abandoned properties, unpermitted construction, tenant issues like no heat or mold, or unsafe structures',
     category: 'BUILDINGS_HOUSING',
     primaryDepartment: 'CODE_ENFORCEMENT',
@@ -747,6 +759,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 13. HOMELESS & SOCIAL SERVICES ───────────────────────────────────────────
   {
     name: 'ReportHomelessSocialServices',
+    displayName: 'Homeless & Social Services',
     description: 'Report homeless encampments, request welfare checks, outreach team response, needles debris, or request social service referrals',
     category: 'HOMELESS_SOCIAL_SERVICES',
     primaryDepartment: 'SOCIAL_SERVICES',
@@ -791,6 +804,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 14. ENVIRONMENTAL & HEALTH ────────────────────────────────────────────────
   {
     name: 'ReportEnvironmentalHealth',
+    displayName: 'Environmental & Health',
     description: 'Report air quality complaints, illegal burning, hazardous spills, oil in storm drains, septic overflows, restaurant sanitation, or waterway pollution',
     category: 'ENVIRONMENTAL_HEALTH',
     primaryDepartment: 'ENVIRONMENTAL_QUALITY',
@@ -841,6 +855,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 15. LAW ENFORCEMENT NON-EMERGENCY ────────────────────────────────────────
   {
     name: 'ReportLawEnforcementNonEmergency',
+    displayName: 'Police Non-Emergency',
     description: 'Report chronic issues like drug activity, speeding, illegal vehicles, theft (after the fact), property disputes, or request extra patrol. NOT for active emergencies.',
     category: 'LAW_ENFORCEMENT_NON_EMERGENCY',
     primaryDepartment: 'POLICE_NON_EMERGENCY',
@@ -898,6 +913,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 16. FIRE & EMS NON-EMERGENCY ─────────────────────────────────────────────
   {
     name: 'ReportFireEMSNonEmergency',
+    displayName: 'Fire & EMS Non-Emergency',
     description: 'Report fire hazards, blocked fire hydrants, open burning without permit, or request smoke detector installation and fire safety information',
     category: 'FIRE_EMS_NON_EMERGENCY',
     primaryDepartment: 'FIRE_MARSHAL_NON_EMERGENCY',
@@ -943,6 +959,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 17. TRANSIT & TRANSPORTATION ─────────────────────────────────────────────
   {
     name: 'ReportTransitIssue',
+    displayName: 'Transit & Transportation',
     description: 'Report bus stop damage, broken bike share stations, scooters on sidewalks, parking meter issues, inquire about towing or parking permits',
     category: 'TRANSIT_TRANSPORTATION',
     primaryDepartment: 'TRANSIT_AUTHORITY',
@@ -996,6 +1013,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 18. GOVERNMENT INFORMATION & SERVICES ────────────────────────────────────
   {
     name: 'RequestGovernmentInformation',
+    displayName: 'Government Information',
     description: 'Inquire about city services, permits, licenses, inspections, vital records, public records, voter registration, senior services, social services, or other city programs',
     category: 'GOVERNMENT_INFORMATION',
     primaryDepartment: 'THREE11_OPERATIONS',
@@ -1045,6 +1063,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 19. SPECIAL EVENTS & PERMITS ─────────────────────────────────────────────
   {
     name: 'ReportSpecialEventIssue',
+    displayName: 'Special Events & Permits',
     description: 'Report noise from permitted events, ask about street closures, or get information about event permits, film permits, parades, and special event applications',
     category: 'SPECIAL_EVENTS_PERMITS',
     primaryDepartment: 'THREE11_OPERATIONS',
@@ -1086,6 +1105,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 20. SERVICE REQUEST STATUS ────────────────────────────────────────────────
   {
     name: 'CheckServiceRequestStatus',
+    displayName: 'Service Request Status',
     description: 'Check the status of a previously submitted service request, reopen a closed request, escalate an unresolved issue, or get a confirmation number',
     category: 'SERVICE_REQUEST_STATUS',
     primaryDepartment: 'THREE11_OPERATIONS',
@@ -1136,6 +1156,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 21. TRANSFER TO LIVE AGENT ────────────────────────────────────────────────
   {
     name: 'TransferToLiveAgent',
+    displayName: 'Transfer to Live Agent',
     description: 'Caller explicitly requests a human operator or the bot cannot handle the request',
     category: 'SERVICE_REQUEST_STATUS',
     primaryDepartment: 'THREE11_OPERATIONS',
@@ -1161,6 +1182,7 @@ export const INTENTS: IntentDefinition[] = [
   // ── 22. EMERGENCY REDIRECT ────────────────────────────────────────────────────
   {
     name: 'RedirectToEmergencyServices',
+    displayName: 'Redirect to 911',
     description: 'Caller describes an active emergency — redirect immediately to 911',
     category: 'SERVICE_REQUEST_STATUS',
     primaryDepartment: 'ESCALATE_911',
@@ -1185,7 +1207,7 @@ export const INTENTS: IntentDefinition[] = [
     fulfillmentMessage: 'This sounds like an emergency. Please hang up and dial 9-1-1 immediately. If you cannot call, stay on the line and we will transfer you now.',
   },
 
-].map((intent) => ({
+].map((intent): IntentDefinition => ({
   ...intent,
   sampleUtterances: mergeUtterances(intent.sampleUtterances, EXHAUSTIVE_UTTERANCES[intent.name]),
 }));

@@ -33,8 +33,14 @@ Globals:
           - HasCallAssistTableName
           - !Ref CallAssistTableName
           - !Sub "rapid-cortex-call-assist-${DeploymentStage}"
+        AUDIT_TABLE: !Sub "rapid-cortex-audit-${DeploymentStage}"
+        AGENCIES_TABLE: !Sub "rapid-cortex-agencies-${DeploymentStage}"
         ENABLE_CALL_ASSIST_CAD_PUSH: "false"
         ENABLE_CALL_ASSIST_GREETING_CONFIG: "true"
+        ENABLE_CALL_ASSIST_SMS_CONFIRMATION: "true"
+        ENABLE_CALL_ASSIST_SMS_CHANNEL: "true"
+        CALL_ASSIST_SMS_ORIGINATION_NUMBER: "+13198358230"
+        SMS_PROVIDER: "aws"
         CAD_WRITEBACK_ENABLED: "false"
         CALL_ASSIST_CONNECT_MOCK: "false"
         CALL_ASSIST_LEX_MOCK: "false"
@@ -111,6 +117,28 @@ Resources:
                     - HasCallAssistTableName
                     - !Ref CallAssistTableName
                     - !Sub "rapid-cortex-call-assist-${DeploymentStage}"
+          - Sid: AuditAndAgenciesTables
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:DescribeTable
+              - dynamodb:ConditionCheckItem
+            Resource:
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-audit-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-audit-${DeploymentStage}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-agencies-${DeploymentStage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-agencies-${DeploymentStage}/index/*"
+          - Sid: SmsSend
+            Effect: Allow
+            Action:
+              - sms-voice:SendTextMessage
+              - sms-voice:DescribePhoneNumbers
+              - sms-voice:DescribeAccountAttributes
+              - sms-voice:DescribePools
+            Resource: "*"
           - Sid: BedrockHaiku
             Effect: Allow
             Action:
@@ -202,7 +230,7 @@ Resources:
       RoleArn: !GetAtt LexServiceRole.Arn
       DataPrivacy:
         ChildDirected: false
-      IdleSessionTTLInSeconds: 300
+      IdleSessionTTLInSeconds: 14400
       AutoBuildBotLocales: true
       # BotLocales generated from connect/lex-bot-complete-spec.md via
       # scripts/generate-lex-bot-locales.py. Live DRAFT is synced with

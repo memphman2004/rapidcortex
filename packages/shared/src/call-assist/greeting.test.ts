@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  appendVoiceSmsChannelTip,
   buildEscalationAnnouncement,
   buildGreeting,
   checkEscalation,
   DEFAULT_GREETING_CONFIG,
   fallbackGreetingForLocale,
+  formatE164AsUsNational,
   greetingActivationBlockedReason,
   isCallAssistGreetingReady,
   mergeGreetingConfig,
@@ -20,6 +22,13 @@ const springfield = {
 };
 
 describe("Call Assist greeting builders", () => {
+  it("formats SMS DID for the voice welcome tip", () => {
+    expect(formatE164AsUsNational("+13198358230")).toBe("(319) 835-8230");
+    expect(appendVoiceSmsChannelTip("Stay on the line.", "+13198358230")).toBe(
+      "Stay on the line. You can also text us at (319) 835-8230.",
+    );
+  });
+
   it("interpolates stay-on-the-line English and Spanish templates", () => {
     const en = buildGreeting(springfield, "en-US");
     expect(en).toContain("City of Springfield");

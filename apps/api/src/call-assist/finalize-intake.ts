@@ -135,6 +135,8 @@ export async function finalizeCallAssistIntake(opts: {
   config: CallAssistTenantConfig;
   confirmationNumber?: string;
   emergencyEscalated?: boolean;
+  /** SMS channel already replies with the confirmation text — skip the extra outbound SMS. */
+  skipConfirmationSms?: boolean;
 }): Promise<{
   session: CallAssistSessionRecord;
   callRecord: CallAssistCallRecord;
@@ -228,7 +230,7 @@ export async function finalizeCallAssistIntake(opts: {
     await deliverWebhook(route.destination.webhookUrl, { callRecord, route });
   }
 
-  if (!opts.emergencyEscalated) {
+  if (!opts.emergencyEscalated && !opts.skipConfirmationSms) {
     await sendConfirmationSms({
       agencyId: opts.agencyId,
       confirmationNumber,

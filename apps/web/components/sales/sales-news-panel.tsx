@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { ownersForState, type TerritoryOwner } from "@/lib/sales/territory-roster";
 
@@ -47,6 +48,17 @@ export function SalesNewsPanel() {
   const [filter, setFilter] = useState<NewsVertical>("all");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const territoriesQ = useQuery({
+    queryKey: ["sales-territories"],
+    queryFn: async (): Promise<TerritoryOwner[]> => {
+      const r = await fetch("/api/sales/territories", { credentials: "include" });
+      if (!r.ok) return [];
+      const data = (await r.json()) as { items?: TerritoryOwner[] };
+      return data.items ?? [];
+    },
+    staleTime: 8_000,
+    refetchInterval: 15_000,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -102,7 +114,14 @@ export function SalesNewsPanel() {
       <div className="space-y-2">
         {visible.map((item) => {
           const stateGuess = guessStateFromText(`${item.title} ${item.summary}`);
-          const owners: TerritoryOwner[] = stateGuess ? ownersForState(stateGuess) : [];
+          const owners: TerritoryOwner[] = stateGuess
+            ? ownersForState(stateGuess, territoriesQ.data ?? undefined)
+            : [];
+          const notifyNames = owners.flatMap((o) =>
+            o.assignees.length > 0 ? o.assignees.map((a) => a.name) : [o.name],
+          );
+          const notifyEmail =
+            owners[0]?.assignees[0]?.email ?? owners[0]?.email ?? null;
           return (
             <article
               key={item.id}
@@ -123,11 +142,11 @@ export function SalesNewsPanel() {
               {item.summary && (
                 <p className="mt-2 line-clamp-2 text-xs text-slate-400">{item.summary}</p>
               )}
-              {owners.length > 0 && (
+              {notifyNames.length > 0 && notifyEmail && (
                 <p className="mt-2 text-[11px] text-emerald-400/90">
-                  Region owner{owners.length > 1 ? "s" : ""} ({stateGuess}):{" "}
-                  {owners.map((o) => o.name).join(", ")} —{" "}
-                  <a className="underline" href={`mailto:${owners[0]?.email}`}>
+                  Region owner{notifyNames.length > 1 ? "s" : ""} ({stateGuess}):{" "}
+                  {notifyNames.join(", ")} —{" "}
+                  <a className="underline" href={`mailto:${notifyEmail}`}>
                     notify
                   </a>
                 </p>

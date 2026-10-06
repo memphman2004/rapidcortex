@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAccountClaimBodySchema } from "rapid-cortex-shared";
+import {
+  SALES_TERRITORY_ASSIGNMENTS_CLAIMS_KEY,
+  createAccountClaimBodySchema,
+} from "rapid-cortex-shared";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { canViewPipeline } from "@/lib/sales/sales-authz";
 import { deleteClaim, listClaims, putClaim } from "@/lib/sales/sales-store";
@@ -9,7 +12,9 @@ export async function GET() {
   if (!user || !canViewPipeline(user)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  const items = await listClaims();
+  const items = (await listClaims()).filter(
+    (row) => String(row.agencySlug ?? "") !== SALES_TERRITORY_ASSIGNMENTS_CLAIMS_KEY,
+  );
   return NextResponse.json({ items, me: user.email ?? user.userId });
 }
 

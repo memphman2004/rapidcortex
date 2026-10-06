@@ -1,5 +1,5 @@
 /**
- * PRICING_DEFAULTS — canonical master guide values (RC_Pricing_Master_Guide_v4)
+ * PRICING_DEFAULTS — canonical master guide values (RC_Pricing_Master_Guide_v4, Oct 2026)
  * Never mutate this object. All overrides are stored separately.
  * Monetary values are in whole dollars. campus.rate uses 2 decimal places.
  */
@@ -108,6 +108,7 @@ export const PRICING_DEFAULTS = {
   "cad.auto.t1": 46000,
   "cad.auto.t2": 58000,
   "cad.auto.t3": 67000,
+  "cad.auto.t4": 74000,
 
   "ai.triage.basic": 2500,
   "ai.triage.std": 5000,
@@ -134,14 +135,14 @@ export const PRICING_DEFAULTS = {
   "rc.translate.campus": 2000,
   "rc.translate.hospital": 7500,
 
-  "media.photo.lo": 500,
-  "media.photo.hi": 1500,
-  "media.video.lo": 1000,
-  "media.video.hi": 3500,
-  "media.stream.lo": 2500,
-  "media.stream.hi": 7500,
-  "media.sms.lo": 500,
-  "media.sms.hi": 2000,
+  "media.photo.lo": 1000,
+  "media.photo.hi": 3500,
+  "media.video.lo": 2500,
+  "media.video.hi": 8500,
+  "media.stream.lo": 5000,
+  "media.stream.hi": 20000,
+  "media.sms.lo": 1500,
+  "media.sms.hi": 5000,
 
   "connect.std.lo": 500,
   "connect.std.hi": 1500,
@@ -154,9 +155,9 @@ export const PRICING_DEFAULTS = {
   "connect.setup.lo": 5000,
   "connect.setup.hi": 20000,
 
-  "support.priority.sm": 1000,
-  "support.priority.md": 2500,
-  "support.priority.lg": 5000,
+  "support.priority.sm": 2500,
+  "support.priority.md": 5000,
+  "support.priority.lg": 7500,
   "support.mission.sm": 2500,
   "support.mission.md": 5000,
   "support.mission.lg": 7500,
@@ -167,6 +168,7 @@ export const PRICING_DEFAULTS = {
   "rcs.module": 3500,
   /** Call Assist — non-emergency AI call management ($/agency/month). */
   "call_assist.module": 4500,
+  "call_assist.module.hi": 9000,
   "call_assist.cad_integration": 1500,
   "call_assist.rms_integration": 1500,
   "call_assist.tty_accommodation": 500,
@@ -174,6 +176,14 @@ export const PRICING_DEFAULTS = {
   "call_assist.demo_runner": 0,
   /** Multi-CAD Connector base ($/agency/month). Additional vendor connectors billed separately. */
   "cad.connector": 3500,
+  "cad.avl.lo": 500,
+  "cad.avl.hi": 1500,
+  "iq.reporting.lo": 1500,
+  "iq.reporting.hi": 4000,
+  "comms.intel.lo": 1500,
+  "comms.intel.hi": 4000,
+  "nexiq.vault.lo": 1200,
+  "nexiq.vault.hi": 3500,
 } as const;
 
 export type PricingKey = keyof typeof PRICING_DEFAULTS;

@@ -53,6 +53,9 @@ import type {
   DataSource,
   ProvenancedValue,
 } from "rapid-cortex-shared";
+import { classifyProcurementStage } from "rapid-cortex-shared";
+import { enqueueRawSignal } from "../../handlers/rapid-iq/pipeline/queue-raw-signal.js";
+import { pipelineSourceIdForIntelSource } from "../pipeline-source.js";
 
 // ─── Environment ──────────────────────────────────────────────────────────────
 const REGION = process.env.AWS_REGION ?? "us-east-1";
@@ -513,6 +516,46 @@ Return JSON (no markdown):
       ConditionExpression: "attribute_not_exists(signalId)",
     }),
   );
+
+  if (process.env.RAW_SIGNALS_QUEUE_URL?.trim()) {
+    try {
+      await enqueueRawSignal(
+        {
+          sourceId: pipelineSourceIdForIntelSource({
+            url: doc.url,
+            name: signal.orgName,
+            organization: signal.orgName,
+            sourceType: "PROCUREMENT",
+          }),
+          sourceUrl: signal.sourceUrl,
+          rawTitle: signal.title.slice(0, 200),
+          rawSnippet: JSON.stringify({
+            page: signal.title,
+            excerpt: signal.summary.slice(0, 1500),
+            procurementStage: classifyProcurementStage(`${signal.title} ${signal.summary}`),
+            agencyName: signal.orgName,
+            state: signal.geography?.state,
+            intelSignalId: signal.signalId,
+            intelSourceId: signal.sourceId,
+            signalType: signal.signalType,
+          }),
+          signalDate: (signal.sourcePublishedAt ?? signal.detectedAt).slice(0, 10),
+        },
+        {
+          dedupeId: `nexiq-intel-${signal.signalId}`,
+          groupId: "nexiq-intel",
+        },
+      );
+    } catch (e: unknown) {
+      console.warn(
+        JSON.stringify({
+          msg: "nexiq_intel_pipeline_signal_enqueue_failed",
+          signalId: signal.signalId,
+          error: e instanceof Error ? e.message : String(e),
+        }),
+      );
+    }
+  }
 
   return signal;
 }

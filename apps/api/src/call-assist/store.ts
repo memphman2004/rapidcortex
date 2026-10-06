@@ -135,6 +135,8 @@ export type CallAssistTenantConfig = {
   connectInstanceId?: string;
   connectContactFlowArn?: string;
   connectNonEmergencyDID?: string;
+  /** Dedicated SMS/text DID (E.164). Offered on the voice welcome when set. */
+  smsDID?: string;
   transcribeVocabularyName?: string;
   transcribeVocabularyStatus?: string;
   aiDisclosureRequired?: boolean;

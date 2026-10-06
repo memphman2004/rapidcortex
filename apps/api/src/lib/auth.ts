@@ -119,7 +119,10 @@ async function verifyBearerToken(token: string): Promise<UserContext | null> {
 
 async function verifyBearerTokenClaims(token: string): Promise<JWTPayload | null> {
   const poolId = process.env.COGNITO_USER_POOL_ID;
-  const region = process.env.COGNITO_REGION;
+  // Prefer explicit COGNITO_REGION; fall back to the Lambda runtime region so
+  // nested stacks that omit the env var (e.g. NexiQ intel) do not fail closed
+  // as Unauthorized on every request.
+  const region = process.env.COGNITO_REGION || process.env.AWS_REGION;
   const webClientId = process.env.COGNITO_CLIENT_ID?.trim();
   const nativeClientId = process.env.COGNITO_NATIVE_CLIENT_ID?.trim();
   if (!poolId || !region || !webClientId) return null;

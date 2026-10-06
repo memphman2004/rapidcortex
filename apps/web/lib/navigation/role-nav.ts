@@ -189,6 +189,12 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       label: "SALES & CRM",
       items: [
         { id: "sales-portal", label: "Sales Portal", href: "/sales", icon: "Briefcase" },
+        {
+          id: "sales-territories",
+          label: "Sales Territories",
+          href: "/rc-admin/sales-territories",
+          icon: "Map",
+        },
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
         { id: "signal-feed", label: "Signal Feed", href: "/rc-admin/signal-feed", icon: "Activity", feature: "salesLeads" },
         { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
@@ -475,6 +481,12 @@ export const RC_ADMIN_NAV: RoleNav = {
       label: "SALES & CRM",
       items: [
         { id: "sales-portal", label: "Sales Portal", href: "/sales", icon: "Briefcase" },
+        {
+          id: "sales-territories",
+          label: "Sales Territories",
+          href: "/rc-admin/sales-territories",
+          icon: "Map",
+        },
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
         { id: "signal-feed", label: "Signal Feed", href: "/rc-admin/signal-feed", icon: "Activity", feature: "salesLeads" },
         { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },

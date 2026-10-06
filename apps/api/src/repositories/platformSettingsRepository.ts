@@ -5,7 +5,11 @@ import {
 import { DynamoDBDocumentClient, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import {
   HIRING_BOOKINGS_SETTING_KEY,
+  SALES_TERRITORY_ASSIGNMENTS_SETTING_KEY,
+  emptySalesTerritoryAssignments,
+  normalizeSalesTerritoryAssignments,
   type HiringBookingsConfig,
+  type SalesTerritoryAssignmentsConfig,
 } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
 
@@ -41,6 +45,35 @@ export class PlatformSettingsRepository {
           agencyId: "platform",
           value,
           updatedAt: new Date().toISOString(),
+        },
+      }),
+    );
+  }
+
+  async getSalesTerritoryAssignments(): Promise<SalesTerritoryAssignmentsConfig> {
+    const { Item } = await ddb.send(
+      new GetCommand({
+        TableName: this.table(),
+        Key: { settingKey: SALES_TERRITORY_ASSIGNMENTS_SETTING_KEY },
+      }),
+    );
+    const value = Item?.value;
+    if (value && typeof value === "object") {
+      return normalizeSalesTerritoryAssignments(value as SalesTerritoryAssignmentsConfig);
+    }
+    return emptySalesTerritoryAssignments();
+  }
+
+  async putSalesTerritoryAssignments(value: SalesTerritoryAssignmentsConfig): Promise<void> {
+    const normalized = normalizeSalesTerritoryAssignments(value);
+    await ddb.send(
+      new PutCommand({
+        TableName: this.table(),
+        Item: {
+          settingKey: SALES_TERRITORY_ASSIGNMENTS_SETTING_KEY,
+          agencyId: "platform",
+          value: normalized,
+          updatedAt: normalized.updatedAt ?? new Date().toISOString(),
         },
       }),
     );

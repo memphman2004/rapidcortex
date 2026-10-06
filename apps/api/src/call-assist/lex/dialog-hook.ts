@@ -126,6 +126,7 @@ export async function handleDialog(
 
   let greetingPrefix: string | null = null;
   let welcomeStart: ReturnType<typeof startCallAssistSession> | null = null;
+  const smsChannel = sessionAttrs.channel === "sms";
   if (isCallAssistGreetingConfigEnabled()) {
     welcomeStart = startCallAssistSession({
       agencyId,
@@ -134,8 +135,15 @@ export async function handleDialog(
       config,
     });
     Object.assign(sessionAttrs, welcomeStart.sessionAttributes);
-    if (sessionAttrs.intakeStarted !== "true" && event.sessionState.intent.name !== WELCOME_INTENT) {
+    // Voice greeting is for phone only — SMS has its own welcome / keyword path.
+    if (
+      !smsChannel &&
+      sessionAttrs.intakeStarted !== "true" &&
+      event.sessionState.intent.name !== WELCOME_INTENT
+    ) {
       greetingPrefix = welcomeStart.greeting;
+      sessionAttrs.intakeStarted = "true";
+    } else if (smsChannel && sessionAttrs.intakeStarted !== "true") {
       sessionAttrs.intakeStarted = "true";
     }
   }
@@ -220,11 +228,14 @@ export async function handleDialog(
 
   if (callerRequestedHuman(utterance) || activeIntent === REQUEST_HUMAN_INTENT) {
     if (sessionAttrs.enableLiveAgentHandoff !== "false") {
+      const humanSpoken = smsChannel
+        ? "A team member can follow up if needed. Describe your concern by text, or call this number to speak with someone. For emergencies call 911."
+        : transferPrompt(tenant, "HUMAN_REQUEST");
       return closeTransferResponse(
         REQUEST_HUMAN_INTENT,
         utterance || "caller requested a person",
         { ...sessionAttrs, agencyId, callId, classification: REQUEST_HUMAN_INTENT, transcript },
-        [ssml(transferPrompt(tenant, "HUMAN_REQUEST"))],
+        [smsChannel ? plain(humanSpoken) : ssml(humanSpoken)],
         "HUMAN_REQUEST",
       );
     }
@@ -295,6 +306,9 @@ export async function handleDialog(
       transferred: true,
       qaLowConfidence: true,
     });
+    const fallbackSpoken = smsChannel
+      ? "I didn't quite catch that. Try a short description (pothole, trash, noise) or reply HELP for options. For emergencies call 911."
+      : transferPrompt(tenant, "LOW_CONFIDENCE");
     return closeTransferResponse(
       FALLBACK_INTENT,
       utterance,
@@ -307,7 +321,7 @@ export async function handleDialog(
         confidenceAction: decision.action,
         confidenceSource,
       },
-      [ssml(transferPrompt(tenant, "LOW_CONFIDENCE"))],
+      [smsChannel ? plain(fallbackSpoken) : ssml(fallbackSpoken)],
       "LOW_CONFIDENCE",
     );
   }

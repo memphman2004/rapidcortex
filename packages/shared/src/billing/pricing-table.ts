@@ -6,7 +6,7 @@
  * for the automated billing engine. The version string is stored on invoices.
  */
 
-export const PRICING_TABLE_VERSION = "2026-09";
+export const PRICING_TABLE_VERSION = "2026-10";
 
 export type AutomatedBillingPlanId = "essential" | "professional" | "command" | "enterprise";
 /** @deprecated Use {@link AutomatedBillingPlanId} */

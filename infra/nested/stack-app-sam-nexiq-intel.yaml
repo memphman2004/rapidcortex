@@ -43,6 +43,17 @@ Parameters:
     Type: String
   NexiQIntelProcessingQueueArn:
     Type: String
+  RapidIqRawSignalsQueueUrl:
+    Type: String
+    Default: ""
+    Description: Civic iQ FIFO queue URL so NexiQ Intel writes the same pipeline signals
+  RapidIqRawSignalsQueueArn:
+    Type: String
+    Default: ""
+  RapidIqPipelineSignalsTable:
+    Type: String
+    Default: ""
+    Description: Civic iQ RapidIqPipelineSignals table (90-day ingest dedupe)
   BedrockModelId:
     Type: String
     Default: "anthropic.claude-3-5-sonnet-20241022-v2:0"
@@ -56,7 +67,7 @@ Parameters:
     Default: 50
   CollectorScheduleExpression:
     Type: String
-    Default: "rate(30 minutes)"
+    Default: "rate(2 hours)"
     Description: EventBridge schedule for the collector Lambda
   EnableNexiQIntel:
     Type: String
@@ -81,6 +92,8 @@ Parameters:
 Conditions:
   IsIntelEnabled: !Equals [!Ref EnableNexiQIntel, "true"]
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
+  HasRawSignalsQueue: !Not [!Equals [!Ref RapidIqRawSignalsQueueArn, ""]]
+  HasPipelineSignalsTable: !Not [!Equals [!Ref RapidIqPipelineSignalsTable, ""]]
 
 Globals:
   Function:
@@ -104,6 +117,8 @@ Globals:
         NEXIQ_INTEL_RAW_ARTIFACTS_BUCKET: !Ref NexiQIntelRawArtifactsBucket
         NEXIQ_INTEL_COLLECTION_QUEUE_URL: !Ref NexiQIntelCollectionQueueUrl
         NEXIQ_INTEL_PROCESSING_QUEUE_URL: !Ref NexiQIntelProcessingQueueUrl
+        RAW_SIGNALS_QUEUE_URL: !Ref RapidIqRawSignalsQueueUrl
+        RAPID_IQ_PIPELINE_SIGNALS_TABLE: !Ref RapidIqPipelineSignalsTable
         NEXIQ_INTEL_BEDROCK_MODEL_ID: !Ref BedrockModelId
         NEXIQ_INTEL_QUALIFICATION_THRESHOLD: !Ref QualificationThreshold
         NEXIQ_INTEL_MAX_SOURCES_PER_RUN: !Ref MaxSourcesPerRun
@@ -112,6 +127,7 @@ Globals:
         COGNITO_USER_POOL_ID: !Ref CognitoUserPoolId
         COGNITO_CLIENT_ID: !Ref CognitoClientId
         COGNITO_ISSUER: !Ref CognitoIssuer
+        COGNITO_REGION: !Ref AWS::Region
 
 Resources:
 
@@ -197,6 +213,28 @@ Resources:
                 Resource:
                   - !Ref NexiQIntelCollectionQueueArn
                   - !Ref NexiQIntelProcessingQueueArn
+              - !If
+                - HasRawSignalsQueue
+                - Effect: Allow
+                  Action:
+                    - sqs:SendMessage
+                    - sqs:SendMessageBatch
+                    - sqs:GetQueueAttributes
+                  Resource: !Ref RapidIqRawSignalsQueueArn
+                - !Ref AWS::NoValue
+        - !If
+          - HasPipelineSignalsTable
+          - PolicyName: NexiQIntelPipelineDedupe
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                  Resource:
+                    - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RapidIqPipelineSignalsTable}
+          - !Ref AWS::NoValue
         - PolicyName: NexiQIntelBedrock
           PolicyDocument:
             Version: "2012-10-17"
@@ -220,7 +258,7 @@ Resources:
       BuildMethod: makefile
     Properties:
       FunctionName: !Sub "${AppName}-nexiq-intel-collector-${DeploymentStage}"
-      Description: Scheduled source checker — fetches sources, deduplicates, enqueues for processing
+      Description: Scheduled source checker every 2 hours — fetches sources, enqueues Civic iQ pipeline signals
       CodeUri: ../../apps/api/
       Handler: dist/nexiq-intel/intel-collector/index.handler
       Timeout: 300          # 5 min — multiple concurrent source fetches
@@ -233,7 +271,7 @@ Resources:
         ScheduledRun:
           Type: ScheduleV2
           Properties:
-            ScheduleExpression: !Ref CollectorScheduleExpression
+            ScheduleExpression: "rate(2 hours)"
             State: ENABLED
             Input: '{"type":"SCHEDULED_SOURCE_CHECK","triggeredBy":"SCHEDULER"}'
             RetryPolicy:

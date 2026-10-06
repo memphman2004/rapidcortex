@@ -457,6 +457,7 @@ export function scoreSourceType(sourceId: string): string {
       return "grants-gov";
     case "911-gov":
     case "fcc-reports":
+    case "nexiq-intel":
       return "911-gov";
     case "county-procurement":
     case "sourcewell-omnia":

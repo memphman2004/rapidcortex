@@ -38,7 +38,9 @@ describe("RAPID_IQ_PIPELINE_SOURCE_IDS (state ingestion expansion)", () => {
     expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("civiclerk");
     expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("sourcewell-omnia");
     expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("university-procurement");
+    expect(RAPID_IQ_PIPELINE_SOURCE_IDS).toContain("nexiq-intel");
     expect(RAPID_IQ_PIPELINE_SOURCE_LABELS["grants-gov"]).toBe("Grants.gov");
+    expect(RAPID_IQ_PIPELINE_SOURCE_LABELS["nexiq-intel"]).toBe("NexiQ Intel");
     expect(RAPID_IQ_PIPELINE_SOURCE_LABELS["911-gov"]).toBe("911.gov");
     expect(RAPID_IQ_PIPELINE_SOURCE_LABELS["competitor-intel"]).toBe("Competitor Intel");
   });

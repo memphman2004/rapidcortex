@@ -78,7 +78,7 @@ describe("computeInvoice", () => {
     expect(invoice.totalCents).toBe(1_300_000);
     expect(invoice.dueDate).toBe("2026-10-30");
     expect(invoice.proRated).toBe(false);
-    expect(invoice.pricingVersion).toBe("2026-09");
+    expect(invoice.pricingVersion).toBe("2026-10");
   });
 
   it("pro-rates the first month from go-live day", () => {

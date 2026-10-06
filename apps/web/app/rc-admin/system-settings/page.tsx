@@ -60,6 +60,11 @@ export default async function RcAdminSystemSettingsPage() {
           href="/rc-admin/hiring/settings"
         />
         <SettingsCard
+          title="Sales territories"
+          description="Assign sales contractors to hiring-doc Zone 1–6 coverage."
+          href="/rc-admin/sales-territories"
+        />
+        <SettingsCard
           title="System health"
           description="Stack health, alarms, and deployment integration snapshot."
           href="/rc-admin/system-health"

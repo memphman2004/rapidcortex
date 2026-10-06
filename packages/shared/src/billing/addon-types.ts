@@ -13,6 +13,7 @@ export const ADDON_KEYS = [
   "cad.writeback_automated.tier1",
   "cad.writeback_automated.tier2",
   "cad.writeback_automated.tier3",
+  "cad.writeback_automated.tier4",
   "cad.sandbox_testing",
   "cad.field_mapping",
   "cad.audit_logging",

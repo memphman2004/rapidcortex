@@ -1,57 +1,70 @@
 import type { RoiVertical } from "rapid-cortex-shared";
+import {
+  SALES_TERRITORY_ZONES,
+  type SalesTerritoryAssignee,
+  type SalesTerritoryAssignmentsConfig,
+  type SalesTerritoryZoneId,
+  emptySalesTerritoryAssignments,
+  normalizeSalesTerritoryAssignments,
+} from "rapid-cortex-shared";
 
 export type TerritoryOwner = {
+  /** Zone id (zone-1 … zone-6) */
+  zoneId: SalesTerritoryZoneId;
   email: string;
   name: string;
   /** US state codes (uppercase) */
   states: string[];
   verticals: RoiVertical[];
+  primaryFocus: string;
+  /** Contractors currently assigned (from superadmin) */
+  assignees: SalesTerritoryAssignee[];
   phone?: string;
 };
 
 /**
- * Seed territory roster — who covers which states.
- * Update when contractors are assigned; later can move to Dynamo.
+ * Hiring-doc Zone 1–6 coverage — static geography / focus.
+ * Assignee names come from platform assignments (superadmin).
  */
-export const TERRITORY_ROSTER: readonly TerritoryOwner[] = [
-  {
-    email: "east@nexcortiq.us",
-    name: "East Region Desk",
-    states: ["ME", "NH", "VT", "MA", "RI", "CT", "NY", "NJ", "PA", "DE", "MD", "DC", "VA", "WV"],
-    verticals: ["rc911", "campus", "venue", "hospital", "transit"],
-  },
-  {
-    email: "southeast@nexcortiq.us",
-    name: "Southeast Region Desk",
-    states: ["NC", "SC", "GA", "FL", "AL", "MS", "TN", "KY"],
-    verticals: ["rc911", "campus", "venue", "hospital", "transit"],
-  },
-  {
-    email: "midwest@nexcortiq.us",
-    name: "Midwest Region Desk",
-    states: ["OH", "IN", "IL", "MI", "WI", "MN", "IA", "MO", "ND", "SD", "NE", "KS"],
-    verticals: ["rc911", "campus", "venue", "hospital", "transit"],
-  },
-  {
-    email: "southwest@nexcortiq.us",
-    name: "Southwest Region Desk",
-    states: ["TX", "OK", "AR", "LA", "NM", "AZ"],
-    verticals: ["rc911", "campus", "venue", "hospital", "transit"],
-  },
-  {
-    email: "west@nexcortiq.us",
-    name: "West Region Desk",
-    states: ["CA", "OR", "WA", "NV", "UT", "CO", "WY", "MT", "ID", "AK", "HI"],
-    verticals: ["rc911", "campus", "venue", "hospital", "transit"],
-  },
-] as const;
+export const TERRITORY_ROSTER: readonly Omit<TerritoryOwner, "assignees">[] =
+  SALES_TERRITORY_ZONES.map((z) => ({
+    zoneId: z.id,
+    email: z.deskEmail,
+    name: z.name,
+    states: [...z.states],
+    verticals: [...z.verticals],
+    primaryFocus: z.primaryFocus,
+  }));
 
-export function ownersForState(state: string): TerritoryOwner[] {
-  const s = state.trim().toUpperCase();
-  return TERRITORY_ROSTER.filter((o) => o.states.includes(s));
+export function mergeTerritoryRoster(
+  assignments?: SalesTerritoryAssignmentsConfig | null,
+): TerritoryOwner[] {
+  const normalized = normalizeSalesTerritoryAssignments(
+    assignments ?? emptySalesTerritoryAssignments(),
+  );
+  const byZone = new Map(normalized.zones.map((z) => [z.zoneId, z.assignees]));
+  return TERRITORY_ROSTER.map((zone) => ({
+    ...zone,
+    assignees: byZone.get(zone.zoneId) ?? [],
+  }));
 }
 
-export function ownersForEmail(email: string): TerritoryOwner | undefined {
+export function ownersForState(
+  state: string,
+  roster: readonly TerritoryOwner[] = mergeTerritoryRoster(),
+): TerritoryOwner[] {
+  const s = state.trim().toUpperCase();
+  return roster.filter((o) => o.states.includes(s));
+}
+
+export function ownersForEmail(
+  email: string,
+  roster: readonly TerritoryOwner[] = mergeTerritoryRoster(),
+): TerritoryOwner | undefined {
   const e = email.trim().toLowerCase();
-  return TERRITORY_ROSTER.find((o) => o.email.toLowerCase() === e);
+  return roster.find(
+    (o) =>
+      o.email.toLowerCase() === e ||
+      o.assignees.some((a) => a.email.toLowerCase() === e),
+  );
 }

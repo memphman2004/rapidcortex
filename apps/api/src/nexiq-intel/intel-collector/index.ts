@@ -3,7 +3,7 @@
  * Target: apps/api/src/nexiq-intel/intel-collector/index.ts
  *
  * Triggered by:
- *   - EventBridge Scheduler (every 30 min → checks sources due for a run)
+ *   - EventBridge Scheduler (every 2 hours → checks sources due for a run)
  *   - Manual trigger via API (admin "Run Source Now")
  *   - Discovery reconciliation (targeted single-source re-fetch)
  *
@@ -50,6 +50,8 @@ import type {
   IntelSourceRunStatus,
   IntelSourceHealth,
 } from "rapid-cortex-shared";
+import { enqueueRelevantPage } from "../../handlers/rapid-iq/pipeline/enqueue-crawled.js";
+import { pipelineSourceIdForIntelSource } from "../pipeline-source.js";
 
 // ─── Environment ──────────────────────────────────────────────────────────────
 const REGION = process.env.AWS_REGION ?? "us-east-1";
@@ -697,6 +699,34 @@ async function processSource(
     await enqueueDocuments(newDocIds, source.sourceId, runId);
   }
 
+  let pipelineSignalsQueued = 0;
+  if (process.env.RAW_SIGNALS_QUEUE_URL?.trim()) {
+    try {
+      pipelineSignalsQueued = await enqueueRelevantPage(
+        pipelineSourceIdForIntelSource(source),
+        source.url,
+        source.name,
+        fetchResult.text,
+        {
+          agencyName: source.organization ?? source.name,
+          state: source.geography?.state,
+          intelSourceId: source.sourceId,
+          intelRunId: runId,
+        },
+        8,
+        { forcePage: true },
+      );
+    } catch (e: unknown) {
+      console.warn(
+        JSON.stringify({
+          msg: "nexiq_intel_pipeline_enqueue_failed",
+          sourceId: source.sourceId,
+          error: e instanceof Error ? e.message : String(e),
+        }),
+      );
+    }
+  }
+
   const completedAt = nowIso();
   const finalStatus: IntelSourceRunStatus = "SUCCESS";
 
@@ -732,7 +762,8 @@ async function processSource(
   console.log(
     `[intel-collector] Source SUCCESS: ${source.sourceId} — ` +
       `${discoveredCount} discovered, ${newDocIds.length} new, ` +
-      `${discoveredCount - newDocIds.length} skipped (dups) (${durationMs}ms)`,
+      `${discoveredCount - newDocIds.length} skipped (dups), ` +
+      `${pipelineSignalsQueued} pipeline signals (${durationMs}ms)`,
   );
 
   return { ...run, status: finalStatus, completedAt, durationMs };

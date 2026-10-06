@@ -23,7 +23,10 @@ function tableName(): string {
   return t;
 }
 
-const doc = DynamoDBDocumentClient.from(new DynamoDBClient({ region: process.env.AWS_REGION || "us-east-1" }));
+const doc = DynamoDBDocumentClient.from(
+  new DynamoDBClient({ region: process.env.AWS_REGION || "us-east-1" }),
+  { marshallOptions: { removeUndefinedValues: true } },
+);
 
 export function genericLexConfig(agencyId: string): CallAssistTenantConfig {
   return {

@@ -43,4 +43,19 @@ describe("Fulfillment intercept", () => {
     );
     expect(action).toEqual({ type: "complete" });
   });
+
+  it("PublicWorks on SMS completes a report instead of transferring", () => {
+    const event = fulfillmentEvent("PublicWorksIssue", {
+      PublicWorksLocation: asLexSlot("Main and Oak"),
+    });
+    event.sessionState.sessionAttributes = { ...event.sessionState.sessionAttributes, channel: "sms" };
+    expect(resolveFulfillmentAction(event)).toEqual({ type: "complete" });
+  });
+
+  it("PublicWorks on voice still transfers to 311", () => {
+    expect(resolveFulfillmentAction(fulfillmentEvent("PublicWorksIssue", {}))).toMatchObject({
+      type: "human",
+      reason: "EXTERNAL_311",
+    });
+  });
 });

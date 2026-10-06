@@ -27,6 +27,11 @@ export function canViewPipeline(u: UserContext): boolean {
   return isRcsuperadmin(u) || isSalesContractor(u) || hasOversight(u);
 }
 
+/** Assign sales contractors to hiring-doc zones (RC Admin Team Regions editor). */
+export function canManageSalesTerritories(u: UserContext): boolean {
+  return isRcsuperadmin(u) || hasOversight(u);
+}
+
 export function canManageLead(u: UserContext): boolean {
   return isRcsuperadmin(u) || isSalesContractor(u) || hasOversight(u);
 }

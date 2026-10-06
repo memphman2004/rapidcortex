@@ -18,10 +18,10 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Discovery Workshop",
     category: "CAD Integration",
     description:
-      "Scoped workshop to map CAD vendor, API availability, field mapping, and integration path.",
+      "Scoped workshop to map CAD vendor, API availability, field mapping, and integration path. Standard list from master guide.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 5500,
+    oneTimePrice: 10000,
     planAvailability: professionalPlus,
   }),
   withLegacyIncludedInPlans({
@@ -29,10 +29,10 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Vendor Coordination",
     category: "CAD Integration",
     description:
-      "NexCort iQ-led coordination with agency CAD vendor for API access and sandbox setup.",
+      "NexCort iQ-led coordination with agency CAD vendor for API access and sandbox setup. Standard list.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 10000,
+    oneTimePrice: 11000,
     planAvailability: professionalPlus,
   }),
   withLegacyIncludedInPlans({
@@ -43,7 +43,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "One-way read integration from agency CAD into NexCort iQ context panel. No write-back.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 22000,
+    oneTimePrice: 18500,
     planAvailability: professionalPlus,
   }),
   withLegacyIncludedInPlans({
@@ -54,7 +54,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "One-click transfer to CAD with dispatcher review and approval before submit.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 15000,
+    oneTimePrice: 28500,
     planAvailability: commandPlus,
     featureFlag: "cad_writeback",
   }),
@@ -66,7 +66,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Full bidirectional sync between NexCort iQ and CAD with automated field mapping.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 62000,
+    oneTimePrice: 58000,
     planAvailability: enterpriseOnly,
     featureFlag: "cad_writeback",
   }),
@@ -75,7 +75,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Assisted Write-Back - T1 Micro",
     category: "CAD Integration",
     description:
-      "Tiered assisted CAD write-back pricing for T1 Micro agencies (1-3 dispatchers, up to 500 calls/month). One-click transfer to CAD with dispatcher review and approval before submit.",
+      "Tiered assisted CAD write-back — complexity Tier 1 (Simple). Human-reviewed, fail-closed.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 28500,
@@ -87,7 +87,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Assisted Write-Back - T2 Small",
     category: "CAD Integration",
     description:
-      "Tiered assisted CAD write-back pricing for T2 Small agencies (4-8 dispatchers, up to 1,500 calls/month). One-click transfer to CAD with dispatcher review and approval before submit.",
+      "Tiered assisted CAD write-back — complexity Tier 2 (Standard). Human-reviewed, fail-closed.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 34250,
@@ -99,7 +99,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Assisted Write-Back - T3 Medium",
     category: "CAD Integration",
     description:
-      "Tiered assisted CAD write-back pricing for T3 Medium agencies (9-15 dispatchers, up to 3,500 calls/month). One-click transfer to CAD with dispatcher review and approval before submit.",
+      "Tiered assisted CAD write-back — complexity Tier 3 (Complex). Human-reviewed, fail-closed.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 44000,
@@ -111,7 +111,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Assisted Write-Back - T4 Large",
     category: "CAD Integration",
     description:
-      "Tiered assisted CAD write-back pricing for T4 Large agencies (16-25 dispatchers, up to 7,500 calls/month). One-click transfer to CAD with dispatcher review and approval before submit.",
+      "Tiered assisted CAD write-back — complexity Tier 4 (Advanced). Human-reviewed, fail-closed.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 51600,
@@ -123,7 +123,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Automated Write-Back - T1 Micro",
     category: "CAD Integration",
     description:
-      "Tiered automated CAD write-back pricing for T1 Micro agencies (1-3 dispatchers, up to 500 calls/month). Full bidirectional sync between NexCort iQ and CAD with automated field mapping.",
+      "Tiered automated CAD write-back — complexity Tier 1 (Simple). Fail-closed; requires write-back addendum.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 46000,
@@ -135,7 +135,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Automated Write-Back - T2 Small",
     category: "CAD Integration",
     description:
-      "Tiered automated CAD write-back pricing for T2 Small agencies (4-8 dispatchers, up to 1,500 calls/month). Full bidirectional sync between NexCort iQ and CAD with automated field mapping.",
+      "Tiered automated CAD write-back — complexity Tier 2 (Standard). Fail-closed; requires write-back addendum.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 58000,
@@ -147,10 +147,22 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "CAD Automated Write-Back - T3 Medium",
     category: "CAD Integration",
     description:
-      "Tiered automated CAD write-back pricing for T3 Medium agencies (9-15 dispatchers, up to 3,500 calls/month). Full bidirectional sync between NexCort iQ and CAD with automated field mapping.",
+      "Tiered automated CAD write-back — complexity Tier 3 (Complex). Fail-closed; requires write-back addendum.",
     billingType: "one_time",
     monthlyPrice: 0,
     oneTimePrice: 67000,
+    planAvailability: enterpriseOnly,
+    featureFlag: "cad_writeback",
+  }),
+  withLegacyIncludedInPlans({
+    key: "cad.writeback_automated.tier4",
+    name: "CAD Automated Write-Back - T4 Advanced",
+    category: "CAD Integration",
+    description:
+      "Tiered automated CAD write-back — complexity Tier 4 (Advanced). Fail-closed; requires write-back addendum.",
+    billingType: "one_time",
+    monthlyPrice: 0,
+    oneTimePrice: 74000,
     planAvailability: enterpriseOnly,
     featureFlag: "cad_writeback",
   }),
@@ -162,7 +174,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Isolated test environment with CAD vendor for integration validation before go-live.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 12000,
+    oneTimePrice: 6000,
     planAvailability: professionalPlus,
   }),
   withLegacyIncludedInPlans({
@@ -173,7 +185,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Formal field mapping specification between NexCort iQ and agency CAD data model.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 5500,
+    oneTimePrice: 7500,
     planAvailability: professionalPlus,
   }),
   withLegacyIncludedInPlans({
@@ -184,7 +196,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
       "Enhanced audit trail for all CAD read/write events, approvals, and rejections.",
     billingType: "one_time",
     monthlyPrice: 0,
-    oneTimePrice: 8000,
+    oneTimePrice: 10000,
     planAvailability: professionalPlus,
   }),
   withLegacyIncludedInPlans({
@@ -651,7 +663,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     description:
       "Up to 100 concurrent streams at 720p via Kinesis Video Streams.",
     billingType: "monthly",
-    monthlyPrice: 3000,
+    monthlyPrice: 5000,
     oneTimePrice: 0,
     planAvailability: professionalPlus,
     featureFlag: "live_video",

@@ -27,6 +27,7 @@ export const RAPID_IQ_PIPELINE_SOURCE_IDS = [
   "sourcewell-omnia",
   "university-procurement",
   "fcc-reports",
+  "nexiq-intel",
   "manual",
   "openai-web-search",
   "watch-page",
@@ -503,6 +504,7 @@ export const RAPID_IQ_PIPELINE_SOURCE_LABELS: Record<RapidIqPipelineSourceId, st
   "sourcewell-omnia": "Co-op Purchasing",
   "university-procurement": "University Procurement",
   "fcc-reports": "FCC 911",
+  "nexiq-intel": "NexiQ Intel",
   manual: "Manual Entry",
   "openai-web-search": "OpenAI Web Search",
   "watch-page": "Agency Watch Page",
@@ -703,7 +705,8 @@ export function classifyPipelineFeedTab(input: {
     input.sourceId === "state-911-board" ||
     input.sourceId === "911-gov" ||
     input.sourceId === "grants-gov" ||
-    input.sourceId === "fcc-reports"
+    input.sourceId === "fcc-reports" ||
+    input.sourceId === "nexiq-intel"
   ) {
     return "911";
   }

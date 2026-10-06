@@ -485,6 +485,12 @@ Parameters:
     Description: >-
       When set, AppSamCallAssistStack2 uses this existing DynamoDB table instead of creating
       rapid-cortex-call-assist-${stage} (required if the table was pre-created for Lex).
+  ExistingAgencyKeywordTableName:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, AppSamCallAssistStack2 skips creating AgencyKeywordTable
+      (rapid-cortex-agency-keywords-${stage} already exists).
   ExistingFieldCommandTableName:
     Type: String
     Default: ""
@@ -590,6 +596,22 @@ Parameters:
     Type: String
     Default: ""
     Description: E.164 outbound caller ID for Call Assist StartOutboundVoiceContact.
+  CallAssistLexBotId:
+    Type: String
+    Default: ""
+    Description: Lex V2 Call Assist bot ID from stack-lex (SMS RecognizeText).
+  CallAssistLexBotAliasId:
+    Type: String
+    Default: ""
+    Description: Lex V2 live alias ID from stack-lex.
+  CallAssistSmsOriginationNumber:
+    Type: String
+    Default: "+13198358230"
+    Description: Two-way SMS DID for Call Assist (same number can handle voice).
+  CallAssistSmsDefaultAgencyId:
+    Type: String
+    Default: ""
+    Description: Fallback Call Assist agencyId when inbound SMS DID is unmapped.
   AwsSmsConfigurationSetName:
     Type: String
     Default: ""
@@ -3763,6 +3785,7 @@ Resources:
       - AppSam3Stack
       - AppSamStackV2
       - DataLayerStack
+      - AppSamNexiQPipelineStack
     Properties:
       TimeoutInMinutes: 90
       TemplateURL: nested/stack-app-sam-nexiq-intel.yaml
@@ -3772,18 +3795,19 @@ Resources:
         HttpApiId: !GetAtt AppSam3Stack.Outputs.HttpApiId
         HttpApiJwtAuthorizerId: ""
         EnableNexiQIntel: !Ref EnableNexiQIntel
-        RapidIqIntelSourcesTable: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelSourcesTable
-        RapidIqIntelSourceRunsTable: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelSourceRunsTable
-        RapidIqIntelDocumentsTable: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelDocumentsTable
-        RapidIqIntelSignalsTable: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelSignalsTable
-        RapidIqIntelGapsTable: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelGapsTable
-        RapidIqIntelBenchmarksTable: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelBenchmarksTable
-        RapidIqIntelCoverageTable: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelCoverageTable
-        RapidIqIntelRawArtifactsBucket: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelRawArtifactsBucketName
-        RapidIqIntelCollectionQueueUrl: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelCollectionQueueUrl
-        RapidIqIntelCollectionQueueArn: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelCollectionQueueArn
-        RapidIqIntelProcessingQueueUrl: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelProcessingQueueUrl
-        RapidIqIntelProcessingQueueArn: !GetAtt RapidIqIntelDataStack.Outputs.RapidIqIntelProcessingQueueArn
+        CollectorScheduleExpression: "rate(2 hours)"
+        NexiQIntelSourcesTable: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelSourcesTable
+        NexiQIntelSourceRunsTable: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelSourceRunsTable
+        NexiQIntelDocumentsTable: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelDocumentsTable
+        NexiQIntelSignalsTable: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelSignalsTable
+        NexiQIntelGapsTable: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelGapsTable
+        NexiQIntelBenchmarksTable: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelBenchmarksTable
+        NexiQIntelCoverageTable: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelCoverageTable
+        NexiQIntelRawArtifactsBucket: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelRawArtifactsBucketName
+        NexiQIntelCollectionQueueUrl: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelCollectionQueueUrl
+        NexiQIntelCollectionQueueArn: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelCollectionQueueArn
+        NexiQIntelProcessingQueueUrl: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelProcessingQueueUrl
+        NexiQIntelProcessingQueueArn: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelProcessingQueueArn
         LeadsTableName:
           Fn::If:
             - HasDataLayerNestedStack
@@ -3797,6 +3821,13 @@ Resources:
         CognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         CognitoClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         CognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        RapidIqRawSignalsQueueUrl: !GetAtt AppSamNexiQPipelineStack.Outputs.RawSignalsQueueUrl
+        RapidIqRawSignalsQueueArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:rapid-cortex-${DeploymentStage}-rapid-iq-pipeline-raw-signals-${DeploymentStage}.fifo"
+        RapidIqPipelineSignalsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RapidIqPipelineSignalsTable
+            - !Sub "${DynamoTableNamePrefix}-rapid-iq-pipeline-signals-${DeploymentStage}"
 
   AppSamIqAnalyticsStack:
     Type: AWS::CloudFormation::Stack
@@ -3957,6 +3988,7 @@ Resources:
             - !GetAtt DataLayerStack.Outputs.AgenciesTable
             - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
         ExistingCallAssistTableName: !Ref ExistingCallAssistTableName
+        ExistingAgencyKeywordTableName: !Ref ExistingAgencyKeywordTableName
         CallAssistConnectWebhookSecretArn: !Ref CallAssistConnectWebhookSecretArn
         CallAssistRapidSosSecretArn: !Ref CallAssistRapidSosSecretArn
         CallAssistLexBotRoleArn: !Ref CallAssistLexBotRoleArn
@@ -3967,6 +3999,10 @@ Resources:
         ConnectInstanceId: !Ref ConnectInstanceId
         CallAssistContactFlowId: !Ref CallAssistContactFlowId
         CallAssistOutboundCallerId: !Ref CallAssistOutboundCallerId
+        CallAssistLexBotId: !Ref CallAssistLexBotId
+        CallAssistLexBotAliasId: !Ref CallAssistLexBotAliasId
+        CallAssistSmsOriginationNumber: !Ref CallAssistSmsOriginationNumber
+        CallAssistSmsDefaultAgencyId: !Ref CallAssistSmsDefaultAgencyId
         AwsSmsConfigurationSetName: !Ref AwsSmsConfigurationSetName
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 

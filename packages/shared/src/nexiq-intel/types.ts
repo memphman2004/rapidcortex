@@ -88,7 +88,7 @@ export interface IntelligenceSource {
   connectorType: IntelConnectorType;
   enabled: boolean;
 
-  /** How often to check. Minimum enforced: 30 min. */
+  /** How often to check. Default 120 min (aligned with Civic iQ / Rapid iQ collectors). */
   checkFrequencyMinutes: number;
 
   lastAttemptAt?: string;

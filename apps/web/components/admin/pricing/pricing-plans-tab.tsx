@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { PricingPriceCell } from "./pricing-price-cell";
-import { PSAP_PLANS, PSAP_TIERS, type TabProps } from "@/lib/pricing/pricing-catalog";
+import { PSAP_PLANS, type TabProps } from "@/lib/pricing/pricing-catalog";
 
 const tableClass =
   "w-full border-collapse text-sm text-slate-200";
@@ -47,7 +47,7 @@ export function PricingPlansTab(props: TabProps) {
                 <th className={thClass} style={{ width: 140 }}>
                   Fee type
                 </th>
-                {PSAP_TIERS.map((tier) => (
+                {plan.tiers.map((tier) => (
                   <th key={tier.id} className={thClass}>
                     <div>{tier.label}</div>
                     <div className="mt-1 font-normal normal-case text-slate-500">{tier.seats}</div>
@@ -60,7 +60,7 @@ export function PricingPlansTab(props: TabProps) {
               {plan.rows.map((row) => (
                 <tr key={row.id}>
                   <td className={tdClass}>{row.label}</td>
-                  {PSAP_TIERS.map((tier) => {
+                  {plan.tiers.map((tier) => {
                     const key = `${plan.id}.${tier.id}.${row.id}`;
                     return (
                       <td key={tier.id} className={tdClass}>
@@ -84,7 +84,7 @@ export function PricingPlansTab(props: TabProps) {
             <h3 className="text-sm font-semibold text-white">Seat overages</h3>
             <div className="flex flex-wrap items-center gap-3 text-sm">
               <span className="text-slate-400">
-                Dispatcher seats {plan.dispatcherOvrFrom}+
+                Dispatcher seats {plan.dispatcherOvrFrom}+ (base includes {plan.seatCap})
               </span>
               <PricingPriceCell
                 priceKey={`${plan.id}.ovr.dispatcher`}
@@ -96,7 +96,9 @@ export function PricingPlansTab(props: TabProps) {
               />
             </div>
             <div className="flex flex-wrap items-center gap-3 text-sm">
-              <span className="text-slate-400">Admin seats {plan.adminOvrFrom}+</span>
+              <span className="text-slate-400">
+                Admin / supervisor seats {plan.adminOvrFrom}+ (base includes {plan.includedAdminSeats})
+              </span>
               <PricingPriceCell
                 priceKey={`${plan.id}.ovr.admin`}
                 suffix="/seat/mo"

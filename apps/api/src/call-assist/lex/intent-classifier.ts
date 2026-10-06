@@ -15,7 +15,8 @@ const CALL_TYPE_TO_LEX_INTENT: Record<string, string> = {
   lost_person: "LostPerson",
   CARFAX_REPORTING_ELIGIBLE: "CarfaxReportingEligible",
   CODE_ENFORCEMENT: "CodeEnforcement",
-  PUBLIC_WORKS: "PublicWorks",
+  // Lex bot intent id (not the call-type alias). "PublicWorks" is not a bot intent.
+  PUBLIC_WORKS: "PublicWorksIssue",
 };
 
 /** Maps call type id (NOISE_COMPLAINT or noise_complaint) to Lex PascalCase intent. */

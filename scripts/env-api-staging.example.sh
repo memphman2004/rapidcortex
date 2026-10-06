@@ -137,6 +137,8 @@ export CALL_ASSIST_LEX_MOCK=true
 # Live onboarding (when mocks are false) — deploy.sh auto-resolves from Lex stack + Connect if unset:
 #   CALL_ASSIST_LEX_BOT_ROLE_ARN      ← rapid-cortex-lex-${STAGE} LexServiceRoleArn
 #   CALL_ASSIST_FULFILLMENT_LAMBDA_ARN ← FulfillmentHookFunctionArn
+#   CALL_ASSIST_LEX_BOT_ID / CALL_ASSIST_LEX_BOT_ALIAS_ID ← BotId / BotAliasId (SMS RecognizeText)
+#   CALL_ASSIST_SMS_ORIGINATION_NUMBER ← two-way SMS DID (default +13198358230)
 #   CALL_ASSIST_PRIMARY_QUEUE_ARN / CALL_ASSIST_EMERGENCY_QUEUE_ARN ← Demo Dispatcher / Call Assist Emergency
 #   CALL_ASSIST_RAPIDSOS_SECRET_ARN   ← optional (not for KCPD RFP)
 # Optional: seed Missouri Sunshine + 311/Parks/Water directory on first config write.

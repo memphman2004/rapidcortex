@@ -835,6 +835,30 @@ if [[ -z "${CALL_ASSIST_FULFILLMENT_LAMBDA_ARN:-}" ]]; then
     CALL_ASSIST_FULFILLMENT_LAMBDA_ARN=""
   fi
 fi
+if [[ -z "${CALL_ASSIST_LEX_BOT_ID:-}" ]]; then
+  CALL_ASSIST_LEX_BOT_ID="$(
+    aws cloudformation describe-stacks \
+      --stack-name "${LEX_STACK_NAME}" \
+      --region "${AWS_REGION:-us-east-1}" \
+      --query 'Stacks[0].Outputs[?OutputKey==`BotId`].OutputValue' \
+      --output text 2>/dev/null || true
+  )"
+  if [[ "${CALL_ASSIST_LEX_BOT_ID}" == "None" ]]; then
+    CALL_ASSIST_LEX_BOT_ID=""
+  fi
+fi
+if [[ -z "${CALL_ASSIST_LEX_BOT_ALIAS_ID:-}" ]]; then
+  CALL_ASSIST_LEX_BOT_ALIAS_ID="$(
+    aws cloudformation describe-stacks \
+      --stack-name "${LEX_STACK_NAME}" \
+      --region "${AWS_REGION:-us-east-1}" \
+      --query 'Stacks[0].Outputs[?OutputKey==`BotAliasId`].OutputValue' \
+      --output text 2>/dev/null || true
+  )"
+  if [[ "${CALL_ASSIST_LEX_BOT_ALIAS_ID}" == "None" ]]; then
+    CALL_ASSIST_LEX_BOT_ALIAS_ID=""
+  fi
+fi
 CONNECT_INSTANCE_ID="${CONNECT_INSTANCE_ID:-20772ba7-98e6-4afd-94cc-19e03c0619df}"
 if [[ -z "${CALL_ASSIST_PRIMARY_QUEUE_ARN:-}" || -z "${CALL_ASSIST_EMERGENCY_QUEUE_ARN:-}" ]]; then
   _ca_account="$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)"
@@ -889,6 +913,18 @@ if [[ -n "${CALL_ASSIST_CONTACT_FLOW_ID:-}" ]]; then
 fi
 if [[ -n "${CALL_ASSIST_OUTBOUND_CALLER_ID:-}" ]]; then
   PARAMS="${PARAMS} CallAssistOutboundCallerId=${CALL_ASSIST_OUTBOUND_CALLER_ID}"
+fi
+if [[ -n "${CALL_ASSIST_LEX_BOT_ID:-}" ]]; then
+  PARAMS="${PARAMS} CallAssistLexBotId=${CALL_ASSIST_LEX_BOT_ID}"
+fi
+if [[ -n "${CALL_ASSIST_LEX_BOT_ALIAS_ID:-}" ]]; then
+  PARAMS="${PARAMS} CallAssistLexBotAliasId=${CALL_ASSIST_LEX_BOT_ALIAS_ID}"
+fi
+if [[ -n "${CALL_ASSIST_SMS_ORIGINATION_NUMBER:-}" ]]; then
+  PARAMS="${PARAMS} CallAssistSmsOriginationNumber=${CALL_ASSIST_SMS_ORIGINATION_NUMBER}"
+fi
+if [[ -n "${CALL_ASSIST_SMS_DEFAULT_AGENCY_ID:-}" ]]; then
+  PARAMS="${PARAMS} CallAssistSmsDefaultAgencyId=${CALL_ASSIST_SMS_DEFAULT_AGENCY_ID}"
 fi
 if [[ -z "${CONNECT_INSTANCE_ID:-}" || -z "${CALL_ASSIST_CONTACT_FLOW_ID:-}" ]]; then
   echo "WARN: Call Assist live telephony incomplete (CONNECT_INSTANCE_ID / CALL_ASSIST_CONTACT_FLOW_ID). Console force-transfer stays advisory until set." >&2

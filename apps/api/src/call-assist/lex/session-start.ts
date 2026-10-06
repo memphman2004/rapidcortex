@@ -1,4 +1,5 @@
 import {
+  appendVoiceSmsChannelTip,
   buildGreeting,
   checkEscalation,
   fallbackGreetingForLocale,
@@ -30,6 +31,12 @@ export type CallAssistSessionStartResult = {
   config: CallAssistGreetingConfig | null;
 };
 
+function resolveAgencySmsDid(config: CallAssistTenantConfig | null): string {
+  const fromConfig = config?.smsDID?.trim() || "";
+  if (fromConfig) return fromConfig;
+  return process.env.CALL_ASSIST_SMS_ORIGINATION_NUMBER?.trim() || "";
+}
+
 export function startCallAssistSession(opts: {
   agencyId: string;
   locale?: string;
@@ -40,9 +47,11 @@ export function startCallAssistSession(opts: {
   const locale = normalizeGreetingLocale(opts.locale ?? opts.existingAttributes?.locale ?? "en-US");
   const agencyId = opts.agencyId || opts.existingAttributes?.agencyId || "";
   const alreadyDelivered = opts.existingAttributes?.greetingDelivered === "true";
+  const smsDid = resolveAgencySmsDid(opts.config);
 
   if (!opts.config) {
-    const greeting = alreadyDelivered ? intakePromptForLocale(locale) : fallbackGreetingForLocale(locale);
+    const base = alreadyDelivered ? intakePromptForLocale(locale) : fallbackGreetingForLocale(locale);
+    const greeting = alreadyDelivered ? base : appendVoiceSmsChannelTip(base, smsDid, locale);
     return {
       greeting,
       sessionAttributes: {
@@ -73,8 +82,9 @@ export function startCallAssistSession(opts: {
     : isCallAssistGreetingReady(greetingConfig)
       ? buildGreeting(greetingConfig, locale)
       : fallbackGreetingForLocale(locale);
+  const greeting = alreadyDelivered ? spoken : appendVoiceSmsChannelTip(spoken, smsDid, locale);
   return {
-    greeting: spoken,
+    greeting,
     sessionAttributes: {
       ...(opts.existingAttributes ?? {}),
       ...greetingSessionAttributes(agencyId, locale, greetingConfig, opts.now),
