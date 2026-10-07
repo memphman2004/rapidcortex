@@ -63,6 +63,11 @@ export function slotPrompt(
 function defaultSlotPrompt(slotId: string): string {
   const defaults: Record<string, string> = {
     location: "What is the address or location?",
+    ServiceAddress: "What's the address or nearest intersection?",
+    IsOngoing: "Is this happening right now?",
+    CallerName: "Can I get your name for the report, or you can stay anonymous.",
+    CallbackNumber: "Want to leave a callback number for updates on your request?",
+    IssueDescription: "Can you describe the issue in a bit more detail?",
     crossStreets: "What are the nearest cross streets?",
     aptBusiness: "Is there an apartment number or business name?",
     vehicleMake: "Can you describe the vehicle, including the color and make?",
@@ -79,7 +84,10 @@ function defaultSlotPrompt(slotId: string): string {
     description: "Can you describe what's happening?",
     medicalNeeded: "Does anyone need medical attention?",
   };
-  return defaults[slotId] ?? `Can you tell me more about the ${slotId}?`;
+  if (defaults[slotId]) return defaults[slotId];
+  if (/SubIssue$/i.test(slotId)) return "Can you describe the issue in a bit more detail?";
+  // Never surface camelCase Lex slot names to citizens.
+  return "Can you share a bit more detail so we can log this correctly?";
 }
 
 export function closingPrompt(config: CallAssistTenantConfig, _callTypeId: string, caseNumber: string): string {

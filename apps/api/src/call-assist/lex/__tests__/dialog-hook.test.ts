@@ -3,7 +3,7 @@ import { KCPD_LEX_DEMO_SCENARIOS } from "rapid-cortex-shared";
 import { defaultTenantConfig } from "../../config-service.js";
 import { classifyWithBedrock } from "../intent-classifier.js";
 import { asLexSlot } from "../slot-extractor.js";
-import { handleDialog, handler, type DialogHookDeps } from "../dialog-hook.js";
+import { handleDialog, handler, humanConfirmationQuestion, type DialogHookDeps } from "../dialog-hook.js";
 import type { LexSlotValue, LexV2Event } from "../types.js";
 
 vi.mock("../../../repositories/auditRepository.js", () => ({
@@ -528,5 +528,46 @@ describe("Dialog hook — greeting session start", () => {
     expect(result.sessionState.intent.name).toBe("EmergencyEscalation");
     expect(result.sessionState.sessionAttributes?.escalationMode).toBe("silent_transfer");
     expect(result.messages ?? []).toHaveLength(0);
+  });
+});
+
+describe("Dialog hook — SMS PublicWorksIssue address", () => {
+  it("does not return unknown slots after an intersection", async () => {
+    const result = await handleDialog(
+      buildLexEvent({
+        utterance: "Corner of main and Johnson",
+        intent: "PublicWorksIssue",
+        slots: { PublicWorksLocation: null, PublicWorksIssueType: null },
+        sessionAttrs: {
+          agencyId: "kcpd",
+          callId: "sms-test",
+          channel: "sms",
+          intakeStarted: "true",
+          transcript: "Caller: Potholes",
+        },
+      }),
+      testDeps(),
+    );
+    const intent = result.sessionState.intent;
+    expect(intent?.name).toBe("ReportRoadsInfrastructure");
+    expect(intent?.slots?.ServiceAddress?.value?.interpretedValue).toMatch(/Corner of main and Johnson/i);
+    expect(intent?.slots?.PublicWorksLocation).toBeFalsy();
+    expect(intent?.slots?.RoadsSubIssue?.value?.interpretedValue).toBe("POTHOLE");
+    const spoken = (result.messages ?? []).map((m) => m.content).join(" ");
+    expect(spoken.toLowerCase()).not.toMatch(/encountered a problem/);
+    expect(spoken).toMatch(/blocking|street|intersection|confirm/i);
+  });
+});
+
+describe("humanConfirmationQuestion", () => {
+  it("uses spoken words, not Lex slot names or enum codes", () => {
+    const text = humanConfirmationQuestion("ReportTreesVegetation", {
+      TreeSubIssue: slot("FALLEN_TREE_ROAD"),
+      ServiceAddress: slot("Corner of elm and manor"),
+    });
+    expect(text).toMatch(/fallen tree in the road/i);
+    expect(text).toMatch(/Corner of elm and manor/);
+    expect(text).toMatch(/Urban Forestry/i);
+    expect(text).not.toMatch(/IsOngoing|TreeSubIssue|FALLEN_TREE_ROAD|ServiceAddress/);
   });
 });

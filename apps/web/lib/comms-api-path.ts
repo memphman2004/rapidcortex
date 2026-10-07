@@ -67,7 +67,6 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/command\//,
   /^\/api\/vault\//,
   /^\/api\/incidents\/[^/]+\/context-card$/,
-  /^\/api\/analytics\/reporting$/,
 ];
 
 /** Billing, payments, network policy — stack-app-sam-4 (AppSam4Stack). */
@@ -128,6 +127,7 @@ const STACK3_PATH_TESTS: RegExp[] = [
   /^\/api\/map\/psaps$/,
   /^\/api\/contacts(\/|$)/,
   /^\/api\/rapid-iq(\/|$)/,
+  /^\/api\/watch(\/|$)/,
   /^\/api\/rc-admin\/rapid-iq(\/|$)/,
   /^\/api\/rc-admin\/nexiq\/intel(\/|$)/,
   /^\/api\/rc-admin\/conferences(\/|$)/,

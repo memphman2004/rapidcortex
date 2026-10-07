@@ -21,6 +21,8 @@
 /results/
 /NexCort iQ Internal Docs/
 NexCort iQ Internal Docs/
+/Rapid Cortex Internal Docs/
+Rapid Cortex Internal Docs/
 /web-source-prod.zip
 /web-source-*.zip
 *.zip
@@ -33,6 +35,15 @@ NexCort iQ Internal Docs/
 /.sam-build-riq-pipeline-*/
 .sam-build-*/
 .sam-build-riq-pipeline-*/
+/.aws-sam.usb-bak/
+.aws-sam.usb-bak/
+/.rapid-cortex-api-build/
+/.rapid-cortex-sam-build/
+/.sam-build-dir/
+/.tmp-*/
+.tmp-*/
+/.war-room-staging/
+/android/
 /ziicMOdT
 /ziKUSoeO
 /packages/security/

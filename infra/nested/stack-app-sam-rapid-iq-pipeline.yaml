@@ -1050,6 +1050,106 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   # ChatGPT Watch machine ingest — API key checked in Lambda (no Cognito JWT).
+
+  # Canonical Watch Intelligence API (ChatGPT Watch → Watch Inbox)
+  RouteWatchIngestPost:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/watch/ingest"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: NONE
+
+  RouteWatchHealthGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/watch/health"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: NONE
+
+  RouteWatchStatsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/watch/stats"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteWatchSignalsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/watch/signals"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteWatchSignalGet:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/watch/signals/{id}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteWatchSignalPatch:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PATCH /api/watch/signals/{id}"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteWatchSignalQualify:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/watch/signals/{id}/qualify"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteWatchSignalDismiss:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/watch/signals/{id}/dismiss"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteWatchSignalMonitor:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/watch/signals/{id}/monitor"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteWatchSignalAssign:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: RapidIqNewHttpRoutes
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/watch/signals/{id}/assign"
+      Target: !Sub "integrations/${SignalHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
   RoutePipelineWatchIngestPost:
     Type: AWS::ApiGatewayV2::Route
     Condition: RapidIqNewHttpRoutes

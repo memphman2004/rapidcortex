@@ -1,7 +1,7 @@
 export type CallAssistLanguage = "en" | "es" | "zh" | "yue" | "tl" | "vi" | "ar" | "und";
 
 const SPANISH_CUES =
-  /\b(hola|buenos d[ií]as|buenas tardes|buenas noches|por favor|emergencia|auxilio|ay[uú]dame|calle|carro|veh[ií]culo|polic[ií]a|d[oó]nde|qu[eé]|ruido|estacionamiento|apartamento|herido|arma|placa|necesito|hablar)\b/i;
+  /\b(hola|buenos d[ií]as|buenas tardes|buenas noches|por favor|emergencia|auxilio|ay[uú]dame|calle|carro|veh[ií]culo|polic[ií]a|d[oó]nde|qu[eé]|ruido|estacionamiento|apartamento|herido|arma|placa|necesito|hablar|bache|basura|sem[aá]foro|farola|[aá]rbol)\b/i;
 
 const TAGALOG_CUES =
   /\b(opo|tulong|pulis|reklamo|nakaw|aksidente|kapitbahay|baril|sunog|hindi|kailangan|mag-report)\b/i;

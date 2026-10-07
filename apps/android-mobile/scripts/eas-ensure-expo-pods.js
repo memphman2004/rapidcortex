@@ -299,6 +299,60 @@ function pinReactNativeScreensToPinned() {
 
 pinReactNativeScreensToPinned();
 
+/**
+ * Preview/production: delete Expo Dev Client packages so RN/Expo autolinking
+ * cannot include them. settings.gradle exclude alone still left
+ * :expo-dev-launcher in the release DEX (empty BatchedBridge crash).
+ */
+function stripExpoDevClientForStoreBuilds() {
+  const profile = process.env.EAS_BUILD_PROFILE;
+  if (!profile || profile === 'development') {
+    return false;
+  }
+  const pkgs = [
+    'expo-dev-client',
+    'expo-dev-launcher',
+    'expo-dev-menu',
+    'expo-dev-menu-interface',
+  ];
+  let removed = 0;
+  for (const root of [mobileNm, rootNm]) {
+    if (!fs.existsSync(root)) continue;
+    for (const pkg of pkgs) {
+      const dir = path.join(root, pkg);
+      if (!fs.existsSync(dir)) continue;
+      fs.rmSync(dir, { recursive: true, force: true });
+      console.log(`[eas-pods] removed ${path.relative(workspaceRoot, dir)} (store build)`);
+      removed += 1;
+    }
+  }
+  const mobilePkgPath = path.join(mobileRoot, 'package.json');
+  const mobilePkg = JSON.parse(fs.readFileSync(mobilePkgPath, 'utf8'));
+  let pkgChanged = false;
+  if (mobilePkg.dependencies && typeof mobilePkg.dependencies === 'object') {
+    for (const pkg of pkgs) {
+      if (mobilePkg.dependencies[pkg]) {
+        delete mobilePkg.dependencies[pkg];
+        pkgChanged = true;
+      }
+    }
+  }
+  const expo = mobilePkg.expo && typeof mobilePkg.expo === 'object' ? { ...mobilePkg.expo } : {};
+  const autolinking =
+    expo.autolinking && typeof expo.autolinking === 'object' ? { ...expo.autolinking } : {};
+  const existing = Array.isArray(autolinking.exclude) ? autolinking.exclude : [];
+  autolinking.exclude = [...new Set([...existing, ...pkgs])];
+  expo.autolinking = autolinking;
+  mobilePkg.expo = expo;
+  fs.writeFileSync(mobilePkgPath, `${JSON.stringify(mobilePkg, null, 2)}\n`);
+  console.log(
+    `[eas-pods] store build: stripped ${removed} Dev Client tree(s); package.json excludes ${pkgs.join(', ')}`,
+  );
+  return true;
+}
+
+const strippedDevClient = stripExpoDevClientForStoreBuilds();
+
 const { patchExpoRouterPackage } = require('./patch-expo-router-ctx.js');
 const appDir = path.join(mobileRoot, 'app');
 for (const dir of [path.join(mobileNm, 'expo-router'), path.join(rootNm, 'expo-router')]) {
@@ -324,20 +378,24 @@ console.log(
 // SDK 52 + Xcode 26: exhaustive Calendar.Identifier switch
 require('./patch-expo-localization-xcode26.js');
 
-const {
-  assertExpoDevLauncherUiScenePatched,
-  patchExpoDevLauncherUiScene,
-} = require('./patch-expo-dev-launcher-uiscene.js');
-const devLauncherPatched = patchExpoDevLauncherUiScene({
-  mobileRoot,
-  workspaceRoot,
-});
-if (devLauncherPatched.length > 0) {
-  console.log(
-    `[eas-pods] deferred Expo Dev Launcher until UIScene window exists:\n  ${devLauncherPatched.join('\n  ')}`,
-  );
+if (!strippedDevClient) {
+  const {
+    assertExpoDevLauncherUiScenePatched,
+    patchExpoDevLauncherUiScene,
+  } = require('./patch-expo-dev-launcher-uiscene.js');
+  const devLauncherPatched = patchExpoDevLauncherUiScene({
+    mobileRoot,
+    workspaceRoot,
+  });
+  if (devLauncherPatched.length > 0) {
+    console.log(
+      `[eas-pods] deferred Expo Dev Launcher until UIScene window exists:\n  ${devLauncherPatched.join('\n  ')}`,
+    );
+  }
+  assertExpoDevLauncherUiScenePatched({ mobileRoot, workspaceRoot });
+} else {
+  console.log('[eas-pods] skipped Dev Launcher UIScene patch (packages stripped for store build)');
 }
-assertExpoDevLauncherUiScenePatched({ mobileRoot, workspaceRoot });
 
 const {
   patchReactNativeXcodeSpacePaths,

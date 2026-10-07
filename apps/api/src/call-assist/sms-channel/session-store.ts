@@ -69,7 +69,7 @@ export async function touchSession(
   agencyId: string,
   phoneE164: string,
   lastConfirmationNumber?: string,
-  opts?: { welcomeSent?: boolean },
+  opts?: { welcomeSent?: boolean; language?: string },
 ): Promise<void> {
   const now = Math.floor(Date.now() / 1000);
   const existing = await getSmsSession(agencyId, phoneE164);
@@ -84,6 +84,7 @@ export async function touchSession(
     firstSeen: existing?.firstSeen ?? new Date().toISOString(),
     messageCount: (existing?.messageCount ?? 0) + 1,
     welcomeSent: opts?.welcomeSent === true ? true : existing?.welcomeSent === true,
+    language: opts?.language?.trim() || existing?.language,
     lastConfirmationNumber: lastConfirmationNumber ?? existing?.lastConfirmationNumber,
     expiresAt: existing?.optedOut ? existing.expiresAt : idleTtl(),
   };
@@ -106,6 +107,8 @@ export async function recordOptOut(agencyId: string, phoneE164: string): Promise
         optedOutAt: new Date().toISOString(),
         firstSeen: existing?.firstSeen ?? new Date().toISOString(),
         messageCount: existing?.messageCount ?? 0,
+        welcomeSent: existing?.welcomeSent,
+        language: existing?.language,
         lastConfirmationNumber: existing?.lastConfirmationNumber,
         expiresAt: now + OPT_OUT_TTL_SECONDS,
       } satisfies SmsSessionRecord,
@@ -128,6 +131,8 @@ export async function recordOptIn(agencyId: string, phoneE164: string): Promise<
         optedOut: false,
         firstSeen: existing?.firstSeen ?? new Date().toISOString(),
         messageCount: existing?.messageCount ?? 0,
+        welcomeSent: existing?.welcomeSent,
+        language: existing?.language,
         lastConfirmationNumber: existing?.lastConfirmationNumber,
         expiresAt: idleTtl(),
       } satisfies SmsSessionRecord,

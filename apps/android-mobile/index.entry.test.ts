@@ -13,6 +13,7 @@ describe("mobile entry registers main synchronously", () => {
     expect(source).toContain("pinBatchedBridge");
     expect(source).toContain("__fbBatchedBridge");
     expect(source).toContain("react-native/Libraries/BatchedBridge/BatchedBridge");
+    expect(source).toContain("BatchedBridgeModule.default");
   });
 
   it("installs an ErrorUtils guard so release RCTFatal cannot SIGABRT", () => {

@@ -7,9 +7,12 @@ import { getAgencyIdByDid, getLexTenantConfig, normalizeCallAssistDid } from "..
 import {
   COMPLIANCE_MESSAGES,
   OPTED_OUT_MESSAGE,
+  SESSION_RESET_MESSAGE,
   SESSION_TIMEOUT_MESSAGE,
+  SMS_COMPLIANCE_FOOTER,
   buildWelcomeMessage,
   classifyKeyword,
+  isNeutralOpener,
   isSessionResetRequest,
 } from "./compliance.js";
 import { matchKeyword } from "./keyword-handler.js";
@@ -24,9 +27,9 @@ import {
   isNewCaller,
   isOptedOut,
   isSessionIdle,
-  needsWelcome,
   recordOptIn,
   recordOptOut,
+  getSmsSession,
   touchSession,
 } from "./session-store.js";
 import { sendSmsSegments } from "./sms-sender.js";
@@ -36,7 +39,12 @@ import {
   processInboundMedia,
 } from "./media-handler.js";
 import { claimMediaForConfirmation } from "./media-store.js";
-import type { MmsMediaItem, SmsInboundMessage } from "./types.js";
+import {
+  fromEnglishToCitizen,
+  smsTranslateEnabled,
+  toEnglishForLex,
+  detectSmsLanguage,
+} from "./translate.js";
 
 const auditRepo = new AuditRepository();
 
@@ -84,7 +92,33 @@ async function reply(agencyId: string, phone: string, message: string, sessionId
   });
 }
 
-async function sendWelcome(agencyId: string, phone: string, sessionId: string): Promise<void> {
+function withComplianceFooter(message: string): string {
+  const trimmed = message.trim();
+  if (!trimmed) return SMS_COMPLIANCE_FOOTER;
+  if (trimmed.includes("Reply STOP to unsubscribe")) return trimmed;
+  return `${trimmed}\n\n${SMS_COMPLIANCE_FOOTER}`;
+}
+
+async function replyCitizen(
+  agencyId: string,
+  phone: string,
+  englishMessage: string,
+  sessionId: string,
+  language: string,
+): Promise<void> {
+  const outbound =
+    smsTranslateEnabled() && language && language !== "en"
+      ? await fromEnglishToCitizen(englishMessage, language)
+      : englishMessage;
+  await reply(agencyId, phone, outbound, sessionId);
+}
+
+async function sendWelcome(
+  agencyId: string,
+  phone: string,
+  sessionId: string,
+  language: string,
+): Promise<void> {
   const config = await getLexTenantConfig(agencyId).catch(() => null);
   const agencyName =
     config?.agencyName ||
@@ -98,13 +132,9 @@ async function sendWelcome(agencyId: string, phone: string, sessionId: string): 
     .map((v) => v?.trim() || "")
     .filter(Boolean);
   const voiceDid = voiceCandidates.find((d) => d !== smsDid) || voiceCandidates[0] || "";
-  await reply(
-    agencyId,
-    phone,
-    buildWelcomeMessage({ agencyDisplayName: agencyName, voiceDidE164: voiceDid }),
-    sessionId,
-  );
-  await touchSession(agencyId, phone, undefined, { welcomeSent: true });
+  const welcome = buildWelcomeMessage({ agencyDisplayName: agencyName, voiceDidE164: voiceDid });
+  await replyCitizen(agencyId, phone, welcome, sessionId, language);
+  await touchSession(agencyId, phone, undefined, { welcomeSent: true, language });
 }
 
 export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
@@ -143,6 +173,10 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
     }),
   );
 
+  const priorLang = (await getSmsSession(agencyId, phone))?.language?.trim() || "";
+  const language = smsTranslateEnabled() ? await detectSmsLanguage(body, priorLang || null) : "en";
+  const englishBody = await toEnglishForLex(body, language);
+
   if (keyword === "STOP") {
     await recordOptOut(agencyId, phone);
     await resetLexSession(sessionId);
@@ -152,66 +186,69 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
 
   if (keyword === "START") {
     await recordOptIn(agencyId, phone);
-    await reply(agencyId, phone, COMPLIANCE_MESSAGES.START, sessionId);
+    await replyCitizen(agencyId, phone, COMPLIANCE_MESSAGES.START, sessionId, language);
     return;
   }
 
   if (await isOptedOut(agencyId, phone)) {
-    await reply(
+    await replyCitizen(
       agencyId,
       phone,
       keyword === "HELP" ? COMPLIANCE_MESSAGES.HELP : OPTED_OUT_MESSAGE,
       sessionId,
+      language,
     );
     return;
   }
 
   if (keyword === "HELP") {
-    await reply(agencyId, phone, COMPLIANCE_MESSAGES.HELP, sessionId);
-    await touchSession(agencyId, phone);
+    await replyCitizen(agencyId, phone, COMPLIANCE_MESSAGES.HELP, sessionId, language);
+    await touchSession(agencyId, phone, undefined, { language });
     return;
   }
 
   const isNew = await isNewCaller(agencyId, phone);
-  const normalizedBody = body.trim().toUpperCase();
-  const isGreetingOnly = ["HI", "HELLO", "HEY"].includes(normalizedBody);
-  const shouldSendWelcome = isGreetingOnly || (await needsWelcome(agencyId, phone));
-
-  // First outbound to this phone (or HI/HELLO): welcome only — never Lex on this turn.
-  // Customer can restate their issue (or keyword) on the next text.
-  if (shouldSendWelcome) {
-    await sendWelcome(agencyId, phone, sessionId);
+  // Two-tier first contact: welcome only for explorers; substantive texts go straight to Lex.
+  let appendComplianceFooter = false;
+  if (isNew && !hasMms && (isNeutralOpener(body) || isNeutralOpener(englishBody))) {
+    await sendWelcome(agencyId, phone, sessionId, language);
     return;
   }
-
   if (isNew) {
-    await touchSession(agencyId, phone);
+    appendComplianceFooter = true;
   }
 
   if (!isNew && (await isSessionIdle(agencyId, phone))) {
     await resetLexSession(sessionId);
-    await reply(agencyId, phone, SESSION_TIMEOUT_MESSAGE, sessionId);
-    await touchSession(agencyId, phone);
+    await replyCitizen(agencyId, phone, SESSION_TIMEOUT_MESSAGE, sessionId, language);
+    await touchSession(agencyId, phone, undefined, { language });
     return;
   }
 
-  if (isSessionResetRequest(body)) {
+  if (isSessionResetRequest(body) || isSessionResetRequest(englishBody)) {
     await resetLexSession(sessionId);
-    await sendWelcome(agencyId, phone, sessionId);
+    await replyCitizen(agencyId, phone, SESSION_RESET_MESSAGE, sessionId, language);
+    await touchSession(agencyId, phone, undefined, { language });
     return;
   }
 
   // ── Keyword command check (before MMS / Lex) ────────────────────────────
-  const keywordResponse = await matchKeyword(body, agencyId);
+  const keywordResponse =
+    (await matchKeyword(body, agencyId)) || (await matchKeyword(englishBody, agencyId));
   if (keywordResponse) {
-    await reply(agencyId, phone, keywordResponse, sessionId);
-    await touchSession(agencyId, phone);
+    const outbound = appendComplianceFooter ? withComplianceFooter(keywordResponse) : keywordResponse;
+    await replyCitizen(agencyId, phone, outbound, sessionId, language);
+    await touchSession(agencyId, phone, undefined, {
+      language,
+      ...(appendComplianceFooter ? { welcomeSent: true } : {}),
+    });
     console.info(
       JSON.stringify({
         event: "sms_keyword_match",
         phone: last4(phone),
         keyword: body.trim().toUpperCase(),
         agencyId,
+        language,
       }),
     );
     return;
@@ -219,7 +256,7 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
 
   let mediaRequestAttrs: Record<string, string> = {};
   let mediaCount = 0;
-  let lexBody = body;
+  let lexBody = englishBody;
 
   if (hasMms) {
     let mediaResult: Awaited<ReturnType<typeof processInboundMedia>> | null = null;
@@ -237,11 +274,12 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
           name: err instanceof Error ? err.name : "Error",
         }),
       );
-      await reply(
+      await replyCitizen(
         agencyId,
         phone,
         "We had trouble receiving your media. You can still submit a report — just describe the issue.",
         sessionId,
+        language,
       );
     }
 
@@ -250,7 +288,7 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
         mediaResult.accepted.flatMap((m) => m.sceneLabels),
       );
       const ack = buildMediaAcknowledgment(mediaResult.accepted, mediaResult.rejected, inferredCategory);
-      if (ack) await reply(agencyId, phone, ack, sessionId);
+      if (ack) await replyCitizen(agencyId, phone, ack, sessionId, language);
       mediaCount = mediaResult.accepted.length;
       if (mediaCount > 0) {
         mediaRequestAttrs = {
@@ -262,21 +300,20 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
         lexBody = `I am reporting a ${inferredCategory.toLowerCase().replace(/_/g, " ")}`;
       }
       if (!lexBody) {
-        await touchSession(agencyId, phone);
+        await touchSession(agencyId, phone, undefined, { language });
         return;
       }
     }
   }
 
   if (!lexBody) {
-    await touchSession(agencyId, phone);
+    await touchSession(agencyId, phone, undefined, { language });
     return;
   }
 
   let lexTurn;
   try {
     lexTurn = await sendToLex({
-      // Lex sessionId allows [0-9a-zA-Z._:-] only — never pass E.164 with '+'.
       sessionId,
       text: lexBody,
       sessionAttributes: {
@@ -284,24 +321,34 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
         callId: sessionId,
         channel: "sms",
         callbackNumber: phone,
-        // Skip voice IVR greeting injection in the dialog hook.
         intakeStarted: "true",
+        language,
+        preferredLanguage: language,
       },
       requestAttributes: mediaRequestAttrs,
     });
   } catch (err: unknown) {
+    const lexErr = err as { name?: string; message?: string };
     console.error(
       JSON.stringify({
         event: "lex_sms_error",
-        name: err instanceof Error ? err.name : "Error",
+        name: lexErr?.name ?? (err instanceof Error ? err.name : "Error"),
+        message: typeof lexErr?.message === "string" ? lexErr.message.slice(0, 400) : undefined,
       }),
     );
-    await reply(
+    const sorry =
+      "Sorry, we encountered a problem. Please call this number or try again in a moment. For emergencies call 911.";
+    await replyCitizen(
       agencyId,
       phone,
-      "Sorry, we encountered a problem. Please call this number or try again in a moment. For emergencies call 911.",
+      appendComplianceFooter ? withComplianceFooter(sorry) : sorry,
       sessionId,
+      language,
     );
+    await touchSession(agencyId, phone, undefined, {
+      language,
+      ...(appendComplianceFooter ? { welcomeSent: true } : {}),
+    });
     return;
   }
 
@@ -334,8 +381,15 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
     outbound = formatForSms(lexTurn.messages);
   }
 
-  await reply(agencyId, phone, outbound, sessionId);
-  await touchSession(agencyId, phone, validConfirmation);
+  if (appendComplianceFooter && !emergency) {
+    outbound = withComplianceFooter(outbound);
+  }
+
+  await replyCitizen(agencyId, phone, outbound, sessionId, language);
+  await touchSession(agencyId, phone, validConfirmation, {
+    language,
+    ...(appendComplianceFooter ? { welcomeSent: true } : {}),
+  });
   if (validConfirmation) {
     await claimMediaForConfirmation(agencyId, phone, validConfirmation).catch((err: unknown) => {
       console.error(
@@ -354,7 +408,7 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
         agencyId,
         actorId: "system:call-assist-sms-channel",
         type: AUDIT_EVENT_TYPES.CALL_ASSIST_SMS_CONFIRMATION_SENT,
-        details: { confirmationNumber: validConfirmation, channel: "sms" },
+        details: { confirmationNumber: validConfirmation, channel: "sms", language },
         createdAt: new Date().toISOString(),
         resourceType: "call_assist_session",
         resourceId: sessionId,
@@ -373,6 +427,7 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
       sessionEnded: lexTurn.sessionEnded,
       confirmation: Boolean(validConfirmation),
       mediaAttached: mediaCount,
+      language,
     }),
   );
 }

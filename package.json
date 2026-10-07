@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "test": "vitest run",
+    "eas-build-pre-install": "node \"apps/android-mobile/scripts/eas-pre-install-prune-workspaces.js\"",
     "eas-build-post-install": "node \"apps/android-mobile/scripts/eas-ensure-expo-pods.js\"",
     "test:ci": "npm run test:security && npx vitest run --exclude 'apps/api/src/__tests__/security/**'",
     "test:security": "npx vitest run apps/api/src/__tests__/security",
@@ -121,7 +122,7 @@
     "axios": "1.20.0",
     "fast-uri": "3.1.6",
     "@xmldom/xmldom": "0.9.12",
-    "image-size": "2.0.4",
+    "image-size": "1.2.1",
     "vite": "6.4.3",
     "sharp": "0.35.4",
     "uuid": "11.1.1",

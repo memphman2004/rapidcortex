@@ -49,7 +49,7 @@ function utterancesFor(intent: string, locale: CallAssistLocale): SampleUtteranc
 
 function promptForSlot(intent: string, slotName: string, locale: CallAssistLocale): string {
   const slot = (LEX_SPEC_SLOTS[intent] ?? []).find((s) => s.name === slotName);
-  if (!slot) return `Please provide ${slotName}.`;
+  if (!slot) return "Can you share a bit more detail so we can log this correctly?";
   if (locale === "es_US" && slot.promptEs) return slot.promptEs;
   return slot.promptEn;
 }

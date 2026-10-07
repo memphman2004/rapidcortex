@@ -142,7 +142,17 @@ console.log('[NexCortiQ] registered component main');
 function pinBatchedBridge(registry) {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const BatchedBridge = require('react-native/Libraries/BatchedBridge/BatchedBridge');
+    const BatchedBridgeModule = require('react-native/Libraries/BatchedBridge/BatchedBridge');
+    // RN 0.79 ships ESM `export default` — require() returns { default: MessageQueue }.
+    // Writing the module namespace onto __fbBatchedBridge made native call
+    // callFunctionReturnFlushedQueue on undefined (preview "keeps stopping").
+    const BatchedBridge =
+      BatchedBridgeModule &&
+      (BatchedBridgeModule.default || BatchedBridgeModule);
+    if (!BatchedBridge || typeof BatchedBridge.registerCallableModule !== 'function') {
+      console.warn('[NexCortiQ] batched-bridge pin skipped — MessageQueue not resolved');
+      return;
+    }
     const current = global.__fbBatchedBridge;
     if (current && current !== BatchedBridge) {
       copyCallableModules(BatchedBridge, current);

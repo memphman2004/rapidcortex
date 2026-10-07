@@ -1,7 +1,9 @@
 import type { LexSlotValue, LexV2Event, LexV2Response } from "../types.js";
-import { delegateResponse, elicitSlotResponse, plain } from "../lex-responses.js";
+import { elicitSlotResponse, plain } from "../lex-responses.js";
 import { INTENT_MAP } from "./intents.js";
 import { DISAMBIGUATION_RULES } from "./disambiguation.js";
+import { extractSlotsFromContext } from "./extract-slots-from-context.js";
+import { getNextElicitation } from "./elicitation-questions.js";
 
 export const LEX_311_INTENT_NAMES = Object.keys(INTENT_MAP);
 
@@ -24,8 +26,7 @@ function setSlot(
 
 /**
  * Category-intent disambiguation for 311 taxonomy intents.
- * Returns null when the current intent is not a 311 category intent, or when
- * Lex should keep eliciting normally.
+ * Never returns Delegate with unfilled required slots — always ElicitSlot with a human question.
  */
 export function apply311Dialog(
   event: LexV2Event,
@@ -36,34 +37,55 @@ export function apply311Dialog(
   const intentDef = INTENT_MAP[intentName];
   if (!intentDef) return null;
 
-  const transcript = event.inputTranscript ?? "";
+  const utterance = event.inputTranscript ?? "";
+  const transcript = [sessionAttrs.transcript ?? "", utterance ? `Caller: ${utterance}` : ""]
+    .filter(Boolean)
+    .join("|");
 
-  if (intentName === "TransferToLiveAgent") {
+  if (intentName === "TransferToLiveAgent" || intentName === "RedirectToEmergencyServices") {
     return null;
   }
-  if (intentName === "RedirectToEmergencyServices") {
-    return null;
-  }
+
+  let nextSlots = extractSlotsFromContext(intentName, `${transcript} ${utterance}`, slots, sessionAttrs);
 
   if (intentDef.requiresDisambiguation) {
     for (const rule of DISAMBIGUATION_RULES) {
       if (rule.intentName !== intentName) continue;
-      const current = slotInterpreted(slots[rule.subIssueSlotName]);
+      const current = slotInterpreted(nextSlots[rule.subIssueSlotName]);
       if (current) break;
-      const result = rule.check(transcript);
+      const result = rule.check(utterance || transcript);
       if (!result) break;
       if (result.elevated) sessionAttrs.elevatedPriority = "true";
       if (result.inferredSubIssue) {
-        const nextSlots = setSlot(slots, rule.subIssueSlotName, result.inferredSubIssue);
+        nextSlots = setSlot(nextSlots, rule.subIssueSlotName, result.inferredSubIssue);
+        if (result.inferredIsOngoing && !slotInterpreted(nextSlots.IsOngoing)) {
+          nextSlots = setSlot(nextSlots, "IsOngoing", result.inferredIsOngoing);
+        }
         const override = intentDef.conditionalDepartmentRouting?.[result.inferredSubIssue];
         if (override) sessionAttrs.overrideDepartment = override;
         sessionAttrs.subIssueType = result.inferredSubIssue;
         sessionAttrs.category = intentDef.category;
         sessionAttrs.department = override ?? intentDef.primaryDepartment;
-        return delegateResponse(intentName, nextSlots, sessionAttrs, false);
+        // Re-run context extract after sub-issue fill (e.g. IsOngoing from "downed tree").
+        nextSlots = extractSlotsFromContext(
+          intentName,
+          `${transcript} ${utterance}`,
+          nextSlots,
+          sessionAttrs,
+        );
+        const next = getNextElicitation(intentName, nextSlots, transcript);
+        if (next) {
+          sessionAttrs.promptSlot = next.slotToElicit;
+          return elicitSlotResponse(intentName, next.slotToElicit, nextSlots, sessionAttrs, [
+            plain(next.question),
+          ]);
+        }
+        // All required slots filled — let the main dialog hook fulfill / confirm.
+        Object.assign(slots, nextSlots);
+        return null;
       }
       if (result.clarificationQuestion) {
-        return elicitSlotResponse(intentName, rule.subIssueSlotName, slots, sessionAttrs, [
+        return elicitSlotResponse(intentName, rule.subIssueSlotName, nextSlots, sessionAttrs, [
           plain(result.clarificationQuestion),
         ]);
       }
@@ -74,7 +96,7 @@ export function apply311Dialog(
     (s) => s.slotTypeName.includes("SubIssue") || s.name.toLowerCase().includes("subissue"),
   );
   if (subIssueSlot && intentDef.conditionalDepartmentRouting) {
-    const subIssue = slotInterpreted(slots[subIssueSlot.name]);
+    const subIssue = slotInterpreted(nextSlots[subIssueSlot.name]);
     if (subIssue && intentDef.conditionalDepartmentRouting[subIssue]) {
       sessionAttrs.overrideDepartment = intentDef.conditionalDepartmentRouting[subIssue];
     }
@@ -82,5 +104,15 @@ export function apply311Dialog(
   }
   sessionAttrs.category = intentDef.category;
   sessionAttrs.department = sessionAttrs.overrideDepartment ?? intentDef.primaryDepartment;
+
+  Object.assign(slots, nextSlots);
+
+  const next = getNextElicitation(intentName, nextSlots, transcript);
+  if (next) {
+    sessionAttrs.promptSlot = next.slotToElicit;
+    return elicitSlotResponse(intentName, next.slotToElicit, nextSlots, sessionAttrs, [
+      plain(next.question),
+    ]);
+  }
   return null;
 }

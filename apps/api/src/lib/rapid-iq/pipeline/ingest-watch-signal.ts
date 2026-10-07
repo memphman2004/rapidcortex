@@ -24,10 +24,29 @@ import {
   reserveHash,
 } from "./rapid-iq-pipeline-db.js";
 
+export type WatchIngestEnrichments = {
+  facts?: string[];
+  inferences?: string[];
+  competitors?: string[];
+  technologies?: string[];
+  matchedCapabilities?: string[];
+  painPoints?: string[];
+  buyingStage?: RapidIqPipelineSignal["buyingStage"];
+  signalStrength?: RapidIqPipelineSignal["signalStrength"];
+  buyingSignalType?: RapidIqPipelineSignal["buyingSignalType"];
+  signalCategory?: string;
+  primaryVertical?: string;
+  verticals?: string[];
+  priorityScore?: number;
+  priorityLabel?: RapidIqPipelineSignal["priorityLabel"];
+  department?: string | null;
+};
+
 export type WatchIngestResult = {
   signal: RapidIqPipelineSignal;
   action: "created" | "updated" | "unchanged";
   changes?: string[];
+  lifecycleEventCreated?: boolean;
 };
 
 const FIT_SCORES: Record<"high" | "medium" | "low", number> = {
@@ -196,18 +215,27 @@ function secondaryDedupeKey(body: RapidIqWatchIngestBody): string | null {
   }
 }
 
-export async function ingestWatchSignal(body: RapidIqWatchIngestBody): Promise<WatchIngestResult> {
+export async function ingestWatchSignal(
+  body: RapidIqWatchIngestBody,
+  enrichments?: WatchIngestEnrichments,
+): Promise<WatchIngestResult> {
   const now = new Date().toISOString();
   const externalKey = normalizeWatchExternalKey(body.external_key);
   const payloadHash = watchPayloadHash({
     ...body,
     external_key: externalKey,
+    enrichments: enrichments ?? null,
   });
   const existingId = await getSignalIdByExternalKey(externalKey);
   const existing = existingId ? await getSignal(existingId) : null;
 
   if (existing?.watchPayloadHash && existing.watchPayloadHash === payloadHash) {
-    return { signal: existing, action: "unchanged", changes: [] };
+    return {
+      signal: existing,
+      action: "unchanged",
+      changes: [],
+      lifecycleEventCreated: false,
+    };
   }
 
   const vertical = mapVertical(body.vertical);
@@ -225,6 +253,44 @@ export async function ingestWatchSignal(body: RapidIqWatchIngestBody): Promise<W
   const contractValue = resolveContractValue(body.opportunity);
   const solicitationNumber =
     body.opportunity.solicitation_number?.trim() || existing?.solicitationNumber;
+
+  const enrichmentPatch = (base?: RapidIqPipelineSignal | null): Partial<RapidIqPipelineSignal> => {
+    if (!enrichments) return {};
+    const priorityBand =
+      enrichments.priorityLabel === "URGENT"
+        ? ("urgent" as const)
+        : enrichments.priorityLabel === "HIGH"
+          ? ("high" as const)
+          : enrichments.priorityLabel === "MEDIUM"
+            ? ("medium" as const)
+            : enrichments.priorityLabel === "LOW"
+              ? ("monitor" as const)
+              : base?.priorityBand;
+    return {
+      facts: enrichments.facts?.length ? enrichments.facts : base?.facts,
+      inferences: enrichments.inferences?.length ? enrichments.inferences : base?.inferences,
+      competitors: enrichments.competitors?.length ? enrichments.competitors : base?.competitors,
+      technologies: enrichments.technologies?.length
+        ? enrichments.technologies
+        : base?.technologies,
+      matchedCapabilities: enrichments.matchedCapabilities?.length
+        ? enrichments.matchedCapabilities
+        : base?.matchedCapabilities,
+      painPoints: enrichments.painPoints?.length
+        ? enrichments.painPoints.map((p) => ({ type: "watch", description: p }))
+        : base?.painPoints,
+      buyingStage: enrichments.buyingStage ?? base?.buyingStage,
+      signalStrength: enrichments.signalStrength ?? base?.signalStrength,
+      buyingSignalType: enrichments.buyingSignalType ?? base?.buyingSignalType,
+      signalCategory: enrichments.signalCategory ?? base?.signalCategory,
+      primaryVertical: enrichments.primaryVertical ?? base?.primaryVertical,
+      verticals: enrichments.verticals?.length ? enrichments.verticals : base?.verticals,
+      priorityScore: enrichments.priorityScore ?? base?.priorityScore,
+      priorityLabel: enrichments.priorityLabel ?? base?.priorityLabel,
+      priorityBand,
+      department: enrichments.department?.trim() || base?.department,
+    };
+  };
 
   let possibleDuplicate = false;
   let possibleDuplicateOf: string | undefined;
@@ -258,7 +324,6 @@ export async function ingestWatchSignal(body: RapidIqWatchIngestBody): Promise<W
       state: body.agency.state.toUpperCase(),
       jurisdiction: body.agency.city?.trim() || existing.jurisdiction,
       deadline: deadline ?? existing.deadline,
-      // Never treat project_budget as NexCort contract value
       dollarAmount: contractValue != null ? contractValue : existing.dollarAmount,
       estimatedContractValue:
         contractValue != null ? contractValue : existing.estimatedContractValue,
@@ -293,10 +358,13 @@ export async function ingestWatchSignal(body: RapidIqWatchIngestBody): Promise<W
       activities: activities.slice(0, 40),
       watchUpdated: Boolean(activity) || body.opportunity.status === "updated",
       lastWatchUpdateAt: now,
+      submissionCount: (existing.submissionCount ?? 1) + 1,
+      lastMaterialChangeAt: activity ? now : existing.lastMaterialChangeAt,
       status:
         existing.status === "pushed" || existing.status === "dismissed"
           ? existing.status
           : "new",
+      ...enrichmentPatch(existing),
     };
 
     const changes = detectMaterialChanges(existing, updated, activity);
@@ -306,15 +374,21 @@ export async function ingestWatchSignal(body: RapidIqWatchIngestBody): Promise<W
       await putSignal(updated);
       await putExternalKeyPointer(externalKey, updated.signalId);
     } else {
-      // Still persist hash so future identical posts short-circuit
       if (existing.watchPayloadHash !== payloadHash) {
-        await putSignal({ ...existing, watchPayloadHash: payloadHash });
+        await putSignal({
+          ...existing,
+          watchPayloadHash: payloadHash,
+          submissionCount: (existing.submissionCount ?? 1) + 1,
+        });
       }
     }
     return {
-      signal: unchanged ? { ...existing, watchPayloadHash: payloadHash } : updated,
+      signal: unchanged
+        ? { ...existing, watchPayloadHash: payloadHash, submissionCount: (existing.submissionCount ?? 1) + 1 }
+        : updated,
       action: unchanged ? "unchanged" : "updated",
       changes: unchanged ? [] : changes,
+      lifecycleEventCreated: Boolean(activity) && !unchanged,
     };
   }
 
@@ -326,7 +400,7 @@ export async function ingestWatchSignal(body: RapidIqWatchIngestBody): Promise<W
     const racedId = await getSignalIdByExternalKey(externalKey);
     if (racedId) {
       const raced = await getSignal(racedId);
-      if (raced) return { signal: raced, action: "unchanged", changes: [] };
+      if (raced) return { signal: raced, action: "unchanged", changes: [], lifecycleEventCreated: false };
     }
     throw new Error("WATCH_EXTKEY_RESERVE_FAILED");
   }
@@ -423,9 +497,18 @@ export async function ingestWatchSignal(body: RapidIqWatchIngestBody): Promise<W
     activities: activity
       ? [{ at: now, changeType: activity.changeType, summary: activity.summary }]
       : [{ at: now, changeType: "new", summary: "Created from ChatGPT Watch." }],
+    submissionCount: 1,
+    firstDiscoveredAt: now,
+    lastMaterialChangeAt: now,
     ...buying,
+    ...enrichmentPatch(null),
   };
 
   await putSignal(signal);
-  return { signal, action: "created", changes: ["created"] };
+  return {
+    signal,
+    action: "created",
+    changes: ["created"],
+    lifecycleEventCreated: true,
+  };
 }

@@ -1,4 +1,5 @@
 import { isCallAssistConfirmationNumber } from "rapid-cortex-shared";
+import { conversationalSlotValue } from "../lex/taxonomy-311/slot-value-labels.js";
 
 const VOICE_FILLERS = [
   /please hold while[^.!?]*/gi,
@@ -50,6 +51,11 @@ export function formatForSms(rawMessages: Array<{ content: string }>): string {
     combined = combined.replace(pattern, "").trim();
   }
 
+  combined = combined.replace(
+    /\b(Can you tell me more about the )?(IsOngoing|ServiceAddress|TreeSubIssue|RoadsSubIssue|NoiseSubIssue|SanitationSubIssue|WaterSubIssue|VehicleSubIssue|BuildingSubIssue|AnimalSubIssue|GraffitiSubIssue|ParkSubIssue|LawEnforcementSubIssue|FireEMSSubIssue|HomelessSubIssue|EnvironmentalSubIssue|TransitSubIssue|LightingSubIssue|SignsSubIssue|GovInfoSubIssue|SpecialEventSubIssue|ServiceStatusSubIssue|ServiceRequestNumber|IssueDescription|CallerName|CallbackNumber|VehicleDescription)\??/g,
+    "",
+  );
+
   combined = combined
     .replace(/^[.\s,]+/g, "")
     .replace(/[,\s]+$/g, "")
@@ -92,10 +98,8 @@ export function buildSmsConfirmation(opts: {
   department?: string;
   mediaCount?: number;
 }): string {
-  const dept = opts.department?.trim();
-  const deptLine = dept
-    ? `Dept: ${dept.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}\n`
-    : "";
+  const deptSpoken = conversationalSlotValue(opts.department) || opts.department?.trim();
+  const deptLine = deptSpoken ? `Dept: ${deptSpoken}\n` : "";
   const mediaLine =
     opts.mediaCount && opts.mediaCount > 0 ? `Media: ${opts.mediaCount} file(s) attached\n` : "";
   return (

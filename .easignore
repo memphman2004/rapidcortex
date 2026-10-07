@@ -22,6 +22,8 @@
 # Sales/internal docs (~300MB of .mov/.pptx) — spaces in the path must be listed.
 /NexCort iQ Internal Docs/
 NexCort iQ Internal Docs/
+/Rapid Cortex Internal Docs/
+Rapid Cortex Internal Docs/
 /web-source-prod.zip
 /web-source-*.zip
 *.zip
@@ -34,6 +36,18 @@ NexCort iQ Internal Docs/
 /.sam-build-riq-pipeline-*/
 .sam-build-*/
 .sam-build-riq-pipeline-*/
+/.aws-sam.usb-bak/
+.aws-sam.usb-bak/
+/.rapid-cortex-api-build/
+/.rapid-cortex-sam-build/
+/.sam-build-dir/
+/.tmp-*/
+.tmp-*/
+/.war-room-staging/
+/android/
+/apps/ios-mobile/
+/apps/android-mobile/android/
+/apps/android-mobile/ios/
 /ziicMOdT
 /ziKUSoeO
 /packages/security/

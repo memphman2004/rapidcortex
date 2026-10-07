@@ -352,6 +352,10 @@ export async function updateSignalFields(
     agencyProfileId?: string;
     recommendedAction?: string;
     watched?: boolean;
+    assignedUser?: string | null;
+    dismissReason?: string;
+    dismissedBy?: string;
+    crmLeadId?: string;
   },
 ): Promise<RapidIqPipelineSignal> {
   const current = await getSignal(signalId);
@@ -392,6 +396,30 @@ export async function updateSignalFields(
     if (fields.watched) {
       sets.push("watchedAt = :now");
     }
+  }
+  if (fields.assignedUser !== undefined) {
+    names["#assignedUser"] = "assignedUser";
+    if (fields.assignedUser === null || fields.assignedUser === "") {
+      sets.push("assignedUser = :nullAssigned");
+      values[":nullAssigned"] = null;
+    } else {
+      values[":assignedUser"] = fields.assignedUser;
+      sets.push("#assignedUser = :assignedUser");
+      sets.push("assignedAt = :now");
+    }
+  }
+  if (fields.dismissReason) {
+    values[":dismissReason"] = fields.dismissReason;
+    sets.push("dismissReason = :dismissReason");
+  }
+  if (fields.dismissedBy) {
+    values[":dismissedBy"] = fields.dismissedBy;
+    sets.push("dismissedBy = :dismissedBy");
+    sets.push("dismissedAt = :now");
+  }
+  if (fields.crmLeadId) {
+    values[":crmLeadId"] = fields.crmLeadId;
+    sets.push("crmLeadId = :crmLeadId");
   }
 
   await ddb.send(

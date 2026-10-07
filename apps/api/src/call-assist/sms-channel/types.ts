@@ -48,6 +48,8 @@ export type SmsSessionRecord = {
   messageCount: number;
   /** True after the SMS onboarding welcome has been delivered to this phone. */
   welcomeSent?: boolean;
+  /** Amazon Translate language code for this SMS thread (`es`, `zh`, `en`, …). */
+  language?: string;
   lastConfirmationNumber?: string;
   expiresAt: number;
 };

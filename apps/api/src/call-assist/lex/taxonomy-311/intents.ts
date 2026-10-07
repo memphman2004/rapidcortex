@@ -138,7 +138,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your {RoadsSubIssue} report at {ServiceAddress}. Shall I submit this service request to Public Works?',
+    confirmationPrompt: 'I have your road report at that location. Should I submit this to Public Works?',
     fulfillmentMessage: 'Your road and infrastructure report has been submitted to Public Works. You will receive a service request number. You can track it by calling 311 again or visiting the city portal.',
   },
 
@@ -151,7 +151,7 @@ export const INTENTS: IntentDefinition[] = [
     primaryDepartment: 'PUBLIC_WORKS_ELECTRICAL',
     priorityLevel: 'STANDARD',
     escalationKeywords: ['exposed live wire', 'wire sparking', 'electrocution', 'wire on fire', 'pole fell on car'],
-    requiresDisambiguation: false,
+    requiresDisambiguation: true,
     sampleUtterances: [
       'The streetlight is out',
       'A street lamp is not working',
@@ -188,7 +188,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your lighting report for {LightingSubIssue} at {ServiceAddress}. Shall I submit this to Public Works Electrical?',
+    confirmationPrompt: 'I have your lighting report at that location. Should I submit this to Public Works Electrical?',
     fulfillmentMessage: 'Your lighting report has been submitted. A service request has been sent to the Electrical Division. Typical response time is 24 to 72 hours.',
   },
 
@@ -201,7 +201,7 @@ export const INTENTS: IntentDefinition[] = [
     primaryDepartment: 'PUBLIC_WORKS',
     priorityLevel: 'STANDARD',
     escalationKeywords: ['stop sign is missing and cars are running through', 'accident because sign is missing'],
-    requiresDisambiguation: false,
+    requiresDisambiguation: true,
     sampleUtterances: [
       'A stop sign is missing',
       'There is no street sign at this corner',
@@ -234,7 +234,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your sign issue report for {SignsSubIssue} at {ServiceAddress}. Shall I submit this service request?',
+    confirmationPrompt: 'I have your sign or road marking report at that location. Should I submit this?',
     fulfillmentMessage: 'Your traffic sign and markings report has been submitted. A service request has been sent to Public Works.',
   },
 
@@ -285,7 +285,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your sanitation report for {SanitationSubIssue} at {ServiceAddress}. Shall I submit this to the Sanitation Department?',
+    confirmationPrompt: 'I have your sanitation report at that location. Should I submit this to Sanitation?',
     fulfillmentMessage: 'Your sanitation request has been submitted. A service request has been sent to the Sanitation Department.',
   },
 
@@ -343,7 +343,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your water and sewer report for {WaterSubIssue} at {ServiceAddress}. Shall I submit this to the Water Authority?',
+    confirmationPrompt: 'I have your water or sewer report at that location. Should I submit this to the Water Authority?',
     fulfillmentMessage: 'Your water and sewer report has been submitted. A service request has been sent to the Water and Sewer Authority. For active main breaks, a crew will be dispatched.',
     conditionalDepartmentRouting: {
       WATER_METER_DISPUTE: 'WATER_SEWER_AUTHORITY',
@@ -398,7 +398,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your noise complaint for {NoiseSubIssue} at {ServiceAddress}. Is this happening right now?',
+    confirmationPrompt: 'I have your noise complaint at that location. Should I submit this?',
     fulfillmentMessage: 'Your noise complaint has been submitted. A service request has been sent to Code Enforcement.',
   },
 
@@ -411,7 +411,7 @@ export const INTENTS: IntentDefinition[] = [
     primaryDepartment: 'PARKING_ENFORCEMENT',
     priorityLevel: 'STANDARD',
     escalationKeywords: ['car blocking ambulance', 'blocking fire truck', 'blocking emergency vehicle'],
-    requiresDisambiguation: false,
+    requiresDisambiguation: true,
     sampleUtterances: [
       'There is an abandoned car on my street',
       'A car has been parked here for weeks',
@@ -456,7 +456,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your vehicle report for {VehicleSubIssue} at {ServiceAddress}. Shall I submit this to Parking Enforcement?',
+    confirmationPrompt: 'I have your vehicle report at that location. Should I submit this to Parking Enforcement?',
     fulfillmentMessage: 'Your vehicle complaint has been submitted. A service request has been sent to Parking Enforcement.',
   },
 
@@ -468,7 +468,7 @@ export const INTENTS: IntentDefinition[] = [
     category: 'GRAFFITI_VANDALISM',
     primaryDepartment: 'PUBLIC_WORKS',
     priorityLevel: 'STANDARD',
-    requiresDisambiguation: false,
+    requiresDisambiguation: true,
     sampleUtterances: [
       'There is graffiti on a building',
       'Someone spray painted the wall',
@@ -511,7 +511,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your graffiti report for {GraffitiSubIssue} at {ServiceAddress}. Shall I submit this?',
+    confirmationPrompt: 'I have your graffiti report at that location. Should I submit this?',
     fulfillmentMessage: 'Your graffiti report has been submitted. A service request has been created. Public property graffiti is typically removed within 5 business days.',
   },
 
@@ -578,7 +578,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your animal report for {AnimalSubIssue} at {ServiceAddress}. Shall I submit this?',
+    confirmationPrompt: 'I have your animal report at that location. Should I submit this?',
     fulfillmentMessage: 'Your animal and pest report has been submitted. A service request has been sent to Animal Control.',
   },
 
@@ -591,7 +591,7 @@ export const INTENTS: IntentDefinition[] = [
     primaryDepartment: 'URBAN_FORESTRY',
     priorityLevel: 'STANDARD',
     escalationKeywords: ['tree fell on a car', 'tree hit a house', 'tree hit power line and sparking', 'tree blocking emergency access'],
-    requiresDisambiguation: false,
+    requiresDisambiguation: true,
     sampleUtterances: [
       'A tree fell and is blocking the street',
       'A large branch came down',
@@ -607,6 +607,8 @@ export const INTENTS: IntentDefinition[] = [
       'There is an invasive plant taking over the park',
       'A tree stump needs to be ground down',
       'The storm damaged a tree',
+      'Downed tree',
+      'There is a downed tree in the street',
     ],
     slots: [
       {
@@ -627,7 +629,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your tree and vegetation report for {TreeSubIssue} at {ServiceAddress}. Shall I submit this to Urban Forestry?',
+    confirmationPrompt: 'I have your tree report at that location. Should I submit this to Urban Forestry?',
     fulfillmentMessage: 'Your tree and vegetation report has been submitted. A service request has been sent to Urban Forestry.',
   },
 
@@ -639,7 +641,7 @@ export const INTENTS: IntentDefinition[] = [
     category: 'PARKS_PUBLIC_SPACES',
     primaryDepartment: 'PARKS_RECREATION',
     priorityLevel: 'STANDARD',
-    requiresDisambiguation: false,
+    requiresDisambiguation: true,
     sampleUtterances: [
       'The playground equipment is broken',
       'A park light is out',
@@ -685,7 +687,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your parks report for {ParkSubIssue} at {ServiceAddress}. Shall I submit this to Parks and Recreation?',
+    confirmationPrompt: 'I have your parks report at that location. Should I submit this to Parks and Recreation?',
     fulfillmentMessage: 'Your parks report has been submitted. A service request has been sent to the Parks and Recreation Department.',
   },
 
@@ -752,7 +754,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your building and housing report for {BuildingSubIssue} at {ServiceAddress}. Shall I submit this?',
+    confirmationPrompt: 'I have your building and housing report at that location. Should I submit this?',
     fulfillmentMessage: 'Your building and housing report has been submitted. A service request has been sent to Code Enforcement.',
   },
 
@@ -765,7 +767,7 @@ export const INTENTS: IntentDefinition[] = [
     primaryDepartment: 'SOCIAL_SERVICES',
     priorityLevel: 'STANDARD',
     escalationKeywords: ['person is unconscious', 'person is not breathing', 'person is in medical distress', 'person has a weapon'],
-    requiresDisambiguation: false,
+    requiresDisambiguation: true,
     sampleUtterances: [
       'There is a homeless encampment on the sidewalk',
       'There are tents under the bridge',
@@ -797,7 +799,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your report for {HomelessSubIssue} at {ServiceAddress}. Shall I submit this?',
+    confirmationPrompt: 'I have your report at that location. Should I submit this?',
     fulfillmentMessage: 'Your request has been submitted. A service request has been routed to the appropriate social services team.',
   },
 
@@ -814,7 +816,7 @@ export const INTENTS: IntentDefinition[] = [
     },
     priorityLevel: 'STANDARD',
     escalationKeywords: ['gas leak', 'chemical explosion', 'toxic fumes making people sick', 'hazmat', 'people passing out from fumes'],
-    requiresDisambiguation: false,
+    requiresDisambiguation: true,
     sampleUtterances: [
       'There is a terrible smell coming from a factory',
       'Someone is burning trash illegally',
@@ -848,7 +850,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your environmental report for {EnvironmentalSubIssue} at {ServiceAddress}. Shall I submit this?',
+    confirmationPrompt: 'I have your environmental report at that location. Should I submit this?',
     fulfillmentMessage: 'Your environmental and health report has been submitted. A service request has been sent to Environmental Quality.',
   },
 
@@ -906,7 +908,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your non-emergency police report for {LawEnforcementSubIssue} at {ServiceAddress}. Shall I submit this?',
+    confirmationPrompt: 'I have your non-emergency police report at that location. Should I submit this?',
     fulfillmentMessage: 'Your non-emergency police request has been submitted. A service request has been sent to the Police Department non-emergency unit.',
   },
 
@@ -919,7 +921,7 @@ export const INTENTS: IntentDefinition[] = [
     primaryDepartment: 'FIRE_MARSHAL_NON_EMERGENCY',
     priorityLevel: 'ELEVATED',
     escalationKeywords: ['fire right now', 'building on fire', 'house is burning', 'smoke coming from building', 'fire spreading'],
-    requiresDisambiguation: false,
+    requiresDisambiguation: true,
     sampleUtterances: [
       'There is a fire hazard at a property',
       'The fire hydrant is blocked by vegetation',
@@ -952,7 +954,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your fire safety report for {FireEMSSubIssue} at {ServiceAddress}. Shall I submit this?',
+    confirmationPrompt: 'I have your fire safety report at that location. Should I submit this?',
     fulfillmentMessage: 'Your fire safety report has been submitted. A service request has been sent to the Fire Marshal.',
   },
 
@@ -970,7 +972,7 @@ export const INTENTS: IntentDefinition[] = [
       NO_PARKING_SIGN_DISPUTE: 'PARKING_ENFORCEMENT',
     },
     priorityLevel: 'STANDARD',
-    requiresDisambiguation: false,
+    requiresDisambiguation: true,
     sampleUtterances: [
       'The bus stop bench is broken',
       'The bus shelter is damaged',
@@ -1006,7 +1008,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your transit report for {TransitSubIssue} at {ServiceAddress}. Shall I submit this?',
+    confirmationPrompt: 'I have your transit report at that location. Should I submit this?',
     fulfillmentMessage: 'Your transit and transportation report has been submitted. A service request has been sent to the appropriate department.',
   },
 
@@ -1018,7 +1020,7 @@ export const INTENTS: IntentDefinition[] = [
     category: 'GOVERNMENT_INFORMATION',
     primaryDepartment: 'THREE11_OPERATIONS',
     priorityLevel: 'INFO_ONLY',
-    requiresDisambiguation: false,
+    requiresDisambiguation: true,
     sampleUtterances: [
       'What are the hours for city hall',
       'How do I apply for a business license',
@@ -1056,8 +1058,8 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I can help you with information about {GovInfoSubIssue}. Let me connect you with the right resource.',
-    fulfillmentMessage: 'I am connecting you with information about {GovInfoSubIssue}. You can also visit the city website or call the relevant department directly.',
+    confirmationPrompt: 'I can help with that city information. Let me get you to the right resource.',
+    fulfillmentMessage: 'I can help with that city information. Call the non-emergency line or visit the city website for hours, permits, and records.',
   },
 
   // ── 19. SPECIAL EVENTS & PERMITS ─────────────────────────────────────────────
@@ -1068,7 +1070,7 @@ export const INTENTS: IntentDefinition[] = [
     category: 'SPECIAL_EVENTS_PERMITS',
     primaryDepartment: 'THREE11_OPERATIONS',
     priorityLevel: 'INFO_ONLY',
-    requiresDisambiguation: false,
+    requiresDisambiguation: true,
     sampleUtterances: [
       'Why is my street closed',
       'There is an event nearby that is too loud',
@@ -1098,7 +1100,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your special event inquiry for {SpecialEventSubIssue}. Shall I route this appropriately?',
+    confirmationPrompt: 'I have your special event inquiry. Should I send this to the right office?',
     fulfillmentMessage: 'Your special event inquiry has been submitted. A service request has been sent to the appropriate department.',
   },
 
@@ -1110,7 +1112,7 @@ export const INTENTS: IntentDefinition[] = [
     category: 'SERVICE_REQUEST_STATUS',
     primaryDepartment: 'THREE11_OPERATIONS',
     priorityLevel: 'INFO_ONLY',
-    requiresDisambiguation: false,
+    requiresDisambiguation: true,
     sampleUtterances: [
       'I want to check on my service request',
       'What is the status of my complaint',
@@ -1149,7 +1151,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'Let me look up service request {ServiceRequestNumber} for you.',
+    confirmationPrompt: 'Let me look up that service request for you.',
     fulfillmentMessage: 'I am looking up your service request. One moment please.',
   },
 

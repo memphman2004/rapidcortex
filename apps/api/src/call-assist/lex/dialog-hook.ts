@@ -38,14 +38,22 @@ import {
 import { LEX_SPEC_CONFIRMATION_INTENTS, LEX_SPEC_SLOTS } from "./lex-spec-slots.js";
 import { apply311Dialog } from "./taxonomy-311/apply-311-dialog.js";
 import { INTENT_MAP as LEX_311_INTENT_MAP } from "./taxonomy-311/intents.js";
+import { extractSlotsFromContext } from "./taxonomy-311/extract-slots-from-context.js";
+import { remapLegacySmsSlots, SMS_LEGACY_TO_311 } from "./taxonomy-311/slot-catalog.js";
+import {
+  conversationalSlotValue,
+  getNextElicitation,
+  humanQuestionForSlot,
+} from "./taxonomy-311/elicitation-questions.js";
 import {
   closeTransferResponse,
+  confirmIntentResponse,
   delegateResponse,
   elicitSlotResponse,
   plain,
   ssml,
 } from "./lex-responses.js";
-import { agencyShortName, slotPrompt, transferPrompt } from "./prompts.js";
+import { agencyShortName, transferPrompt } from "./prompts.js";
 import { handleFulfillment } from "./fulfillment-hook.js";
 import { getLexSession, getLexTenantConfig, listLexKnowledge, updateLexSession } from "./runtime-store.js";
 import { buildTransferSummary, runSafetyGate } from "./safety-gate.js";
@@ -117,7 +125,7 @@ export async function handleDialog(
     connectAttributes: sessionAttrs,
     mediaType: sessionAttrs.mediaType,
   });
-  const currentSlots = event.sessionState.intent.slots ?? {};
+  let currentSlots = event.sessionState.intent.slots ?? {};
   const now = new Date().toISOString();
 
   const config = agencyId ? await deps.getConfig(agencyId).catch(() => null) : null;
@@ -226,6 +234,14 @@ export async function handleDialog(
     activeIntent = REQUEST_HUMAN_INTENT;
   }
 
+  if (smsChannel) {
+    const dest311 = SMS_LEGACY_TO_311[activeIntent];
+    if (dest311 && LEX_311_INTENT_MAP[dest311]) {
+      currentSlots = remapLegacySmsSlots(activeIntent, dest311, currentSlots);
+      activeIntent = dest311;
+    }
+  }
+
   if (callerRequestedHuman(utterance) || activeIntent === REQUEST_HUMAN_INTENT) {
     if (sessionAttrs.enableLiveAgentHandoff !== "false") {
       const humanSpoken = smsChannel
@@ -260,6 +276,14 @@ export async function handleDialog(
 
   const taxonomy311 = apply311Dialog(event, activeIntent, currentSlots, sessionAttrs);
   if (taxonomy311) return taxonomy311;
+
+  // Context extract for non-311 paths / after apply311 mutated slots in place.
+  currentSlots = extractSlotsFromContext(
+    activeIntent,
+    `${sessionAttrs.transcript ?? ""} ${utterance}`,
+    currentSlots,
+    sessionAttrs,
+  );
 
   const slotMap = extractCurrentSlots(event);
   const identity = ingestConnectCallerIdentity({
@@ -298,7 +322,12 @@ export async function handleDialog(
     thresholds,
   });
 
-  if (decision.action === "escalate_human" || activeIntent === FALLBACK_INTENT) {
+  // SMS 311 intake: never abandon mid-report for low Lex confidence — keep eliciting.
+  const is311Intent = Boolean(LEX_311_INTENT_MAP[activeIntent]);
+  const escalateForConfidence =
+    decision.action === "escalate_human" && !(smsChannel && is311Intent);
+
+  if (escalateForConfidence || activeIntent === FALLBACK_INTENT) {
     await persistTurn(deps, agencyId, callId, {
       decision,
       utterance,
@@ -416,22 +445,65 @@ export async function handleDialog(
   }
 
   if (missingSlotId) {
-    const prompt = slotPrompt(tenant, missingSlotId, localeId, activeIntent);
-    const spokenBase = tty.ttyMode ? formatTtySms(prompt) : prompt;
+    const next =
+      getNextElicitation(activeIntent, currentSlots, transcript) ??
+      ({
+        slotToElicit: missingSlotId,
+        question: humanQuestionForSlot(activeIntent, missingSlotId),
+      } as const);
+    const spokenBase = tty.ttyMode ? formatTtySms(next.question) : next.question;
     const spoken =
       correctionAck && !tty.ttyMode ? `${correctionAck} ${spokenBase}` : spokenBase;
-    if (tty.smsFallbackRecommended) updatedAttrs.ttySmsScript = formatTtySms(prompt);
+    if (tty.smsFallbackRecommended) updatedAttrs.ttySmsScript = formatTtySms(next.question);
+    updatedAttrs.promptSlot = next.slotToElicit;
     const slotMessage = tty.ttyMode ? plain(spoken) : plain(spoken);
     const messages = greetingPrefix ? [plain(greetingPrefix), slotMessage] : [slotMessage];
-    return elicitSlotResponse(activeIntent, missingSlotId, currentSlots, updatedAttrs, messages);
+    return elicitSlotResponse(activeIntent, next.slotToElicit, currentSlots, updatedAttrs, messages);
   }
 
   if (activeIntent === REPEAT_CALL_INTENT || activeIntent === PUBLIC_WORKS_INTENT) {
+    const next = getNextElicitation(activeIntent, currentSlots, transcript);
+    if (next) {
+      updatedAttrs.promptSlot = next.slotToElicit;
+      return elicitSlotResponse(activeIntent, next.slotToElicit, currentSlots, updatedAttrs, [
+        plain(next.question),
+      ]);
+    }
     return delegateResponse(activeIntent, currentSlots, updatedAttrs, true);
   }
 
-  const waitForConfirm = LEX_SPEC_CONFIRMATION_INTENTS.has(activeIntent);
-  return delegateResponse(activeIntent, currentSlots, updatedAttrs, !waitForConfirm);
+  const nextBeforeDelegate = getNextElicitation(activeIntent, currentSlots, transcript);
+  if (nextBeforeDelegate) {
+    updatedAttrs.promptSlot = nextBeforeDelegate.slotToElicit;
+    return elicitSlotResponse(
+      activeIntent,
+      nextBeforeDelegate.slotToElicit,
+      currentSlots,
+      updatedAttrs,
+      [plain(nextBeforeDelegate.question)],
+    );
+  }
+
+  const confirmationState = event.sessionState.intent.confirmationState ?? "None";
+  const is311 = Boolean(LEX_311_INTENT_MAP[activeIntent]);
+  const needsConfirm = is311 || LEX_SPEC_CONFIRMATION_INTENTS.has(activeIntent);
+
+  if (needsConfirm && confirmationState !== "Confirmed" && confirmationState !== "Denied") {
+    const confirmText = humanConfirmationQuestion(activeIntent, currentSlots);
+    updatedAttrs.promptSlot = "CONFIRM_INTENT";
+    return confirmIntentResponse(activeIntent, currentSlots, updatedAttrs, [plain(confirmText)]);
+  }
+
+  if (confirmationState === "Denied") {
+    const restart = getNextElicitation(activeIntent, {}, transcript);
+    if (restart) {
+      return elicitSlotResponse(activeIntent, restart.slotToElicit, {}, updatedAttrs, [
+        plain("No problem — let's update that. " + restart.question),
+      ]);
+    }
+  }
+
+  return delegateResponse(activeIntent, currentSlots, updatedAttrs, true);
 }
 
 async function persistTurn(
@@ -588,6 +660,29 @@ async function persistAndCloseEmergency(
     "EMERGENCY",
     { endSession: parts.endSession },
   );
+}
+
+function slotInterpretedValue(slot: LexSlotValue | null | undefined): string {
+  return slot?.value?.interpretedValue?.trim() || slot?.value?.originalValue?.trim() || "";
+}
+
+export function humanConfirmationQuestion(
+  intentName: string,
+  slots: Record<string, LexSlotValue | null>,
+): string {
+  const intentDef = LEX_311_INTENT_MAP[intentName];
+  const address = slotInterpretedValue(slots.ServiceAddress) || slotInterpretedValue(slots.location);
+  const subIssueSlot = intentDef?.slots.find(
+    (s) => s.slotTypeName.includes("SubIssue") || s.name.toLowerCase().includes("subissue"),
+  );
+  const subIssue = conversationalSlotValue(
+    subIssueSlot ? slotInterpretedValue(slots[subIssueSlot.name]) : "",
+  );
+  const department = conversationalSlotValue(intentDef?.primaryDepartment) || "the city";
+  const article = /^[aeiou]/i.test(subIssue) ? "an" : "a";
+  const issueBit = subIssue ? ` ${article} ${subIssue}` : " this";
+  const whereBit = address ? ` at ${address}` : "";
+  return `I can log${issueBit}${whereBit} with ${department}. Reply YES to submit, or NO to change something.`;
 }
 
 export function nextMissingSlot(

@@ -79,6 +79,16 @@ include ':app'
     expect(patchSettingsGradleUseExpoModules(once.contents).changed).toBe(false);
   });
 
+  it("bakes exclude unconditionally when bakeExclude is set (store prebuild)", () => {
+    const src = `expoAutolinking.useExpoModules()
+`;
+    const once = patchSettingsGradleUseExpoModules(src, { bakeExclude: true });
+    expect(once.changed).toBe(true);
+    expect(once.contents).toContain("expoAutolinking.exclude = [");
+    expect(once.contents).not.toContain("System.getenv");
+    expect(once.contents).toContain("expoAutolinking.useExpoModules()");
+  });
+
   it("leaves settings.gradle without useExpoModules() unchanged", () => {
     const src = "include ':app'\n";
     const once = patchSettingsGradleUseExpoModules(src);

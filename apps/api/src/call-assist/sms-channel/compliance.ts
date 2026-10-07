@@ -1,8 +1,42 @@
 import type { ComplianceKeyword } from "./types.js";
+import { SMS_HELP_MESSAGE } from "./sms-copy.js";
 
 const STOP_KEYWORDS = new Set(["STOP", "STOPALL", "UNSUBSCRIBE", "END", "QUIT"]);
 const START_KEYWORDS = new Set(["START", "UNSTOP", "SUBSCRIBE"]);
-const HELP_KEYWORDS = new Set(["HELP", "INFO", "COMMANDS", "MENU"]);
+/** TCPA HELP only — INFO/MENU/? are orientation openers that get the SMS welcome. */
+const HELP_KEYWORDS = new Set(["HELP", "COMMANDS", "AYUDA", "AIDE", "HILFE"]);
+
+/** Neutral first texts that need the full SMS welcome (not Lex). */
+export const NEUTRAL_OPENERS = new Set([
+  "HI",
+  "HELLO",
+  "HEY",
+  "START",
+  "311",
+  "?",
+  "INFO",
+  "INFORMATION",
+  "WHAT",
+  "HOLA",
+  "BUENOS DIAS",
+  "BUENAS TARDES",
+  "BUENAS NOCHES",
+  "XIN CHAO",
+]);
+
+export const SMS_COMPLIANCE_FOOTER =
+  "Msg & data rates may apply. Reply STOP to unsubscribe · HELP for options.";
+
+/**
+ * True when the inbound text is an orientation opener with no report content.
+ * Also treats very short bodies (&lt; 3 chars) as openers.
+ */
+export function isNeutralOpener(messageBody: string): boolean {
+  const normalized = messageBody.trim().toUpperCase();
+  if (!normalized) return true;
+  if (NEUTRAL_OPENERS.has(normalized)) return true;
+  return normalized.length < 3;
+}
 
 /** Must never be served from the agency keyword table — compliance owns these. */
 export const RESERVED_COMPLIANCE_KEYWORDS = new Set([
@@ -24,7 +58,7 @@ export function classifyKeyword(messageBody: string): ComplianceKeyword {
   const normalized = messageBody.trim().toUpperCase();
   if (STOP_KEYWORDS.has(normalized)) return "STOP";
   if (START_KEYWORDS.has(normalized)) return "START";
-  if (HELP_KEYWORDS.has(normalized) || normalized === "?") return "HELP";
+  if (HELP_KEYWORDS.has(normalized)) return "HELP";
   return "NONE";
 }
 
@@ -35,7 +69,10 @@ export function isSessionResetRequest(messageBody: string): boolean {
     normalized === "START OVER" ||
     normalized === "RESTART" ||
     normalized === "NEW" ||
-    normalized === "RESET"
+    normalized === "RESET" ||
+    normalized === "EMPEZAR DE NUEVO" ||
+    normalized === "COMENZAR DE NUEVO" ||
+    normalized === "REINICIAR"
   );
 }
 
@@ -46,12 +83,7 @@ export const COMPLIANCE_MESSAGES: Record<Exclude<ComplianceKeyword, "NONE">, str
   START:
     "You are now subscribed to this non-emergency SMS line. " +
     "Text your concern anytime. Reply STOP to unsubscribe. Reply HELP for options.",
-  HELP:
-    "Non-emergency SMS\n" +
-    "Text your concern (pothole, noise, trash, etc.)\n" +
-    "We will ask a few follow-up questions.\n" +
-    "You will receive a confirmation number, same as a phone call.\n" +
-    "STOP to unsubscribe | Emergencies: dial 911",
+  HELP: SMS_HELP_MESSAGE,
 };
 
 export const SESSION_RESET_MESSAGE =

@@ -273,6 +273,15 @@ Resources:
             Effect: Allow
             Action:
               - comprehend:DetectSentiment
+              - comprehend:DetectDominantLanguage
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:RequestedRegion: !Ref AWS::Region
+          - Sid: CallAssistTranslate
+            Effect: Allow
+            Action:
+              - translate:TranslateText
             Resource: "*"
             Condition:
               StringEquals:

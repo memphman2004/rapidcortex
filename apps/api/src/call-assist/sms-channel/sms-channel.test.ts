@@ -11,9 +11,31 @@ describe("311 SMS compliance keywords", () => {
     expect(classifyKeyword("help")).toBe("HELP");
   });
 
+  it("treats AYUDA as HELP", () => {
+    expect(classifyKeyword("ayuda")).toBe("HELP");
+  });
+
+  it("treats INFO/MENU/? as none so new callers get welcome not HELP", () => {
+    expect(classifyKeyword("INFO")).toBe("NONE");
+    expect(classifyKeyword("MENU")).toBe("NONE");
+    expect(classifyKeyword("?")).toBe("NONE");
+  });
+
   it("resets on start over without treating cancel as STOP", () => {
     expect(isSessionResetRequest("start over")).toBe(true);
     expect(classifyKeyword("cancel")).toBe("NONE");
+  });
+});
+
+describe("311 SMS neutral openers", () => {
+  it("detects orientation openers vs substantive reports", async () => {
+    const { isNeutralOpener } = await import("./compliance.js");
+    expect(isNeutralOpener("Hi")).toBe(true);
+    expect(isNeutralOpener("311")).toBe(true);
+    expect(isNeutralOpener("?")).toBe(true);
+    expect(isNeutralOpener("ok")).toBe(true);
+    expect(isNeutralOpener("pothole on Oak Street")).toBe(false);
+    expect(isNeutralOpener("TRASH")).toBe(false);
   });
 });
 
@@ -46,10 +68,13 @@ describe("311 SMS message formatter", () => {
     ).toMatch(/What non-emergency issue/i);
   });
 
-  it("strips voice transfer filler used on fallback intents", () => {
-    expect(
-      formatForSms([{ content: "Having trouble with that — connecting you to someone who can help." }]),
-    ).toMatch(/What non-emergency issue|HELP for options/i);
+  it("never sends Lex slot names like IsOngoing to the handset", () => {
+    expect(formatForSms([{ content: "Can you tell me more about the IsOngoing?" }])).toMatch(
+      /What non-emergency issue|happening right now/i,
+    );
+    expect(formatForSms([{ content: "Can you tell me more about the TreeSubIssue?" }])).not.toMatch(
+      /TreeSubIssue|IsOngoing/,
+    );
   });
 
   it("exports reserved compliance keywords that keyword table must not serve", async () => {

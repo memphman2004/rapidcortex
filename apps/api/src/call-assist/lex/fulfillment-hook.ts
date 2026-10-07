@@ -24,6 +24,7 @@ import { closeTransferResponse, plain, ssml } from "./lex-responses.js";
 import { buildTransferSummary } from "./safety-gate.js";
 import type { LexV2Event, LexV2Response } from "./types.js";
 import { escalationCloseParts, handleSessionStart } from "./session-start.js";
+import { smsClosingForIntent } from "../sms-channel/sms-copy.js";
 import {
   finalizeCallAssistIntake,
   generateCallAssistConfirmation,
@@ -232,7 +233,7 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
 
   const closingBase = closingPrompt(config, classification, finalized.confirmationNumber);
   const closing = smsChannel
-    ? closingBase
+    ? smsClosingForIntent(event.sessionState.intent.name, finalized.confirmationNumber)
     : spokenClosingWithConfirmation({
         closingBase,
         confirmationNumber: finalized.confirmationNumber,

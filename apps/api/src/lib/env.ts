@@ -504,6 +504,7 @@ export const env = {
   enableCallAssistSmsConfirmation: featureEnabled("ENABLE_CALL_ASSIST_SMS_CONFIRMATION"),
   enableCallAssistSmsChannel: featureEnabled("ENABLE_CALL_ASSIST_SMS_CHANNEL"),
   enableCallAssistSmsMedia: featureEnabled("ENABLE_CALL_ASSIST_SMS_MEDIA"),
+  enableCallAssistSmsTranslate: featureEnabled("ENABLE_CALL_ASSIST_SMS_TRANSLATE"),
   callAssistSmsMediaBucket: process.env.CALL_ASSIST_SMS_MEDIA_BUCKET?.trim() ?? "",
   callAssistRekognitionMock:
     process.env.CALL_ASSIST_REKOGNITION_MOCK === "true" || process.env.CALL_ASSIST_REKOGNITION_MOCK === "1",

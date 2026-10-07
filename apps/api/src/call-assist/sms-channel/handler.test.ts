@@ -21,6 +21,7 @@ vi.mock("./session-store.js", () => ({
   isNewCaller: vi.fn(async () => false),
   isOptedOut: vi.fn(async () => false),
   isSessionIdle: vi.fn(async () => false),
+  getSmsSession: vi.fn(async () => null),
   touchSession: vi.fn(async () => undefined),
   recordOptOut: vi.fn(async () => undefined),
   recordOptIn: vi.fn(async () => undefined),
@@ -88,6 +89,7 @@ describe("311 SMS inbound handler", () => {
     vi.mocked(sendSmsSegments).mockClear();
     vi.mocked(sendToLex).mockClear();
     process.env.ENABLE_CALL_ASSIST_SMS_CHANNEL = "true";
+    process.env.CALL_ASSIST_SMS_TRANSLATE_MOCK = "true";
   });
 
   it("sends the same confirmation format after Lex fulfillment", async () => {
@@ -103,5 +105,28 @@ describe("311 SMS inbound handler", () => {
 
   it("does not treat YES as a START keyword", () => {
     expect(classifyKeyword("yes")).toBe("NONE");
+  });
+
+  it("sends Spanish replies when the inbound text is Spanish", async () => {
+    vi.mocked(sendToLex).mockResolvedValueOnce({
+      messages: [{ contentType: "PlainText", content: "What's the address or nearest intersection?" }],
+      sessionAttributes: {},
+      intentName: "ReportRoadsInfrastructure",
+      intentState: "InProgress",
+      dialogActionType: "ElicitSlot",
+      sessionEnded: false,
+    });
+    await handleInboundSmsEvent(snsEvent("Hay un bache en la calle"));
+    expect(sendToLex).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: expect.stringMatching(/pothole|street/i),
+        sessionAttributes: expect.objectContaining({ language: "es", channel: "sms" }),
+      }),
+    );
+    expect(sendSmsSegments).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringMatching(/direcci[oó]n|intersecci[oó]n/i),
+      }),
+    );
   });
 });

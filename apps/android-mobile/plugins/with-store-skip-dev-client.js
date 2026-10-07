@@ -62,19 +62,27 @@ $1end`,
 
 /**
  * @param {string} contents
+ * @param {{ bakeExclude?: boolean }} [opts]
  * @returns {{ contents: string, changed: boolean }}
  */
-function patchSettingsGradleUseExpoModules(contents) {
+function patchSettingsGradleUseExpoModules(contents, opts = {}) {
   if (contents.includes(MARKER)) {
     return { contents, changed: false };
   }
   const excludeLit = EXCLUDE.map((name) => `"${name}"`).join(', ');
+  /** Store/preview prebuild: bake exclude in (Gradle settings may not see EAS_BUILD_PROFILE). */
+  const bakeExclude = Boolean(opts.bakeExclude);
 
   const sdk53 = /^([ \t]*)expoAutolinking\.useExpoModules\(\)\s*$/m;
   if (sdk53.test(contents)) {
     const next = contents.replace(
       sdk53,
-      `$1// ${MARKER}: preview/production APKs must not link Expo Dev Launcher
+      bakeExclude
+        ? `$1// ${MARKER}: preview/production APKs must not link Expo Dev Launcher
+$1// (empty AppRegistry / callable modules n=0 after splash).
+$1expoAutolinking.exclude = [${excludeLit}]
+$1expoAutolinking.useExpoModules()`
+        : `$1// ${MARKER}: preview/production APKs must not link Expo Dev Launcher
 $1// (empty AppRegistry / callable modules n=0 after splash).
 $1if (System.getenv("EAS_BUILD_PROFILE") && System.getenv("EAS_BUILD_PROFILE") != "development") {
 $1  expoAutolinking.exclude = [${excludeLit}]
@@ -90,7 +98,11 @@ $1expoAutolinking.useExpoModules()`,
   }
   const next = contents.replace(
     sdk52,
-    `$1// ${MARKER}: preview/production APKs must not link Expo Dev Launcher
+    bakeExclude
+      ? `$1// ${MARKER}: preview/production APKs must not link Expo Dev Launcher
+$1// (empty AppRegistry / callable modules n=0 after splash).
+$1useExpoModules([exclude: [${excludeLit}]])`
+      : `$1// ${MARKER}: preview/production APKs must not link Expo Dev Launcher
 $1// (empty AppRegistry / callable modules n=0 after splash).
 $1if (System.getenv("EAS_BUILD_PROFILE") && System.getenv("EAS_BUILD_PROFILE") != "development") {
 $1  useExpoModules([exclude: [${excludeLit}]])
@@ -165,8 +177,9 @@ function withStoreSkipDevClient(config) {
     async (cfg) => {
       const settingsPath = path.join(cfg.modRequest.platformProjectRoot, 'settings.gradle');
       const original = fs.readFileSync(settingsPath, 'utf8');
-      const { contents, changed } = patchSettingsGradleUseExpoModules(original);
-      if (isStoreBuild() && !contents.includes('useExpoModules()')) {
+      const bakeExclude = isStoreBuild();
+      const { contents, changed } = patchSettingsGradleUseExpoModules(original, { bakeExclude });
+      if (isStoreBuild() && !contents.includes('useExpoModules()') && !contents.includes('useExpoModules([')) {
         throw new Error(
           '[store-skip-dev-client] settings.gradle has no useExpoModules() — cannot exclude expo-dev-launcher from Android preview',
         );
@@ -178,7 +191,9 @@ function withStoreSkipDevClient(config) {
       }
       if (changed) {
         fs.writeFileSync(settingsPath, contents);
-        console.log(`[store-skip-dev-client] ${MARKER} hooked into settings.gradle`);
+        console.log(
+          `[store-skip-dev-client] ${MARKER} hooked into settings.gradle${bakeExclude ? ' (baked exclude)' : ''}`,
+        );
       }
 
       if (isStoreBuild()) {

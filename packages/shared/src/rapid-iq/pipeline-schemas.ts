@@ -27,7 +27,6 @@ export const RAPID_IQ_PIPELINE_SOURCE_IDS = [
   "sourcewell-omnia",
   "university-procurement",
   "fcc-reports",
-  "nexiq-intel",
   "manual",
   "openai-web-search",
   "watch-page",
@@ -178,6 +177,19 @@ export const rapidIqPipelineSignalSchema = z.object({
   competitors: z.array(z.string().max(120)).max(20).optional(),
   priorityBand: z.enum(["urgent", "high", "medium", "monitor"]).optional(),
   priorityReasons: z.array(z.string().max(200)).max(12).optional(),
+  /** Deterministic Watch Inbox sort score (0–100). */
+  priorityScore: z.number().min(0).max(100).optional(),
+  priorityLabel: z.enum(["URGENT", "HIGH", "MEDIUM", "LOW"]).optional(),
+  assignedUser: z.string().max(200).optional(),
+  assignedAt: z.string().optional(),
+  dismissReason: z.string().max(2000).optional(),
+  dismissedAt: z.string().optional(),
+  dismissedBy: z.string().max(200).optional(),
+  submissionCount: z.number().int().min(0).optional(),
+  firstDiscoveredAt: z.string().optional(),
+  lastMaterialChangeAt: z.string().optional(),
+  department: z.string().max(200).optional(),
+  technologies: z.array(z.string().max(120)).max(30).optional(),
   correlationKey: z.string().max(200).optional(),
   techCategory: z.string().max(80).optional(),
   /** Operator pinned this for aggressive monitoring (not Pipeline). */
@@ -307,10 +319,17 @@ export const patchRapidIqPipelineSignalBodySchema = z
     procurementStage: z.enum(RAPID_IQ_PROCUREMENT_STAGES).optional(),
     /** Pin for aggressive monitoring without promoting to Pipeline. */
     watched: z.boolean().optional(),
+    assignedUser: z.string().max(200).nullable().optional(),
+    dismissReason: z.string().max(2000).optional(),
   })
   .refine(
-    (body) => body.status != null || body.procurementStage != null || body.watched != null,
-    { message: "status, procurementStage, or watched is required" },
+    (body) =>
+      body.status != null ||
+      body.procurementStage != null ||
+      body.watched != null ||
+      body.assignedUser !== undefined ||
+      body.dismissReason != null,
+    { message: "status, procurementStage, watched, assignedUser, or dismissReason is required" },
   );
 export type PatchRapidIqPipelineSignalBody = z.infer<typeof patchRapidIqPipelineSignalBodySchema>;
 
@@ -504,7 +523,6 @@ export const RAPID_IQ_PIPELINE_SOURCE_LABELS: Record<RapidIqPipelineSourceId, st
   "sourcewell-omnia": "Co-op Purchasing",
   "university-procurement": "University Procurement",
   "fcc-reports": "FCC 911",
-  "nexiq-intel": "NexiQ Intel",
   manual: "Manual Entry",
   "openai-web-search": "OpenAI Web Search",
   "watch-page": "Agency Watch Page",
@@ -705,8 +723,7 @@ export function classifyPipelineFeedTab(input: {
     input.sourceId === "state-911-board" ||
     input.sourceId === "911-gov" ||
     input.sourceId === "grants-gov" ||
-    input.sourceId === "fcc-reports" ||
-    input.sourceId === "nexiq-intel"
+    input.sourceId === "fcc-reports"
   ) {
     return "911";
   }

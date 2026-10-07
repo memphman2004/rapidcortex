@@ -28,6 +28,13 @@ import { enqueueOpportunityToPipeline } from "../../../lib/rapid-iq/pipeline/enq
 import { ingestWatchSignal } from "../../../lib/rapid-iq/pipeline/ingest-watch-signal.js";
 import { assertWatchIngestApiKey } from "../../../lib/rapid-iq/pipeline/watch-ingest-auth.js";
 import {
+  handleWatchHttp,
+  handleWatchIngestCanonical,
+  isWatchApiPath,
+  isWatchHealthPath,
+  isWatchIngestCanonicalPath,
+} from "../../../lib/rapid-iq/pipeline/watch-http.js";
+import {
   getAgencyProfile,
   getSignal,
   listAgencyContacts,
@@ -251,10 +258,28 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     if (method === "POST" && isWatchIngestPath(path)) {
       return withCorrelationHeaders(event, await handleWatchIngest(event));
     }
+    if (method === "POST" && isWatchIngestCanonicalPath(path)) {
+      return withCorrelationHeaders(event, await handleWatchIngestCanonical(event));
+    }
+    if (method === "GET" && isWatchHealthPath(path)) {
+      return withCorrelationHeaders(
+        event,
+        ok({
+          status: "ok",
+          service: "watch-ingest",
+          timestamp: new Date().toISOString(),
+        }),
+      );
+    }
 
     const auth = await requirePipelineAdmin(event);
     if ("error" in auth) return withCorrelationHeaders(event, auth.error);
     const { user } = auth;
+
+    if (isWatchApiPath(path)) {
+      const watchResult = await handleWatchHttp(event, user);
+      if (watchResult) return withCorrelationHeaders(event, watchResult);
+    }
 
     if (path.includes("/rapid-iq/intel")) {
       return withCorrelationHeaders(event, await handleIntelHttp(event, user));
@@ -385,6 +410,10 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         status: parsed.data.status,
         procurementStage: parsed.data.procurementStage,
         watched: parsed.data.watched,
+        assignedUser: parsed.data.assignedUser,
+        dismissReason: parsed.data.dismissReason,
+        dismissedBy:
+          parsed.data.status === "dismissed" ? (user.email ?? user.userId) : undefined,
       });
 
       await auditRepo.create({

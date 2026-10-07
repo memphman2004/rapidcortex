@@ -57,6 +57,9 @@ const INTENT_FILTER = process.env.INTENT_FILTER
   ? new Set(process.env.INTENT_FILTER.split(',').map(s => s.trim()))
   : null;
 
+/** When true, upsert slot types + build locale only (skip intent create/update). */
+const SLOT_TYPES_ONLY = process.env.SLOT_TYPES_ONLY === 'true';
+
 const client = new LexModelsV2Client({ region: REGION });
 
 // ─── Retry Helper ─────────────────────────────────────────────────────────────
@@ -508,6 +511,7 @@ async function main(): Promise<void> {
   console.log(`   Region:  ${REGION}`);
   console.log(`   Dry run: ${DRY_RUN}`);
   if (INTENT_FILTER) console.log(`   Filter:  ${[...INTENT_FILTER].join(', ')}`);
+  if (SLOT_TYPES_ONLY) console.log(`   Mode:    SLOT_TYPES_ONLY`);
   console.log('');
 
   const result: BotBuildResult = {
@@ -543,6 +547,29 @@ async function main(): Promise<void> {
   }
 
   result.slotTypeCount = result.slotTypesCreated.length + result.slotTypesUpdated.length;
+
+  if (SLOT_TYPES_ONLY) {
+    console.log('\n⏩ SLOT_TYPES_ONLY — skipping intent upserts');
+    console.log('\n🔨 Triggering bot locale build...');
+    try {
+      await triggerBotBuild();
+    } catch (err: any) {
+      const msg = err?.message ?? String(err);
+      result.errors.push({ resource: 'BuildBotLocale', error: msg });
+      console.error(`  ✗ Build trigger failed: ${msg}`);
+    }
+    result.durationMs = Date.now() - startMs;
+    console.log('\n─────────────────────────────────────────');
+    console.log(`✅ Slot-types-only complete in ${(result.durationMs / 1000).toFixed(1)}s`);
+    console.log(`   Slot types created: ${result.slotTypesCreated.length}`);
+    console.log(`   Slot types updated: ${result.slotTypesUpdated.length}`);
+    if (result.errors.length > 0) {
+      console.log(`   Errors:             ${result.errors.length}`);
+      result.errors.forEach(e => console.error(`     ✗ ${e.resource}: ${e.error}`));
+    }
+    console.log('─────────────────────────────────────────\n');
+    return;
+  }
 
   // ── Step 2: Intents ────────────────────────────────────────────────────────
   const SKIP = new Set(['TransferToLiveAgent', 'RedirectToEmergencyServices']);
