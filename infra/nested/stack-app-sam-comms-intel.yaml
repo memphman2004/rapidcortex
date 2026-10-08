@@ -63,7 +63,7 @@ Globals:
         ENABLE_CONTEXT_CARDS: "true"
         ENABLE_COMMAND_INTELLIGENCE: "true"
         ENABLE_NEXIQ_VAULT: "true"
-        LOCATION_GEOCODE_MOCK: "1"
+        LOCATION_GEOCODE_MOCK: "false"
         CONTEXT_ADDRESS_CACHE_TABLE: !Ref ContextAddressCacheTable
         CONTEXT_SAFETY_FLAGS_TABLE: !Ref ContextSafetyFlagsTable
         DAILY_METRICS_SNAPSHOT_TABLE: !Ref DailyMetricsSnapshotTable
