@@ -1,0 +1,225 @@
+{
+  "created": [
+    [
+      "GET /api/rapid-iq/pipeline/signals",
+      "pyez3f5",
+      "JWT"
+    ],
+    [
+      "POST /api/rapid-iq/pipeline/signals",
+      "ot8favn",
+      "JWT"
+    ],
+    [
+      "POST /api/watch/ingest",
+      "q2nfop4",
+      "NONE"
+    ],
+    [
+      "GET /api/watch/health",
+      "v0dyc47",
+      "NONE"
+    ],
+    [
+      "GET /api/watch/stats",
+      "a9azqt4",
+      "JWT"
+    ],
+    [
+      "GET /api/watch/signals",
+      "whq8v5n",
+      "JWT"
+    ],
+    [
+      "GET /api/watch/signals/{id}",
+      "d06miy8",
+      "JWT"
+    ],
+    [
+      "PATCH /api/watch/signals/{id}",
+      "k7azt5o",
+      "JWT"
+    ],
+    [
+      "POST /api/watch/signals/{id}/qualify",
+      "zgs5r52",
+      "JWT"
+    ],
+    [
+      "POST /api/watch/signals/{id}/dismiss",
+      "8dxmf8t",
+      "JWT"
+    ],
+    [
+      "POST /api/watch/signals/{id}/monitor",
+      "nlrqlw2",
+      "JWT"
+    ],
+    [
+      "POST /api/watch/signals/{id}/assign",
+      "fjjrd4t",
+      "JWT"
+    ],
+    [
+      "POST /api/rapid-iq/pipeline/watch-ingest",
+      "2o0s6z4",
+      "NONE"
+    ],
+    [
+      "GET /api/rapid-iq/pipeline/signals/{signalId}",
+      "nqgtv5d",
+      "JWT"
+    ],
+    [
+      "PATCH /api/rapid-iq/pipeline/signals/{signalId}",
+      "30x2ahs",
+      "JWT"
+    ],
+    [
+      "POST /api/rapid-iq/pipeline/signals/{signalId}/push-to-crm",
+      "gi27yba",
+      "JWT"
+    ],
+    [
+      "GET /api/rapid-iq/pipeline/credits",
+      "tws3wku",
+      "JWT"
+    ],
+    [
+      "POST /api/rapid-iq/pipeline/research",
+      "rprb6ot",
+      "JWT"
+    ],
+    [
+      "GET /api/rapid-iq/pipeline/agencies",
+      "u84vj7u",
+      "JWT"
+    ],
+    [
+      "GET /api/rapid-iq/pipeline/agencies/{agencyId}",
+      "7spag0u",
+      "JWT"
+    ],
+    [
+      "GET /api/rapid-iq/intel/opportunities",
+      "sjg0obo",
+      "JWT"
+    ],
+    [
+      "POST /api/rapid-iq/intel/opportunities",
+      "00tautg",
+      "JWT"
+    ],
+    [
+      "GET /api/rapid-iq/intel/opportunities/{intelId}",
+      "ovpd392",
+      "JWT"
+    ],
+    [
+      "PATCH /api/rapid-iq/intel/opportunities/{intelId}",
+      "coe1fxo",
+      "JWT"
+    ],
+    [
+      "POST /api/rapid-iq/intel/opportunities/{intelId}/analyze",
+      "648m1ju",
+      "JWT"
+    ],
+    [
+      "POST /api/rapid-iq/intel/opportunities/{intelId}/pursuit-brief",
+      "qndpe27",
+      "JWT"
+    ],
+    [
+      "POST /api/rapid-iq/intel/opportunities/{intelId}/outreach",
+      "oq6vxir",
+      "JWT"
+    ],
+    [
+      "POST /api/rapid-iq/intel/opportunities/{intelId}/bid-no-bid",
+      "3i4ffdo",
+      "JWT"
+    ],
+    [
+      "GET /api/rapid-iq/intel/watches",
+      "z4br9qg",
+      "JWT"
+    ],
+    [
+      "POST /api/rapid-iq/intel/watches",
+      "rf6xgrt",
+      "JWT"
+    ],
+    [
+      "GET /api/rapid-iq/intel/watches/{watchId}",
+      "sxumza3",
+      "JWT"
+    ],
+    [
+      "PATCH /api/rapid-iq/intel/watches/{watchId}",
+      "dgqw9qd",
+      "JWT"
+    ],
+    [
+      "POST /api/rapid-iq/intel/watches/{watchId}/run",
+      "fz6lynk",
+      "JWT"
+    ],
+    [
+      "GET /api/rapid-iq/intel/rfp-counts",
+      "isuv7qj",
+      "JWT"
+    ],
+    [
+      "GET /api/rapid-iq/sales-automation/sequences",
+      "5r0zc0e",
+      "JWT"
+    ],
+    [
+      "POST /api/rapid-iq/sales-automation/sequences",
+      "1d7whg3",
+      "JWT"
+    ],
+    [
+      "GET /api/rapid-iq/sales-automation/sequences/{sequenceId}",
+      "aaa9tgn",
+      "JWT"
+    ],
+    [
+      "POST /api/rapid-iq/sales-automation/sequences/{sequenceId}/approve",
+      "ilofyb6",
+      "JWT"
+    ],
+    [
+      "POST /api/rapid-iq/sales-automation/sequences/{sequenceId}/suppress",
+      "17amrls",
+      "JWT"
+    ],
+    [
+      "GET /api/rapid-iq/sales-automation/drafts",
+      "iow84ll",
+      "JWT"
+    ],
+    [
+      "POST /api/rapid-iq/sales-automation/drafts/{draftId}/approve",
+      "5sk01sg",
+      "JWT"
+    ],
+    [
+      "GET /api/rapid-iq/sales-automation/campaigns",
+      "7rvmjqb",
+      "JWT"
+    ],
+    [
+      "GET /api/rapid-iq/sales-automation/metrics",
+      "0ztqc4n",
+      "JWT"
+    ],
+    [
+      "ANY /api/rapid-iq/sales-automation/{proxy+}",
+      "rty7jsr",
+      "JWT"
+    ]
+  ],
+  "errors": []
+}

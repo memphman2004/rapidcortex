@@ -79,7 +79,7 @@ Learn more at https://www.rapidcortex.us
 
 ### Seed the review login (before Submit)
 
-App Store Connect currently uses `appreviewer@rapidcortex.us` as **venue admin** on `test-venue-mbs` so Apple lands on **QR & NFC Codes**, not the 911 console. (Some ASC notes still say `@rapidcortex.ai` — that alias is also on the silent-MFA allowlist; prefer `.us` in Sign-In Information.) Production Cognito MFA stays **ON** for the web console. NexCort iQ Mobile auto-completes TOTP **only** for App Review emails, then calls `/api/auth/app-review/release-mfa` so iPhone and iPad each get a fresh MFA_SETUP (no 6-digit wall). Do not commit the password.
+App Store Connect currently uses `appreviewer@rapidcortex.us` as **venue admin** on `test-venue-mbs` so Apple lands on **QR & NFC Codes**, not the 911 console. (Some ASC notes still say `@rapidcortex.ai` — that alias is also on the silent-MFA allowlist; prefer `.us` in Sign-In Information.) Production Cognito MFA stays **ON** for the web console (software token + email OTP). NexCort iQ Mobile handles Cognito `SELECT_MFA_TYPE` by choosing software token, then auto-completes TOTP **only** for App Review emails, then calls `/api/auth/app-review/release-mfa` so iPhone and iPad each get a fresh MFA_SETUP (no 6-digit wall). Do not commit the password.
 
 ```bash
 source scripts/env-api-dev.sh

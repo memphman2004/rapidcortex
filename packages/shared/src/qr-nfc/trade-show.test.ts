@@ -18,8 +18,8 @@ import {
 
 describe("trade-show marketing URLs", () => {
   it("allowlists home and demo destinations", () => {
-    expect(TRADE_SHOW_HOME_URL).toBe("https://www.rapidcortex.us");
-    expect(TRADE_SHOW_DEMO_URL).toBe("https://www.rapidcortex.us/demo/");
+    expect(TRADE_SHOW_HOME_URL).toBe("https://www.nexcortiq.us");
+    expect(TRADE_SHOW_DEMO_URL).toBe("https://www.nexcortiq.us/demo/");
     expect(TRADE_SHOW_DESTINATIONS.map((d) => d.id)).toEqual(["home", "demo"]);
     expect(isTradeShowMarketingUrl(TRADE_SHOW_HOME_URL)).toBe(true);
     expect(isTradeShowMarketingUrl(TRADE_SHOW_DEMO_URL)).toBe(true);

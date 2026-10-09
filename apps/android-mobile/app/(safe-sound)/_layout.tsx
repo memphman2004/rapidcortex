@@ -60,7 +60,7 @@ export default function SafeSoundLayout() {
   const { isAuthenticated, productPath } = useAuth();
 
   if (!isSafeSoundPublicEnabled()) return <Redirect href="/" />;
-  if (!isAuthenticated) return <Redirect href="/" />;
+  if (!isAuthenticated) return <Redirect href="/(auth)/safe-sound-login" />;
   if (productPath !== 'safe-sound') return <Redirect href="/" />;
 
   return (

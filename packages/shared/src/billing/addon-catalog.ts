@@ -510,7 +510,8 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     billingType: "monthly",
     monthlyPrice: 2500,
     oneTimePrice: 0,
-    planAvailability: professionalPlus,
+    // Core Venue field tool (mobile + console) — included on every commercial plan.
+    planAvailability: allPlans,
     featureFlag: "rc_translate",
     verticalRequired: "venue",
   }),
@@ -522,7 +523,8 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     billingType: "monthly",
     monthlyPrice: 2000,
     oneTimePrice: 0,
-    planAvailability: professionalPlus,
+    // Core Campus field tool (mobile + console) — included on every commercial plan.
+    planAvailability: allPlans,
     featureFlag: "rc_translate",
     verticalRequired: "campus",
   }),

@@ -13,6 +13,9 @@ const {
   sharedPackageNodeModuleDir,
   resolvePinnedScreensDir,
   resolvePinnedReactNativeDir,
+  resolvePinnedReactDir,
+  resolveReactModule,
+  duplicateReactBlockList,
   duplicateReactNativeBlockList,
   resolveReactNativeModule,
 } = require('./scripts/metro-resolve-nested.js');
@@ -51,6 +54,7 @@ config.resolver.nodeModulesPaths = [
 config.resolver.disableHierarchicalLookup = false;
 const pinnedScreens = resolvePinnedScreensDir(projectRoot, workspaceRoot);
 const pinnedReactNative = resolvePinnedReactNativeDir(projectRoot, workspaceRoot);
+const pinnedReact = resolvePinnedReactDir(projectRoot, workspaceRoot);
 
 config.resolver.extraNodeModules = {
   ...(config.resolver.extraNodeModules ?? {}),
@@ -60,6 +64,8 @@ config.resolver.extraNodeModules = {
   // Root can hoist react-native-screens@4.26 (RN 0.81 codegen). SDK 53 needs 4.11.x.
   ...(pinnedScreens ? { 'react-native-screens': pinnedScreens } : {}),
   ...(pinnedReactNative ? { 'react-native': pinnedReactNative } : {}),
+  // Root often hoists react@19.2 for web; RN 0.79 renderer is 19.0.0 only.
+  ...(pinnedReact ? { react: pinnedReact } : {}),
 };
 
 const upstreamResolveRequest = config.resolver.resolveRequest;
@@ -67,6 +73,10 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   const shared = resolveSharedPackageModule(moduleName, sharedRoot);
   if (shared) {
     return shared;
+  }
+  const react = resolveReactModule(moduleName, pinnedReact);
+  if (react) {
+    return react;
   }
   const rn = resolveReactNativeModule(moduleName, pinnedReactNative);
   if (rn) {
@@ -86,12 +96,13 @@ const localVolumeCrawlSkip =
   process.env.EAS_BUILD === 'true'
     ? []
     : [
-        // Local Xcode Debug only. EAS export:embed must still see node_modules.
-        // Match the directory itself so the Node crawler does not readdir() it.
+        // Local Debug only. Skip heavy native trees that hang Node FS crawl on
+        // this USB volume. Do NOT block project node_modules — packages like
+        // query-string / react-native-ble-plx live only there (not hoisted),
+        // and blockListing them makes index.bundle return 500 → phone timeout.
         new RegExp(`${escapeRegExp(projectRoot)}[/\\\\]ios[/\\\\]Pods(?:[/\\\\].*)?`),
         new RegExp(`${escapeRegExp(projectRoot)}[/\\\\]ios[/\\\\]build(?:[/\\\\].*)?`),
         new RegExp(`${escapeRegExp(projectRoot)}[/\\\\]android(?:[/\\\\].*)?`),
-        new RegExp(`${escapeRegExp(projectRoot)}[/\\\\]node_modules(?:[/\\\\].*)?`),
       ];
 
 config.resolver.blockList = exclusionList([
@@ -110,6 +121,7 @@ config.resolver.blockList = exclusionList([
   new RegExp(`${escapeRegExp(workspaceRoot)}[/\\\\]scripts[/\\\\].*`),
   new RegExp(`${escapeRegExp(workspaceRoot)}[/\\\\]docs[/\\\\].*`),
   ...duplicateReactNativeBlockList(pinnedReactNative, projectRoot, workspaceRoot),
+  ...duplicateReactBlockList(pinnedReact, projectRoot, workspaceRoot),
   // Local Xcode Debug: Metro crawls watchFolders before it emits index.bundle.
   // ios/Pods on this volume never finished, so the phone timed out on
   // http://192.168.68.54:8081/index.bundle with 0 bytes.

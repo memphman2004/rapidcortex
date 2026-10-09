@@ -4,6 +4,7 @@ import { ScreenErrorBoundary } from '@/components/common/ScreenErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
 import { FieldProductProvider } from '@/navigation/field-product';
 import { Colors, ThemeProvider } from '@/theme';
+import { loginHrefForProduct } from '@/utils/auth-routes';
 import { isRcTranslateEnabled } from '@/utils/feature-flags';
 import { canStartFieldTranslate, isTransitRole, isVenueRole } from '@/utils/roles';
 import { Strings } from '@/utils/strings';
@@ -78,9 +79,13 @@ function VenueTabs() {
 export default function VenueLayout() {
   const { isAuthenticated, productPath, role } = useAuth();
 
-  if (!isAuthenticated) return <Redirect href="/" />;
+  if (!isAuthenticated) {
+    return <Redirect href={loginHrefForProduct(productPath || 'venue') as never} />;
+  }
   if (productPath !== 'venue') return <Redirect href="/" />;
-  if (!isVenueRole(role) && !isTransitRole(role)) return <Redirect href="/" />;
+  if (!isVenueRole(role) && !isTransitRole(role)) {
+    return <Redirect href={loginHrefForProduct('venue') as never} />;
+  }
 
   return (
     <ThemeProvider product="venue">

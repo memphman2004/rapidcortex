@@ -166,9 +166,10 @@ const config: ExpoConfig = {
       'expo-build-properties',
       {
         android: {
-          compileSdkVersion: 35,
-          targetSdkVersion: 35,
-          buildToolsVersion: '35.0.0',
+          // Play Console requires target API 36+ for new uploads (Aug 2026+).
+          compileSdkVersion: 36,
+          targetSdkVersion: 36,
+          buildToolsVersion: '36.0.0',
           // SDK 53 defaults New Architecture on. First Play AAB stays on the
           // old architecture; 16 KB alignment comes from SDK 53 / RN 0.79 .so files.
           newArchEnabled: false,

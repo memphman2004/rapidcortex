@@ -8,9 +8,11 @@ import { useAuthStore } from '../../stores/auth.store';
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 
+/** RC Translate + language APIs live on AppSam2 / AppSamTranslateStack2 HttpApi. */
 const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/call-intelligence\//,
   /^\/api\/languages\//,
+  /^\/api\/translate(\/|$)/,
 ];
 
 function trimTrailingSlash(value: string): string {

@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ExpoSpeechRecognitionModule,
@@ -18,6 +19,29 @@ import {
   type TranslateSpeaker,
   type TranslateWsOutbound,
 } from '@/services/translate/ws-client';
+
+function formatTranslateStartError(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as
+      | { error?: string; family?: string; message?: string }
+      | string
+      | undefined;
+    const body = typeof data === 'object' && data ? data : undefined;
+    if (body?.error === 'addon_not_enabled') {
+      return 'Translator is not enabled for this agency. Ask your admin to enable RC Translate.';
+    }
+    if (error.response?.status === 403) {
+      return body?.message || body?.error || 'Not allowed to start a translation session for this role.';
+    }
+    if (error.response?.status === 401) {
+      return 'Session expired — sign in again.';
+    }
+    if (typeof data === 'string' && data.trim()) return data.trim();
+    if (body?.message) return body.message;
+    if (error.message) return error.message;
+  }
+  return error instanceof Error ? error.message : 'Failed to start session';
+}
 
 export function useTranslateLiveSession() {
   const [session, setSession] = useState<TranslateSession | null>(null);
@@ -162,7 +186,7 @@ export function useTranslateLiveSession() {
         }
         return created.session;
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Failed to start session');
+        setError(formatTranslateStartError(e));
         return null;
       } finally {
         setStarting(false);

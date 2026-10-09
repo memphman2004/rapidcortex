@@ -9,6 +9,7 @@ import {
   applyCognitoAuthCookies,
   applyPasswordRotationNavBypassCookie,
 } from "@/lib/auth/apply-auth-cookies";
+import { mapCognitoChallenge } from "@/lib/auth/cognito-auth-challenges";
 import {
   cognitoPasswordPolicyError,
   isValidCognitoPassword,
@@ -48,16 +49,14 @@ async function applyAuthOrChallenges(out: RespondToAuthChallengeCommandOutput, u
     return res;
   }
 
-  const challengeName = out.ChallengeName;
-  const session = out.Session;
-  if (challengeName === "MFA_SETUP" && session) {
-    return NextResponse.json({ challenge: "MFA_SETUP", session, username }, { status: 202 });
-  }
-  if (challengeName === "SOFTWARE_TOKEN_MFA" && session) {
-    return NextResponse.json({ challenge: "SOFTWARE_TOKEN_MFA", session, username }, { status: 202 });
-  }
-  if (challengeName === "SMS_MFA" && session) {
-    return NextResponse.json({ challenge: "SMS_MFA", session, username }, { status: 202 });
+  const mapped = mapCognitoChallenge(
+    out.ChallengeName,
+    out.Session ?? undefined,
+    username,
+    out.ChallengeParameters,
+  );
+  if (mapped) {
+    return NextResponse.json(mapped, { status: 202 });
   }
 
   return NextResponse.json({ error: "Could not complete password change" }, { status: 400 });

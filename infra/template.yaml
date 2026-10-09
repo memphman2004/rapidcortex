@@ -284,6 +284,18 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: Set true for confidential server-side clients; web SPAs use false.
+  CognitoSesIdentity:
+    Type: String
+    Default: "nexcortiq.us"
+    Description: Verified SES identity for Cognito email + EMAIL_OTP MFA (passed to AppSamStackV2).
+  CognitoSesFromAddress:
+    Type: String
+    Default: "NexCort iQ <noreply@nexcortiq.us>"
+    Description: Cognito From address (must belong to CognitoSesIdentity).
+  CognitoSesReplyTo:
+    Type: String
+    Default: "support@nexcortiq.us"
+    Description: Cognito Reply-To address.
   SnsEmailSubscription:
     Type: String
     Default: ""
@@ -1191,6 +1203,9 @@ Resources:
         CognitoLogoutUrls: !Ref CognitoLogoutUrls
         CognitoNativeCallbackUrls: !Ref CognitoNativeCallbackUrls
         CognitoNativeLogoutUrls: !Ref CognitoNativeLogoutUrls
+        CognitoSesIdentity: !Ref CognitoSesIdentity
+        CognitoSesFromAddress: !Ref CognitoSesFromAddress
+        CognitoSesReplyTo: !Ref CognitoSesReplyTo
         CustomersTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -2478,6 +2493,11 @@ Resources:
 
   # NexiQ Signal Intelligence Pipeline (procurement signals → CRM)
   # Separate from AppSamNexiQStack opportunity feed.
+  # Live parent still has logical id AppSamRapidIqPipelineStack → deleted nested
+  # JWN4SGUYZXYF (2026-10-08 ghost s3r1f5g). Before this resource can CREATE:
+  # put DeletionPolicy: Retain on AppSamRapidIqPipelineStack, deploy, then remove
+  # that logical id (template already uses AppSamNexiQPipelineStack). Surgical
+  # stack rapid-cortex-dev-AppSamRapidIqPipelineStack + CLI routes cover HTTP.
   AppSamNexiQPipelineStack:
     Type: AWS::CloudFormation::Stack
     Metadata:

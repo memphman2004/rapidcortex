@@ -21,7 +21,7 @@ type Props = {
   mediumView: QrNfcUsageMedium;
   globalView: boolean;
   agencyId: string;
-  /** Platform marketing signs (www.rapidcortex.us). Off on campus/venue consoles. */
+  /** Platform marketing signs (www.nexcortiq.us). Off on campus/venue consoles. */
   showSiteUsage?: boolean;
   /** Location QR (RCLI) scan points. Off on tenant consoles that use named report codes. */
   showLocationUsage?: boolean;
@@ -145,7 +145,7 @@ export function QrNfcUsagePanel({
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">Usage</h3>
         <p className="mt-1 text-xs text-slate-500">
           {showSiteUsage
-            ? "Counts every QR-initiated website open: location report codes, Location QR (RCLI) scan points, and NexCort iQ site signs (www.rapidcortex.us). NFC taps are counted separately when a programmed tag opens the same pages."
+            ? "Counts every QR-initiated website open: location report codes, Location QR (RCLI) scan points, and NexCort iQ site signs (www.nexcortiq.us). NFC taps are counted separately when a programmed tag opens the same pages."
             : "QR scans and NFC taps on this campus’s named report codes. Same codes as the NexiQ Field app."}
         </p>
       </div>
@@ -209,7 +209,7 @@ export function QrNfcUsagePanel({
                         qrId: "site-home" as const,
                         destinationId: "home" as const,
                         name: "NexCort iQ site — Home",
-                        url: "https://www.rapidcortex.us",
+                        url: "https://www.nexcortiq.us",
                         scanCount: 0,
                         nfcTapCount: 0,
                         totalEngagements: 0,
@@ -218,7 +218,7 @@ export function QrNfcUsagePanel({
                         qrId: "site-demo" as const,
                         destinationId: "demo" as const,
                         name: "NexCort iQ site — Demo",
-                        url: "https://www.rapidcortex.us/demo/",
+                        url: "https://www.nexcortiq.us/demo/",
                         scanCount: 0,
                         nfcTapCount: 0,
                         totalEngagements: 0,

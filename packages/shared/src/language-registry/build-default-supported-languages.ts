@@ -531,16 +531,37 @@ const SUPPLEMENTAL_ISO = [
   "zu",
 ];
 
-function supplementalLanguages(intlNames: Intl.DisplayNames): SupportedLanguage[] {
+/**
+ * Hermes on Android often lacks `Intl.DisplayNames`. Calling `new` on undefined
+ * throws "Cannot read property 'prototype' of undefined" and blacks out the app
+ * when this module is evaluated at import time.
+ */
+function tryCreateDisplayNames(): Intl.DisplayNames | null {
+  try {
+    const DisplayNames = (
+      Intl as typeof Intl & { DisplayNames?: typeof Intl.DisplayNames }
+    ).DisplayNames;
+    if (typeof DisplayNames !== "function") {
+      return null;
+    }
+    return new DisplayNames(["en"], { type: "language" });
+  } catch {
+    return null;
+  }
+}
+
+function supplementalLanguages(intlNames: Intl.DisplayNames | null): SupportedLanguage[] {
   const explicit = new Set(explicitLanguages().map((l) => l.code.toLowerCase()));
   const out: SupportedLanguage[] = [];
   for (const code of SUPPLEMENTAL_ISO) {
     if (explicit.has(code)) continue;
     let name = code;
-    try {
-      name = intlNames.of(code) || code;
-    } catch {
-      name = code;
+    if (intlNames) {
+      try {
+        name = intlNames.of(code) || code;
+      } catch {
+        name = code;
+      }
     }
     const dir = directionForPrimary(code);
     const canonical = code;
@@ -558,7 +579,7 @@ function supplementalLanguages(intlNames: Intl.DisplayNames): SupportedLanguage[
 
 /** Build canonical default registry (explicit + supplemental ISO codes). */
 export function buildDefaultSupportedLanguages(): SupportedLanguage[] {
-  const intlNames = new Intl.DisplayNames(["en"], { type: "language" });
+  const intlNames = tryCreateDisplayNames();
   const primary = explicitLanguages();
   const extra = supplementalLanguages(intlNames);
   const merged = [...primary, ...extra];

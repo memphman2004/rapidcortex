@@ -18,7 +18,7 @@ describe("MfaSetupOptions", () => {
     cleanup();
   });
 
-  it("shows Google Authenticator QR and does not offer this-computer enrollment", async () => {
+  it("shows authenticator QR and does not offer this-computer enrollment", async () => {
     render(
       <MfaSetupOptions
         accountLabel="user@agency.gov"
@@ -29,9 +29,10 @@ describe("MfaSetupOptions", () => {
       />,
     );
 
-    expect(await screen.findByAltText("QR code for Google Authenticator")).toBeTruthy();
+    expect(await screen.findByAltText("QR code for authenticator app")).toBeTruthy();
     expect(screen.queryByRole("tab", { name: "This computer" })).toBeNull();
     expect(screen.queryByRole("link", { name: /open in authenticator on this computer/i })).toBeNull();
     expect(screen.queryByText(/1Password/i)).toBeNull();
   });
 });
+

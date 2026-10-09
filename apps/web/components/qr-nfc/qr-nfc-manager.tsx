@@ -42,7 +42,7 @@ type Props = {
   namePlaceholder?: string;
   zonePlaceholder?: string;
   globalView?: boolean;
-  /** NexCort iQ site QR/NFC (www.rapidcortex.us). RC internal logins only. */
+  /** NexCort iQ site QR/NFC (www.nexcortiq.us). RC internal logins only. */
   showSiteQr?: boolean;
   /** Hide the manager H2 when the page already has a campus/venue heading. */
   hideHeading?: boolean;
@@ -1011,7 +1011,7 @@ export function QRNFCManager({
                   {" "}
                   For{" "}
                   <a href="#rc-marketing-qr" className="text-amber-300 hover:text-amber-200" onClick={() => setModalOpen(false)}>
-                    www.rapidcortex.us
+                    www.nexcortiq.us
                   </a>{" "}
                   booth signs, close this and use <span className="text-slate-200">NexCort iQ site QR</span>.
                 </>

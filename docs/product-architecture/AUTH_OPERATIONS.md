@@ -1,6 +1,6 @@
 # Authentication and RBAC — pilot operations
 
-**Last reviewed:** 2026-09-19 (60-day refresh) · **Owner:** Jeff Coleman  
+**Last reviewed:** 2026-10-07 (MFA method picker: email OTP or TOTP) · **Owner:** Jeff Coleman  
 **Canonical architecture notes:** [phase-4/AUTH_AND_TENANCY.md](../phase-4/AUTH_AND_TENANCY.md). Policy: [POL-03](../security-compliance/soc2/policies/03-access-control-policy.md). Native desktop: [native-auth-flow.md](../native-auth-flow.md).
 
 ## Supported flows (pilot)
@@ -8,7 +8,7 @@
 | Flow | Where implemented | Notes |
 |------|-------------------|-------|
 | Email + password sign-in | `POST /api/auth/signin` | `USER_PASSWORD_AUTH`; tokens in **httpOnly** cookies when using cookie auth helpers. |
-| **MFA (required on production)** | `POST /api/auth/mfa/*` + Cognito pool MFA | Production pool `us-east-1_0z6tA6WBs` is **`MfaConfiguration=ON`** (evidence 2026-09-17). Software **TOTP** setup and login challenges on custom `/api/auth/*` routes. **SMS MFA** when Cognito returns `SMS_MFA`. Agencies own device possession (CUEC). Staging pools may differ. |
+| **MFA (required on production)** | `POST /api/auth/mfa/*`, `POST /api/auth/email-otp` + Cognito pool MFA | Production pool `us-east-1_0z6tA6WBs` is **`MfaConfiguration=ON`**. Users **choose** email **6-digit OTP** or **authenticator app (TOTP)** at enrollment (`SELECT_MFA_TYPE` / `MFA_SETUP` picker). Email MFA requires Cognito SES `EmailSendingAccount=DEVELOPER`. Account recovery is phone-first then email so email can be used for MFA. **SMS MFA** when Cognito returns `SMS_MFA`. Agencies own device/email possession (CUEC). Staging pools may differ. |
 | Campus / university SSO (Shibboleth, Azure AD, Duo) | `GET /api/auth/hosted-ui/start` → Cognito Hosted UI → `GET /api/auth/hosted-ui/callback` | Federated login path. MFA is enforced at the **IdP**; Cognito MFA still applies to password users on the production pool. JIT uses `custom:agencyId` + `custom:role`. See [CAMPUS_SSO_HOSTED_UI.md](./CAMPUS_SSO_HOSTED_UI.md). SCIM is Roadmap. |
 | Refresh | `GET /api/auth/session`, `GET /api/auth/refresh-cookies` | Session route rotates ID/access tokens when refresh cookie is valid. **Middleware** redirects to **`/api/auth/refresh-cookies`** when the ID JWT is expired but refresh remains. |
 | New password (invite / temp password) | `POST /api/auth/complete-new-password` | Handles `NEW_PASSWORD_REQUIRED` challenge from Cognito. MFA enrollment follows password set on production. |
@@ -48,7 +48,7 @@ These actions write **`admin.user.*`** audit events (agency-scoped, actor id):
 
 | Topic | Status |
 |-------|--------|
-| **MFA (TOTP / SMS)** | **Required** on the production Cognito pool. Custom `/api/auth/mfa/*` routes handle challenges. Campus / university federation still enforces MFA at the IdP via Hosted UI. |
+| **MFA (email OTP / TOTP / SMS)** | **Required** on the production Cognito pool. Login UI lets users pick email code or authenticator; `/api/auth/mfa/*` + `/api/auth/email-otp` handle challenges. Campus / university federation still enforces MFA at the IdP via Hosted UI. |
 | **Social / SAML IdP** | Not in custom password routes. Use Cognito Hosted UI federation ([CAMPUS_SSO_HOSTED_UI.md](./CAMPUS_SSO_HOSTED_UI.md)). Do not add a SAML IdP name to the app client until the IdP resource exists. |
 | **SCIM (UM-016)** | Roadmap. Use JIT claims + admin disable until SCIM is delivered. |
 | **Password reset email** | Use Cognito console / `ForgotPassword` API — no dedicated Next route in-repo; add if product requires self-serve reset. |

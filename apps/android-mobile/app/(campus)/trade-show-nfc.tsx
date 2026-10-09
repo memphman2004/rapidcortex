@@ -1,1 +1,3 @@
-export { default } from "@/screens/codes/TradeShowNfcWriteScreen";
+import TradeShowNfcWriteScreen from "@/screens/codes/TradeShowNfcWriteScreen";
+
+export default TradeShowNfcWriteScreen;

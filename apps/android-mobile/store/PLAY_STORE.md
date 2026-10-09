@@ -108,7 +108,8 @@ Submit lands on the **internal** testing track until the store listing is comple
 
 ## Engineering gates still outside this repo change
 
-- **16 KB page size:** Play requires 16 KB-aligned native libraries for apps targeting API 35. This app is on **Expo SDK 53 / React Native 0.79**, which includes the 16 KB patches (`expo@53.0.14+`). Do not lower `targetSdkVersion` — Play also requires API 35. After a production EAS AAB, upload it in Play Console (internal track). If Google still flags a third-party `.so` (BLE, maps, Stripe), bump or unlink that module — do not drop target SDK.
+- **Target API 36:** Play requires `targetSdkVersion` ≥ 36 for new uploads. Set via `expo-build-properties` in `app.config.ts` (`compileSdkVersion` / `targetSdkVersion` / `buildToolsVersion` 36).
+- **16 KB page size:** Play requires 16 KB-aligned native libraries. This app is on **Expo SDK 53 / React Native 0.79**, which includes the 16 KB patches (`expo@53.0.14+`). Do not lower `targetSdkVersion` to dodge a native `.so` flag — bump or unlink the module instead.
 - Physical NFC write on an NTAG213 (Play review can skip if notes say NFC is optional).
 - Capture screenshots + 1024×500 feature graphic.
 - Deploy the marketing `/account-deletion` page (`bash scripts/deploy-marketing.sh`) so Play reviewers do not 404 the deletion URL.

@@ -308,6 +308,20 @@ Parameters:
     Type: String
     Default: ""
     Description: Email address (sesIdentityType=email) or domain (sesIdentityType=domain) for AWS::SES::EmailIdentity.
+  CognitoSesIdentity:
+    Type: String
+    Default: "nexcortiq.us"
+    Description: >-
+      Verified SES identity (domain or email) used for Cognito transactional email and EMAIL_OTP MFA.
+      Cognito requires EmailSendingAccount=DEVELOPER for email MFA.
+  CognitoSesFromAddress:
+    Type: String
+    Default: "NexCort iQ <noreply@nexcortiq.us>"
+    Description: From header for Cognito emails (must be on CognitoSesIdentity).
+  CognitoSesReplyTo:
+    Type: String
+    Default: "support@nexcortiq.us"
+    Description: Reply-To for Cognito emails.
   SesConfigurationSetName:
     Type: String
     Default: ""
@@ -1547,12 +1561,25 @@ Resources:
           RequireUppercase: true
           RequireNumbers: true
           RequireSymbols: true
-      # TOTP MFA required for every stage. Live production uses DeploymentStage=dev
-      # (app.rapidcortex.us); OPTIONAL fails SOC 2 CC6.1. The web app handles MFA_SETUP
-      # and SOFTWARE_TOKEN_MFA challenges.
+      # MFA required for every stage. Live production uses DeploymentStage=dev
+      # (app.rapidcortex.us); OPTIONAL fails SOC 2 CC6.1. Users pick email OTP or TOTP.
+      # EMAIL_OTP requires SES DEVELOPER email (not COGNITO_DEFAULT).
+      # Phone-first account recovery so email can be used for MFA (Cognito rule).
       MfaConfiguration: "ON"
       EnabledMfas:
         - SOFTWARE_TOKEN_MFA
+        - EMAIL_OTP
+      EmailConfiguration:
+        EmailSendingAccount: DEVELOPER
+        SourceArn: !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/${CognitoSesIdentity}
+        From: !Ref CognitoSesFromAddress
+        ReplyToEmailAddress: !Ref CognitoSesReplyTo
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_phone_number
+            Priority: 1
+          - Name: verified_email
+            Priority: 2
       LambdaConfig:
         PostConfirmation: !GetAtt CognitoPostConfirmationFunction.Arn
 

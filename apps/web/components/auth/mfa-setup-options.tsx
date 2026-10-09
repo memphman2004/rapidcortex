@@ -10,7 +10,7 @@ type MfaSetupOptionsProps = {
   onTotpCodeChange: (value: string) => void;
 };
 
-/** First-login TOTP enrollment with Google Authenticator (QR stays on this page). */
+/** First-login TOTP enrollment with an authenticator app (QR stays on this page). */
 export function MfaSetupOptions({
   accountLabel,
   totpSecret,
@@ -44,14 +44,14 @@ export function MfaSetupOptions({
       </p>
       <div className="rc-login-mfa-panel">
         <ol className="rc-login-mfa-steps">
-          <li>Open Google Authenticator on your phone (App Store or Google Play).</li>
+          <li>Open an authenticator app on your phone (Google Authenticator, Microsoft Authenticator, etc.).</li>
           <li>Tap + and scan this QR — stay on this page.</li>
           <li>Enter the 6-digit code below.</li>
         </ol>
         {qrDataUrl ? (
           <img
             src={qrDataUrl}
-            alt="QR code for Google Authenticator"
+            alt="QR code for authenticator app"
             className="rc-login-mfa-qr"
             width={196}
             height={196}

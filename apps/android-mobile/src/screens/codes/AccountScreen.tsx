@@ -8,6 +8,7 @@ import { ScreenErrorBoundary } from '@/components/common/ScreenErrorBoundary';
 import { StoreLegalLinks } from '@/components/common/StoreLegalLinks';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/theme';
+import { loginHrefForProduct } from '@/utils/auth-routes';
 import { Strings } from '@/utils/strings';
 
 function AccountScreenContent() {
@@ -22,7 +23,8 @@ function AccountScreenContent() {
     border: string;
   };
 
-  const { user, agencyId, role, biometricEnabled, enableBiometric, signOut } = useAuth();
+  const { user, agencyId, role, productPath, biometricEnabled, enableBiometric, signOut } =
+    useAuth();
   const [biometricBusy, setBiometricBusy] = useState(false);
 
   const handleToggleBiometric = async (value: boolean) => {
@@ -47,10 +49,13 @@ function AccountScreenContent() {
         text: Strings.common.signOut,
         style: 'destructive',
         onPress: () => {
+          const loginHref = loginHrefForProduct(productPath);
           void signOut()
             .catch(() => undefined)
             .finally(() => {
-              router.replace('/');
+              // Go to the product login screen (not the product picker).
+              // Nested tab stacks often ignore replace('/') and leave Account open.
+              router.replace(loginHref as never);
             });
         },
       },

@@ -150,6 +150,100 @@ function resolvePinnedReactNativeDir(projectRoot, workspaceRoot) {
   return null;
 }
 
+/**
+ * Expo SDK 53 / RN 0.79 ships react-native-renderer@19.0.0. The monorepo root
+ * often hoists react@19.2.x for web; hierarchical lookup then loads that copy
+ * and Hermes crashes with a black screen ("Incompatible React versions").
+ *
+ * @param {string} projectRoot
+ * @param {string} workspaceRoot
+ * @returns {string | null}
+ */
+function resolvePinnedReactDir(projectRoot, workspaceRoot) {
+  const candidates = [
+    path.join(projectRoot, 'node_modules', 'react'),
+    path.join(workspaceRoot, 'node_modules', 'react'),
+  ];
+  for (const dir of candidates) {
+    const version = readPackageVersion(dir);
+    if (version === '19.0.0') {
+      return dir;
+    }
+  }
+  for (const dir of candidates) {
+    const version = readPackageVersion(dir);
+    if (version && version.startsWith('19.0.')) {
+      return dir;
+    }
+  }
+  return null;
+}
+
+/**
+ * Force every `react` / `react/...` import onto the pinned Expo SDK React.
+ *
+ * @param {string} moduleName
+ * @param {string | null} reactDir
+ * @returns {{ type: 'sourceFile', filePath: string } | null}
+ */
+function resolveReactModule(moduleName, reactDir) {
+  if (!reactDir) {
+    return null;
+  }
+  if (moduleName !== 'react' && !moduleName.startsWith('react/')) {
+    return null;
+  }
+  try {
+    const filePath =
+      moduleName === 'react'
+        ? require.resolve(reactDir)
+        : require.resolve(path.join(reactDir, moduleName.slice('react/'.length)));
+    return { type: 'sourceFile', filePath };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * @param {string | null} chosenDir
+ * @param {string} projectRoot
+ * @param {string} workspaceRoot
+ * @returns {string[]}
+ */
+function duplicateReactDirs(chosenDir, projectRoot, workspaceRoot) {
+  if (!chosenDir) {
+    return [];
+  }
+  const candidates = [
+    path.join(projectRoot, 'node_modules', 'react'),
+    path.join(workspaceRoot, 'node_modules', 'react'),
+  ];
+  /** @type {string[]} */
+  const extras = [];
+  for (const dir of candidates) {
+    if (!fs.existsSync(path.join(dir, 'package.json'))) {
+      continue;
+    }
+    if (sameRealpath(dir, chosenDir)) {
+      continue;
+    }
+    extras.push(dir);
+  }
+  return extras;
+}
+
+/**
+ * @param {string | null} chosenDir
+ * @param {string} projectRoot
+ * @param {string} workspaceRoot
+ * @returns {RegExp[]}
+ */
+function duplicateReactBlockList(chosenDir, projectRoot, workspaceRoot) {
+  return duplicateReactDirs(chosenDir, projectRoot, workspaceRoot).map(
+    (dir) => new RegExp(`${escapeRegExp(dir)}[/\\\\].*`),
+  );
+}
+
 function sameRealpath(a, b) {
   try {
     return fs.realpathSync(a) === fs.realpathSync(b);
@@ -276,6 +370,10 @@ module.exports = {
   readPackageVersion,
   resolvePinnedScreensDir,
   resolvePinnedReactNativeDir,
+  resolvePinnedReactDir,
+  resolveReactModule,
+  duplicateReactDirs,
+  duplicateReactBlockList,
   duplicateReactNativeDirs,
   duplicateReactNativeBlockList,
   resolveReactNativeModule,

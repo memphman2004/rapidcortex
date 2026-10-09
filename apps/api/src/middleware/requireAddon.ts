@@ -2,6 +2,7 @@ import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda
 import {
   ADDON_CATALOG,
   isAddonIncludedInPlan,
+  isAppReviewSilentMfaEmail,
   matchesTranslateAddon,
   type TranslateVertical,
   type UserContext,
@@ -187,14 +188,23 @@ export function requireAddon(familyPrefix: string): LambdaMiddleware {
 export function requireTranslateAddon(vertical: TranslateVertical): LambdaMiddleware {
   const family = vertical === "law_enforcement" ? "rc.translate" : `rc.translate.${vertical}`;
   return async (event, user) => {
+    // Play / App Store review mailboxes must exercise Translator end-to-end.
+    if (isAppReviewSilentMfaEmail(user.email)) return null;
+
     const claims = await getVerifiedJwtClaims(event);
     const jwtAddons = parseClaimAddons(claims?.["custom:addons"]);
     let agencyAddons: string[] = [];
     let planId: string | null = null;
+    let tenantVertical: string | null = null;
     try {
       const agency = await agencies.get(user.agencyId);
       agencyAddons = (agency?.addons ?? []).map((k) => k.trim()).filter(Boolean);
       planId = agency?.monetizationPlanId ?? agency?.planId ?? null;
+      // Prefer product `vertical`; fall back to AgencyType (`venue` / `campus` / …).
+      const fromVertical =
+        typeof agency?.vertical === "string" ? agency.vertical.trim().toLowerCase() : "";
+      const fromType = typeof agency?.type === "string" ? agency.type.trim().toLowerCase() : "";
+      tenantVertical = fromVertical || fromType || null;
     } catch (error) {
       console.warn(
         JSON.stringify({
@@ -206,8 +216,28 @@ export function requireTranslateAddon(vertical: TranslateVertical): LambdaMiddle
       );
     }
 
+    // JWT plan claim when agency row has no monetizationPlanId / planId yet.
+    if (!planId && user.planId?.trim()) {
+      planId = user.planId.trim();
+    }
+    // JWT agency vertical claim when Dynamo row is sparse.
+    if (!tenantVertical && user.vertical?.trim()) {
+      tenantVertical = user.vertical.trim().toLowerCase();
+    }
+
     const listed = [...jwtAddons, ...agencyAddons];
     if (matchesTranslateAddon(listed, vertical)) return null;
+
+    // Venue/campus/hospital field products: matching tenant vertical unlocks that
+    // Translator SKU without a separate add-on row (LE `rc.translate` still plan-gated).
+    if (
+      (vertical === "venue" && tenantVertical === "venue") ||
+      (vertical === "campus" && tenantVertical === "campus") ||
+      (vertical === "hospital" &&
+        (tenantVertical === "hospital" || tenantVertical === "healthcare"))
+    ) {
+      return null;
+    }
 
     if (planId) {
       for (const def of ADDON_CATALOG) {

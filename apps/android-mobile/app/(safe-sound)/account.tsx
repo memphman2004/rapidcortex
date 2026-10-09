@@ -121,8 +121,11 @@ export default function SafeSoundAccountScreen() {
         text: Strings.common.signOut,
         style: 'destructive',
         onPress: () => {
-          void signOut();
-          router.replace('/');
+          void signOut()
+            .catch(() => undefined)
+            .finally(() => {
+              router.replace('/(auth)/safe-sound-login');
+            });
         },
       },
     ]);

@@ -10,11 +10,15 @@ import { TradeShowMarketingQrPanel } from "./trade-show-marketing-qr";
 const HOME_SCAN = tradeShowScanUrl("home", "qr");
 const DEMO_SCAN = tradeShowScanUrl("demo", "qr");
 
-const toDataURL = vi.fn(async (url: string) => `data:image/png;base64,${btoa(url)}`);
+const toCanvas = vi.fn(async (canvas: HTMLCanvasElement, _url: string) => {
+  canvas.width = 512;
+  canvas.height = 512;
+  return canvas;
+});
 
 vi.mock("qrcode", () => ({
-  toDataURL,
-  default: { toDataURL },
+  toCanvas,
+  default: { toCanvas },
 }));
 
 describe("TradeShowMarketingQrPanel", () => {
@@ -22,19 +26,36 @@ describe("TradeShowMarketingQrPanel", () => {
 
   beforeEach(() => {
     clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    // jsdom canvas stub — enough for logo overlay path.
+    HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
+      fillStyle: "",
+      fillRect: vi.fn(),
+      drawImage: vi.fn(),
+    })) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.toDataURL = vi.fn(
+      () => `data:image/png;base64,${btoa("qr")}`,
+    ) as unknown as typeof HTMLCanvasElement.prototype.toDataURL;
+    // Logo load fails in tests → QR still renders without mark.
+    vi.spyOn(globalThis, "Image").mockImplementation(function MockImage(this: HTMLImageElement) {
+      setTimeout(() => {
+        this.onerror?.(new Event("error") as unknown as string & Event);
+      }, 0);
+      return this;
+    } as unknown as typeof Image);
   });
 
   afterEach(() => {
     clickSpy.mockRestore();
     cleanup();
-    toDataURL.mockClear();
+    toCanvas.mockClear();
+    vi.restoreAllMocks();
   });
 
   it("renders Home and Demo destinations and downloads the Home PNG", async () => {
     const onDownloaded = vi.fn();
     render(<TradeShowMarketingQrPanel onDownloaded={onDownloaded} />);
 
-    expect(screen.getByRole("heading", { name: /rapid cortex site qr/i })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: /nexcort iq site qr|rapid cortex site qr/i })).toBeTruthy();
     expect(await screen.findByAltText(`QR code for ${HOME_SCAN}`)).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Download PNG" }));
@@ -47,10 +68,10 @@ describe("TradeShowMarketingQrPanel", () => {
     expect(await screen.findByAltText(`QR code for ${HOME_SCAN}`)).toBeTruthy();
     fireEvent.click(screen.getByRole("tab", { name: "Demo" }));
     await waitFor(() => {
-      expect(toDataURL).toHaveBeenCalledWith(DEMO_SCAN, expect.any(Object));
+      expect(toCanvas).toHaveBeenCalledWith(expect.any(HTMLCanvasElement), DEMO_SCAN, expect.any(Object));
     });
     expect(await screen.findByAltText(`QR code for ${DEMO_SCAN}`)).toBeTruthy();
-    expect(screen.getByText("www.rapidcortex.us/demo/")).toBeTruthy();
+    expect(screen.getByText("www.nexcortiq.us/demo/")).toBeTruthy();
     expect(DEMO_SCAN).not.toBe(TRADE_SHOW_DEMO_URL);
     expect(DEMO_SCAN).toContain("/go/site/demo?medium=qr");
   });

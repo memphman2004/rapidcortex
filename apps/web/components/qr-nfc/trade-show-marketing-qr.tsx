@@ -53,14 +53,35 @@ export function TradeShowMarketingQrPanel({ onCopied, onDownloaded, onError }: P
       if (!isTradeShowMarketingUrl(url)) return;
       try {
         const qrMod = await import("qrcode");
-        const toDataURL =
-          typeof qrMod.toDataURL === "function" ? qrMod.toDataURL : qrMod.default.toDataURL;
-        const next = await toDataURL(url, {
+        const toCanvas =
+          typeof qrMod.toCanvas === "function" ? qrMod.toCanvas : qrMod.default.toCanvas;
+        const canvas = document.createElement("canvas");
+        await toCanvas(canvas, url, {
           width: 512,
           margin: 2,
           errorCorrectionLevel: "H",
           color: { dark: "#0B1220", light: "#FFFFFF" },
         });
+        // Center NexCort iQ mark (error correction H keeps the code scannable).
+        const logo = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error("logo_load_failed"));
+          img.src = "/Logo/nexcort-iq-logo.png";
+        }).catch(() => null);
+        if (logo) {
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            const logoSize = Math.round(canvas.width * 0.22);
+            const pad = 8;
+            const x = (canvas.width - logoSize) / 2;
+            const y = (canvas.height - logoSize) / 2;
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(x - pad / 2, y - pad / 2, logoSize + pad, logoSize + pad);
+            ctx.drawImage(logo, x, y, logoSize, logoSize);
+          }
+        }
+        const next = canvas.toDataURL("image/png");
         if (!cancelled) setDataUrl(next);
       } catch {
         if (!cancelled) setDataUrl(null);

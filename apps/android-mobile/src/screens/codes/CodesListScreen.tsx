@@ -133,7 +133,7 @@ export default function CodesListScreen() {
               { color: palette.textSecondary, marginTop: 2 },
             ]}
           >
-            Writes www.rapidcortex.us or /demo/ for booth visitors
+            Writes www.nexcortiq.us or /demo/ for booth visitors
           </Text>
         </Pressable>
         ) : null}

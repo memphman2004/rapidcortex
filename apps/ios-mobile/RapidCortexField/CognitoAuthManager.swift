@@ -244,8 +244,12 @@ final class CognitoAuthManager: ObservableObject {
             return
         }
         switch challenge {
-        case "SOFTWARE_TOKEN_MFA", "SMS_MFA":
+        case "SOFTWARE_TOKEN_MFA", "SMS_MFA", "EMAIL_OTP":
             requiresMFA = true
+        case "SELECT_MFA_TYPE":
+            // Pool enables software token + email OTP. Prefer authenticator so
+            // App Review and field staff land on MFA_SETUP / TOTP, not email OTP.
+            try await respondSelectMfaType(answer: "SOFTWARE_TOKEN_MFA")
         case "MFA_SETUP":
             try await startMFASetup()
             requiresMFASetup = true
@@ -272,6 +276,12 @@ final class CognitoAuthManager: ObservableObject {
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
         switch challenge {
+        case "SELECT_MFA_TYPE":
+            // Cognito asks SOFTWARE_TOKEN_MFA vs EMAIL_OTP when both are enabled.
+            // App Review must pick software token, then silent MFA_SETUP runs.
+            guard isAppReviewSilentMfaAccount(email) else { return false }
+            try await respondSelectMfaType(answer: "SOFTWARE_TOKEN_MFA")
+            return true
         case "MFA_SETUP":
             guard isAppReviewSilentMfaAccount(email) else { return false }
             try await startMFASetup()
@@ -291,6 +301,25 @@ final class CognitoAuthManager: ObservableObject {
         default:
             return false
         }
+    }
+
+    /// Choose MFA method when Cognito returns SELECT_MFA_TYPE, then continue the challenge chain.
+    private func respondSelectMfaType(answer: String) async throws {
+        guard let session = pendingSession else { throw AuthError.unexpectedChallenge }
+        let username = pendingUsername ?? pendingEmail ?? ""
+        let resp = try await cognitoRequest(
+            target: "AWSCognitoIdentityProviderService.RespondToAuthChallenge",
+            body: [
+                "ChallengeName": "SELECT_MFA_TYPE",
+                "ClientId": RCConfig.clientId,
+                "ChallengeResponses": [
+                    "USERNAME": username,
+                    "ANSWER": answer
+                ],
+                "Session": session
+            ]
+        )
+        try await handleChallengeOrResult(resp)
     }
 
     private func totpKeychainKey() -> String? {

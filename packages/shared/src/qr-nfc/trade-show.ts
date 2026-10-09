@@ -1,13 +1,13 @@
 /**
  * Booth / NexCort iQ marketing signs open the public site — not a location report form.
- * Canonical host is www.rapidcortex.us (rapidcortex.com is a stub).
+ * Canonical host is www.nexcortiq.us (www.rapidcortex.us redirects for continuity).
  *
  * Printed QR / NFC payloads use a tracked `/go/site/{dest}` URL on the app host so
  * every website click can be counted, then 302 to Home or Demo.
  */
 
-export const TRADE_SHOW_HOME_URL = "https://www.rapidcortex.us";
-export const TRADE_SHOW_DEMO_URL = "https://www.rapidcortex.us/demo/";
+export const TRADE_SHOW_HOME_URL = "https://www.nexcortiq.us";
+export const TRADE_SHOW_DEMO_URL = "https://www.nexcortiq.us/demo/";
 
 export const TRADE_SHOW_SITE_AGENCY_ID = "rapid-cortex-platform";
 export const TRADE_SHOW_SITE_QR_IDS = {

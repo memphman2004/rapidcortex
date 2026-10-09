@@ -3,6 +3,7 @@ import { Text } from 'react-native';
 import { ScreenErrorBoundary } from '@/components/common/ScreenErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
 import { Colors, ThemeProvider } from '@/theme';
+import { loginHrefForProduct } from '@/utils/auth-routes';
 import { isCommandRole } from '@/utils/roles';
 import { Strings } from '@/utils/strings';
 
@@ -58,9 +59,13 @@ function CommandTabs() {
 export default function CommandLayout() {
   const { isAuthenticated, productPath, role } = useAuth();
 
-  if (!isAuthenticated) return <Redirect href="/" />;
+  if (!isAuthenticated) {
+    return <Redirect href={loginHrefForProduct(productPath || 'command') as never} />;
+  }
   if (productPath !== 'command') return <Redirect href="/" />;
-  if (!isCommandRole(role)) return <Redirect href="/" />;
+  if (!isCommandRole(role)) {
+    return <Redirect href={loginHrefForProduct('command') as never} />;
+  }
 
   return (
     <ThemeProvider product="campus">

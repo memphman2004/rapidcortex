@@ -59,7 +59,13 @@ export async function POST(request: Request) {
 
     if (out.kind === "challenge") {
       return NextResponse.json(
-        { challenge: out.challenge, session: out.session, username: out.username },
+        {
+          challenge: out.challenge,
+          session: out.session,
+          username: out.username,
+          mfasCanSelect: out.mfasCanSelect,
+          mfasCanSetup: out.mfasCanSetup,
+        },
         { status: 202 },
       );
     }

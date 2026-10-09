@@ -15,7 +15,7 @@ NexCort iQ uses an **admin-controlled** onboarding model by default:
 | **`CognitoPostConfirmationFunction`** | PostConfirmation trigger remains for compatibility with controlled internal self-signup tests. |
 | **`CognitoPostConfirmationInvokePermission`** | Allows `cognito-idp.amazonaws.com` to invoke the Lambda for this user pool. |
 | **App client** (`GenerateSecret: false`, `ALLOW_USER_PASSWORD_AUTH`) | Matches the cookie sign-in flow and admin-provisioned user login in `/{slug}/login`. |
-| **MFA (TOTP)** | User pool **`MfaConfiguration: ON`** with **`SOFTWARE_TOKEN_MFA`** — every user must enroll an authenticator app on first successful password authentication. The web app completes **`MFA_SETUP`** via **`/api/auth/mfa/associate`** and **`/api/auth/mfa/complete-setup`**, and **`/api/auth/mfa/verify-login`** on subsequent sign-ins. |
+| **MFA (email OTP or TOTP)** | User pool **`MfaConfiguration: ON`** with **`SOFTWARE_TOKEN_MFA`** and **`EMAIL_OTP`** (SES `DEVELOPER` email). Users pick email 6-digit codes or an authenticator app at enrollment (`SELECT_MFA_TYPE` / `MFA_SETUP` picker). Web routes: **`/api/auth/mfa/select-type`**, **`/api/auth/mfa/setup-email`**, **`/api/auth/mfa/associate`**, **`/api/auth/mfa/complete-setup`**, **`/api/auth/email-otp`**, **`/api/auth/mfa/verify-login`**. |
 
 If you use a **confidential app client** (`COGNITO_CLIENT_SECRET`), the same secret is required for refresh-token exchange: the server derives **`SECRET_HASH`** from the username in the (possibly expired) ID token cookie.
 

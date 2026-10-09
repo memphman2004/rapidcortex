@@ -28,6 +28,11 @@ import { ensureCsrfCookie, jsonHeadersWithCsrf } from "@/lib/csrf-client";
 import { COGNITO_PASSWORD_REQUIREMENTS, isValidCognitoPassword } from "@/lib/auth/cognito-password-policy";
 import { useJurisdictionSlug } from "@/lib/jurisdiction-context";
 import { isHostedUiSsoEnabled } from "@/lib/runtime-flags";
+import {
+  MfaMethodPicker,
+  mfaOptionsFromCognitoList,
+  type MfaMethodChoice,
+} from "@/components/auth/mfa-method-picker";
 import { MfaSetupOptions } from "@/components/auth/mfa-setup-options";
 import { buildRapidCortexTotpOtpauthUrl } from "@/lib/auth/totp-otpauth";
 import { Eye, EyeOff } from "lucide-react";
@@ -35,9 +40,13 @@ import { Eye, EyeOff } from "lucide-react";
 type AuthChallenge =
   | "NEW_PASSWORD_REQUIRED"
   | "MFA_SETUP"
+  | "SELECT_MFA_TYPE"
   | "EMAIL_OTP"
+  | "EMAIL_MFA"
   | "SOFTWARE_TOKEN_MFA"
   | "SMS_MFA";
+
+type MfaSetupPath = "pick" | "authenticator" | "email";
 
 const AUTH_SESSION_REFRESH_ATTEMPTS = 8;
 
@@ -91,6 +100,10 @@ export function LoginForm({
   const [totpCode, setTotpCode] = useState("");
   const [mfaLoginCode, setMfaLoginCode] = useState("");
   const [associateError, setAssociateError] = useState<string | null>(null);
+  const [mfaSetupPath, setMfaSetupPath] = useState<MfaSetupPath>("pick");
+  const [mfasCanSelect, setMfasCanSelect] = useState<string[] | undefined>(undefined);
+  const [mfasCanSetup, setMfasCanSetup] = useState<string[] | undefined>(undefined);
+  const [emailOtpChallenge, setEmailOtpChallenge] = useState<"EMAIL_OTP" | "EMAIL_MFA">("EMAIL_OTP");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [forgotStep, setForgotStep] = useState<"idle" | "request" | "confirm">("idle");
@@ -219,6 +232,10 @@ export function LoginForm({
     setTotpCode("");
     setMfaLoginCode("");
     setAssociateError(null);
+    setMfaSetupPath("pick");
+    setMfasCanSelect(undefined);
+    setMfasCanSetup(undefined);
+    setEmailOtpChallenge("EMAIL_OTP");
     setNewPassword("");
     setNewPasswordConfirm("");
   }, []);
@@ -229,6 +246,8 @@ export function LoginForm({
         challenge?: AuthChallenge;
         session?: string;
         username?: string;
+        mfasCanSelect?: string[];
+        mfasCanSetup?: string[];
         error?: string;
       } | null;
       if (!body?.session || !body.username || !body.challenge) {
@@ -238,18 +257,31 @@ export function LoginForm({
       setAuthSession(body.session);
       setChallengeUsername(body.username);
       setActiveChallenge(body.challenge);
+      setMfasCanSelect(body.mfasCanSelect);
+      setMfasCanSetup(body.mfasCanSetup);
       if (body.challenge === "SOFTWARE_TOKEN_MFA" || body.challenge === "SMS_MFA") {
         setMfaLoginChallenge(body.challenge);
       } else {
         setMfaLoginChallenge(null);
+      }
+      if (body.challenge === "EMAIL_OTP" || body.challenge === "EMAIL_MFA") {
+        setEmailOtpChallenge(body.challenge);
+      }
+      if (body.challenge === "MFA_SETUP" || body.challenge === "SELECT_MFA_TYPE") {
+        setMfaSetupPath("pick");
+        setTotpSecret(null);
+        setMfaAssociateSession(null);
       }
       setError(null);
     },
     [],
   );
 
+  /** Associate TOTP only after the user chooses authenticator on MFA_SETUP. */
   useEffect(() => {
-    if (activeChallenge !== "MFA_SETUP" || !authSession || totpSecret) return;
+    if (activeChallenge !== "MFA_SETUP" || mfaSetupPath !== "authenticator" || !authSession || totpSecret) {
+      return;
+    }
     let cancelled = false;
     void (async () => {
       try {
@@ -267,20 +299,116 @@ export function LoginForm({
         } | null;
         if (cancelled) return;
         if (!res.ok || !data?.secretCode || !data.session) {
-          setAssociateError(data?.error ?? "Could not start Google Authenticator setup");
+          setAssociateError(data?.error ?? "Could not start authenticator setup");
           return;
         }
         setTotpSecret(data.secretCode);
         setMfaAssociateSession(data.session);
         setAssociateError(null);
       } catch {
-        if (!cancelled) setAssociateError("Could not start Google Authenticator setup");
+        if (!cancelled) setAssociateError("Could not start authenticator setup");
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [activeChallenge, authSession, totpSecret]);
+  }, [activeChallenge, authSession, mfaSetupPath, totpSecret]);
+
+  const startEmailMfaSetup = useCallback(async () => {
+    if (!authSession || !challengeUsername) return;
+    setSubmitting(true);
+    setError(null);
+    setAssociateError(null);
+    try {
+      await ensureCsrfCookie();
+      const res = await fetch("/api/auth/mfa/setup-email", {
+        method: "POST",
+        headers: jsonHeadersWithCsrf(),
+        credentials: "include",
+        body: JSON.stringify({
+          session: authSession,
+          username: challengeUsername,
+          email: email.trim() || challengeUsername,
+        }),
+      });
+      if (res.status === 202) {
+        await handleChallengeJson(res);
+        setMfaSetupPath("email");
+        return;
+      }
+      if (res.ok) {
+        resetChallenges();
+        const u = await refreshSessionAfterSignIn(refresh);
+        if (u) {
+          navigatePostAuth(u, "mfa_setup_email");
+          return;
+        }
+      }
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      setError(body?.error ?? "Could not start email MFA");
+    } catch {
+      setError("Could not start email MFA");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [authSession, challengeUsername, email, handleChallengeJson, refresh, resetChallenges]);
+
+  const respondSelectMfaType = useCallback(
+    async (choice: MfaMethodChoice) => {
+      if (!authSession || !challengeUsername) return;
+      setSubmitting(true);
+      setError(null);
+      try {
+        await ensureCsrfCookie();
+        const res = await fetch("/api/auth/mfa/select-type", {
+          method: "POST",
+          headers: jsonHeadersWithCsrf(),
+          credentials: "include",
+          body: JSON.stringify({
+            session: authSession,
+            username: challengeUsername,
+            choice: choice === "email" ? "EMAIL_MFA" : "SOFTWARE_TOKEN_MFA",
+          }),
+        });
+        if (res.status === 202) {
+          await handleChallengeJson(res);
+          return;
+        }
+        if (res.ok) {
+          resetChallenges();
+          const u = await refreshSessionAfterSignIn(refresh);
+          if (u) {
+            navigatePostAuth(u, "select_mfa");
+            return;
+          }
+        }
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        setError(body?.error ?? "Could not select MFA method");
+      } catch {
+        setError("Could not select MFA method");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [authSession, challengeUsername, handleChallengeJson, refresh, resetChallenges],
+  );
+
+  const onMfaMethodChosen = useCallback(
+    (choice: MfaMethodChoice) => {
+      if (activeChallenge === "SELECT_MFA_TYPE") {
+        void respondSelectMfaType(choice);
+        return;
+      }
+      if (activeChallenge === "MFA_SETUP") {
+        if (choice === "authenticator") {
+          setMfaSetupPath("authenticator");
+          return;
+        }
+        void startEmailMfaSetup();
+      }
+    },
+    [activeChallenge, respondSelectMfaType, startEmailMfaSetup],
+  );
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -339,7 +467,11 @@ export function LoginForm({
         return;
       }
 
-      if (activeChallenge === "EMAIL_OTP" && authSession && challengeUsername) {
+      if (
+        (activeChallenge === "EMAIL_OTP" || activeChallenge === "EMAIL_MFA") &&
+        authSession &&
+        challengeUsername
+      ) {
         const res = await fetch("/api/auth/email-otp", {
           method: "POST",
           headers: jsonHeadersWithCsrf(),
@@ -348,6 +480,7 @@ export function LoginForm({
             session: authSession,
             username: challengeUsername,
             code: mfaLoginCode.trim(),
+            challenge: activeChallenge === "EMAIL_MFA" ? "EMAIL_MFA" : emailOtpChallenge,
           }),
         });
         if (res.status === 202) {
@@ -395,10 +528,15 @@ export function LoginForm({
         return;
       }
 
-      if (activeChallenge === "MFA_SETUP" && mfaAssociateSession && challengeUsername) {
+      if (
+        activeChallenge === "MFA_SETUP" &&
+        mfaSetupPath === "authenticator" &&
+        mfaAssociateSession &&
+        challengeUsername
+      ) {
         const trimmed = totpCode.trim();
         if (trimmed.length < 6) {
-          setError("Enter the 6-digit code from Google Authenticator");
+          setError("Enter the 6-digit code from your authenticator app");
           return;
         }
         const res = await fetch("/api/auth/mfa/complete-setup", {
@@ -413,7 +551,7 @@ export function LoginForm({
         });
         if (!res.ok) {
           const body = (await res.json().catch(() => null)) as { error?: string } | null;
-          setError(body?.error ?? "Could not verify Google Authenticator");
+          setError(body?.error ?? "Could not verify authenticator code");
           return;
         }
         resetChallenges();
@@ -589,8 +727,12 @@ export function LoginForm({
   }
 
   const inNewPassword = activeChallenge === "NEW_PASSWORD_REQUIRED";
+  const inSelectMfa = activeChallenge === "SELECT_MFA_TYPE";
   const inMfaSetup = activeChallenge === "MFA_SETUP";
-  const inEmailOtp = activeChallenge === "EMAIL_OTP";
+  const inMfaPick =
+    inSelectMfa || (inMfaSetup && mfaSetupPath === "pick" && !totpSecret);
+  const inMfaTotpSetup = inMfaSetup && mfaSetupPath === "authenticator";
+  const inEmailOtp = activeChallenge === "EMAIL_OTP" || activeChallenge === "EMAIL_MFA";
   const inMfaLogin = activeChallenge === "SOFTWARE_TOKEN_MFA" || activeChallenge === "SMS_MFA";
   const inForgotRequest = forgotStep === "request";
   const inForgotConfirm = forgotStep === "confirm";
@@ -600,44 +742,57 @@ export function LoginForm({
     totpSecret && challengeUsername
       ? buildRapidCortexTotpOtpauthUrl(challengeUsername, totpSecret)
       : null;
+  const pickerAllowed = mfaOptionsFromCognitoList(
+    inSelectMfa ? mfasCanSelect : mfasCanSetup,
+  );
 
   const cardTitle = inNewPassword
     ? "Set a new password"
-    : inMfaSetup
-      ? "Set up Google Authenticator"
-      : inEmailOtp
-        ? "Enter email verification code"
-        : inMfaLogin
-          ? activeChallenge === "SMS_MFA"
-            ? "Enter SMS code"
-            : "Enter 6-digit code"
-          : inForgotConfirm
-            ? "Reset your password"
-            : inForgotRequest
-              ? "Forgot password"
-              : "Sign in";
+    : inMfaPick
+      ? "Choose verification method"
+      : inMfaTotpSetup
+        ? "Set up authenticator app"
+        : inEmailOtp
+          ? "Enter email verification code"
+          : inMfaLogin
+            ? activeChallenge === "SMS_MFA"
+              ? "Enter SMS code"
+              : "Enter 6-digit code"
+            : inForgotConfirm
+              ? "Reset your password"
+              : inForgotRequest
+                ? "Forgot password"
+                : "Sign in";
 
   const cardNote = inNewPassword
     ? "Your account requires a new password before you can continue to your secure workspace."
-    : inMfaSetup
-      ? "Stay on this page. Open Google Authenticator on your phone, scan the QR, then enter the 6-digit code."
-      : inEmailOtp
-        ? "A one-time code was sent to your account email. Enter it below to finish signing in."
-        : inMfaLogin
-          ? activeChallenge === "SMS_MFA"
-            ? "Enter the one-time code sent to your phone."
-            : "Open Google Authenticator and enter the current 6-digit code."
-          : inForgotConfirm
-            ? "Enter the verification code from your email and choose a new password that meets the requirements below."
-            : inForgotRequest
-              ? "Enter the email you use to sign in. If an account exists, we will send a verification code."
-              : "Your account is configured by your administrator with the correct organization and permissions so operational data stays aligned to your agency.";
+    : inMfaPick
+      ? "Pick email codes or an authenticator app. You can ask an admin to reset MFA later if you change devices."
+      : inMfaTotpSetup
+        ? "Stay on this page. Open your authenticator app, scan the QR, then enter the 6-digit code."
+        : inEmailOtp
+          ? "A one-time code was sent to your account email. Enter it below to finish signing in."
+          : inMfaLogin
+            ? activeChallenge === "SMS_MFA"
+              ? "Enter the one-time code sent to your phone."
+              : "Open your authenticator app and enter the current 6-digit code."
+            : inForgotConfirm
+              ? "Enter the verification code from your email and choose a new password that meets the requirements below."
+              : inForgotRequest
+                ? "Enter the email you use to sign in. If an account exists, we will send a verification code."
+                : "Your account is configured by your administrator with the correct organization and permissions so operational data stays aligned to your agency.";
 
   return (
     <div className="rc-login-card">
       <div className="rc-login-card__header">
         <h1 className="rc-login-card__title">{cardTitle}</h1>
-        {!inNewPassword && !inMfaSetup && !inMfaLogin && !inEmailOtp && !inForgotRequest && !inForgotConfirm ? (
+        {!inNewPassword &&
+        !inMfaSetup &&
+        !inSelectMfa &&
+        !inMfaLogin &&
+        !inEmailOtp &&
+        !inForgotRequest &&
+        !inForgotConfirm ? (
           <div className="rc-login-secure-badge">
             <span className="rc-login-secure-badge__dot" aria-hidden />
             <span className="rc-login-secure-badge__label">Secure</span>
@@ -647,14 +802,14 @@ export function LoginForm({
 
       <p className="rc-login-note">{cardNote}</p>
 
-      {!inNewPassword && !inMfaSetup && !inMfaLogin && (justConfirmed || justVerified) ? (
+      {!inNewPassword && !inMfaSetup && !inSelectMfa && !inMfaLogin && (justConfirmed || justVerified) ? (
         <p className="rc-login-banner-success">
           {justConfirmed
             ? "Email confirmed. You can sign in now."
             : "Account verified. You can sign in now."}
         </p>
       ) : null}
-      {!inNewPassword && !inMfaSetup && !inMfaLogin && passwordResetNoticeVisible ? (
+      {!inNewPassword && !inMfaSetup && !inSelectMfa && !inMfaLogin && passwordResetNoticeVisible ? (
         <p className="rc-login-banner-success">
           Password reset successfully. Please sign in with your new password.
         </p>
@@ -678,7 +833,13 @@ export function LoginForm({
       ) : null}
 
       <form noValidate onSubmit={onSubmit}>
-        {!inNewPassword && !inMfaSetup && !inMfaLogin && !inEmailOtp && !inForgotRequest && !inForgotConfirm ? (
+        {!inNewPassword &&
+        !inMfaSetup &&
+        !inSelectMfa &&
+        !inMfaLogin &&
+        !inEmailOtp &&
+        !inForgotRequest &&
+        !inForgotConfirm ? (
           <>
             <label className="rc-login-field">
               <span className="rc-login-label">Email</span>
@@ -834,7 +995,19 @@ export function LoginForm({
           </>
         ) : null}
 
-        {inMfaSetup ? (
+        {inMfaPick && challengeUsername ? (
+          <>
+            {associateError ? <p className="rc-login-banner-error">{associateError}</p> : null}
+            <MfaMethodPicker
+              accountLabel={challengeUsername}
+              allowed={pickerAllowed}
+              disabled={submitting}
+              onChoose={onMfaMethodChosen}
+            />
+          </>
+        ) : null}
+
+        {inMfaTotpSetup ? (
           <>
             {associateError ? (
               <p className="rc-login-banner-error">{associateError}</p>
@@ -847,7 +1020,7 @@ export function LoginForm({
                 onTotpCodeChange={setTotpCode}
               />
             ) : (
-              <p className="rc-login-hint">Preparing Google Authenticator setup…</p>
+              <p className="rc-login-hint">Preparing authenticator setup…</p>
             )}
           </>
         ) : null}
@@ -860,15 +1033,13 @@ export function LoginForm({
             <label className="rc-login-field">
               <span className="rc-login-label">{inEmailOtp ? "Email code" : "Verification code"}</span>
               <input
-                inputMode={inEmailOtp ? "text" : "numeric"}
+                inputMode="numeric"
                 autoComplete="one-time-code"
-                pattern={inEmailOtp ? undefined : "[0-9]*"}
-                maxLength={inEmailOtp ? 32 : 12}
+                pattern="[0-9]*"
+                maxLength={12}
                 required
                 value={mfaLoginCode}
-                onChange={(e) =>
-                  setMfaLoginCode(inEmailOtp ? e.target.value.trim() : e.target.value.replace(/\D/g, ""))
-                }
+                onChange={(e) => setMfaLoginCode(e.target.value.replace(/\D/g, ""))}
                 className="rc-login-input"
               />
             </label>
@@ -881,31 +1052,33 @@ export function LoginForm({
           </p>
         ) : null}
 
-        <button
-          type="submit"
-          disabled={
-            submitting ||
-            (inMfaSetup && (!totpSecret || !mfaAssociateSession)) ||
-            ((inEmailOtp || inMfaLogin) && !mfaLoginCode.trim()) ||
-            (inForgotConfirm &&
-              (!forgotCode.trim() || !forgotNewPassword.trim() || !forgotNewPasswordConfirm.trim()))
-          }
-          className="rc-login-submit"
-        >
-          {submitting
-            ? "Working…"
-            : inNewPassword
-              ? "Save password and continue"
-              : inMfaSetup
-                ? "Verify and continue"
-                : inEmailOtp || inMfaLogin
-                  ? "Verify and sign in"
-                  : inForgotConfirm
-                    ? "Reset password and sign in"
-                    : inForgotRequest
-                      ? "Send verification code"
-                      : "Sign in"}
-        </button>
+        {inMfaPick ? null : (
+          <button
+            type="submit"
+            disabled={
+              submitting ||
+              (inMfaTotpSetup && (!totpSecret || !mfaAssociateSession)) ||
+              ((inEmailOtp || inMfaLogin) && !mfaLoginCode.trim()) ||
+              (inForgotConfirm &&
+                (!forgotCode.trim() || !forgotNewPassword.trim() || !forgotNewPasswordConfirm.trim()))
+            }
+            className="rc-login-submit"
+          >
+            {submitting
+              ? "Working…"
+              : inNewPassword
+                ? "Save password and continue"
+                : inMfaTotpSetup
+                  ? "Verify and continue"
+                  : inEmailOtp || inMfaLogin
+                    ? "Verify and sign in"
+                    : inForgotConfirm
+                      ? "Reset password and sign in"
+                      : inForgotRequest
+                        ? "Send verification code"
+                        : "Sign in"}
+          </button>
+        )}
 
         {!activeChallenge && !inForgotRequest && !inForgotConfirm && isHostedUiSsoEnabled() ? (
           <a

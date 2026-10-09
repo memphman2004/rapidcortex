@@ -163,9 +163,11 @@ sam build \
   --parallel \
   --build-in-source
 
-# Live sales-automation HTTP is the hashed nested stack (SignalHttp …fNnRYanfGumk on tbr4zvjlk5).
-# Leftover standalone rapid-cortex-dev-AppSamNexiQPipelineStack still owns the 15-min send worker.
-STACK_NAME="${RAPID_IQ_PIPELINE_STACK_NAME:-rapid-cortex-dev-AppSamNexiQPipelineStack-JWN4SGUYZXYF}"
+# Live sales-automation HTTP: surgical stack (SignalHttp …Wb73duKNXHEq + CLI routes → w5si50q).
+# Nested hashed JWN4SGUYZXYF was deleted 2026-10-08 (UPDATE_ROLLBACK_FAILED on ghost s3r1f5g).
+# Parent rapid-cortex-dev still points at that deleted ARN — next root update must rename
+# AppSamRapidIqPipelineStack → AppSamNexiQPipelineStack (DeletionPolicy Retain on old) first.
+STACK_NAME="${RAPID_IQ_PIPELINE_STACK_NAME:-rapid-cortex-dev-AppSamRapidIqPipelineStack}"
 HTTP_API_ID="${RAPID_IQ_HTTP_API_ID:-tbr4zvjlk5}"
 OUTLOOK_OAUTH_CLIENT_ID="${OUTLOOK_OAUTH_CLIENT_ID:-6110ccac-58b6-4976-86c9-46339151aa9f}"
 OUTLOOK_OAUTH_TENANT="${OUTLOOK_OAUTH_TENANT:-0a85f08a-54a8-43de-bdc1-4ad4e52d3af8}"
@@ -237,9 +239,9 @@ aws apigatewayv2 get-routes --api-id "${HTTP_API_ID}" \
 
 echo "DONE: ${STACK_NAME}"
 
-# Leftover standalone still owns SalesAutomationSendFunction (15-min follow-ups).
-# Nested hashed stack must keep EnableNexiQNestedExpansion=false to avoid EventBridge/IAM collisions.
-if [[ "${RAPID_IQ_UPDATE_LEFTOVER_SEND:-1}" == "1" && "${STACK_NAME}" != "rapid-cortex-dev-AppSamNexiQPipelineStack" ]]; then
+# Optional leftover send-worker stack (may not exist after 2026-10-08 cleanup).
+if [[ "${RAPID_IQ_UPDATE_LEFTOVER_SEND:-0}" == "1" ]] \
+  && aws cloudformation describe-stacks --stack-name rapid-cortex-dev-AppSamNexiQPipelineStack >/dev/null 2>&1; then
   echo "── Updating leftover send worker stack (EnableNexiQNestedExpansion=true, no new HTTP routes) ──"
   LEFTOVER_OVERRIDES=("${PARAM_OVERRIDES[@]}")
   for i in "${!LEFTOVER_OVERRIDES[@]}"; do

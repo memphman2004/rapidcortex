@@ -638,7 +638,7 @@ if [[ "${SIEM_ENABLED:-}" == "true" || "${SIEM_ENABLED:-}" == "1" ]]; then
 fi
 # NexiQ nested hashed stack JWN4SGUYZXYF: intel-watch queues / extra ingest Lambdas
 # collide with leftover standalone rapid-cortex-dev-AppSamNexiQPipelineStack.
-# HTTP routes are gated separately (recreate via SignalHttpIntegrationV2 on live).
+# HTTP routes are gated separately (recreate via SignalHttpIntegrationV3 on live).
 PARAMS="${PARAMS} EnableNexiQNewHttpRoutes=${ENABLE_RAPID_IQ_NEW_HTTP_ROUTES:-false}"
 PARAMS="${PARAMS} EnableNexiQNestedExpansion=${ENABLE_RAPID_IQ_NESTED_EXPANSION:-false}"
 if [[ -n "${OUTLOOK_OAUTH_CLIENT_ID:-}" ]]; then

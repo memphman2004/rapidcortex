@@ -1853,6 +1853,50 @@ textarea {
   background: #fff;
 }
 
+.rc-login-mfa-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 4px 0 8px;
+}
+
+.rc-login-mfa-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(138, 164, 191, 0.28);
+  border-radius: 10px;
+  background: rgba(15, 22, 34, 0.72);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.rc-login-mfa-choice:hover:not(:disabled) {
+  border-color: rgba(196, 30, 58, 0.55);
+  background: rgba(28, 36, 52, 0.9);
+}
+
+.rc-login-mfa-choice:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rc-login-mfa-choice-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2ecf8;
+}
+
+.rc-login-mfa-choice-desc {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #8aa4bf;
+}
+
 .rc-login-submit {
   display: block;
   width: 100%;

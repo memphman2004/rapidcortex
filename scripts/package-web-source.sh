@@ -50,10 +50,15 @@ rm -f "${OUT_TMP}" "${OUT_FINAL}"
 
   # Do not exclude apps/api/vendor-packs/*.tgz — workspace lockfile uses file: entries for npm ci in Docker.
   # Info-ZIP '*' never crosses '/'; -x '*node_modules*' will not prune trees. Use find -prune.
+  # Also prune native/mobile build trees (ios/Pods, Gradle, Expo) — they bloat the zip and stall
+  # packaging from external volumes; CodeBuild only needs workspace package.json + web sources.
   find packages apps \
     \( -path '*/node_modules' -o -path '*/.war-room-staging' -o -path '*/.aws-sam' \
        -o -path '*/.next' -o -path '*/coverage' -o -path '*/.git' \
-       -o -path '*/dist' -o -path 'results' \) -prune -o \
+       -o -path '*/dist' -o -path 'results' \
+       -o -path '*/ios/Pods' -o -path '*/Pods' \
+       -o -path '*/.gradle' -o -path '*/android/build' -o -path '*/.expo' \
+       -o -path '*/DerivedData' -o -path '*/build/Release' -o -path '*/build/Debug' \) -prune -o \
     -type f ! -name '*.log' ! -name '*.dmg' ! -name '*.exe' ! -name '*.msi' -print \
     | zip -rq "${OUT_TMP}" \
       package.json package-lock.json tsconfig.base.json \

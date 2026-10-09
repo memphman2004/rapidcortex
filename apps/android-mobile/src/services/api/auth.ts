@@ -1,14 +1,18 @@
 import { Amplify } from 'aws-amplify';
 import {
+  confirmSignIn as amplifyConfirmSignIn,
   confirmSignUp as amplifyConfirmSignUp,
   fetchAuthSession,
   getCurrentUser,
   signIn as amplifySignIn,
   signOut as amplifySignOut,
   signUp as amplifySignUp,
+  type SignInOutput,
 } from 'aws-amplify/auth';
 import Constants from 'expo-constants';
+import * as SecureStore from 'expo-secure-store';
 import { canonicalizeMobileRole } from '../../utils/roles';
+import { generateTotpCode } from './totp';
 
 export interface RCUserContext {
   sub: string;
@@ -199,6 +203,26 @@ export function getSecureRefreshTokenKey(): string {
   return SECURE_REFRESH_TOKEN_KEY;
 }
 
+function isAlreadySignedInError(error: unknown): boolean {
+  const name = String((error as { name?: string })?.name ?? '');
+  const message = String((error as { message?: string })?.message ?? '').toLowerCase();
+  return (
+    name === 'UserAlreadyAuthenticatedException' ||
+    message.includes('already a signed in user') ||
+    message.includes('already signed in')
+  );
+}
+
+/** Clear a stale Amplify session left after a partial sign-out / app kill. */
+async function clearStaleAmplifySession(): Promise<void> {
+  try {
+    await amplifySignOut();
+  } catch {
+    // Local retry proceeds even if remote revoke fails.
+  }
+  clearMemoryAccessToken();
+}
+
 function mapCognitoError(error: unknown): string {
   if (!(error instanceof Error)) {
     return 'An unexpected error occurred. Please try again.';
@@ -207,6 +231,9 @@ function mapCognitoError(error: unknown): string {
   const name = (error as Error & { name?: string }).name ?? '';
   const message = error.message ?? '';
 
+  if (isAlreadySignedInError(error)) {
+    return 'A previous session was still active. Tap Sign In again.';
+  }
   if (name === 'UserNotConfirmedException') {
     return 'Please verify your email first. We can resend the code.';
   }
@@ -344,23 +371,149 @@ async function sessionFromAmplify(): Promise<{
   };
 }
 
+const APP_REVIEW_SILENT_MFA_EMAILS = new Set([
+  'apple-review@nexcortiq.us',
+  'appreviewer@nexcortiq.us',
+  'appreviewer@rapidcortex.us',
+  'appreviewer@rapidcortex.ai',
+]);
+
+function isAppReviewSilentMfaAccount(email: string): boolean {
+  return APP_REVIEW_SILENT_MFA_EMAILS.has(email.trim().toLowerCase());
+}
+
+function totpSecureKey(email: string): string {
+  return `rc_totp_${email.trim().toLowerCase()}`;
+}
+
+async function readTotpSecret(email: string): Promise<string | null> {
+  try {
+    return await SecureStore.getItemAsync(totpSecureKey(email));
+  } catch {
+    return null;
+  }
+}
+
+async function writeTotpSecret(email: string, secret: string): Promise<void> {
+  await SecureStore.setItemAsync(totpSecureKey(email), secret);
+}
+
+/** Best-effort: reset Cognito TOTP so the next review device gets MFA_SETUP. */
+async function releaseAppReviewMfa(idToken: string | undefined): Promise<void> {
+  if (!idToken) return;
+  try {
+    // Inline base URL — avoid importing ./client (auth ↔ client cycle via auth.store).
+    const base = (
+      process.env.EXPO_PUBLIC_API_BASE?.trim() ||
+      (Constants.expoConfig?.extra as ExtraEnv | undefined)?.EXPO_PUBLIC_API_BASE?.trim() ||
+      ''
+    ).replace(/\/$/, '');
+    if (!base) return;
+    await fetch(`${base}/api/auth/app-review/release-mfa`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
+        'User-Agent': 'RCMobile-Android/1.0',
+      },
+      body: '{}',
+    });
+  } catch {
+    // Never block sign-in on release-mfa failure.
+  }
+}
+
+async function completeSilentMfaIfNeeded(
+  email: string,
+  result: SignInOutput,
+): Promise<SignInOutput> {
+  let current = result;
+  // Bound the challenge chain (selection → setup → code).
+  for (let i = 0; i < 4; i += 1) {
+    if (current.isSignedIn) return current;
+    const step = current.nextStep?.signInStep;
+    if (!step) break;
+
+    if (
+      step === 'CONTINUE_SIGN_IN_WITH_MFA_SELECTION' ||
+      step === 'CONTINUE_SIGN_IN_WITH_MFA_SETUP_SELECTION'
+    ) {
+      current = await amplifyConfirmSignIn({ challengeResponse: 'TOTP' });
+      continue;
+    }
+
+    if (step === 'CONTINUE_SIGN_IN_WITH_TOTP_SETUP') {
+      const secret = current.nextStep.totpSetupDetails?.sharedSecret;
+      if (!secret) {
+        throw new Error('Could not start authenticator setup.');
+      }
+      const code = generateTotpCode(secret);
+      current = await amplifyConfirmSignIn({ challengeResponse: code });
+      await writeTotpSecret(email, secret);
+      continue;
+    }
+
+    if (step === 'CONFIRM_SIGN_IN_WITH_TOTP_CODE') {
+      const secret = await readTotpSecret(email);
+      if (!secret) {
+        throw new Error(
+          'Authenticator required. For App Review, sign in once after MFA was reset so this device can enroll.',
+        );
+      }
+      const code = generateTotpCode(secret);
+      current = await amplifyConfirmSignIn({ challengeResponse: code });
+      continue;
+    }
+
+    break;
+  }
+  return current;
+}
+
 export async function signIn(email: string, password: string): Promise<{
   session: CognitoSession;
   user: RCUserContext;
   refreshToken: string | null;
 }> {
   configureAmplifyAuth();
+  const normalizedEmail = email.trim().toLowerCase();
 
   try {
-    const result = await amplifySignIn({
-      username: email.trim().toLowerCase(),
-      password,
-    });
+    // Amplify keeps Cognito tokens after a UI-only sign-out / process kill.
+    // Clear that ghost session first so signIn is never blocked.
+    try {
+      await getCurrentUser();
+      await clearStaleAmplifySession();
+    } catch {
+      // No active Amplify user — proceed.
+    }
+
+    let result: SignInOutput;
+    try {
+      result = await amplifySignIn({
+        username: normalizedEmail,
+        password,
+      });
+    } catch (error) {
+      if (!isAlreadySignedInError(error)) throw error;
+      await clearStaleAmplifySession();
+      result = await amplifySignIn({
+        username: normalizedEmail,
+        password,
+      });
+    }
+
+    if (!result.isSignedIn && isAppReviewSilentMfaAccount(normalizedEmail)) {
+      result = await completeSilentMfaIfNeeded(normalizedEmail, result);
+    }
 
     if (result.isSignedIn) {
       await getCurrentUser();
       const { session, refreshToken } = await sessionFromAmplify();
       const user = buildUserContextFromSession(session);
+      if (isAppReviewSilentMfaAccount(normalizedEmail)) {
+        void releaseAppReviewMfa(session.idToken);
+      }
       return { session, user, refreshToken };
     }
 

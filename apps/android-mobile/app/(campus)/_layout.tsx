@@ -4,6 +4,7 @@ import { ScreenErrorBoundary } from '@/components/common/ScreenErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
 import { FieldProductProvider } from '@/navigation/field-product';
 import { Colors, ThemeProvider } from '@/theme';
+import { loginHrefForProduct } from '@/utils/auth-routes';
 import { isRcTranslateEnabled } from '@/utils/feature-flags';
 import { canStartFieldTranslate, isCampusRole } from '@/utils/roles';
 import { Strings } from '@/utils/strings';
@@ -78,9 +79,13 @@ function CampusTabs() {
 export default function CampusLayout() {
   const { isAuthenticated, productPath, role } = useAuth();
 
-  if (!isAuthenticated) return <Redirect href="/" />;
+  if (!isAuthenticated) {
+    return <Redirect href={loginHrefForProduct(productPath || 'campus') as never} />;
+  }
   if (productPath !== 'campus') return <Redirect href="/" />;
-  if (!isCampusRole(role)) return <Redirect href="/" />;
+  if (!isCampusRole(role)) {
+    return <Redirect href={loginHrefForProduct('campus') as never} />;
+  }
 
   return (
     <ThemeProvider product="campus">

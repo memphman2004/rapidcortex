@@ -12,6 +12,7 @@ import { blockMobileAuthRequest } from "@/lib/auth/guards/blockMobileAuth";
 
 /**
  * Complete second factor after password auth (`SOFTWARE_TOKEN_MFA` or `SMS_MFA`).
+ * Email codes use `/api/auth/email-otp` (`EMAIL_OTP` / `EMAIL_MFA`).
  */
 export async function POST(request: Request) {
   const mobileBlock = blockMobileAuthRequest(request);
@@ -97,7 +98,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "Invalid MFA code. Use the current code from Google Authenticator for this account, or ask an admin to reset MFA so you can re-enroll.",
+            "Invalid MFA code. Use the current authenticator code for this account, or ask an admin to reset MFA so you can re-enroll.",
           code: name,
         },
         { status: 401 },
