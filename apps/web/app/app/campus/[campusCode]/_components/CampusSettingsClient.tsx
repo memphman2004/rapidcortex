@@ -347,8 +347,8 @@ export function CampusSettingsClient({
               </div>
             </Field>
             <Field
-              label="Institution type"
-              hint="Controls Clery vs K-12 Safety nav, visitor verification, and school dashboards."
+              label="Dashboard product (Campus vs Campus_k12)"
+              hint="University / College (Campus): Clery Act rails. K-12 (Campus_k12): Visitor/Pickup + school safety — no Clery. Same roles either way."
             >
               <div className="relative">
                 <select

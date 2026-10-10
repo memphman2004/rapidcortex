@@ -55,7 +55,17 @@ import type {
 } from "./map-types";
 import { DEFAULT_LAYER_VISIBILITY } from "./map-types";
 import { buildCallerPopupHTML, buildIncidentPopupHTML, incidentsToGeoJSON } from "./map-utils";
-import { MapLayerControl } from "./MapLayerControl";
+import { MapLayerControl, type GisLayerToggleItem } from "./MapLayerControl";
+import {
+  restoreGisOverlays,
+  upsertGisOverlay,
+  removeGisOverlay,
+  listGisLayerIds,
+  buildGisFeaturePopupHtml,
+  type GisOverlaySpec,
+} from "./gis-overlay";
+import { fetchGisDatasetGeoJson, listGisLayers } from "@/lib/gis/client";
+import { isGisEnabled } from "@/lib/runtime-flags";
 import { collectLiveCallers, isLiveCallerSource } from "@/lib/live-caller";
 import {
   applyLiveCallerOverlayVisibility,
@@ -261,6 +271,8 @@ export default function RapidCortexMapCore({
   sectionExtrusion = false,
   onPolygonFeatureClick,
   allowNamedMapFallback = false,
+  previewGeoJson = null,
+  enableGisLayers = true,
 }: RCMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef       = useRef<maplibregl.Map | null>(null);
@@ -271,6 +283,8 @@ export default function RapidCortexMapCore({
   });
   const incidentsRef = useRef<RCIncident[]>(incidents);
   const overlaysRef = useRef<RCOperationalOverlay[]>(operationalOverlays);
+  const gisSpecsRef = useRef<GisOverlaySpec[]>([]);
+  const [gisMenu, setGisMenu] = useState<GisLayerToggleItem[]>([]);
   const overlayClickRef = useRef(onOverlayClick);
   const polygonClickRef = useRef(onPolygonFeatureClick);
   const sectionsRef = useRef<GeoJSON.FeatureCollection>(sectionPolygons ?? EMPTY_SECTION_FC);
@@ -463,6 +477,7 @@ export default function RapidCortexMapCore({
         educationSelectRef.current(props, coordinates);
       });
       restoreLiveCallerLayers(map, layersRef.current, resolvedLiveCallers(), onLiveCallerSelect);
+      restoreGisOverlays(map, gisSpecsRef.current);
       trafficLayersRef.current = discoverTrafficLayerIds(map.getStyle()?.layers);
       promoteStudioOverlays(map);
       applyStudioVisibility(map, layersRef.current);
@@ -585,6 +600,7 @@ export default function RapidCortexMapCore({
         educationSelectRef.current(props, coordinates);
       });
       restoreLiveCallerLayers(map, layersRef.current, resolvedLiveCallers(), onLiveCallerSelect);
+      restoreGisOverlays(map, gisSpecsRef.current);
       trafficLayersRef.current = discoverTrafficLayerIds(map.getStyle()?.layers);
       promoteStudioOverlays(map);
       applyStudioVisibility(map, layersRef.current);
@@ -1028,6 +1044,149 @@ export default function RapidCortexMapCore({
     [persistUserId, vertical]
   );
 
+  const handleGisToggle = useCallback(async (datasetId: string, enabled: boolean) => {
+    const map = mapRef.current;
+    setGisMenu((prev) =>
+      prev.map((g) => (g.datasetId === datasetId ? { ...g, enabled } : g)),
+    );
+    if (!map) return;
+    if (!enabled) {
+      removeGisOverlay(map, datasetId);
+      gisSpecsRef.current = gisSpecsRef.current.filter((s) => s.datasetId !== datasetId);
+      return;
+    }
+    try {
+      const fc = await fetchGisDatasetGeoJson(datasetId);
+      const meta = gisMenu.find((g) => g.datasetId === datasetId);
+      const spec: GisOverlaySpec = {
+        datasetId,
+        name: meta?.name ?? datasetId,
+        color: meta?.color,
+        featureCollection: fc,
+      };
+      upsertGisOverlay(map, spec);
+      gisSpecsRef.current = [
+        ...gisSpecsRef.current.filter((s) => s.datasetId !== datasetId),
+        spec,
+      ];
+    } catch (e) {
+      console.warn("[RapidCortexMap] GIS layer load failed", e);
+      setGisMenu((prev) =>
+        prev.map((g) => (g.datasetId === datasetId ? { ...g, enabled: false } : g)),
+      );
+    }
+  }, [gisMenu]);
+
+  // Approved GIS catalog for the layer panel (ops map).
+  useEffect(() => {
+    if (!mapReady || !enableGisLayers || !isGisEnabled()) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const { layers: catalog } = await listGisLayers();
+        if (cancelled) return;
+        setGisMenu(
+          catalog.map((l) => ({
+            datasetId: l.datasetId,
+            name: l.name,
+            color: l.layerStyle?.color ?? "#38bdf8",
+            enabled: Boolean(l.layerStyle?.defaultVisible),
+          })),
+        );
+        const map = mapRef.current;
+        if (!map) return;
+        const defaults = catalog.filter((l) => l.layerStyle?.defaultVisible);
+        for (const l of defaults) {
+          try {
+            const fc = await fetchGisDatasetGeoJson(l.datasetId);
+            if (cancelled) return;
+            const spec: GisOverlaySpec = {
+              datasetId: l.datasetId,
+              name: l.name,
+              color: l.layerStyle?.color,
+              opacity: l.layerStyle?.opacity,
+              featureCollection: fc,
+            };
+            upsertGisOverlay(map, spec);
+            gisSpecsRef.current = [
+              ...gisSpecsRef.current.filter((s) => s.datasetId !== l.datasetId),
+              spec,
+            ];
+          } catch {
+            /* skip one layer */
+          }
+        }
+      } catch {
+        /* GIS unavailable — leave panel empty */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [mapReady, enableGisLayers]);
+
+  // Admin preview GeoJSON (temporary, restored with gisSpecsRef).
+  useEffect(() => {
+    const map = mapRef.current;
+    const previewId = "__preview__";
+    if (!mapReady || !map) return;
+    if (!previewGeoJson) {
+      removeGisOverlay(map, previewId);
+      gisSpecsRef.current = gisSpecsRef.current.filter((s) => s.datasetId !== previewId);
+      return;
+    }
+    const spec: GisOverlaySpec = {
+      datasetId: previewId,
+      name: "Preview",
+      color: "#f59e0b",
+      opacity: 0.4,
+      featureCollection: previewGeoJson,
+    };
+    upsertGisOverlay(map, spec);
+    gisSpecsRef.current = [
+      ...gisSpecsRef.current.filter((s) => s.datasetId !== previewId),
+      spec,
+    ];
+  }, [previewGeoJson, mapReady]);
+
+  // GIS feature click → provenance popup.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map) return;
+    const onGisClick = (e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) => {
+      const f = e.features?.[0];
+      if (!f) return;
+      const layerId = f.layer?.id ?? "";
+      const datasetId = layerId
+        .replace(/^rc-gis-(fill|line|circle)-/, "")
+        .trim();
+      if (!datasetId) return;
+      const meta = gisSpecsRef.current.find((s) => s.datasetId === datasetId);
+      popupRef.current?.remove();
+      popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: "280px" })
+        .setLngLat(e.lngLat)
+        .setHTML(
+          buildGisFeaturePopupHtml({
+            datasetId,
+            datasetName: meta?.name ?? datasetId,
+            properties: (f.properties ?? {}) as Record<string, unknown>,
+          }),
+        )
+        .addTo(map);
+    };
+    const layerIds = gisSpecsRef.current.flatMap((s) => listGisLayerIds(s.datasetId));
+    for (const id of layerIds) {
+      if (map.getLayer(id)) {
+        map.on("click", id, onGisClick);
+      }
+    }
+    return () => {
+      for (const id of layerIds) {
+        if (map.getLayer(id)) map.off("click", id, onGisClick);
+      }
+    };
+  }, [mapReady, gisMenu]);
+
   // ─── Incident click (kept current via ref for map listeners) ─────────────
 
   clickHandlerRef.current = (e) => {
@@ -1120,6 +1279,8 @@ export default function RapidCortexMapCore({
           layers={layers}
           onToggle={handleLayerToggle}
           vertical={vertical}
+          gisLayers={isGisEnabled() ? gisMenu : []}
+          onGisToggle={isGisEnabled() ? handleGisToggle : undefined}
         />
       )}
 

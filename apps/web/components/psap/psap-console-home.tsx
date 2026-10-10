@@ -1172,8 +1172,16 @@ function PsapConsoleHomeInner({
         </aside>
 
         {/* Main + right */}
-        <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", overflow: "hidden" }}>
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
             <header
               style={{
                 background: C.surface,
@@ -2335,6 +2343,12 @@ function PsapConsoleHomeInner({
                     );
                   })}
                 </div>
+
+                {!isDispatcher ? (
+                  <div style={{ marginTop: 8, minWidth: 0 }}>
+                    <IqReportingMount agencyId={agencyId} vertical="911" />
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
@@ -2344,6 +2358,8 @@ function PsapConsoleHomeInner({
             style={{
               width: 252,
               minWidth: 252,
+              maxWidth: 252,
+              flexShrink: 0,
               background: C.surface,
               borderLeft: `1px solid ${C.border}`,
               display: "flex",
@@ -2911,7 +2927,6 @@ function PsapConsoleHomeInner({
           style={{ display: "none" }}
           onChange={handleFile}
         />
-        {!isDispatcher ? <IqReportingMount agencyId={agencyId} vertical="911" /> : null}
       </div>
     </HelpChrome>
   );

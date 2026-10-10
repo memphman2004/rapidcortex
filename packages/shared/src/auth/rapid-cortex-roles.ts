@@ -1,9 +1,14 @@
 /**
  * Canonical NexCort iQ RBAC values (JWT `custom:role`, Dynamo user records, audits).
  *
- * Nine official roles — platform (`rc*`) and agency-scoped. Legacy Cognito values
- * normalize via {@link migrateLegacyRapidCortexRoleTokenValue} at token parse only.
+ * Platform (`rc*`), PSAP, and product verticals. Legacy Cognito values normalize via
+ * {@link migrateLegacyRapidCortexRoleTokenValue} at token parse only.
+ *
+ * Campus roles are product-suffixed: `*_k12` (school district) vs `*_highered` (university).
+ * Unsuffixed legacy tokens (`CAMPUS_ADMIN`, `campus_admin`) alias to the K-12 variant.
  */
+
+import type { CampusInstitutionType } from "../campus/institution-type.js";
 
 export const RAPID_CORTEX_ROLES = [
   "rcsuperadmin",
@@ -18,11 +23,18 @@ export const RAPID_CORTEX_ROLES = [
   "auditor",
   "hospitaladmin",
   "hospitalstaff",
-  "campus_admin",
-  "campus_supervisor",
-  "campus_security",
-  "campus_counselor",
-  "campus_faculty",
+  "campus_admin_k12",
+  "campus_admin_highered",
+  "campus_supervisor_k12",
+  "campus_supervisor_highered",
+  "campus_security_k12",
+  "campus_security_highered",
+  "campus_dispatch_k12",
+  "campus_dispatch_highered",
+  "campus_counselor_k12",
+  "campus_counselor_highered",
+  "campus_faculty_k12",
+  "campus_faculty_highered",
   "venue_admin",
   "venue_supervisor",
   "venue_security",
@@ -59,15 +71,133 @@ export const AGENCY_ASSIGNABLE_ROLES = [
 /** Hospital portal roles assignable by agency or hospital administrators. */
 export const HOSPITAL_ASSIGNABLE_ROLES = ["hospitaladmin", "hospitalstaff"] as const;
 
-/** Campus safety roles assignable by CAMPUS_ADMIN (and RC internal operators). */
+/** Campus safety roles assignable by campus admins (and RC internal operators). */
 export const CAMPUS_ASSIGNABLE_ROLES = [
+  "CAMPUS_ADMIN_K12",
+  "CAMPUS_SUPERVISOR_K12",
+  "CAMPUS_SECURITY_K12",
+  "CAMPUS_DISPATCH_K12",
+  "CAMPUS_ADMIN_HIGHERED",
+  "CAMPUS_SUPERVISOR_HIGHERED",
+  "CAMPUS_SECURITY_HIGHERED",
+  "CAMPUS_DISPATCH_HIGHERED",
+] as const;
+
+export type CampusAssignableRole = (typeof CAMPUS_ASSIGNABLE_ROLES)[number];
+
+/** Cognito / matrix family (product suffix stripped). */
+export const CAMPUS_ROLE_FAMILIES = [
+  "admin",
+  "supervisor",
+  "security",
+  "dispatch",
+  "counselor",
+  "faculty",
+] as const;
+
+export type CampusRoleFamily = (typeof CAMPUS_ROLE_FAMILIES)[number];
+
+/** Matrix / Cognito-family keys used by AuthorizationService (product-agnostic). */
+export const CAMPUS_MATRIX_ROLE_FAMILIES = [
   "CAMPUS_ADMIN",
   "CAMPUS_SUPERVISOR",
   "CAMPUS_SECURITY",
   "CAMPUS_DISPATCH",
+  "CAMPUS_COUNSELOR",
+  "CAMPUS_FACULTY",
 ] as const;
 
-export type CampusAssignableRole = (typeof CAMPUS_ASSIGNABLE_ROLES)[number];
+export type CampusMatrixRoleFamily = (typeof CAMPUS_MATRIX_ROLE_FAMILIES)[number];
+
+const CAMPUS_FAMILY_TO_MATRIX: Record<CampusRoleFamily, CampusMatrixRoleFamily> = {
+  admin: "CAMPUS_ADMIN",
+  supervisor: "CAMPUS_SUPERVISOR",
+  security: "CAMPUS_SECURITY",
+  dispatch: "CAMPUS_DISPATCH",
+  counselor: "CAMPUS_COUNSELOR",
+  faculty: "CAMPUS_FACULTY",
+};
+
+/** True when role is any campus product token (suffixed, legacy, or Cognito SCREAMING). */
+export function isCampusRoleToken(role: string | undefined | null): boolean {
+  const raw = (role ?? "").trim();
+  if (!raw) return false;
+  const lower = raw.toLowerCase().replace(/-/g, "_");
+  const upper = raw.toUpperCase().replace(/-/g, "_");
+  if (lower.startsWith("campus_")) return true;
+  if (upper.startsWith("CAMPUS_")) return true;
+  if (
+    lower === "campusadmin" ||
+    lower === "campussecurity" ||
+    lower === "campussupervisor" ||
+    lower === "campusfaculty" ||
+    lower === "campuscounselor" ||
+    lower === "campusdispatch"
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Dashboard product from role suffix.
+ * Unsuffixed legacy campus roles → `k12` (Camden-compatible).
+ * Non-campus roles → `null`.
+ */
+export function campusProductFromRole(
+  role: string | undefined | null,
+): CampusInstitutionType | null {
+  if (!isCampusRoleToken(role)) return null;
+  const normalized = (migrateLegacyRapidCortexRoleTokenValue(role ?? "") ?? role ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/-/g, "_");
+  if (normalized.endsWith("_highered") || normalized.includes("_highered_")) return "higher_ed";
+  if (normalized.endsWith("_k12") || normalized.includes("_k12_")) return "k12";
+  // Legacy unsuffixed → k12
+  if (normalized.startsWith("campus_")) return "k12";
+  return "k12";
+}
+
+/** Family segment: admin | supervisor | security | dispatch | counselor | faculty. */
+export function campusRoleFamily(role: string | undefined | null): CampusRoleFamily | null {
+  if (!isCampusRoleToken(role)) return null;
+  const normalized = (migrateLegacyRapidCortexRoleTokenValue(role ?? "") ?? role ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/-/g, "_");
+  // Strip product suffix
+  const base = normalized
+    .replace(/_highered$/, "")
+    .replace(/_k12$/, "")
+    .replace(/^campus_/, "");
+  if ((CAMPUS_ROLE_FAMILIES as readonly string[]).includes(base)) {
+    return base as CampusRoleFamily;
+  }
+  return null;
+}
+
+/** Map any campus token to matrix family key (`CAMPUS_ADMIN`, …). */
+export function campusMatrixRoleFromRole(
+  role: string | undefined | null,
+): CampusMatrixRoleFamily | null {
+  const family = campusRoleFamily(role);
+  if (!family) return null;
+  return CAMPUS_FAMILY_TO_MATRIX[family];
+}
+
+/** Cognito assignable roles for a campus agency product. */
+export function campusAssignableRolesForProduct(
+  product: CampusInstitutionType,
+): CampusAssignableRole[] {
+  const suffix = product === "k12" ? "_K12" : "_HIGHERED";
+  return CAMPUS_ASSIGNABLE_ROLES.filter((r) => r.endsWith(suffix));
+}
+
+/** True when actor is CAMPUS_ADMIN for either product (or legacy unsuffixed). */
+export function isCampusAdminRole(role: string | undefined | null): boolean {
+  return campusRoleFamily(role) === "admin";
+}
 
 /** Transit ops roles assignable by TRANSIT_ADMIN (and RC internal operators). */
 export const TRANSIT_ASSIGNABLE_ROLES = [
@@ -117,11 +247,25 @@ export const ROLE_LABELS: Record<string, string> = {
   auditor: "Auditor",
   hospitaladmin: "Hospital Admin",
   hospitalstaff: "Hospital Staff",
-  campus_admin: "Campus Admin",
-  campus_supervisor: "Campus Supervisor",
-  campus_security: "Campus Security",
-  campus_counselor: "Campus Counselor",
-  campus_faculty: "Campus Faculty",
+  campus_admin_k12: "Campus Admin (K-12)",
+  campus_admin_highered: "Campus Admin (Higher-ed)",
+  campus_supervisor_k12: "Campus Supervisor (K-12)",
+  campus_supervisor_highered: "Campus Supervisor (Higher-ed)",
+  campus_security_k12: "Campus Security (K-12)",
+  campus_security_highered: "Campus Security (Higher-ed)",
+  campus_dispatch_k12: "Campus Dispatch (K-12)",
+  campus_dispatch_highered: "Campus Dispatch (Higher-ed)",
+  campus_counselor_k12: "Campus Counselor (K-12)",
+  campus_counselor_highered: "Campus Counselor (Higher-ed)",
+  campus_faculty_k12: "Campus Faculty (K-12)",
+  campus_faculty_highered: "Campus Faculty (Higher-ed)",
+  // Legacy unsuffixed labels (pre-product split)
+  campus_admin: "Campus Admin (K-12)",
+  campus_supervisor: "Campus Supervisor (K-12)",
+  campus_security: "Campus Security (K-12)",
+  campus_dispatch: "Campus Dispatch (K-12)",
+  campus_counselor: "Campus Counselor (K-12)",
+  campus_faculty: "Campus Faculty (K-12)",
   venue_admin: "Venue Admin",
   venue_supervisor: "Venue Supervisor",
   venue_security: "Venue Security",
@@ -172,16 +316,40 @@ export const ROLE_DESCRIPTIONS: Record<string, string> = {
     "Hospital administrator. Updates live ER capacity for their facility and may invite hospital staff.",
   hospitalstaff:
     "Hospital staff. Updates live ER capacity and diversion status for their assigned facility.",
+  campus_admin_k12:
+    "K-12 campus administrator. User management, school safety, visitor/pickup, and district reporting.",
+  campus_admin_highered:
+    "Higher-ed campus administrator. User management, Clery documentation, zone configuration, and reporting.",
+  campus_supervisor_k12:
+    "K-12 campus supervisor. Live incident map, school safety reports, camera feeds, and escalations.",
+  campus_supervisor_highered:
+    "Higher-ed campus supervisor. Live incident map, active reports, camera feeds, and escalations.",
+  campus_security_k12:
+    "K-12 campus security officer. QR/SMS reports, visitor verification, and dispatch.",
+  campus_security_highered:
+    "Higher-ed campus security officer. QR/SMS reports, two-way chat, evidence intake, and dispatch.",
+  campus_dispatch_k12:
+    "K-12 campus dispatch / communications. Incident intake and radio coordination.",
+  campus_dispatch_highered:
+    "Higher-ed campus dispatch / communications. Incident intake and radio coordination.",
+  campus_counselor_k12:
+    "K-12 campus counselor. Welfare check queue, anonymous tip inbox, and chat-only workflows.",
+  campus_counselor_highered:
+    "Higher-ed campus counselor. Welfare check queue, anonymous tip inbox, and chat-only workflows.",
+  campus_faculty_k12:
+    "K-12 campus faculty. Submit-only portal for reports and pickup authorization status.",
+  campus_faculty_highered:
+    "Higher-ed campus faculty. Submit-only portal for reports and status on their own submissions.",
   campus_admin:
-    "Campus administrator. User management, Clery documentation, zone configuration, and reporting.",
+    "Campus administrator (legacy K-12). User management, school safety, and reporting.",
   campus_supervisor:
-    "Campus supervisor. Live incident map, active reports, camera feeds, and escalations.",
+    "Campus supervisor (legacy K-12). Live incident map, active reports, and escalations.",
   campus_security:
-    "Campus security officer. QR/SMS reports, two-way chat, evidence intake, and dispatch.",
+    "Campus security officer (legacy K-12). QR/SMS reports and dispatch.",
   campus_counselor:
-    "Campus counselor. Welfare check queue, anonymous tip inbox, and chat-only workflows.",
+    "Campus counselor (legacy K-12). Welfare check queue and tip inbox.",
   campus_faculty:
-    "Campus faculty. Submit-only portal for reports and status on their own submissions.",
+    "Campus faculty (legacy K-12). Submit-only portal for reports.",
   venue_admin:
     "Venue administrator. Zone setup, staff management, event configuration, and reporting.",
   venue_supervisor:
@@ -229,11 +397,18 @@ export const ROLE_DISPLAY_LABELS: Record<RapidCortexRole, string> = {
   rcadmin: ROLE_LABELS.rcadmin,
   rcitadmin: ROLE_LABELS.rcitadmin,
   salescontractor: ROLE_LABELS.salescontractor,
-  campus_admin: ROLE_LABELS.campus_admin,
-  campus_supervisor: ROLE_LABELS.campus_supervisor,
-  campus_security: ROLE_LABELS.campus_security,
-  campus_counselor: ROLE_LABELS.campus_counselor,
-  campus_faculty: ROLE_LABELS.campus_faculty,
+  campus_admin_k12: ROLE_LABELS.campus_admin_k12,
+  campus_admin_highered: ROLE_LABELS.campus_admin_highered,
+  campus_supervisor_k12: ROLE_LABELS.campus_supervisor_k12,
+  campus_supervisor_highered: ROLE_LABELS.campus_supervisor_highered,
+  campus_security_k12: ROLE_LABELS.campus_security_k12,
+  campus_security_highered: ROLE_LABELS.campus_security_highered,
+  campus_dispatch_k12: ROLE_LABELS.campus_dispatch_k12,
+  campus_dispatch_highered: ROLE_LABELS.campus_dispatch_highered,
+  campus_counselor_k12: ROLE_LABELS.campus_counselor_k12,
+  campus_counselor_highered: ROLE_LABELS.campus_counselor_highered,
+  campus_faculty_k12: ROLE_LABELS.campus_faculty_k12,
+  campus_faculty_highered: ROLE_LABELS.campus_faculty_highered,
   venue_admin: ROLE_LABELS.venue_admin,
   venue_supervisor: ROLE_LABELS.venue_supervisor,
   venue_security: ROLE_LABELS.venue_security,
@@ -333,16 +508,19 @@ export function isProductVerticalRoleToken(raw: string | undefined | null): bool
  * Normalize at JWT parse boundaries before PSAP fallback logic runs.
  */
 export const VERTICAL_ROLE_TOKEN_ALIASES: Record<string, RapidCortexRole> = {
-  campusadmin: "campus_admin",
-  campussecurity: "campus_security",
-  campussupervisor: "campus_supervisor",
-  campusfaculty: "campus_faculty",
-  campuscounselor: "campus_counselor",
-  "campus-admin": "campus_admin",
-  "campus-security": "campus_security",
-  "campus-supervisor": "campus_supervisor",
-  "campus-faculty": "campus_faculty",
-  "campus-counselor": "campus_counselor",
+  // Compact / hyphenated → K-12 (legacy unsuffixed seats)
+  campusadmin: "campus_admin_k12",
+  campussecurity: "campus_security_k12",
+  campussupervisor: "campus_supervisor_k12",
+  campusfaculty: "campus_faculty_k12",
+  campuscounselor: "campus_counselor_k12",
+  campusdispatch: "campus_dispatch_k12",
+  "campus-admin": "campus_admin_k12",
+  "campus-security": "campus_security_k12",
+  "campus-supervisor": "campus_supervisor_k12",
+  "campus-faculty": "campus_faculty_k12",
+  "campus-counselor": "campus_counselor_k12",
+  "campus-dispatch": "campus_dispatch_k12",
   venueadmin: "venue_admin",
   venuesecurity: "venue_security",
   venuesupervisor: "venue_supervisor",
@@ -406,12 +584,33 @@ export function migrateLegacyRapidCortexRoleTokenValue(raw: string | undefined):
   const t = raw.trim();
   const aliased = resolveVerticalRoleTokenAlias(t);
   if (aliased) return aliased;
-  // Campus / venue / hospital / transit product roles (Cognito may emit SCREAMING_SNAKE).
-  if (t === "CAMPUS_ADMIN") return "campus_admin";
-  if (t === "CAMPUS_SUPERVISOR") return "campus_supervisor";
-  if (t === "CAMPUS_SECURITY" || t === "CAMPUS_DISPATCH") return "campus_security";
-  if (t === "CAMPUS_COUNSELOR") return "campus_counselor";
-  if (t === "CAMPUS_FACULTY") return "campus_faculty";
+  // Campus product-suffixed Cognito groups (K-12 vs Higher-ed).
+  if (t === "CAMPUS_ADMIN_K12") return "campus_admin_k12";
+  if (t === "CAMPUS_ADMIN_HIGHERED") return "campus_admin_highered";
+  if (t === "CAMPUS_SUPERVISOR_K12") return "campus_supervisor_k12";
+  if (t === "CAMPUS_SUPERVISOR_HIGHERED") return "campus_supervisor_highered";
+  if (t === "CAMPUS_SECURITY_K12") return "campus_security_k12";
+  if (t === "CAMPUS_SECURITY_HIGHERED") return "campus_security_highered";
+  if (t === "CAMPUS_DISPATCH_K12") return "campus_dispatch_k12";
+  if (t === "CAMPUS_DISPATCH_HIGHERED") return "campus_dispatch_highered";
+  if (t === "CAMPUS_COUNSELOR_K12") return "campus_counselor_k12";
+  if (t === "CAMPUS_COUNSELOR_HIGHERED") return "campus_counselor_highered";
+  if (t === "CAMPUS_FACULTY_K12") return "campus_faculty_k12";
+  if (t === "CAMPUS_FACULTY_HIGHERED") return "campus_faculty_highered";
+  // Legacy unsuffixed campus Cognito groups → K-12 (Camden-compatible).
+  if (t === "CAMPUS_ADMIN") return "campus_admin_k12";
+  if (t === "CAMPUS_SUPERVISOR") return "campus_supervisor_k12";
+  if (t === "CAMPUS_SECURITY") return "campus_security_k12";
+  if (t === "CAMPUS_DISPATCH") return "campus_dispatch_k12";
+  if (t === "CAMPUS_COUNSELOR") return "campus_counselor_k12";
+  if (t === "CAMPUS_FACULTY") return "campus_faculty_k12";
+  // Legacy snake_case JWT without product suffix → K-12.
+  if (t === "campus_admin") return "campus_admin_k12";
+  if (t === "campus_supervisor") return "campus_supervisor_k12";
+  if (t === "campus_security") return "campus_security_k12";
+  if (t === "campus_dispatch") return "campus_dispatch_k12";
+  if (t === "campus_counselor") return "campus_counselor_k12";
+  if (t === "campus_faculty") return "campus_faculty_k12";
   if (t === "VENUE_ADMIN") return "venue_admin";
   if (t === "VENUE_SUPERVISOR") return "venue_supervisor";
   if (t === "VENUE_SECURITY") return "venue_security";

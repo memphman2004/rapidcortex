@@ -9,8 +9,10 @@ const MANAGE_ROLES = new Set([
   ...RC_PLATFORM_ROLES,
   "agencyadmin",
   "agencyit",
-  "campus_admin",
-  "campus_supervisor",
+  "campus_admin_k12",
+  "campus_admin_highered",
+  "campus_supervisor_k12",
+  "campus_supervisor_highered",
   "venue_admin",
   "venue_supervisor",
   "venue_operator",
@@ -24,7 +26,10 @@ const MANAGE_ROLES = new Set([
  */
 const NFC_PROGRAM_ROLES = new Set([
   ...MANAGE_ROLES,
-  "campus_security",
+  "campus_security_k12",
+  "campus_security_highered",
+  "campus_dispatch_k12",
+  "campus_dispatch_highered",
   "venue_security",
   "transit_security",
 ]);

@@ -1289,8 +1289,16 @@ function VenueConsoleHomeInner({
         </aside>
 
         {/* ══ MAIN + RIGHT ═══════════════════════════════════════════════════ */}
-        <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", overflow: "hidden" }}>
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
             <header
               style={{
                 background: C.surface,
@@ -2348,6 +2356,11 @@ function VenueConsoleHomeInner({
                     );
                   })}
                 </div>
+
+                {/* iQ reporting in scroll column — not a flex sibling that crushes the rails */}
+                <div style={{ marginTop: 8, minWidth: 0 }}>
+                  <IqReportingMount agencyId={agencyId} vertical="venue" />
+                </div>
               </div>
             </div>
           </div>
@@ -2357,6 +2370,8 @@ function VenueConsoleHomeInner({
             style={{
               width: 252,
               minWidth: 252,
+              maxWidth: 252,
+              flexShrink: 0,
               background: C.surface,
               borderLeft: `1px solid ${C.border}`,
               display: "flex",
@@ -3030,7 +3045,6 @@ function VenueConsoleHomeInner({
             onClose={() => setActiveIncident(null)}
           />
         ) : null}
-        <IqReportingMount agencyId={agencyId} vertical="venue" />
       </div>
     </HelpChrome>
   );

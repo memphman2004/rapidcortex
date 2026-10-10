@@ -1,6 +1,6 @@
+import { campusRoleFamily } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 
-const CAMPUS_SUPERVISOR_ROLES = new Set(["CAMPUS_SUPERVISOR", "CAMPUS_ADMIN"]);
 const VENUE_SUPERVISOR_ROLES = new Set(["VENUE_SUPERVISOR", "VENUE_ADMIN"]);
 const TRANSIT_SUPERVISOR_ROLES = new Set(["TRANSIT_SUPERVISOR", "TRANSIT_ADMIN"]);
 const TRANSIT_DISPATCH_ROLES = new Set([
@@ -14,7 +14,8 @@ export function canCampusSupervisorOps(role?: string): boolean {
   if (!token) return false;
   if (isRcInternalOperator(token)) return true;
   if (token.toLowerCase() === "agencyit") return true;
-  return CAMPUS_SUPERVISOR_ROLES.has(token.toUpperCase());
+  const family = campusRoleFamily(token);
+  return family === "admin" || family === "supervisor";
 }
 
 export function canVenueSupervisorOps(role?: string): boolean {

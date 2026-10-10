@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { dashboardRouteFromRole, normalizeRole } from "rapid-cortex-shared/auth/vertical-routing";
+import { isCampusAdminRole } from "rapid-cortex-shared/auth/rapid-cortex-roles";
+import { dashboardRouteFromRole } from "rapid-cortex-shared/auth/vertical-routing";
 import { CampusConsoleHome } from "@/components/campus/campus-console-home";
 import { extractCampusCode } from "@/lib/auth/post-login-redirect";
 import { resolveCampusDisplayName } from "@/lib/campus/campus-admin-page";
@@ -18,8 +19,7 @@ export default async function CampusAdminPage() {
     redirect("/login");
   }
 
-  const role = normalizeRole(user.role);
-  if (role !== "campus_admin") {
+  if (!isCampusAdminRole(user.role)) {
     redirect(dashboardRouteFromRole(user.role, user.agencyId));
   }
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { campusRoleFamily } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import {
   createWarRoom,
   fetchWarRooms,
@@ -28,9 +29,10 @@ export function CampusWarRoomLauncher({
   const qc = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const role = (user?.role ?? "").trim().toUpperCase();
+  const campusFamily = campusRoleFamily(user?.role);
   const canOpen =
-    role === "CAMPUS_ADMIN" ||
-    role === "CAMPUS_SUPERVISOR" ||
+    campusFamily === "admin" ||
+    campusFamily === "supervisor" ||
     role === "RCSUPERADMIN" ||
     role === "RCADMIN";
   const suggested = openWarRoom || incidentType === "active_threat";

@@ -93,16 +93,28 @@ export function dashboardRouteFromRole(role: UserRole | string, agencyId: string
     case "auditor":
       return `/${jurisdiction}/audit`;
     case "campus_admin":
+    case "campus_admin_k12":
+    case "campus_admin_highered":
       return "/app/campus/admin";
     case "campus_supervisor":
+    case "campus_supervisor_k12":
+    case "campus_supervisor_highered":
       return "/app/campus/supervisor";
     case "campus_security":
+    case "campus_security_k12":
+    case "campus_security_highered":
       return "/app/campus/security";
     case "campus_dispatch":
+    case "campus_dispatch_k12":
+    case "campus_dispatch_highered":
       return "/app/campus/dispatch";
     case "campus_counselor":
+    case "campus_counselor_k12":
+    case "campus_counselor_highered":
       return "/app/campus/counselor";
     case "campus_faculty":
+    case "campus_faculty_k12":
+    case "campus_faculty_highered":
       return "/app/campus/faculty";
     case "venue_admin":
       return venueCodeDashboardPath(agencyId);

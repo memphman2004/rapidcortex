@@ -1,3 +1,4 @@
+import { isCampusAdminRole } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import type { UserContext } from "rapid-cortex-shared/types";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import {
@@ -22,7 +23,7 @@ export function canAccessCampusOnboarding(
   orgCode: string,
 ): boolean {
   if (canAccessOnboardingAdmin(user)) return true;
-  if (user.role.trim().toUpperCase() !== "CAMPUS_ADMIN") return false;
+  if (!isCampusAdminRole(user.role)) return false;
   const userCode = extractCampusCode(user.agencyId ?? "");
   return userCode === normalizeOrgCode(orgCode);
 }

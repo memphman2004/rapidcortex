@@ -4,11 +4,12 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { UserPlus, MoreHorizontal, Mail, ShieldOff, Loader2, X, ChevronDown } from "lucide-react";
 import {
-  CAMPUS_ASSIGNABLE_ROLES,
   CAMPUS_ROLE_COLORS,
   CAMPUS_ROLE_LABELS,
+  campusAssignableRoleOptions,
   type CampusAssignableRole,
 } from "@/lib/campus/campus-access";
+import { useCampusInstitutionType } from "@/lib/campus/use-campus-institution";
 
 type CampusUser = {
   userId: string;
@@ -93,8 +94,11 @@ function StatusBadge({ status }: { status: CampusUser["status"] }) {
 
 function InviteModal({ agencyId, onClose }: { agencyId: string; onClose: () => void }) {
   const qc = useQueryClient();
+  const { institutionType } = useCampusInstitutionType();
+  const roleOptions = campusAssignableRoleOptions(institutionType);
+  const defaultRole = (roleOptions[2]?.value ?? roleOptions[0]?.value ?? "CAMPUS_SECURITY_K12") as CampusAssignableRole;
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<CampusAssignableRole>("CAMPUS_SECURITY");
+  const [role, setRole] = useState<CampusAssignableRole>(defaultRole);
   const [error, setError] = useState<string | null>(null);
 
   const mutation = useMutation({
@@ -165,7 +169,7 @@ function InviteModal({ agencyId, onClose }: { agencyId: string; onClose: () => v
                 onChange={(e) => setRole(e.target.value as CampusAssignableRole)}
                 className="w-full appearance-none rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
               >
-                {CAMPUS_ASSIGNABLE_ROLES.map((r) => (
+                {roleOptions.map((r) => (
                   <option key={r.value} value={r.value}>
                     {r.label}
                   </option>
@@ -174,7 +178,7 @@ function InviteModal({ agencyId, onClose }: { agencyId: string; onClose: () => v
               <ChevronDown className="pointer-events-none absolute right-3 top-2.5 h-4 w-4 text-slate-500" />
             </div>
             <p className="mt-1.5 text-xs text-slate-500">
-              {CAMPUS_ASSIGNABLE_ROLES.find((r) => r.value === role)?.description}
+              {roleOptions.find((r) => r.value === role)?.description}
             </p>
           </div>
 

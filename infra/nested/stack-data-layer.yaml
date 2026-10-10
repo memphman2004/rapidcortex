@@ -6398,6 +6398,66 @@
         },
         "Description": "iQ reporting daily aggregates table name"
       }
+    },
+    "GisDatasetsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-gis-datasets-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "gis"
+          },
+          {
+            "Key": "Feature",
+            "Value": "gis-intelligence-a1"
+          }
+        ]
+      }
     }
   },
   "Outputs": {
@@ -6858,7 +6918,7 @@
       }
     },
     "AnalyticsDailyTable": {
-      "Description": "Physical table name for iQ reporting daily aggregates (pk AGENCY#…#VERTICAL#… / sk DATE#yyyy-mm-dd)",
+      "Description": "Physical table name for iQ reporting daily aggregates (pk AGENCY#\u2026#VERTICAL#\u2026 / sk DATE#yyyy-mm-dd)",
       "Value": {
         "Ref": "AnalyticsDailyTable"
       }
@@ -7135,6 +7195,12 @@
       "Description": "Physical name for FreeTierRegistrations",
       "Value": {
         "Fn::Sub": "rapid-cortex-free-tier-registrations-${DeploymentStage}"
+      }
+    },
+    "GisDatasetsTable": {
+      "Description": "Physical table name for GisDatasetsTable (tenant GIS datasets)",
+      "Value": {
+        "Ref": "GisDatasetsTable"
       }
     }
   }

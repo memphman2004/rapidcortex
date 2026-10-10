@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
+import { CAMPUS_ASSIGNABLE_ROLES } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { requireCampusAdminApiAccess } from "@/lib/campus/campus-api-auth";
-import {
-  CAMPUS_ASSIGNABLE_ROLES,
-  type CampusAssignableRole,
-} from "@/lib/campus/campus-access";
+import type { CampusAssignableRole } from "@/lib/campus/campus-access";
 import { campusUpstreamFetch } from "@/lib/campus/campus-upstream";
 
 type Ctx = { params: Promise<{ agencyId: string }> };
 
-const ASSIGNABLE = new Set(CAMPUS_ASSIGNABLE_ROLES.map((r) => r.value));
+const ASSIGNABLE = new Set<string>(CAMPUS_ASSIGNABLE_ROLES);
 
 function randomTempPassword() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";

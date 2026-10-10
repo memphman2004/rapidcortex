@@ -103,9 +103,10 @@ describe("role → dashboard routing", () => {
   });
 
   describe("Campus product roles", () => {
-    it("normalizes CAMPUS_* tokens to canonical campus roles", () => {
-      expect(normalizeSessionRole("CAMPUS_ADMIN")).toBe("campus_admin");
-      expect(normalizeRole("CAMPUS_SECURITY")).toBe("campus_security");
+    it("normalizes CAMPUS_* tokens to product-suffixed campus roles", () => {
+      expect(normalizeSessionRole("CAMPUS_ADMIN")).toBe("campus_admin_k12");
+      expect(normalizeSessionRole("CAMPUS_ADMIN_HIGHERED")).toBe("campus_admin_highered");
+      expect(normalizeRole("CAMPUS_SECURITY")).toBe("campus_security_k12");
     });
 
     it("routes campus roles to role dashboards", () => {
@@ -114,7 +115,13 @@ describe("role → dashboard routing", () => {
       ).toBe("/app/campus/supervisor");
       expect(
         resolvePostAuthenticationHomeHref(user("CAMPUS_DISPATCH", "campus-westview"), slug),
-      ).toBe("/app/campus/security");
+      ).toBe("/app/campus/dispatch");
+      expect(
+        resolvePostAuthenticationHomeHref(
+          user("CAMPUS_ADMIN_HIGHERED", "test-campus-uga"),
+          slug,
+        ),
+      ).toBe("/app/campus/admin");
     });
 
     it("ignores mismatched JWT vertical when role is PSAP (prevents /app/campus redirect loop)", () => {

@@ -87,6 +87,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_LOCATION_MAP: process.env.NEXT_PUBLIC_ENABLE_LOCATION_MAP,
   NEXT_PUBLIC_ENABLE_MAP_HOSPITALS: process.env.NEXT_PUBLIC_ENABLE_MAP_HOSPITALS,
   NEXT_PUBLIC_ENABLE_MAP_EDUCATION: process.env.NEXT_PUBLIC_ENABLE_MAP_EDUCATION,
+  NEXT_PUBLIC_ENABLE_GIS: process.env.NEXT_PUBLIC_ENABLE_GIS,
   NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP: process.env.NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP,
   NEXT_PUBLIC_ENABLE_VENUE_OPERATIONAL_AWARENESS: process.env.NEXT_PUBLIC_ENABLE_VENUE_OPERATIONAL_AWARENESS,
   NEXT_PUBLIC_ENABLE_CAMPUS_OPERATIONAL_MAP: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_OPERATIONAL_MAP,
@@ -688,6 +689,11 @@ export function isMapHospitalsEnabled(): boolean {
 /** Dispatcher schools/campuses overlay (Places V2 SearchNearby). Default on when unset. */
 export function isMapEducationEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_MAP_EDUCATION");
+}
+
+/** GIS Intelligence (admin discover/approve + ops map layers). Default on when unset. */
+export function isGisEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_GIS");
 }
 
 /** NexCort Admin national cross-agency deployments map. Default on when unset. */

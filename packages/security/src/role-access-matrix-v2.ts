@@ -1038,11 +1038,18 @@ type CoreMatrixRole = keyof typeof CORE_ROLE_ACCESS_MATRIX_V2;
 
 /** Vertical product roles inherit grants from the closest core matrix role. */
 const VERTICAL_ROLE_MATRIX_BASE: Record<Exclude<MatrixRole, CoreMatrixRole>, CoreMatrixRole> = {
-  campus_admin: "agencyadmin",
-  campus_supervisor: "supervisor",
-  campus_security: "dispatcher",
-  campus_counselor: "analyst",
-  campus_faculty: "auditor",
+  campus_admin_k12: "agencyadmin",
+  campus_admin_highered: "agencyadmin",
+  campus_supervisor_k12: "supervisor",
+  campus_supervisor_highered: "supervisor",
+  campus_security_k12: "dispatcher",
+  campus_security_highered: "dispatcher",
+  campus_dispatch_k12: "dispatcher",
+  campus_dispatch_highered: "dispatcher",
+  campus_counselor_k12: "analyst",
+  campus_counselor_highered: "analyst",
+  campus_faculty_k12: "auditor",
+  campus_faculty_highered: "auditor",
   venue_admin: "agencyadmin",
   venue_supervisor: "supervisor",
   venue_security: "dispatcher",

@@ -31,6 +31,8 @@ export function normalizeAppPathname(pathname: string): string {
 export function salesContractorMayAccessPath(pathname: string): boolean {
   const path = normalizeAppPathname(pathname);
   if (path === "/sales" || path.startsWith("/sales/")) return true;
+  // Reference manuals linked from Document Library (middleware also uses canAccessAuthenticatedDocs).
+  if (path === "/docs" || path.startsWith("/docs/")) return true;
   return SALES_CONTRACTOR_RC_ADMIN_PATH_PREFIXES.some(
     (prefix) => path === prefix || path.startsWith(`${prefix}/`),
   );

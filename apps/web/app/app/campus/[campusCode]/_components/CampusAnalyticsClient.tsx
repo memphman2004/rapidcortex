@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CAMPUS_SITE_SCOPE_ALL } from "rapid-cortex-shared";
 import { useSession } from "@/components/auth/session-context";
 import { IqReportingMount } from "@/components/analytics/iq-reporting/IqReportingMount";
+import { useCampusInstitutionType } from "@/lib/campus/use-campus-institution";
 import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 
 type DateRange = "today" | "week" | "month";
@@ -40,6 +41,7 @@ function emptyAnalytics(): CampusAnalytics {
 
 export function CampusAnalyticsClient({ campusCode }: { campusCode: string }) {
   const { user } = useSession();
+  const { institutionType } = useCampusInstitutionType();
   const { scope } = useCampusSiteScope(user?.agencyId ?? "");
   const [range, setRange] = useState<DateRange>("today");
   const [data, setData] = useState<CampusAnalytics | null>(null);
@@ -212,7 +214,13 @@ export function CampusAnalyticsClient({ campusCode }: { campusCode: string }) {
           )}
         </ul>
       </section>
-      {user?.agencyId ? <IqReportingMount agencyId={user.agencyId} vertical="campus" /> : null}
+      {user?.agencyId ? (
+        <IqReportingMount
+          agencyId={user.agencyId}
+          vertical="campus"
+          institutionType={institutionType}
+        />
+      ) : null}
     </div>
   );
 }

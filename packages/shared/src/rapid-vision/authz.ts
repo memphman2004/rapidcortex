@@ -1,4 +1,7 @@
-import { migrateLegacyRapidCortexRoleTokenValue } from "../auth/rapid-cortex-roles.js";
+import {
+  campusMatrixRoleFromRole,
+  migrateLegacyRapidCortexRoleTokenValue,
+} from "../auth/rapid-cortex-roles.js";
 import { isRcInternalOperator, isRcsuperadmin } from "../tenancy/principal.js";
 import type { UserContext } from "../types.js";
 
@@ -8,6 +11,11 @@ function role(user: Pick<UserContext, "role">): string {
 
 function roleUpper(user: Pick<UserContext, "role">): string {
   return String(user.role ?? "").toUpperCase();
+}
+
+/** Prefer campus matrix family so `*_K12` / `*_HIGHERED` match family sets. */
+function verticalRoleKey(user: Pick<UserContext, "role">): string {
+  return campusMatrixRoleFromRole(user.role) ?? roleUpper(user);
 }
 
 function sameAgency(user: Pick<UserContext, "agencyId">, agencyId: string): boolean {
@@ -64,7 +72,7 @@ export function canViewVision(user: UserContext, agencyId: string): boolean {
   if (platformOverride(user)) return true;
   if (!sameAgency(user, agencyId)) return false;
   const r = role(user);
-  const u = roleUpper(user);
+  const u = verticalRoleKey(user);
   return VIEW_ROLES.has(r) || VERTICAL_VIEW.has(u);
 }
 
@@ -72,7 +80,7 @@ export function canRequestVisionAccess(user: UserContext, agencyId: string): boo
   if (platformOverride(user)) return true;
   if (!sameAgency(user, agencyId)) return false;
   const r = role(user);
-  const u = roleUpper(user);
+  const u = verticalRoleKey(user);
   return REQUEST_ROLES.has(r) || VERTICAL_VIEW.has(u);
 }
 
@@ -80,7 +88,7 @@ export function canVerifyVisionObservation(user: UserContext, agencyId: string):
   if (platformOverride(user)) return true;
   if (!sameAgency(user, agencyId)) return false;
   const r = role(user);
-  const u = roleUpper(user);
+  const u = verticalRoleKey(user);
   return VERIFY_ROLES.has(r) || VERTICAL_VERIFY.has(u);
 }
 
@@ -88,7 +96,7 @@ export function canAdminVision(user: UserContext, agencyId: string): boolean {
   if (platformOverride(user)) return true;
   if (!sameAgency(user, agencyId)) return false;
   const r = role(user);
-  const u = roleUpper(user);
+  const u = verticalRoleKey(user);
   return ADMIN_ROLES.has(r) || VERTICAL_ADMIN.has(u);
 }
 
@@ -115,6 +123,6 @@ export function canViewVisionSupervisorDashboard(user: UserContext, agencyId: st
   if (platformOverride(user)) return true;
   if (!sameAgency(user, agencyId)) return false;
   const r = role(user);
-  const u = roleUpper(user);
+  const u = verticalRoleKey(user);
   return SUPERVISOR_DASH_ROLES.has(r) || VERTICAL_SUPERVISOR_DASH.has(u);
 }

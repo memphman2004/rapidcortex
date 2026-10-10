@@ -1,6 +1,7 @@
 import { canonicalMonetizationPlanId, resolveFeatureEntitlements } from "../monetization/entitlements.js";
 import type { UserContext } from "../types.js";
 import { isRcInternalOperator } from "../tenancy/principal.js";
+import { isSalesContractorRole } from "./sales-contractor-access.js";
 
 /** Parsed from Cognito `custom:customerType` — drives dashboard vs NexCort Lite portal routing when set. */
 export type SessionCustomerType =
@@ -122,6 +123,16 @@ export function resolveSessionCustomerType(user: SessionProductExtras): SessionC
 function dashboardAccessViaLegacyField(dashboardAccess?: string): boolean {
   const d = dashboardAccess?.trim().toLowerCase() ?? "";
   return d === "all" || d.includes("dashboard") || d.includes("dispatcher") || d.includes("full_platform");
+}
+
+/**
+ * Static manuals under `/docs/*` (operations manual, QR setup PDF, help HTML).
+ * Sales contractors use these for enablement without a paid agency subscription claim.
+ */
+export function canAccessAuthenticatedDocs(user: SessionProductExtras | null | undefined): boolean {
+  if (!user) return false;
+  if (isSalesContractorRole(user.role)) return true;
+  return hasRapidCortexDashboardAccess(user);
 }
 
 /**

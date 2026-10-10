@@ -466,9 +466,11 @@ export const TRANSIT_OPERATOR_LAYOUT: RoleWidgetLayout = {
 /** Normalize JWT / legacy role tokens to layout config keys. */
 export function resolveWidgetLayoutRole(raw: string): string {
   const trimmed = raw.trim();
-  const upper = trimmed.toUpperCase();
+  const upper = trimmed.toUpperCase().replace(/-/g, "_");
 
-  if (upper.startsWith("CAMPUS_")) return upper;
+  if (upper.startsWith("CAMPUS_")) {
+    return upper.replace(/_HIGHERED$/, "").replace(/_K12$/, "");
+  }
   if (upper.startsWith("TRANSIT_")) return upper;
   if (upper === "VENUE_GUEST") return "VENUE_GUEST_SERVICES";
   if (upper.startsWith("VENUE_")) return upper;
@@ -477,6 +479,12 @@ export function resolveWidgetLayoutRole(raw: string): string {
   }
 
   const migrated = migrateLegacyRapidCortexRoleTokenValue(trimmed) ?? trimmed;
+  if (migrated.startsWith("campus_")) {
+    return migrated
+      .toUpperCase()
+      .replace(/_HIGHERED$/, "")
+      .replace(/_K12$/, "");
+  }
   if (migrated === "hospitaladmin") return "HOSPITAL_ADMIN";
   if (migrated === "hospitalstaff") return "HOSPITAL_STAFF";
   if (migrated === "venue_guest") return "VENUE_GUEST_SERVICES";

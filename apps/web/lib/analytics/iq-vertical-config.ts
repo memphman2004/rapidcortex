@@ -33,7 +33,8 @@ export const IQ_VERTICAL_CONFIGS: Record<IQVertical, IQVerticalConfig> = {
   campus: {
     name: "NC Campus",
     badge: "CAMPUS",
-    dashboards: "Campus admin and supervisor dashboards — not security or counselor workspaces",
+    dashboards:
+      "University / College campus admin and supervisor dashboards — not security or counselor workspaces",
     lineChartLabel: "Avg hourly reports",
     barBreakdownMetricPrefix: "src_",
     kpis: [

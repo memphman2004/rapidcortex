@@ -7,6 +7,7 @@ import {
   matchesCampusSiteScope,
   type CampusZoneSummary,
 } from "rapid-cortex-shared";
+import { campusRoleFamily } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import {
   createCampusZone,
@@ -19,9 +20,9 @@ import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 import { useCampusInstitutionType } from "@/lib/campus/use-campus-institution";
 
 function canManageCampusZones(role: string | undefined): boolean {
-  const token = (role ?? "").trim().toUpperCase();
-  if (isRcInternalOperator(token)) return true;
-  return token === "CAMPUS_ADMIN" || token === "CAMPUS_SUPERVISOR";
+  if (isRcInternalOperator(role ?? "")) return true;
+  const family = campusRoleFamily(role);
+  return family === "admin" || family === "supervisor";
 }
 
 export function CampusZonesClient({

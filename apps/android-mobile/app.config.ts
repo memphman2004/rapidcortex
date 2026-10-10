@@ -173,6 +173,19 @@ const config: ExpoConfig = {
           // SDK 53 defaults New Architecture on. First Play AAB stays on the
           // old architecture; 16 KB alignment comes from SDK 53 / RN 0.79 .so files.
           newArchEnabled: false,
+          // R8 minify embeds proguard.map in the AAB so Play can deobfuscate
+          // crashes (clears the "no deobfuscation file" Console warning).
+          enableProguardInReleaseBuilds: true,
+          extraProguardRules: [
+            '# Keep Amplify / Cognito reflection used by @aws-amplify/react-native',
+            '-keep class com.amazonaws.** { *; }',
+            '-keep class com.amplifyframework.** { *; }',
+            '-dontwarn com.amazonaws.**',
+            '-dontwarn com.amplifyframework.**',
+            '# NFC + BLE native bridges (Play v1 blocks BLE perms; keep class names)',
+            '-keep class com.reactnativenfc.** { *; }',
+            '-keep class com.bleplx.** { *; }',
+          ].join('\n'),
         },
       },
     ],

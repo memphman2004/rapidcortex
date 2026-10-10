@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  canAccessAuthenticatedDocs,
   hasActivePaidRelationship,
   hasRapidCortexDashboardAccess,
   hasRcLitePortalAccess,
@@ -105,5 +106,16 @@ describe("session-product access", () => {
     });
     expect(hasActivePaidRelationship(u)).toBe(true);
     expect(hasRapidCortexDashboardAccess(u)).toBe(true);
+  });
+
+  it("sales contractors can open /docs manuals without a paid plan claim", () => {
+    const u = baseUser({
+      role: "salescontractor",
+      agencyId: "__platform__",
+      planId: undefined,
+      isSubscriber: undefined,
+    });
+    expect(hasRapidCortexDashboardAccess(u)).toBe(false);
+    expect(canAccessAuthenticatedDocs(u)).toBe(true);
   });
 });

@@ -1,5 +1,6 @@
 import { isRcInternalOperator, isRcsuperadmin } from "rapid-cortex-shared/tenancy/principal";
 import type { UserContext } from "rapid-cortex-shared/types";
+import { campusMatrixRoleFromRole, isCampusAdminRole } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isCampusRole } from "./role-access-matrix-v2.js";
 
 /**
@@ -53,7 +54,10 @@ export class AgencyScopeResolver {
   static assertCanManageCampusSettings(user: UserContext, targetAgencyId: string): void {
     if (isRcsuperadmin(user) || isRcInternalOperator(user.role)) return;
     const role = user.role as string;
-    if (role === "CAMPUS_ADMIN" && user.agencyId === targetAgencyId) return;
+    if (isCampusAdminRole(role) && user.agencyId === targetAgencyId) return;
+    if (campusMatrixRoleFromRole(role) === "CAMPUS_ADMIN" && user.agencyId === targetAgencyId) {
+      return;
+    }
     const err = new Error("FORBIDDEN");
     (err as Error & { statusCode?: number }).statusCode = 403;
     throw err;
@@ -62,7 +66,12 @@ export class AgencyScopeResolver {
   static assertCanManageCampusStaff(user: UserContext, targetAgencyId: string): void {
     this.assertCanManageCampusSettings(user, targetAgencyId);
     const role = user.role as string;
-    if (isCampusRole(role) && role !== "CAMPUS_ADMIN") {
+    // Non-admin campus families cannot manage staff (settings assert already passed for admins).
+    if (
+      (isCampusRole(role) || campusMatrixRoleFromRole(role)) &&
+      !isCampusAdminRole(role) &&
+      campusMatrixRoleFromRole(role) !== "CAMPUS_ADMIN"
+    ) {
       const err = new Error("FORBIDDEN");
       (err as Error & { statusCode?: number }).statusCode = 403;
       throw err;

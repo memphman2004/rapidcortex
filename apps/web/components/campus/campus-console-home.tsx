@@ -33,6 +33,11 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import {
+  campusMatrixRoleFromRole,
+  campusRoleFamily,
+  isCampusAdminRole,
+} from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import { getZoneDefaults, matchesCampusSiteScope } from "rapid-cortex-shared";
 import { HelpChrome } from "@/components/help/help-chrome";
@@ -163,19 +168,18 @@ function firstName(displayName: string): string {
 }
 
 function roleSubtitle(role?: string): string {
-  const upper = (role ?? "").trim().toUpperCase();
-  switch (upper) {
-    case "CAMPUS_ADMIN":
+  switch (campusRoleFamily(role)) {
+    case "admin":
       return "Public Safety Dashboard";
-    case "CAMPUS_SUPERVISOR":
+    case "supervisor":
       return "Supervisor Dashboard";
-    case "CAMPUS_SECURITY":
+    case "security":
       return "Security Dashboard";
-    case "CAMPUS_DISPATCH":
+    case "dispatch":
       return "Dispatch Dashboard";
-    case "CAMPUS_FACULTY":
+    case "faculty":
       return "Faculty Safety Dashboard";
-    case "CAMPUS_COUNSELOR":
+    case "counselor":
       return "Counselor Dashboard";
     default:
       return "Public Safety Dashboard";
@@ -425,11 +429,11 @@ function CampusConsoleHomeInner({
   // Nav hrefs are rooted at /app/campus/{CODE} via getRoleNav (campusCode below).
   const codeUpper = campusCode.toUpperCase();
   const abbr = campusAbbr(codeUpper);
-  const isAdmin = (userRole ?? "").trim().toUpperCase() === "CAMPUS_ADMIN";
+  const isAdmin = isCampusAdminRole(userRole);
 
   const navRole = isRcInternalOperator(userRole ?? "")
     ? "CAMPUS_ADMIN"
-    : (userRole ?? "CAMPUS_SECURITY");
+    : (campusMatrixRoleFromRole(userRole) ?? userRole ?? "CAMPUS_SECURITY");
 
   const { institutionType } = useCampusInstitutionType();
   const isK12 = institutionType === "k12";
@@ -793,12 +797,12 @@ function CampusConsoleHomeInner({
     return openIncidents.slice(0, 8).map((inc) => ({
       id: inc.id,
       type: "error" as NotifType,
-      title: `Active Incident: ${inc.buildingLabel || "Campus"}`,
+      title: `Active Incident: ${inc.buildingLabel || (isK12 ? "School" : "Campus")}`,
       desc: mapIncidentType(inc.type),
       time: formatTimeAgo(inc.updatedAt || inc.createdAt),
       href: incidentsHref,
     }));
-  }, [openIncidents, incidentsHref]);
+  }, [openIncidents, incidentsHref, isK12]);
 
   const badgeForItem = (item: NavItem): number | null => {
     if (!item.badge || item.badge.type !== "count") return null;
@@ -930,7 +934,7 @@ function CampusConsoleHomeInner({
                     marginTop: 2,
                   }}
                 >
-                  CAMPUS
+                  {isK12 ? "K-12" : "UNIVERSITY"}
                 </div>
               </div>
             </div>
@@ -1106,8 +1110,16 @@ function CampusConsoleHomeInner({
         </aside>
 
         {/* ══ MAIN + RIGHT ═══════════════════════════════════════════════════ */}
-        <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", overflow: "hidden" }}>
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
             <header
               style={{
                 background: C.surface,
@@ -1424,7 +1436,7 @@ function CampusConsoleHomeInner({
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
                   gap: 12,
                   padding: "34px 16px 12px",
                 }}
@@ -1586,7 +1598,9 @@ function CampusConsoleHomeInner({
                               >
                                 {inc.buildingLabel}
                                 {inc.roomCode ? `, ${inc.roomCode}` : ""}
-                                {inc.cleryCategorySuggested ? " · Clery suggested (not filed)" : ""}
+                                {!isK12 && inc.cleryCategorySuggested
+                                  ? " · Clery suggested (not filed)"
+                                  : ""}
                                 {inc.eapChecklist?.title ? ` · EAP: ${inc.eapChecklist.title}` : ""}
                                 {inc.assignedTo === "campus_counselor" ? " · Counseling queue" : ""}
                               </div>
@@ -1893,7 +1907,13 @@ function CampusConsoleHomeInner({
                   </>
                 ) : null}
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                    gap: 10,
+                  }}
+                >
                   {(
                     [
                       {
@@ -2029,6 +2049,14 @@ function CampusConsoleHomeInner({
                   })}
                 </div>
 
+                {/* iQ reporting lives in the scroll column so it cannot crush the rails */}
+                <div style={{ marginTop: 8, minWidth: 0 }}>
+                  <IqReportingMount
+                    agencyId={agencyId}
+                    vertical="campus"
+                    institutionType={institutionType}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -2038,6 +2066,8 @@ function CampusConsoleHomeInner({
             style={{
               width: 252,
               minWidth: 252,
+              maxWidth: 252,
+              flexShrink: 0,
               background: C.surface,
               borderLeft: `1px solid ${C.border}`,
               display: "flex",
@@ -2157,7 +2187,7 @@ function CampusConsoleHomeInner({
                         letterSpacing: "0.7px",
                       }}
                     >
-                      CAMPUS SETUP CHECKLIST
+                      {isK12 ? "DISTRICT SETUP CHECKLIST" : "CAMPUS SETUP CHECKLIST"}
                     </span>
                     <span style={{ fontSize: 10.5, fontWeight: 700, color: C.amber }}>
                       {checklistPct}%
@@ -2223,7 +2253,8 @@ function CampusConsoleHomeInner({
                         textDecoration: "none",
                       }}
                     >
-                      Go to Campus Setup <ArrowRight size={12} strokeWidth={1.7} />
+                      {isK12 ? "Go to District Setup" : "Go to Campus Setup"}{" "}
+                      <ArrowRight size={12} strokeWidth={1.7} />
                     </Link>
                   ) : null}
                 </div>
@@ -2568,11 +2599,10 @@ function CampusConsoleHomeInner({
             canDispatch={false}
             onClose={clearActiveCameraIncident}
             apiVertical="campus"
-            locationNoun="Building"
+            locationNoun={isK12 ? "School" : "Building"}
             enableDispatchControls={false}
           />
         ) : null}
-        <IqReportingMount agencyId={agencyId} vertical="campus" />
       </div>
     </HelpChrome>
   );

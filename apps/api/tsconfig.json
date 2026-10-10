@@ -7,7 +7,7 @@
     "resolveJsonModule": true,
     "incremental": true,
     "tsBuildInfoFile": "./.tsbuildinfo",
-    "types": ["node", "aws-lambda"]
+    "types": ["node", "aws-lambda", "geojson"]
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.json"],
   "exclude": ["src/**/*.test.ts", "src/**/__tests__/**"]

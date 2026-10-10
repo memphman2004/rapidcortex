@@ -958,6 +958,16 @@ export const env = {
   ),
   enableMapHospitals: featureEnabled("ENABLE_MAP_HOSPITALS"),
   enableMapEducation: featureEnabled("ENABLE_MAP_EDUCATION"),
+  /** GIS Intelligence (discover/import/approve/layers). Default on when unset. */
+  enableGis: featureEnabled("ENABLE_GIS"),
+  /** When true, ArcGIS discover/import returns fixtures (CI / local). */
+  get gisMock(): boolean {
+    const v = process.env.GIS_MOCK?.trim().toLowerCase();
+    return v === "1" || v === "true";
+  },
+  get gisDatasetsTable(): string {
+    return process.env.GIS_DATASETS_TABLE?.trim() ?? "";
+  },
   get alsPlaceIndexName(): string {
     return process.env.ALS_PLACE_INDEX_NAME?.trim() ?? "";
   },

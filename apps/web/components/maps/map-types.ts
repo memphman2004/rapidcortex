@@ -173,6 +173,15 @@ export interface RCMapProps {
   /** Whether to render the floating layer-toggle control */
   showLayerControl?: boolean;
 
+  /**
+   * Temporary GeoJSON for admin GIS preview (not persisted as an approved layer).
+   * Cleared when undefined/null. Restored after ALS style switches.
+   */
+  previewGeoJson?: GeoJSON.FeatureCollection | null;
+
+  /** When false, skip fetching approved GIS layers for the ops map. Default true. */
+  enableGisLayers?: boolean;
+
   /** CSS height of the map container — default "100%" */
   height?: string;
 

@@ -476,6 +476,7 @@ export type AuditResourceType =
   | "cad_bridge_incident"
   | "call_assist"
   | "call_assist_session"
+  | "gis_dataset"
   | "context_card"
   | "command"
   | "vault"

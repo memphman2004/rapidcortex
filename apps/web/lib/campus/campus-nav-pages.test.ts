@@ -6,12 +6,23 @@ import { getRoleNav } from "@/lib/navigation/role-nav";
 
 const WEB_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const CAMPUS_ROLES = [
+  "CAMPUS_ADMIN_K12",
+  "CAMPUS_ADMIN_HIGHERED",
+  "CAMPUS_SUPERVISOR_K12",
+  "CAMPUS_SUPERVISOR_HIGHERED",
+  "CAMPUS_SECURITY_K12",
+  "CAMPUS_SECURITY_HIGHERED",
+  "CAMPUS_DISPATCH_K12",
+  "CAMPUS_DISPATCH_HIGHERED",
+  "CAMPUS_COUNSELOR_K12",
+  "CAMPUS_COUNSELOR_HIGHERED",
+  "CAMPUS_FACULTY_K12",
+  "CAMPUS_FACULTY_HIGHERED",
+  // Legacy unsuffixed (aliases → K-12)
   "CAMPUS_ADMIN",
   "CAMPUS_SUPERVISOR",
   "CAMPUS_SECURITY",
   "CAMPUS_DISPATCH",
-  "CAMPUS_COUNSELOR",
-  "CAMPUS_FACULTY",
 ] as const;
 
 function hrefToCampusPageFile(href: string): string | null {

@@ -99,6 +99,19 @@ export async function resolvePlainOrSecretArn(
   return pickFromObject(entry.value, opts?.preferredField);
 }
 
+/**
+ * Fetch a JSON secret by name or ARN and return the parsed object.
+ * Reuses the same Secrets Manager client + 5-minute cache as
+ * {@link resolvePlainOrSecretArn} — do not add a second SM client.
+ */
+export async function getSecret<T>(secretName: string): Promise<T> {
+  const id = secretName.trim();
+  if (!id) throw new Error("Secret name is empty");
+  const entry = await readCachedSecret(id);
+  if (entry.kind === "object") return entry.value as T;
+  throw new Error(`Secret ${id} is not a JSON object`);
+}
+
 export function clearRuntimeSecretsCacheForTests(): void {
   invalidateRuntimeSecretsCache();
 }

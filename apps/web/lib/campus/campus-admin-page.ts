@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { AgencyTenant } from "rapid-cortex-shared";
+import { isCampusAdminRole } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import { COOKIE_ID_TOKEN } from "@/lib/auth/cookies";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
@@ -41,7 +42,8 @@ function resolveAgencyIdForCampusPage(
 ): string | null {
   const userCode = userCampusCode(user);
 
-  if (user.role.toUpperCase() === "CAMPUS_ADMIN" && userCode === campusCode && user.agencyId) {
+  // Campus admin (either product suffix, or legacy unsuffixed → K-12).
+  if (isCampusAdminRole(user.role) && userCode === campusCode && user.agencyId) {
     return user.agencyId;
   }
   if (isRcInternalOperator(user.role)) {

@@ -64,11 +64,19 @@ export function IQReportingPanel({
   agencyId,
   vertical: initialVertical,
   user,
+  institutionType,
+  showVerticalSwitcher = false,
 }: IQReportingPanelProps) {
   if (!canViewIQReporting(user, agencyId)) return null;
 
   return (
-    <IQReportingPanelInner agencyId={agencyId} vertical={initialVertical} user={user} />
+    <IQReportingPanelInner
+      agencyId={agencyId}
+      vertical={initialVertical}
+      user={user}
+      institutionType={institutionType}
+      showVerticalSwitcher={showVerticalSwitcher}
+    />
   );
 }
 
@@ -76,22 +84,44 @@ function IQReportingPanelInner({
   agencyId,
   vertical: initialVertical,
   user: _user,
+  institutionType,
+  showVerticalSwitcher = false,
 }: IQReportingPanelProps) {
   const [activeVertical, setActiveVertical] = useState<IQVertical>(initialVertical);
   const [range, setRange] = useState<IQTimeRange>("month");
   const [publicSafe, setPublicSafe] = useState(false);
   const [compare, setCompare] = useState(false);
   const [exportHint, setExportHint] = useState<string | null>(null);
+  // Product vertical consoles stay locked; RC switcher can change tabs.
+  const reportingVertical = showVerticalSwitcher ? activeVertical : initialVertical;
   const { records, prior, loading, error, refresh } = useIQReportingData(
     agencyId,
-    activeVertical,
+    reportingVertical,
     range,
     compare,
   );
 
-  const config = IQ_VERTICAL_CONFIGS[activeVertical];
-  const accentForVertical = IQ_VERTICAL_ACCENT[activeVertical];
-  const kpis = publicSafe ? config.kpis.filter((k) => !k.internalOnly) : config.kpis;
+  const baseConfig = IQ_VERTICAL_CONFIGS[reportingVertical];
+  const isCampusK12 = reportingVertical === "campus" && institutionType === "k12";
+  const config = useMemo(() => {
+    if (!isCampusK12) return baseConfig;
+    return {
+      ...baseConfig,
+      name: "NC K-12",
+      badge: "K-12",
+      dashboards:
+        "K-12 district admin and supervisor dashboards — not security or counselor workspaces",
+    };
+  }, [baseConfig, isCampusK12]);
+  const accentForVertical = IQ_VERTICAL_ACCENT[reportingVertical];
+  const kpis = useMemo(() => {
+    let list = publicSafe ? config.kpis.filter((k) => !k.internalOnly) : config.kpis;
+    // University / College keeps Clery; K-12 school districts do not.
+    if (isCampusK12) {
+      list = list.filter((k) => k.key !== "clery_eligible_count");
+    }
+    return list;
+  }, [config.kpis, isCampusK12, publicSafe]);
 
   const hourlyData = useMemo(() => {
     const sums = aggregateHourlyBuckets(records);
@@ -106,26 +136,30 @@ function IQReportingPanelInner({
 
   return (
     <section style={{ marginTop: 24, fontFamily: FONT, color: C.text }}>
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
-        {IQ_VERTICAL_ORDER.map((id) => {
-          const active = id === activeVertical;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setActiveVertical(id)}
-              style={{
-                ...tabBtn,
-                borderColor: active ? IQ_VERTICAL_ACCENT[id] : C.border,
-                color: active ? C.text : C.muted,
-                background: active ? C.card : "transparent",
-              }}
-            >
-              {IQ_VERTICAL_CONFIGS[id].name}
-            </button>
-          );
-        })}
-      </div>
+      {showVerticalSwitcher ? (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+          {IQ_VERTICAL_ORDER.map((id) => {
+            const active = id === reportingVertical;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setActiveVertical(id)}
+                style={{
+                  ...tabBtn,
+                  borderColor: active ? IQ_VERTICAL_ACCENT[id] : C.border,
+                  color: active ? C.text : C.muted,
+                  background: active ? C.card : "transparent",
+                }}
+              >
+                {id === "campus" && institutionType === "k12"
+                  ? "NC K-12"
+                  : IQ_VERTICAL_CONFIGS[id].name}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
 
       <div
         style={{

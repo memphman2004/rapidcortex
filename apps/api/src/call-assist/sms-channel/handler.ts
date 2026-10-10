@@ -39,6 +39,7 @@ import {
   processInboundMedia,
 } from "./media-handler.js";
 import { claimMediaForConfirmation } from "./media-store.js";
+import type { MmsMediaItem, SmsInboundMessage } from "./types.js";
 import {
   fromEnglishToCitizen,
   smsTranslateEnabled,

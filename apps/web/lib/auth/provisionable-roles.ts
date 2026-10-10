@@ -5,6 +5,9 @@ import {
   RAPID_CORTEX_ROLES,
   TRANSIT_ASSIGNABLE_ROLES,
   CALL_ASSIST_ASSIGNABLE_ROLES,
+  campusAssignableRolesForProduct,
+  campusProductFromRole,
+  isCampusAdminRole,
   type RapidCortexRole,
 } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import type { UserRole } from "rapid-cortex-shared/types";
@@ -27,14 +30,16 @@ export function provisionableRolesForActor(actorRole: UserRole | string): string
       ...AGENCY_ASSIGNABLE_ROLES,
       ...HOSPITAL_ASSIGNABLE_ROLES,
       ...CALL_ASSIST_ASSIGNABLE_ROLES,
+      ...CAMPUS_ASSIGNABLE_ROLES,
       ...RC_INTERNAL_ASSIGNABLE,
     ];
   }
   if (actor === "agencyadmin") {
     return [...AGENCY_ASSIGNABLE_ROLES, ...HOSPITAL_ASSIGNABLE_ROLES];
   }
-  if (token === "CAMPUS_ADMIN") {
-    return [...CAMPUS_ASSIGNABLE_ROLES];
+  if (isCampusAdminRole(actorRole)) {
+    const product = campusProductFromRole(actorRole) ?? "k12";
+    return [...campusAssignableRolesForProduct(product)];
   }
   if (token === "TRANSIT_ADMIN") {
     return [...TRANSIT_ASSIGNABLE_ROLES];

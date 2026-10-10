@@ -25,6 +25,7 @@ import {
 } from "rapid-cortex-shared";
 import type { UserContext } from "rapid-cortex-shared/types";
 import {
+  canAccessAuthenticatedDocs,
   hasRapidCortexDashboardAccess,
   hasRcLitePortalAccess,
 } from "rapid-cortex-shared/auth/session-product";
@@ -486,7 +487,9 @@ async function guardAuthenticatedDocs(request: NextRequest): Promise<NextRespons
     resolveRedirectUrl("/change-password", request),
   );
   if (docsRenewal) return docsRenewal;
-  if (!hasRapidCortexDashboardAccess(user)) {
+  // Sales contractors (and paid dashboard subscribers) may open /docs manuals.
+  // Do not require agency subscription claims — sales JWTs often omit planId.
+  if (!canAccessAuthenticatedDocs(user)) {
     if (hasRcLitePortalAccess(user)) {
       const portal = resolveRedirectUrl("/rc-lite/portal", request);
       portal.searchParams.set("from", `${pathname}${request.nextUrl.search}`);

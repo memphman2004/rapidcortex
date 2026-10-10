@@ -23,8 +23,10 @@ const ALLOWED_ROLES = new Set([
   "agencyadmin",
   "supervisor",
   "agencyit",
-  "campus_admin",
-  "campus_supervisor",
+  "campus_admin_k12",
+  "campus_admin_highered",
+  "campus_supervisor_k12",
+  "campus_supervisor_highered",
   "venue_admin",
   "venue_supervisor",
   "transit_admin",
@@ -33,6 +35,7 @@ const ALLOWED_ROLES = new Set([
   "hospitaladmin",
   "hospital_supervisor",
   "rcsuperadmin",
+  "rcadmin",
 ]);
 
 /**
@@ -42,9 +45,14 @@ const ALLOWED_ROLES = new Set([
 const DENIED_ROLES = new Set([
   "dispatcher",
   "call_taker",
-  "campus_security",
-  "campus_counselor",
-  "campus_faculty",
+  "campus_security_k12",
+  "campus_security_highered",
+  "campus_dispatch_k12",
+  "campus_dispatch_highered",
+  "campus_counselor_k12",
+  "campus_counselor_highered",
+  "campus_faculty_k12",
+  "campus_faculty_highered",
   "venue_security",
   "venue_operator",
   "venue_guest",
@@ -59,7 +67,8 @@ const DENIED_ROLES = new Set([
 export function canViewIQReporting(user: UserContext, agencyId: string): boolean {
   const role = normalizedRole(user);
   if (DENIED_ROLES.has(role)) return false;
-  if (isRcsuperadmin(user) && role === "rcsuperadmin") return true;
+  // RC platform operators may view cross-agency / platform iQ reporting.
+  if (role === "rcsuperadmin" || role === "rcadmin" || isRcsuperadmin(user)) return true;
   if (!sameAgency(user, agencyId)) return false;
   return ALLOWED_ROLES.has(role);
 }

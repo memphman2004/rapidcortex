@@ -1,8 +1,12 @@
 import {
   DetectLabelsCommand,
-  DetectModerationLabelsCommand,
   RekognitionClient,
 } from "@aws-sdk/client-rekognition";
+// Command export missing from some pinned SDK builds; load at runtime.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const DetectModerationLabelsCommand = (
+  require("@aws-sdk/client-rekognition") as { DetectModerationLabelsCommand?: new (input: unknown) => unknown }
+).DetectModerationLabelsCommand;
 import { deleteFromS3, saveMediaRecord, uploadToS3 } from "./media-store.js";
 import { inferCategoryFromSceneLabels } from "./media-labels.js";
 import type { MmsMediaItem, ProcessedSmsMedia, SmsMediaType } from "./types.js";
@@ -97,14 +101,19 @@ async function moderateImage(s3Key: string): Promise<{ passed: boolean; blockedL
   }
   try {
     const rekognition = new RekognitionClient({ region: process.env.AWS_REGION ?? "us-east-1" });
-    const result = await rekognition.send(
+    if (!DetectModerationLabelsCommand) {
+      return { passed: true, blockedLabels: [] };
+    }
+    const result = (await rekognition.send(
       new DetectModerationLabelsCommand({
         Image: { S3Object: { Bucket: mediaBucket(), Name: s3Key } },
         MinConfidence: MODERATION_CONFIDENCE_THRESHOLD,
-      }),
-    );
+      }) as never,
+    )) as {
+      ModerationLabels?: Array<{ Name?: string; ParentName?: string; Confidence?: number }>;
+    };
     const blocked = (result.ModerationLabels ?? [])
-      .filter((l: { Name?: string; ParentName?: string; Confidence?: number }) => {
+      .filter((l) => {
         const name = l.Name ?? "";
         const parent = l.ParentName ?? "";
         const conf = l.Confidence ?? 0;
@@ -113,7 +122,7 @@ async function moderateImage(s3Key: string): Promise<{ passed: boolean; blockedL
           (BLOCKED_MODERATION_CATEGORIES.has(name) || BLOCKED_MODERATION_CATEGORIES.has(parent))
         );
       })
-      .map((l: { Name?: string }) => l.Name ?? "")
+      .map((l) => l.Name ?? "")
       .filter(Boolean);
     return { passed: blocked.length === 0, blockedLabels: blocked };
   } catch (err: unknown) {

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { CAMPUS_INSTITUTION_LABELS, buildPsapAvailabilityNotice } from "rapid-cortex-shared";
+import { campusMatrixRoleFromRole } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
 import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
 import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
@@ -48,7 +49,10 @@ export function CampusShellHeader({
   leadingSlot?: ReactNode;
 }) {
   const { institutionType } = useCampusInstitutionType();
-  const badges = roleBadgeMap[role.trim().toUpperCase()];
+  const familyKey =
+    campusMatrixRoleFromRole(role) ??
+    role.trim().toUpperCase().replace(/_K12$/, "").replace(/_HIGHERED$/, "");
+  const badges = roleBadgeMap[familyKey];
   const badge = badges?.[institutionType] ?? role;
   const abbr = crestAbbr(campusCode);
   const { scope, setScope, sites } = useCampusSiteScope(agencyId ?? "");

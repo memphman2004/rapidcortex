@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { DocumentLibraryOpenHelp } from "@/components/help/document-library-open-help";
 import { FeatureArchitectureMaps } from "@/components/help/feature-architecture-maps";
 import {
   marketingCompleteManualPath,
@@ -65,16 +65,7 @@ export function DocumentLibraryClient({
               <span className="mt-3 inline-block text-xs text-sky-400">Open →</span>
             </a>
           ))}
-          <Link
-            href="/help"
-            className="rounded-xl border border-slate-800 bg-slate-900/35 p-4 transition hover:border-slate-600 hover:bg-slate-900/55"
-          >
-            <div className="text-sm font-semibold text-white">Role help articles</div>
-            <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
-              Open the in-app Help &amp; Documentation panel for role-specific how-to guides.
-            </p>
-            <span className="mt-3 inline-block text-xs text-sky-400">Open →</span>
-          </Link>
+          <DocumentLibraryOpenHelp />
         </div>
       </section>
     </div>

@@ -181,7 +181,25 @@ export const CATEGORIES_BY_ROLE: Record<string, SupportCategory[]> = {
 };
 
 export function categoriesForRole(role: string): SupportCategory[] {
-  return CATEGORIES_BY_ROLE[role] ?? CATEGORIES_BY_ROLE._default ?? ["technical", "other"];
+  const direct = CATEGORIES_BY_ROLE[role];
+  if (direct) return direct;
+  // Campus product-suffixed roles share family categories.
+  const upper = role.trim().toUpperCase().replace(/-/g, "_");
+  if (upper.startsWith("CAMPUS_")) {
+    const family = upper.replace(/_HIGHERED$/, "").replace(/_K12$/, "");
+    const byFamily = CATEGORIES_BY_ROLE[family];
+    if (byFamily) return byFamily;
+  }
+  const snake = role.trim().toLowerCase().replace(/-/g, "_");
+  if (snake.startsWith("campus_")) {
+    const family = snake
+      .replace(/_highered$/, "")
+      .replace(/_k12$/, "")
+      .toUpperCase();
+    const byFamily = CATEGORIES_BY_ROLE[family];
+    if (byFamily) return byFamily;
+  }
+  return CATEGORIES_BY_ROLE._default ?? ["technical", "other"];
 }
 
 export const CHANNEL_LABELS: Record<string, string> = {

@@ -46,6 +46,7 @@ import {
   isLoadoutPortalEnabled,
   isCommandIntelligenceEnabled,
   isNexiqVaultEnabled,
+  isGisEnabled,
 } from "@/lib/runtime-flags";
 import { isVerticalEnabled } from "@/lib/features";
 
@@ -148,6 +149,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isIqReportingEnabled();
     case "loadout":
       return isLoadoutPortalEnabled();
+    case "gis":
+      return isGisEnabled();
     default:
       return true;
   }

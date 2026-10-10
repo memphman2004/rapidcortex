@@ -1,4 +1,8 @@
-import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
+import {
+  campusMatrixRoleFromRole,
+  isCampusAdminRole,
+  migrateLegacyRapidCortexRoleTokenValue,
+} from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import { roleMayAccessQrNav } from "@/lib/locations/qr-access";
 import { normalizeVenueRole } from "@/lib/venue/venue-dashboard-sections";
@@ -138,7 +142,9 @@ const CAMPUS_NAV_BY_ROLE: Record<string, readonly string[]> = {
 };
 
 export function campusNavKeysForRole(role: string | undefined | null): readonly string[] {
-  const upper = (role ?? "").trim().toUpperCase();
+  const family = campusMatrixRoleFromRole(role);
+  if (family && family in CAMPUS_NAV_BY_ROLE) return CAMPUS_NAV_BY_ROLE[family];
+  const upper = (role ?? "").trim().toUpperCase().replace(/_K12$/, "").replace(/_HIGHERED$/, "");
   if (upper in CAMPUS_NAV_BY_ROLE) return CAMPUS_NAV_BY_ROLE[upper];
   const migrated = migrateLegacyRapidCortexRoleTokenValue(role ?? "") ?? role ?? "";
   if (migrated === "agencyadmin") return CAMPUS_NAV_BY_ROLE.CAMPUS_ADMIN;
@@ -152,7 +158,7 @@ export function campusNavKeysForRole(role: string | undefined | null): readonly 
 export function canViewCampusNavItem(key: string, role: string | undefined | null): boolean {
   if (isRcInternalOperator(role ?? "")) return true;
   if (key === "users" || key === "settings") {
-    return (role ?? "").trim().toUpperCase() === "CAMPUS_ADMIN";
+    return isCampusAdminRole(role);
   }
   return campusNavKeysForRole(role).includes(key);
 }

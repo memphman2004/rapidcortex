@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { campusRoleFamily } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { CampusCamerasClient } from "./campus-cameras-client";
 import { VenueCamerasSettingsClient } from "@/components/venue/venue-cameras-settings-client";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
@@ -15,9 +16,10 @@ export default async function CampusCamerasPage({
   }
 
   const role = user.role.trim().toUpperCase();
+  const family = campusRoleFamily(user.role);
   const canManageRegistry =
-    role === "CAMPUS_ADMIN" ||
-    role === "CAMPUS_SUPERVISOR" ||
+    family === "admin" ||
+    family === "supervisor" ||
     role === "RCSUPERADMIN" ||
     role === "RCADMIN";
 

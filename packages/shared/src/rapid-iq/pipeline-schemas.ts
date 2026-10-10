@@ -33,6 +33,7 @@ export const RAPID_IQ_PIPELINE_SOURCE_IDS = [
   "watch-rss",
   "manual-url",
   "chatgpt-watch",
+  "nexiq-intel",
 ] as const;
 export type RapidIqPipelineSourceId = (typeof RAPID_IQ_PIPELINE_SOURCE_IDS)[number];
 
@@ -529,6 +530,7 @@ export const RAPID_IQ_PIPELINE_SOURCE_LABELS: Record<RapidIqPipelineSourceId, st
   "watch-rss": "Agency Watch RSS",
   "manual-url": "Manual URL",
   "chatgpt-watch": "ChatGPT Watch",
+  "nexiq-intel": "NexiQ Intel",
 };
 
 /** ChatGPT Watch → NexiQ Inbox ingest (machine auth; does not auto-create Leads). */

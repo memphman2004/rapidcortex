@@ -1,3 +1,4 @@
+import { campusRoleFamily } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import type { UserContext } from "rapid-cortex-shared/types";
 import { canManageQrLocations, canViewQrLocations } from "rapid-cortex-security";
 
@@ -26,10 +27,15 @@ export function roleMayAccessQrNav(role: string | undefined | null): boolean {
   if (normalized === "rcsuperadmin" || normalized === "rcadmin" || normalized === "rcitadmin") {
     return true;
   }
-  const upper = (role ?? "").trim().toUpperCase();
-  if (upper === "CAMPUS_ADMIN" || upper === "CAMPUS_SUPERVISOR" || upper === "CAMPUS_SECURITY") {
+  const campusFamily = campusRoleFamily(role);
+  if (
+    campusFamily === "admin" ||
+    campusFamily === "supervisor" ||
+    campusFamily === "security"
+  ) {
     return true;
   }
+  const upper = (role ?? "").trim().toUpperCase();
   if (
     upper === "VENUE_ADMIN" ||
     upper === "VENUE_SUPERVISOR" ||

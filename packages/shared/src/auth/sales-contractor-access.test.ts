@@ -21,6 +21,8 @@ describe("salesContractorMayAccessPath", () => {
     expect(salesContractorMayAccessPath("/rc-admin/contacts")).toBe(true);
     expect(salesContractorMayAccessPath("/rc-admin/sales-automation")).toBe(true);
     expect(salesContractorMayAccessPath("/rc-admin/nexiq/intel/sources")).toBe(true);
+    expect(salesContractorMayAccessPath("/docs/rapidcortex-complete-manual.html")).toBe(true);
+    expect(salesContractorMayAccessPath("/docs/RC_NFC_QR_Setup_Guide.pdf")).toBe(true);
     expect(salesContractorMayAccessPath("/rc-admin/billing")).toBe(false);
     expect(salesContractorMayAccessPath("/rc-admin/users")).toBe(false);
   });

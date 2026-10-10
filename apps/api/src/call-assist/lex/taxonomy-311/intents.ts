@@ -1210,7 +1210,7 @@ export const INTENTS: IntentDefinition[] = [
   },
 
 ].map((intent): IntentDefinition => ({
-  ...intent,
+  ...(intent as IntentDefinition),
   sampleUtterances: mergeUtterances(intent.sampleUtterances, EXHAUSTIVE_UTTERANCES[intent.name]),
 }));
 

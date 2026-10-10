@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { campusRoleFamily } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { canViewCampusNavItem } from "@/lib/venue/venue-nav-access";
 import { CampusIncidentQueueHome } from "../_components/campus-incident-queue-home";
@@ -14,7 +15,7 @@ export default async function CampusIncidentsPage({
   if (!canViewCampusNavItem("incidents", role)) {
     redirect(`/app/campus/${campusCode}`);
   }
-  const counselor = role.trim().toUpperCase() === "CAMPUS_COUNSELOR";
+  const counselor = campusRoleFamily(role) === "counselor";
 
   return (
     <section className="rounded-lg border border-slate-700/50 bg-slate-900/40 p-5">

@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
+import { isCampusAdminRole } from "rapid-cortex-shared/auth/rapid-cortex-roles";
+import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { canViewCampusNavItem } from "@/lib/venue/venue-nav-access";
 import { isCampusCleryEnabled } from "@/lib/runtime-flags";
 import { CampusCleryWorkspace } from "@/components/campus/campus-clery-workspace";
-import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 
 export default async function CampusCleryPage({
   params,
@@ -22,9 +23,7 @@ export default async function CampusCleryPage({
   }
 
   const canManage =
-    isRcInternalOperator(role) ||
-    role.toUpperCase() === "CAMPUS_ADMIN" ||
-    role === "agencyadmin";
+    isRcInternalOperator(role) || isCampusAdminRole(role) || role === "agencyadmin";
 
   return <CampusCleryWorkspace campusCode={campusCode} canManage={canManage} />;
 }

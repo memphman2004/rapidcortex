@@ -1,5 +1,6 @@
 import {
   HOSPITAL_ASSIGNABLE_ROLES,
+  campusMatrixRoleFromRole,
   migrateLegacyRapidCortexRoleTokenValue,
   type HospitalAssignableRole,
 } from "rapid-cortex-shared/auth/rapid-cortex-roles";
@@ -66,19 +67,30 @@ function resolveTransitMatrixRole(role: string): TransitRole | null {
   return mapped && isTransitRole(mapped) ? mapped : null;
 }
 
-/** Session tokens are often `campus_admin`; matrix keys are `CAMPUS_ADMIN`. */
+/**
+ * Session tokens are product-suffixed (`campus_admin_k12` / `campus_admin_highered`);
+ * matrix keys remain family names (`CAMPUS_ADMIN`, …).
+ */
 function resolveCampusMatrixRole(role: string): CampusRole | null {
-  const upper = role.trim().toUpperCase();
+  const upper = role.trim().toUpperCase().replace(/-/g, "_");
+  // Exact family key (legacy Cognito or matrix tests)
   if (isCampusRole(upper)) return upper;
-  const migrated = migrateLegacyRapidCortexRoleTokenValue(role)?.toUpperCase() ?? "";
-  // migrateLegacy maps CAMPUS_DISPATCH → campus_security
-  if (migrated === "CAMPUS_SECURITY" || migrated === "CAMPUS_DISPATCH") return "CAMPUS_SECURITY";
-  if (isCampusRole(migrated)) return migrated;
+  // Strip product suffix from Cognito tokens: CAMPUS_ADMIN_K12 → CAMPUS_ADMIN
+  const stripped = upper.replace(/_HIGHERED$/, "").replace(/_K12$/, "");
+  if (stripped !== upper && isCampusRole(stripped)) return stripped;
+
+  const matrix = campusMatrixRoleFromRole(role);
+  if (matrix && isCampusRole(matrix)) return matrix;
   return null;
 }
 
 function resolveRoleAlias(role: UserRole | string): UserRole {
   const raw = String(role ?? "").trim();
+  const campusMatrix = resolveCampusMatrixRole(raw);
+  if (campusMatrix) {
+    const campusMapped = CAMPUS_ROLE_BASE_MAP[campusMatrix];
+    if (campusMapped) return campusMapped;
+  }
   const campusMapped =
     CAMPUS_ROLE_BASE_MAP[raw as keyof typeof CAMPUS_ROLE_BASE_MAP] ??
     CAMPUS_ROLE_BASE_MAP[raw.toUpperCase() as keyof typeof CAMPUS_ROLE_BASE_MAP];

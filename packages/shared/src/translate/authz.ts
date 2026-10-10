@@ -1,4 +1,7 @@
-import { migrateLegacyRapidCortexRoleTokenValue } from "../auth/rapid-cortex-roles.js";
+import {
+  campusMatrixRoleFromRole,
+  migrateLegacyRapidCortexRoleTokenValue,
+} from "../auth/rapid-cortex-roles.js";
 import { isRcInternalOperator, isRcsuperadmin } from "../tenancy/principal.js";
 import type { UserContext } from "../types.js";
 import type { TranslateVertical } from "./types.js";
@@ -7,8 +10,9 @@ function role(user: Pick<UserContext, "role">): string {
   return migrateLegacyRapidCortexRoleTokenValue(String(user.role ?? "")) ?? String(user.role ?? "");
 }
 
-function roleUpper(user: Pick<UserContext, "role">): string {
-  return String(user.role ?? "").toUpperCase();
+/** Campus matrix family (`CAMPUS_ADMIN`) or raw uppercase for set membership. */
+function campusFamilyOrUpper(user: Pick<UserContext, "role">): string {
+  return campusMatrixRoleFromRole(user.role) ?? String(user.role ?? "").toUpperCase();
 }
 
 function sameAgency(user: Pick<UserContext, "agencyId">, agencyId: string): boolean {
@@ -124,19 +128,18 @@ export function canMonitorTranslateSessionVenue(user: UserContext, agencyId: str
 }
 
 /**
- * Campus Cognito groups are uppercase (`CAMPUS_SECURITY`). Compare the raw claim
- * after toUpperCase so snake_case JWTs still match.
+ * Campus roles use product suffixes (`CAMPUS_SECURITY_K12`); compare matrix family.
  */
 export function canStartTranslateSessionCampus(user: UserContext, agencyId: string): boolean {
   if (platformOverride(user)) return true;
   if (!sameAgency(user, agencyId)) return false;
-  return CAMPUS_START.has(roleUpper(user));
+  return CAMPUS_START.has(campusFamilyOrUpper(user));
 }
 
 export function canMonitorTranslateSessionCampus(user: UserContext, agencyId: string): boolean {
   if (platformOverride(user)) return true;
   if (!sameAgency(user, agencyId)) return false;
-  return CAMPUS_MONITOR.has(roleUpper(user));
+  return CAMPUS_MONITOR.has(campusFamilyOrUpper(user));
 }
 
 export function canStartTranslateSessionHospital(user: UserContext, agencyId: string): boolean {

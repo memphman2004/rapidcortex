@@ -85,12 +85,22 @@ const LAYER_MENU: Record<"core" | "campus" | "venue" | "airport", LayerToggleIte
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+export type GisLayerToggleItem = {
+  datasetId: string;
+  name: string;
+  color?: string;
+  enabled: boolean;
+};
+
 interface MapLayerControlProps {
   layers:         RCMapLayerVisibility;
   onToggle:       (key: LayerKey, value: boolean) => void;
   vertical?:      "core" | "campus" | "venue" | "airport";
   /** Set to false to force the panel open (e.g. wider supervisor layout) */
   collapsible?:   boolean;
+  /** Approved GIS datasets (A1 GeoJSON overlays). */
+  gisLayers?:     GisLayerToggleItem[];
+  onGisToggle?:   (datasetId: string, enabled: boolean) => void;
 }
 
 export function MapLayerControl({
@@ -98,6 +108,8 @@ export function MapLayerControl({
   onToggle,
   vertical = "core",
   collapsible = true,
+  gisLayers = [],
+  onGisToggle,
 }: MapLayerControlProps) {
   const [open, setOpen] = useState(false);
   const mapsV2 = isAlsMapApiV2();
@@ -122,7 +134,9 @@ export function MapLayerControl({
   const menu = [...operationalMenu, ...overlayMenu, ...basemapMenu];
 
   // Count active (non-default) overrides for the badge
-  const activeCount = menu.filter((item) => layers[item.key]).length;
+  const activeCount =
+    menu.filter((item) => layers[item.key]).length +
+    gisLayers.filter((g) => g.enabled).length;
 
   return (
     <div
@@ -276,6 +290,42 @@ export function MapLayerControl({
               </div>
               {basemapMenu.map((item) => (
                 <LayerToggleRow key={item.key} item={item} enabled={layers[item.key]} onToggle={onToggle} />
+              ))}
+            </>
+          )}
+
+          {gisLayers.length > 0 && onGisToggle && (
+            <>
+              <div
+                style={{
+                  padding: "10px 12px 8px",
+                  borderTop: `1px solid ${T.border}`,
+                  marginTop: 6,
+                  marginBottom: 6,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: T.textMuted,
+                    letterSpacing: "0.07em",
+                  }}
+                >
+                  GIS LAYERS
+                </span>
+              </div>
+              {gisLayers.map((g) => (
+                <LayerToggleRow
+                  key={g.datasetId}
+                  item={{
+                    key: "agencyZones",
+                    label: g.name,
+                    dot: g.color ?? "#38bdf8",
+                  }}
+                  enabled={g.enabled}
+                  onToggle={() => onGisToggle(g.datasetId, !g.enabled)}
+                />
               ))}
             </>
           )}

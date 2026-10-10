@@ -39,6 +39,7 @@ import {
 import { isRcSuperAdmin } from "rapid-cortex-security";
 import type { AgencyTenant } from "rapid-cortex-shared";
 import { resolveAgencyVerticalFromTenant } from "rapid-cortex-shared";
+import { IqReportingMount } from "@/components/analytics/iq-reporting/IqReportingMount";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
 import { useClockPreference } from "@/components/providers/clock-preference-provider";
@@ -1240,8 +1241,16 @@ function RcAdminConsoleHomeInner({
         </aside>
 
         {/* Main + right */}
-        <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", overflow: "hidden" }}>
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
             <header
               style={{
                 background: C.surface,
@@ -2091,6 +2100,17 @@ function RcAdminConsoleHomeInner({
                     );
                   })}
                 </div>
+
+                {/* RC platform only — cross-vertical iQ switcher (no Hospital tab) */}
+                {agencyId ? (
+                  <div style={{ marginTop: 8, minWidth: 0 }}>
+                    <IqReportingMount
+                      agencyId={agencyId}
+                      vertical="911"
+                      showVerticalSwitcher
+                    />
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
@@ -2100,6 +2120,8 @@ function RcAdminConsoleHomeInner({
             style={{
               width: 252,
               minWidth: 252,
+              maxWidth: 252,
+              flexShrink: 0,
               background: C.surface,
               borderLeft: `1px solid ${C.border}`,
               display: "flex",

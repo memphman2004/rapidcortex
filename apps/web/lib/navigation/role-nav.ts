@@ -12,7 +12,11 @@
  * Feature-gated items: include `feature` key; caller hides if flag is off.
  */
 
-import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
+import {
+  campusMatrixRoleFromRole,
+  campusProductFromRole,
+  migrateLegacyRapidCortexRoleTokenValue,
+} from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import type { CampusInstitutionType } from "rapid-cortex-shared";
 import { parseCampusInstitutionType } from "rapid-cortex-shared";
 
@@ -862,6 +866,13 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
         items: [
           { id: "integrations",  label: "Integrations",    href: `${j}/admin/integrations`, icon: "Plug" },
           {
+            id: "gis",
+            label: "GIS Layers",
+            href: `${j}/admin/gis`,
+            icon: "Map",
+            feature: "gis",
+          },
+          {
             id: "onboarding-packets",
             label: "Onboarding packet",
             href: `${j}/admin/onboarding/packets`,
@@ -957,6 +968,13 @@ export function getAgencyItNav(jurisdiction: string): RoleNav {
             icon: "BookOpen",
           },
           { id: "integrations",  label: "Integrations",    href: `${j}/admin/integrations`, icon: "Plug" },
+          {
+            id: "gis",
+            label: "GIS Layers",
+            href: `${j}/admin/gis`,
+            icon: "Map",
+            feature: "gis",
+          },
           {
             id: "onboarding-packets",
             label: "Onboarding packet",
@@ -1966,9 +1984,14 @@ export function getCallAssistAdminNav(): RoleNav {
 
 function resolveNavRole(raw: string): string {
   const token = raw.trim();
-  const upper = token.toUpperCase();
+  const upper = token.toUpperCase().replace(/-/g, "_");
   if (upper.startsWith("VENUE_")) return upper;
-  if (upper.startsWith("CAMPUS_")) return upper;
+  // Campus: collapse product suffixes to matrix family for switch cases.
+  if (upper.startsWith("CAMPUS_")) {
+    const family = campusMatrixRoleFromRole(token);
+    if (family) return family;
+    return upper.replace(/_HIGHERED$/, "").replace(/_K12$/, "");
+  }
   if (upper.startsWith("TRANSIT_")) return upper;
   if (upper.startsWith("CALL_ASSIST_")) return upper;
   if (upper === "HOSPITAL_COORDINATOR" || upper === "HOSPITAL_COORD") return "HOSPITAL_COORDINATOR";
@@ -1980,13 +2003,28 @@ function resolveNavRole(raw: string): string {
   if (migrated === "venue_guest") return "VENUE_GUEST_SERVICES";
   if (migrated.startsWith("venue_")) return migrated.toUpperCase();
   if (upper === "VENUE_GUEST") return "VENUE_GUEST_SERVICES";
-  if (migrated.startsWith("campus_")) return migrated.toUpperCase();
+  if (migrated.startsWith("campus_")) {
+    return campusMatrixRoleFromRole(migrated) ?? migrated.toUpperCase().replace(/_HIGHERED$/, "").replace(/_K12$/, "");
+  }
   if (migrated.startsWith("transit_")) return migrated.toUpperCase();
   if (migrated.startsWith("call_assist_")) return migrated.toUpperCase();
   if (migrated === "hospitaladmin" || migrated === "hospital_admin") return "HOSPITAL_ADMIN";
   if (migrated === "hospitalstaff" || migrated === "hospital_staff") return "HOSPITAL_STAFF";
   if (migrated === "hospital_coord" || migrated === "hospital_supervisor") return "HOSPITAL_COORDINATOR";
   return migrated;
+}
+
+/**
+ * Campus dashboard product: role suffix wins; agency `campusInstitutionType` is
+ * fallback for RC operators previewing a campus without a campus seat role.
+ */
+function resolveCampusNavProduct(
+  role: string,
+  ctxInstitutionType: CampusInstitutionType | undefined,
+): CampusInstitutionType {
+  const fromRole = campusProductFromRole(role);
+  if (fromRole) return fromRole;
+  return parseCampusInstitutionType(ctxInstitutionType);
 }
 
 export type NavContext = {
@@ -1998,18 +2036,40 @@ export type NavContext = {
   campusInstitutionType?: CampusInstitutionType;
 };
 
+/** K-12-only nav item ids — never shown on University / College (Campus) consoles. */
+const CAMPUS_K12_ONLY_ITEM_IDS = new Set([
+  "visitors",
+  "pickup-auth",
+  "school-safety-report",
+  "school-safety",
+  "daily-incident-log",
+  "incident-log",
+]);
+
 /**
- * Higher-ed keeps Clery Act compliance nav (Daily Crime Log, ASR, CSA, etc.).
- * K-12 drops all Clery items, keeps a generic Reports hub, adds Daily Incident
- * Log + School Safety Report, Visitor / Pickup under K-12 SAFETY, and relabels
- * primary sections so the left rail is unmistakably a school console.
+ * Campus product split (role suffix `*_K12` / `*_HIGHERED`):
+ * - Higher-ed: Clery Act compliance; no K-12 SAFETY.
+ * - K-12: drops all Clery items, keeps Reports hub, adds Daily Incident
+ *   Log + School Safety Report, Visitor / Pickup under K-12 SAFETY, and relabels
+ *   primary sections so the left rail is unmistakably a school console.
  */
 export function applyCampusInstitutionNav(
   nav: RoleNav,
   campusCode: string,
   institutionType: CampusInstitutionType = "higher_ed",
 ): RoleNav {
-  if (institutionType !== "k12") return nav;
+  if (institutionType !== "k12") {
+    // University / College — strip any K-12-only rails that may have leaked in.
+    return {
+      ...nav,
+      sections: nav.sections
+        .filter((section) => section.id !== "k12-safety")
+        .map((section) => ({
+          ...section,
+          items: section.items.filter((item) => !CAMPUS_K12_ONLY_ITEM_IDS.has(item.id)),
+        })),
+    };
+  }
 
   const base = `/app/campus/${campusCode}`;
   const sections: NavSection[] = nav.sections
@@ -2094,6 +2154,7 @@ export function getRoleNav(role: string, ctx: NavContext): RoleNav {
   const c = ctx.campusCode ?? "campus";
   const t = ctx.transitCode ?? "transit";
   const resolved = resolveNavRole(role);
+  const campusProduct = resolveCampusNavProduct(role, ctx.campusInstitutionType);
 
   switch (resolved) {
     // NexCort Internal
@@ -2108,57 +2169,36 @@ export function getRoleNav(role: string, ctx: NavContext): RoleNav {
     case "agencyit":            return getAgencyItNav(j);
     case "analyst":             return getAnalystNav(j);
     case "auditor":             return getAuditorNav(j);
-    // Campus
+    // Campus (family from role; product from `*_K12` / `*_HIGHERED` suffix)
     case "CAMPUS_ADMIN":
       return appendStaffGuideNav(
-        applyCampusInstitutionNav(
-          getCampusAdminNav(c),
-          c,
-          parseCampusInstitutionType(ctx.campusInstitutionType),
-        ),
+        applyCampusInstitutionNav(getCampusAdminNav(c), c, campusProduct),
         `/app/campus/${c}/staff-guide`,
       );
     case "CAMPUS_SUPERVISOR":
       return appendStaffGuideNav(
-        applyCampusInstitutionNav(
-          getCampusSupervisorNav(c),
-          c,
-          parseCampusInstitutionType(ctx.campusInstitutionType),
-        ),
+        applyCampusInstitutionNav(getCampusSupervisorNav(c), c, campusProduct),
         `/app/campus/${c}/staff-guide`,
       );
     case "CAMPUS_SECURITY":
       return appendStaffGuideNav(
-        applyCampusInstitutionNav(
-          getCampusSecurityNav(c),
-          c,
-          parseCampusInstitutionType(ctx.campusInstitutionType),
-        ),
+        applyCampusInstitutionNav(getCampusSecurityNav(c), c, campusProduct),
         `/app/campus/${c}/staff-guide`,
       );
     case "CAMPUS_DISPATCH":
       return appendStaffGuideNav(
-        applyCampusInstitutionNav(
-          getCampusDispatchNav(c),
-          c,
-          parseCampusInstitutionType(ctx.campusInstitutionType),
-        ),
+        applyCampusInstitutionNav(getCampusDispatchNav(c), c, campusProduct),
         `/app/campus/${c}/staff-guide`,
       );
     case "CAMPUS_COUNSELOR":
       return appendStaffGuideNav(
-        applyCampusInstitutionNav(
-          getCampusCounselorNav(c),
-          c,
-          parseCampusInstitutionType(ctx.campusInstitutionType),
-        ),
+        applyCampusInstitutionNav(getCampusCounselorNav(c), c, campusProduct),
         `/app/campus/${c}/staff-guide`,
       );
     case "CAMPUS_FACULTY": {
-      const institutionType = parseCampusInstitutionType(ctx.campusInstitutionType);
-      let facultyNav = applyCampusInstitutionNav(getCampusFacultyNav(c), c, institutionType);
+      let facultyNav = applyCampusInstitutionNav(getCampusFacultyNav(c), c, campusProduct);
       // Faculty K-12: Pickup Authorization only (no Visitor Verification).
-      if (institutionType === "k12") {
+      if (campusProduct === "k12") {
         facultyNav = {
           ...facultyNav,
           sections: facultyNav.sections.map((section) =>

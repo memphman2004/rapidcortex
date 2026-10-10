@@ -1,9 +1,35 @@
-import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
+import {
+  campusMatrixRoleFromRole,
+  campusProductFromRole,
+  migrateLegacyRapidCortexRoleTokenValue,
+} from "rapid-cortex-shared/auth/rapid-cortex-roles";
 
 /** Header badge adjacent to username — makes signed-in role obvious per dashboard spec. */
 export function getRoleHeaderBadgeLabel(role: string | undefined | null): string | null {
   const effective = migrateLegacyRapidCortexRoleTokenValue(role?.trim() ?? "") ?? role?.trim();
   if (!effective) return null;
+
+  const campusFamily = campusMatrixRoleFromRole(effective);
+  if (campusFamily) {
+    const product = campusProductFromRole(effective);
+    const productTag = product === "higher_ed" ? "HIGHER-ED" : "K-12";
+    switch (campusFamily) {
+      case "CAMPUS_ADMIN":
+        return `${productTag} CAMPUS ADMIN`;
+      case "CAMPUS_SUPERVISOR":
+        return `${productTag} SUPERVISOR`;
+      case "CAMPUS_SECURITY":
+        return `${productTag} SECURITY`;
+      case "CAMPUS_DISPATCH":
+        return `${productTag} DISPATCH`;
+      case "CAMPUS_COUNSELOR":
+        return `${productTag} COUNSELOR`;
+      case "CAMPUS_FACULTY":
+        return `${productTag} FACULTY`;
+      default:
+        break;
+    }
+  }
 
   switch (effective) {
     case "rcsuperadmin":
@@ -43,15 +69,6 @@ export function getRoleHeaderBadgeLabel(role: string | undefined | null): string
     case "venue_guest":
     case "VENUE_GUEST_SERVICES":
       return "GUEST SERVICES";
-    case "campus_admin":
-    case "CAMPUS_ADMIN":
-      return "CAMPUS ADMIN";
-    case "CAMPUS_SUPERVISOR":
-      return "SUPERVISOR";
-    case "CAMPUS_SECURITY":
-      return "SECURITY";
-    case "CAMPUS_DISPATCH":
-      return "DISPATCH";
     case "transit_admin":
     case "TRANSIT_ADMIN":
       return "TRANSIT ADMIN";

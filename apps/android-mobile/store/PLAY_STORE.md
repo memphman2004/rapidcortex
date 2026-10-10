@@ -109,6 +109,7 @@ Submit lands on the **internal** testing track until the store listing is comple
 ## Engineering gates still outside this repo change
 
 - **Target API 36:** Play requires `targetSdkVersion` ≥ 36 for new uploads. Set via `expo-build-properties` in `app.config.ts` (`compileSdkVersion` / `targetSdkVersion` / `buildToolsVersion` 36).
+- **Deobfuscation / R8:** Production builds set `enableProguardInReleaseBuilds: true` so the AAB includes `BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map` (Play auto-ingests it for AABs on AGP ≥ 4.1). EAS also publishes `mapping.txt` via `buildArtifactPaths` if a manual Console upload is ever needed.
 - **16 KB page size:** Play requires 16 KB-aligned native libraries. This app is on **Expo SDK 53 / React Native 0.79**, which includes the 16 KB patches (`expo@53.0.14+`). Do not lower `targetSdkVersion` to dodge a native `.so` flag — bump or unlink the module instead.
 - Physical NFC write on an NTAG213 (Play review can skip if notes say NFC is optional).
 - Capture screenshots + 1024×500 feature graphic.

@@ -20,6 +20,7 @@ describe("canViewIQReporting", () => {
 
   it("allows campus/venue/transit/hospital supervisor-admin roles", () => {
     expect(canViewIQReporting(user("CAMPUS_ADMIN"), "agency-1")).toBe(true);
+    expect(canViewIQReporting(user("campus_admin_highered"), "agency-1")).toBe(true);
     expect(canViewIQReporting(user("venue_supervisor"), "agency-1")).toBe(true);
     expect(canViewIQReporting(user("TRANSIT_SUPERVISOR"), "agency-1")).toBe(true);
     expect(canViewIQReporting(user("HOSPITAL_ADMIN"), "agency-1")).toBe(true);
@@ -30,6 +31,7 @@ describe("canViewIQReporting", () => {
     expect(canViewIQReporting(user("dispatcher"), "agency-1")).toBe(false);
     expect(canViewIQReporting(user("call_taker"), "agency-1")).toBe(false);
     expect(canViewIQReporting(user("CAMPUS_SECURITY"), "agency-1")).toBe(false);
+    expect(canViewIQReporting(user("campus_security_highered"), "agency-1")).toBe(false);
     expect(canViewIQReporting(user("VENUE_OPERATOR"), "agency-1")).toBe(false);
     expect(canViewIQReporting(user("TRANSIT_OPERATOR"), "agency-1")).toBe(false);
     expect(canViewIQReporting(user("HOSPITAL_STAFF"), "agency-1")).toBe(false);
@@ -40,7 +42,8 @@ describe("canViewIQReporting", () => {
     expect(canViewIQReporting(user("supervisor"), "other")).toBe(false);
   });
 
-  it("allows rcsuperadmin across agencies", () => {
+  it("allows rcsuperadmin and rcadmin across agencies", () => {
     expect(canViewIQReporting(user("rcsuperadmin", "platform"), "agency-1")).toBe(true);
+    expect(canViewIQReporting(user("rcadmin", "platform"), "agency-1")).toBe(true);
   });
 });

@@ -23,16 +23,28 @@ describe("campus access", () => {
     expect(resolveCampusAgencyIdFromCode(agencies, "LINCOLNHIGH")).toBe("test-campus-lincoln-high");
   });
 
-  it("allows CAMPUS_ADMIN only for matching campus code", () => {
+  it("allows campus admin (legacy or product-suffixed) only for matching campus code", () => {
     expect(
       canAccessCampusUsersOrSettings(
-        { role: "campus_admin", agencyId: "test-campus-lincoln-high" },
+        { role: "campus_admin_k12", agencyId: "test-campus-lincoln-high" },
         "LINCOLNHIGH",
       ),
     ).toBe(true);
     expect(
       canAccessCampusUsersOrSettings(
-        { role: "campus_admin", agencyId: "test-campus-lincoln-high" },
+        { role: "campus_admin_highered", agencyId: "test-campus-lincoln-high" },
+        "LINCOLNHIGH",
+      ),
+    ).toBe(true);
+    expect(
+      canAccessCampusUsersOrSettings(
+        { role: "campus_admin_k12", agencyId: "test-campus-lincoln-high" },
+        "LINCOLNHIGH",
+      ),
+    ).toBe(true);
+    expect(
+      canAccessCampusUsersOrSettings(
+        { role: "campus_admin_k12", agencyId: "test-campus-lincoln-high" },
         "OTHER",
       ),
     ).toBe(false);
@@ -41,7 +53,7 @@ describe("campus access", () => {
   it("denies non-admin campus roles", () => {
     expect(
       canAccessCampusUsersOrSettings(
-        { role: "campus_supervisor", agencyId: "test-campus-lincoln-high" },
+        { role: "campus_supervisor_k12", agencyId: "test-campus-lincoln-high" },
         "LINCOLNHIGH",
       ),
     ).toBe(false);

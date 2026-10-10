@@ -148,7 +148,7 @@ describe("AuthorizationService.canPerform / assertCanPerform", () => {
     });
 
     it("grants campus.* permissions for session-normalized campus_admin tokens", () => {
-      const sessionCampusAdmin = makeUser("campus_admin" as UserRole, {
+      const sessionCampusAdmin = makeUser("campus_admin_k12" as UserRole, {
         agencyId: "last-campus-uga",
       });
       expect(auth.canPerform(sessionCampusAdmin, "campus.clery.view")).toBe(true);

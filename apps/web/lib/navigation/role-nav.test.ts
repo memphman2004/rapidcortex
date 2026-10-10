@@ -401,8 +401,8 @@ describe("getRoleNav", () => {
     expect(dispatcher).toBeUndefined();
   });
 
-  it("adds Clery Act compliance nav for campus admin, not dispatcher", () => {
-    const campus = getRoleNav("CAMPUS_ADMIN", { campusCode: "IU" })
+  it("adds Clery Act compliance nav for higher-ed campus admin, not dispatcher", () => {
+    const campus = getRoleNav("CAMPUS_ADMIN_HIGHERED", { campusCode: "IU" })
       .sections.flatMap((s) => s.items)
       .find((i) => i.id === "clery-review");
     expect(campus?.href).toBe("/app/campus/IU/clery/review");
@@ -415,9 +415,9 @@ describe("getRoleNav", () => {
   });
 
   it("strips Clery for K-12 campus admin but keeps Reports + K-12 Safety", () => {
-    const nav = getRoleNav("CAMPUS_ADMIN", {
+    // Legacy CAMPUS_ADMIN aliases to K-12; role suffix wins over agency institutionType.
+    const nav = getRoleNav("CAMPUS_ADMIN_K12", {
       campusCode: "CAMDEN",
-      campusInstitutionType: "k12",
     });
     const items = nav.sections.flatMap((s) => s.items);
     const sectionIds = nav.sections.map((s) => s.id);
@@ -440,20 +440,42 @@ describe("getRoleNav", () => {
     );
   });
 
-  it("labels the Clery daily log as Daily Crime Log for higher-ed", () => {
-    const item = getRoleNav("CAMPUS_ADMIN", {
-      campusCode: "IU",
+  it("legacy unsuffixed CAMPUS_ADMIN gets K-12 nav even if agency is higher_ed", () => {
+    const nav = getRoleNav("CAMPUS_ADMIN", {
+      campusCode: "UGA",
       campusInstitutionType: "higher_ed",
+    });
+    expect(nav.sections.map((s) => s.id)).toContain("k12-safety");
+    expect(nav.sections.map((s) => s.id)).not.toContain("clery-compliance");
+  });
+
+  it("labels the Clery daily log as Daily Crime Log for higher-ed", () => {
+    const item = getRoleNav("CAMPUS_ADMIN_HIGHERED", {
+      campusCode: "IU",
     })
       .sections.flatMap((s) => s.items)
       .find((i) => i.id === "clery-dcl");
     expect(item?.label).toBe("Daily Crime Log");
   });
 
+  it("University Campus admin keeps Clery and never shows K-12 SAFETY", () => {
+    const nav = getRoleNav("CAMPUS_ADMIN_HIGHERED", {
+      campusCode: "UGA",
+      campusInstitutionType: "k12", // role suffix wins
+    });
+    const sectionIds = nav.sections.map((s) => s.id);
+    const items = nav.sections.flatMap((s) => s.items);
+    expect(sectionIds).toContain("clery-compliance");
+    expect(sectionIds).not.toContain("k12-safety");
+    expect(items.find((i) => i.id === "visitors")).toBeUndefined();
+    expect(items.find((i) => i.id === "pickup-auth")).toBeUndefined();
+    expect(items.find((i) => i.id === "school-safety-report")).toBeUndefined();
+    expect(items.find((i) => i.id === "clery-review")).toBeTruthy();
+  });
+
   it("relabels K-12 primary sections and role badge", () => {
-    const nav = getRoleNav("CAMPUS_SUPERVISOR", {
+    const nav = getRoleNav("CAMPUS_SUPERVISOR_K12", {
       campusCode: "CAMDEN",
-      campusInstitutionType: "k12",
     });
     expect(nav.roleBadge).toBe("K-12 SUPERVISOR");
     expect(nav.sections.find((s) => s.id === "safety")?.label).toBe("SCHOOL SAFETY");
@@ -462,8 +484,8 @@ describe("getRoleNav", () => {
   });
 
   it("marks campus security Zones as VIEW ONLY for higher-ed and K-12", () => {
-    for (const campusInstitutionType of ["higher_ed", "k12"] as const) {
-      const zones = getRoleNav("CAMPUS_SECURITY", { campusCode: "DEMO", campusInstitutionType })
+    for (const role of ["CAMPUS_SECURITY_HIGHERED", "CAMPUS_SECURITY_K12"] as const) {
+      const zones = getRoleNav(role, { campusCode: "DEMO" })
         .sections.flatMap((s) => s.items)
         .find((i) => i.id === "zones");
       expect(zones?.badge).toEqual({ type: "label", text: "VIEW ONLY", color: "slate" });
@@ -471,17 +493,15 @@ describe("getRoleNav", () => {
   });
 
   it("faculty Translate has no VIEW ONLY badge; K-12 faculty only gets Pickup Authorization", () => {
-    const higherEd = getRoleNav("CAMPUS_FACULTY", {
+    const higherEd = getRoleNav("CAMPUS_FACULTY_HIGHERED", {
       campusCode: "DEMO",
-      campusInstitutionType: "higher_ed",
     })
       .sections.flatMap((s) => s.items)
       .find((i) => i.id === "translate");
     expect(higherEd?.badge).toBeUndefined();
 
-    const k12 = getRoleNav("CAMPUS_FACULTY", {
+    const k12 = getRoleNav("CAMPUS_FACULTY_K12", {
       campusCode: "DEMO",
-      campusInstitutionType: "k12",
     });
     const k12Items = k12.sections.flatMap((s) => s.items);
     expect(k12Items.find((i) => i.id === "translate")?.badge).toBeUndefined();

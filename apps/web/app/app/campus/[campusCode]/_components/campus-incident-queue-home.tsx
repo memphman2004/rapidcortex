@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { matchesCampusSiteScope } from "rapid-cortex-shared";
+import { campusRoleFamily } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { useSession } from "@/components/auth/session-context";
 import { CampusIncidentCard } from "@/components/dispatch/campus/CampusIncidentCard";
 import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
@@ -20,7 +21,7 @@ type FilterStatus = "all" | CampusIncidentStatus;
 export function CampusIncidentQueueHome({ campusCode }: { campusCode: string }) {
   const queryClient = useQueryClient();
   const { user } = useSession();
-  const counselorQueue = (user?.role ?? "").trim().toUpperCase() === "CAMPUS_COUNSELOR";
+  const counselorQueue = campusRoleFamily(user?.role) === "counselor";
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const [zoneFilter, setZoneFilter] = useState("");
   const { scope, setScope, sites, primarySiteCode } = useCampusSiteScope(user?.agencyId ?? "");

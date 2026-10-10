@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { WarRoom, WarRoomMessage } from "rapid-cortex-shared";
+import { campusRoleFamily } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { useSession } from "@/components/auth/session-context";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
 import {
@@ -23,17 +24,15 @@ function statusBadge(status: WarRoom["status"]): string {
 
 function canCloseWarRoom(role: string | null | undefined): boolean {
   const r = (role ?? "").trim().toLowerCase();
-  const upper = (role ?? "").trim().toUpperCase();
+  const family = campusRoleFamily(role);
   return (
     r === "supervisor" ||
     r === "agencyadmin" ||
     r === "rcadmin" ||
     r === "rcsuperadmin" ||
     r === "rcitadmin" ||
-    upper === "CAMPUS_ADMIN" ||
-    upper === "CAMPUS_SUPERVISOR" ||
-    r === "campus_admin" ||
-    r === "campus_supervisor"
+    family === "admin" ||
+    family === "supervisor"
   );
 }
 

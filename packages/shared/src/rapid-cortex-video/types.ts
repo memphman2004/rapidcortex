@@ -324,12 +324,20 @@ export const CONCURRENT_STREAM_LIMITS: Record<string, number> = {
 const ROLE_ALIASES: Record<string, string> = {
   campussecurity: "CAMPUS_SECURITY",
   campus_security: "CAMPUS_SECURITY",
+  campus_security_k12: "CAMPUS_SECURITY",
+  campus_security_highered: "CAMPUS_SECURITY",
   campusdispatch: "CAMPUS_DISPATCH",
   campus_dispatch: "CAMPUS_DISPATCH",
+  campus_dispatch_k12: "CAMPUS_DISPATCH",
+  campus_dispatch_highered: "CAMPUS_DISPATCH",
   campussupervisor: "CAMPUS_SUPERVISOR",
   campus_supervisor: "CAMPUS_SUPERVISOR",
+  campus_supervisor_k12: "CAMPUS_SUPERVISOR",
+  campus_supervisor_highered: "CAMPUS_SUPERVISOR",
   campusadmin: "CAMPUS_ADMIN",
   campus_admin: "CAMPUS_ADMIN",
+  campus_admin_k12: "CAMPUS_ADMIN",
+  campus_admin_highered: "CAMPUS_ADMIN",
   venue_security: "VENUE_SECURITY",
   venue_supervisor: "VENUE_SUPERVISOR",
   venue_operator: "VENUE_OPERATOR",
@@ -342,9 +350,15 @@ const ROLE_ALIASES: Record<string, string> = {
 
 export function normalizeVideoWallRoleKey(role: string): string {
   const trimmed = role.trim();
-  const alias = ROLE_ALIASES[trimmed.toLowerCase().replace(/-/g, "_")];
+  const snake = trimmed.toLowerCase().replace(/-/g, "_");
+  const alias = ROLE_ALIASES[snake];
   if (alias) return alias;
-  return trimmed.replace(/-/g, "_").toUpperCase();
+  const upper = trimmed.replace(/-/g, "_").toUpperCase();
+  // Strip campus product suffix for concurrent-stream limit lookup.
+  if (upper.startsWith("CAMPUS_")) {
+    return upper.replace(/_HIGHERED$/, "").replace(/_K12$/, "");
+  }
+  return upper;
 }
 
 export function concurrentStreamLimitForRole(role: string): number {

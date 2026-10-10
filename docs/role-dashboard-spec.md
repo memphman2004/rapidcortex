@@ -512,9 +512,19 @@ Campus is a product vertical — not a PSAP. Campus users never see the dispatch
 
 **Header requirement:** Subtext must include **"NOT A 911 DISPATCH CONSOLE"** on every campus page.
 
+**Product split (role suffix):** Dashboard product is determined by Cognito/JWT role suffix, not agency settings alone.
+
+| Product | Cognito examples | JWT examples | Surface |
+|---------|------------------|--------------|---------|
+| K-12 | `CAMPUS_ADMIN_K12`, … | `campus_admin_k12`, … | School safety, visitor/pickup — no Clery |
+| Higher-ed | `CAMPUS_ADMIN_HIGHERED`, … | `campus_admin_highered`, … | Clery Act rails — no K-12 SAFETY |
+| Legacy unsuffixed | `CAMPUS_ADMIN` | aliases → `*_k12` | Treated as K-12 (Camden-compatible) |
+
+Families (× both products): Admin, Supervisor, Security, Dispatch, Counselor, Faculty. Remap UGA seats to `*_HIGHERED` with `scripts/remap-campus-roles-to-product.sh`.
+
 ---
 
-## CAMPUS_ADMIN — Campus Safety Administrator
+## CAMPUS_ADMIN — Campus Safety Administrator (family)
 
 **Real-world identity:** Director of campus public safety, emergency management coordinator, or IT lead at a university or school. Manages scan points, configures alerts, reviews reports, and manages campus users.
 
@@ -905,27 +915,26 @@ This role is the most restricted. The UI should feel like a customer service inb
 | 7 | agencyit | PSAP |
 | 8 | analyst | PSAP |
 | 9 | auditor | PSAP |
-| 10 | CAMPUS_ADMIN | Campus |
-| 11 | CAMPUS_SUPERVISOR | Campus |
-| 12 | CAMPUS_SECURITY | Campus |
-| 13 | CAMPUS_DISPATCH | Campus |
-| 14 | HOSPITAL_ADMIN | Hospital |
-| 15 | HOSPITAL_STAFF | Hospital |
-| 16 | HOSPITAL_COORDINATOR | Hospital |
-| 17 | VENUE_ADMIN | Venue |
-| 18 | VENUE_SUPERVISOR | Venue |
-| 19 | VENUE_SECURITY | Venue |
-| 20 | VENUE_OPERATOR | Venue |
-| 21 | VENUE_GUEST_SERVICES | Venue |
-| 22 | transit_admin | Transit |
-| 23 | transit_supervisor | Transit |
-| 24 | transit_security | Transit |
-| 25 | transit_operator | Transit |
-| 26 | call_assist_admin | Call Assist |
-| 27 | call_assist_supervisor | Call Assist |
-| 28 | call_assist_operator | Call Assist |
+| 10 | CAMPUS_*_K12 / CAMPUS_*_HIGHERED (Admin, Supervisor, Security, Dispatch) | Campus |
+| 11 | HOSPITAL_ADMIN | Hospital |
+| 12 | HOSPITAL_STAFF | Hospital |
+| 13 | HOSPITAL_COORDINATOR | Hospital |
+| 14 | VENUE_ADMIN | Venue |
+| 15 | VENUE_SUPERVISOR | Venue |
+| 16 | VENUE_SECURITY | Venue |
+| 17 | VENUE_OPERATOR | Venue |
+| 18 | VENUE_GUEST_SERVICES | Venue |
+| 19 | transit_admin | Transit |
+| 20 | transit_supervisor | Transit |
+| 21 | transit_security | Transit |
+| 22 | transit_operator | Transit |
+| 23 | call_assist_admin | Call Assist |
+| 24 | call_assist_supervisor | Call Assist |
+| 25 | call_assist_operator | Call Assist |
 
-**Deprecated (removed from Cognito):** `commsupervisor`, `CAMPUS_COUNSELOR`, `CAMPUS_FACULTY`
+**Campus product variants:** each of Admin / Supervisor / Security / Dispatch / Counselor / Faculty exists as `*_K12` and `*_HIGHERED`. Legacy unsuffixed `CAMPUS_*` aliases to K-12.
+
+**Deprecated Cognito aliases:** `commsupervisor`
 
 ---
 

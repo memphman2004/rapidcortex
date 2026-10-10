@@ -1,21 +1,13 @@
 import { redirect } from "next/navigation";
 import type { AgencyProfileResponse } from "rapid-cortex-shared";
 import { dashboardRouteFromRole, verticalFromRole } from "rapid-cortex-shared";
+import { isCampusRoleToken } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { extractCampusCode } from "@/lib/auth/post-login-redirect";
 import { resolveCampusDisplayName } from "@/lib/campus/campus-admin-page";
 import { dashboardDisplayName } from "@/lib/dashboards/dashboard-display-name";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { isVerticalEnabled } from "@/lib/features";
 import { CampusConsoleHome } from "./campus-console-home";
-
-const CAMPUS_CONSOLE_ROLES = new Set([
-  "CAMPUS_SECURITY",
-  "CAMPUS_SUPERVISOR",
-  "CAMPUS_DISPATCH",
-  "CAMPUS_FACULTY",
-  "CAMPUS_COUNSELOR",
-  "CAMPUS_ADMIN",
-]);
 
 /** Server entry for the campus safety console — not the 911 dispatcher CAD workspace. */
 export async function CampusSafetyDashboardPage({
@@ -40,8 +32,7 @@ export async function CampusSafetyDashboardPage({
     redirect(dashboardRouteFromRole(user.role, user.agencyId));
   }
 
-  const roleToken = user.role.trim().toUpperCase();
-  if (!CAMPUS_CONSOLE_ROLES.has(roleToken) && roleVertical !== "campus") {
+  if (!isCampusRoleToken(user.role) && roleVertical !== "campus") {
     redirect(dashboardRouteFromRole(user.role, user.agencyId));
   }
 

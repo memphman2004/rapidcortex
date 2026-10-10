@@ -8,6 +8,11 @@ export {
   type CommsIntelAuditEventTypeName,
 } from "./comms-intel/audit-events.js";
 
+export {
+  GIS_AUDIT_EVENT_TYPES,
+  type GisAuditEventTypeName,
+} from "./gis/audit-events.js";
+
 /** Wyze Connect — consent-gated homeowner cameras. Merged into security AUDIT_EVENT_TYPES. */
 export const WYZE_AUDIT_EVENT_TYPES = {
   WYZE_HOMEOWNER_REGISTERED: "wyze.homeowner.registered",

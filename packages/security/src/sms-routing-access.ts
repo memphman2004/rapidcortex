@@ -1,4 +1,7 @@
-import { migrateLegacyRapidCortexRoleTokenValue } from "rapid-cortex-shared/auth/rapid-cortex-roles";
+import {
+  isCampusAdminRole,
+  migrateLegacyRapidCortexRoleTokenValue,
+} from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isRcsuperadmin } from "rapid-cortex-shared/tenancy/principal";
 import type { UserContext } from "rapid-cortex-shared/types";
 
@@ -7,7 +10,8 @@ const RC_PLATFORM_ROLES = new Set(["rcsuperadmin", "rcadmin", "rcitadmin"]);
 const MANAGE_ROLES = new Set([
   ...RC_PLATFORM_ROLES,
   "agencyadmin",
-  "campus_admin",
+  "campus_admin_k12",
+  "campus_admin_highered",
   "venue_admin",
   "transit_admin",
 ]);
@@ -19,7 +23,7 @@ function effectiveRole(user: UserContext): string {
 export function canManageSmsRouting(user: UserContext, agencyId: string): boolean {
   if (isRcsuperadmin(user)) return true;
   const role = effectiveRole(user);
-  if (!MANAGE_ROLES.has(role)) return false;
+  if (!MANAGE_ROLES.has(role) && !isCampusAdminRole(role)) return false;
   if (RC_PLATFORM_ROLES.has(role)) return true;
   return user.agencyId === agencyId;
 }

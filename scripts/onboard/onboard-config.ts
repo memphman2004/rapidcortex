@@ -117,7 +117,11 @@ export function productVertical(vertical: OnboardVertical): OnboardPlan["agencyV
 export function adminProvisioning(vertical: OnboardVertical): { role: string; groups: string[] } {
   switch (vertical) {
     case "campus":
-      return { role: "campus_admin", groups: ["campus_admin", "CAMPUS_ADMIN", "vertical_campus"] };
+      // Default onboard admin is higher-ed; K-12 orgs should use CAMPUS_ADMIN_K12 via remap script.
+      return {
+        role: "campus_admin_highered",
+        groups: ["CAMPUS_ADMIN_HIGHERED", "vertical_campus"],
+      };
     case "venue":
       return { role: "venue_admin", groups: ["venue_admin", "vertical_venue"] };
     case "transit":
@@ -133,14 +137,22 @@ export function groupsToEnsure(vertical: OnboardVertical): { name: string; descr
   switch (vertical) {
     case "campus":
       return [
-        { name: "campus_admin", description: "Campus safety administrator" },
-        { name: "campus_supervisor", description: "Campus shift supervisor" },
-        { name: "campus_security", description: "Campus security officer" },
-        { name: "campus_dispatch", description: "Campus dispatch / comms" },
-        { name: "CAMPUS_ADMIN", description: "Campus safety administrator" },
-        { name: "CAMPUS_SUPERVISOR", description: "Campus shift supervisor" },
-        { name: "CAMPUS_SECURITY", description: "Campus security officer" },
-        { name: "CAMPUS_DISPATCH", description: "Campus dispatch / comms" },
+        { name: "CAMPUS_ADMIN_K12", description: "Campus safety administrator (K-12)" },
+        { name: "CAMPUS_SUPERVISOR_K12", description: "Campus shift supervisor (K-12)" },
+        { name: "CAMPUS_SECURITY_K12", description: "Campus security officer (K-12)" },
+        { name: "CAMPUS_DISPATCH_K12", description: "Campus dispatch / comms (K-12)" },
+        { name: "CAMPUS_COUNSELOR_K12", description: "Campus counselor (K-12)" },
+        { name: "CAMPUS_FACULTY_K12", description: "Campus faculty (K-12)" },
+        { name: "CAMPUS_ADMIN_HIGHERED", description: "Campus safety administrator (Higher-ed)" },
+        { name: "CAMPUS_SUPERVISOR_HIGHERED", description: "Campus shift supervisor (Higher-ed)" },
+        { name: "CAMPUS_SECURITY_HIGHERED", description: "Campus security officer (Higher-ed)" },
+        { name: "CAMPUS_DISPATCH_HIGHERED", description: "Campus dispatch / comms (Higher-ed)" },
+        { name: "CAMPUS_COUNSELOR_HIGHERED", description: "Campus counselor (Higher-ed)" },
+        { name: "CAMPUS_FACULTY_HIGHERED", description: "Campus faculty (Higher-ed)" },
+        { name: "CAMPUS_ADMIN", description: "Legacy campus admin (aliases to K-12)" },
+        { name: "CAMPUS_SUPERVISOR", description: "Legacy campus supervisor (aliases to K-12)" },
+        { name: "CAMPUS_SECURITY", description: "Legacy campus security (aliases to K-12)" },
+        { name: "CAMPUS_DISPATCH", description: "Legacy campus dispatch (aliases to K-12)" },
         { name: "vertical_campus", description: "Campus safety vertical" },
       ];
     case "venue":

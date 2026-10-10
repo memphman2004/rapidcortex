@@ -41,9 +41,25 @@ export interface IQReportingPanelProps {
   agencyId: string;
   vertical: IQVertical;
   user: UserContext;
+  /** When vertical is campus, K-12 omits Clery metrics. */
+  institutionType?: "higher_ed" | "k12";
+  /**
+   * Show NC 911 / Campus / Venue / Transit switcher.
+   * Only for RC platform dashboards — product vertical consoles stay locked to `vertical`.
+   */
+  showVerticalSwitcher?: boolean;
 }
 
+/** Vertical switcher tabs — RC dashboards only. Hospital omitted from cross-vertical switcher. */
 export const IQ_VERTICAL_ORDER: IQVertical[] = [
+  "911",
+  "campus",
+  "venue",
+  "transit",
+];
+
+/** All verticals that have an iQ reporting config (includes hospital for its own console). */
+export const IQ_VERTICAL_ALL: IQVertical[] = [
   "911",
   "campus",
   "venue",

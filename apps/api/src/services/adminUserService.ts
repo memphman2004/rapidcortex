@@ -13,6 +13,7 @@ import {
   CAMPUS_ASSIGNABLE_ROLES,
   canAdminForcePasswordReset,
   isCallAssistAssignableRole,
+  isCampusAdminRole,
   isRcInternalOperator,
   isRcsuperadmin,
   isTransitAssignableRole,
@@ -38,8 +39,8 @@ function attr(attrs: AttributeType[] | undefined, name: string): string {
 }
 
 function isCampusAdminActor(role: UserRole): boolean {
-  // Session/JWT roles normalize to `campus_admin`; Cognito may still emit `CAMPUS_ADMIN`.
-  return String(role ?? "").trim().toUpperCase() === "CAMPUS_ADMIN";
+  // Product-suffixed JWT (`campus_admin_k12` / `campus_admin_highered`) or Cognito family.
+  return isCampusAdminRole(String(role ?? ""));
 }
 
 function isTransitAdminActor(role: UserRole): boolean {
