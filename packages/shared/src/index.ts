@@ -129,6 +129,8 @@ export * from "./marketing/index.js";
 export * from "./hiring/index.js";
 export * from "./rapid-iq/index.js";
 export * from "./nexiq-intel/index.js";
+export * from "./nexiq-signals/index.js";
+
 export * from "./loadout/index.js";
 export * from "./escalation/index.js";
 export * from "./rms/index.js";

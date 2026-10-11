@@ -8,7 +8,16 @@
 // and the standalone Grant Writer page (flat form).
 // Single nav entry: Grants → Grant Success Program tab.
 
-import { useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
+import { createPortal } from "react-dom";
 
 interface GrantForm {
   agencyName: string;
@@ -76,6 +85,10 @@ const AGENCY_TYPES = [
   "Emergency Management Agency",
   "Combined PSAP",
   "University / Campus Public Safety",
+  "K-12 School District / Campus Safety",
+  "Venue / Stadium Operations",
+  "Transit Agency Public Safety",
+  "Hospital / Health System",
 ];
 
 const GRANT_PROGRAMS = [
@@ -117,9 +130,281 @@ function formatUsdAmount(raw: string): string {
 }
 
 const input =
-  "w-full bg-transparent border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-colors";
+  "w-full bg-[#0c1220] border border-white/12 rounded-lg px-3 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-violet-400/50 focus:ring-1 focus:ring-violet-400/20 transition-colors";
 const textarea = `${input} resize-none`;
 const label = "block text-xs font-medium text-white/60 mb-1.5";
+
+type AnchorPos = { top: number; left: number; width: number; maxHeight: number };
+
+function useAnchoredMenu(open: boolean, anchorRef: RefObject<HTMLElement | null>): AnchorPos {
+  const [pos, setPos] = useState<AnchorPos>({ top: 0, left: 0, width: 0, maxHeight: 280 });
+
+  useLayoutEffect(() => {
+    if (!open || !anchorRef.current) return;
+    const update = () => {
+      const el = anchorRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const gap = 6;
+      const spaceBelow = window.innerHeight - r.bottom - gap - 12;
+      const spaceAbove = r.top - gap - 12;
+      const preferBelow = spaceBelow >= 160 || spaceBelow >= spaceAbove;
+      const maxHeight = Math.max(140, Math.min(280, preferBelow ? spaceBelow : spaceAbove));
+      const top = preferBelow ? r.bottom + gap : Math.max(12, r.top - gap - maxHeight);
+      setPos({
+        top,
+        left: Math.max(8, Math.min(r.left, window.innerWidth - r.width - 8)),
+        width: r.width,
+        maxHeight,
+      });
+    };
+    update();
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
+  }, [open, anchorRef]);
+
+  return pos;
+}
+
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      className={`h-4 w-4 flex-shrink-0 text-white/40 transition-transform ${open ? "rotate-180" : ""}`}
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      aria-hidden
+    >
+      <path
+        fillRule="evenodd"
+        d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+/** Dark themed select — portaled so it never clips under the sidebar / overflow parents. */
+function MenuSelect({
+  value,
+  onChange,
+  options,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: readonly string[];
+  placeholder: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const listId = useId();
+  const pos = useAnchoredMenu(open, triggerRef);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (triggerRef.current?.contains(t) || listRef.current?.contains(t)) return;
+      setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={listId}
+        onClick={() => setOpen((o) => !o)}
+        className={`${input} flex items-center justify-between gap-2 text-left ${
+          value ? "text-white" : "text-white/35"
+        }`}
+      >
+        <span className="truncate">{value || placeholder}</span>
+        <Chevron open={open} />
+      </button>
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={listRef}
+            id={listId}
+            role="listbox"
+            style={{
+              position: "fixed",
+              top: pos.top,
+              left: pos.left,
+              width: pos.width,
+              maxHeight: pos.maxHeight,
+              zIndex: 80,
+            }}
+            className="overflow-y-auto rounded-xl border border-white/12 bg-[#121a2b] py-1 shadow-2xl shadow-black/50 ring-1 ring-white/5"
+          >
+            {options.map((opt) => {
+              const selected = opt === value;
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  onClick={() => {
+                    onChange(opt);
+                    setOpen(false);
+                  }}
+                  className={`flex w-full items-center px-3 py-2.5 text-left text-sm transition-colors ${
+                    selected
+                      ? "bg-violet-500/20 text-violet-200"
+                      : "text-white/80 hover:bg-white/[0.06] hover:text-white"
+                  }`}
+                >
+                  {opt}
+                </button>
+              );
+            })}
+          </div>,
+          document.body,
+        )}
+    </>
+  );
+}
+
+/** Text field with suggestion list (replaces Safari-mispositioned native datalist). */
+function GrantProgramCombobox({
+  value,
+  onChange,
+  options,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: readonly string[];
+  placeholder: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const listId = useId();
+  const pos = useAnchoredMenu(open, wrapRef);
+
+  const q = value.trim().toLowerCase();
+  const filtered = q
+    ? options.filter((o) => o.toLowerCase().includes(q))
+    : [...options];
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (wrapRef.current?.contains(t) || listRef.current?.contains(t)) return;
+      setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <>
+      <div ref={wrapRef} className="relative">
+        <input
+          ref={inputRef}
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          placeholder={placeholder}
+          className={`${input} pr-9`}
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-autocomplete="list"
+          autoComplete="off"
+        />
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label="Show grant programs"
+          onClick={() => {
+            setOpen((o) => !o);
+            inputRef.current?.focus();
+          }}
+          className="absolute inset-y-0 right-0 flex items-center px-2.5"
+        >
+          <Chevron open={open} />
+        </button>
+      </div>
+      {open &&
+        filtered.length > 0 &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={listRef}
+            id={listId}
+            role="listbox"
+            style={{
+              position: "fixed",
+              top: pos.top,
+              left: pos.left,
+              width: pos.width,
+              maxHeight: pos.maxHeight,
+              zIndex: 80,
+            }}
+            className="overflow-y-auto rounded-xl border border-white/12 bg-[#121a2b] py-1 shadow-2xl shadow-black/50 ring-1 ring-white/5"
+          >
+            {filtered.map((opt) => {
+              const selected = opt === value;
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  onClick={() => {
+                    onChange(opt);
+                    setOpen(false);
+                  }}
+                  className={`flex w-full items-center px-3 py-2.5 text-left text-sm transition-colors ${
+                    selected
+                      ? "bg-violet-500/20 text-violet-200"
+                      : "text-white/80 hover:bg-white/[0.06] hover:text-white"
+                  }`}
+                >
+                  {opt}
+                </button>
+              );
+            })}
+          </div>,
+          document.body,
+        )}
+    </>
+  );
+}
 
 function F({
   l,
@@ -369,20 +654,12 @@ export function GrantSuccessProgram() {
                   />
                 </F>
                 <F l="Agency type" required>
-                  <select
+                  <MenuSelect
                     value={form.agencyType}
-                    onChange={(e) => set("agencyType", e.target.value)}
-                    className={input}
-                  >
-                    <option value="" className="bg-slate-900">
-                      Select type…
-                    </option>
-                    {AGENCY_TYPES.map((t) => (
-                      <option key={t} value={t} className="bg-slate-900">
-                        {t}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(v) => set("agencyType", v)}
+                    options={AGENCY_TYPES}
+                    placeholder="Select type…"
+                  />
                 </F>
                 <F l="City" half>
                   <input
@@ -448,18 +725,12 @@ export function GrantSuccessProgram() {
           >
             <div className="grid grid-cols-2 gap-4">
               <F l="Grant program / name" required>
-                <input
-                  list="grant-programs"
+                <GrantProgramCombobox
                   value={form.grantName}
-                  onChange={(e) => set("grantName", e.target.value)}
+                  onChange={(v) => set("grantName", v)}
+                  options={GRANT_PROGRAMS}
                   placeholder="e.g. COPS Technology Program"
-                  className={input}
                 />
-                <datalist id="grant-programs">
-                  {GRANT_PROGRAMS.map((g) => (
-                    <option key={g} value={g} />
-                  ))}
-                </datalist>
               </F>
               <F l="Funding agency">
                 <input

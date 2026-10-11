@@ -22,6 +22,7 @@ import { ActivityLog } from "@/components/sales/activity-log";
 import { AccountClaims } from "@/components/sales/account-claims";
 import { ColdLeadAlerts } from "@/components/sales/cold-lead-alerts";
 import { SafetySourceLookupLink } from "@/components/psap/safety-source-lookup-link";
+import { GrantSuccessProgram } from "@/components/rc-admin/grant-success-program";
 
 export type SalesPortalTab =
   | "pipeline"
@@ -37,7 +38,8 @@ export type SalesPortalTab =
   | "templates"
   | "rfp"
   | "activity"
-  | "accounts";
+  | "accounts"
+  | "grants";
 
 type TabDef = { id: SalesPortalTab; label: string; group: string };
 
@@ -50,6 +52,7 @@ const TABS: TabDef[] = [
   { id: "roi", label: "ROI Calc", group: "Tools" },
   { id: "pre-call", label: "Pre-Call", group: "Tools" },
   { id: "templates", label: "Templates", group: "Tools" },
+  { id: "grants", label: "Grant Writer", group: "Tools" },
   { id: "news", label: "News", group: "Intel" },
   { id: "regions", label: "Team Regions", group: "Intel" },
   { id: "rfp", label: "RFP Tracker", group: "Intel" },
@@ -62,12 +65,15 @@ type Props = {
   contractorEmail?: string;
   contractorName?: string;
   assigneeFilter?: string;
+  /** Approve/edit/Outlook — RC admins only; sales contractors queue drafts. */
+  canManageCampaigns?: boolean;
 };
 
 export function SalesPortalShell({
   contractorEmail,
   contractorName,
   assigneeFilter,
+  canManageCampaigns = false,
 }: Props) {
   const [tab, setTab] = useState<SalesPortalTab>("pipeline");
 
@@ -128,7 +134,9 @@ export function SalesPortalShell({
               <LeadsCrmPage />
             </div>
           )}
-          {tab === "campaigns" && <SalesAutomationClient />}
+          {tab === "campaigns" && (
+            <SalesAutomationClient canManage={canManageCampaigns} />
+          )}
           {tab === "quote" && (
             <QuoteBuilder
               proposedBy={contractorName ?? contractorEmail ?? "Sales"}
@@ -151,6 +159,7 @@ export function SalesPortalShell({
             />
           )}
           {tab === "accounts" && <AccountClaims />}
+          {tab === "grants" && <GrantSuccessProgram />}
         </div>
         <CopyrightBanner />
       </div>

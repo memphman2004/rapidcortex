@@ -891,7 +891,7 @@ function BulkCampaignModal({
   );
 }
 
-export function SalesAutomationClient({ canManage = true }: { canManage?: boolean }) {
+export function SalesAutomationClient({ canManage = false }: { canManage?: boolean }) {
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("queue");
   const [preview, setPreview] = useState<RapidIqSalesSequence | null>(null);

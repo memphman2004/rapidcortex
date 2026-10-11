@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { isAllowedDragTarget } from "./content-protection-drag";
 
 export type ViolationType =
   | "right_click"
@@ -156,7 +157,8 @@ export function useContentProtection({
     };
 
     const onDrag = (e: DragEvent) => {
-      if (isEditableTarget(e.target)) return;
+      // Allow Kanban / UI drag handles; still block free-text drag-to-extract.
+      if (isAllowedDragTarget(e.target)) return;
       if (!blockExtraction) return;
       e.preventDefault();
       queue(build("drag_text"));

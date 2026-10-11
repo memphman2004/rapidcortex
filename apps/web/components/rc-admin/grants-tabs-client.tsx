@@ -19,25 +19,32 @@ export function RcAdminGrantsTabsClient({
 }) {
   const [tab, setTab] = useState<Tab>(hideAccessGrants ? "generator" : "access");
 
+  const showTabBar = !hideAccessGrants && showGrantSuccessProgram;
+
   return (
     <div>
-      <div className="mb-6 flex gap-1 border-b border-slate-800">
-        {!hideAccessGrants ? (
+      {showTabBar ? (
+        <div className="mb-6 flex gap-1 border-b border-slate-800">
           <TabButton active={tab === "access"} onClick={() => setTab("access")}>
             Access grants
           </TabButton>
-        ) : null}
-        {showGrantSuccessProgram && (
           <TabButton active={tab === "generator"} onClick={() => setTab("generator")}>
-            Grant Success Program
+            Grant Writer
           </TabButton>
-        )}
-      </div>
+        </div>
+      ) : null}
 
       {!hideAccessGrants && tab === "access" ? (
         <AccessOverridesManager initialUser={initialUser} />
       ) : null}
-      {tab === "generator" && showGrantSuccessProgram ? <GrantSuccessProgram /> : null}
+      {(tab === "generator" || hideAccessGrants) && showGrantSuccessProgram ? (
+        <GrantSuccessProgram />
+      ) : null}
+      {!showGrantSuccessProgram && hideAccessGrants ? (
+        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          Grant Writer is not enabled in this environment. Contact an RC admin if you need access.
+        </p>
+      ) : null}
     </div>
   );
 }

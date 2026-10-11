@@ -235,6 +235,15 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
+  # Dispatcher / supervisor ops map — national PSAP directory GeoJSON (not CRM).
+  RouteMapPsaps:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/map/psaps"
+      Target: !Sub "integrations/${PsapProspectsIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
   RoutePsapGet:
     Type: AWS::ApiGatewayV2::Route

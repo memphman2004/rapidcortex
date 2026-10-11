@@ -8,9 +8,11 @@ import {
   canAccessDeploymentsMap,
   canAccessGrantSuccessProgram,
   canAccessPricingCatalog,
+  canAccessNexiqSignalsPanel,
   canAccessPsapProspectsCrm,
   canAccessRapidIqWorkspace,
 } from "./sales-contractor-access.js";
+import { canAccessNexiqSignals } from "../nexiq-signals/schemas.js";
 import { salesContractorMayAccessPath } from "./sales-contractor-paths.js";
 
 describe("salesContractorMayAccessPath", () => {
@@ -42,6 +44,12 @@ describe("sales contractor CRM access helpers", () => {
 
   it("keeps rcitadmin off NexiQ workspace", () => {
     expect(canAccessRapidIqWorkspace("rcitadmin")).toBe(false);
+  });
+
+  it("aligns NexiQ Signals access with workspace roles", () => {
+    expect(canAccessNexiqSignals("salescontractor")).toBe(true);
+    expect(canAccessNexiqSignalsPanel("salescontractor")).toBe(true);
+    expect(canAccessNexiqSignals("rcitadmin")).toBe(false);
   });
 
   it("lets sales view email campaigns but not approve or edit", () => {

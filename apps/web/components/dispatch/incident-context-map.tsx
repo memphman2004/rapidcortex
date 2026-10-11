@@ -8,6 +8,7 @@ import { useMemo } from "react";
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
 import { reportLocationToMapIncident } from "@/components/maps/map-incident-adapters";
 import type { RCIncident, RCLiveCaller } from "@/components/maps/map-types";
+import { isGisEnabled } from "@/lib/runtime-flags";
 import { useTheme } from "@/lib/theme/theme-context";
 
 export function IncidentContextMap({
@@ -62,12 +63,14 @@ export function IncidentContextMap({
         zoom={15}
         height="100%"
         showLayerControl
-        // Street-level ops: ALS tiles plus GeoJSON overlays.
+        enableGisLayers={isGisEnabled()}
+        // Street-level ops: ALS tiles plus GeoJSON / GIS overlays.
         defaultLayers={{
           liveTraffic: true,
           liveTrafficClosures: true,
           airports: true,
           activeIncidents: true,
+          psaps: true,
         }}
         incidents={mapIncidents}
         selectedIncidentId={incidentId ?? mapIncidents[0]?.id}

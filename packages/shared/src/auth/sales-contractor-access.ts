@@ -37,6 +37,14 @@ export function canAccessRapidIqWorkspace(role: string | undefined | null): bool
   return r === "rcsuperadmin" || r === "rcadmin" || r === "salescontractor";
 }
 
+/**
+ * NexiQ Signals (Civic IQ ingest panel) — spec `admin` / `bd_manager`.
+ * Maps to rcsuperadmin|rcadmin (admin) and salescontractor (bd_manager).
+ */
+export function canAccessNexiqSignalsPanel(role: string | undefined | null): boolean {
+  return canAccessRapidIqWorkspace(role);
+}
+
 /** @deprecated Prefer canAccessRapidIqWorkspace — alias for web NexiQ rename. */
 export const canAccessNexiQWorkspace = canAccessRapidIqWorkspace;
 

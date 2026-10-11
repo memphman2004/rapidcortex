@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { campusProductFromRole } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import { RoleNavSections } from "@/components/navigation/role-nav-sidebar";
 import { filterRoleNavByFeatures } from "@/lib/navigation/filter-role-nav";
@@ -17,16 +18,23 @@ export function CampusNav({
   agencyId?: string;
 }) {
   const { institutionType } = useCampusInstitutionType();
-  const navRole = isRcInternalOperator(role) ? "CAMPUS_ADMIN" : role;
+  const roleProduct = campusProductFromRole(role);
+  const effectiveInstitutionType = roleProduct ?? institutionType;
+  // RC preview: use a product-suffixed stand-in so nav is not forced to legacy K-12.
+  const navRole = isRcInternalOperator(role)
+    ? effectiveInstitutionType === "k12"
+      ? "CAMPUS_ADMIN_K12"
+      : "CAMPUS_ADMIN_HIGHERED"
+    : role;
   const nav = useMemo(
     () =>
       filterRoleNavByFeatures(
         getRoleNav(navRole, {
           campusCode: campusCode.toUpperCase(),
-          campusInstitutionType: institutionType,
+          campusInstitutionType: effectiveInstitutionType,
         }),
       ),
-    [navRole, campusCode, institutionType],
+    [navRole, campusCode, effectiveInstitutionType],
   );
 
   return (

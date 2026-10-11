@@ -460,25 +460,25 @@ else
     --query 'taskDefinition' \
     --output json \
     --no-cli-pager > "${TD_JSON}"
-  python3 - "${TD_JSON}" "${TD_NEW}" <<'PY'
+  # Always pin to this deploy's ECR repo (WEB_ECR_REPOSITORY_NAME / ECR_REPO_NAME).
+  # Never inherit a stale repo from the previous task def — a prior mis-pin to
+  # rapid-cortex-web-dev would otherwise keep prod on the wrong :latest forever.
+  ACCOUNT_ID="$(
+    aws sts get-caller-identity --query Account --output text --region "${AWS_REGION}" --no-cli-pager
+  )"
+  TARGET_IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:latest"
+  python3 - "${TD_JSON}" "${TD_NEW}" "${TARGET_IMAGE}" <<'PY'
 import json, sys
-src, dst = sys.argv[1], sys.argv[2]
+src, dst, target = sys.argv[1], sys.argv[2], sys.argv[3]
 td = json.load(open(src))
 for k in (
     "taskDefinitionArn", "revision", "status", "requiresAttributes",
     "compatibilities", "registeredAt", "registeredBy", "deregisteredAt",
 ):
     td.pop(k, None)
-img = td["containerDefinitions"][0]["image"]
-if "@" in img:
-    repo = img.split("@", 1)[0]
-elif ":" in img.rsplit("/", 1)[-1]:
-    repo = img.rsplit(":", 1)[0]
-else:
-    repo = img
-td["containerDefinitions"][0]["image"] = f"{repo}:latest"
+td["containerDefinitions"][0]["image"] = target
 json.dump(td, open(dst, "w"))
-print(f"   image → {repo}:latest")
+print(f"   image → {target}")
 PY
   NEW_TASK_ARN="$(
     aws ecs register-task-definition \

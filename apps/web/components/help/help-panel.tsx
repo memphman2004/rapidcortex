@@ -44,7 +44,11 @@ function documentLibraryHref(role: string, pathname: string | null): string {
     return "/sales/document-library";
   }
   const j = jurisdictionFromPath(pathname) ?? defaultJurisdictionSlug();
-  return `/${j}/admin/document-library`;
+  if (r === "agencyadmin" || r === "agencyit") {
+    return `/${j}/admin/document-library`;
+  }
+  // Dispatchers and other PSAP ops roles use the non-admin library (middleware blocks /admin/*).
+  return `/${j}/document-library`;
 }
 
 function ArticleView({
@@ -198,10 +202,8 @@ function ArticleView({
             >
             {staffGuide ? null : (
               <>
-                <a
-                  href={`https://docs.rapidcortex.us/${role}/${article.topic}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href={libraryHref}
                   style={{
                     fontSize: 11,
                     color: V.purple,
@@ -212,8 +214,8 @@ function ArticleView({
                   }}
                 >
                   <ExternalLink size={11} />
-                  Open in full docs
-                </a>
+                  Open document library
+                </Link>
                 <span style={{ fontSize: 11, color: V.dim }}>·</span>
               </>
             )}

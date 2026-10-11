@@ -43,6 +43,7 @@ import { ManualSignalForm } from "./manual-signal-form";
 import { OpportunityIntelView } from "./opportunity-intel-view";
 import { FEED_TAB_LABELS, VerticalTabs, type FeedTab } from "./vertical-tabs";
 import { ProcurementStageTabs } from "./procurement-stage-tabs";
+import { NexiqSignalsPanel } from "./nexiq-signals-panel";
 
 const US_STATES = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS",
@@ -366,6 +367,7 @@ export function RapidIqClient() {
 
   return (
     <div className="flex min-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#050c1a]">
+      <NexiqSignalsPanel />
       <RapidIqStatsBar
         stats={stats}
         lastUpdated={

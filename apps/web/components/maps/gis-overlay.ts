@@ -1,7 +1,8 @@
 /**
  * GIS A1 GeoJSON overlays on RapidCortexMap — restored after ALS style switches.
  */
-import type maplibregl from "maplibre-gl";
+import type { GeoJSONSource, Map as MapLibreMap } from "maplibre-gl";
+import { addOverlayLayer } from "./overlay-slot";
 
 export const GIS_SOURCE_PREFIX = "rc-gis-src-";
 export const GIS_FILL_PREFIX = "rc-gis-fill-";
@@ -29,7 +30,7 @@ function circleId(datasetId: string) {
   return `${GIS_CIRCLE_PREFIX}${datasetId}`;
 }
 
-export function removeGisOverlay(map: maplibregl.Map, datasetId: string): void {
+export function removeGisOverlay(map: MapLibreMap, datasetId: string): void {
   for (const id of [fillId(datasetId), lineId(datasetId), circleId(datasetId)]) {
     if (map.getLayer(id)) map.removeLayer(id);
   }
@@ -37,7 +38,7 @@ export function removeGisOverlay(map: maplibregl.Map, datasetId: string): void {
   if (map.getSource(s)) map.removeSource(s);
 }
 
-export function upsertGisOverlay(map: maplibregl.Map, spec: GisOverlaySpec): void {
+export function upsertGisOverlay(map: MapLibreMap, spec: GisOverlaySpec): void {
   const color = spec.color ?? "#38bdf8";
   const opacity = spec.opacity ?? 0.35;
   const source = srcId(spec.datasetId);
@@ -45,11 +46,11 @@ export function upsertGisOverlay(map: maplibregl.Map, spec: GisOverlaySpec): voi
   if (!map.getSource(source)) {
     map.addSource(source, { type: "geojson", data: spec.featureCollection });
   } else {
-    (map.getSource(source) as maplibregl.GeoJSONSource).setData(spec.featureCollection);
+    (map.getSource(source) as GeoJSONSource).setData(spec.featureCollection);
   }
 
   if (!map.getLayer(fillId(spec.datasetId))) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id: fillId(spec.datasetId),
       type: "fill",
       source,
@@ -69,7 +70,7 @@ export function upsertGisOverlay(map: maplibregl.Map, spec: GisOverlaySpec): voi
   }
 
   if (!map.getLayer(lineId(spec.datasetId))) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id: lineId(spec.datasetId),
       type: "line",
       source,
@@ -89,7 +90,7 @@ export function upsertGisOverlay(map: maplibregl.Map, spec: GisOverlaySpec): voi
   }
 
   if (!map.getLayer(circleId(spec.datasetId))) {
-    map.addLayer({
+    addOverlayLayer(map, {
       id: circleId(spec.datasetId),
       type: "circle",
       source,
@@ -106,7 +107,7 @@ export function upsertGisOverlay(map: maplibregl.Map, spec: GisOverlaySpec): voi
 }
 
 /** Re-apply all enabled GIS overlays after setStyle / style.load. */
-export function restoreGisOverlays(map: maplibregl.Map, specs: GisOverlaySpec[]): void {
+export function restoreGisOverlays(map: MapLibreMap, specs: GisOverlaySpec[]): void {
   for (const spec of specs) {
     upsertGisOverlay(map, spec);
   }

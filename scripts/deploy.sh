@@ -242,6 +242,7 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-data-layer-grant
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-grants.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-data-layer-nexiq-intel.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-nexiq-intel.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-nexiq-signals.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-analytics.yaml"
 fi
 
@@ -535,13 +536,16 @@ if [[ -n "${GUEST_ASSIST_SESSION_SECRET:-}" ]]; then
   PARAMS="${PARAMS} GuestAssistSessionSecret=${GUEST_ASSIST_SESSION_SECRET}"
 fi
 if [[ -n "${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN:-}" ]]; then
-  PARAMS="${PARAMS} NexiQHunterApiKeySecretArn=${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}"
+  PARAMS="${PARAMS} RapidIqHunterApiKeySecretArn=${RAPID_IQ_HUNTER_API_KEY_SECRET_ARN}"
 fi
 if [[ -n "${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:-}" ]]; then
-  PARAMS="${PARAMS} NexiQApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}"
+  PARAMS="${PARAMS} RapidIqApolloApiKeySecretArn=${RAPID_IQ_APOLLO_API_KEY_SECRET_ARN}"
 fi
 if [[ -n "${RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN:-}" ]]; then
-  PARAMS="${PARAMS} NexiQWatchIngestApiKeySecretArn=${RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN}"
+  PARAMS="${PARAMS} RapidIqWatchIngestApiKeySecretArn=${RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN}"
+fi
+if [[ -n "${NEXIQ_SIGNALS_INGEST_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} NexiqSignalsIngestApiKeySecretArn=${NEXIQ_SIGNALS_INGEST_API_KEY_SECRET_ARN}"
 fi
 if [[ -n "${ENABLE_NEXIQ_INTEL:-}" ]]; then
   PARAMS="${PARAMS} EnableNexiQIntel=${ENABLE_NEXIQ_INTEL}"

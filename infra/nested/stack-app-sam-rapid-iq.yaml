@@ -204,6 +204,8 @@ Resources:
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RapidIqJurisdictionsTable}
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RapidIqJurisdictionsTable}/index/*
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RapidIqStateCoverageTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConferencesTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConferencesTable}/index/*
           - Sid: SalesLeadsWrite
             Effect: Allow
             Action:
@@ -249,6 +251,16 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyNexiQDdb
         - Statement:
+            - Sid: ConferencesTableRead
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:DescribeTable
+              Resource:
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConferencesTable}
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConferencesTable}/index/*
             - Sid: InvokeOrchestrator
               Effect: Allow
               Action:

@@ -2239,7 +2239,7 @@ function PsapConsoleHomeInner({
                         link: "View Training",
                         color: C.purple,
                         rgb: "139,92,246",
-                        href: "mailto:support@nexcortiq.us?subject=RC%20911%20training",
+                        href: `/${jurisdiction}/document-library`,
                       },
                     ] as const
                   ).map((u) => {

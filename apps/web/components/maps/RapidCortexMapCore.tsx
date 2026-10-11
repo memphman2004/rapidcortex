@@ -324,6 +324,7 @@ export default function RapidCortexMapCore({
   const [educationHint, setEducationHint] = useState<EducationOverlayHint>(null);
 
   const [mapReady,  setMapReady]  = useState(false);
+  const mapReadyRef = useRef(false);
   const [mapError,  setMapError]  = useState<string | null>(null);
   const [localTheme, setLocalTheme] = useState<"dark" | "light">(themeProp);
   const [layers, setLayers]       = useState<RCMapLayerVisibility>({
@@ -332,7 +333,18 @@ export default function RapidCortexMapCore({
   });
 
   const theme = onThemeChange ? themeProp : localTheme;
-  const { ready: alsReady } = useALSMap();
+  const { ready: alsReady, authError: alsAuthError } = useALSMap();
+
+  useEffect(() => {
+    if (alsAuthError) {
+      setMapError(alsAuthError);
+    }
+  }, [alsAuthError]);
+
+  const markMapReady = useCallback(() => {
+    mapReadyRef.current = true;
+    setMapReady(true);
+  }, []);
 
   useEffect(() => {
     layersRef.current = layers;
@@ -460,46 +472,53 @@ export default function RapidCortexMapCore({
     };
 
     const reattachOverlays = () => {
-      ensureLiveLayers(
-        map,
-        layersRef.current,
-        incidentsRef.current,
-        overlaysRef.current,
-        sectionsRef.current,
-        extrusionRef.current,
-      );
-      ensureRuntimeOverlayLayers(map);
-      void restorePsapOverlay(map, layersRef.current.psaps);
-      void restoreHospitalOverlay(map, layersRef.current, (props, coordinates) => {
-        hospitalSelectRef.current(props, coordinates);
-      });
-      void restoreEducationOverlay(map, layersRef.current, (props, coordinates) => {
-        educationSelectRef.current(props, coordinates);
-      });
-      restoreLiveCallerLayers(map, layersRef.current, resolvedLiveCallers(), onLiveCallerSelect);
-      restoreGisOverlays(map, gisSpecsRef.current);
-      trafficLayersRef.current = discoverTrafficLayerIds(map.getStyle()?.layers);
-      promoteStudioOverlays(map);
-      applyStudioVisibility(map, layersRef.current);
-      applyRuntimeOverlayVisibility(map, layersRef.current);
-      applyTrafficLayerVisibility(
-        map,
-        trafficLayersRef.current.flow,
-        trafficLayersRef.current.closures,
-        layersRef.current,
-      );
-      bindIncidentInteractions(map, onIncidentLayerClick);
-      bindOverlayInteractions(map, (id) => {
-        const overlay = overlaysRef.current.find((item) => item.id === id);
-        if (overlay) overlayClickRef.current?.(overlay);
-      });
-      bindPolygonInteractions(map, (props) => polygonClickRef.current?.(props));
-      map.resize();
-      setMapReady(true);
+      try {
+        ensureLiveLayers(
+          map,
+          layersRef.current,
+          incidentsRef.current,
+          overlaysRef.current,
+          sectionsRef.current,
+          extrusionRef.current,
+        );
+        ensureRuntimeOverlayLayers(map);
+        void restorePsapOverlay(map, layersRef.current.psaps);
+        void restoreHospitalOverlay(map, layersRef.current, (props, coordinates) => {
+          hospitalSelectRef.current(props, coordinates);
+        });
+        void restoreEducationOverlay(map, layersRef.current, (props, coordinates) => {
+          educationSelectRef.current(props, coordinates);
+        });
+        restoreLiveCallerLayers(map, layersRef.current, resolvedLiveCallers(), onLiveCallerSelect);
+        restoreGisOverlays(map, gisSpecsRef.current);
+        trafficLayersRef.current = discoverTrafficLayerIds(map.getStyle()?.layers);
+        promoteStudioOverlays(map);
+        applyStudioVisibility(map, layersRef.current);
+        applyRuntimeOverlayVisibility(map, layersRef.current);
+        applyTrafficLayerVisibility(
+          map,
+          trafficLayersRef.current.flow,
+          trafficLayersRef.current.closures,
+          layersRef.current,
+        );
+        bindIncidentInteractions(map, onIncidentLayerClick);
+        bindOverlayInteractions(map, (id) => {
+          const overlay = overlaysRef.current.find((item) => item.id === id);
+          if (overlay) overlayClickRef.current?.(overlay);
+        });
+        bindPolygonInteractions(map, (props) => polygonClickRef.current?.(props));
+        map.resize();
+      } catch (err) {
+        console.error("[RapidCortexMap] Overlay attach failed:", err);
+      } finally {
+        // Never leave the dashboard stuck on LOADING MAP if the style arrived.
+        markMapReady();
+      }
     };
 
-    // ── After style loads ────────────────────────────────────────────────────
-    map.on("load", () => {
+    // Prefer style.load over "load" — "load" waits for first paint/tiles and can
+    // hang forever when Cognito tile signing is blocked (Safari Private / ITP).
+    map.on("style.load", () => {
       reattachOverlays();
       // ALS style-descriptor center/zoom can overwrite constructor camera.
       map.jumpTo({
@@ -534,6 +553,14 @@ export default function RapidCortexMapCore({
       map.setStyle(fallbackStyle);
     });
 
+    const loadTimeout = window.setTimeout(() => {
+      if (!mapReadyRef.current) {
+        setMapError(
+          "Map is taking too long to load. Safari Private / ad blockers can block Cognito map credentials — try Reload with Reduced Protections, or a normal browser window.",
+        );
+      }
+    }, 20_000);
+
     let resizeRaf = 0;
     const resizeObserver =
       typeof ResizeObserver !== "undefined"
@@ -550,6 +577,7 @@ export default function RapidCortexMapCore({
     }
 
     return () => {
+      window.clearTimeout(loadTimeout);
       if (resizeRaf) cancelAnimationFrame(resizeRaf);
       resizeObserver?.disconnect();
       popupRef.current?.remove();
@@ -578,47 +606,53 @@ export default function RapidCortexMapCore({
 
     appliedThemeRef.current = theme;
     appliedStyleUrlRef.current = nextStyle;
+    mapReadyRef.current = false;
     setMapReady(false);
     popupRef.current?.remove();
 
     const onStyleLoad = () => {
       styleLoadHandlerRef.current = null;
-      ensureLiveLayers(
-        map,
-        layersRef.current,
-        incidentsRef.current,
-        overlaysRef.current,
-        sectionsRef.current,
-        extrusionRef.current,
-      );
-      ensureRuntimeOverlayLayers(map);
-      void restorePsapOverlay(map, layersRef.current.psaps);
-      void restoreHospitalOverlay(map, layersRef.current, (props, coordinates) => {
-        hospitalSelectRef.current(props, coordinates);
-      });
-      void restoreEducationOverlay(map, layersRef.current, (props, coordinates) => {
-        educationSelectRef.current(props, coordinates);
-      });
-      restoreLiveCallerLayers(map, layersRef.current, resolvedLiveCallers(), onLiveCallerSelect);
-      restoreGisOverlays(map, gisSpecsRef.current);
-      trafficLayersRef.current = discoverTrafficLayerIds(map.getStyle()?.layers);
-      promoteStudioOverlays(map);
-      applyStudioVisibility(map, layersRef.current);
-      applyRuntimeOverlayVisibility(map, layersRef.current);
-      applyTrafficLayerVisibility(
-        map,
-        trafficLayersRef.current.flow,
-        trafficLayersRef.current.closures,
-        layersRef.current,
-      );
-      bindIncidentInteractions(map, (e) => clickHandlerRef.current(e));
-      bindOverlayInteractions(map, (id) => {
-        const overlay = overlaysRef.current.find((item) => item.id === id);
-        if (overlay) overlayClickRef.current?.(overlay);
-      });
-      bindPolygonInteractions(map, (props) => polygonClickRef.current?.(props));
-      map.resize();
-      setMapReady(true);
+      try {
+        ensureLiveLayers(
+          map,
+          layersRef.current,
+          incidentsRef.current,
+          overlaysRef.current,
+          sectionsRef.current,
+          extrusionRef.current,
+        );
+        ensureRuntimeOverlayLayers(map);
+        void restorePsapOverlay(map, layersRef.current.psaps);
+        void restoreHospitalOverlay(map, layersRef.current, (props, coordinates) => {
+          hospitalSelectRef.current(props, coordinates);
+        });
+        void restoreEducationOverlay(map, layersRef.current, (props, coordinates) => {
+          educationSelectRef.current(props, coordinates);
+        });
+        restoreLiveCallerLayers(map, layersRef.current, resolvedLiveCallers(), onLiveCallerSelect);
+        restoreGisOverlays(map, gisSpecsRef.current);
+        trafficLayersRef.current = discoverTrafficLayerIds(map.getStyle()?.layers);
+        promoteStudioOverlays(map);
+        applyStudioVisibility(map, layersRef.current);
+        applyRuntimeOverlayVisibility(map, layersRef.current);
+        applyTrafficLayerVisibility(
+          map,
+          trafficLayersRef.current.flow,
+          trafficLayersRef.current.closures,
+          layersRef.current,
+        );
+        bindIncidentInteractions(map, (e) => clickHandlerRef.current(e));
+        bindOverlayInteractions(map, (id) => {
+          const overlay = overlaysRef.current.find((item) => item.id === id);
+          if (overlay) overlayClickRef.current?.(overlay);
+        });
+        bindPolygonInteractions(map, (props) => polygonClickRef.current?.(props));
+        map.resize();
+      } catch (err) {
+        console.error("[RapidCortexMap] Overlay attach failed after style swap:", err);
+      } finally {
+        markMapReady();
+      }
     };
 
     styleLoadHandlerRef.current = onStyleLoad;

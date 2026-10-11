@@ -52,6 +52,7 @@ export function LeadCard({ lead, selected, onSelect, onDragStart }: Props) {
     <button
       type="button"
       draggable
+      data-allow-drag="true"
       onDragStart={(e) => {
         e.dataTransfer.setData("text/leadId", lead.leadId);
         e.dataTransfer.setData("text/fromStage", lead.pipelineStage);

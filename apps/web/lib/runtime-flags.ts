@@ -98,6 +98,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_RAPID_IQ: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ,
   NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ_PIPELINE,
   NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL: process.env.NEXT_PUBLIC_ENABLE_RAPID_IQ_INTEL,
+  NEXT_PUBLIC_ENABLE_NEXIQ_SIGNALS: process.env.NEXT_PUBLIC_ENABLE_NEXIQ_SIGNALS,
   NEXT_PUBLIC_ENABLE_NEXIQ_INTEL: process.env.NEXT_PUBLIC_ENABLE_NEXIQ_INTEL,
   NEXT_PUBLIC_ENABLE_SALES_AUTOMATION: process.env.NEXT_PUBLIC_ENABLE_SALES_AUTOMATION,
   NEXT_PUBLIC_ENABLE_CONFERENCES: process.env.NEXT_PUBLIC_ENABLE_CONFERENCES,
@@ -749,6 +750,11 @@ export function isRapidIqUiEnabled(): boolean {
 
 /** @deprecated Prefer isRapidIqUiEnabled — alias for web NexiQ rename. */
 export const isNexiQUiEnabled = isRapidIqUiEnabled;
+
+/** Civic-IQ → Claude NexiQ Signals panel on /rc-admin/rapid-iq. Default on when unset. */
+export function isNexiqSignalsUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_NEXIQ_SIGNALS");
+}
 
 /** NexCort Admin NexiQ Signal Intelligence Pipeline. Default on when unset. */
 export function isRapidIqPipelineUiEnabled(): boolean {

@@ -121,6 +121,12 @@ Parameters:
     Description: >-
       Secrets Manager ARN for ChatGPT Watch → NexiQ Inbox ingest API key
       (JSON {apiKey:"…"} or raw string). Empty disables machine ingest until set.
+  NexiqSignalsIngestApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Secrets Manager ARN for Claude → POST /api/signals ingest API key
+      (JSON {apiKey:"…"} or raw string). Empty disables API-key ingest until set.
   RmsVendorSecretArn:
     Type: String
     Default: ""
@@ -2388,8 +2394,10 @@ Resources:
       Parameters:
         DeploymentStage: !Ref DeploymentStage
         HttpApiId: !GetAtt AppSam3Stack.Outputs.HttpApiId
-        # Empty = routes without gateway JWT (Lambda still validates via getUserContext).
-        HttpApiJwtAuthorizerId: ""
+        # Stack-3 CognitoJwtAuthorizer physical id (dev). Empty previously left routes as
+        # AuthorizationType NONE and allowed API GW drift to drop them — repair with
+        # scripts/repair-psap-prospects-routes.sh if list returns 404 again.
+        HttpApiJwtAuthorizerId: "k8rjdh"
         PsapProspectsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -2435,6 +2443,68 @@ Resources:
         ManagedPolicyNamePrefix: !Ref AWS::StackName
         RapidIqHunterApiKeySecretArn: !Ref RapidIqHunterApiKeySecretArn
         RapidIqApolloApiKeySecretArn: !Ref RapidIqApolloApiKeySecretArn
+
+  # Civic-IQ → Claude NexiQ Signals ingest (POST IAM + GET/PATCH JWT) on AppSam3 HttpApi.
+  AppSamNexiQSignalsStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam3Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-nexiq-signals.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam3Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: "k8rjdh"
+        NexiQSignalsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.NexiQSignalsTable
+            - !Sub "${DynamoTableNamePrefix}-nexiq-signals-${DeploymentStage}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        TranscriptsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TranscriptsTable
+            - !Sub "${DynamoTableNamePrefix}-transcripts-${DeploymentStage}"
+        AnalysesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AnalysesTable
+            - !Sub "${DynamoTableNamePrefix}-analyses-${DeploymentStage}"
+        InvitesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvitesTable
+            - !Sub "${DynamoTableNamePrefix}-invites-${DeploymentStage}"
+        AssetsBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AssetsBucket
+            - !Sub "${DynamoTableNamePrefix}-assets-${DeploymentStage}-${AWS::AccountId}"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+        RapidIqApolloApiKeySecretArn: !Ref RapidIqApolloApiKeySecretArn
+        NexiqSignalsIngestApiKeySecretArn: !Ref NexiqSignalsIngestApiKeySecretArn
 
   # Surgical NexiQ sales intelligence on AppSam3 HttpApi
   # (opportunities/signals/contacts/sources + collectors + EventBridge).

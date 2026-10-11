@@ -6,6 +6,9 @@ import { proxyToAuthUpstream } from "@/lib/server/auth-upstream-proxy";
 /**
  * Grant matches for a lead — requires ?vertical= so the BFF/API never returns
  * another product vertical's matches.
+ *
+ * Upstream grant-matches routes are not registered on all stacks yet; when the
+ * API returns 404, return an empty list so the CRM Grants tab stays usable.
  */
 export async function GET(
   request: NextRequest,
@@ -20,8 +23,12 @@ export async function GET(
   if (!vertical || vertical === "unknown") {
     return NextResponse.json({ error: "vertical query required" }, { status: 400 });
   }
-  return proxyToAuthUpstream(
+  const upstream = await proxyToAuthUpstream(
     request,
     `/api/rc-admin/leads/${encodeURIComponent(leadId)}/grant-matches?vertical=${encodeURIComponent(vertical)}`,
   );
+  if (upstream.status === 404) {
+    return NextResponse.json({ matches: [], vertical });
+  }
+  return upstream;
 }

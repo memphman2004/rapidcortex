@@ -604,6 +604,9 @@ export const env = {
   enablePsapProspects: featureEnabled("ENABLE_PSAP_PROSPECTS"),
   /** NexiQ — RC-global sales intelligence (no agencyId scoping). */
   enableRapidIq: featureEnabled("ENABLE_RAPID_IQ"),
+  /** Civic-IQ → Claude NexiQ Signals ingest + dashboard panel. Default on when unset. */
+  enableNexiqSignals: featureEnabled("ENABLE_NEXIQ_SIGNALS"),
+  nexiqSignalsTable: process.env.NEXIQ_SIGNALS_TABLE?.trim() ?? "",
   /** NexiQ Signal Intelligence Pipeline (procurement signals → CRM). Default on when unset. */
   enableNexiQPipeline: featureEnabled("ENABLE_RAPID_IQ_PIPELINE"),
   /** NexiQ sales automation (campaign drafts + Outlook send after approval). Default on when unset. */

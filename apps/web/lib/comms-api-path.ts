@@ -11,6 +11,8 @@ const STACK2_PATH_TESTS: RegExp[] = [
   /^\/api\/supervisor\//,
   /^\/api\/dispatcher\//,
   /^\/api\/admin\/analytics/,
+  /** iQ daily reporting (AppSamAnalyticsStack on AppSam2 HttpApi). */
+  /^\/api\/analytics\/reporting(\/|$)/,
   /^\/api\/admin\/notices(\/|$)/,
   /^\/api\/notices(\/|$)/,
   /^\/api\/audit\/events(\/|$)/,
@@ -127,6 +129,7 @@ const STACK3_PATH_TESTS: RegExp[] = [
   /^\/api\/map\/psaps$/,
   /^\/api\/contacts(\/|$)/,
   /^\/api\/rapid-iq(\/|$)/,
+  /^\/api\/signals(\/|$)/,
   /^\/api\/watch(\/|$)/,
   /^\/api\/rc-admin\/rapid-iq(\/|$)/,
   /^\/api\/rc-admin\/nexiq\/intel(\/|$)/,

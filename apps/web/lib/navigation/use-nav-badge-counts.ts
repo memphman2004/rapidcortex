@@ -1,8 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { canAccessNexiqSignals } from "rapid-cortex-shared";
 import { fetchCadWritebackApprovals } from "@/lib/api";
-import { isCadWritebackUiEnabled, isSopIntelligenceEnabled } from "@/lib/runtime-flags";
+import { fetchNexiqSignalsSummary } from "@/lib/nexiq-signals/api";
+import {
+  isCadWritebackUiEnabled,
+  isNexiqSignalsUiEnabled,
+  isSopIntelligenceEnabled,
+} from "@/lib/runtime-flags";
 import { fetchSopIntelligenceSnapshot } from "@/lib/sop-intelligence/api";
 
 export type NavBadgeCounts = Partial<Record<string, number>>;
@@ -23,6 +29,8 @@ export function useNavBadgeCounts(role?: string): NavBadgeCounts {
       (role === "supervisor" || role === "agencyadmin" || role === "rcsuperadmin" || role === "rcadmin") &&
       isSopIntelligenceEnabled(),
   );
+  const canSeeNexiqSignals =
+    Boolean(role && canAccessNexiqSignals(role) && isNexiqSignalsUiEnabled());
 
   const pendingCadQ = useQuery({
     queryKey: ["nav-badge", "pendingCadApprovals"],
@@ -44,8 +52,22 @@ export function useNavBadgeCounts(role?: string): NavBadgeCounts {
     refetchInterval: 15_000,
   });
 
+  const nexiqSignalsQ = useQuery({
+    queryKey: ["nav-badge", "nexiqSignalsNew"],
+    queryFn: async () => {
+      const summary = await fetchNexiqSignalsSummary();
+      return summary.new;
+    },
+    enabled: canSeeNexiqSignals,
+    refetchInterval: 5 * 60_000,
+    staleTime: 60_000,
+    retry: 0,
+  });
+
   return {
     pendingCadApprovals: pendingCadQ.data ?? 0,
     pendingSopUpdates: pendingSopQ.data ?? 0,
+    // Hide badge at 0 — renderers typically skip zero counts.
+    nexiqSignalsNew: nexiqSignalsQ.data ?? 0,
   };
 }

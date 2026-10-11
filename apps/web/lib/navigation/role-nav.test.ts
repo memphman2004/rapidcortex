@@ -295,14 +295,23 @@ describe("getRoleNav", () => {
       const items = nav.sections.flatMap((s) => s.items);
       const rapidIq = items.find((i) => i.id === "rapid-iq");
       expect(rapidIq?.href).toBe("/rc-admin/rapid-iq");
+      const nexiqSignals = items.find((i) => i.id === "nexiq-signals");
+      expect(nexiqSignals?.href).toBe("/rc-admin/rapid-iq#nexiq-signals");
+      expect(nexiqSignals?.label).toBe("NexiQ Signals");
+      expect(nexiqSignals?.feature).toBe("nexiqSignals");
       expect(items.find((i) => i.id === "conferences")?.href).toBe("/rc-admin/conferences");
       expect(items.find((i) => i.id === "sales-automation")?.href).toBe("/rc-admin/sales-automation");
       expect(items.find((i) => i.id === "sales-automation")?.label).toBe("Email Campaigns");
       expect(items.find((i) => i.id === "rapid-iq-pipeline")).toBeUndefined();
     }
+    const salesNav = getRoleNav("salescontractor", {});
+    expect(
+      salesNav.sections.flatMap((s) => s.items).find((i) => i.id === "nexiq-signals")?.href,
+    ).toBe("/rc-admin/rapid-iq#nexiq-signals");
     const itNav = getRoleNav("rcitadmin", {});
     const itItems = itNav.sections.flatMap((s) => s.items);
     expect(itItems.find((i) => i.id === "rapid-iq-pipeline")).toBeUndefined();
+    expect(itItems.find((i) => i.id === "nexiq-signals")).toBeUndefined();
     expect(itItems.find((i) => i.id === "conferences")).toBeUndefined();
     expect(itItems.find((i) => i.id === "sales-automation")).toBeUndefined();
   });
@@ -449,6 +458,21 @@ describe("getRoleNav", () => {
     expect(nav.sections.map((s) => s.id)).not.toContain("clery-compliance");
   });
 
+  it("higher-ed campus admin omits Visitor, Pickup, and School Safety Report", () => {
+    const nav = getRoleNav("CAMPUS_ADMIN_HIGHERED", {
+      campusCode: "UGA",
+      campusInstitutionType: "k12", // role suffix must win
+    });
+    const items = nav.sections.flatMap((s) => s.items);
+    const ids = items.map((i) => i.id);
+    expect(nav.sections.map((s) => s.id)).not.toContain("k12-safety");
+    expect(ids).not.toContain("visitors");
+    expect(ids).not.toContain("pickup-auth");
+    expect(ids).not.toContain("school-safety-report");
+    expect(ids).not.toContain("daily-incident-log");
+    expect(nav.roleBadge).not.toMatch(/^K-12/);
+  });
+
   it("labels the Clery daily log as Daily Crime Log for higher-ed", () => {
     const item = getRoleNav("CAMPUS_ADMIN_HIGHERED", {
       campusCode: "IU",
@@ -507,6 +531,19 @@ describe("getRoleNav", () => {
     expect(k12Items.find((i) => i.id === "translate")?.badge).toBeUndefined();
     const k12Safety = k12.sections.find((s) => s.id === "k12-safety");
     expect(k12Safety?.items.map((i) => i.id)).toEqual(["pickup-auth"]);
+  });
+
+  it("exposes Training document library on dispatcher and supervisor nav", () => {
+    const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "document-library");
+    expect(dispatcher?.label).toBe("Training");
+    expect(dispatcher?.href).toBe("/test-psap/document-library");
+
+    const supervisor = getRoleNav("supervisor", { jurisdiction: "test-psap" })
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === "document-library");
+    expect(supervisor?.href).toBe("/test-psap/document-library");
   });
 
   it("exposes NexiQ Vision on dispatcher nav, not supervisor or guest services", () => {

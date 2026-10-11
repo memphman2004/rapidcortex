@@ -34,7 +34,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
-  campusMatrixRoleFromRole,
+  campusProductFromRole,
   campusRoleFamily,
   isCampusAdminRole,
 } from "rapid-cortex-shared/auth/rapid-cortex-roles";
@@ -431,12 +431,20 @@ function CampusConsoleHomeInner({
   const abbr = campusAbbr(codeUpper);
   const isAdmin = isCampusAdminRole(userRole);
 
-  const navRole = isRcInternalOperator(userRole ?? "")
-    ? "CAMPUS_ADMIN"
-    : (campusMatrixRoleFromRole(userRole) ?? userRole ?? "CAMPUS_SECURITY");
-
   const { institutionType } = useCampusInstitutionType();
-  const isK12 = institutionType === "k12";
+  // Role product wins for seat holders; agency institutionType is fallback for RC preview.
+  const roleProduct = campusProductFromRole(userRole);
+  const effectiveInstitutionType = roleProduct ?? institutionType;
+  const isK12 = effectiveInstitutionType === "k12";
+
+  // Keep product suffix on the role (`*_HIGHERED` / `*_K12`) so getRoleNav can
+  // strip Visitor / Pickup / School Safety for higher-ed. Collapsing to the
+  // matrix family (`CAMPUS_ADMIN`) makes campusProductFromRole treat it as legacy K-12.
+  const navRole = isRcInternalOperator(userRole ?? "")
+    ? isK12
+      ? "CAMPUS_ADMIN_K12"
+      : "CAMPUS_ADMIN_HIGHERED"
+    : (userRole ?? "CAMPUS_SECURITY");
 
   const nav = useMemo(() => {
     const ctx = buildNavContext({ agencyId }, undefined);
@@ -444,10 +452,10 @@ function CampusConsoleHomeInner({
       getRoleNav(navRole, {
         ...ctx,
         campusCode: codeUpper,
-        campusInstitutionType: institutionType,
+        campusInstitutionType: effectiveInstitutionType,
       }),
     );
-  }, [agencyId, navRole, codeUpper, institutionType]);
+  }, [agencyId, navRole, codeUpper, effectiveInstitutionType]);
 
   const navItems = useMemo(() => flattenNavItems(nav), [nav]);
   const badgeCounts = useNavBadgeCounts(userRole);

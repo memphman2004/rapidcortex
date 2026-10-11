@@ -19,6 +19,7 @@ const BLOCKED_ACCOUNT_STATUS = new Set(["inactive", "disabled", "suspended", "ar
 export const CJIS_UNAUTH_BYPASS_ERROR =
   "CJIS VIOLATION: Unauthenticated API mode not allowed in production";
 const jwksByIssuer = new Map<string, ReturnType<typeof createRemoteJWKSet>>();
+/** Cognito may emit family or product-suffixed campus groups/claims. */
 const KNOWN_CAMPUS_ROLE_CLAIMS = new Set([
   "CAMPUS_ADMIN",
   "CAMPUS_SUPERVISOR",
@@ -26,6 +27,18 @@ const KNOWN_CAMPUS_ROLE_CLAIMS = new Set([
   "CAMPUS_DISPATCH",
   "CAMPUS_COUNSELOR",
   "CAMPUS_FACULTY",
+  "CAMPUS_ADMIN_K12",
+  "CAMPUS_ADMIN_HIGHERED",
+  "CAMPUS_SUPERVISOR_K12",
+  "CAMPUS_SUPERVISOR_HIGHERED",
+  "CAMPUS_SECURITY_K12",
+  "CAMPUS_SECURITY_HIGHERED",
+  "CAMPUS_DISPATCH_K12",
+  "CAMPUS_DISPATCH_HIGHERED",
+  "CAMPUS_COUNSELOR_K12",
+  "CAMPUS_COUNSELOR_HIGHERED",
+  "CAMPUS_FACULTY_K12",
+  "CAMPUS_FACULTY_HIGHERED",
 ]);
 
 function isKnownRoleClaim(raw: unknown): boolean {

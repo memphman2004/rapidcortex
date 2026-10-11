@@ -3,6 +3,9 @@ import { NextResponse } from "next/server";
 import { canAccessSalesAutomation, canManageSalesAutomation } from "rapid-cortex-shared";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { isSalesAutomationUiEnabled } from "@/lib/runtime-flags";
+import { salesAutomationPathRequiresManage } from "./sales-automation-path";
+
+export { salesAutomationPathRequiresManage };
 
 export async function salesAutomationRouteGate(): Promise<NextResponse | null> {
   const user = await getDashboardSessionUser();
@@ -10,23 +13,6 @@ export async function salesAutomationRouteGate(): Promise<NextResponse | null> {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   return null;
-}
-
-/** True when the path/method mutates campaign copy, approval, suppress, or Outlook. */
-export function salesAutomationPathRequiresManage(
-  method: string,
-  segments: string[] | undefined,
-): boolean {
-  const m = method.toUpperCase();
-  if (m === "PATCH" || m === "PUT") return true;
-  if (m !== "POST" && m !== "GET") return false;
-  const path = (segments ?? []).join("/");
-  if (path.includes("approve") || path.includes("suppress")) return true;
-  if (path.includes("outlook/connect") || path.includes("outlook/disconnect")) return true;
-  if (path.includes("outlook/callback")) return true;
-  // GET outlook/connect starts OAuth — manage-only
-  if (m === "GET" && path.includes("outlook/connect")) return true;
-  return false;
 }
 
 export async function salesAutomationMutateGate(

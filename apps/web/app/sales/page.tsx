@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { canManageSalesAutomation } from "rapid-cortex-shared";
 import { SalesPortalShell } from "@/components/sales/sales-portal-shell";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { marketingLoginPath } from "@/lib/marketing-links";
@@ -20,6 +21,7 @@ export default async function SalesPortalPage() {
   const email = user.email ?? user.userId ?? "";
   const name = user.displayName ?? email;
   const assigneeFilter = earningsScopedToSelf(user) ? email : undefined;
+  const canManageCampaigns = canManageSalesAutomation(user.role);
 
   return (
     <div className="mx-auto max-w-[1600px] px-3 py-4 md:px-6">
@@ -27,6 +29,7 @@ export default async function SalesPortalPage() {
         contractorEmail={email}
         contractorName={name}
         assigneeFilter={assigneeFilter}
+        canManageCampaigns={canManageCampaigns}
       />
     </div>
   );

@@ -537,6 +537,20 @@ Resources:
                   - ssmmessages:OpenControlChannel
                   - ssmmessages:OpenDataChannel
                 Resource: "*"
+              # Same-origin ALS Maps proxy (/api/map/als-proxy) — signs tiles without browser Cognito.
+              - Sid: AlsMapsV2Proxy
+                Effect: Allow
+                Action:
+                  - geo-maps:GetTile
+                  - geo-maps:GetStyleDescriptor
+                  - geo-maps:GetSprites
+                  - geo-maps:GetGlyphs
+                  - geo-maps:GetStaticMap
+                  - geo:GetMapTile
+                  - geo:GetMapStyleDescriptor
+                  - geo:GetMapSprites
+                  - geo:GetMapGlyphs
+                Resource: "*"
               - !If
                 - HasSalesEnablementStage
                 - Sid: SalesEnablementDynamo

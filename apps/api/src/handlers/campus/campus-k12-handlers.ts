@@ -20,27 +20,23 @@ import {
   studentPickupRecordSchema,
   upsertPickupRecord,
 } from "../../campus/campus-pickup-service.js";
-import { migrateLegacyRapidCortexRoleTokenValue, isRcInternalOperator } from "rapid-cortex-shared";
-
-function roleToken(role: string): string {
-  return (migrateLegacyRapidCortexRoleTokenValue(role) ?? role).trim().toLowerCase().replace(/-/g, "_");
-}
+import { campusRoleFamily, isRcInternalOperator } from "rapid-cortex-shared";
 
 function canManageVisitors(role: string): boolean {
   if (isRcInternalOperator(role)) return true;
-  return ["campus_admin", "campus_supervisor", "campus_security", "campus_dispatch"].includes(
-    roleToken(role),
-  );
+  const family = campusRoleFamily(role);
+  return family === "admin" || family === "supervisor" || family === "security" || family === "dispatch";
 }
 
 function canReadPickup(role: string): boolean {
   if (isRcInternalOperator(role)) return true;
-  return ["campus_admin", "campus_supervisor", "campus_security"].includes(roleToken(role));
+  const family = campusRoleFamily(role);
+  return family === "admin" || family === "supervisor" || family === "security";
 }
 
 function canWritePickup(role: string): boolean {
   if (isRcInternalOperator(role)) return true;
-  return roleToken(role) === "campus_admin";
+  return campusRoleFamily(role) === "admin";
 }
 
 function pathTail(event: APIGatewayProxyEventV2): string {

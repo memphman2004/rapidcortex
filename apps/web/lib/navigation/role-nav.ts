@@ -189,6 +189,14 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
         { id: "contacts", label: "Contacts", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
         { id: "rapid-iq", label: "NexiQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
         {
+          id: "nexiq-signals",
+          label: "NexiQ Signals",
+          href: "/rc-admin/rapid-iq#nexiq-signals",
+          icon: "Radio",
+          feature: "nexiqSignals",
+          badge: { type: "count", key: "nexiqSignalsNew" },
+        },
+        {
           id: "watch-inbox",
           label: "Watch Inbox",
           href: "/rc-admin/intelligence/watch",
@@ -352,6 +360,14 @@ export const SALES_CONTRACTOR_NAV: RoleNav = {
         },
         { id: "rapid-iq", label: "NexiQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
         {
+          id: "nexiq-signals",
+          label: "NexiQ Signals",
+          href: "/rc-admin/rapid-iq#nexiq-signals",
+          icon: "Radio",
+          feature: "nexiqSignals",
+          badge: { type: "count", key: "nexiqSignalsNew" },
+        },
+        {
           id: "watch-inbox",
           label: "Watch Inbox",
           href: "/rc-admin/intelligence/watch",
@@ -419,7 +435,7 @@ export const SALES_CONTRACTOR_NAV: RoleNav = {
       label: "PLATFORM OPS",
       items: [
         { id: "notices", label: "Platform Notices", href: "/rc-admin/support", icon: "Megaphone" },
-        { id: "grants", label: "Grants", href: "/rc-admin/grants", icon: "ShieldCheck" },
+        { id: "grants", label: "Grant Writer", href: "/rc-admin/grants", icon: "ShieldCheck" },
         {
           id: "onboarding-packets",
           label: "Onboarding packets",
@@ -488,6 +504,14 @@ export const RC_ADMIN_NAV: RoleNav = {
         { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
         { id: "contacts", label: "Contacts", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
         { id: "rapid-iq", label: "NexiQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
+        {
+          id: "nexiq-signals",
+          label: "NexiQ Signals",
+          href: "/rc-admin/rapid-iq#nexiq-signals",
+          icon: "Radio",
+          feature: "nexiqSignals",
+          badge: { type: "count", key: "nexiqSignalsNew" },
+        },
         {
           id: "watch-inbox",
           label: "Watch Inbox",
@@ -712,6 +736,8 @@ export function getDispatcherNav(jurisdiction: string): RoleNav {
         items: [
           { id: "dashboard",     label: "Dashboard",       href: `${j}/dashboard`,      icon: "LayoutDashboard", exact: true },
           { id: "dispatcher",    label: "Dispatcher",      href: `${j}/dispatcher`,     icon: "Headphones", exact: true },
+          { id: "map",           label: "Ops Map",         href: `${j}/map`,            icon: "Map",
+            feature: "gis" },
           { id: "intake",        label: "Intake",          href: `${j}/dispatcher`, icon: "PhoneIncoming" },
           { id: "triage",        label: "Triage",          href: `${j}/dispatcher/non-emergency`, icon: "ScanLine",
             feature: "nonEmergencyTriage" },
@@ -737,6 +763,7 @@ export function getDispatcherNav(jurisdiction: string): RoleNav {
             feature: "featuresSuite" },
           { id: "evidence",      label: "Evidence",        href: `${j}/evidence`, icon: "FileText",
             feature: "featuresSuite" },
+          { id: "document-library", label: "Training",     href: `${j}/document-library`, icon: "BookOpen" },
         ],
       },
     ],
@@ -754,6 +781,8 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
         label: "OPERATIONS",
         items: [
           { id: "dashboard",     label: "Dashboard",       href: `${j}/supervisor`,         icon: "LayoutDashboard", exact: true },
+          { id: "map",           label: "Ops Map",         href: `${j}/map`,                icon: "Map",
+            feature: "gis" },
           { id: "active-calls",  label: "Active Calls",    href: `${j}/supervisor/monitor`, icon: "PhoneCall",
             badge: { type: "count", key: "activeCalls" } },
           { id: "incidents",     label: "Incidents",       href: `${j}/dispatcher`, icon: "AlertCircle" },
@@ -805,6 +834,7 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
             feature: "featuresSuite" },
           { id: "language-access", label: "Language Access", href: `${j}/reports/language-access`, icon: "Globe",
             feature: "featuresSuite" },
+          { id: "document-library", label: "Training",     href: `${j}/document-library`, icon: "BookOpen" },
         ],
       },
       {
