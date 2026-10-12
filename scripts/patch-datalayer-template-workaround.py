@@ -224,6 +224,21 @@ ORPHANED = {
         f"rapid-cortex-rapid-iq-signals-{STAGE}",
         "table",
     ),
+    "NexiQSignalsTable": (
+        "ExistingNexiQSignalsTableName",
+        f"rapid-cortex-nexiq-signals-{STAGE}",
+        "table",
+    ),
+    "AnalyticsDailyTable": (
+        "ExistingAnalyticsDailyTableName",
+        f"rapid-cortex-analytics-daily-{STAGE}",
+        "table",
+    ),
+    "GisDatasetsTable": (
+        "ExistingGisDatasetsTableName",
+        f"rapid-cortex-gis-datasets-{STAGE}",
+        "table",
+    ),
     "RapidIqPipelineSignalsTable": (
         "ExistingRapidIqPipelineSignalsTableName",
         f"rapid-cortex-rapid-iq-pipeline-signals-{STAGE}",

@@ -45,7 +45,7 @@ const PLATFORM_TERMS = [
     def: "Bidirectional live voice translation (100+ languages). No interpreter hold. Also available as field/ops Translate outside the ECC.",
   },
   {
-    term: "NexiQ Vision™",
+    term: "iQ Vision™",
     def: "AI scene intelligence from live cameras (agency + citizen share). Observations to authorized roles. Human-in-the-loop — never free.",
   },
   {

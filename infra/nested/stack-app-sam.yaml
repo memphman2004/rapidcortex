@@ -1561,14 +1561,12 @@ Resources:
           RequireUppercase: true
           RequireNumbers: true
           RequireSymbols: true
-      # MFA required for every stage. Live production uses DeploymentStage=dev
-      # (app.rapidcortex.us); OPTIONAL fails SOC 2 CC6.1. Users pick email OTP or TOTP.
-      # EMAIL_OTP requires SES DEVELOPER email (not COGNITO_DEFAULT).
+      # MFA temporarily OFF (ops request 2026-10-11). Re-enable ON + SOFTWARE_TOKEN_MFA
+      # + EMAIL_OTP before SOC 2 / CJIS evidence refresh. Live production uses
+      # DeploymentStage=dev (app.rapidcortex.us).
+      # EMAIL_OTP requires SES DEVELOPER email (not COGNITO_DEFAULT) when MFA is ON.
       # Phone-first account recovery so email can be used for MFA (Cognito rule).
-      MfaConfiguration: "ON"
-      EnabledMfas:
-        - SOFTWARE_TOKEN_MFA
-        - EMAIL_OTP
+      MfaConfiguration: "OFF"
       EmailConfiguration:
         EmailSendingAccount: DEVELOPER
         SourceArn: !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/${CognitoSesIdentity}

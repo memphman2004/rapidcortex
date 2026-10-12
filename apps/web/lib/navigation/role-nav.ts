@@ -753,7 +753,7 @@ export function getDispatcherNav(jurisdiction: string): RoleNav {
             feature: "cadConnector" },
           { id: "history",       label: "History",         href: `${j}/history`,        icon: "Clock" },
           { id: "media",         label: "Media",           href: `${j}/media`,          icon: "Video" },
-          { id: "rapid-vision",  label: "NexiQ Vision",    href: `${j}/vision`, icon: "Eye",
+          { id: "rapid-vision",  label: "iQ Vision",    href: `${j}/vision`, icon: "Eye",
             feature: "rapidVision" },
           { id: "mutual-aid",    label: "Mutual Aid",      href: `${j}/operations/mutual-aid`, icon: "Radio",
             feature: "featuresSuite" },

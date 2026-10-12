@@ -5,7 +5,7 @@ import type { VisionProvider } from "rapid-cortex-shared";
 const demo = new DemoVisionProvider();
 
 /**
- * Runtime lookup for Rapid Vision™ camera sources.
+ * Runtime lookup for iQ Vision™ camera sources.
  * The caller-video adapter is constructed when its repositories are injected.
  */
 export function getVisionProvider(provider: VisionProvider): CameraProvider | null {

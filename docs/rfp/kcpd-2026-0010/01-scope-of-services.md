@@ -59,7 +59,7 @@ English and Spanish are first-class. Additional Lex locales are tenant-configura
 
 ### Line 7 — Multichannel Communications — **PARTIAL**
 
-**Voice** (primary Call Assist path), **SMS** (self-service / status links), **Video** via existing NexCort iQ live video / Rapid Vision assist when the agency enables that platform feature — not a separate Call Assist video stack.
+**Voice** (primary Call Assist path), **SMS** (self-service / status links), **Video** via existing NexCort iQ live video / iQ Vision assist when the agency enables that platform feature — not a separate Call Assist video stack.
 
 ### Line 8 — Callback Features — **PARTIAL**
 

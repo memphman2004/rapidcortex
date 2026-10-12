@@ -6,7 +6,7 @@ import { absoluteUrl } from "@/lib/seo";
 import { GOOGLE_NEST_TM, NEST_TM } from "@/lib/brand-marks";
 
 export const metadata: Metadata = {
-  title: `${GOOGLE_NEST_TM} cameras | NexiQ Vision™`,
+  title: `${GOOGLE_NEST_TM} cameras | iQ Vision™`,
   description: `${GOOGLE_NEST_TM} SDM cameras in NexCort iQ: agency-linked streams plus nearby citizen ${NEST_TM} devices with consent-gated emergency video for dispatch, campus, and venue teams.`,
   alternates: { canonical: absoluteUrl("/connect/nest") },
 };
@@ -14,15 +14,15 @@ export const metadata: Metadata = {
 export default function NestConnectPage() {
   return (
     <MarketingArticleShell
-      eyebrow="NexiQ Vision™"
+      eyebrow="iQ Vision™"
       title={`${GOOGLE_NEST_TM} cameras`}
       sectionLabel="Connect"
     >
       <p className="leading-relaxed text-slate-200">
-        NexiQ Vision™ supports{" "}
+        iQ Vision™ supports{" "}
         <strong className="text-white">{GOOGLE_NEST_TM}</strong>: agency-owned
         cameras via Google SDM OAuth, and nearby citizen {NEST_TM} devices with the same
-        consent-first request pattern used across NexiQ Vision™ camera sources.
+        consent-first request pattern used across iQ Vision™ camera sources.
       </p>
 
       <section className="mt-8 space-y-4 rounded-2xl border border-emerald-500/25 bg-emerald-950/20 p-6 text-sm leading-relaxed text-slate-300">

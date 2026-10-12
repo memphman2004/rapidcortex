@@ -391,7 +391,21 @@ if [[ -z "${SAM_CLI_HOME:-}" ]]; then
   fi
 fi
 mkdir -p "${SAM_CLI_HOME}"
+# HOME is redirected for SAM CLI; Colima/Docker Desktop sockets are under the real
+# user home. Pass DOCKER_HOST explicitly so VISION_DOCKER_BUILD make targets work.
+if [[ -z "${DOCKER_HOST:-}" ]]; then
+  if [[ -S "${_ORIG_HOME}/.colima/default/docker.sock" ]]; then
+    DOCKER_HOST="unix://${_ORIG_HOME}/.colima/default/docker.sock"
+  elif [[ -S "${_ORIG_HOME}/.colima/docker.sock" ]]; then
+    DOCKER_HOST="unix://${_ORIG_HOME}/.colima/docker.sock"
+  elif [[ -S /var/run/docker.sock ]]; then
+    DOCKER_HOST="unix:///var/run/docker.sock"
+  fi
+fi
 _SAM_BUILD_ENV=(env HOME="${SAM_CLI_HOME}" SAM_NODE_MODULES_SRC="${SAM_NODE_MODULES_SRC}" VISION_DOCKER_BUILD="${VISION_DOCKER_BUILD:-0}")
+if [[ -n "${DOCKER_HOST:-}" ]]; then
+  _SAM_BUILD_ENV+=(DOCKER_HOST="${DOCKER_HOST}")
+fi
 if [[ -n "${_ORIG_HOME}" && -f "${_ORIG_HOME}/.aws/credentials" ]]; then
   _SAM_BUILD_ENV+=(AWS_SHARED_CREDENTIALS_FILE="${_ORIG_HOME}/.aws/credentials")
 fi
@@ -402,6 +416,9 @@ if [[ -n "${TMPDIR:-}" ]]; then
   _SAM_BUILD_ENV+=(TMPDIR="${TMPDIR}")
 fi
 echo "SAM CLI home (build.toml): ${SAM_CLI_HOME}"
+if [[ -n "${DOCKER_HOST:-}" ]]; then
+  echo "DOCKER_HOST (sam build):  ${DOCKER_HOST}"
+fi
 if [[ ! -d "${SAM_NODE_MODULES_SRC}" ]]; then
   echo "ERROR: SAM_NODE_MODULES_SRC is missing: ${SAM_NODE_MODULES_SRC}" >&2
   echo "  NodeDepsLayer rsyncs this tree. Run npm install at the repo root." >&2

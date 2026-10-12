@@ -9,17 +9,25 @@
 
 PYTHON_IMAGE ?= public.ecr.aws/sam/build-python3.11:latest
 VISION_DOCKER_BUILD ?= 0
-# Colima/Docker Desktop often cannot bind-mount /Volumes (USB) or SAM's /var/folders
-# temp CodeUri copies. Stage sources onto $HOME so the container can read them.
+# Colima/Docker Desktop cannot bind-mount /Volumes (USB) or SAM /var/folders temps.
+# deploy.sh may redirect HOME onto /Volumes (SAM_CLI_HOME) — never stage there.
+# Prefer SAM_BUILD_DIR (internal drive), else real macOS home under /Users.
+_STAGE_ROOT := $(SAM_BUILD_DIR)
+ifeq ($(_STAGE_ROOT),)
+_STAGE_ROOT := $(HOME)/.rapid-cortex-sam-build
+endif
+ifneq ($(findstring /Volumes,$(_STAGE_ROOT)),)
+_STAGE_ROOT := /Users/$(shell id -un)/.rapid-cortex-sam-build
+endif
 DOCKER_SRC := $(CURDIR)
 ifneq ($(findstring /Volumes,$(CURDIR)),)
-DOCKER_SRC := $(HOME)/.rapid-cortex-sam-build/transcript-worker-src
+DOCKER_SRC := $(_STAGE_ROOT)/transcript-worker-src
 endif
 ifneq ($(findstring /var/folders,$(CURDIR)),)
-DOCKER_SRC := $(HOME)/.rapid-cortex-sam-build/transcript-worker-src
+DOCKER_SRC := $(_STAGE_ROOT)/transcript-worker-src
 endif
 ifneq ($(findstring /tmp/,$(CURDIR)),)
-DOCKER_SRC := $(HOME)/.rapid-cortex-sam-build/transcript-worker-src
+DOCKER_SRC := $(_STAGE_ROOT)/transcript-worker-src
 endif
 
 .PHONY: build-python-worker build-VisionTranscriptWorkerFunction

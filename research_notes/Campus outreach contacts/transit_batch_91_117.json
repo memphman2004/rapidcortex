@@ -1,0 +1,245 @@
+[
+  {
+    "id": 91,
+    "agency": "Hampton Roads Transit",
+    "address": "3400 Victoria Boulevard, Hampton, VA 23661",
+    "phone": "(757) 222-6100",
+    "source_url": "https://gohrt.com/agency/facilities/",
+    "confidence": "high",
+    "notes": "HRT Northside Facility — bus operations, maintenance, and administration. Main customer service / IVR. Also lists 509 East 18th Street, Norfolk, VA 23504."
+  },
+  {
+    "id": 92,
+    "agency": "Fairfax Connector",
+    "address": "4050 Legato Road, Suite 400, Fairfax, VA 22033",
+    "phone": "(703) 877-5600",
+    "source_url": "https://www.fairfaxcounty.gov/contact/AgencyDetail.aspx?abv=FCDOT&agId=100350",
+    "confidence": "high",
+    "notes": "Fairfax County Transit Services Division (Centerpointe 1). HQ switchboard preferred over Connector call center (703) 339-7200 on connector contact page."
+  },
+  {
+    "id": 93,
+    "agency": "DASH Alexandria",
+    "address": "3000 Business Center Drive, Alexandria, VA 22314",
+    "phone": "(703) 746-3274",
+    "source_url": "https://www.dashbus.com/ContactUs/",
+    "confidence": "high",
+    "notes": "Alexandria Transit Company (DASH) headquarters. Customer service Mon–Fri 7 a.m.–7 p.m."
+  },
+  {
+    "id": 94,
+    "agency": "Spokane Transit",
+    "address": "1230 W. Boone Avenue, Spokane, WA 99201",
+    "phone": "(509) 325-6000",
+    "source_url": "https://www.spokanetransit.com/contact/help-support/",
+    "confidence": "high",
+    "notes": "STA Administration Building. Rider info line is (509) 328-7433 (328-RIDE) at STA Plaza, 701 W Riverside Ave."
+  },
+  {
+    "id": 95,
+    "agency": "Pierce Transit",
+    "address": "3701 96th Street SW, Lakewood, WA 98499",
+    "phone": "(253) 581-8000",
+    "source_url": "https://piercetransit.org/customer-service/",
+    "confidence": "high",
+    "notes": "Pierce Transit Headquarters / mailing address. Customer Service Center (public counter) is Tacoma Dome Station, 505 E 25th Street, Tacoma."
+  },
+  {
+    "id": 96,
+    "agency": "Valley Regional Transit Boise",
+    "address": "700 NE 2nd Street, Suite 100, Meridian, ID 83642",
+    "phone": "(208) 846-8547",
+    "source_url": "https://www.valleyregionaltransit.org/about-us/leadership/",
+    "confidence": "medium",
+    "notes": "VRT administrative offices (Meridian). HQ letterhead phone; published rider customer service is (208) 345-7433."
+  },
+  {
+    "id": 97,
+    "agency": "Streamline Bozeman",
+    "address": "1812 N Rouse Avenue, Bozeman, MT 59715",
+    "phone": "(406) 587-2434",
+    "source_url": "https://streamlinebus.com/contact/",
+    "confidence": "high",
+    "notes": "Streamline/Galavan dispatch and ops (HRDC program). Parent HRDC also at 32 South Tracy, Bozeman, MT 59715."
+  },
+  {
+    "id": 98,
+    "agency": "MATBUS Fargo",
+    "address": "650 23rd Street North, Fargo, ND 58102",
+    "phone": "(701) 241-8140",
+    "source_url": "https://www.matbus.com/contact-us",
+    "confidence": "high",
+    "notes": "Metro Transit Garage — administrative offices. Ground Transportation Center / helpline: 502 NP Ave, (701) 232-7500."
+  },
+  {
+    "id": 99,
+    "agency": "Sioux Area Metro",
+    "address": "500 E. Sixth Street, Sioux Falls, SD 57104",
+    "phone": "(605) 460-6256",
+    "source_url": "https://siouxareametro.info/contact",
+    "confidence": "high",
+    "notes": "City of Sioux Falls transit offices. Operator Via Transportation."
+  },
+  {
+    "id": 100,
+    "agency": "Rock Region METRO",
+    "address": "901 Maple Street, North Little Rock, AR 72114",
+    "phone": "(501) 375-6717",
+    "source_url": "https://rrmetro.org/about/faq/",
+    "confidence": "high",
+    "notes": "Administration Office. River Cities Travel Center (customer hub): 310 E. Capitol, Little Rock, AR 72201."
+  },
+  {
+    "id": 101,
+    "agency": "JTRAN Jackson MS",
+    "address": "1785 Highway 80 West, Jackson, MS 39204",
+    "phone": "(601) 952-1000",
+    "source_url": "https://ridejtran.com/contact/",
+    "confidence": "high",
+    "notes": "JTRAN Main Office (City of Jackson Transit Services). Customer Service Office at Union Station, 300 W Capitol St. Transit staff feedback line (601) 326-5417."
+  },
+  {
+    "id": 102,
+    "agency": "CARTA Charleston SC",
+    "address": "3664 Leeds Avenue, North Charleston, SC 29405",
+    "phone": "(843) 724-7420",
+    "source_url": "https://ridecarta.com/contact-us/",
+    "confidence": "high",
+    "notes": "CARTA Administrative & Operations Offices. BCDCOG (agency management) staff listed separately at 5790 Casper Padgett Way, North Charleston, SC 29406."
+  },
+  {
+    "id": 103,
+    "agency": "The COMET Columbia SC",
+    "address": "3613 Lucius Road, Columbia, SC 29201",
+    "phone": "(803) 255-7087",
+    "source_url": "https://boards.columbiasc.gov/central-midlands-regional-transit-authority/",
+    "confidence": "high",
+    "notes": "Central Midlands Regional Transit Authority / Lowell C. Spires Jr. Regional Transit Facility. HQ/admin office phone; transit information call center is (803) 255-7100."
+  },
+  {
+    "id": 104,
+    "agency": "Chatham Area Transit Savannah",
+    "address": "900 E. Gwinnett Street, Savannah, GA 31401",
+    "phone": "(912) 233-5767",
+    "source_url": "https://catchacat.org/contact-2/",
+    "confidence": "high",
+    "notes": "CAT Central / main offices. Mailing: PO Box 9118, Savannah, GA 31412."
+  },
+  {
+    "id": 105,
+    "agency": "Augusta Transit",
+    "address": "2844 Regency Boulevard, Augusta, GA 30909",
+    "phone": "(706) 821-1721",
+    "source_url": "https://www.augustaga.gov/289/How-to-Contact",
+    "confidence": "high",
+    "notes": "Augusta Transit Administration. Same page footer also shows ZIP 30904. Transfer Facility: 1546 Broad Street, (706) 821-1719."
+  },
+  {
+    "id": 106,
+    "agency": "METRA Columbus GA",
+    "address": "814 Linwood Boulevard, Columbus, GA 31901",
+    "phone": "(706) 225-4581",
+    "source_url": "https://columbusga.gov/metra/More/Contact-Us",
+    "confidence": "high",
+    "notes": "METRA Administrative Office (corner of Linwood Blvd and 9th Ave). Transfer Center/Dispatch (706) 225-4673."
+  },
+  {
+    "id": 107,
+    "agency": "Greenlink Greenville SC",
+    "address": "205 Arcadia Drive, Greenville, SC 29609",
+    "phone": "(864) 467-5000",
+    "source_url": "https://content.civicplus.com/api/assets/sc-greenville/13ee56cc-dba2-4dbe-8b19-a8be04905c27/gta-title-vi-2025-program-update-for-public-comment.pdf",
+    "confidence": "high",
+    "notes": "Greenville Transit Authority d.b.a. Greenlink administrative office. Downtown Transit Center / city directory also lists 100 W. McBee Avenue, Greenville, SC 29601."
+  },
+  {
+    "id": 108,
+    "agency": "Greensboro Transit",
+    "address": "223 W. Meadowview Road, Greensboro, NC 27406",
+    "phone": "(336) 373-2634",
+    "source_url": "https://greensboro2.prod-as.govaccess.org/departments/transit/contact-us",
+    "confidence": "high",
+    "notes": "GTA Administrative Offices / Maintenance Facility. Customer service at J. Douglas Galyon Depot, 236 E. Washington St., (336) 335-6499."
+  },
+  {
+    "id": 109,
+    "agency": "Winston-Salem Transit",
+    "address": "1060 North Trade Street, Winston-Salem, NC 27101",
+    "phone": "(336) 727-2000",
+    "source_url": "https://www.wstransit.com/about-wsta",
+    "confidence": "high",
+    "notes": "Hampton Haith Administration Building (ops/admin base). Clark Campbell Transportation Center (downtown): 100 W 5th Street."
+  },
+  {
+    "id": 110,
+    "agency": "Green Mountain Transit",
+    "address": "101 Queen City Park Road, Burlington, VT 05401",
+    "phone": "(802) 540-2468",
+    "source_url": "https://ridegmt.com/contact/",
+    "confidence": "high",
+    "notes": "GMT Administrative Office. Downtown Transit Center: 100 Cherry Street, (802) 540-1703."
+  },
+  {
+    "id": 111,
+    "agency": "Manchester Transit Authority NH",
+    "address": "110 Elm Street, Manchester, NH 03101",
+    "phone": "(603) 623-8801",
+    "source_url": "https://mtabus.org/contact/",
+    "confidence": "high",
+    "notes": "MTA headquarters. Welcome Center also referenced at 775 Elm St."
+  },
+  {
+    "id": 112,
+    "agency": "Greater Portland METRO ME",
+    "address": "114 Valley Street, Portland, ME 04102",
+    "phone": "(207) 774-0351",
+    "source_url": "https://www.gpmetro.org/contact-us/",
+    "confidence": "high",
+    "notes": "Greater Portland Transit District main/admin office. No CS staff at Valley Street; downtown Metro Pulse hub at 21 Elm Street."
+  },
+  {
+    "id": 113,
+    "agency": "KRT Charleston WV",
+    "address": "1550 Fourth Avenue, Charleston, WV 25387",
+    "phone": "(304) 343-3840",
+    "source_url": "https://rideonkrt.com/contact-us/",
+    "confidence": "high",
+    "notes": "Kanawha Valley Regional Transportation Authority business office / HQ. Schedule info (304) 343-7586. Mailing: PO Box 1188, Charleston, WV 25324."
+  },
+  {
+    "id": 114,
+    "agency": "Cheyenne Transit",
+    "address": "322 W. Lincolnway, Cheyenne, WY 82001",
+    "phone": "(307) 637-6253",
+    "source_url": "https://www.cheyennecity.org/Your-Government/Departments/Public-Works/Transit/Contact-Us",
+    "confidence": "high",
+    "notes": "Cheyenne Transit Program administrative offices (City of Cheyenne Public Works). New Westland Road facility planned; transfer center locations have been temporary."
+  },
+  {
+    "id": 115,
+    "agency": "Newark Light Rail NJ TRANSIT",
+    "address": "283-299 Market Street (Two Gateway Center), Newark, NJ 07102",
+    "phone": "(973) 491-7000",
+    "source_url": "https://www.njtransit.com/about/about-us",
+    "confidence": "high",
+    "notes": "Shares NJ TRANSIT corporate headquarters (moved from 1 Penn Plaza East). Newark Light Rail is an NJT mode, not a separate agency HQ."
+  },
+  {
+    "id": 116,
+    "agency": "PATCO",
+    "address": "1000 North Carlton Street, Lindenwold, NJ 08021",
+    "phone": "(856) 772-6900",
+    "source_url": "https://www.ridepatco.org/contact/contact.html",
+    "confidence": "high",
+    "notes": "PATCO operations/admin complex (Lindenwold). Customer service 24/7; mailing PO Box 4262, Lindenwold, NJ 08021. Parent DRPA HQ: One Port Center, 2 Riverside Drive, Camden, NJ 08101, (856) 968-2000."
+  },
+  {
+    "id": 117,
+    "agency": "NJ TRANSIT South Jersey",
+    "address": "350 Newton Avenue, Camden, NJ 08103",
+    "phone": "(973) 491-7000",
+    "source_url": "https://www.njtransit.com/about/about-us",
+    "confidence": "high",
+    "notes": "NJ TRANSIT Newton Avenue Administration Building (South Jersey). Corporate HQ remains Two Gateway Center, Newark; same HQ switchboard. Also shares agency with #115."
+  }
+]

@@ -69,7 +69,7 @@ async function gate(
   if (!isUserAccountActive(user)) return { response: unauthorized(ACCOUNT_INACTIVE_MESSAGE) };
   const blocked = operationalPasswordBlock(user);
   if (blocked) return { response: blocked };
-  if (!env.enableRapidVision) return { response: serviceUnavailable("Rapid Vision™ is disabled") };
+  if (!env.enableRapidVision) return { response: serviceUnavailable("iQ Vision™ is disabled") };
   if (!authz.canPerform(user, permission)) return { response: forbidden() };
   return { user };
 }
@@ -144,7 +144,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     return withCorrelationHeaders(event, notFound());
   } catch (err) {
     console.error(JSON.stringify({ msg: "vision_http_error", error: String(err) }));
-    return withCorrelationHeaders(event, serverError("Rapid Vision™ request failed"));
+    return withCorrelationHeaders(event, serverError("iQ Vision™ request failed"));
   }
 };
 

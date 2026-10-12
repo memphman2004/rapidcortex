@@ -256,22 +256,22 @@ export function isRcTranslateHospitalEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL");
 }
 
-/** NexiQ Vision™ — AI visual intelligence. Default on when unset. */
+/** iQ Vision™ — AI visual intelligence. Default on when unset. */
 export function isRapidVisionEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RAPID_VISION");
 }
 
 /**
- * NexiQ Vision™ — Google Nest camera source.
+ * iQ Vision™ — Google Nest camera source.
  *
- * Guards any NexiQ Vision UI surface that draws from a Nest WebRTC stream
+ * Guards any iQ Vision UI surface that draws from a Nest WebRTC stream
  * (dispatcher camera panel, incident media viewer, AI writer frame capture).
  *
- * Requires both the top-level NexiQ Vision gate and the Nest Connect gate to
+ * Requires both the top-level iQ Vision gate and the Nest Connect gate to
  * be live — disabling either silently disables this sub-flag so no surface
  * ever shows a Nest stream without a valid SDM token.
  *
- * Defaults **on** when unset, matching the pattern of all other NexiQ Vision
+ * Defaults **on** when unset, matching the pattern of all other iQ Vision
  * sub-flags.
  *
  * Env: NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST
@@ -284,7 +284,7 @@ export function isRapidVisionNestEnabled(): boolean {
   );
 }
 
-/** NexiQ Vision™ — Wyze camera source. Requires Vision + Wyze Connect. Default on when unset. */
+/** iQ Vision™ — Wyze camera source. Requires Vision + Wyze Connect. Default on when unset. */
 export function isRapidVisionWyzeEnabled(): boolean {
   return (
     isRapidVisionEnabled() &&
@@ -311,8 +311,8 @@ export function isRapidVisionTranscriptEnabled(): boolean {
 }
 
 /**
- * NexiQ Vision™ AI Scene Intelligence — proactive camera alerts on the dispatcher board.
- * Spec flag `NEXT_PUBLIC_ENABLE_VISION_AI`. Nested under NexiQ Vision. Default on when unset.
+ * iQ Vision™ AI Scene Intelligence — proactive camera alerts on the dispatcher board.
+ * Spec flag `NEXT_PUBLIC_ENABLE_VISION_AI`. Nested under iQ Vision. Default on when unset.
  */
 export function isRapidVisionSceneIntelEnabled(): boolean {
   return isRapidVisionEnabled() && envFlag("NEXT_PUBLIC_ENABLE_VISION_AI");
@@ -807,7 +807,7 @@ export function isTransitCamerasUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_TRANSIT_CAMERAS");
 }
 
-/** NexiQ Video — agency-owned camera wall / VMS. Default on when unset. Distinct from NexiQ Vision. */
+/** NexiQ Video — agency-owned camera wall / VMS. Default on when unset. Distinct from iQ Vision. */
 export function isRcVideoEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_RC_VIDEO");
 }

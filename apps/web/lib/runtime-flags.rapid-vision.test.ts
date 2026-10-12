@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-describe("NexiQ Vision™ UI flags", () => {
+describe("iQ Vision™ UI flags", () => {
   it("defaults on when unset and honors explicit disable", async () => {
     vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION", "");
@@ -59,8 +59,8 @@ describe("NexiQ Vision™ UI flags", () => {
   });
 });
 
-describe("NexiQ Vision™ Scene Intelligence flags", () => {
-  it("defaults on when unset and requires NexiQ Vision", async () => {
+describe("iQ Vision™ Scene Intelligence flags", () => {
+  it("defaults on when unset and requires iQ Vision", async () => {
     vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_ENABLE_RAPID_VISION", "");
     vi.stubEnv("NEXT_PUBLIC_ENABLE_VISION_AI", "");

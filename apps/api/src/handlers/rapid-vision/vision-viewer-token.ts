@@ -1,5 +1,5 @@
 /**
- * Issues a short-lived KVS WebRTC viewer token for a Rapid Vision™ session.
+ * Issues a short-lived KVS WebRTC viewer token for a iQ Vision™ session.
  *
  * Route: GET /api/vision/sessions/{sessionId}/viewer-token?incidentId=
  *
@@ -38,7 +38,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       return jsonError("Password update is required before continuing.", 403);
     }
     if (!env.enableRapidVision) {
-      return jsonError("Rapid Vision™ is disabled", 503);
+      return jsonError("iQ Vision™ is disabled", 503);
     }
     if (!canViewVision(user, user.agencyId)) {
       return jsonError("Forbidden", 403);

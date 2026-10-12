@@ -558,6 +558,21 @@
         "false"
       ],
       "Description": "When true, skip creating sales ROI/activity/RFP/claims/free-tier tables that already exist (Retain leftovers after rollback)."
+    },
+    "ExistingNexiQSignalsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-nexiq-signals-dev",
+      "Description": "Pre-existing DynamoDB table name for NexiQSignalsTable (parameter workaround; do not create)."
+    },
+    "ExistingAnalyticsDailyTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-analytics-daily-dev",
+      "Description": "Pre-existing DynamoDB table name for AnalyticsDailyTable (parameter workaround; do not create)."
+    },
+    "ExistingGisDatasetsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-gis-datasets-dev",
+      "Description": "Pre-existing DynamoDB table name for GisDatasetsTable (parameter workaround; do not create)."
     }
   },
   "Rules": {
@@ -2789,118 +2804,6 @@
           {
             "AttributeName": "leadId",
             "KeyType": "HASH"
-          }
-        ]
-      }
-    },
-    "NexiQSignalsTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-nexiq-signals-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "PointInTimeRecoverySpecification": {
-          "PointInTimeRecoveryEnabled": {
-            "Fn::If": [
-              "DynamoPitrOn",
-              true,
-              false
-            ]
-          }
-        },
-        "AttributeDefinitions": [
-          {
-            "AttributeName": "pk",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "sk",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "status",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "createdAt",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "vertical",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "dedupeHash",
-            "AttributeType": "S"
-          }
-        ],
-        "KeySchema": [
-          {
-            "AttributeName": "pk",
-            "KeyType": "HASH"
-          },
-          {
-            "AttributeName": "sk",
-            "KeyType": "RANGE"
-          }
-        ],
-        "GlobalSecondaryIndexes": [
-          {
-            "IndexName": "status-createdAt-index",
-            "KeySchema": [
-              {
-                "AttributeName": "status",
-                "KeyType": "HASH"
-              },
-              {
-                "AttributeName": "createdAt",
-                "KeyType": "RANGE"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
-          },
-          {
-            "IndexName": "vertical-status-index",
-            "KeySchema": [
-              {
-                "AttributeName": "vertical",
-                "KeyType": "HASH"
-              },
-              {
-                "AttributeName": "status",
-                "KeyType": "RANGE"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
-          },
-          {
-            "IndexName": "dedupeHash-index",
-            "KeySchema": [
-              {
-                "AttributeName": "dedupeHash",
-                "KeyType": "HASH"
-              }
-            ],
-            "Projection": {
-              "ProjectionType": "ALL"
-            }
           }
         ]
       }
@@ -6433,143 +6336,6 @@
     "SalesDataReuseMarker": {
       "Type": "AWS::CloudFormation::WaitConditionHandle",
       "Condition": "ReuseSalesDataResources"
-    },
-    "AnalyticsDailyTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-analytics-daily-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "PointInTimeRecoverySpecification": {
-          "PointInTimeRecoveryEnabled": {
-            "Fn::If": [
-              "DynamoPitrOn",
-              true,
-              false
-            ]
-          }
-        },
-        "AttributeDefinitions": [
-          {
-            "AttributeName": "pk",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "sk",
-            "AttributeType": "S"
-          }
-        ],
-        "KeySchema": [
-          {
-            "AttributeName": "pk",
-            "KeyType": "HASH"
-          },
-          {
-            "AttributeName": "sk",
-            "KeyType": "RANGE"
-          }
-        ],
-        "TimeToLiveSpecification": {
-          "AttributeName": "ttl",
-          "Enabled": true
-        },
-        "Tags": [
-          {
-            "Key": "App",
-            "Value": "rapid-cortex"
-          },
-          {
-            "Key": "Component",
-            "Value": "iq-reporting"
-          }
-        ]
-      }
-    },
-    "AnalyticsDailyTableNameParameter": {
-      "Type": "AWS::SSM::Parameter",
-      "Properties": {
-        "Name": {
-          "Fn::Sub": "/rapid-cortex/${DeploymentStage}/AnalyticsDailyTable"
-        },
-        "Type": "String",
-        "Value": {
-          "Ref": "AnalyticsDailyTable"
-        },
-        "Description": "iQ reporting daily aggregates table name"
-      }
-    },
-    "GisDatasetsTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-gis-datasets-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "PointInTimeRecoverySpecification": {
-          "PointInTimeRecoveryEnabled": {
-            "Fn::If": [
-              "DynamoPitrOn",
-              true,
-              false
-            ]
-          }
-        },
-        "AttributeDefinitions": [
-          {
-            "AttributeName": "pk",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "sk",
-            "AttributeType": "S"
-          }
-        ],
-        "KeySchema": [
-          {
-            "AttributeName": "pk",
-            "KeyType": "HASH"
-          },
-          {
-            "AttributeName": "sk",
-            "KeyType": "RANGE"
-          }
-        ],
-        "Tags": [
-          {
-            "Key": "Component",
-            "Value": "gis"
-          },
-          {
-            "Key": "Feature",
-            "Value": "gis-intelligence-a1"
-          }
-        ]
-      }
     }
   },
   "Outputs": {
@@ -6838,9 +6604,9 @@
       }
     },
     "NexiQSignalsTable": {
-      "Description": "Civic-IQ → Claude NexiQ Signals (platform BD ingest)",
+      "Description": "Civic-IQ \u2192 Claude NexiQ Signals (platform BD ingest)",
       "Value": {
-        "Ref": "NexiQSignalsTable"
+        "Ref": "ExistingNexiQSignalsTableName"
       }
     },
     "SupportTicketsTable": {
@@ -7036,9 +6802,9 @@
       }
     },
     "AnalyticsDailyTable": {
-      "Description": "Physical table name for iQ reporting daily aggregates (pk AGENCY#\u2026#VERTICAL#\u2026 / sk DATE#yyyy-mm-dd)",
+      "Description": "iQ reporting daily aggregates",
       "Value": {
-        "Ref": "AnalyticsDailyTable"
+        "Ref": "ExistingAnalyticsDailyTableName"
       }
     },
     "TranscriptsTable": {
@@ -7316,9 +7082,9 @@
       }
     },
     "GisDatasetsTable": {
-      "Description": "Physical table name for GisDatasetsTable (tenant GIS datasets)",
+      "Description": "tenant GIS datasets",
       "Value": {
-        "Ref": "GisDatasetsTable"
+        "Ref": "ExistingGisDatasetsTableName"
       }
     }
   }

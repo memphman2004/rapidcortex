@@ -63,7 +63,7 @@ export async function describeAndUpdate(message: SceneDescribeMessage): Promise<
       await sns.send(
         new PublishCommand({
           TopicArn: topic,
-          Subject: `Rapid Vision ${next.severity.toUpperCase()}: ${next.shortLabel}`,
+          Subject: `iQ Vision ${next.severity.toUpperCase()}: ${next.shortLabel}`,
           Message: JSON.stringify({
             agencyId: next.agencyId,
             eventId: next.eventId,

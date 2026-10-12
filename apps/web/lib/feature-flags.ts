@@ -6,5 +6,5 @@ export {
   isRapidVisionWyzeEnabled,
 } from "./runtime-flags";
 
-/** NexiQ Vision™ Nest stream surfaces (Media / AI writer). Requires Vision + Nest Connect. */
+/** iQ Vision™ Nest stream surfaces (Media / AI writer). Requires Vision + Nest Connect. */
 export { isRapidVisionNestEnabled } from "./runtime-flags";

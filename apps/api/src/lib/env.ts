@@ -414,7 +414,7 @@ export const env = {
   vaultLocationIndexTable: process.env.VAULT_LOCATION_INDEX_TABLE?.trim() ?? "",
   vaultIngestionJobsTable: process.env.VAULT_INGESTION_JOBS_TABLE?.trim() ?? "",
   vaultIngestBucket: process.env.VAULT_INGEST_BUCKET?.trim() ?? "",
-  /** Rapid Vision™ — AI visual intelligence. Default on when unset. */
+  /** iQ Vision™ — AI visual intelligence. Default on when unset. */
   enableRapidVision: featureEnabled("ENABLE_RAPID_VISION"),
   enableRapidVisionNest: featureEnabled("ENABLE_RAPID_VISION_NEST"),
   enableRapidVisionCallerVideo: featureEnabled("ENABLE_RAPID_VISION_CALLER_VIDEO"),
@@ -423,7 +423,7 @@ export const env = {
   enableRapidVisionRekognition: featureEnabled("ENABLE_RAPID_VISION_REKOGNITION"),
   enableRapidVisionTranscript: featureEnabled("ENABLE_RAPID_VISION_TRANSCRIPT"),
   /**
-   * Rapid Vision™ AI Scene Intelligence — proactive camera alerts.
+   * iQ Vision™ AI Scene Intelligence — proactive camera alerts.
    * Spec alias ENABLE_VISION_AI. Nested under ENABLE_RAPID_VISION. Default on.
    */
   enableRapidVisionSceneIntel:

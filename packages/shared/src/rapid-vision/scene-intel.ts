@@ -1,5 +1,5 @@
 /**
- * NexiQ Vision™ AI Scene Intelligence — Rekognition label → dispatcher event map.
+ * iQ Vision™ AI Scene Intelligence — Rekognition label → dispatcher event map.
  * AI surfaces the alert; the dispatcher decides. Never auto-create an incident.
  */
 import type {

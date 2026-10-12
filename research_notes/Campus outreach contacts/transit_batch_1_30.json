@@ -1,0 +1,245 @@
+[
+  {
+    "id": 1,
+    "agency": "MTA New York City Transit",
+    "address": "2 Broadway, New York, NY 10004",
+    "phone": "212-878-7000",
+    "source_url": "https://www.mta.info/agency/new-york-city-transit",
+    "confidence": "high",
+    "notes": "Physical HQ from agency page; ZIP+4 10004-2207 on regular-mail page. Phone is MTA Corporate Offices (call-us page)—prefer for admin/sales over 511 rider line. Not MTA Police."
+  },
+  {
+    "id": 2,
+    "agency": "MTA Long Island Rail Road",
+    "address": "93-02 Sutphin Blvd, Jamaica, NY 11435",
+    "phone": "718-217-5477",
+    "source_url": "https://www.mta.info/contact-us/regular-mail",
+    "confidence": "high",
+    "notes": "Regular-mail lists Jamaica Station, Jamaica, NY 11435-4380; street from MTA Subsidiary Report principal office (Jamaica Station). Agency phone 718-217-LIRR also on LIRR agency page. Corporate Directory reachable via 511."
+  },
+  {
+    "id": 3,
+    "agency": "MTA Metro-North Railroad",
+    "address": "420 Lexington Avenue, New York, NY 10017",
+    "phone": "212-878-7000",
+    "source_url": "https://www.mta.info/agency/metro-north-railroad",
+    "confidence": "high",
+    "notes": "Mailing/HQ address on agency and regular-mail pages (ZIP+4 10017-3739). Agency page lists 511 for riders; MTA Corporate Offices 212-878-7000 used here for admin switchboard. CT callers also listed 877-690-5114 for 511."
+  },
+  {
+    "id": 4,
+    "agency": "NJ TRANSIT",
+    "address": "283-299 Market Street, Newark, NJ 07102",
+    "phone": "973-491-7000",
+    "source_url": "https://www.njtransit.com/about/about-us",
+    "confidence": "high",
+    "notes": "About Us lists NJ TRANSIT 2 Gateway HQ with this address and (973) 491-7000. Customer Information line 973-275-5555 (operator 8:30-5 daily). Also lists General Office Building 180 Boyden Ave, Maplewood, NJ 07040."
+  },
+  {
+    "id": 5,
+    "agency": "WMATA",
+    "address": "300 7th Street SW, Washington, DC 20024",
+    "phone": "202-466-3876",
+    "source_url": "https://www.wmata.com/about/contact.cfm",
+    "confidence": "high",
+    "notes": "Metro Headquarters and mail address on Contact Us. Main published line 202-GO-METRO; also listed for Administrative Offices / Customer Relations. Not transit police."
+  },
+  {
+    "id": 7,
+    "agency": "Metra",
+    "address": "547 W. Jackson Blvd, Chicago, IL 60661",
+    "phone": "312-696-3872",
+    "source_url": "https://metra.com/contact-us",
+    "confidence": "high",
+    "notes": "HQ confirmed on board-meetings pages (13th floor Board Room). ZIP 60661-5717 in Metra strategic-plan PDF. Phone is Passenger Services 312-MY-METRA (main published non-police line); no separate admin switchboard found. Board: 312-322-8037."
+  },
+  {
+    "id": 8,
+    "agency": "Pace Suburban Bus",
+    "address": "550 W. Algonquin Road, Arlington Heights, IL 60005",
+    "phone": "847-364-7223",
+    "source_url": "https://www.pacebus.com/contact",
+    "confidence": "high",
+    "notes": "Mailing address and Main number on Contact Pace; Headquarters location page matches. Espanol: 847-228-3575."
+  },
+  {
+    "id": 10,
+    "agency": "Metrolink SCRRA",
+    "address": "900 Wilshire Blvd, Suite 1500, Los Angeles, CA 90017",
+    "phone": "213-452-0200",
+    "source_url": "https://metrolinktrains.com/contact",
+    "confidence": "high",
+    "notes": "Contact page lists Administrative Office phone 213-452-0200; street from SCRRA docs on metrolinktrains.com (DBE manual, board roster, ACH). Rider Call/Text 800-371-5465. Info Center 800 N. Alameda St is not HQ."
+  },
+  {
+    "id": 11,
+    "agency": "MBTA",
+    "address": "10 Park Plaza, Suite 5610, Boston, MA 02116",
+    "phone": "617-222-3200",
+    "source_url": "https://www.mbta.com/customer-support",
+    "confidence": "high",
+    "notes": "Write-to-us HQ address and Main Hotline on Customer Support. Toll-free 800-392-6100. Do not use Transit Police 617-222-1212."
+  },
+  {
+    "id": 12,
+    "agency": "SEPTA",
+    "address": "1234 Market Street, Philadelphia, PA 19107",
+    "phone": "215-580-7800",
+    "source_url": "https://www.septa.org/about",
+    "confidence": "high",
+    "notes": "Address only researched (footer on About); phone provided by requester / also on civil-rights/customer-service pages. Customer Service often listed 4th Floor."
+  },
+  {
+    "id": 13,
+    "agency": "SFMTA/Muni",
+    "address": "1 South Van Ness Avenue, 7th Floor, San Francisco, CA 94103",
+    "phone": "415-701-2311",
+    "source_url": "https://www.sfmta.com/contact-us",
+    "confidence": "high",
+    "notes": "HQ place page: 1 S Van Ness Ave; Contact Us: public offices Floor 7; phone 311 in-city or 415-701-2311 outside SF. SF city directory also lists MTA Reception 415-701-4500 (not on sfmta.com Contact Us)."
+  },
+  {
+    "id": 14,
+    "agency": "BART",
+    "address": "2150 Webster Street, Oakland, CA 94612",
+    "phone": "510-464-6000",
+    "source_url": "https://www.bart.gov/news/articles/2021/news20210616-0",
+    "confidence": "high",
+    "notes": "Address only researched; HQ move article + contact/public-records pages (District Secretary 10th Floor). Phone provided by requester; confirmed as BART Main Line on bart.gov/contact. Not BART Police."
+  },
+  {
+    "id": 15,
+    "agency": "VTA",
+    "address": "3331 North First Street, San Jose, CA 95134",
+    "phone": "408-321-2300",
+    "source_url": "https://www.vta.org/about/contact",
+    "confidence": "high",
+    "notes": "River Oaks Headquarters / VTA Headquarters on Help and Contacts. Main Line customer/admin call center. TTY 408-321-2330. Board has approved future move to 488 S Almaden Blvd (not yet current HQ on contact page)."
+  },
+  {
+    "id": 16,
+    "agency": "SamTrans",
+    "address": "166 N Rollins Road, Millbrae, CA 94030",
+    "phone": "650-508-6200",
+    "source_url": "https://www.samtrans.com/about-samtrans/contact-us",
+    "confidence": "high",
+    "notes": "Office Information / Headquarters on Contact Us. Customer Service 800-660-4287. Do not use Transit Police 877-723-7245."
+  },
+  {
+    "id": 17,
+    "agency": "Caltrain",
+    "address": "1250 San Carlos Avenue, San Carlos, CA 94070",
+    "phone": "800-660-4287",
+    "source_url": "https://caltrain.nextrequest.com/faqs",
+    "confidence": "medium",
+    "notes": "Public records FAQ still lists Office of the Caltrain Secretary at 1250 San Carlos Ave. Customer Service 800-660-4287 in Caltrain correspondence. Lease authorized for co-location at 166 N Rollins Rd, Millbrae (SamTrans HQ)-occupancy estimated late 2025; confirm if moved. Contact page is schedule-heavy and does not clearly publish HQ."
+  },
+  {
+    "id": 18,
+    "agency": "King County Metro",
+    "address": "201 South Jackson Street, Seattle, WA 98104",
+    "phone": "206-553-3000",
+    "source_url": "https://kingcounty.gov/en/dept/metro/contact-us",
+    "confidence": "high",
+    "notes": "King Street Center mailing/pass-sales address on Metro Contact Us; county directory lists Metro Transit Department same building. Main published Metro phone 206-553-3000 (not general King County 206-296-0100)."
+  },
+  {
+    "id": 19,
+    "agency": "Sound Transit",
+    "address": "401 S. Jackson Street, Seattle, WA 98104",
+    "phone": "206-398-5000",
+    "source_url": "https://www.soundtransit.org/help-contacts/business-information/getting-to-union-station",
+    "confidence": "high",
+    "notes": "Main offices and mailing address at Union Station with HQ phone. Also lists 800-201-4900. Rider inquiries 888-889-6368. Not security line 206-398-5268."
+  },
+  {
+    "id": 20,
+    "agency": "Community Transit",
+    "address": "2312 W. Casino Road, Everett, WA 98204",
+    "phone": "425-348-7100",
+    "source_url": "https://www.communitytransit.org/contact",
+    "confidence": "high",
+    "notes": "Corporate headquarters address and phone on Contact Us. Customer Care 425-353-7433 / 800-562-1375."
+  },
+  {
+    "id": 22,
+    "agency": "Miami-Dade Transit",
+    "address": "701 NW 1st Court, Suite 1700, Miami, FL 33136",
+    "phone": "786-469-5675",
+    "source_url": "https://www.miamidade.gov/global/transportation/contact-transit.page",
+    "confidence": "high",
+    "notes": "DTPW / Overtown Transit Village North admin address and phone on Contact Transit. Trip planning/customer service 305-891-3131 or 311. Not Transit Watch 305-375-2700."
+  },
+  {
+    "id": 23,
+    "agency": "Broward County Transit",
+    "address": "1 N. University Drive, Suite 3100A, Plantation, FL 33324",
+    "phone": "954-357-8400",
+    "source_url": "https://www.broward.org/Contact",
+    "confidence": "high",
+    "notes": "BCT listing on Broward Agencies & Services: address + customer phone 954-357-8400; TTY 954-357-8302. Older TDP cover also lists admin 954-357-8300 at same suite."
+  },
+  {
+    "id": 24,
+    "agency": "Palm Tran",
+    "address": "100 N. Congress Ave, Delray Beach, FL 33445",
+    "phone": "561-841-4287",
+    "source_url": "https://www.palmtran.org/contact/",
+    "confidence": "medium",
+    "notes": "Current Contact Us lists this as Palm Tran Offices with 561-841-4BUS. Older Palm Tran TDP listed HQ 3201 Electronics Way, West Palm Beach, FL 33407 with 561-841-4200-verify if admin still there."
+  },
+  {
+    "id": 25,
+    "agency": "Tri-Rail SFRTA",
+    "address": "801 NW 33rd Street, Pompano Beach, FL 33064",
+    "phone": "954-942-7245",
+    "source_url": "https://www.tri-rail.org/contact.aspx",
+    "confidence": "high",
+    "notes": "Administrative Offices phone 954-942-7245 on SFRTA contact. Customer Experience 800-874-7245 (1-800-TRI-RAIL). Mailing P.O. Box 5148, Lighthouse Point, FL 33074-5148."
+  },
+  {
+    "id": 26,
+    "agency": "Houston METRO",
+    "address": "1900 Main Street, Houston, TX 77002",
+    "phone": "713-739-4000",
+    "source_url": "https://www.ridemetro.org/about/who-we-are/contact-us",
+    "confidence": "high",
+    "notes": "Lee P. Brown Administration Building corporate offices. Administrative Offices phone preferred for sales; Customer Service call/text 713-635-4000. Not METRO Police."
+  },
+  {
+    "id": 27,
+    "agency": "DART Dallas",
+    "address": "1401 Pacific Avenue, Dallas, TX 75202",
+    "phone": "214-979-1111",
+    "source_url": "https://www.dart.org/contact-us",
+    "confidence": "high",
+    "notes": "DART Headquarters on Contact Us. Main published customer/info line 214-979-1111; Care Center/requests 214-749-3333 weekdays. Do not use DART Police numbers."
+  },
+  {
+    "id": 28,
+    "agency": "Trinity Metro",
+    "address": "801 Grove Street, Fort Worth, TX 76102",
+    "phone": "817-215-8600",
+    "source_url": "https://ridetrinitymetro.org/transparency-and-accountability/",
+    "confidence": "high",
+    "notes": "Admin address on Title VI/ADA pages; HQ relocation news (2021) confirms move to 801 Grove St. Phone is Customer Care (main published non-police). Compliance 817-215-8700."
+  },
+  {
+    "id": 29,
+    "agency": "CapMetro",
+    "address": "2910 E. 5th Street, Austin, TX 78702",
+    "phone": "512-474-1200",
+    "source_url": "https://www.capmetro.org/help-contact",
+    "confidence": "high",
+    "notes": "Headquarters and Administration offices on Help & Contact; also lists 3100 E. 5th St (executive/admin). GO Line is main published phone. Transit Store 1705 Guadalupe is retail/customer, not HQ."
+  },
+  {
+    "id": 30,
+    "agency": "VIA San Antonio",
+    "address": "123 N. Medina Street, San Antonio, TX 78207",
+    "phone": "210-299-5800",
+    "source_url": "https://www.viainfo.net/contact/",
+    "confidence": "high",
+    "notes": "Executive Offices - The Grand (preferred for admin/sales). Administrative Office also listed: 800 W. Myrtle St, San Antonio, TX 78212, 210-362-2000. Customer Service 210-362-2020. Not Transit Police."
+  }
+]

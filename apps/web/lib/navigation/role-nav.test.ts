@@ -546,11 +546,11 @@ describe("getRoleNav", () => {
     expect(supervisor?.href).toBe("/test-psap/document-library");
   });
 
-  it("exposes NexiQ Vision on dispatcher nav, not supervisor or guest services", () => {
+  it("exposes iQ Vision on dispatcher nav, not supervisor or guest services", () => {
     const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
       .sections.flatMap((s) => s.items)
       .find((i) => i.id === "rapid-vision");
-    expect(dispatcher?.label).toBe("NexiQ Vision");
+    expect(dispatcher?.label).toBe("iQ Vision");
     expect(dispatcher?.href).toBe("/test-psap/vision");
     expect(dispatcher?.feature).toBe("rapidVision");
 

@@ -109,7 +109,7 @@ export default function TermsOfUsePage() {
         <h2 className="text-base font-semibold text-white">NexCort iQ SMS messaging program</h2>
         <p>
           <strong className="font-medium text-slate-200">Program name:</strong> NexCort iQ SMS
-          (including NexiQ Vision™), operated by {SITE_OPERATOR_NAME} LLC d/b/a {SITE_NAME} (
+          (including iQ Vision™), operated by {SITE_OPERATOR_NAME} LLC d/b/a {SITE_NAME} (
           <a href="https://www.nexcortiq.us">https://www.nexcortiq.us</a>).
         </p>
         <p>

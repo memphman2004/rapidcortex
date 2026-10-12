@@ -74,7 +74,7 @@ export async function handleSceneIntelRoutes(
   user: UserContext,
 ): Promise<APIGatewayProxyResultV2 | null> {
   if (!env.enableRapidVisionSceneIntel) {
-    return serviceUnavailable("Rapid Vision™ Scene Intelligence is disabled");
+    return serviceUnavailable("iQ Vision™ Scene Intelligence is disabled");
   }
 
   if (method === "GET" && rest[0] === "events" && rest.length === 1) {

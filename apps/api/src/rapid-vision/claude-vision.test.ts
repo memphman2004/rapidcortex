@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseClaudeVisionResponse, detectTranscriptCorrelation } from "./claude-vision.js";
 
-describe("Rapid Vision™ Claude parse", () => {
+describe("iQ Vision™ Claude parse", () => {
   it("splits narrative from CATEGORY/CONFIDENCE lines", () => {
     const parsed = parseClaudeVisionResponse(
       "Person in a gray hoodie jogging north.\nCATEGORY: PERSON\nCONFIDENCE: HIGH\nCORRELATION_NOTE: Matches caller",

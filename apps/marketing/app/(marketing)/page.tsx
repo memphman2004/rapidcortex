@@ -65,7 +65,7 @@ export default function MarketingHomePage() {
     operatingSystem: "Web, Windows, macOS",
     url: absoluteUrl("/"),
     description:
-      "Unified public safety intelligence platform with three products: 911 Centers/PSAPs, NexCort iQ Venue for stadium and venue safety coordination, and NexiQ Vision™ for emergency camera and media sharing.",
+      "Unified public safety intelligence platform with three products: 911 Centers/PSAPs, NexCort iQ Venue for stadium and venue safety coordination, and iQ Vision™ for emergency camera and media sharing.",
     offers: [
       {
         "@type": "Offer",
@@ -218,7 +218,7 @@ export default function MarketingHomePage() {
       <section className="relative z-10 bg-slate-950 mx-auto max-w-6xl px-4 pb-8 sm:px-6">
         <h2 className="text-center text-xl font-semibold text-white sm:text-2xl">Camera integrations</h2>
         <p className="mx-auto mt-4 max-w-3xl text-center text-sm text-slate-400">
-          NexiQ Vision™ requests temporary live video from citizen and facility cameras during
+          iQ Vision™ requests temporary live video from citizen and facility cameras during
           active incidents — with owner consent for residential devices.
         </p>
         <ul className="mx-auto mt-8 grid max-w-md gap-4">

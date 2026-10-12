@@ -3,7 +3,7 @@
 /**
  * components/rapid-vision/VisionCameraList.tsx
  *
- * NexiQ Vision — Camera discovery and access request list.
+ * iQ Vision — Camera discovery and access request list.
  * Shown in the CAMERAS tab of RapidVisionPanel.
  *
  * Displays nearby Vision-eligible cameras with:

@@ -1,5 +1,5 @@
 /**
- * Rapid Vision™ — live transcript session API.
+ * iQ Vision™ — live transcript session API.
  *
  * POST /api/vision/sessions/{sessionId}/transcript/start
  * POST /api/vision/sessions/{sessionId}/transcript/stop
@@ -58,7 +58,7 @@ async function gateTranscriptUser(
     };
   }
   if (!env.enableRapidVision || !env.enableRapidVisionTranscript) {
-    return { response: jsonError("Rapid Vision™ transcript is disabled", 503) };
+    return { response: jsonError("iQ Vision™ transcript is disabled", 503) };
   }
   const allowed =
     mode === "mutate"

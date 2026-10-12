@@ -1423,7 +1423,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.rc_connect_standard",
-    name: "NexiQ Vision™ - Standard",
+    name: "iQ Vision™ - Standard",
     category: "Feature Add-Ons",
     description:
       "ONVIF/RTSP camera integration linking up to 10 existing facility cameras to active incidents in the dispatcher or venue console.",
@@ -1434,7 +1434,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.rc_connect_professional",
-    name: "NexiQ Vision™ - Professional",
+    name: "iQ Vision™ - Professional",
     category: "Feature Add-Ons",
     description:
       "Multi-zone camera management for larger facilities, up to 50 cameras. Feeds are surfaced contextually when an incident is created in the associated zone.",
@@ -1445,7 +1445,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.rc_connect_enterprise",
-    name: "NexiQ Vision™ - Enterprise",
+    name: "iQ Vision™ - Enterprise",
     category: "Feature Add-Ons",
     description:
       "Unlimited camera deployments with dedicated KVS streaming infrastructure and advanced camera routing for large multi-site deployments.",

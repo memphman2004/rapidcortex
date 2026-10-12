@@ -1,0 +1,92 @@
+[
+  {
+    "state": "Arizona",
+    "enrollment": 259846,
+    "enrollment_year": "2023-24",
+    "enrollment_source": "Arizona Community Colleges Strategic Vision 2025 Student Progress and Outcomes Data (statewide unduplicated 12-month headcount)",
+    "notes": "Statewide unduplicated 12-month headcount across county community college districts (not Fall-term-only). Companion statewide FTSE for 2023-24 was 93,777 (AZ Auditor General / Strategic Vision).",
+    "confidence": "high"
+  },
+  {
+    "state": "California",
+    "enrollment": 1401851,
+    "enrollment_year": "Fall 2023",
+    "enrollment_source": "California Community Colleges Chancellor's Office Fall 2023 Enrollment Memo (May 17, 2024)",
+    "notes": "Systemwide Fall term headcount (116 colleges). CCCCO State of the System also reports annual 2023-24 enrollment >2.1 million students (academic-year unduplicated).",
+    "confidence": "high"
+  },
+  {
+    "state": "Florida",
+    "enrollment": 614000,
+    "enrollment_year": "annual (recent AFC / FCS association figure)",
+    "enrollment_source": "Association of Florida Colleges (myafc.org) — Florida College System impact stats; Division of Florida Colleges / FDOE CCTCMIS Fact Book historically reports annual & Fall headcount",
+    "notes": "Headcount (not FTE). FCS official estimating conferences primarily publish FTE: final FY 2023-24 system FTE was 284,140.6 (EDR Education Estimating Conference, Aug 9, 2024). Wikipedia/FDOE 2022 Fact Book cited ~640,183 students for an earlier year; AFC currently lists ~614,000 enrolled per year. Most FCS colleges are IPEDS-classified as 4-year (baccalaureate), so NCES Digest 'public 2-year' undercounts Florida. florida_street/florida_zip: Division of Florida Colleges / FLDOE Turlington Building.",
+    "florida_street": "325 West Gaines Street, Turlington Building",
+    "florida_zip": "32399",
+    "confidence": "medium"
+  },
+  {
+    "state": "New York",
+    "enrollment": 239865,
+    "enrollment_year": "Fall 2024",
+    "enrollment_source": "SUNY Office of Institutional Research Fall 2024 Enrollment (Nov 2024) + NYSED Higher Education Enrollment Data Fall 2024 (CUNY 2-year)",
+    "notes": "Combined CC-relevant: SUNY community colleges 165,229 (SUNY IR Fall 2024) + CUNY community colleges (NYSED CUNY 2-YEAR undergraduates) 74,636 = 239,865. CUNY is a separate system from SUNY. NYSED SUNY 2-YEAR alone is 160,677 (definitional differences vs SUNY IR, e.g., FIT). Prefer SUNY IR for SUNY CC sector total.",
+    "confidence": "high"
+  },
+  {
+    "state": "North Carolina",
+    "enrollment": 406914,
+    "enrollment_year": "Fall 2024",
+    "enrollment_source": "NCCCS State Board Strategic Plan Annual Report / PLAN-02 (Student Headcount Enrollment KPI)",
+    "notes": "Unduplicated Fall semester headcount across all academic levels (curriculum + continuing education + basic skills) at 58 colleges. Fall 2023 was 393,227 per NCCCS news / State Board materials.",
+    "confidence": "high"
+  },
+  {
+    "state": "Ohio",
+    "enrollment": 200000,
+    "enrollment_year": "2024 (annual for-credit)",
+    "enrollment_source": "Ohio Association of Community Colleges Quick Facts / Policy Agenda (data updated December 2024; sources include ODHE)",
+    "notes": "OACC reports 200,000+ for-credit students annually plus ~40,000 non-credit. ODHE HEI Fall 2022 certified community-college sector headcount was 169,643 (institution unduplicated). OACC/NSC press cited ~6.4% Fall 2024 YoY growth for Ohio CCs; accessible Fall 2024 sector absolute total not confirmed in this pass.",
+    "confidence": "medium"
+  },
+  {
+    "state": "Oregon",
+    "enrollment": 90961,
+    "enrollment_year": "Fall 2024",
+    "enrollment_source": "Oregon Higher Education Coordinating Commission (HECC) Fall 4th-week enrollment, reported by Oregon Community College Association (Nov 15, 2024)",
+    "notes": "Statewide community college 4th-week Fall headcount; FTE was 21,897 (+7% YoY). OCCA also cites 200,573 statewide student headcount for academic year 2023-24 (includes non-credit).",
+    "confidence": "high"
+  },
+  {
+    "state": "Pennsylvania",
+    "enrollment": 264000,
+    "enrollment_year": "2024-25",
+    "enrollment_source": "Pennsylvania Commission for Community Colleges (PACCC) FY 2026-27 budget / sector press materials",
+    "notes": "15 public community colleges. PACCC reports 264,000 enrollment for AY 2024-25; same materials also cite 221,382 credit and non-credit students served (metric wording differs). Not a single Fall census figure; PA SBHE dashboard uses IPEDS credit enrollment by institution type.",
+    "confidence": "medium"
+  },
+  {
+    "state": "South Carolina",
+    "enrollment": 81149,
+    "enrollment_year": "Fall 2024",
+    "enrollment_source": "SC Technical College System opening Fall headcount (via Midlands Technical College Fact Book SCTCS comparison table; Fall 2023 confirmed in SC CHE 2024 Statistical Abstract)",
+    "notes": "Systemwide opening Fall headcount for 16 technical colleges. Fall 2023 was 78,847 (SC Commission on Higher Education Statistical Abstract 2024).",
+    "confidence": "high"
+  },
+  {
+    "state": "Texas",
+    "enrollment": 701766,
+    "enrollment_year": "Fall 2024",
+    "enrollment_source": "Texas Higher Education Coordinating Board (THECB) Preliminary Fall 2024 Enrollment (IDEA Committee, Oct 23, 2024); TACC Fact Sheet 2025 (~700,000)",
+    "notes": "THECB preliminary community-college headcount 701,766 (+5.4% from Fall 2023 certified 665,565). Excludes TSTC and Lamar State Colleges. TACC member preliminary report (45 colleges) totaled 562,739.",
+    "confidence": "high"
+  },
+  {
+    "state": "Washington",
+    "enrollment": 192513,
+    "enrollment_year": "Fall 2024",
+    "enrollment_source": "Washington State Board for Community and Technical Colleges (SBCTC) Research Brief 25-1: Fall 2024 Enrollment (also ERIC ED677520)",
+    "notes": "Systemwide CTC Fall quarter headcount; +6% YoY from Fall 2023 (180,947). Fall 2024 FTES was 142,070 (+8%).",
+    "confidence": "high"
+  }
+]

@@ -60,7 +60,7 @@ export function VisionIntelligenceFeed({
           fontSize: 12,
         }}
       >
-        Connecting NexiQ Vision™…
+        Connecting iQ Vision™…
       </div>
     );
   }

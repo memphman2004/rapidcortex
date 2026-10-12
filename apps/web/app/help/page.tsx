@@ -1,18 +1,33 @@
 import { redirect } from "next/navigation";
+import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
+import { defaultJurisdictionSlug, marketingLoginPath } from "@/lib/marketing-links";
 
 /**
- * Knowledge base entry — role-aware redirect into Help Chrome / static KB host.
- * Pass ?role=dispatcher|supervisor|agencyadmin|salescontractor to deep-link.
- * Full HTML KB artifact can be hosted at help.nexcortiq.us or public/help/.
+ * Legacy /help entry — send signed-in users to the in-app Document Library.
+ * (docs.rapidcortex.us is not provisioned; avoid /docs/help HTML redirects.)
  */
 export default async function HelpIndexPage({
   searchParams,
 }: {
   searchParams: Promise<{ role?: string }>;
 }) {
+  const user = await getDashboardSessionUser();
+  if (!user) {
+    redirect(`${marketingLoginPath()}?from=/help`);
+  }
+
   const sp = await searchParams;
-  const role = (sp.role ?? "").trim().toLowerCase();
-  const qs = role ? `?role=${encodeURIComponent(role)}` : "";
-  // Prefer in-app help when available; marketing help host as fallback path docs.
-  redirect(`/docs/help/index.html${qs}`);
+  const role = (sp.role ?? user.role ?? "").trim().toLowerCase().replace(/-/g, "_");
+
+  if (role === "salescontractor" || role === "sales_contractor") {
+    redirect("/sales/document-library");
+  }
+  if (role === "rcsuperadmin" || role === "rcadmin" || role === "rcitadmin") {
+    redirect("/rc-admin/document-library");
+  }
+  if (role === "agencyadmin" || role === "agencyit") {
+    redirect(`/${defaultJurisdictionSlug()}/admin/document-library`);
+  }
+
+  redirect(`/${defaultJurisdictionSlug()}/document-library`);
 }

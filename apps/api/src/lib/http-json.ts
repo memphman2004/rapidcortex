@@ -1,7 +1,7 @@
 import type { APIGatewayProxyResultV2 } from "aws-lambda";
 
 /**
- * `{ success, data?, error? }` JSON envelope used by Rapid Vision™ HTTP handlers.
+ * `{ success, data?, error? }` JSON envelope used by iQ Vision™ HTTP handlers.
  * Distinct from `lib/response.ts`, which emits the bare `{ error }` PSAP shape.
  */
 export function jsonOk<T>(data: T, statusCode = 200): APIGatewayProxyResultV2 {

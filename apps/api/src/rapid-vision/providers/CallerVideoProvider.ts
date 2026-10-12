@@ -29,7 +29,7 @@ type VideoAssistRepository = {
   ) => Promise<VideoAssistSession | null>;
 };
 
-/** Wraps existing Video Assist KVS sessions as a Rapid Vision™ source. */
+/** Wraps existing Video Assist KVS sessions as a iQ Vision™ source. */
 export class CallerVideoProvider implements CameraProvider {
   readonly identity: ProviderIdentity = {
     provider: "caller_video",
@@ -77,7 +77,7 @@ export class CallerVideoProvider implements CameraProvider {
     return unsupported(
       "caller_video",
       "requestConsent",
-      "Caller video consent is handled by Video Assist. Rapid Vision™ uses the existing authorized session.",
+      "Caller video consent is handled by Video Assist. iQ Vision™ uses the existing authorized session.",
     );
   }
 

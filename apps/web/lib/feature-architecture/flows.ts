@@ -231,7 +231,7 @@ export const FEATURE_ARCHITECTURE_FLOWS: FlowDef[] = [
   },
   {
     id: "vision",
-    title: "Rapid Vision session",
+    title: "iQ Vision session",
     vertical: "Vision / video",
     summary:
       "Authorized role starts session → KVS / WebRTC → optional transcript worker + SageMaker detector → WebSocket push (data envelope) → dispatcher LIVE tab.",

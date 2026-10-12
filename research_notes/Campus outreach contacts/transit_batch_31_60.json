@@ -1,0 +1,263 @@
+[
+  {
+    "id": 31,
+    "agency": "RTD Denver",
+    "address": "1660 Blake Street, Denver, CO 80202",
+    "phone": "303-628-9000",
+    "source_url": "https://www.rtd-denver.com/contact-us",
+    "confidence": "high",
+    "notes": "HQ main switchboard (not customer info 303-299-6000). Board/admin listed at 1660 Blake."
+  },
+  {
+    "id": 32,
+    "agency": "Valley Metro Phoenix",
+    "address": "101 N. 1st Avenue, Suite 1300, Phoenix, AZ 85003",
+    "phone": "602-253-5000",
+    "source_url": "https://valleymetro.org/contact/valley-metro",
+    "confidence": "high",
+    "notes": "Main published number; also used for public records/admin. Suite sometimes listed as 1400 in secondary directories."
+  },
+  {
+    "id": 33,
+    "agency": "Sun Tran Tucson",
+    "address": "3920 N. Sun Tran Boulevard, Tucson, AZ 85705",
+    "phone": "520-792-9222",
+    "source_url": "https://www.suntran.com/about/",
+    "confidence": "high",
+    "notes": "Administrative office / Northwest Facility. Customer service line (not Sun Van 520-798-1000). Some reports list nearby 3910 N. Sun Tran Blvd."
+  },
+  {
+    "id": 35,
+    "agency": "UTA (Utah Transit Authority)",
+    "address": "669 West 200 South, Salt Lake City, UT 84101",
+    "phone": "801-743-3882",
+    "source_url": "https://www.rideuta.com",
+    "confidence": "high",
+    "notes": "Address from UTA FrontLines HQ / ACFR. Phone provided by requester (not re-verified)."
+  },
+  {
+    "id": 36,
+    "agency": "Metro Transit Twin Cities",
+    "address": "560 Sixth Avenue North, Minneapolis, MN 55411",
+    "phone": "612-373-3333",
+    "source_url": "https://www.metrotransit.org/facilities",
+    "confidence": "high",
+    "notes": "Fred T. Heywood Office Building \u2014 administrative HQ. Phone is primary Metro Transit customer service (no separate public switchboard found)."
+  },
+  {
+    "id": 37,
+    "agency": "DDOT Detroit",
+    "address": "100 Mack Avenue, Detroit, MI 48201",
+    "phone": "313-933-1300",
+    "source_url": "https://detroitmi.gov/departments/detroit-department-transportation",
+    "confidence": "high",
+    "notes": "DDOT Customer Service / admin building. Not Transit Police 313-833-9836."
+  },
+  {
+    "id": 38,
+    "agency": "SMART Detroit",
+    "address": "535 Griswold Street, Suite 600, Detroit, MI 48226",
+    "phone": "313-223-2100",
+    "source_url": "https://www.smartbus.org/About/Contact",
+    "confidence": "high",
+    "notes": "Administrative Offices (Buhl Building). Prefer over Customer Care 866-962-5515."
+  },
+  {
+    "id": 39,
+    "agency": "GCRTA Cleveland",
+    "address": "1240 West 6th Street, Cleveland, OH 44113",
+    "phone": "216-566-5100",
+    "source_url": "https://www.riderta.com/about",
+    "confidence": "high",
+    "notes": "Main office number. Not Transit Police Dispatch 216-566-5163; not Main Office walk-in desk 216-621-9500."
+  },
+  {
+    "id": 40,
+    "agency": "COTA Columbus",
+    "address": "33 N. High Street, Columbus, OH 43215",
+    "phone": "614-228-1776",
+    "source_url": "https://www.cota.com/contact/",
+    "confidence": "high",
+    "notes": "William J. Lhota Building / COTA Customer Experience Center \u2014 listed as main office."
+  },
+  {
+    "id": 41,
+    "agency": "SORTA/Metro Cincinnati",
+    "address": "525 Vine Street, Suite 500, Cincinnati, OH 45202",
+    "phone": "513-621-9450",
+    "source_url": "https://www.go-metro.com/about/contact/",
+    "confidence": "high",
+    "notes": "Metro Administration general information line (weekdays). Prefer over Customer Care 513-632-7575."
+  },
+  {
+    "id": 42,
+    "agency": "Greater Dayton RTA",
+    "address": "4 South Main Street, Dayton, OH 45402",
+    "phone": "937-425-8300",
+    "source_url": "https://www.iriderta.org/",
+    "confidence": "high",
+    "notes": "HQ / Customer Support main line. Not Safety & Security 937-425-8335."
+  },
+  {
+    "id": 43,
+    "agency": "Pittsburgh Regional Transit",
+    "address": "345 Sixth Avenue, 3rd Floor, Pittsburgh, PA 15222",
+    "phone": "412-566-5500",
+    "source_url": "https://www.rideprt.org/about-us/",
+    "confidence": "high",
+    "notes": "Administrative Office (Heinz 57 Center). Budget letterhead lists 412-566-5500; customer service is 412-442-2000."
+  },
+  {
+    "id": 44,
+    "agency": "Maryland MTA",
+    "address": "6 St. Paul Street, Baltimore, MD 21202",
+    "phone": "410-454-7222",
+    "source_url": "https://www.mta.maryland.gov/contact-mta",
+    "confidence": "high",
+    "notes": "Directory Assistance (HQ switchboard). Transit Information Contact Center is 410-539-5000 / 866-743-3682. Not MTA Police 410-454-7720."
+  },
+  {
+    "id": 45,
+    "agency": "San Diego MTS",
+    "address": "1255 Imperial Avenue, Suite 1000, San Diego, CA 92101",
+    "phone": "619-238-0100",
+    "source_url": "https://www.sdmts.com/contact",
+    "confidence": "high",
+    "notes": "Administrative Offices line. Prefer over Customer Service 619-557-4555. Not MTS Security."
+  },
+  {
+    "id": 46,
+    "agency": "NCTD",
+    "address": "810 Mission Avenue, Oceanside, CA 92054",
+    "phone": "760-966-6500",
+    "source_url": "https://gonctd.com/contact-us/",
+    "confidence": "high",
+    "notes": "HQ / mailing address and main call center. Customer Service walk-in is at Oceanside Transit Center (205 S. Tremont), not 810 Mission."
+  },
+  {
+    "id": 47,
+    "agency": "Sacramento RT",
+    "address": "1102 Q Street, Suite 3000, Sacramento, CA 95811",
+    "phone": "916-321-2800",
+    "source_url": "https://www.sacrt.com/contact-us/",
+    "confidence": "high",
+    "notes": "Administrative Office main line. Prefer over Customer Service 916-321-2877. Customer Service & Sales Center is at 1225 R Street."
+  },
+  {
+    "id": 48,
+    "agency": "OCTA",
+    "address": "550 S. Main Street, Orange, CA 92868",
+    "phone": "714-560-6282",
+    "source_url": "https://octa.net/contact/contact-us",
+    "confidence": "high",
+    "notes": "OCTA Administrative Offices / Headquarters. Prefer over Bus Information 714-636-7433."
+  },
+  {
+    "id": 49,
+    "agency": "Riverside Transit Agency",
+    "address": "1825 Third Street, Riverside, CA 92507",
+    "phone": "951-565-5000",
+    "source_url": "https://www.riversidetransit.com/index.php/about-rta/contact-us",
+    "confidence": "high",
+    "notes": "Business/admin office main phone. Physical ZIP 92507; mailing P.O. Box 59968 uses 92517-1968. Customer Information Center is 951-565-5002."
+  },
+  {
+    "id": 50,
+    "agency": "Omnitrans",
+    "address": "1700 W. Fifth Street, San Bernardino, CA 92411",
+    "phone": "909-379-7100",
+    "source_url": "https://omnitrans.org/about/contact-us/",
+    "confidence": "high",
+    "notes": "Headquarters main number. Prefer over toll-free bus info 800-966-6428."
+  },
+  {
+    "id": 51,
+    "agency": "RTC Southern Nevada",
+    "address": "600 S. Grand Central Parkway, Suite 350, Las Vegas, NV 89106",
+    "phone": "702-676-1500",
+    "source_url": "https://www.rtcsnv.com/contact/",
+    "confidence": "high",
+    "notes": "RTC Administrative Offices."
+  },
+  {
+    "id": 52,
+    "agency": "RTC Washoe",
+    "address": "1105 Terminal Way, Reno, NV 89502",
+    "phone": "775-348-0400",
+    "source_url": "https://rtcwashoe.com/contact-us/",
+    "confidence": "high",
+    "notes": "Business office / HQ. Customer Services also publishes 775-348-7433 (RIDE)."
+  },
+  {
+    "id": 53,
+    "agency": "LYNX Orlando",
+    "address": "455 N. Garland Avenue, Orlando, FL 32801",
+    "phone": "407-841-5969",
+    "source_url": "https://www.golynx.com/",
+    "confidence": "high",
+    "notes": "Central Florida Regional Transportation Authority HQ (LYNX Central). Main published number 407-841-LYNX."
+  },
+  {
+    "id": 54,
+    "agency": "HART Tampa",
+    "address": "1201 E. Seventh Avenue, Tampa, FL 33605",
+    "phone": "813-254-4278",
+    "source_url": "https://www.gohart.org/Pages/customer-service.aspx",
+    "confidence": "high",
+    "notes": "Raymond C. Miller Building administrative offices. HARTInfo Line is the main published number."
+  },
+  {
+    "id": 55,
+    "agency": "PSTA",
+    "address": "3201 Scherer Drive, St. Petersburg, FL 33716",
+    "phone": "727-540-1800",
+    "source_url": "https://psta.net/contact-us/administration",
+    "confidence": "high",
+    "notes": "PSTA Headquarters main number. Prefer over InfoLine 727-540-1900."
+  },
+  {
+    "id": 56,
+    "agency": "JTA Jacksonville",
+    "address": "100 LaVilla Center Drive, Jacksonville, FL 32204",
+    "phone": "904-630-3181",
+    "source_url": "https://jtafla.com/contact-us/",
+    "confidence": "high",
+    "notes": "JTA Administration line at HQ (bylaws: Administration Building). Prefer over Customer Contact Center 904-630-3100."
+  },
+  {
+    "id": 57,
+    "agency": "CATS Charlotte",
+    "address": "600 East 4th Street, Charlotte, NC 28202",
+    "phone": "704-336-7433",
+    "source_url": "https://www.charlottenc.gov/CATS/Get-to-Know-CATS/Customer-Service",
+    "confidence": "high",
+    "notes": "City of Charlotte / CATS admin mailing at Charlotte-Mecklenburg Government Center. Call Center is main public line. CTC info booth at 310 E. Trade Street; ops facility also at 3145 S. Tryon St."
+  },
+  {
+    "id": 58,
+    "agency": "GoTriangle",
+    "address": "4600 Emperor Boulevard, Suite 100, Durham, NC 27703",
+    "phone": "919-485-7433",
+    "source_url": "https://gotriangle.org/hours/",
+    "confidence": "high",
+    "notes": "Administrative offices. 919-485-RIDE is shared GoTransit Regional Information Center (also serves GoRaleigh/GoDurham/GoCary)."
+  },
+  {
+    "id": 59,
+    "agency": "GoRaleigh",
+    "address": "4104 Poole Road, Raleigh, NC 27610",
+    "phone": "919-485-7433",
+    "source_url": "https://goraleigh.org/contact-us-2",
+    "confidence": "high",
+    "notes": "GoRaleigh Operations Office. Phone is shared GoTransit Regional Information Center. Mailing: PO Box 590, Raleigh, NC 27602."
+  },
+  {
+    "id": 60,
+    "agency": "GoDurham",
+    "address": "1907 Fay Street, Durham, NC 27704",
+    "phone": "919-560-4366",
+    "source_url": "https://www.durhamnc.gov/4537/Contact-Transportation",
+    "confidence": "high",
+    "notes": "City of Durham Transit Services / GoDurham business offices. Prefer city HQ line over shared GoTransit info 919-485-7433. Operator staff also list 919-560-1545."
+  }
+]

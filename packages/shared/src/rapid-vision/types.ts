@@ -1,10 +1,11 @@
 /**
- * NexiQ Vision™ data types.
- * Product name: NexiQ Vision™ (formerly Rapid Vision / NexCort iQ Connect).
+ * iQ Vision™ data types.
+ * Product name: iQ Vision™ (formerly NexiQ Vision / Rapid Vision / NexCort iQ Connect).
+ * Wire identifiers keep RAPID_VISION_* / rapid-vision.* for compatibility.
  */
 
-export const RAPID_VISION_PRODUCT_NAME = "NexiQ Vision™";
-export const RAPID_VISION_PRODUCT_NAME_ASCII = "NexiQ Vision";
+export const RAPID_VISION_PRODUCT_NAME = "iQ Vision™";
+export const RAPID_VISION_PRODUCT_NAME_ASCII = "iQ Vision";
 
 export type VisionProvider =
   | "rtsp"

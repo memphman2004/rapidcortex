@@ -1,0 +1,272 @@
+[
+  {
+    "id": 61,
+    "agency": "WeGo Nashville",
+    "address": "430 Myatt Drive, Nashville, TN 37115",
+    "phone": "615-862-5969",
+    "source_url": "https://www.wegotransit.com/contact-us/",
+    "confidence": "high",
+    "notes": "Administrative Offices switchboard. Customer Care is 615-862-5950; Elizabeth Duff Transit Center is at 400 Dr. MLK Jr. Blvd."
+  },
+  {
+    "id": 62,
+    "agency": "MATA Memphis",
+    "address": "40 S. Main Street (One Commerce Square), Memphis, TN 38103",
+    "phone": "901-722-7100",
+    "source_url": "https://www.matatransit.com/contact/",
+    "confidence": "high",
+    "notes": "Administrative Offices at One Commerce Square. Operations Center at 1370 Levee Road, Memphis, TN 38108. Rider call center is 901-274-6282 (274-MATA)."
+  },
+  {
+    "id": 63,
+    "agency": "New Orleans RTA",
+    "address": "2817 Canal Street, New Orleans, LA 70119",
+    "phone": "504-248-3900",
+    "source_url": "https://www.norta.com/help-and-contacts/business-information/office-location",
+    "confidence": "high",
+    "notes": "Main offices and mailing address; also general rider inquiries. Business hours Mon–Fri 8:30 a.m.–4:30 p.m."
+  },
+  {
+    "id": 64,
+    "agency": "KCATA",
+    "address": "1200 E. 18th Street, Kansas City, MO 64108",
+    "phone": "816-346-0200",
+    "source_url": "https://ridekc.org/customer-service/",
+    "confidence": "high",
+    "notes": "Administrative Offices. Route/schedule customer service is 816-221-0660. Also published as RideKC / Kansas City Area Transportation Authority."
+  },
+  {
+    "id": 65,
+    "agency": "Metro Transit St Louis",
+    "address": "One Metropolitan Square, 211 N. Broadway, Suite 700, St. Louis, MO 63102",
+    "phone": "314-982-1400",
+    "source_url": "https://www.metrostlouis.org/customer-care/",
+    "confidence": "high",
+    "notes": "Main Switchboard (Bi-State Development / Metro). Transit Information is 314-231-2345; Customer Service is 314-982-1406."
+  },
+  {
+    "id": 66,
+    "agency": "IndyGo",
+    "address": "9503 E. 33rd Street, Suite A, Indianapolis, IN 46235",
+    "phone": "317-635-2100",
+    "source_url": "https://www.indygo.net/contact-us/",
+    "confidence": "high",
+    "notes": "East Campus listed as current headquarters. West Campus (legacy admin) at 1501 W. Washington St., Indianapolis, IN 46222 shares the same main phone."
+  },
+  {
+    "id": 67,
+    "agency": "MCTS Milwaukee",
+    "address": "1942 N. 17th Street, Milwaukee, WI 53205",
+    "phone": "414-344-6711",
+    "source_url": "https://www.ridemcts.com/who-we-are/contact",
+    "confidence": "high",
+    "notes": "Administrative Offices. 414-344-6711 is the 24/7 automated hotline with department prompts (switchboard-style). Live Customer Service is 414-937-3218 (M–F 8 a.m.–4:30 p.m.)."
+  },
+  {
+    "id": 68,
+    "agency": "Metro Transit Madison",
+    "address": "1245 E. Washington Avenue, Suite 201, Madison, WI 53703",
+    "phone": "608-266-4904",
+    "source_url": "https://www.cityofmadison.com/metro/contact",
+    "confidence": "high",
+    "notes": "Administration Office. Customer Service / general rider info is 608-266-4466."
+  },
+  {
+    "id": 69,
+    "agency": "Metro Transit Omaha",
+    "address": "2222 Cuming Street, Omaha, NE 68102-4392",
+    "phone": "402-341-0800",
+    "source_url": "https://www.ometro.com/contact/",
+    "confidence": "high",
+    "notes": "Administrative Offices; same number used for main customer contact. Fax 402-342-0949."
+  },
+  {
+    "id": 70,
+    "agency": "StarTran Lincoln",
+    "address": "710 J Street, Lincoln, NE 68508",
+    "phone": "402-441-7185",
+    "source_url": "https://www.lincoln.ne.gov/City/Departments/LTU/StarTran/About",
+    "confidence": "high",
+    "notes": "StarTran Office (City of Lincoln LTU). Route/schedule info line is 402-476-1234."
+  },
+  {
+    "id": 71,
+    "agency": "DART Des Moines",
+    "address": "620 Cherry Street, Des Moines, IA 50309-4530",
+    "phone": "515-283-8100",
+    "source_url": "https://www.ridedart.com/contact",
+    "confidence": "high",
+    "notes": "DART Central Station houses Customer Service and Administrative Offices. Same main phone for both."
+  },
+  {
+    "id": 72,
+    "agency": "ABQ RIDE",
+    "address": "Alvarado Transportation Center, 100 1st Street SW, Albuquerque, NM 87102",
+    "phone": "505-724-3100",
+    "source_url": "https://www.cabq.gov/department-listing",
+    "confidence": "high",
+    "notes": "Transit Department / ABQ RIDE director office phone at ATC (admin). Customer Service Center at same address is 505-243-7433 (243-RIDE)."
+  },
+  {
+    "id": 73,
+    "agency": "Sun Metro El Paso",
+    "address": "10151 Montana Avenue, El Paso, TX 79925",
+    "phone": "915-212-3333",
+    "source_url": "https://sunmetro.net/about",
+    "confidence": "high",
+    "notes": "Transit Operations Center (admin/ops HQ). Also used as main customer information line."
+  },
+  {
+    "id": 74,
+    "agency": "EMBARK OKC",
+    "address": "2000 S. May Avenue, Oklahoma City, OK 73108",
+    "phone": "405-235-7433",
+    "source_url": "https://www.embarkok.com/bus/contact-us",
+    "confidence": "high",
+    "notes": "HQ / Customer Care mailing address (COTPA). Downtown Transit Center customer window is at 420 NW 5th Street. Phone is 405-235-RIDE."
+  },
+  {
+    "id": 75,
+    "agency": "MetroLink Tulsa",
+    "address": "510 S. Rockford Avenue, Tulsa, OK 74120",
+    "phone": "918-982-6882",
+    "source_url": "https://www.metrolinkok.org/contact/",
+    "confidence": "high",
+    "notes": "Metropolitan Tulsa Transit Authority admin/mailing HQ (board meets here). Main published phone 918-982-MTTA. Customer-facing site also lists 319 S. Denver."
+  },
+  {
+    "id": 76,
+    "agency": "TARC Louisville",
+    "address": "1000 W. Broadway, Louisville, KY 40203",
+    "phone": "502-585-1234",
+    "source_url": "https://www.ridetarc.org/contact-us/",
+    "confidence": "high",
+    "notes": "Union Station administrative headquarters. Official contact page main number; some directories also list 502-561-5100."
+  },
+  {
+    "id": 77,
+    "agency": "Lextran",
+    "address": "200 West Loudon Avenue, Lexington, KY 40508",
+    "phone": "859-255-7756",
+    "source_url": "https://lextran.com/about-lextran/contact-us/",
+    "confidence": "high",
+    "notes": "Loudon Administrative Office. Downtown Transit Center (customer) is 150 East Vine Street, 859-253-4636."
+  },
+  {
+    "id": 78,
+    "agency": "MAX Birmingham",
+    "address": "1801 Morris Avenue, Birmingham, AL 35203",
+    "phone": "205-521-0101",
+    "source_url": "https://maxtransit.org/contact-us/",
+    "confidence": "high",
+    "notes": "BJCTA Administrative Offices. Central Station (customer) at 1700 Morris Ave. Mailing: P.O. Box 10212, Birmingham, AL 35202."
+  },
+  {
+    "id": 79,
+    "agency": "The Wave Mobile",
+    "address": "1224 West I-65 Service Road South, Mobile, AL 36609",
+    "phone": "251-344-6600",
+    "source_url": "https://thewavetransit.com/149/Contact-Us",
+    "confidence": "high",
+    "notes": "Administration, Operations & Maintenance Facility. GM&O Transit Center / customer service at 110 Beauregard Street, Suite 104, Mobile, AL 36602 shares the same main phone."
+  },
+  {
+    "id": 80,
+    "agency": "TheBus Honolulu",
+    "address": "811 Middle Street, Honolulu, HI 96819",
+    "phone": "808-848-5555",
+    "source_url": "https://www.thebus.org/",
+    "confidence": "high",
+    "notes": "Oahu Transit Services (OTS) Kalihi HQ / main published number. Older materials listed Administrative Office 808-768-9400. City DTS Public Transit Division is at 711 Kapiolani Blvd, Suite 1600."
+  },
+  {
+    "id": 81,
+    "agency": "People Mover Anchorage",
+    "address": "3600 Dr. Martin Luther King Jr. Avenue, Anchorage, AK 99507",
+    "phone": "907-343-6543",
+    "source_url": "https://www.muni.org/Departments/transit/Pages/departmentcontacts.aspx",
+    "confidence": "high",
+    "notes": "Public Transportation Department Administration. Customer Service office listed separately (700 W 6th Ave / previously 517 W 7th Ave Suite 200); Rideline is the same main number."
+  },
+  {
+    "id": 82,
+    "agency": "RIPTA",
+    "address": "705 Elmwood Avenue, Providence, RI 02907",
+    "phone": "401-784-9500",
+    "source_url": "https://ripta.com/contact-us",
+    "confidence": "high",
+    "notes": "Administration Offices switchboard. Site also lists general/customer contact 401-781-9400; Customer Service ext. 2012 on the admin line."
+  },
+  {
+    "id": 83,
+    "agency": "CTtransit Hartford",
+    "address": "100 Leibert Road, Hartford, CT 06120",
+    "phone": "860-522-8101",
+    "source_url": "https://www.cttransit.com/contact-us",
+    "confidence": "high",
+    "notes": "Corporate / Hartford Division headquarters (admin number). Customer service / info line is 860-525-9181 (Union Station and sales outlets)."
+  },
+  {
+    "id": 84,
+    "agency": "CTtransit New Haven",
+    "address": "2061 State Street, Hamden, CT 06517",
+    "phone": "203-624-0151",
+    "source_url": "https://www.cttransit.com/contact-us",
+    "confidence": "high",
+    "notes": "New Haven Division operations HQ in Hamden. Downtown customer service center at 72 Church Street, New Haven, CT 06510 uses the same phone. Corporate HQ remains 100 Leibert Rd, Hartford."
+  },
+  {
+    "id": 85,
+    "agency": "DART First State",
+    "address": "900 Public Safety Boulevard, Dover, DE 19901",
+    "phone": "302-739-3278",
+    "source_url": "https://www.dartfirststate.com/About/contactUs/",
+    "confidence": "medium",
+    "notes": "Delaware Transit Corporation Dover Administrative Office. FAQ notes 900 Public Safety Blvd temporarily closed for renovations with interim office at 655 S. Bay Rd (Blue Hen Corporate Center), Dover. Wilmington admin: 119 Lower Beech Street, Wilmington, DE 19805, 302-577-3278. Statewide info 1-800-652-3278."
+  },
+  {
+    "id": 86,
+    "agency": "NFTA Buffalo",
+    "address": "181 Ellicott Street, Buffalo, NY 14203",
+    "phone": "716-855-7300",
+    "source_url": "https://www.nfta.com/contact-us",
+    "confidence": "high",
+    "notes": "Authority Office / Metropolitan Transportation Center HQ switchboard. NFTA-Metro Customer Care is 716-855-7211 (bus/rail)."
+  },
+  {
+    "id": 87,
+    "agency": "RTS Rochester",
+    "address": "1372 East Main Street, Rochester, NY 14609",
+    "phone": "585-288-1700",
+    "source_url": "https://www.myrts.com/Contact-Us/Contact-Us",
+    "confidence": "high",
+    "notes": "RGRTA / RTS campus headquarters. RTS Transit Center (downtown) at 60 St. Paul St. / 71 N. Clinton Ave."
+  },
+  {
+    "id": 88,
+    "agency": "CDTA Albany",
+    "address": "110 Watervliet Avenue, Albany, NY 12206",
+    "phone": "518-437-8300",
+    "source_url": "https://cdta.org/facilities",
+    "confidence": "high",
+    "notes": "Administrative Headquarters and Albany Garage. Main Office number. Customer Service is 518-482-8822; additional offices at 85 Watervliet Ave."
+  },
+  {
+    "id": 89,
+    "agency": "Centro Syracuse",
+    "address": "200 Cortland Avenue, Syracuse, NY 13205-0820",
+    "phone": "315-442-3333",
+    "source_url": "https://www.centro.org/about/hours-of-operation",
+    "confidence": "high",
+    "notes": "CNYRTA / CNY Centro main office. Bus Information / Lost & Found is 315-442-3400. PO Box 820."
+  },
+  {
+    "id": 90,
+    "agency": "GRTC Richmond",
+    "address": "301 East Belt Boulevard, Richmond, VA 23224",
+    "phone": "804-358-3871",
+    "source_url": "https://ridegrtc.com/about-us/grtc-corporate-office",
+    "confidence": "high",
+    "notes": "GRTC Headquarters and Corporate Office main switchboard. Customer Service Center is 804-358-4782 (358-GRTC)."
+  }
+]

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * NexiQ Video — agency-owned camera VMS layer (not NexiQ Vision / Ring).
+ * NexiQ Video — agency-owned camera VMS layer (not iQ Vision / Ring).
  * Phase 1: Command Video Wall types and concurrent stream cost gates.
  */
 

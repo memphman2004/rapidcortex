@@ -1,5 +1,5 @@
 """
-Rapid Vision™ — live transcript worker.
+iQ Vision™ — live transcript worker.
 
 Pipeline:
   KVS Video Stream (HLS)

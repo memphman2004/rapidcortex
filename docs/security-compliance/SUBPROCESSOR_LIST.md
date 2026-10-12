@@ -54,7 +54,7 @@ Call Assist knowledge answers are grounded on the **agency knowledge base in Dyn
 | **Amazon Pinpoint** | SMS / messaging links (e.g. caller media intake) | Phone numbers, message metadata | When Pinpoint features enabled |
 | **Amazon End User Messaging** | Transactional SMS (incident links, consent, Silent Text) | Phone numbers, message metadata | When SMS features enabled |
 | **Twilio** | Incident-media SMS / voice links | Phone numbers, message metadata, media URLs | When incident-media secret is used |
-| **Wyze** | Camera API | Device credentials / media | Only if `WyzeEnabled` / Rapid Vision Wyze |
+| **Wyze** | Camera API | Device credentials / media | Only if `WyzeEnabled` / iQ Vision Wyze |
 | **Google Nest SDM** | Agency/citizen camera linking | OAuth tokens, device metadata | Agency OAuth may be live; citizen path needs Device Access + RC OAuth secret |
 | **CAD vendor systems** | Read or write adapters | Incident/unit data per agency | Agency-controlled endpoints |
 

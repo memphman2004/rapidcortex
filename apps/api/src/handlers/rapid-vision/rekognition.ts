@@ -2,7 +2,7 @@ import type { KinesisStreamHandler } from "aws-lambda";
 
 /**
  * Rekognition Connected Home events land here in Phase 2.
- * Phase 1 drops records that have no active Rapid Vision™ session — fail closed.
+ * Phase 1 drops records that have no active iQ Vision™ session — fail closed.
  */
 export const handler: KinesisStreamHandler = async (event) => {
   for (const record of event.Records ?? []) {

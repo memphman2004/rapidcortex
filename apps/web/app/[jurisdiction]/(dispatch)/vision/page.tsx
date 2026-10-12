@@ -49,7 +49,7 @@ export default function DispatcherVisionPage() {
     return (
       <div className="p-4">
         <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4 text-sm text-slate-300">
-          NexiQ Vision is currently disabled for this environment.
+          iQ Vision is currently disabled for this environment.
         </div>
       </div>
     );
@@ -58,7 +58,7 @@ export default function DispatcherVisionPage() {
   return (
     <div className="flex h-full flex-col gap-4 p-4">
       <div>
-        <h1 className="text-lg font-semibold text-white">NexiQ Vision</h1>
+        <h1 className="text-lg font-semibold text-white">iQ Vision</h1>
         <p className="mt-1 text-sm text-slate-400">
           Live camera intelligence and transcript for the selected incident.
         </p>
@@ -96,7 +96,7 @@ export default function DispatcherVisionPage() {
         </div>
       ) : (
         <div className="rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-8 text-center text-sm text-slate-400">
-          Select an active incident to open NexiQ Vision.
+          Select an active incident to open iQ Vision.
         </div>
       )}
     </div>

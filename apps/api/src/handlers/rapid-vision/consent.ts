@@ -9,7 +9,7 @@ import { visionStore } from "../../rapid-vision/store.js";
 const auditRepo = new AuditRepository();
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
-  if (!env.enableRapidVision) return ok({ error: "Rapid Vision™ is disabled" }, 503);
+  if (!env.enableRapidVision) return ok({ error: "iQ Vision™ is disabled" }, 503);
 
   const path = event.rawPath ?? event.requestContext.http.path ?? "";
   const match = path.match(/\/api\/public\/vision\/consent\/([^/]+)\/(approve|decline)$/);
@@ -38,7 +38,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       resourceType: "incident",
       resourceId: record.sessionId,
     });
-    return ok({ success: true, message: "Access approved. Rapid Vision™ analysis will start." });
+    return ok({ success: true, message: "Access approved. iQ Vision™ analysis will start." });
   }
 
   await visionStore.declineSession(record.incidentId, record.sessionId, record.agencyId);

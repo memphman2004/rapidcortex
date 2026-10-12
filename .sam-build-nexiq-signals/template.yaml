@@ -1,0 +1,274 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: "NexCort iQ \u2014 surgical NexiQ Signals (Civic-IQ \u2192 Claude ingest)\
+  \ on AppSam3 HttpApi. POST /api/signals is AuthorizationType NONE with Lambda-side\
+  \ IAM or Secrets Manager API key auth (Claude scheduled tasks cannot SigV4). GET/PATCH\
+  \ use Cognito JWT.\n"
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues:
+    - dev
+    - staging
+    - prod
+    - pilot
+  HttpApiId:
+    Type: String
+  HttpApiJwtAuthorizerId:
+    Type: String
+    Default: ''
+  NexiQSignalsTable:
+    Type: String
+  AuditTable:
+    Type: String
+  AgenciesTable:
+    Type: String
+    Default: ''
+  IncidentsTable:
+    Type: String
+  TranscriptsTable:
+    Type: String
+  AnalysesTable:
+    Type: String
+  InvitesTable:
+    Type: String
+  AssetsBucket:
+    Type: String
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+  ApprovedCorsOrigins:
+    Type: String
+    Default: https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us
+  RapidIqApolloApiKeySecretArn:
+    Type: String
+    Default: ''
+    Description: Apollo.io secret ARN (shared with NexiQ enrichment)
+  NexiqSignalsIngestApiKeySecretArn:
+    Type: String
+    Default: ''
+    Description: "Secrets Manager ARN for Claude \u2192 POST /api/signals ingest API\
+      \ key (JSON {apiKey:\"\u2026\"} or raw string). Empty disables API-key ingest\
+      \ until set.\n"
+Conditions:
+  HasHttpApiJwtAuthorizer:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: HttpApiJwtAuthorizerId
+      - ''
+  HasApolloSecretArn:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: RapidIqApolloApiKeySecretArn
+      - ''
+  HasNexiqSignalsIngestSecretArn:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: NexiqSignalsIngestApiKeySecretArn
+      - ''
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 60
+    MemorySize: 1024
+    Layers:
+    - Ref: NodeDepsLayer
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE:
+          Ref: DeploymentStage
+        ALLOW_UNAUTHENTICATED_API: 'false'
+        ENABLE_NEXIQ_SIGNALS: 'true'
+        RAPID_IQ_COLLECTORS_MOCK: 'false'
+        NEXIQ_SIGNALS_TABLE:
+          Ref: NexiQSignalsTable
+        AUDIT_TABLE:
+          Ref: AuditTable
+        AGENCIES_TABLE:
+          Ref: AgenciesTable
+        INCIDENTS_TABLE:
+          Ref: IncidentsTable
+        TRANSCRIPTS_TABLE:
+          Ref: TranscriptsTable
+        ANALYSES_TABLE:
+          Ref: AnalysesTable
+        INVITES_TABLE:
+          Ref: InvitesTable
+        ASSETS_BUCKET:
+          Ref: AssetsBucket
+        COGNITO_USER_POOL_ID:
+          Ref: ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID:
+          Ref: ImportedCognitoWebClientId
+        COGNITO_REGION:
+          Ref: AWS::Region
+        APPROVED_CORS_ORIGINS:
+          Ref: ApprovedCorsOrigins
+        RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:
+          Ref: RapidIqApolloApiKeySecretArn
+        NEXIQ_SIGNALS_INGEST_API_KEY_SECRET_ARN:
+          Ref: NexiqSignalsIngestApiKeySecretArn
+Resources:
+  NodeDepsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName:
+        Fn::Sub: ${ManagedPolicyNamePrefix}-nexiq-signals-api-deps-${DeploymentStage}
+      Description: Shared node_modules for NexiQ Signals Lambdas (lean CodeUri builds)
+      ContentUri: NodeDepsLayer
+      CompatibleRuntimes:
+      - nodejs20.x
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: makefile
+      SamResourceId: NodeDepsLayer
+  AppManagedPolicyNexiqSignalsDdb:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: NexiqSignalsCrud
+          Effect: Allow
+          Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:Query
+          - dynamodb:DescribeTable
+          Resource:
+          - Fn::Sub: arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQSignalsTable}
+          - Fn::Sub: arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NexiQSignalsTable}/index/*
+        - Sid: AuditWrite
+          Effect: Allow
+          Action:
+          - dynamodb:PutItem
+          - dynamodb:GetItem
+          Resource:
+          - Fn::Sub: arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+          - Fn::Sub: arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
+  NexiqSignalsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+      SamResourceId: NexiqSignalsHttpFunction
+    Properties:
+      CodeUri: NexiqSignalsHttpFunction
+      Handler: dist/handlers/nexiq/signalsHttp.handler
+      Timeout: 60
+      Policies:
+      - Ref: AppManagedPolicyNexiqSignalsDdb
+      - Statement:
+        - Sid: ReadApolloSecret
+          Effect: Allow
+          Action:
+          - secretsmanager:GetSecretValue
+          Resource:
+            Fn::If:
+            - HasApolloSecretArn
+            - Ref: RapidIqApolloApiKeySecretArn
+            - Fn::Sub: arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-nexiq-signals-apollo-*
+        - Sid: ReadNexiqSignalsIngestSecret
+          Effect: Allow
+          Action:
+          - secretsmanager:GetSecretValue
+          Resource:
+            Fn::If:
+            - HasNexiqSignalsIngestSecretArn
+            - Ref: NexiqSignalsIngestApiKeySecretArn
+            - Fn::Sub: arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-nexiq-signals-ingest-*
+  NexiqSignalsIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId:
+        Ref: HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri:
+        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NexiqSignalsHttpFunction.Arn}/invocations
+      PayloadFormatVersion: '2.0'
+  NexiqSignalsInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Ref: NexiqSignalsHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
+  RouteNexiqSignalsPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: HttpApiId
+      RouteKey: POST /api/signals
+      Target:
+        Fn::Sub: integrations/${NexiqSignalsIntegration}
+      AuthorizationType: NONE
+  RouteNexiqSignalsList:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: HttpApiId
+      RouteKey: GET /api/signals
+      Target:
+        Fn::Sub: integrations/${NexiqSignalsIntegration}
+      AuthorizationType:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - JWT
+        - NONE
+      AuthorizerId:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - Ref: HttpApiJwtAuthorizerId
+        - Ref: AWS::NoValue
+  RouteNexiqSignalsSummary:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: HttpApiId
+      RouteKey: GET /api/signals/summary
+      Target:
+        Fn::Sub: integrations/${NexiqSignalsIntegration}
+      AuthorizationType:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - JWT
+        - NONE
+      AuthorizerId:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - Ref: HttpApiJwtAuthorizerId
+        - Ref: AWS::NoValue
+  RouteNexiqSignalsPatch:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: HttpApiId
+      RouteKey: PATCH /api/signals/{signalId}
+      Target:
+        Fn::Sub: integrations/${NexiqSignalsIntegration}
+      AuthorizationType:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - JWT
+        - NONE
+      AuthorizerId:
+        Fn::If:
+        - HasHttpApiJwtAuthorizer
+        - Ref: HttpApiJwtAuthorizerId
+        - Ref: AWS::NoValue
+Outputs:
+  NexiqSignalsHttpFunctionArn:
+    Value:
+      Fn::GetAtt:
+      - NexiqSignalsHttpFunction
+      - Arn
+  NexiQSignalsTableName:
+    Value:
+      Ref: NexiQSignalsTable

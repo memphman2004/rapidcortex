@@ -56,6 +56,7 @@ Do not upload screenshots that show Safe & Sound, BLE pairing, maps, or live dis
 |---|---|---|---|---|
 | Email address | Yes | No | App functionality (sign-in) | Required for the app |
 | User IDs | Yes | No | App functionality (Cognito `sub`, agency, role) | Required |
+| **Device or other IDs** | **Yes** | **Yes** | App functionality + fraud prevention (Cognito/Amplify device key; Stripe SDK; Expo push / FCM instance IDs when notifications run). Not used for advertising. | Required for sign-in / payments / push paths that ship in the binary |
 | Photos | No | No | App writes a generated QR via the system share sheet; it does not read the gallery | — |
 | Location | No | No | Blocked in the Play v1 manifest | — |
 | Approximate / precise location | No | — | — | — |
@@ -63,11 +64,27 @@ Do not upload screenshots that show Safe & Sound, BLE pairing, maps, or live dis
 | Bluetooth | No | — | Blocked; Guardian is flag-gated | — |
 | Approximate location | No | — | — | — |
 
+### Device or other IDs — Play Console answers (v39 rejection fix)
+
+Google rejected version code **39** for an undeclared **Device or other IDs** transmission (Android ID / app instance IDs from linked SDKs — not Advertising ID). Fix is declaration-only; no new AAB required unless you also change code.
+
+1. Play Console → **App content** → **Data safety** → Start / Edit.
+2. Data collection: **Yes** (already collecting email / user IDs).
+3. Data types → **Device or other IDs** → check **Device or other IDs**.
+4. For that type:
+   - Collected: **Yes**
+   - Shared: **Yes** (third-party SDKs: AWS Cognito, Stripe; Google FCM / Expo if push token path is present in the binary)
+   - Processed ephemerally: **No** (IDs can persist for auth/device/push registration)
+   - Required / optional: **Required** (users cannot opt out of Cognito device handling while using the app)
+   - Purposes: **App functionality**, **Fraud prevention, security, and compliance** (do **not** select Advertising or Advertising ID)
+5. Ads: still **No** ads / no ads personalization. `AD_ID` remains blocked in the manifest.
+6. Save → **Publishing overview** → Send changes for review (re-submit the same or next release).
+
 Encryption in transit: **Yes** (HTTPS / TLS to NexCort iQ APIs).  
 Account deletion: **Yes** — in-app Account screen + https://www.rapidcortex.us/account-deletion  
 Data sold: **No**  
 Data used for ads / ads personalization: **No**  
-Advertising ID: **No** (permission blocked)
+Advertising ID: **No** (permission `com.google.android.gms.permission.AD_ID` blocked) — still declare **Device or other IDs** separately; Play treats them as different types.
 
 ## App content / questionnaires
 
