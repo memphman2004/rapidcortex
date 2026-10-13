@@ -18,6 +18,8 @@
 **/*.msi
 # Keep apps/api/vendor-packs/*.tgz — root npm ci resolves file: deps from lockfile.
 # Subfolder dist/ is covered by **/dist above.
+# MCP Watch is an independent Lambda workspace; omit from web ECS image npm ci.
+apps/mcp-watch
 infra/cfn-publish
 infra/**/packaged.yaml
 **/agent-transcripts

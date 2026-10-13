@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FEATURE_ARCHITECTURE_FLOWS,
   type FlowDef,
@@ -47,83 +47,86 @@ function FlowDiagram({ flow }: { flow: FlowDef }) {
     return m;
   }, [flow]);
 
+  const canvasH = Math.max(layout.height + 8, 220);
+  const canvasW = Math.max(layout.width, 320);
+
   return (
-    <div
-      className="relative overflow-auto rounded-lg border border-slate-800 bg-[#0a0f18]"
-      style={{ width: "100%", height: Math.max(layout.height + 8, 220) }}
-    >
-      <svg
-        width={layout.width}
-        height={layout.height}
-        className="absolute inset-0"
-        aria-hidden
-      >
-        <defs>
-          <marker
-            id="arch-arrow"
-            viewBox="0 0 10 10"
-            refX="8"
-            refY="5"
-            markerWidth="6"
-            markerHeight="6"
-            orient="auto-start-reverse"
-          >
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
-          </marker>
-        </defs>
-        {layout.edges.map((e, i) => {
-          const midY = (e.sourceY + e.targetY) / 2;
-          const path = `M ${e.sourceX} ${e.sourceY} C ${e.sourceX} ${midY}, ${e.targetX} ${midY}, ${e.targetX} ${e.targetY}`;
-          const label = edgeLabel.get(`${e.from}->${e.to}`);
+    <div className="overflow-auto rounded-lg border border-slate-800 bg-[#0a0f18]">
+      <div className="relative" style={{ width: canvasW, height: canvasH, minWidth: "100%" }}>
+        <svg
+          width={canvasW}
+          height={canvasH}
+          viewBox={`0 0 ${canvasW} ${canvasH}`}
+          className="pointer-events-none absolute left-0 top-0"
+          aria-hidden
+        >
+          <defs>
+            <marker
+              id="arch-arrow"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto-start-reverse"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+            </marker>
+          </defs>
+          {layout.edges.map((e, i) => {
+            const midY = (e.sourceY + e.targetY) / 2;
+            const path = `M ${e.sourceX} ${e.sourceY} C ${e.sourceX} ${midY}, ${e.targetX} ${midY}, ${e.targetX} ${e.targetY}`;
+            const label = edgeLabel.get(`${e.from}->${e.to}`);
+            return (
+              <g key={`${e.from}-${e.to}-${i}`}>
+                <path
+                  d={path}
+                  fill="none"
+                  stroke="#64748b"
+                  strokeWidth={1.5}
+                  opacity={0.85}
+                  markerEnd="url(#arch-arrow)"
+                />
+                {label ? (
+                  <text
+                    x={(e.sourceX + e.targetX) / 2}
+                    y={midY - 4}
+                    fill="#94a3b8"
+                    fontSize={10}
+                    textAnchor="middle"
+                  >
+                    {label}
+                  </text>
+                ) : null}
+              </g>
+            );
+          })}
+        </svg>
+        {layout.nodes.map((n) => {
+          const def = byId.get(n.id);
+          const lines = (def?.label ?? n.id).split("\n");
           return (
-            <g key={`${e.from}-${e.to}-${i}`}>
-              <path
-                d={path}
-                fill="none"
-                stroke="#64748b"
-                strokeWidth={1.5}
-                opacity={0.85}
-                markerEnd="url(#arch-arrow)"
-              />
-              {label ? (
-                <text
-                  x={(e.sourceX + e.targetX) / 2}
-                  y={midY - 4}
-                  fill="#94a3b8"
-                  fontSize={10}
-                  textAnchor="middle"
+            <div
+              key={n.id}
+              className="absolute box-border flex flex-col justify-center gap-0.5 rounded-md border border-slate-700 bg-slate-900/90 px-2 py-1.5"
+              style={{ left: n.x, top: n.y, width: 168, height: 52 }}
+            >
+              <div className="flex justify-end">
+                <span
+                  className={`rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ring-1 ${kindTone(def?.kind)}`}
                 >
-                  {label}
-                </text>
-              ) : null}
-            </g>
+                  {def?.kind ?? "action"}
+                </span>
+              </div>
+              {lines.map((line) => (
+                <div key={line} className="text-[11px] font-medium leading-tight text-slate-100">
+                  {line}
+                </div>
+              ))}
+            </div>
           );
         })}
-      </svg>
-      {layout.nodes.map((n) => {
-        const def = byId.get(n.id);
-        const lines = (def?.label ?? n.id).split("\n");
-        return (
-          <div
-            key={n.id}
-            className="absolute box-border flex flex-col justify-center gap-0.5 rounded-md border border-slate-700 bg-slate-900/90 px-2 py-1.5"
-            style={{ left: n.x, top: n.y, width: 168, height: 52 }}
-          >
-            <div className="flex justify-end">
-              <span
-                className={`rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ring-1 ${kindTone(def?.kind)}`}
-              >
-                {def?.kind ?? "action"}
-              </span>
-            </div>
-            {lines.map((line) => (
-              <div key={line} className="text-[11px] font-medium leading-tight text-slate-100">
-                {line}
-              </div>
-            ))}
-          </div>
-        );
-      })}
+      </div>
     </div>
   );
 }
@@ -131,12 +134,27 @@ function FlowDiagram({ flow }: { flow: FlowDef }) {
 export function FeatureArchitectureMaps({
   compact = false,
   initialFlowId = "ca_confirm",
+  flowIds,
 }: {
   compact?: boolean;
   initialFlowId?: FlowId;
+  /** When set, only these flows are listed (vertical document libraries). */
+  flowIds?: FlowId[];
 }) {
-  const [active, setActive] = useState<FlowId>(initialFlowId);
-  const flow = FEATURE_ARCHITECTURE_FLOWS.find((f) => f.id === active) ?? FEATURE_ARCHITECTURE_FLOWS[0]!;
+  const flows = useMemo(() => {
+    if (!flowIds?.length) return FEATURE_ARCHITECTURE_FLOWS;
+    const allow = new Set(flowIds);
+    return FEATURE_ARCHITECTURE_FLOWS.filter((f) => allow.has(f.id));
+  }, [flowIds]);
+
+  const defaultId = (flows.some((f) => f.id === initialFlowId) ? initialFlowId : flows[0]?.id) ?? "ca_confirm";
+  const [active, setActive] = useState<FlowId>(defaultId);
+  useEffect(() => {
+    if (!flows.some((f) => f.id === active)) {
+      setActive(defaultId);
+    }
+  }, [flows, active, defaultId]);
+  const flow = flows.find((f) => f.id === active) ?? flows[0] ?? FEATURE_ARCHITECTURE_FLOWS[0]!;
 
   return (
     <div className={compact ? "space-y-4" : "space-y-5"}>
@@ -156,7 +174,7 @@ export function FeatureArchitectureMaps({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {FEATURE_ARCHITECTURE_FLOWS.map((f) => {
+        {flows.map((f) => {
           const selected = active === f.id;
           return (
             <button
@@ -206,10 +224,10 @@ export function FeatureArchitectureMaps({
       {!compact ? (
         <div className="space-y-1 text-xs text-slate-500">
           <p>
-            <span className="font-semibold text-slate-400">Mapped:</span> 21 flows — Call Assist,
-            PSAP AI, Multilingual, QR/NFC, K-12, CAD, Media SMS, Vision, Campus events, Translate,
-            Hospital, Clery DCL, EAP, Transit, Automation, Venue Guest Services, Venue QR, Pickup
-            Auth, ASR, Camera registry.
+            <span className="font-semibold text-slate-400">Mapped:</span>{" "}
+            {flowIds?.length
+              ? `${flows.length} flow${flows.length === 1 ? "" : "s"} for this vertical library.`
+              : "21 flows — Call Assist, PSAP AI, Multilingual, QR/NFC, K-12, CAD, Media SMS, Vision, Campus events, Translate, Hospital, Clery DCL, EAP, Transit, Automation, Venue Guest Services, Venue QR, Pickup Auth, ASR, Camera registry."}
           </p>
         </div>
       ) : null}

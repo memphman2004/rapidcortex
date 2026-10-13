@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useMemo, type CSSProperties } from "react";
+import { ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from "react";
 import { usePathname } from "next/navigation";
 import type { UserContext } from "rapid-cortex-shared/types";
+import { hardNavigateTo } from "@/lib/auth/postAuthRedirect";
+import { requiresHardCrossShellNav } from "@/lib/navigation/cross-shell-nav";
 import { buildNavContext } from "@/lib/navigation/nav-context";
 import { filterRoleNavByFeatures } from "@/lib/navigation/filter-role-nav";
 import { navIconByName } from "@/lib/navigation/nav-icons";
@@ -46,7 +49,227 @@ function navHrefPath(href: string): string {
 function navItemIsActive(pathname: string, item: NavItem): boolean {
   const path = navHrefPath(item.href);
   if (item.exact) return pathname === path || pathname === `${path}/`;
-  return pathname === path || pathname.startsWith(`${path}/`);
+  if (pathname === path || pathname.startsWith(`${path}/`)) return true;
+  return Boolean(item.children?.some((child) => navItemIsActive(pathname, child)));
+}
+
+function SidebarNavLink({
+  item,
+  active,
+  variant,
+  pathname,
+  onNavigate,
+  nested = false,
+  counts,
+}: {
+  item: NavItem;
+  active: boolean;
+  variant: "sidebar" | "compact";
+  pathname: string;
+  onNavigate?: () => void;
+  nested?: boolean;
+  counts?: NavBadgeCounts;
+}) {
+  const Icon = navIconByName(item.icon);
+  const linkClass =
+    variant === "compact"
+      ? `block rounded-md border px-3 py-2 text-sm font-semibold transition-colors ${
+          active
+            ? "bg-slate-800 text-white"
+            : "border-slate-700 bg-slate-900/70 text-slate-200 hover:border-slate-600 hover:bg-slate-800"
+        }`
+      : `flex items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors ${
+          nested ? "py-1.5 text-[13px]" : ""
+        } ${
+          active
+            ? "bg-slate-900/90 text-white"
+            : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+        }`;
+
+  const hardCrossShell =
+    !item.external && requiresHardCrossShellNav(pathname, item.href);
+
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (hardCrossShell) {
+      // Soft RSC nav between /rc-admin and /sales shells corrupts the App Router stream.
+      e.preventDefault();
+      onNavigate?.();
+      hardNavigateTo(navHrefPath(item.href));
+      return;
+    }
+    onNavigate?.();
+  };
+
+  return (
+    <Link
+      href={item.href}
+      prefetch={false}
+      aria-current={active ? "page" : undefined}
+      className={linkClass}
+      style={
+        variant === "compact" && active
+          ? {
+              borderColor: "color-mix(in srgb, var(--role-accent) 40%, transparent)",
+            }
+          : variant === "sidebar" && active
+            ? {
+                borderLeft: "3px solid var(--role-accent)",
+                paddingLeft: "calc(0.5rem - 3px)",
+                backgroundColor:
+                  "color-mix(in srgb, var(--role-accent-dim) 55%, var(--rc-nav-active-mix, rgb(2 6 23)))",
+                boxShadow:
+                  "inset 0 0 0 1px color-mix(in srgb, var(--role-accent) 20%, transparent)",
+              }
+            : variant === "sidebar"
+              ? { borderLeft: "3px solid transparent" }
+              : undefined
+      }
+      onClick={handleClick}
+      {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+    >
+      {variant === "sidebar" ? (
+        <Icon
+          className={`shrink-0 opacity-90 ${nested ? "h-3.5 w-3.5" : "h-4 w-4"}`}
+          style={{ color: active ? "var(--role-accent)" : "var(--rc-text-muted, rgb(148 163 184))" }}
+          aria-hidden
+        />
+      ) : null}
+      <span className="min-w-0 flex-1 leading-snug">{item.label}</span>
+      {item.badge && counts ? <NavItemBadge badge={item.badge} counts={counts} /> : null}
+    </Link>
+  );
+}
+
+function NavItemWithChildren({
+  item,
+  pathname,
+  variant,
+  onNavigate,
+  counts,
+}: {
+  item: NavItem;
+  pathname: string;
+  variant: "sidebar" | "compact";
+  onNavigate?: () => void;
+  counts: NavBadgeCounts;
+}) {
+  const children = item.children ?? [];
+  const childActive = children.some((child) => navItemIsActive(pathname, child));
+  const selfActive = navItemIsActive(pathname, { ...item, children: undefined });
+  const [open, setOpen] = useState(childActive || selfActive);
+
+  useEffect(() => {
+    if (childActive || selfActive) setOpen(true);
+  }, [childActive, selfActive]);
+
+  if (variant === "compact") {
+    return (
+      <>
+        <li>
+          <SidebarNavLink
+            item={item}
+            active={selfActive && !childActive}
+            variant={variant}
+            pathname={pathname}
+            onNavigate={onNavigate}
+            counts={counts}
+          />
+        </li>
+        {children.map((child) => (
+          <li key={child.id}>
+            <SidebarNavLink
+              item={child}
+              active={navItemIsActive(pathname, child)}
+              variant={variant}
+              pathname={pathname}
+              onNavigate={onNavigate}
+              nested
+              counts={counts}
+            />
+          </li>
+        ))}
+      </>
+    );
+  }
+
+  const Icon = navIconByName(item.icon);
+  const active = selfActive || childActive;
+  const hardCrossShell = requiresHardCrossShellNav(pathname, item.href);
+
+  return (
+    <li>
+      <div className="flex items-stretch gap-0.5">
+        <Link
+          href={item.href}
+          prefetch={false}
+          aria-current={selfActive && !childActive ? "page" : undefined}
+          className={`flex min-w-0 flex-1 items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors ${
+            active
+              ? "bg-slate-900/90 text-white"
+              : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+          }`}
+          style={
+            active
+              ? {
+                  borderLeft: "3px solid var(--role-accent)",
+                  paddingLeft: "calc(0.5rem - 3px)",
+                  backgroundColor:
+                    "color-mix(in srgb, var(--role-accent-dim) 55%, var(--rc-nav-active-mix, rgb(2 6 23)))",
+                  boxShadow:
+                    "inset 0 0 0 1px color-mix(in srgb, var(--role-accent) 20%, transparent)",
+                }
+              : { borderLeft: "3px solid transparent" }
+          }
+          onClick={(e) => {
+            if (hardCrossShell) {
+              e.preventDefault();
+              onNavigate?.();
+              hardNavigateTo(navHrefPath(item.href));
+              return;
+            }
+            onNavigate?.();
+          }}
+        >
+          <Icon
+            className="h-4 w-4 shrink-0 opacity-90"
+            style={{ color: active ? "var(--role-accent)" : "var(--rc-text-muted, rgb(148 163 184))" }}
+            aria-hidden
+          />
+          <span className="min-w-0 flex-1 leading-snug">{item.label}</span>
+          {item.badge ? <NavItemBadge badge={item.badge} counts={counts} /> : null}
+        </Link>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-label={`${open ? "Collapse" : "Expand"} ${item.label}`}
+          className="rounded-md px-1.5 text-slate-400 hover:bg-slate-800/80 hover:text-white"
+          onClick={() => setOpen((v) => !v)}
+        >
+          <ChevronDown
+            className={`h-4 w-4 transition-transform ${open ? "rotate-0" : "-rotate-90"}`}
+            aria-hidden
+          />
+        </button>
+      </div>
+      {open ? (
+        <ul className="ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-slate-800/80 pl-2">
+          {children.map((child) => (
+            <li key={child.id}>
+              <SidebarNavLink
+                item={child}
+                active={navItemIsActive(pathname, child)}
+                variant={variant}
+                pathname={pathname}
+                onNavigate={onNavigate}
+                nested
+                counts={counts}
+              />
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </li>
+  );
 }
 
 /** Section label with extending rule — visual boundary without competing with items. */
@@ -147,59 +370,29 @@ export function RoleNavSections({
           ) : null}
           <ul className={variant === "compact" ? "flex flex-wrap gap-2" : "flex flex-col gap-0.5"}>
             {section.items.map((item) => {
-              const Icon = navIconByName(item.icon);
-              const active = navItemIsActive(pathname, item);
-              const linkClass =
-                variant === "compact"
-                  ? `block rounded-md border px-3 py-2 text-sm font-semibold transition-colors ${
-                      active
-                        ? "bg-slate-800 text-white"
-                        : "border-slate-700 bg-slate-900/70 text-slate-200 hover:border-slate-600 hover:bg-slate-800"
-                    }`
-                  : `flex items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors ${
-                      active
-                        ? "bg-slate-900/90 text-white"
-                        : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
-                    }`;
+              if (item.children?.length) {
+                return (
+                  <NavItemWithChildren
+                    key={item.id}
+                    item={item}
+                    pathname={pathname}
+                    variant={variant}
+                    onNavigate={onNavigate}
+                    counts={badgeCounts}
+                  />
+                );
+              }
 
               return (
                 <li key={item.id}>
-                  <Link
-                    href={item.href}
-                    prefetch={false}
-                    aria-current={active ? "page" : undefined}
-                    className={linkClass}
-                    style={
-                      variant === "compact" && active
-                        ? {
-                            borderColor: "color-mix(in srgb, var(--role-accent) 40%, transparent)",
-                          }
-                        : variant === "sidebar" && active
-                        ? {
-                            borderLeft: "3px solid var(--role-accent)",
-                            paddingLeft: "calc(0.5rem - 3px)",
-                            backgroundColor:
-                              "color-mix(in srgb, var(--role-accent-dim) 55%, var(--rc-nav-active-mix, rgb(2 6 23)))",
-                            boxShadow:
-                              "inset 0 0 0 1px color-mix(in srgb, var(--role-accent) 20%, transparent)",
-                          }
-                        : variant === "sidebar"
-                          ? { borderLeft: "3px solid transparent" }
-                          : undefined
-                    }
-                    onClick={onNavigate}
-                    {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                  >
-                    {variant === "sidebar" ? (
-                      <Icon
-                        className="h-4 w-4 shrink-0 opacity-90"
-                        style={{ color: active ? "var(--role-accent)" : "var(--rc-text-muted, rgb(148 163 184))" }}
-                        aria-hidden
-                      />
-                    ) : null}
-                    <span className="min-w-0 leading-snug">{item.label}</span>
-                    {item.badge ? <NavItemBadge badge={item.badge} counts={badgeCounts} /> : null}
-                  </Link>
+                  <SidebarNavLink
+                    item={item}
+                    active={navItemIsActive(pathname, item)}
+                    variant={variant}
+                    pathname={pathname}
+                    onNavigate={onNavigate}
+                    counts={badgeCounts}
+                  />
                 </li>
               );
             })}

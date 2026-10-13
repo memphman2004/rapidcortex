@@ -36,11 +36,18 @@ export function PhoneInput({
     if (ani === prevAni.current) return;
     prevAni.current = ani;
 
-    if (ani) {
-      setDisplay(formatPhoneDisplay(ani));
+    const e164 = toE164(ani);
+    if (e164) {
+      setDisplay(formatPhoneDisplay(e164));
       setFromAni(true);
       setTouched(false);
-      onChangeRef.current(ani);
+      onChangeRef.current(e164);
+    } else if (ani) {
+      // Non-E.164 ANI still show raw so the dispatcher can edit.
+      setDisplay(formatPhoneDisplay(ani) || ani);
+      setFromAni(true);
+      setTouched(false);
+      onChangeRef.current(null);
     } else {
       setDisplay("");
       setFromAni(false);

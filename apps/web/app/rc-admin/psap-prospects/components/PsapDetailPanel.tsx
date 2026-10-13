@@ -14,6 +14,10 @@ import {
 import { AlertCircle, CheckCircle, Copy, Mail, Phone, Sparkles, X } from "lucide-react";
 import { SafetySourceLookupLink } from "@/components/psap/safety-source-lookup-link";
 import { addPsapActivity, enrichPsapContacts, patchPsapProspect } from "@/lib/psap/psap-api";
+import {
+  addOutreachActivityLocal,
+  patchOutreachProspectLocal,
+} from "@/lib/psap/outreach-crm-store";
 import { PsapStatusBadge } from "./PsapStatusBadge";
 
 type Tab = "details" | "activity" | "mailing";
@@ -23,6 +27,10 @@ type Props = {
   prospect: PsapProspect;
   onClose: () => void;
   onUpdated: (prospect: PsapProspect) => void;
+  /** Sheet lists persist in-browser; PSAP registry uses the API. */
+  persistence?: "api" | "local";
+  /** Campus enrollment when viewing sheet prospects. */
+  studentCount?: number;
 };
 
 const ACTIVITY_TYPES: { type: Exclude<ActivityType, "stage_change">; label: string }[] = [
@@ -162,7 +170,13 @@ function EnrichedContactCard({ contact }: { contact: PsapProspectContact }) {
   );
 }
 
-export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
+export function PsapDetailPanel({
+  prospect,
+  onClose,
+  onUpdated,
+  persistence = "api",
+  studentCount,
+}: Props) {
   const [tab, setTab] = useState<Tab>("details");
   const [draft, setDraft] = useState(prospect);
   const [saving, setSaving] = useState(false);
@@ -172,6 +186,7 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
   const [activityType, setActivityType] = useState<Exclude<ActivityType, "stage_change">>("note");
   const [activityText, setActivityText] = useState("");
   const [copyMsg, setCopyMsg] = useState<string | null>(null);
+  const isLocal = persistence === "local";
 
   useEffect(() => {
     setDraft(prospect);
@@ -183,7 +198,9 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
     setSaving(true);
     setError(null);
     try {
-      const updated = await patchPsapProspect(prospect.psapId, patch);
+      const updated = isLocal
+        ? patchOutreachProspectLocal(draft, patch)
+        : await patchPsapProspect(prospect.psapId, patch);
       onUpdated(updated);
       setDraft(updated);
     } catch (e) {
@@ -194,6 +211,7 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
   }
 
   async function handleEnrichContacts() {
+    if (isLocal) return;
     setEnriching(true);
     setError(null);
     setEnrichNotice(null);
@@ -230,10 +248,12 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
     setSaving(true);
     setError(null);
     try {
-      const updated = await addPsapActivity(prospect.psapId, {
-        type: activityType,
-        description,
-      });
+      const updated = isLocal
+        ? addOutreachActivityLocal(draft, { type: activityType, description })
+        : await addPsapActivity(prospect.psapId, {
+            type: activityType,
+            description,
+          });
       onUpdated(updated);
       setDraft(updated);
       setActivityText("");
@@ -300,6 +320,9 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
           <h2 className="mt-2 truncate text-base font-semibold text-slate-100">{draft.psapName}</h2>
           <p className="text-xs text-slate-500">
             {draft.city}, {draft.state} · {draft.phone}
+            {studentCount != null
+              ? ` · ${Math.round(studentCount).toLocaleString()} students`
+              : ""}
           </p>
         </div>
         <button
@@ -409,15 +432,17 @@ export function PsapDetailPanel({ prospect, onClose, onUpdated }: Props) {
               </h3>
               <div className="flex flex-wrap items-center gap-1.5">
                 <SafetySourceLookupLink variant="chip" />
-                <button
-                  type="button"
-                  onClick={() => void handleEnrichContacts()}
-                  disabled={enriching || saving}
-                  className="flex items-center gap-1.5 rounded border border-slate-700 bg-slate-800 px-2.5 py-1 text-[10px] font-semibold text-slate-300 transition-colors hover:bg-slate-700 disabled:opacity-50"
-                >
-                  <Sparkles size={10} />
-                  {enriching ? "Finding contacts…" : "Enrich Contacts"}
-                </button>
+                {!isLocal && (
+                  <button
+                    type="button"
+                    onClick={() => void handleEnrichContacts()}
+                    disabled={enriching || saving}
+                    className="flex items-center gap-1.5 rounded border border-slate-700 bg-slate-800 px-2.5 py-1 text-[10px] font-semibold text-slate-300 transition-colors hover:bg-slate-700 disabled:opacity-50"
+                  >
+                    <Sparkles size={10} />
+                    {enriching ? "Finding contacts…" : "Enrich Contacts"}
+                  </button>
+                )}
               </div>
             </div>
             {draft.lastEnrichedAt && (

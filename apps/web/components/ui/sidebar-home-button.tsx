@@ -2,8 +2,12 @@
 
 import Link from "next/link";
 import { Home } from "lucide-react";
+import { usePathname } from "next/navigation";
+import type { MouseEvent } from "react";
 import type { UserContext } from "rapid-cortex-shared";
+import { hardNavigateTo } from "@/lib/auth/postAuthRedirect";
 import { useHomeRoute } from "@/lib/hooks/use-home-route";
+import { requiresHardCrossShellNav } from "@/lib/navigation/cross-shell-nav";
 
 export function SidebarHomeButton({
   user,
@@ -15,12 +19,23 @@ export function SidebarHomeButton({
   className?: string;
 }) {
   const homeRoute = useHomeRoute(user);
+  const pathname = usePathname() ?? "";
+
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (requiresHardCrossShellNav(pathname, homeRoute)) {
+      e.preventDefault();
+      onNavigate?.();
+      hardNavigateTo(homeRoute);
+      return;
+    }
+    onNavigate?.();
+  };
 
   return (
     <Link
       href={homeRoute}
       prefetch={false}
-      onClick={onNavigate}
+      onClick={handleClick}
       className={`mb-2 flex items-center gap-2.5 rounded-lg border border-slate-700/40 bg-slate-800/40 px-3 py-2 text-sm font-semibold text-slate-200 transition-colors hover:bg-slate-700/60 hover:text-white ${className}`}
     >
       <Home className="h-4 w-4 shrink-0" aria-hidden />

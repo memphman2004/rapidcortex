@@ -23,6 +23,12 @@ const refreshRepo = new RapidIqRefreshStatusRepository();
 
 const RAMP_INTERVAL_HOURS = 48;
 
+/** Federal sources (SAM.gov, Grants.gov, FEMA) stay off unless explicitly opted in. */
+export function isFederalCollectorEnabled(): boolean {
+  const v = process.env.RAPID_IQ_INCLUDE_FEDERAL?.trim().toLowerCase();
+  return v === "1" || v === "true";
+}
+
 export function isWithinCollectionWindow(now = new Date()): boolean {
   const etHour = Number.parseInt(
     now.toLocaleString("en-US", {
@@ -128,6 +134,20 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
     jurisdictions = applyVenueSeasonalBoost(jurisdictions);
     const batch = selectJurisdictionsForRun(jurisdictions);
 
+    const includeFederal = isFederalCollectorEnabled();
+    const collectors = [
+      "agenda",
+      ...(includeFederal ? (["sam_gov", "grants_gov"] as const) : []),
+      "legislature",
+      "e911_coordinator",
+      ...(includeFederal ? (["fema_grants"] as const) : []),
+      "university_news",
+      "conference",
+      "venue",
+      "competitor",
+      "ramp",
+    ];
+
     console.log(
       JSON.stringify({
         msg: "rapid_iq_run_started",
@@ -141,41 +161,29 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
           tier2: batch.filter((j) => j.tier === 2).length,
           tier3: batch.filter((j) => j.tier === 3).length,
         },
-        collectors: [
-          "agenda",
-          "sam_gov",
-          "grants_gov",
-          "legislature",
-          "e911_coordinator",
-          "fema_grants",
-          "university_news",
-          "conference",
-          "venue",
-          "competitor",
-          "ramp",
-        ],
+        includeFederal,
+        collectors,
       }),
     );
 
-    const [
-      agendaResult,
-      samResult,
-      grantsResult,
-      legislatureResult,
-      e911Result,
-      femaResult,
-      uniNewsResult,
-      conferenceResult,
-      venueResult,
-      competitorResult,
-      rampResult,
-    ] = await Promise.allSettled([
+    if (!includeFederal) {
+      console.log(
+        JSON.stringify({
+          msg: "rapid_iq_federal_collectors_skipped",
+          reason: "RAPID_IQ_INCLUDE_FEDERAL unset/false — city/county/state + Euna/OpenGov path only",
+          skipped: ["sam_gov", "grants_gov", "fema_grants"],
+        }),
+      );
+    }
+
+    const settled = await Promise.allSettled([
       runAgendaCollector(batch),
-      runSamGovCollector(),
-      runGrantsGovCollector(),
+      ...(includeFederal
+        ? [runSamGovCollector(), runGrantsGovCollector()]
+        : []),
       runLegislatureCollector(),
       runE911CoordinatorCollector(),
-      runFemaGrantsCollector(),
+      ...(includeFederal ? [runFemaGrantsCollector()] : []),
       runUniversityNewsCollector(),
       runConferenceCollector(),
       runVenueCollector(),
@@ -183,25 +191,31 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
       runRampIfDue(false),
     ]);
 
-    for (const result of [
-      agendaResult,
-      samResult,
-      grantsResult,
-      legislatureResult,
-      e911Result,
-      femaResult,
-      uniNewsResult,
-      conferenceResult,
-      venueResult,
-      competitorResult,
-      rampResult,
-    ]) {
+    const labels = [
+      "agenda",
+      ...(includeFederal ? ["sam_gov", "grants_gov"] : []),
+      "legislature",
+      "e911_coordinator",
+      ...(includeFederal ? ["fema_grants"] : []),
+      "university_news",
+      "conference",
+      "venue",
+      "competitor",
+      "ramp",
+    ];
+
+    const settlement: Record<string, string> = {};
+    for (let i = 0; i < settled.length; i++) {
+      const result = settled[i]!;
+      const label = labels[i] ?? `collector_${i}`;
+      settlement[label] = result.status;
       if (result.status === "fulfilled") {
         totalSignals += result.value.signalsFound;
       } else {
         console.error(
           JSON.stringify({
             msg: "rapid_iq_collector_rejected",
+            collector: label,
             error: result.reason instanceof Error ? result.reason.message : String(result.reason),
           }),
         );
@@ -211,17 +225,7 @@ export async function runOrchestrator(event: OrchestratorEvent = {}): Promise<{
     console.log(
       JSON.stringify({
         msg: "rapid_iq_collector_settlement",
-        agenda: agendaResult.status,
-        sam_gov: samResult.status,
-        grants_gov: grantsResult.status,
-        legislature: legislatureResult.status,
-        e911_coordinator: e911Result.status,
-        fema_grants: femaResult.status,
-        university_news: uniNewsResult.status,
-        conference: conferenceResult.status,
-        venue: venueResult.status,
-        competitor: competitorResult.status,
-        ramp: rampResult.status,
+        ...settlement,
         signalsFound: totalSignals,
       }),
     );

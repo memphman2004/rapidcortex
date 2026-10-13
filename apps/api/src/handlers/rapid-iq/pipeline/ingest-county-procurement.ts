@@ -1,8 +1,9 @@
 /**
- * County procurement portal ingest — OpenGov, PlanetBids, DemandStar, BidNet, custom sites.
- * Rotating batches via DynamoDB cursor (same pattern as ingest-legistar-bulk).
- * EventBridge rate(2 hours) × 50 counties ≈ full crawlable set every ~32 hours.
- * State-portal rows and duplicate URLs are skipped in crawlableCountyProcurementEntries().
+ * County / city procurement portal ingest — Euna (OpenGov), PlanetBids, DemandStar,
+ * BidNet, custom sites. Rotating batches via DynamoDB cursor (same pattern as
+ * ingest-legistar-bulk). EventBridge rate(2 hours) × 50 counties ≈ full crawlable
+ * set every ~32 hours. State-portal rows and duplicate URLs are skipped in
+ * crawlableCountyProcurementEntries(). Federal portals are out of scope here.
  */
 
 import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
@@ -128,11 +129,11 @@ async function crawlOpenGov(entry: CountyProcurementEntry): Promise<number> {
         if (!isCountyProcurementRelevant(text)) continue;
         await queuePortalSignal(
           `${portalUrl}/project/${opp.id}`,
-          `[${entry.county}, ${entry.state} — OpenGov] ${opp.title}`,
+          `[${entry.county}, ${entry.state} — Euna/OpenGov] ${opp.title}`,
           JSON.stringify({
             county: entry.county,
             state: entry.state,
-            platform: "opengov",
+            platform: "euna-opengov",
             population: entry.pop,
             title: opp.title,
             description: (opp.description ?? "").slice(0, 1000),

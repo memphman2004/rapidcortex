@@ -457,8 +457,9 @@ Resources:
             # Do not set Name: leftover standalone stack rapid-cortex-dev-AppSamNexiQPipelineStack
             # already owns rapid-cortex-dev-riq-pipe-*-dev rules (AlreadyExists 2026-09-12).
             Schedule: cron(0 6 * * ? *)
-            Enabled: true
-            Description: NexiQ pipeline USASpending daily ingest
+            # Product scope: city/county/state + Euna/OpenGov — federal off by default.
+            Enabled: false
+            Description: NexiQ pipeline USASpending daily ingest (federal — disabled)
 
   IngestSamGovFunction:
     Type: AWS::Serverless::Function
@@ -479,8 +480,8 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(30 6 * * ? *)
-            Enabled: true
-            Description: NexiQ pipeline SAM.gov daily ingest
+            Enabled: false
+            Description: NexiQ pipeline SAM.gov daily ingest (federal — disabled)
 
   IngestNewsRssFunction:
     Type: AWS::Serverless::Function
@@ -663,8 +664,8 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 7 * * ? *)
-            Enabled: true
-            Description: NexiQ pipeline Grants.gov daily ingest
+            Enabled: false
+            Description: NexiQ pipeline Grants.gov daily ingest (federal — disabled)
 
   IngestNineOneOneGovFunction:
     Type: AWS::Serverless::Function
@@ -686,8 +687,8 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 8 * * ? *)
-            Enabled: true
-            Description: NexiQ pipeline 911.gov and FCC daily ingest
+            Enabled: false
+            Description: NexiQ pipeline 911.gov and FCC daily ingest (federal — disabled)
 
   IngestApcoNenaFunction:
     Type: AWS::Serverless::Function
@@ -1017,6 +1018,10 @@ Resources:
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
 
   # Intel/sales/watch routes gated by RapidIqNewHttpRoutes → SignalHttpIntegrationV3.
+  # NEVER retarget AppSamRapidIqStack workspace RouteKeys onto SignalHttp
+  # (GET/PATCH /api/rapid-iq/opportunities*, refresh, talking-points, outreach, …).
+  # Those must stay on RapidIqHttpFunction — SignalHttp returns 404 for them.
+  # Repair: bash scripts/repair-rapid-iq-http-routes.sh
   # 2026-10-08 CLI recreate on tbr4zvjlk5 (target integrations/w5si50q, JWT k8rjdh):
   #   GET signals pyez3f5, POST signals ot8favn, GET item nqgtv5d, PATCH 30x2ahs,
   #   push-to-crm gi27yba, credits tws3wku, watch-ingest 2o0s6z4 (NONE),

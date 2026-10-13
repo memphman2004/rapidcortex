@@ -548,6 +548,8 @@ export class IncidentRepository {
       cadRawPayload?: string | null;
       cadCallerName?: string | null;
       cadCallerCallbackMasked?: string | null;
+      /** Full E.164 for SilentText / Video Assist when CAD provides ANI/callback. */
+      callerCallback?: string | null;
       summary?: string;
       cadDedupeKey?: string | null;
       cadSystem?: Incident["cadSystem"];
@@ -662,6 +664,10 @@ export class IncidentRepository {
     if (fields.escalationFlag === true) {
       sets.push("escalationFlag = :esc");
       values[":esc"] = true;
+    }
+    if (fields.callerCallback !== undefined && fields.callerCallback !== null) {
+      sets.push("callerCallback = :cb");
+      values[":cb"] = fields.callerCallback;
     }
     await ddb.send(
       new UpdateCommand({

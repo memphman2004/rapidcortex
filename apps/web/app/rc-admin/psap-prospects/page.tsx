@@ -7,7 +7,7 @@ import { isPsapProspectsUiEnabled } from "@/lib/runtime-flags";
 import { PsapProspectsClient } from "./psap-prospects-client";
 
 export const metadata = {
-  title: "PSAP Prospects",
+  title: "Prospects",
   robots: { index: false, follow: false },
 };
 
@@ -20,7 +20,7 @@ export default async function RcAdminPsapProspectsPage() {
   return (
     <Suspense
       fallback={
-        <div className="py-12 text-center text-sm text-slate-500">Loading PSAP Prospects…</div>
+        <div className="py-12 text-center text-sm text-slate-500">Loading Prospects…</div>
       }
     >
       <PsapProspectsClient />

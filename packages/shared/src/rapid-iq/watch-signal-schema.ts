@@ -89,6 +89,44 @@ export const watchSignalEvidenceSchema = z.object({
   meeting_date: nullableString(32),
 });
 
+export const WATCH_PROCUREMENT_ACCESS_TYPES = ["public", "registration", "paid"] as const;
+
+export const watchProcurementDocumentSchema = z.object({
+  title: z.string().min(1).max(500),
+  document_type: z.string().min(1).max(120),
+  url: z.string().url().max(2000),
+  download_url: z.string().url().max(2000).optional().nullable(),
+  access_type: z.enum(WATCH_PROCUREMENT_ACCESS_TYPES).optional(),
+  published_at: nullableString(32).optional(),
+  last_verified_at: nullableString(32).optional(),
+  verification_status: nullableString(80).optional(),
+});
+
+export const watchProcurementDetailsSchema = z.object({
+  portal_url: z.string().url().max(2000).optional().nullable(),
+  portal_document_id: nullableString(120).optional(),
+  documents: z.array(watchProcurementDocumentSchema).max(25).optional(),
+  submission_method: nullableString(300).optional(),
+  submission_instructions: z.string().max(4000).optional().nullable(),
+  questions_deadline: nullableString(64).optional(),
+  prebid_conference: z.string().max(1000).optional().nullable(),
+  document_access_fee: nullableString(200).optional(),
+  notes: z.string().max(4000).optional().nullable(),
+  addenda_acknowledgment_required: z.boolean().optional(),
+  mandatory_registration: nullableString(500).optional(),
+});
+
+export const watchSignalContactSchema = z.object({
+  name: nullableString(200),
+  title: nullableString(200),
+  email: z.union([z.string().email().max(320), z.literal(""), z.null()]),
+  phone: nullableString(40),
+  department: nullableString(200).optional(),
+  organization: nullableString(300).optional(),
+  website: z.string().url().max(2000).optional().nullable(),
+  verification_source: nullableString(500).optional(),
+});
+
 export const watchSignalSchema = z.object({
   source: z.literal("chatgpt_watch"),
   watch: z.enum(WATCH_SIGNAL_WATCHES),
@@ -130,16 +168,7 @@ export const watchSignalSchema = z.object({
   matched_capabilities: z.array(z.string().max(80)).max(20),
   facts: z.array(z.string().max(500)).max(20),
   inferences: z.array(z.string().max(500)).max(20),
-  contacts: z
-    .array(
-      z.object({
-        name: nullableString(200),
-        title: nullableString(200),
-        email: z.union([z.string().email().max(320), z.literal(""), z.null()]),
-        phone: nullableString(40),
-      }),
-    )
-    .max(20),
+  contacts: z.array(watchSignalContactSchema).max(20),
   qualification: z.object({
     fit: z.enum(["high", "medium", "low"]),
     strategy: z.enum(["direct", "partner", "monitor"]),
@@ -151,10 +180,15 @@ export const watchSignalSchema = z.object({
     summary: z.string().min(1).max(3000),
   }),
   evidence: z.array(watchSignalEvidenceSchema).min(1).max(25),
+  /** Optional structured procurement docs / portal / submission details. */
+  procurement_details: watchProcurementDetailsSchema.optional(),
 });
 
 export type WatchSignal = z.infer<typeof watchSignalSchema>;
 export type WatchSignalEvidence = z.infer<typeof watchSignalEvidenceSchema>;
+export type WatchSignalContact = z.infer<typeof watchSignalContactSchema>;
+export type WatchProcurementDetails = z.infer<typeof watchProcurementDetailsSchema>;
+export type WatchProcurementDocument = z.infer<typeof watchProcurementDocumentSchema>;
 
 /** One signal per POST — arrays are rejected for the canonical /api/watch/ingest contract. */
 export const watchSignalIngestBodySchema = watchSignalSchema;

@@ -4,9 +4,10 @@ type Listener = () => void;
 const listeners = new Set<Listener>();
 
 let transformRequest: RequestTransformFunction | undefined;
-let authReady = !(
-  typeof process !== "undefined" && Boolean(process.env?.NEXT_PUBLIC_ALS_IDENTITY_POOL_ID?.trim())
-);
+// Always start false. ALSMapProvider (or callers) must setMapTransformRequest
+// then markMapAuthReady(). Starting true when the identity pool env was unset
+// let MapLibre mount before the same-origin ALS proxy was registered.
+let authReady = false;
 
 const V2_MAPS_URL =
   /^https:\/\/maps\.geo(?:-fips)?\.[a-z0-9-]+\.(?:amazonaws\.com|api\.aws)\/v2\//i;

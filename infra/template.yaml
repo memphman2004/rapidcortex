@@ -77,6 +77,24 @@ Parameters:
     Description: >-
       Extra NexiQ ingest/sales/intel-watch Lambdas on the hashed nested pipeline stack.
       Keep false on live rapid-cortex-dev (leftover standalone already owns them).
+  EnableMcpWatch:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      Provision NexCort Watch MCP nested stack (Streamable HTTP + OAuth on mcp.nexcortiq.us).
+      Keep false until unit tests, sam validate, and smoke-test results are reviewed.
+      Does not modify existing POST /api/watch/ingest routes.
+  McpJwtSigningSecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional Secrets Manager ARN for MCP JWT RS256 keyset. Empty creates
+      rapid-cortex/mcp-watch/jwt-signing-{stage} placeholder (bootstrap before traffic).
+  McpPublicBaseUrl:
+    Type: String
+    Default: "https://mcp.nexcortiq.us"
+    Description: Public MCP origin (OAuth issuer + ChatGPT registration URL).
   OutlookOAuthClientId:
     Type: String
     Default: "6110ccac-58b6-4976-86c9-46339151aa9f"
@@ -117,7 +135,7 @@ Parameters:
     Description: Secrets Manager ARN for Apollo.io (PSAP / NexiQ contact enrichment).
   RapidIqWatchIngestApiKeySecretArn:
     Type: String
-    Default: ""
+    Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/watch-ingest-api-key-oT0am2"
     Description: >-
       Secrets Manager ARN for ChatGPT Watch → NexiQ Inbox ingest API key
       (JSON {apiKey:"…"} or raw string). Empty disables machine ingest until set.
@@ -853,6 +871,7 @@ Conditions:
   HasAppSamBillingNestedStack: !Equals [!Ref IncludeAppSamBillingNestedStack, "true"]
   HasAppSamCadMeshNestedStack: !Equals [!Ref IncludeAppSamCadMeshNestedStack, "true"]
   HasAppSamFeaturesNestedStack: !Equals [!Ref IncludeAppSamFeaturesNestedStack, "true"]
+  HasMcpWatchNestedStack: !Equals [!Ref EnableMcpWatch, "true"]
   PilotTestFeaturesOn:
     Fn::Or:
       - !Equals [!Ref PilotTestFeaturesEnabled, "true"]
@@ -2672,6 +2691,34 @@ Resources:
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ManagedPolicyNamePrefix: !Ref AWS::StackName
+
+  # NexCort Watch MCP (Streamable HTTP + OAuth). Default off — EnableMcpWatch=true only after smoke review.
+  AppSamMcpWatchStack:
+    Type: AWS::CloudFormation::Stack
+    Condition: HasMcpWatchNestedStack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn:
+      - AppSam3Stack
+      - AppSamStackV2
+    Properties:
+      TimeoutInMinutes: 30
+      TemplateURL: nested/stack-app-sam-mcp-watch.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+        WatchIngestBaseUrl: !GetAtt AppSam3Stack.Outputs.HttpApiUrl
+        RapidIqWatchIngestApiKeySecretArn: !Ref RapidIqWatchIngestApiKeySecretArn
+        McpJwtSigningSecretArn: !Ref McpJwtSigningSecretArn
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        CognitoDomainUrl: !GetAtt AppSamStackV2.Outputs.CognitoHostedUiBase
+        McpPublicBaseUrl: !Ref McpPublicBaseUrl
+        McpAllowedHosts: mcp.nexcortiq.us
+        McpAudience: nexcort-mcp-watch
 
   AppSamEscalationStack:
     Type: AWS::CloudFormation::Stack
@@ -4734,6 +4781,28 @@ Outputs:
   HttpApi3Id:
     Description: Tertiary HTTP API ID (stack-app-sam-3)
     Value: !GetAtt AppSam3Stack.Outputs.HttpApiId
+  McpWatchFunctionUrl:
+    Description: Watch MCP Lambda Function URL (empty when EnableMcpWatch=false)
+    Value:
+      Fn::If:
+        - HasMcpWatchNestedStack
+        - !GetAtt AppSamMcpWatchStack.Outputs.McpWatchFunctionUrl
+        - ""
+  McpWatchEndpointUrl:
+    Description: Public MCP endpoint (mcp.nexcortiq.us/mcp) when enabled
+    Value:
+      Fn::If:
+        - HasMcpWatchNestedStack
+        - !GetAtt AppSamMcpWatchStack.Outputs.McpEndpointUrl
+        - ""
+  McpWatchOAuthMetadataUrl:
+    Description: OAuth AS metadata URL for ChatGPT MCP registration
+    Value:
+      Fn::If:
+        - HasMcpWatchNestedStack
+        - !GetAtt AppSamMcpWatchStack.Outputs.McpOAuthMetadataUrl
+        - ""
+
   AnalyticsDailyTable:
     Description: iQ reporting daily aggregates table (ANALYTICS_DAILY_TABLE)
     Value:

@@ -25,9 +25,23 @@ type Props = {
   total: number;
   stats?: PsapProspectStats;
   onChange: (next: PsapProspectListQuery) => void;
+  countNoun?: string;
+  /** Registry uses server export; sheet lists use client CSV callback. */
+  exportMode?: "api" | "client";
+  onClientExport?: () => void;
+  showVerifiedExportOption?: boolean;
 };
 
-export function PsapFilterBar({ query, total, stats, onChange }: Props) {
+export function PsapFilterBar({
+  query,
+  total,
+  stats,
+  onChange,
+  countNoun = "PSAPs",
+  exportMode = "api",
+  onClientExport,
+  showVerifiedExportOption = true,
+}: Props) {
   const [searchDraft, setSearchDraft] = useState(query.search ?? "");
   const [verifiedOnly, setVerifiedOnly] = useState(Boolean(query.verifiedOnly));
 
@@ -63,7 +77,7 @@ export function PsapFilterBar({ query, total, stats, onChange }: Props) {
           <input
             value={searchDraft}
             onChange={(e) => setSearchDraft(e.target.value)}
-            placeholder="Search name, city, county…"
+            placeholder="Search name, city, contact…"
             className="w-full rounded border border-[#1e2130] bg-[#0a0b0f] py-1.5 pl-8 pr-3 text-sm text-slate-200 placeholder:text-slate-600 focus:border-violet-500/40 focus:outline-none"
           />
         </div>
@@ -121,37 +135,46 @@ export function PsapFilterBar({ query, total, stats, onChange }: Props) {
         </select>
 
         <span className="ml-auto font-mono text-xs text-slate-500">
-          {total.toLocaleString()} PSAPs
+          {total.toLocaleString()} {countNoun}
         </span>
       </div>
 
       <div className="flex flex-wrap items-center gap-3 border-t border-[#1e2130]/80 pt-2">
-        <label className="flex items-center gap-1.5 text-xs text-slate-400">
-          <input
-            type="checkbox"
-            checked={verifiedOnly}
-            onChange={(e) => setVerifiedOnly(e.target.checked)}
-            className="rounded border-slate-600"
-          />
-          Export verified addresses only
-        </label>
-        <a
-          href={exportHref}
-          title="Export filtered list for mailing campaign"
-          className="inline-flex items-center gap-1.5 rounded border border-violet-500/40 bg-violet-500/10 px-2.5 py-1 text-xs font-medium text-violet-200 hover:bg-violet-500/20"
-        >
-          <Download className="h-3.5 w-3.5" />
-          Export CSV
-        </a>
+        {exportMode === "api" && showVerifiedExportOption && (
+          <label className="flex items-center gap-1.5 text-xs text-slate-400">
+            <input
+              type="checkbox"
+              checked={verifiedOnly}
+              onChange={(e) => setVerifiedOnly(e.target.checked)}
+              className="rounded border-slate-600"
+            />
+            Export verified addresses only
+          </label>
+        )}
+        {exportMode === "api" ? (
+          <a
+            href={exportHref}
+            title="Export filtered list for mailing campaign"
+            className="inline-flex items-center gap-1.5 rounded border border-violet-500/40 bg-violet-500/10 px-2.5 py-1 text-xs font-medium text-violet-200 hover:bg-violet-500/20"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Export CSV
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={onClientExport}
+            title="Export filtered list"
+            className="inline-flex items-center gap-1.5 rounded border border-violet-500/40 bg-violet-500/10 px-2.5 py-1 text-xs font-medium text-violet-200 hover:bg-violet-500/20"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Export CSV
+          </button>
+        )}
         {addressFilter !== "yes" && stats && stats.total - stats.withAddress > 0 && (
           <p className="text-[11px] text-amber-400/80">
             {(stats.total - stats.withAddress).toLocaleString()} records have no street address
             and will export with city/state only. Verify before sending to mail house.
-          </p>
-        )}
-        {addressFilter !== "yes" && !stats && (
-          <p className="text-[11px] text-amber-400/80">
-            Records without a street address export with city/state only. Verify before mail house.
           </p>
         )}
       </div>

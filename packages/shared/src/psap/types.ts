@@ -167,6 +167,8 @@ export interface PsapProspect {
   lastEnrichedAt?: string | null;
   /** Optional agency website for domain-based enrichment. */
   website?: string;
+  /** Campus enrollment / student headcount (outreach sheet imports). */
+  studentCount?: number;
   outreachStatus: PsapOutreachStatus;
   assignedToUserId?: string;
   assignedToName?: string;
@@ -213,7 +215,13 @@ export interface PsapProspectListQuery {
   hasContact?: boolean;
   page?: number;
   pageSize?: number;
-  sortBy?: "psapName" | "state" | "outreachStatus" | "lastContactedAt" | "updatedAt";
+  sortBy?:
+    | "psapName"
+    | "state"
+    | "outreachStatus"
+    | "lastContactedAt"
+    | "updatedAt"
+    | "studentCount";
   sortDir?: "asc" | "desc";
   /** Export-only: verified mailing addresses only. */
   verifiedOnly?: boolean;

@@ -2,7 +2,8 @@
   "_meta": {
     "description": "NexiQ county procurement registry — top counties by population with known procurement portal URLs. Deduped by state+county name. Agenda/minutes seeds live in jurisdiction-registry.ts; this file is portal crawl targets.",
     "platform_types": {
-      "opengov": "OpenGov Procurement — portal slug provided",
+      "opengov": "Euna Procurement (OpenGov) — portal slug provided; crawl procurement.opengov.com",
+      "euna": "Alias for opengov — normalized to opengov at load time",
       "bidnet": "BidNet Direct or state BidNet network",
       "demandstar": "DemandStar network member",
       "planetbids": "PlanetBids — company ID provided",

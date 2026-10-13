@@ -546,6 +546,37 @@ describe("getRoleNav", () => {
     expect(supervisor?.href).toBe("/test-psap/document-library");
   });
 
+  it("exposes Document Library submenu with all vertical libraries for RC admin roles", () => {
+    const expectedChildIds = [
+      "document-library-platform",
+      "document-library-psap",
+      "document-library-campus",
+      "document-library-venue",
+      "document-library-transit",
+      "document-library-hospital",
+      "document-library-call-assist",
+      "document-library-sales",
+    ];
+
+    for (const role of ["rcsuperadmin", "rcadmin", "rcitadmin"] as const) {
+      const library = getRoleNav(role, {})
+        .sections.flatMap((s) => s.items)
+        .find((i) => i.id === "document-library");
+      expect(library?.href).toBe("/rc-admin/document-library");
+      expect(library?.children?.map((c) => c.id)).toEqual(expectedChildIds);
+      expect(library?.children?.map((c) => c.href)).toEqual([
+        "/rc-admin/document-library/platform",
+        "/rc-admin/document-library/psap",
+        "/rc-admin/document-library/campus",
+        "/rc-admin/document-library/venue",
+        "/rc-admin/document-library/transit",
+        "/rc-admin/document-library/hospital",
+        "/rc-admin/document-library/call-assist",
+        "/rc-admin/document-library/sales",
+      ]);
+    }
+  });
+
   it("exposes iQ Vision on dispatcher nav, not supervisor or guest services", () => {
     const dispatcher = getRoleNav("dispatcher", { jurisdiction: "test-psap" })
       .sections.flatMap((s) => s.items)

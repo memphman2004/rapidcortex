@@ -39,7 +39,10 @@ export function ALSMapProvider({ children }: { children: React.ReactNode }) {
 
   const [authHelper, setAuthHelper] = useState<ALSMapConfig["authHelper"]>(null);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [ready, setReady] = useState(preferProxy || !identityPoolId);
+  // Must stay false until transformRequest is registered. Previously preferProxy
+  // started ready=true on the first paint, so MapLibre mounted without the ALS
+  // proxy and dashboard tiles failed CORS/401 ("LOADING MAP…" forever).
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,6 +50,7 @@ export function ALSMapProvider({ children }: { children: React.ReactNode }) {
       // Same-origin signed proxy: no Cognito in the browser (Safari Private safe).
       if (preferProxy) {
         setMapTransformRequest(alsProxyTransformRequest);
+        if (cancelled) return;
         setAuthHelper(null);
         setAuthError(null);
         markMapAuthReady();
@@ -56,6 +60,7 @@ export function ALSMapProvider({ children }: { children: React.ReactNode }) {
 
       if (!identityPoolId) {
         setMapTransformRequest(alsProxyTransformRequest);
+        if (cancelled) return;
         setAuthError(null);
         markMapAuthReady();
         setReady(true);

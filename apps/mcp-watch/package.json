@@ -1,0 +1,32 @@
+{
+  "name": "nexcort-mcp-watch",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/lambda.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/local-server.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.758.0",
+    "@aws-sdk/client-secrets-manager": "^3.758.0",
+    "@aws-sdk/lib-dynamodb": "^3.758.0",
+    "@codegenie/serverless-express": "^4.16.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "express": "^4.21.2",
+    "jose": "^5.9.6",
+    "rapid-cortex-shared": "file:./vendor/rapid-cortex-shared",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.147",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9"
+  }
+}

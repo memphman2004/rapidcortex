@@ -1,5 +1,25 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { alsV2ResourceTypeForSigning } from "./map-auth";
+
+describe("map auth ready gate", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("starts not-ready until markMapAuthReady (even with no identity pool env)", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ALS_IDENTITY_POOL_ID", "");
+    const auth = await import("./map-auth");
+    expect(auth.isMapAuthReady()).toBe(false);
+    auth.setMapTransformRequest(((url: string) => ({ url })) as never);
+    auth.markMapAuthReady();
+    expect(auth.isMapAuthReady()).toBe(true);
+  });
+});
 
 describe("alsV2ResourceTypeForSigning", () => {
   it("leaves non-ALS URLs unchanged", () => {

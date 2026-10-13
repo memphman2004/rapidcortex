@@ -67,7 +67,8 @@ Resources:
   AppManagedPolicyGis:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-gis-${DeploymentStage}"
+      # Do not set ManagedPolicyName — surgical rapid-cortex-dev-AppSamGisStack already
+      # owns rapid-cortex-dev-gis-dev (AlreadyExists on nested CREATE, 2026-10-12).
       PolicyDocument:
         Version: "2012-10-17"
         Statement:

@@ -6,6 +6,7 @@ import {
   customProcurementPathHint,
   matchCountyProcurement,
   normalizeCountyKey,
+  normalizeProcurementPlatform,
   normalizeProcurementUrl,
 } from "../county-procurement.js";
 import { isCountyProcurementRelevant } from "../../../handlers/rapid-iq/pipeline/ingest-county-procurement.js";
@@ -18,6 +19,11 @@ describe("county procurement registry merge", () => {
     expect(crawlable.every((c) => c.platform !== "state-portal")).toBe(true);
     const urls = crawlable.map((c) => normalizeProcurementUrl(c.url));
     expect(new Set(urls).size).toBe(urls.length);
+  });
+
+  it("maps Euna Procurement alias onto OpenGov crawl platform", () => {
+    expect(normalizeProcurementPlatform("euna")).toBe("opengov");
+    expect(normalizeProcurementPlatform("OpenGov")).toBe("opengov");
   });
 
   it("covers all 50 states after the remaining-state merge", () => {

@@ -3,14 +3,18 @@
 import type { PsapOutreachStatus, PsapProspect } from "rapid-cortex-shared";
 import { PSAP_OUTREACH_STATUS_CONFIG } from "rapid-cortex-shared";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  formatStudentCount,
+  type ProspectTableRow,
+} from "@/lib/psap/outreach-prospects";
 import { PsapQuickStatusMenu } from "./PsapQuickStatusMenu";
 
 type SortBy = NonNullable<
-  "psapName" | "state" | "outreachStatus" | "lastContactedAt" | "updatedAt"
+  "psapName" | "state" | "outreachStatus" | "lastContactedAt" | "updatedAt" | "studentCount"
 >;
 
 type Props = {
-  items: PsapProspect[];
+  items: ProspectTableRow[];
   total: number;
   page: number;
   pageSize: number;
@@ -19,6 +23,13 @@ type Props = {
   sortBy?: SortBy;
   sortDir?: "asc" | "desc";
   isLoading?: boolean;
+  /** Column header for the org/agency name (PSAP vs Campus/Venue/Transit). */
+  nameColumnLabel?: string;
+  /** County column header — outreach lists store list name here. */
+  countyColumnLabel?: string;
+  emptyLabel?: string;
+  /** Show Students column (campus enrollment). */
+  showStudentCount?: boolean;
   onSelect: (prospect: PsapProspect) => void;
   onPageChange: (page: number) => void;
   onSort: (sortBy: SortBy) => void;
@@ -73,12 +84,17 @@ export function PsapProspectTable({
   sortBy = "psapName",
   sortDir = "asc",
   isLoading,
+  nameColumnLabel = "PSAP Name",
+  countyColumnLabel = "County",
+  emptyLabel = "No PSAPs match the current filters.",
+  showStudentCount = false,
   onSelect,
   onPageChange,
   onSort,
   onStatusChange,
 }: Props) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const colSpan = showStudentCount ? 11 : 10;
 
   return (
     <div className="overflow-hidden rounded-lg border border-[#1e2130] bg-[#0f1117]">
@@ -96,7 +112,7 @@ export function PsapProspectTable({
               </th>
               <th className="px-3 py-2">
                 <SortBtn
-                  label="PSAP Name"
+                  label={nameColumnLabel}
                   active={sortBy === "psapName"}
                   dir={sortDir}
                   onClick={() => onSort("psapName")}
@@ -111,11 +127,21 @@ export function PsapProspectTable({
                 />
               </th>
               <th className="w-[120px] px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                County
+                {countyColumnLabel}
               </th>
               <th className="w-[120px] px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                 City
               </th>
+              {showStudentCount && (
+                <th className="w-[100px] px-3 py-2">
+                  <SortBtn
+                    label="Students"
+                    active={sortBy === "studentCount"}
+                    dir={sortDir}
+                    onClick={() => onSort("studentCount")}
+                  />
+                </th>
+              )}
               <th className="w-[130px] px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                 Phone
               </th>
@@ -141,14 +167,14 @@ export function PsapProspectTable({
           <tbody>
             {isLoading && items.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-3 py-10 text-center text-slate-500">
+                <td colSpan={colSpan} className="px-3 py-10 text-center text-slate-500">
                   Loading prospects…
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-3 py-10 text-center text-slate-500">
-                  No PSAPs match the current filters.
+                <td colSpan={colSpan} className="px-3 py-10 text-center text-slate-500">
+                  {emptyLabel}
                 </td>
               </tr>
             ) : (
@@ -181,6 +207,11 @@ export function PsapProspectTable({
                     <td className="px-3 py-2 font-mono text-xs text-slate-400">{p.state}</td>
                     <td className="truncate px-3 py-2 text-slate-400">{p.county}</td>
                     <td className="truncate px-3 py-2 text-slate-400">{p.city}</td>
+                    {showStudentCount && (
+                      <td className="px-3 py-2 font-mono text-xs tabular-nums text-slate-300">
+                        {formatStudentCount(p.studentCount)}
+                      </td>
+                    )}
                     <td className="px-3 py-2 font-mono text-xs text-slate-400">{p.phone}</td>
                     <td className="truncate px-3 py-2 text-slate-400">
                       {p.primaryContactName ?? "—"}

@@ -48,6 +48,39 @@ Minimum evidence: at least one `evidence[]` entry. Prefer `source_quality: "auth
 
 Use stable `external_key` for upserts (e.g. `GA|GwinnettCounty|PA031-26`).
 
+### Optional `procurement_details` (backward-compatible)
+
+When available, include structured procurement documents and submission info so Watch Inbox can show RFP links, portal IDs, and contacts without manual research:
+
+```json
+"procurement_details": {
+  "portal_url": "https://www.questcdn.com/",
+  "portal_document_id": "10267491",
+  "documents": [
+    {
+      "title": "Official RFP Notice",
+      "document_type": "rfp_notice",
+      "url": "https://example.gov/rfp-notice",
+      "download_url": null,
+      "access_type": "public",
+      "verification_status": "verified"
+    }
+  ],
+  "submission_method": "Electronic portal",
+  "submission_instructions": "Submit via QuestCDN before the proposal deadline.",
+  "questions_deadline": "2026-11-10",
+  "prebid_conference": null,
+  "document_access_fee": null,
+  "notes": null,
+  "addenda_acknowledgment_required": true,
+  "mandatory_registration": null
+}
+```
+
+Contacts may also include `department`, `organization`, `website`, and `verification_source`.
+
+**Do not invent URLs.** Only submit links verified from official procurement materials. For login/fee portals, set `access_type` to `registration` or `paid` and provide `portal_url` instead of a fake download URL.
+
 ## Success responses
 
 ```json

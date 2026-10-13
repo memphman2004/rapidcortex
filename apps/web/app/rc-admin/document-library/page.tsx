@@ -6,8 +6,14 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-/** SuperAdmin / RC Admin / RC IT document library with interactive architecture maps. */
+/** SuperAdmin / RC Admin / RC IT document library hub — all product vertical libraries. */
 export default async function RcAdminDocumentLibraryPage() {
-  await requireRole(["rcsuperadmin", "rcadmin", "rcitadmin"]);
-  return <DocumentLibraryClient />;
+  const user = await requireRole(["rcsuperadmin", "rcadmin", "rcitadmin"]);
+  return (
+    <DocumentLibraryClient
+      role={user.role}
+      title="Document Library"
+      subtitle="Browse every product vertical library — Platform, PSAP, Campus, Venue, Transit, Hospital, Call Assist, and Sales."
+    />
+  );
 }

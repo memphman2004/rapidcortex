@@ -95,6 +95,49 @@ describe("watchSignalToPipelineIngest", () => {
     expect(enrichments.priorityLabel).toMatch(/URGENT|HIGH|MEDIUM|LOW/);
     expect(enrichments.priorityScore).toBeGreaterThan(40);
   });
+
+  it("preserves procurement_details and full contacts through enrichments", () => {
+    const withProcurement = {
+      ...sample,
+      contacts: [
+        {
+          name: "Jane Buyer",
+          title: "Procurement Officer",
+          email: "jane@example.gov",
+          phone: "555-0100",
+          department: "Purchasing",
+          organization: "City of Ocala",
+          website: "https://example.gov/purchasing",
+          verification_source: "Official notice",
+        },
+      ],
+      procurement_details: {
+        portal_url: "https://example.gov/portal",
+        portal_document_id: "DOC-99",
+        documents: [
+          {
+            title: "RFP Packet",
+            document_type: "rfp",
+            url: "https://example.gov/rfp.pdf",
+            access_type: "public" as const,
+            verification_status: "verified",
+          },
+        ],
+        submission_method: "Electronic portal",
+        submission_instructions: "Upload via portal before deadline.",
+        questions_deadline: "2026-11-01",
+      },
+    };
+    const parsed = watchSignalSchema.parse(withProcurement);
+    const { enrichments } = watchSignalToPipelineIngest(parsed);
+    expect(enrichments.watchContacts[0]?.email).toBe("jane@example.gov");
+    expect(enrichments.watchContacts[0]?.phone).toBe("555-0100");
+    expect(enrichments.procurementDetails?.portal_document_id).toBe("DOC-99");
+    expect(enrichments.procurementDetails?.documents?.[0]?.url).toBe(
+      "https://example.gov/rfp.pdf",
+    );
+    expect(enrichments.opportunityStatus).toBe("open");
+  });
 });
 
 describe("computeWatchPriorityScore", () => {

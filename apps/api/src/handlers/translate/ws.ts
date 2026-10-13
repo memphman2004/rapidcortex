@@ -26,7 +26,7 @@ export const handler: APIGatewayProxyWebsocketHandlerV2 = async (event) => {
 
   try {
     if (key === "$connect") {
-      const token = query(event).token ?? "";
+      const token = query(event as { queryStringParameters?: Record<string, string | undefined> | null }).token ?? "";
       if (!token) return { statusCode: 401, body: JSON.stringify({ error: "missing_token" }) };
       const claims = await verifyTranslateWsToken(token);
       const session = await translateStore.getSession(claims.agencyId, claims.sessionId);

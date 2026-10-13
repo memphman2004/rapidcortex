@@ -138,3 +138,7 @@ components:
               source_type:
                 type: string
                 enum: [official_procurement, board_agenda, budget, grant, news, other]
+
+# Canonical WatchSignal (POST /api/watch/ingest) also accepts optional
+# procurement_details and extended contacts — see
+# packages/shared/src/rapid-iq/watch-signal-schema.ts and docs/CHATGPT_WATCH_INGEST.md.

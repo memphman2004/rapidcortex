@@ -134,9 +134,16 @@ describe("ingestWatchSignal", () => {
     const hash = watchPayloadHash({
       ...body,
       external_key: "LA|CALCASIEUPARISHSHERIFF|RFP-2027-10",
+      enrichments: null,
     });
     getSignalIdByExternalKey.mockResolvedValue("sig-1");
-    getSignal.mockResolvedValue(existingSignal({ watchPayloadHash: hash }));
+    getSignal.mockResolvedValue(
+      existingSignal({
+        watchPayloadHash: hash,
+        opportunityStatus: "open",
+        deadline: "2026-11-13",
+      }),
+    );
     const result = await ingestWatchSignal(body);
     expect(result.action).toBe("unchanged");
     expect(putSignal).not.toHaveBeenCalled();
@@ -174,5 +181,47 @@ describe("ingestWatchSignal", () => {
     });
     expect(result.signal.possibleDuplicate).toBe(true);
     expect(result.signal.possibleDuplicateOf).toBe("sig-other");
+  });
+
+  it("persists procurementDetails and watchContacts from enrichments", async () => {
+    getSignalIdByExternalKey.mockResolvedValue(null);
+    const result = await ingestWatchSignal(baseBody, {
+      facts: ["Official RFP posted"],
+      watchContacts: [
+        {
+          name: "Steven Kensinger",
+          title: "Procurement Contact",
+          email: "steven@example.gov",
+          phone: "651-602-1143",
+          department: "Procurement",
+          organization: "Metropolitan Council",
+          website: null,
+          verification_source: "Official notice",
+        },
+      ],
+      procurementDetails: {
+        portal_url: "https://www.questcdn.com/",
+        portal_document_id: "10267491",
+        documents: [
+          {
+            title: "Official RFP Notice",
+            document_type: "rfp_notice",
+            url: "https://example.gov/notice",
+            access_type: "public",
+            verification_status: "verified",
+          },
+        ],
+        submission_method: "QuestCDN portal",
+        submission_instructions: "Submit via QuestCDN before deadline.",
+      },
+      opportunityStatus: "open",
+    });
+    expect(result.action).toBe("created");
+    expect(result.signal.watchContacts?.[0]?.email).toBe("steven@example.gov");
+    expect(result.signal.procurementDetails?.portal_document_id).toBe("10267491");
+    expect(result.signal.procurementDetails?.documents?.[0]?.url).toBe(
+      "https://example.gov/notice",
+    );
+    expect(result.signal.opportunityStatus).toBe("open");
   });
 });

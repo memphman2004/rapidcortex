@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { toE164 } from "rapid-cortex-shared";
 import { DEFAULT_SILENT_TEXT_PROMPT_TEMPLATES } from "rapid-cortex-shared/silent-text/templates";
 import type {
   SilentTextDispatcherSession,
@@ -62,6 +63,19 @@ export function SilentTextPanel({
   const [minimized, setMinimized] = useState(false);
 
   const configured = isApiConfigured();
+
+  // Keep parent E.164 in sync with the incident callback so Send SMS works even
+  // before PhoneInput remounts (ani may already be set when the form opens).
+  useEffect(() => {
+    setPhoneE164(toE164(ani));
+  }, [ani, incidentId]);
+
+  const openSendForm = useCallback(() => {
+    setShowRequest((s) => !s);
+    setLocalErr(null);
+    const seeded = toE164(ani);
+    if (seeded) setPhoneE164(seeded);
+  }, [ani]);
 
   const sessionsQuery = useQuery({
     queryKey: ["silent-text-sessions", incidentId],
@@ -231,10 +245,7 @@ export function SilentTextPanel({
             </button>
             <button
               type="button"
-              onClick={() => {
-                setShowRequest((s) => !s);
-                setLocalErr(null);
-              }}
+              onClick={openSendForm}
               className="rounded-md bg-violet-700 px-2 py-1 text-[11px] font-medium text-white hover:bg-violet-600"
             >
               Send Silent Text Link
@@ -248,10 +259,7 @@ export function SilentTextPanel({
           </p>
           <button
             type="button"
-            onClick={() => {
-              setShowRequest((s) => !s);
-              setLocalErr(null);
-            }}
+            onClick={openSendForm}
             className="mt-3 w-full rounded-md bg-violet-700 px-2 py-2 text-xs font-medium text-white hover:bg-violet-600"
           >
             Send Silent Text Link
@@ -268,8 +276,9 @@ export function SilentTextPanel({
       {!minimized && showRequest ? (
         <div className="mt-3 space-y-2 rounded-md border border-slate-800 bg-slate-900/60 p-2">
           <PhoneInput
+            key={`silent-ani-${incidentId}-${ani ?? "none"}`}
             label="Caller mobile"
-            ani={ani}
+            ani={ani ?? phoneE164}
             onChange={setPhoneE164}
             disabled={createMut.isPending}
           />

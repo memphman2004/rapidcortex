@@ -277,6 +277,54 @@ export const rapidIqPipelineSignalSchema = z.object({
     )
     .max(40)
     .optional(),
+  /** ChatGPT Watch opportunity.status (open / updated / awarded / …). */
+  opportunityStatus: z.string().max(80).optional(),
+  /** Full Watch contacts (email/phone preserved — not CRM contactHints). */
+  watchContacts: z
+    .array(
+      z.object({
+        name: z.string().max(200).nullable().optional(),
+        title: z.string().max(200).nullable().optional(),
+        email: z.string().max(320).nullable().optional(),
+        phone: z.string().max(40).nullable().optional(),
+        department: z.string().max(200).nullable().optional(),
+        organization: z.string().max(300).nullable().optional(),
+        website: z.string().url().max(2000).nullable().optional(),
+        verification_source: z.string().max(500).nullable().optional(),
+      }),
+    )
+    .max(20)
+    .optional(),
+  /** Structured procurement portal / documents / submission instructions. */
+  procurementDetails: z
+    .object({
+      portal_url: z.string().url().max(2000).nullable().optional(),
+      portal_document_id: z.string().max(120).nullable().optional(),
+      documents: z
+        .array(
+          z.object({
+            title: z.string().min(1).max(500),
+            document_type: z.string().min(1).max(120),
+            url: z.string().url().max(2000),
+            download_url: z.string().url().max(2000).nullable().optional(),
+            access_type: z.enum(["public", "registration", "paid"]).optional(),
+            published_at: z.string().max(32).nullable().optional(),
+            last_verified_at: z.string().max(32).nullable().optional(),
+            verification_status: z.string().max(80).nullable().optional(),
+          }),
+        )
+        .max(25)
+        .optional(),
+      submission_method: z.string().max(300).nullable().optional(),
+      submission_instructions: z.string().max(4000).nullable().optional(),
+      questions_deadline: z.string().max(64).nullable().optional(),
+      prebid_conference: z.string().max(1000).nullable().optional(),
+      document_access_fee: z.string().max(200).nullable().optional(),
+      notes: z.string().max(4000).nullable().optional(),
+      addenda_acknowledgment_required: z.boolean().optional(),
+      mandatory_registration: z.string().max(500).nullable().optional(),
+    })
+    .optional(),
 });
 export type RapidIqPipelineSignal = z.infer<typeof rapidIqPipelineSignalSchema>;
 

@@ -11,7 +11,7 @@ import type {
   SopProtocolOverlayState,
   UserContext,
 } from "rapid-cortex-shared";
-import { normalizeAddressForIndex } from "rapid-cortex-shared";
+import { normalizeAddressForIndex, toE164 } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES, AgencyScopeResolver, TenantAccessGuard, isAdminRole } from "rapid-cortex-security";
 import { resolveIncidentRead } from "../lib/incidentReadAccess.js";
 import { LegalHoldRepository } from "../repositories/legalHoldRepository.js";
@@ -123,6 +123,8 @@ export class IncidentService {
       cadLocation: opts?.cadLocation?.trim() || callerAddressLine || undefined,
       cadCoordinates,
       cadCallerName: opts?.cadCallerName?.trim() || null,
+      // Persist E.164 for Silent Text / Video Assist / Pinpoint pre-fill; keep masked for display lists.
+      callerCallback: opts?.callerCallback ? toE164(opts.callerCallback) : null,
       cadCallerCallbackMasked: opts?.callerCallback ? maskCallback(opts.callerCallback) : null,
     };
 

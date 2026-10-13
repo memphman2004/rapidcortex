@@ -1,8 +1,10 @@
 /**
  * County / city procurement portal registry.
  * Complements agenda seeds in jurisdiction-registry.ts — do not duplicate those
- * hosts into ALL_JURISDICTIONS. Portal platforms (OpenGov, PlanetBids, …) are
+ * hosts into ALL_JURISDICTIONS. Portal platforms (Euna/OpenGov, PlanetBids, …) are
  * crawled by ingest-county-procurement; custom same-host paths enrich agenda crawls.
+ * Euna Solutions owns OpenGov Procurement — registry may use platform "euna";
+ * load normalizes that to "opengov" (crawl host procurement.opengov.com).
  */
 
 import registryJson from "./county-procurement-registry.json";
@@ -21,6 +23,11 @@ export const COUNTY_PROCUREMENT_PLATFORMS = [
 ] as const;
 
 export type CountyProcurementPlatform = (typeof COUNTY_PROCUREMENT_PLATFORMS)[number];
+
+/** Accepted in registry JSON; collapsed to opengov in toEntry(). */
+const PLATFORM_ALIASES: Record<string, CountyProcurementPlatform> = {
+  euna: "opengov",
+};
 
 export type CountyProcurementEntry = {
   state: string;
@@ -56,6 +63,14 @@ const PLATFORM_RANK: Record<string, number> = {
   "state-portal": 0,
 };
 
+/** Normalize vendor aliases onto the crawl platform used in ingest. */
+export function normalizeProcurementPlatform(platform: string): CountyProcurementPlatform | null {
+  const key = platform.trim().toLowerCase();
+  if (PLATFORM_ALIASES[key]) return PLATFORM_ALIASES[key]!;
+  if (PLATFORM_SET.has(key)) return key as CountyProcurementPlatform;
+  return null;
+}
+
 /** Consolidated / alias keys after strip (state#token). */
 const COUNTY_KEY_ALIASES: Record<string, string> = {
   "ga#bibb": "ga#maconbibb",
@@ -71,17 +86,16 @@ const COUNTY_KEY_ALIASES: Record<string, string> = {
   "ak#cityandboroughofjuneau": "ak#juneau",
 };
 
-function isPlatform(value: string): value is CountyProcurementPlatform {
-  return PLATFORM_SET.has(value);
-}
-
 function toEntry(row: RawCountyRow): CountyProcurementEntry | null {
-  if (!isPlatform(row.platform) || !row.state || !row.county || !row.url) return null;
+  const platform = normalizeProcurementPlatform(row.platform ?? "");
+  if (!platform || !row.state || !row.county || !row.url) {
+    return null;
+  }
   return {
     state: row.state.toUpperCase(),
     county: row.county.trim(),
     pop: Number(row.pop) || 0,
-    platform: row.platform,
+    platform,
     url: row.url.trim(),
     slug: row.slug?.trim() || undefined,
     companyId: row.company_id?.trim() || undefined,

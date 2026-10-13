@@ -244,6 +244,7 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-data-layer-nexiq
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-nexiq-intel.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-nexiq-signals.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-analytics.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-mcp-watch.yaml"
 fi
 
 echo "IAM managed policy size preflight (6,144-byte cap)..."
@@ -663,6 +664,14 @@ fi
 # HTTP routes are gated separately (recreate via SignalHttpIntegrationV3 on live).
 PARAMS="${PARAMS} EnableNexiQNewHttpRoutes=${ENABLE_RAPID_IQ_NEW_HTTP_ROUTES:-false}"
 PARAMS="${PARAMS} EnableNexiQNestedExpansion=${ENABLE_RAPID_IQ_NESTED_EXPANSION:-false}"
+# Watch MCP nested stack — keep false until smoke/security review (mcp.nexcortiq.us).
+PARAMS="${PARAMS} EnableMcpWatch=${ENABLE_MCP_WATCH:-false}"
+if [[ -n "${MCP_JWT_SIGNING_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} McpJwtSigningSecretArn=${MCP_JWT_SIGNING_SECRET_ARN}"
+fi
+if [[ -n "${MCP_PUBLIC_BASE_URL:-}" ]]; then
+  PARAMS="${PARAMS} McpPublicBaseUrl=${MCP_PUBLIC_BASE_URL}"
+fi
 if [[ -n "${OUTLOOK_OAUTH_CLIENT_ID:-}" ]]; then
   PARAMS="${PARAMS} OutlookOAuthClientId=${OUTLOOK_OAUTH_CLIENT_ID}"
 fi

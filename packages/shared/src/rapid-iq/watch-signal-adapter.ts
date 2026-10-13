@@ -124,6 +124,9 @@ export function watchSignalToPipelineIngest(signal: WatchSignal): {
     priorityScore: number;
     priorityLabel: "URGENT" | "HIGH" | "MEDIUM" | "LOW";
     department: string | null;
+    opportunityStatus: string | null;
+    watchContacts: WatchSignal["contacts"];
+    procurementDetails: WatchSignal["procurement_details"];
   };
 } {
   const procurementUrl = resolveProcurementUrl(signal);
@@ -220,6 +223,9 @@ export function watchSignalToPipelineIngest(signal: WatchSignal): {
       priorityScore: priority_score,
       priorityLabel: priority_label,
       department: signal.agency.department,
+      opportunityStatus: signal.opportunity.status,
+      watchContacts: signal.contacts,
+      procurementDetails: signal.procurement_details,
     },
   };
 }

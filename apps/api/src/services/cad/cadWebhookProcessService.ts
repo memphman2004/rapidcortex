@@ -3,7 +3,7 @@ import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import type { CadVendor } from "rapid-cortex-shared";
 import type { Incident } from "rapid-cortex-shared";
-import { normalizeAddressForIndex } from "rapid-cortex-shared";
+import { normalizeAddressForIndex, toE164 } from "rapid-cortex-shared";
 import { extractCadIncidentRecords, getCadParser } from "../../lib/cad/parsers/index.js";
 import { asRecord } from "../../lib/cad/parsers/parse-helpers.js";
 import { mergeCadExtras, resolveCadIngestIntelligence } from "../../lib/cad/cad-ingest-intelligence.js";
@@ -284,6 +284,7 @@ async function ingestNormalizedCadIncident(args: {
       normalized.cadNumber,
     );
 
+    const callerCallbackE164 = toE164(normalized.callerCallback);
     await incidentRepo.patchFromCadIngest(existing.incidentId, {
       cadRevision: nextCadRevision,
       cadVendorRevisionLast: nextVendorRev ?? null,
@@ -301,6 +302,7 @@ async function ingestNormalizedCadIncident(args: {
       cadRawPayload: rawBody.slice(0, 450_000),
       cadCallerName: normalized.callerName?.trim() ? normalized.callerName.trim() : existing.cadCallerName ?? null,
       cadCallerCallbackMasked: maskCallback(normalized.callerCallback) ?? existing.cadCallerCallbackMasked ?? null,
+      ...(callerCallbackE164 ? { callerCallback: callerCallbackE164 } : {}),
       summary: mergedSummary,
       cadDedupeKey: stableCadKey,
       cadSystem: vendorToCadSystem(integration.vendor),
@@ -524,6 +526,7 @@ function newCadIncident(
     cadDedupeKey: stableCadKey,
     cadCallerName: n.callerName?.trim() ? n.callerName.trim() : null,
     cadCallerCallbackMasked: maskCallback(n.callerCallback),
+    callerCallback: toE164(n.callerCallback) ?? null,
     confidence: null,
     escalationFlag: Boolean(intel.escalationFlag),
     summary: n.notes || "",

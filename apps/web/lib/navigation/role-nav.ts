@@ -36,6 +36,8 @@ export type NavItem = {
   feature?: string;                   // runtime flag key — item hidden when flag is off
   exact?: boolean;                    // active match: exact path vs prefix
   external?: boolean;
+  /** Nested submenu items (RC Document Library verticals, etc.) */
+  children?: NavItem[];
 };
 
 export type NavSection = {
@@ -105,6 +107,66 @@ function staffGuideNavItem(href: string): NavItem {
   };
 }
 
+/** RC Admin / Superadmin Document Library with per-vertical submenu destinations. */
+function rcDocumentLibraryNavItem(): NavItem {
+  return {
+    id: "document-library",
+    label: "Document Library",
+    href: "/rc-admin/document-library",
+    icon: "BookOpen",
+    children: [
+      {
+        id: "document-library-platform",
+        label: "Platform / RC Ops",
+        href: "/rc-admin/document-library/platform",
+        icon: "Layers",
+      },
+      {
+        id: "document-library-psap",
+        label: "PSAP / 911",
+        href: "/rc-admin/document-library/psap",
+        icon: "Radio",
+      },
+      {
+        id: "document-library-campus",
+        label: "Campus Safety",
+        href: "/rc-admin/document-library/campus",
+        icon: "GraduationCap",
+      },
+      {
+        id: "document-library-venue",
+        label: "Venue Operations",
+        href: "/rc-admin/document-library/venue",
+        icon: "Building2",
+      },
+      {
+        id: "document-library-transit",
+        label: "Transit Operations",
+        href: "/rc-admin/document-library/transit",
+        icon: "Bus",
+      },
+      {
+        id: "document-library-hospital",
+        label: "Hospital Routing",
+        href: "/rc-admin/document-library/hospital",
+        icon: "HeartPulse",
+      },
+      {
+        id: "document-library-call-assist",
+        label: "Call Assist",
+        href: "/rc-admin/document-library/call-assist",
+        icon: "PhoneIncoming",
+      },
+      {
+        id: "document-library-sales",
+        label: "Sales & Enablement",
+        href: "/rc-admin/document-library/sales",
+        icon: "Briefcase",
+      },
+    ],
+  };
+}
+
 /** Campus, venue, and transit knowledge base — not the 911 Help tab. */
 function appendStaffGuideNav(nav: RoleNav, href: string): RoleNav {
   if (nav.sections.some((section) => section.id === "staff-resources")) return nav;
@@ -155,12 +217,7 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
           icon: "Clapperboard",
           feature: "scenarioCenter",
         },
-        {
-          id: "document-library",
-          label: "Document Library",
-          href: "/rc-admin/document-library",
-          icon: "BookOpen",
-        },
+        rcDocumentLibraryNavItem(),
       ],
     },
     {
@@ -185,7 +242,7 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
         { id: "sales-portal", label: "Sales Portal", href: "/sales", icon: "Briefcase" },
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
         { id: "signal-feed", label: "Signal Feed", href: "/rc-admin/signal-feed", icon: "Activity", feature: "salesLeads" },
-        { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
+        { id: "psap-prospects", label: "Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
         { id: "contacts", label: "Contacts", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
         { id: "rapid-iq", label: "NexiQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
         {
@@ -346,7 +403,7 @@ export const SALES_CONTRACTOR_NAV: RoleNav = {
         },
         {
           id: "psap-prospects",
-          label: "PSAP Prospects",
+          label: "Prospects",
           href: "/rc-admin/psap-prospects",
           icon: "RadioTower",
           feature: "psapProspects",
@@ -471,12 +528,7 @@ export const RC_ADMIN_NAV: RoleNav = {
           icon: "Clapperboard",
           feature: "scenarioCenter",
         },
-        {
-          id: "document-library",
-          label: "Document Library",
-          href: "/rc-admin/document-library",
-          icon: "BookOpen",
-        },
+        rcDocumentLibraryNavItem(),
       ],
     },
     {
@@ -501,7 +553,7 @@ export const RC_ADMIN_NAV: RoleNav = {
         { id: "sales-portal", label: "Sales Portal", href: "/sales", icon: "Briefcase" },
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
         { id: "signal-feed", label: "Signal Feed", href: "/rc-admin/signal-feed", icon: "Activity", feature: "salesLeads" },
-        { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
+        { id: "psap-prospects", label: "Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
         { id: "contacts", label: "Contacts", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
         { id: "rapid-iq", label: "NexiQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
         {
@@ -633,14 +685,7 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
     {
       id: "docs",
       label: "DOCUMENTATION",
-      items: [
-        {
-          id: "document-library",
-          label: "Document Library",
-          href: "/rc-admin/document-library",
-          icon: "BookOpen",
-        },
-      ],
+      items: [rcDocumentLibraryNavItem()],
     },
     {
       id: "infra",
@@ -689,7 +734,7 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
       label: "SALES & CRM",
       items: [
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
-        { id: "psap-prospects", label: "PSAP Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
+        { id: "psap-prospects", label: "Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
       ],
     },
     {

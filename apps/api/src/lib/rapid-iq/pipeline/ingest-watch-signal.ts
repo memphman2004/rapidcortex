@@ -40,6 +40,9 @@ export type WatchIngestEnrichments = {
   priorityScore?: number;
   priorityLabel?: RapidIqPipelineSignal["priorityLabel"];
   department?: string | null;
+  opportunityStatus?: string | null;
+  watchContacts?: RapidIqPipelineSignal["watchContacts"];
+  procurementDetails?: RapidIqPipelineSignal["procurementDetails"];
 };
 
 export type WatchIngestResult = {
@@ -289,6 +292,16 @@ export async function ingestWatchSignal(
       priorityLabel: enrichments.priorityLabel ?? base?.priorityLabel,
       priorityBand,
       department: enrichments.department?.trim() || base?.department,
+      opportunityStatus:
+        enrichments.opportunityStatus?.trim() || base?.opportunityStatus,
+      watchContacts:
+        enrichments.watchContacts && enrichments.watchContacts.length > 0
+          ? enrichments.watchContacts
+          : base?.watchContacts,
+      procurementDetails:
+        enrichments.procurementDetails != null
+          ? enrichments.procurementDetails
+          : base?.procurementDetails,
     };
   };
 
@@ -347,6 +360,8 @@ export async function ingestWatchSignal(
       summary: snippet.slice(0, 3000),
       recommendedAction: body.next_action?.trim() || existing.recommendedAction,
       procurementStage,
+      opportunityStatus:
+        body.opportunity.status?.trim() || existing.opportunityStatus,
       fitScore: Math.max(existing.fitScore, fitScore),
       fitLabel: fitScore >= existing.fitScore ? fitLabel : existing.fitLabel,
       vertical,
@@ -465,6 +480,7 @@ export async function ingestWatchSignal(
     fundingNotes: body.opportunity.funding_notes?.trim() || undefined,
     solicitationNumber,
     summary: snippet.slice(0, 3000),
+    opportunityStatus: body.opportunity.status?.trim() || undefined,
     contactHints,
     fitScore,
     fitLabel,

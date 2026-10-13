@@ -1,0 +1,295 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  NexCort iQ — Watch MCP server (Streamable HTTP + OAuth 2.1).
+  Public hostname target: mcp.nexcortiq.us. Internal resource names keep rapid-cortex-* prefixes.
+  Parent gates with EnableMcpWatch=false by default. Does not modify watch-ingest HttpApi routes.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+  WatchIngestBaseUrl:
+    Type: String
+    Description: HttpApi3 base URL hosting POST /api/watch/ingest (no trailing slash).
+  RapidIqWatchIngestApiKeySecretArn:
+    Type: String
+    Description: Secrets Manager ARN for watch ingest API key (server-side only).
+  McpJwtSigningSecretArn:
+    Type: String
+    Default: ""
+    Description: >
+      Secrets Manager ARN for MCP JWT signing key material
+      (JSON {activeKid, keys:[{kid, privateKeyPem, publicKeyPem}]}).
+      When empty, stack creates rapid-cortex/mcp-watch/jwt-signing-{stage} (populate before traffic).
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  CognitoDomainUrl:
+    Type: String
+    Description: Cognito Hosted UI base URL, e.g. https://rapid-cortex-dev.auth.us-east-1.amazoncognito.com
+  McpPublicBaseUrl:
+    Type: String
+    Default: "https://mcp.nexcortiq.us"
+  McpAllowedHosts:
+    Type: String
+    Default: "mcp.nexcortiq.us"
+  McpAudience:
+    Type: String
+    Default: "nexcort-mcp-watch"
+  McpCertificateArn:
+    Type: String
+    Default: ""
+    Description: ACM cert ARN in us-east-1 covering mcp.nexcortiq.us (required for CloudFront).
+  McpHostedZoneId:
+    Type: String
+    Default: ""
+    Description: Route53 hosted zone ID for nexcortiq.us (creates mcp alias when set with cert).
+
+Conditions:
+  CreateJwtSecret: !Equals [!Ref McpJwtSigningSecretArn, ""]
+  HasExternalJwtSecret: !Not [!Equals [!Ref McpJwtSigningSecretArn, ""]]
+  CreateMcpCloudFront: !And
+    - !Not [!Equals [!Ref McpCertificateArn, ""]]
+    - !Not [!Equals [!Ref McpHostedZoneId, ""]]
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Timeout: 29
+    MemorySize: 1024
+    Architectures:
+      - x86_64
+
+Resources:
+  McpOAuthStateTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${ManagedPolicyNamePrefix}-mcp-oauth-state-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: Service
+          Value: nexcort-mcp-watch
+        - Key: Stage
+          Value: !Ref DeploymentStage
+
+  McpJwtSigningSecret:
+    Type: AWS::SecretsManager::Secret
+    Condition: CreateJwtSecret
+    Properties:
+      Name: !Sub "rapid-cortex/mcp-watch/jwt-signing-${DeploymentStage}"
+      Description: >-
+        MCP Watch JWT RS256 keyset. Populate with
+        scripts/bootstrap-mcp-watch-jwt-secret.sh before enabling traffic.
+      SecretString: '{"activeKid":"PLACEHOLDER","keys":[]}'
+
+  McpWatchFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${ManagedPolicyNamePrefix}-mcp-watch-${DeploymentStage}"
+      Description: NexCort iQ Watch MCP (Streamable HTTP + OAuth)
+      CodeUri: ../../apps/mcp-watch/
+      Handler: lambda.handler
+      Runtime: nodejs22.x
+      Timeout: 29
+      MemorySize: 1024
+      Environment:
+        Variables:
+          DEPLOYMENT_STAGE: !Ref DeploymentStage
+          MCP_PUBLIC_BASE_URL: !Ref McpPublicBaseUrl
+          MCP_ISSUER: !Ref McpPublicBaseUrl
+          MCP_AUDIENCE: !Ref McpAudience
+          MCP_ALLOWED_HOSTS: !Ref McpAllowedHosts
+          WATCH_INGEST_BASE_URL: !Ref WatchIngestBaseUrl
+          RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN: !Ref RapidIqWatchIngestApiKeySecretArn
+          MCP_JWT_SIGNING_SECRET_ARN: !If
+            - HasExternalJwtSecret
+            - !Ref McpJwtSigningSecretArn
+            - !Ref McpJwtSigningSecret
+          MCP_OAUTH_STATE_TABLE: !Ref McpOAuthStateTable
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          COGNITO_DOMAIN: !Ref CognitoDomainUrl
+          COGNITO_REGION: !Ref AWS::Region
+          MCP_RATE_LIMIT_PER_HOUR: "120"
+          MCP_UPSTREAM_MAX_ATTEMPTS: "3"
+      Policies:
+        - Statement:
+            - Sid: ReadWatchIngestSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+              Resource: !Ref RapidIqWatchIngestApiKeySecretArn
+            - !If
+                - HasExternalJwtSecret
+                - Sid: ReadExternalJwtSigningSecret
+                  Effect: Allow
+                  Action:
+                    - secretsmanager:GetSecretValue
+                    - secretsmanager:DescribeSecret
+                  Resource: !Ref McpJwtSigningSecretArn
+                - Sid: ReadCreatedJwtSigningSecret
+                  Effect: Allow
+                  Action:
+                    - secretsmanager:GetSecretValue
+                    - secretsmanager:DescribeSecret
+                  Resource: !Ref McpJwtSigningSecret
+            - Sid: McpOAuthStateTable
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+              Resource: !GetAtt McpOAuthStateTable.Arn
+      Tags:
+        Service: nexcort-mcp-watch
+        Stage: !Ref DeploymentStage
+    Metadata:
+      BuildMethod: makefile
+
+  McpWatchFunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      AuthType: NONE
+      InvokeMode: BUFFERED
+      TargetFunctionArn: !GetAtt McpWatchFunction.Arn
+      Cors:
+        AllowCredentials: false
+        AllowOrigins:
+          - "*"
+        AllowHeaders:
+          - "*"
+        AllowMethods:
+          - "*"
+        MaxAge: 86400
+
+  McpWatchFunctionUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunctionUrl
+      FunctionName: !Ref McpWatchFunction
+      Principal: "*"
+      FunctionUrlAuthType: NONE
+
+  # Required for AuthType NONE — InvokeFunctionUrl alone returns AccessDeniedException.
+  McpWatchFunctionInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref McpWatchFunction
+      Principal: "*"
+
+
+  # CloudFront → Function URL (HTTPS mcp.nexcortiq.us). Origin domain strips https:// and trailing slash.
+  McpWatchDistribution:
+    Type: AWS::CloudFront::Distribution
+    Condition: CreateMcpCloudFront
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "NexCort Watch MCP ${DeploymentStage}"
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        Aliases:
+          - mcp.nexcortiq.us
+        ViewerCertificate:
+          AcmCertificateArn: !Ref McpCertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+        Origins:
+          - Id: McpWatchFunctionUrlOrigin
+            DomainName: !Select
+              - 2
+              - !Split ["/", !GetAtt McpWatchFunctionUrl.FunctionUrl]
+            CustomOriginConfig:
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+            OriginCustomHeaders:
+              - HeaderName: X-Forwarded-Host
+                HeaderValue: mcp.nexcortiq.us
+        DefaultCacheBehavior:
+          TargetOriginId: McpWatchFunctionUrlOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+            - PUT
+            - POST
+            - PATCH
+            - DELETE
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # CachingDisabled
+          OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # AllViewerExceptHostHeader
+        PriceClass: PriceClass_100
+
+  McpWatchDnsRecord:
+    Type: AWS::Route53::RecordSet
+    Condition: CreateMcpCloudFront
+    Properties:
+      HostedZoneId: !Ref McpHostedZoneId
+      Name: mcp.nexcortiq.us
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt McpWatchDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2 # CloudFront
+        EvaluateTargetHealth: false
+
+  McpWatchDnsRecordAAAA:
+    Type: AWS::Route53::RecordSet
+    Condition: CreateMcpCloudFront
+    Properties:
+      HostedZoneId: !Ref McpHostedZoneId
+      Name: mcp.nexcortiq.us
+      Type: AAAA
+      AliasTarget:
+        DNSName: !GetAtt McpWatchDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+Outputs:
+  McpWatchFunctionName:
+    Value: !Ref McpWatchFunction
+  McpWatchFunctionUrl:
+    Description: Lambda Function URL (CloudFront origin)
+    Value: !GetAtt McpWatchFunctionUrl.FunctionUrl
+  McpWatchCloudFrontDomain:
+    Condition: CreateMcpCloudFront
+    Value: !GetAtt McpWatchDistribution.DomainName
+  McpOAuthMetadataUrl:
+    Value: !Sub "${McpPublicBaseUrl}/.well-known/oauth-authorization-server"
+  McpEndpointUrl:
+    Value: !Sub "${McpPublicBaseUrl}/mcp"
+  McpOAuthStateTableName:
+    Value: !Ref McpOAuthStateTable
+  McpJwtSigningSecretArnOut:
+    Value: !If
+      - HasExternalJwtSecret
+      - !Ref McpJwtSigningSecretArn
+      - !Ref McpJwtSigningSecret
