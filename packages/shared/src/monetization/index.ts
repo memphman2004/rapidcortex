@@ -4,6 +4,7 @@ export * from "./entities.js";
 export * from "./entitlements.js";
 export * from "./guards.js";
 export * from "./schemas.js";
+export * from "./business-sms-consent.js";
 export * from "./leads-crm.js";
 export * from "./overage.js";
 export * from "./catalog-defaults.js";

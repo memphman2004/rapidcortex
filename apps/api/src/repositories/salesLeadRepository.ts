@@ -35,6 +35,10 @@ export type SalesLeadRecord = ContactSalesLeadBody & {
   pipelineStage?: PipelineStage;
   attribution?: LeadAttribution;
   activities?: LeadActivity[];
+  /** ISO timestamp when Business Communications SMS consent was recorded (null if not opted in). */
+  smsConsentAt?: string | null;
+  /** Advisor-facing SMS authorization: pending | opted_in | opted_out. */
+  smsConsentStatus?: "pending" | "opted_in" | "opted_out";
 };
 
 export type AnySalesLeadRecord = SalesLeadRecord;
@@ -189,6 +193,19 @@ export class SalesLeadRepository {
     assign("lostReason", patch.lostReason, "lostReason");
     assign("selectedFeatureIds", patch.selectedFeatureIds, "selectedFeatureIds");
     assign("freeOfferings", patch.freeOfferings, "freeOfferings");
+    if (patch.smsConsentStatus !== undefined) {
+      assign("smsConsentStatus", patch.smsConsentStatus, "smsConsentStatus");
+      if (patch.smsConsentStatus === "opted_in") {
+        assign("smsConsentOptedIn", true, "smsConsentOptedIn");
+        if (!normalized.smsConsentAt) {
+          assign("smsConsentAt", now, "smsConsentAt");
+        }
+      } else if (patch.smsConsentStatus === "opted_out") {
+        assign("smsConsentOptedIn", false, "smsConsentOptedIn");
+      } else if (patch.smsConsentStatus === "pending") {
+        assign("smsConsentOptedIn", false, "smsConsentOptedIn");
+      }
+    }
 
     const assignee = patch.assignedTo ?? patch.assignee;
     if (assignee !== undefined) {

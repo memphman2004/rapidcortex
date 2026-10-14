@@ -300,6 +300,11 @@ export const patchSalesLeadCrmBodySchema = z
     assignee: z.string().max(320).optional(),
     /** Legacy status write still accepted; also sets pipelineStage [CR-2]. */
     status: z.string().max(40).optional(),
+    /**
+     * Business Communications SMS authorization for sales advisors.
+     * pending = share opt-in link; opted_in = may text; opted_out = do not text.
+     */
+    smsConsentStatus: z.enum(["pending", "opted_in", "opted_out"]).optional(),
   })
   .strict()
   .refine((v) => Object.keys(v).length > 0, { message: "At least one field is required" });
@@ -398,4 +403,14 @@ export type SalesLeadCrmRecord = {
   lastSignalAt?: string;
   /** 0–100 rolling score from recent signals. */
   hotScore?: number;
+  /** Business Communications SMS — from public opt-in forms. */
+  smsConsentOptedIn?: boolean;
+  smsConsentAt?: string | null;
+  smsConsentDisclosureVersion?: string;
+  formSource?: string;
+  /**
+   * Advisor-facing authorization status. Prefer {@link resolveLeadSmsConsentStatus}.
+   * opted_out can be set manually when a prospect revokes consent (e.g. STOP).
+   */
+  smsConsentStatus?: "pending" | "opted_in" | "opted_out";
 };

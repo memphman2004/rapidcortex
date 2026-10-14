@@ -1,6 +1,11 @@
 "use client";
 
-import { filterSignalsForVertical, type PipelineStage, type SalesLeadCrmRecord } from "rapid-cortex-shared";
+import {
+  filterSignalsForVertical,
+  resolveLeadSmsConsentStatus,
+  type PipelineStage,
+  type SalesLeadCrmRecord,
+} from "rapid-cortex-shared";
 import {
   channelBadgeClass,
   channelShortLabel,
@@ -47,6 +52,7 @@ export function LeadCard({ lead, selected, onSelect, onDragStart }: Props) {
   const verticalSignals = filterSignalsForVertical(lead.signals, lead.vertical);
   const grantCount = verticalSignals.filter((s) => s.type === "GRANT_SIGNAL").length;
   const hotScore = lead.hotScore ?? 0;
+  const smsStatus = resolveLeadSmsConsentStatus(lead);
 
   return (
     <button
@@ -130,6 +136,19 @@ export function LeadCard({ lead, selected, onSelect, onDragStart }: Props) {
             {hotScore}
           </span>
         )}
+        <span
+          className={`rounded-full border px-1.5 py-0.5 text-[9px] font-semibold ${
+            smsStatus === "opted_in"
+              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+              : smsStatus === "opted_out"
+                ? "border-red-500/20 bg-red-500/10 text-red-400"
+                : "border-amber-500/20 bg-amber-500/10 text-amber-400"
+          }`}
+          title="Business Communications SMS authorization"
+        >
+          SMS{" "}
+          {smsStatus === "opted_in" ? "in" : smsStatus === "opted_out" ? "out" : "pending"}
+        </span>
         {(lead.probability ?? 0) > 0 && (
           <span className="ml-auto text-[9px] tabular-nums text-slate-600">{lead.probability}%</span>
         )}

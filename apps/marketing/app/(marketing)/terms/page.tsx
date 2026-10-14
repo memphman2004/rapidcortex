@@ -21,7 +21,7 @@ export default function TermsOfUsePage() {
       eyebrow="Legal"
       title="Terms of use"
       description={`Terms governing use of the ${SITE_NAME} product and public websites. A signed agreement with your agency takes precedence where it explicitly differs.`}
-      lastReviewed="August 1, 2026"
+      lastReviewed="October 12, 2026"
       navItems={TERMS_NAV}
       complianceNote="This page is publicly accessible without login for regulatory and carrier compliance review purposes."
     >
@@ -108,36 +108,55 @@ export default function TermsOfUsePage() {
       <section id="sms" className="space-y-3">
         <h2 className="text-base font-semibold text-white">NexCort iQ SMS messaging program</h2>
         <p>
-          <strong className="font-medium text-slate-200">Program name:</strong> NexCort iQ SMS
-          (including iQ Vision™), operated by {SITE_OPERATOR_NAME} LLC d/b/a {SITE_NAME} (
+          <strong className="font-medium text-slate-200">Program operator:</strong> Apps On Demand LLC
+          d/b/a {SITE_NAME} ({SITE_OPERATOR_NAME};{" "}
           <a href="https://www.nexcortiq.us">https://www.nexcortiq.us</a>).
         </p>
         <p>
           <strong className="font-medium text-slate-200">Program description:</strong> {SITE_NAME}{" "}
-          sends transactional SMS related to public-safety workflows. This includes (1) one-time camera
-          consent requests to property owners who enrolled an eligible Ring™ or Nest™ device in Rapid
-          Vision™, when a participating agency requests temporary live camera access for a nearby
-          active emergency; and (2) dispatcher-initiated, incident-specific texts to individuals who
-          contacted 911 or another public safety communications center and agreed on that call to receive
-          a text for the active incident (for example, a secure media upload, location clarification, or
-          language-assistance link). Messages are not used for marketing, advertising, promotions, or mass
-          public alerting.
+          operates SMS under related program names that cover distinct use cases:
         </p>
+        <ul className="ml-4 list-disc space-y-2 text-slate-400">
+          <li>
+            <span className="text-slate-300">NexCort iQ Business Communications SMS:</span> optional
+            one-to-one texts between authorized NexCort iQ representatives (including sales advisors)
+            and customers or prospective customers who expressly opt in on website contact or
+            demo-request forms (unchecked-by-default checkbox) or who provide documented conversational
+            consent. Messages may include responses to inquiries, demonstration scheduling and
+            confirmations, meeting reminders, requested product follow-up, and customer support.
+            Providing a phone number alone is not consent. This program is not used for unsolicited
+            advertising, bulk marketing, purchased lists, or automated sales campaigns. Consent is
+            voluntary and not a condition of purchase.
+          </li>
+          <li>
+            <span className="text-slate-300">Public-safety / iQ Vision™ SMS:</span> transactional texts
+            related to (1) one-time camera consent requests to property owners who enrolled an eligible
+            Ring™ or Nest™ device in Rapid Vision™, when a participating agency requests temporary live
+            camera access for a nearby active emergency; and (2) dispatcher-initiated, incident-specific
+            texts to individuals who contacted 911 or another public safety communications center and
+            agreed on that call to receive a text for the active incident (for example, a secure media
+            upload, location clarification, or language-assistance link). These messages are not used
+            for marketing, advertising, promotions, or mass public alerting.
+          </li>
+        </ul>
         <p>
           <strong className="font-medium text-slate-200">Message frequency:</strong> Message frequency
-          varies. Texts are incident-triggered and typically infrequent; enrolled device owners or
-          consented callers may receive zero messages unless an authorized workflow requires one.
+          varies. Business Communications frequency depends on customer inquiries and ongoing
+          conversations. Public-safety texts are typically incident-triggered and infrequent; enrolled
+          device owners or consented callers may receive zero messages unless an authorized workflow
+          requires one.
         </p>
         <p>
           <strong className="font-medium text-slate-200">Message and data rates:</strong> Message and
           data rates may apply. Carrier charges are the recipient&apos;s responsibility under their
-          wireless plan.
+          wireless plan. Delivery is subject to carrier availability and is not guaranteed.
         </p>
         <p>
           <strong className="font-medium text-slate-200">Opt-out and help:</strong> Reply{" "}
-          <strong>STOP</strong> to opt out of further SMS from this program. Reply <strong>HELP</strong>{" "}
-          for help. Opting out of SMS does not cancel 911 voice service or other non-SMS emergency
-          channels. Additional consent and disclosure details are published at{" "}
+          <strong>STOP</strong> to opt out of further SMS from the applicable program. Reply{" "}
+          <strong>HELP</strong> for help. Opting out of SMS does not cancel 911 voice service or other
+          non-SMS emergency channels. Additional consent and disclosure details — including Terms and
+          Privacy links for campaign Call to Action review — are published at{" "}
           <Link href="/sms-consent">https://www.nexcortiq.us/sms-consent</Link>. Mobile numbers and SMS
           consent are handled as described in our <Link href="/privacy">Privacy policy</Link>.
         </p>

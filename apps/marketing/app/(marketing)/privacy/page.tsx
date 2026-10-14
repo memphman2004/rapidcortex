@@ -27,7 +27,7 @@ export default function PrivacyPolicyPage() {
       eyebrow="Legal"
       title="Privacy policy"
       description={`How ${SITE_NAME} and its operators collect, use, and protect information for public safety agencies, emergency communications teams, and platform users.`}
-      lastReviewed="September 13, 2026"
+      lastReviewed="October 12, 2026"
       navItems={PRIVACY_NAV}
       complianceNote="This page is publicly accessible without login for regulatory and carrier compliance review purposes."
     >
@@ -52,10 +52,13 @@ export default function PrivacyPolicyPage() {
           </strong>
         </p>
         <p className="text-slate-400">
-          Mobile phone numbers and SMS opt-in/consent data collected for the NexCort iQ SMS messaging
-          program (including iQ Vision™ camera-consent texts and dispatcher-initiated incident
-          texts) are used only to deliver those transactional messages, honor STOP/HELP requests, and
-          operate, secure, and audit the service. Message frequency varies.{" "}
+          Mobile phone numbers and SMS opt-in/consent data collected for NexCort iQ SMS programs —
+          including (1) optional one-to-one Business Communications SMS with customers or prospects
+          who expressly opt in on website forms or during a documented conversation with a NexCort iQ
+          sales advisor or other authorized representative, (2) iQ Vision™ camera-consent texts, and
+          (3) dispatcher-initiated incident texts — are used only to deliver those messages, honor
+          STOP/HELP requests, and operate, secure, and audit the service. Providing a phone number
+          alone is not SMS consent for Business Communications. Message frequency varies.{" "}
           <strong className="font-medium text-slate-200">Message and data rates may apply.</strong> Reply{" "}
           <strong className="font-medium text-slate-200">STOP</strong> to opt out or{" "}
           <strong className="font-medium text-slate-200">HELP</strong> for help (
@@ -82,8 +85,10 @@ export default function PrivacyPolicyPage() {
           <li>
             <span className="text-slate-300">Mobile and SMS data:</span> mobile phone numbers, SMS
             opt-in/opt-out status, message delivery metadata, and consent records related to NexCort iQ
-            SMS programs (including iQ Vision™ camera-consent texts and dispatcher-initiated
-            incident texts).
+            SMS programs (including Business Communications SMS opt-ins from contact and demo forms,
+            iQ Vision™ camera-consent texts, and dispatcher-initiated incident texts). Website
+            Business Communications opt-ins may include consent status, timestamp, disclosure version,
+            form source, and associated phone number.
           </li>
           <li>
             <span className="text-slate-300">Service and product data:</span> operational content you
@@ -102,10 +107,11 @@ export default function PrivacyPolicyPage() {
         <h2 className="text-base font-semibold text-white">How we use information</h2>
         <p>
           To provide, secure, and improve the service; authenticate users; support agencies under
-          contract; deliver transactional SMS related to enrolled camera-consent requests or active
-          public-safety incidents; meet legal and safety obligations; and communicate with you about the
-          product. We do not sell personal information. We do not use SMS consent or mobile numbers for
-          marketing, advertising, or promotional campaigns.
+          contract; deliver transactional and consented one-to-one SMS (Business Communications with
+          opted-in customers/prospects, enrolled camera-consent requests, or active public-safety
+          incidents); meet legal and safety obligations; and communicate with you about the product. We
+          do not sell personal information. We do not use SMS consent or mobile numbers for bulk
+          marketing, advertising blasts, purchased lists, or automated promotional campaigns.
         </p>
       </section>
 
@@ -162,13 +168,17 @@ export default function PrivacyPolicyPage() {
       <section id="sms" className="space-y-3">
         <h2 className="text-base font-semibold text-white">SMS and mobile messaging</h2>
         <p>
-          NexCort iQ (operated by Apps on Demand LLC) may send transactional SMS under the{" "}
-          <strong className="font-medium text-slate-200">NexCort iQ SMS</strong> messaging program,
-          including iQ Vision™ camera-consent requests to enrolled Ring™ or Nest™ device owners
-          and dispatcher-initiated, incident-specific texts authorized by a participating public safety
-          agency. Message frequency varies based on incident activity and enrolled-device proximity; many
-          recipients will receive no messages unless a nearby emergency or authorized workflow requires
-          one. <strong className="font-medium text-slate-200">Message and data rates may apply.</strong>
+          NexCort iQ (operated by Apps on Demand LLC) may send SMS under NexCort iQ messaging programs,
+          including: (1) optional one-to-one{" "}
+          <strong className="font-medium text-slate-200">Business Communications SMS</strong> between
+          authorized NexCort iQ representatives (including sales advisors) and customers or prospective
+          customers who expressly opt in on website contact or demo-request forms, or who provide
+          documented conversational consent; (2) iQ Vision™ camera-consent requests to enrolled Ring™
+          or Nest™ device owners; and (3) dispatcher-initiated, incident-specific texts authorized by a
+          participating public safety agency. Business Communications messages may include responses to
+          inquiries, demo scheduling, meeting reminders, requested product follow-up, and support — not
+          unsolicited bulk advertising. Message frequency varies.{" "}
+          <strong className="font-medium text-slate-200">Message and data rates may apply.</strong>
         </p>
         <p>
           You may reply <strong className="font-medium text-slate-200">STOP</strong> to opt out of further

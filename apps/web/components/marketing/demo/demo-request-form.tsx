@@ -9,6 +9,8 @@ import {
   contactSalesSubmitUrl,
   scrollMarketingFieldIntoViewOnFocus,
 } from "@/lib/marketing-form-input";
+import { BusinessSmsConsentField } from "@/components/marketing/business-sms-consent-field";
+import { BUSINESS_SMS_DISCLOSURE_VERSION } from "rapid-cortex-shared";
 
 const AGENCY_TYPES = [
   { value: "psap", label: "PSAP/911 Center", customerType: "agency" as const },
@@ -45,11 +47,19 @@ export function DemoRequestForm() {
 
     const name = String(fd.get("name") ?? "").trim();
     const email = String(fd.get("email") ?? "").trim();
+    const phone = String(fd.get("phone") ?? "").trim();
     const agencyCompany = String(fd.get("agencyCompany") ?? "").trim();
     const role = String(fd.get("role") ?? "").trim();
     const agencyTypeValue = String(fd.get("agencyType") ?? "other");
     const dispatchers = String(fd.get("dispatchers") ?? "").trim();
     const userMessage = String(fd.get("message") ?? "").trim();
+    const smsConsentOptedIn = fd.get("smsConsentOptedIn") === "1";
+
+    if (smsConsentOptedIn && !phone) {
+      setStatus("idle");
+      setErrorMessage("Enter a mobile phone number to opt in to SMS, or uncheck the SMS consent box.");
+      return;
+    }
 
     const agencyMeta = AGENCY_TYPES.find((a) => a.value === agencyTypeValue) ?? AGENCY_TYPES[AGENCY_TYPES.length - 1];
     const dispatcherLabel = DISPATCHER_BANDS.find((d) => d.value === dispatchers)?.label ?? dispatchers;
@@ -67,6 +77,7 @@ export function DemoRequestForm() {
     const body = {
       name,
       email,
+      phone: phone || undefined,
       agencyCompany,
       role: role || undefined,
       customerType: agencyMeta.customerType,
@@ -74,6 +85,11 @@ export function DemoRequestForm() {
       estimatedAgencySize: dispatchers || undefined,
       message: message.length > 0 ? message : undefined,
       website: String(fd.get("website") ?? ""),
+      smsConsentOptedIn,
+      smsConsentDisclosureVersion: String(
+        fd.get("smsConsentDisclosureVersion") ?? BUSINESS_SMS_DISCLOSURE_VERSION,
+      ).trim(),
+      formSource: "demo" as const,
     };
 
     try {
@@ -154,6 +170,18 @@ export function DemoRequestForm() {
           />
         </label>
       </div>
+      <label className={labelClass}>
+        Mobile phone number <span className="font-normal text-slate-500">(optional)</span>
+        <input
+          name="phone"
+          type="tel"
+          autoComplete="tel"
+          disabled={status === "sending"}
+          className={inputClass}
+          onFocus={scrollMarketingFieldIntoViewOnFocus}
+        />
+      </label>
+      <BusinessSmsConsentField disabled={status === "sending"} />
       <label className={labelClass}>
         Agency / organization <span className="text-rose-300">*</span>
         <input

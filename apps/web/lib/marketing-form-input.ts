@@ -23,7 +23,12 @@ export function scrollMarketingFieldIntoViewOnFocus(event: FocusEvent<HTMLElemen
 export function contactSalesSubmitUrl(): string {
   if (typeof window !== "undefined") {
     const host = window.location.hostname;
-    if (host === "www.rapidcortex.us" || host === "rapidcortex.us") {
+    const isMarketingStatic =
+      host === "www.rapidcortex.us" ||
+      host === "rapidcortex.us" ||
+      host === "www.nexcortiq.us" ||
+      host === "nexcortiq.us";
+    if (isMarketingStatic) {
       const appOrigin = (process.env.NEXT_PUBLIC_APP_ORIGIN ?? "https://app.rapidcortex.us").replace(
         /\/$/,
         "",

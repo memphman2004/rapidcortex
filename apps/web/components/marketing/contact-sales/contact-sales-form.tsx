@@ -10,6 +10,8 @@ import {
   contactSalesSubmitUrl,
   scrollMarketingFieldIntoViewOnFocus,
 } from "@/lib/marketing-form-input";
+import { BusinessSmsConsentField } from "@/components/marketing/business-sms-consent-field";
+import { BUSINESS_SMS_DISCLOSURE_VERSION } from "rapid-cortex-shared";
 
 const CUSTOMER_TYPES = [
   ["agency", "Agency PSAP"],
@@ -67,10 +69,18 @@ export function ContactSalesForm({ interestFromSearch = null, onSuccess }: Conta
         ? interestedRaw.filter((x): x is string => typeof x === "string")
         : ([] as string[]);
 
+    const smsConsentOptedIn = fd.get("smsConsentOptedIn") === "1";
+    const phone = String(fd.get("phone") ?? "").trim();
+    if (smsConsentOptedIn && !phone) {
+      setStatus("error");
+      setErrorMessage("Enter a mobile phone number to opt in to SMS, or uncheck the SMS consent box.");
+      return;
+    }
+
     const body = {
       name: String(fd.get("name") ?? "").trim(),
       email: String(fd.get("email") ?? "").trim(),
-      phone: String(fd.get("phone") ?? "").trim() || undefined,
+      phone: phone || undefined,
       agencyCompany: String(fd.get("agencyCompany") ?? "").trim(),
       role: String(fd.get("role") ?? "").trim() || undefined,
       customerType: String(fd.get("customerType") ?? "other"),
@@ -87,6 +97,11 @@ export function ContactSalesForm({ interestFromSearch = null, onSuccess }: Conta
         return (userMsg ? `${prefix}\n\n${userMsg}` : prefix).slice(0, 5000);
       })(),
       website: String(fd.get("website") ?? ""),
+      smsConsentOptedIn,
+      smsConsentDisclosureVersion: String(
+        fd.get("smsConsentDisclosureVersion") ?? BUSINESS_SMS_DISCLOSURE_VERSION,
+      ).trim(),
+      formSource: "contact-sales" as const,
     };
 
     try {
@@ -159,7 +174,7 @@ export function ContactSalesForm({ interestFromSearch = null, onSuccess }: Conta
           />
         </label>
         <label className="block text-sm font-medium text-slate-300">
-          Phone <span className="font-normal text-slate-600">optional</span>
+          Mobile phone number <span className="font-normal text-slate-600">optional</span>
           <input
             name="phone"
             type="tel"
@@ -181,6 +196,7 @@ export function ContactSalesForm({ interestFromSearch = null, onSuccess }: Conta
           />
         </label>
       </div>
+      <BusinessSmsConsentField disabled={status === "sending"} />
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm font-medium text-slate-300">
           Role <span className="font-normal text-slate-600">optional</span>

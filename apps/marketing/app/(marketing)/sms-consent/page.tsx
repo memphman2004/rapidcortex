@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BusinessSmsOptInForm } from "@/components/marketing/business-sms-opt-in-form";
 import { LegalDocShell } from "@/components/marketing/legal-doc-shell";
 import { buildPublicPageMetadata } from "@/lib/seo";
 import { SITE_NAME, SITE_OPERATOR_NAME, SITE_OPERATOR_URL } from "@/lib/site";
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
   ...buildPublicPageMetadata({
     title: "SMS Consent & Messaging Disclosure — NexCort iQ",
     description:
-      "How NexCort iQ collects consent and sends SMS messages on behalf of public safety agencies.",
+      "How NexCort iQ collects consent for business communications SMS and public-safety incident messaging.",
     path: "/sms-consent",
   }),
   robots: { index: true, follow: true },
@@ -16,6 +17,8 @@ export const metadata: Metadata = {
 
 const NAV = [
   { href: "#platform-sms", label: "Platform SMS Consent" },
+  { href: "#business-sms", label: "Business Communications SMS" },
+  { href: "#opt-in-form", label: "SMS Opt-In Form" },
   { href: "#incident-sms", label: "Dispatcher-Initiated Incident SMS" },
   { href: "#consent-records", label: "Consent Records" },
   { href: "#optout", label: "STOP & HELP" },
@@ -28,8 +31,8 @@ export default function SmsConsentPage() {
     <LegalDocShell
       eyebrow="SMS Consent & Messaging Disclosure"
       title="How NexCort iQ Sends Text Messages"
-      description="This page covers two distinct SMS workflows: general platform communications, and dispatcher-initiated incident-specific messaging. Published as a public reference for carrier compliance and toll-free verification."
-      lastReviewed="August 1, 2026"
+      description="This page covers three distinct SMS workflows: general platform communications, one-to-one Business Communications SMS with customers and prospects who opt in, and dispatcher-initiated incident-specific messaging. Published as a public reference for carrier compliance, Microsoft messaging campaigns, and toll-free verification."
+      lastReviewed="October 13, 2026"
       navItems={NAV}
       complianceNote="This page is publicly accessible without login for regulatory and carrier compliance review purposes."
     >
@@ -39,17 +42,19 @@ export default function SmsConsentPage() {
         </div>
         <h2>General Platform SMS Consent</h2>
         <p>
-          SMS consent for NexCort iQ platform users — demo scheduling, onboarding, account access,
-          and support communications.
+          SMS consent for NexCort iQ platform users — onboarding, account access, and support
+          communications under approved agency or product workflows. Business sales texting is
+          described separately below and requires an explicit, non-default opt-in.
         </p>
       </div>
 
       <section className={styles.section} aria-labelledby="platform-sms">
         <div className={styles.generalConsentBox}>
           <p>
-            By providing a mobile number through NexCort iQ forms or approved agency workflows, you
-            consent to receive SMS messages related to demo scheduling, onboarding, account access,
-            support, or authorized NexCort iQ communications.
+            By providing a mobile number through NexCort iQ forms or approved agency workflows and
+            completing any required SMS consent step for that workflow, you may receive SMS messages
+            related to onboarding, account access, support, or other authorized NexCort iQ
+            communications for that program.
           </p>
           <p>
             Message and data rates may apply. Message frequency may vary. You may reply{" "}
@@ -58,9 +63,151 @@ export default function SmsConsentPage() {
           </p>
           <p>
             SMS consent is not required to purchase NexCort iQ services unless SMS-based
-            communication is part of the approved agency workflow.
+            communication is part of the approved agency workflow. Providing a telephone number alone
+            does not constitute consent to receive Business Communications SMS.
           </p>
         </div>
+      </section>
+
+      <section className={styles.section} id="business-sms" aria-labelledby="business-sms-heading">
+        <h3 id="business-sms-heading">NexCort iQ Business Communications SMS Program</h3>
+        <p>
+          <strong>Program Operator:</strong> Apps On Demand LLC, doing business as NexCort iQ.
+        </p>
+
+        <h4 className={styles.subhead}>Program Purpose</h4>
+        <p>
+          NexCort iQ provides optional, one-to-one SMS communications between authorized NexCort iQ
+          representatives (including sales advisors) and customers or prospective customers who have
+          expressly agreed to receive text messages.
+        </p>
+        <p>Messages may include:</p>
+        <ul className={styles.bulletList}>
+          <li>Responses to customer inquiries and requests for product information.</li>
+          <li>Product demonstration scheduling and confirmations.</li>
+          <li>Meeting reminders and appointment updates.</li>
+          <li>Requested follow-up information regarding NexCort iQ solutions.</li>
+          <li>Customer service, onboarding, and support communications.</li>
+        </ul>
+        <p>
+          This SMS program is not used for unsolicited advertising, bulk marketing, purchased contact
+          lists, or automated sales campaigns.
+        </p>
+
+        <h4 className={styles.subhead}>How Customers Opt In</h4>
+        <p>
+          Customers and prospective customers may voluntarily consent to SMS communications when
+          completing the public inquiry form on this page (
+          <a href="https://www.nexcortiq.us/sms-consent/#opt-in-form">
+            https://www.nexcortiq.us/sms-consent/#opt-in-form
+          </a>
+          ), or when completing a NexCort iQ contact or demonstration-request form on{" "}
+          <a href="https://www.nexcortiq.us">nexcortiq.us</a>.
+        </p>
+        <p>
+          The SMS consent option is a separate checkbox beneath the mobile phone field. It is not
+          selected by default. Submitting a form without checking the box does not enroll the
+          submitter in Business Communications SMS.
+        </p>
+        <p>
+          Customers may also provide express consent during an individual conversation with a NexCort
+          iQ representative, when that consent is appropriately documented (for example, written
+          confirmation or a recorded affirmation consistent with internal sales process).
+        </p>
+        <p>
+          Providing a telephone number alone does not constitute consent to receive SMS messages.
+          NexCort iQ does not send Business Communications SMS unless consent was obtained through an
+          appropriate process described on this page. Submitting the form does not automatically send
+          an SMS.
+        </p>
+
+        <div className={styles.optInFormBlock} id="opt-in-form">
+          <h4 className={styles.subhead} id="opt-in-form-heading">
+            Request Information from NexCort iQ — Business Communications SMS Opt-In
+          </h4>
+          <p>
+            Use this public form to request product information. Optional SMS consent is unchecked by
+            default. Carrier and messaging campaign reviewers can inspect this form without logging
+            in.
+          </p>
+          <BusinessSmsOptInForm />
+        </div>
+
+        <h4 className={styles.subhead}>How Consent Is Recorded</h4>
+        <p>
+          When a visitor opts in on this page, the contact form, or the demo-request form, NexCort iQ
+          records at minimum: consent status (opted in), timestamp, disclosure version for this
+          program, form source (<code>sms-consent</code>, <code>contact-sales</code>, or{" "}
+          <code>demo</code>), and the associated mobile phone number. Sales advisors must not use
+          Business Communications SMS for that contact unless a qualifying consent record exists or
+          documented conversational consent was obtained.
+        </p>
+
+        <h4 className={styles.subhead}>Messaging Terms and Conditions</h4>
+        <ul className={styles.bulletList}>
+          <li>
+            <strong>Program name:</strong> NexCort iQ Business Communications SMS.
+          </li>
+          <li>
+            <strong>Message frequency:</strong> Varies depending on customer inquiries and ongoing
+            conversations.
+          </li>
+          <li>
+            <strong>Message and data rates:</strong> Carrier message and data rates may apply.
+          </li>
+          <li>
+            <strong>Opt-out:</strong> Reply <span className={styles.keyword}>STOP</span> to
+            discontinue SMS communications.
+          </li>
+          <li>
+            <strong>Help:</strong> Reply <span className={styles.keyword}>HELP</span> for assistance
+            or email{" "}
+            <a href="mailto:support@nexcortiq.us">support@nexcortiq.us</a>.
+          </li>
+          <li>
+            <strong>Consent:</strong> Consent to receive SMS messages is voluntary and is not a
+            condition of purchase.
+          </li>
+          <li>
+            <strong>Message content:</strong> Limited to requested business communications,
+            appointment coordination, and customer support.
+          </li>
+          <li>
+            <strong>Delivery:</strong> Message delivery is subject to carrier availability and is not
+            guaranteed.
+          </li>
+        </ul>
+
+        <h4 className={styles.subhead}>SMS Privacy Protection</h4>
+        <p>
+          NexCort iQ does not share, sell, rent, or disclose mobile phone numbers or SMS opt-in and
+          consent information to third parties or affiliates for marketing or promotional purposes.
+        </p>
+        <p>
+          SMS service providers may process mobile numbers and message data only as necessary to
+          deliver and support the messaging service.
+        </p>
+
+        <h4 className={styles.subhead}>Additional Information</h4>
+        <ul className={styles.bulletList}>
+          <li>
+            Terms and Conditions:{" "}
+            <a href="https://www.nexcortiq.us/terms">https://www.nexcortiq.us/terms</a>
+          </li>
+          <li>
+            Privacy Policy:{" "}
+            <a href="https://www.nexcortiq.us/privacy/">https://www.nexcortiq.us/privacy/</a>
+          </li>
+          <li>
+            SMS Consent and Messaging Disclosure:{" "}
+            <a href="https://www.nexcortiq.us/sms-consent/">
+              https://www.nexcortiq.us/sms-consent/
+            </a>
+          </li>
+          <li>
+            Contact: <a href="mailto:support@nexcortiq.us">support@nexcortiq.us</a>
+          </li>
+        </ul>
       </section>
 
       <div className={styles.partHeader} id="incident-sms">
@@ -228,9 +375,11 @@ export default function SmsConsentPage() {
         <p>
           We do not share, sell, or provide your mobile phone number or messaging consent data to
           third parties or affiliates for marketing or promotional purposes. SMS consent obtained for
-          this dispatcher-initiated, incident-specific workflow is used only to deliver
-          incident-related messages and operate the service. Communications are limited to public
-          safety incident workflows and authorized agency use of NexCort iQ.
+          Business Communications SMS is used only for one-to-one business, appointment, and support
+          texts with consented contacts. SMS consent obtained for dispatcher-initiated,
+          incident-specific workflows is used only to deliver incident-related messages and operate
+          the service. Communications are limited to those authorized programs and agency use of
+          NexCort iQ.
         </p>
       </section>
 

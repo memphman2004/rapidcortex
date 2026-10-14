@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { BUSINESS_SMS_DISCLOSURE_VERSION } from "./business-sms-consent.js";
 
 export const contactSalesLeadBodySchema = z
   .object({
@@ -23,8 +24,42 @@ export const contactSalesLeadBodySchema = z
     message: z.string().max(5000).optional(),
     /** Anti-bot honeypot — omit or empty for legitimate submissions */
     website: z.string().optional(),
+    /**
+     * Explicit Business Communications SMS opt-in from the website checkbox.
+     * Unchecked by default; never treat phone presence alone as consent.
+     * Omitted/undefined means not opted in (legacy CRM writers may omit the field).
+     */
+    smsConsentOptedIn: z.boolean().optional(),
+    /** Must match {@link BUSINESS_SMS_DISCLOSURE_VERSION} when opting in. */
+    smsConsentDisclosureVersion: z.string().max(64).optional(),
+    /** Which public form collected the SMS consent decision. */
+    formSource: z.enum(["contact-sales", "demo", "sms-consent"]).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((v, ctx) => {
+    if (v.smsConsentOptedIn !== true) return;
+    if (!(v.phone?.trim().length ?? 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "A mobile phone number is required when opting in to SMS",
+        path: ["phone"],
+      });
+    }
+    const version = v.smsConsentDisclosureVersion?.trim();
+    if (!version) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "SMS disclosure version is required when opting in",
+        path: ["smsConsentDisclosureVersion"],
+      });
+    } else if (version !== BUSINESS_SMS_DISCLOSURE_VERSION) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "SMS disclosure version is out of date — refresh the page and try again",
+        path: ["smsConsentDisclosureVersion"],
+      });
+    }
+  });
 
 export type ContactSalesLeadBody = z.infer<typeof contactSalesLeadBodySchema>;
 
@@ -87,6 +122,7 @@ export const patchSalesLeadBodySchema = z
     lostReason: z.string().max(200).optional(),
     selectedFeatureIds: z.array(z.string().min(1).max(80)).max(100).optional(),
     freeOfferings: z.array(z.string().min(1).max(80)).max(50).optional(),
+    smsConsentStatus: z.enum(["pending", "opted_in", "opted_out"]).optional(),
   })
   .strict()
   .refine((v) => Object.keys(v).length > 0, {

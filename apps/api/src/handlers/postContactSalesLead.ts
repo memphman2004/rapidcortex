@@ -28,6 +28,7 @@ const CONTACT_SALES_INTERNAL_TO = "support@nexcortiq.us";
  * leaves the sandbox (production access). Otherwise SendEmail fails with MessageRejected.
  */
 function formatInternalSalesEmailBody(lead: SalesLeadRecord): string {
+  const smsOptedIn = lead.smsConsentOptedIn === true;
   const lines = [
     `Lead ID: ${lead.leadId}`,
     `Submitted: ${lead.createdAt}`,
@@ -40,6 +41,12 @@ function formatInternalSalesEmailBody(lead: SalesLeadRecord): string {
     `Agency / customer type: ${lead.customerType}`,
     `Interested in: ${lead.interestedIn.join(", ")}`,
     `Estimated agency size / dispatchers: ${lead.estimatedAgencySize?.trim() ? lead.estimatedAgencySize : "(not provided)"}`,
+    "",
+    "Business Communications SMS consent:",
+    `  Opted in: ${smsOptedIn ? "yes" : "no"}`,
+    `  Consent at: ${smsOptedIn && lead.smsConsentAt ? lead.smsConsentAt : "(n/a)"}`,
+    `  Disclosure version: ${lead.smsConsentDisclosureVersion?.trim() || "(n/a)"}`,
+    `  Form source: ${lead.formSource?.trim() || lead.source || "(n/a)"}`,
     "",
     "Message:",
     lead.message?.trim() ? lead.message : "(none)",
@@ -157,23 +164,49 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
   const now = new Date().toISOString();
   const isDemoRequest =
+    rest.formSource === "demo" ||
     (rest.message ?? "").includes("Source: /demo") ||
     (rest.message ?? "").includes("interest=demo");
+  const isSmsConsentPage =
+    rest.formSource === "sms-consent" ||
+    (rest.message ?? "").includes("Source: /sms-consent");
+  const formSource =
+    rest.formSource ?? (isSmsConsentPage ? "sms-consent" : isDemoRequest ? "demo" : "contact-sales");
+  const smsConsentOptedIn = rest.smsConsentOptedIn === true;
+  const source =
+    formSource === "sms-consent" ? "sms-consent" : isDemoRequest ? "demo" : "contact-sales";
+  const channelLabel =
+    formSource === "sms-consent"
+      ? "SMS consent opt-in form"
+      : isDemoRequest
+        ? "Live demo request"
+        : "Contact Sales";
+  const landingPage =
+    formSource === "sms-consent"
+      ? "/sms-consent/#opt-in-form"
+      : isDemoRequest
+        ? (rest.message ?? "").includes("interest=demo")
+          ? "/contact-sales?interest=demo"
+          : "/demo"
+        : "/contact-sales";
   const lead: SalesLeadRecord = {
     ...rest,
+    formSource,
+    smsConsentOptedIn,
+    smsConsentDisclosureVersion: smsConsentOptedIn
+      ? rest.smsConsentDisclosureVersion
+      : rest.smsConsentDisclosureVersion ?? undefined,
+    smsConsentAt: smsConsentOptedIn ? now : null,
+    smsConsentStatus: smsConsentOptedIn ? "opted_in" : "pending",
     leadId: randomUUID(),
     createdAt: now,
-    source: isDemoRequest ? "demo" : "contact-sales",
+    source,
     status: "new",
     pipelineStage: "NEW",
     attribution: {
       channel: "contact_sales",
-      channelLabel: isDemoRequest ? "Live demo request" : "Contact Sales",
-      landingPage: isDemoRequest
-        ? (rest.message ?? "").includes("interest=demo")
-          ? "/contact-sales?interest=demo"
-          : "/demo"
-        : null,
+      channelLabel,
+      landingPage,
       firstTouchAt: now,
     },
   };

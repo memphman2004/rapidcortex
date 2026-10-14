@@ -3,12 +3,16 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import {
   ACTIVE_PIPELINE_STAGES,
+  BUSINESS_SMS_OPT_IN_FORM_URL,
   CHANNEL_CONFIG,
+  LEAD_SMS_CONSENT_STATUS_LABELS,
   LOST_REASONS,
+  resolveLeadSmsConsentStatus,
   SALES_LEAD_PACKAGE_SOLD_LABELS,
   STAGE_CONFIG,
   type LeadActivity,
   type LeadNote,
+  type LeadSmsConsentStatus,
   type LeadVertical,
   type PatchSalesLeadCrmBody,
   type PipelineStage,
@@ -284,7 +288,9 @@ export function LeadDetailPanel({
   const [taskPriority, setTaskPriority] = useState("normal");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [smsLinkCopied, setSmsLinkCopied] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
+  const smsStatus = resolveLeadSmsConsentStatus(lead);
 
   useEffect(() => {
     setTab("details");
@@ -549,6 +555,95 @@ export function LeadDetailPanel({
                 >
                   {state || "—"}
                 </span>
+              </div>
+            </section>
+
+            <section className="mb-5">
+              <SectionHeader title="SMS Authorization" />
+              <div className="mb-3 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#0a1628] p-3">
+                <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#334155]">
+                  Customer SMS status
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {(["pending", "opted_in", "opted_out"] as LeadSmsConsentStatus[]).map((status) => {
+                    const active = smsStatus === status;
+                    const activeClass =
+                      status === "opted_in"
+                        ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
+                        : status === "opted_out"
+                          ? "border-red-500/40 bg-red-500/15 text-red-300"
+                          : "border-amber-500/40 bg-amber-500/15 text-amber-200";
+                    return (
+                      <button
+                        key={status}
+                        type="button"
+                        disabled={busy}
+                        onClick={async () => {
+                          if (active) return;
+                          setBusy(true);
+                          setError(null);
+                          try {
+                            await saveField("smsConsentStatus", status);
+                          } catch (err) {
+                            setError((err as Error).message);
+                          } finally {
+                            setBusy(false);
+                          }
+                        }}
+                        className={[
+                          "rounded-full border px-2.5 py-1 text-[10px] font-bold tracking-wide transition",
+                          active
+                            ? activeClass
+                            : "border-white/10 bg-white/[0.02] text-slate-500 hover:border-white/20 hover:text-slate-300",
+                        ].join(" ")}
+                      >
+                        {LEAD_SMS_CONSENT_STATUS_LABELS[status]}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
+                  {smsStatus === "opted_in"
+                    ? "Consent on file. Advisor may send one-to-one Business Communications SMS within program scope until the prospect opts out."
+                    : smsStatus === "opted_out"
+                      ? "Do not send Business Communications SMS. Prospect revoked consent or was marked opted out."
+                      : "Awaiting consent. Advisor may share the opt-in link using an appropriate non-SMS channel (email, Teams chat, call follow-up)."}
+                </p>
+                {lead.smsConsentAt ? (
+                  <p className="mt-2 text-[10px] text-slate-600">
+                    Recorded {formatDateTime(lead.smsConsentAt)}
+                    {lead.smsConsentDisclosureVersion
+                      ? ` · ${lead.smsConsentDisclosureVersion}`
+                      : ""}
+                    {lead.formSource ? ` · ${lead.formSource}` : ""}
+                  </p>
+                ) : null}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(BUSINESS_SMS_OPT_IN_FORM_URL);
+                        setSmsLinkCopied(true);
+                        window.setTimeout(() => setSmsLinkCopied(false), 2000);
+                      } catch {
+                        setError("Could not copy link — copy manually from the URL below.");
+                      }
+                    }}
+                    className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-[11px] font-semibold text-sky-300 hover:bg-sky-500/20"
+                  >
+                    {smsLinkCopied ? "Copied" : "Copy opt-in link"}
+                  </button>
+                  <a
+                    href={BUSINESS_SMS_OPT_IN_FORM_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-lg border border-white/10 px-3 py-1.5 text-[11px] font-semibold text-slate-400 hover:text-slate-200"
+                  >
+                    Open form
+                  </a>
+                </div>
+                <p className="mt-2 break-all text-[10px] text-slate-600">{BUSINESS_SMS_OPT_IN_FORM_URL}</p>
               </div>
             </section>
 
