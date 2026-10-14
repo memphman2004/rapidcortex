@@ -1246,6 +1246,20 @@ export function getCampusAdminNav(code: string): RoleNav {
           { id: "dashboard",   label: "Dashboard",         href: base,                      icon: "LayoutDashboard", exact: true },
           { id: "incidents",   label: "Incidents",         href: `${base}/incidents`,       icon: "AlertCircle",
             badge: { type: "count", key: "openIncidents" } },
+          {
+            id: "escort-iq",
+            label: "Escort iQ",
+            href: `${base}/escort-iq`,
+            icon: "Shield",
+            feature: "escortIq",
+          },
+          {
+            id: "campus-alerts",
+            label: "Campus Alerts",
+            href: `${base}/campus-alerts`,
+            icon: "Bell",
+            feature: "campusAlerts",
+          },
           rcTranslateNavItem(`${base}/translate`, "rcTranslateCampus"),
           {
             id: "alerts",
@@ -1399,6 +1413,20 @@ export function getCampusSupervisorNav(code: string): RoleNav {
           { id: "dashboard",   label: "Dashboard",         href: base,                      icon: "LayoutDashboard", exact: true },
           { id: "incidents",   label: "Incidents",         href: `${base}/incidents`,       icon: "AlertCircle",
             badge: { type: "count", key: "openIncidents" } },
+          {
+            id: "escort-iq",
+            label: "Escort iQ",
+            href: `${base}/escort-iq`,
+            icon: "Shield",
+            feature: "escortIq",
+          },
+          {
+            id: "campus-alerts",
+            label: "Campus Alerts",
+            href: `${base}/campus-alerts`,
+            icon: "Bell",
+            feature: "campusAlerts",
+          },
           rcTranslateNavItem(`${base}/translate`, "rcTranslateCampus"),
           {
             id: "alerts",
@@ -1521,6 +1549,20 @@ export function getCampusDispatchNav(code: string): RoleNav {
           { id: "dashboard",   label: "Dashboard",         href: base,                      icon: "LayoutDashboard", exact: true },
           { id: "incidents",   label: "Incident Queue",    href: `${base}/incidents`,       icon: "ClipboardList",
             badge: { type: "count", key: "openIncidents" } },
+          {
+            id: "escort-iq",
+            label: "Escort iQ",
+            href: `${base}/escort-iq`,
+            icon: "Shield",
+            feature: "escortIq",
+          },
+          {
+            id: "campus-alerts",
+            label: "Campus Alerts",
+            href: `${base}/campus-alerts`,
+            icon: "Bell",
+            feature: "campusAlerts",
+          },
           rcTranslateNavItem(`${base}/translate`, "rcTranslateCampus"),
           { id: "cameras",     label: "Cameras",           href: `${base}/cameras`,         icon: "Camera" },
           cameraAiNavItem(`${base}/vision-ai`),
@@ -2121,6 +2163,9 @@ const CAMPUS_K12_ONLY_ITEM_IDS = new Set([
   "incident-log",
 ]);
 
+/** Higher-ed-only nav item ids — stripped on K-12 consoles. */
+const CAMPUS_HIGHER_ED_ONLY_ITEM_IDS = new Set(["escort-iq", "campus-alerts"]);
+
 /**
  * Campus product split (role suffix `*_K12` / `*_HIGHERED`):
  * - Higher-ed: Clery Act compliance; no K-12 SAFETY.
@@ -2163,7 +2208,10 @@ export function applyCampusInstitutionNav(
           label,
           items: [
             ...section.items.filter(
-              (item) => item.id !== "clery" && !item.id.startsWith("clery-"),
+              (item) =>
+                item.id !== "clery" &&
+                !item.id.startsWith("clery-") &&
+                !CAMPUS_HIGHER_ED_ONLY_ITEM_IDS.has(item.id),
             ),
             {
               id: "daily-incident-log",
@@ -2181,7 +2229,11 @@ export function applyCampusInstitutionNav(
         };
       }
 
-      return { ...section, label };
+      return {
+        ...section,
+        label,
+        items: section.items.filter((item) => !CAMPUS_HIGHER_ED_ONLY_ITEM_IDS.has(item.id)),
+      };
     });
 
   const k12Safety: NavSection = {

@@ -94,16 +94,44 @@ export async function createIncidentFromQrNfcReport(
   const zone = input.locationNote?.trim() || record.zoneName || record.name;
   const isAnonymous = record.reportType === "anonymous";
   const reporterName = isAnonymous ? undefined : input.reporterName;
-  const reporterPhone = isAnonymous ? undefined : input.reporterPhone;
+  // Campus keeps callback phone even for anonymous reports (ops + live location).
+  const reporterPhone =
+    record.vertical === "campus"
+      ? input.reporterPhone
+      : isAnonymous
+        ? undefined
+        : input.reporterPhone;
 
   if (record.vertical === "campus") {
     const campusCode = extractOrgCode(record.agencyId, "campus");
+    const nowSnap = new Date().toISOString();
+    const hasRegistered =
+      record.latitude != null &&
+      record.longitude != null &&
+      Number.isFinite(record.latitude) &&
+      Number.isFinite(record.longitude);
+    const safetyPointSnapshot = {
+      safetyPointId: record.qrId,
+      siteCode: record.siteCode,
+      ...(hasRegistered
+        ? { latitude: record.latitude, longitude: record.longitude }
+        : {}),
+      buildingName: record.buildingName ?? record.buildingId,
+      floor: record.floor,
+      room: record.room ?? record.zoneId,
+      zone: record.zoneName,
+      verificationStatus: hasRegistered
+        ? record.verificationStatus ?? "UNVERIFIED"
+        : "MISSING",
+      coordinateSource: record.coordinateSource,
+      capturedAt: nowSnap,
+    };
     const { incident } = await createCampusQrIncident(
       {
         campusCode,
         buildingCode: record.buildingId?.trim() || record.zoneId?.trim() || "UNKNOWN",
         floor: parseIncidentFloor(record.floor),
-        roomCode: record.zoneId ?? "QR",
+        roomCode: record.room ?? record.zoneId ?? "QR",
         zoneCode: (record.zoneId ?? "QR").slice(0, 16),
         qrRcli: record.qrId,
         qrLocationName: record.name,
@@ -116,6 +144,14 @@ export async function createIncidentFromQrNfcReport(
         photoDataUrl: null,
         cameraIds: record.cameraIds,
         siteCode: record.siteCode,
+        ...(hasRegistered
+          ? {
+              latitude: record.latitude,
+              longitude: record.longitude,
+              horizontalAccuracyMeters: record.horizontalAccuracyMeters,
+            }
+          : {}),
+        safetyPointSnapshot,
       },
       record.agencyId,
       "qr-nfc-intake",

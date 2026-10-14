@@ -7,6 +7,7 @@ import { SideNav } from "@/components/dispatch/side-nav";
 import { TopBar } from "@/components/dispatch/top-bar";
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 import { HelpChrome } from "@/components/help/help-chrome";
+import { IqVisionNavAlertListener } from "@/components/rapid-vision/iq-vision-nav-alert-listener";
 import { isPsapConsoleHomePath } from "@/components/psap/psap-shell-chrome";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import type { UserContext } from "rapid-cortex-shared";
@@ -66,6 +67,7 @@ function DispatchShellInner({
           ["--rc-psap-accent" as string]: workstation ? "var(--rc-blue)" : SHELL.accent,
         }}
       >
+        <IqVisionNavAlertListener />
         <TopBar user={user} compact={workstation} />
         <DemoModeBanner />
         <div className="rc-workstation-main min-h-0">

@@ -48,6 +48,40 @@ function toCodeVertical(vertical: QRNFCRecord["vertical"]): RCCode["vertical"] {
   return "venue";
 }
 
+function coordinateSourceToMobile(
+  source: QRNFCRecord["coordinateSource"] | undefined,
+): RCCode["locationSource"] {
+  switch (source) {
+    case "DEVICE_GPS":
+      return "gps";
+    case "MAP_PIN":
+      return "manual";
+    case "GIS_IMPORT":
+      return "gis_import";
+    case "MANUAL":
+      return "manual";
+    default:
+      return null;
+  }
+}
+
+function mobileLocationSourceToCoordinate(
+  source: "gps" | "manual" | "gis_import" | "indoor_map" | null | undefined,
+): QRNFCRecord["coordinateSource"] | undefined {
+  switch (source) {
+    case "gps":
+      return "DEVICE_GPS";
+    case "gis_import":
+      return "GIS_IMPORT";
+    case "indoor_map":
+      return "MAP_PIN";
+    case "manual":
+      return "MAP_PIN";
+    default:
+      return undefined;
+  }
+}
+
 function mapQrRecordToRcCode(record: QRNFCRecord): RCCode {
   const nfcWriteLog = (record.nfcWriteLog ?? []).map((entry) => ({
     eventId: entry.eventId,
@@ -60,6 +94,7 @@ function mapQrRecordToRcCode(record: QRNFCRecord): RCCode {
     tagType: entry.tagType ?? null,
     writtenAt: entry.writtenAt,
   }));
+  const verified = record.verificationStatus === "VERIFIED";
   return {
     codeId: record.qrId,
     agencyId: record.agencyId,
@@ -78,6 +113,15 @@ function mapQrRecordToRcCode(record: QRNFCRecord): RCCode {
       lastNfcTap: record.lastEngagementAt ?? null,
       lastQrScan: record.lastEngagementAt ?? null,
     },
+    latitude: record.latitude ?? null,
+    longitude: record.longitude ?? null,
+    locationAccuracyMeters: record.horizontalAccuracyMeters ?? null,
+    locationSource: coordinateSourceToMobile(record.coordinateSource),
+    locationVerified: verified,
+    locationVerifiedAt: record.verifiedAt ?? null,
+    locationVerifiedBy: record.verifiedBy ?? null,
+    floorLevel: record.floor ?? null,
+    indoorMapId: record.indoorMapId ?? null,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
   };
@@ -237,10 +281,24 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         const manageGate = assertManage(user, existing.agencyId);
         if (manageGate) return mobileError(event, manageGate);
         const now = new Date().toISOString();
+        const { markLocationVerified, ...rest } = parsed.data;
+        const hasCoords =
+          (rest.latitude != null && rest.longitude != null) ||
+          (existing.latitude != null && existing.longitude != null);
+        // GPS / map save never auto-verifies — only explicit markLocationVerified.
+        const nextVerified =
+          markLocationVerified === true && hasCoords
+            ? true
+            : rest.latitude != null || rest.longitude != null
+              ? false
+              : (existing.locationVerified ?? false);
         const code: RCCode = {
           ...existing,
-          ...parsed.data,
-          zone: parsed.data.zone ?? existing.zone,
+          ...rest,
+          zone: rest.zone ?? existing.zone,
+          locationVerified: nextVerified,
+          locationVerifiedAt: nextVerified ? now : nextVerified === false ? null : existing.locationVerifiedAt,
+          locationVerifiedBy: nextVerified ? user.userId : nextVerified === false ? null : existing.locationVerifiedBy,
           updatedAt: now,
         };
         mockCodes.set(`${existing.agencyId}::${codeId}`, code);
@@ -262,6 +320,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         zoneName: parsed.data.zone,
         active: parsed.data.status ? parsed.data.status === "active" : undefined,
         callNumber: parsed.data.smsNumber ?? undefined,
+        latitude: parsed.data.latitude ?? undefined,
+        longitude: parsed.data.longitude ?? undefined,
+        horizontalAccuracyMeters: parsed.data.locationAccuracyMeters ?? undefined,
+        coordinateSource: mobileLocationSourceToCoordinate(parsed.data.locationSource),
+        floor: parsed.data.floorLevel ?? undefined,
+        indoorMapId: parsed.data.indoorMapId ?? undefined,
+        markLocationVerified: parsed.data.markLocationVerified,
       });
       if (!record) return mobileError(event, notFound("Code not found"));
       return mobileOk(event, { code: mapQrRecordToRcCode(record) });

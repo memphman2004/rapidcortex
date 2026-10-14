@@ -39,6 +39,26 @@ final class RCAPIClient: ObservableObject {
         try await delete(path: "/api/codes/\(qrId)")
     }
 
+    func updateCodeLocation(qrId: String, request: UpdateCodeLocationRequest) async throws -> QRNFCCode {
+        let envelope: MobileEnvelope<CodePayload> = try await patch(path: "/api/codes/\(qrId)", body: request)
+        try throwEnvelopeError(envelope)
+        guard let dto = envelope.data?.code else { throw RCAPIError.serverError(500, "Missing updated code") }
+        return QRNFCCode.fromLiveCode(dto)
+    }
+
+    func getCode(qrId: String) async throws -> QRNFCCode {
+        let envelope: MobileEnvelope<CodePayload> = try await get(path: "/api/codes/\(qrId)")
+        try throwEnvelopeError(envelope)
+        guard let dto = envelope.data?.code else { throw RCAPIError.serverError(500, "Missing code") }
+        return QRNFCCode.fromLiveCode(dto)
+    }
+
+    func patch<T: Decodable, B: Encodable>(path: String, body: B) async throws -> T {
+        var req = try await buildRequest(method: "PATCH", path: path)
+        req.httpBody = try JSONEncoder().encode(body)
+        return try await execute(req)
+    }
+
     func listAgencies() async throws -> [Agency] {
         let resp: RCListResponse<AgencyDTO> = try await get(path: "/api/agencies")
         return (resp.items).map(Agency.init(from:))

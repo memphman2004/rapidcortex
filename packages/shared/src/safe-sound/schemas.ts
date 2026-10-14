@@ -43,6 +43,18 @@ export const rcCodeSchema = z.object({
   status: codeStatusSchema,
   nfcWriteLog: z.array(nfcWriteEventSchema),
   metrics: rcCodeMetricsSchema,
+  latitude: z.number().min(-90).max(90).nullable().optional(),
+  longitude: z.number().min(-180).max(180).nullable().optional(),
+  locationAccuracyMeters: z.number().nonnegative().nullable().optional(),
+  locationSource: z.enum(["gps", "manual", "gis_import", "indoor_map"]).nullable().optional(),
+  locationVerified: z.boolean().optional(),
+  locationVerifiedAt: z.string().datetime().nullable().optional(),
+  locationVerifiedBy: z.string().max(200).nullable().optional(),
+  altitudeMeters: z.number().nullable().optional(),
+  floorLevel: z.string().max(64).nullable().optional(),
+  indoorMapId: z.string().max(128).nullable().optional(),
+  indoorX: z.number().nullable().optional(),
+  indoorY: z.number().nullable().optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
@@ -235,6 +247,21 @@ export const updateCodePayloadSchema = z.object({
   vertical: codeVerticalSchema.optional(),
   smsNumber: z.string().max(32).nullable().optional(),
   status: codeStatusSchema.optional(),
+  /** Registered installation coordinates (UNVERIFIED until markLocationVerified). */
+  latitude: z.number().min(-90).max(90).nullable().optional(),
+  longitude: z.number().min(-180).max(180).nullable().optional(),
+  locationAccuracyMeters: z.number().nonnegative().nullable().optional(),
+  locationSource: z.enum(["gps", "manual", "gis_import", "indoor_map"]).nullable().optional(),
+  altitudeMeters: z.number().nullable().optional(),
+  floorLevel: z.string().max(64).nullable().optional(),
+  indoorMapId: z.string().max(128).nullable().optional(),
+  indoorX: z.number().nullable().optional(),
+  indoorY: z.number().nullable().optional(),
+  /**
+   * Explicit installer confirmation only. Never set automatically from GPS capture.
+   * When true, service stamps verificationStatus=VERIFIED.
+   */
+  markLocationVerified: z.boolean().optional(),
 });
 
 export const logNfcWritePayloadSchema = z.object({

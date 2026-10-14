@@ -202,7 +202,7 @@ export function LiveStreamWithTranscript({
         </div>
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, color: C.teal, letterSpacing: "0.05em" }}>
-            RAPID VISION™
+            iQ VISION™
           </div>
           <div style={{ fontSize: 9, color: C.muted }}>{cameraName} — Live + Transcript</div>
         </div>

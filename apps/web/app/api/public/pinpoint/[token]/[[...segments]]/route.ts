@@ -47,5 +47,8 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   if (sub === "location") {
     return proxyUpstream(`/api/pinpoint/t/${enc}/location`, init);
   }
+  if (sub === "revoke") {
+    return proxyUpstream(`/api/pinpoint/t/${enc}/revoke`, init);
+  }
   return NextResponse.json({ error: "Not found" }, { status: 404 });
 }

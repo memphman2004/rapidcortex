@@ -1,5 +1,6 @@
 import { ulid } from "ulid";
 import type {
+  CampusAgencyConfig,
   QRNFCRecord,
   QRNFCPublicRecord,
   QRNFCWriteEvent,
@@ -8,9 +9,15 @@ import type {
 } from "rapid-cortex-shared";
 import {
   createQRNFCSchema,
+  isEscortIqEnabled,
+  isCampusAlertsFeatureEnabled,
   isMarketingSiteQrRecord,
   migrateLegacyRapidCortexRoleTokenValue,
+  resolveCampusInfoTab,
   resolveCampusInstitutionType,
+  safetyPointGisImportCommitSchema,
+  safetyPointGisImportPreviewSchema,
+  toPublicCampusInfoTab,
   TRADE_SHOW_SITE_AGENCY_ID,
   tradeShowDestFromQrId,
   tradeShowSiteDisplayName,
@@ -59,6 +66,72 @@ function assertView(user: UserContext, agencyId: string): void {
     (err as Error & { statusCode?: number }).statusCode = 403;
     throw err;
   }
+}
+
+
+function buildLocationDescription(record: Pick<QRNFCRecord, "buildingName" | "buildingId" | "floor" | "room" | "zoneName" | "name">): string | undefined {
+  const parts = [
+    record.buildingName ?? record.buildingId,
+    record.floor ? `Floor ${record.floor}` : undefined,
+    record.room ? `Room ${record.room}` : undefined,
+    record.zoneName,
+  ].filter(Boolean);
+  if (parts.length) return parts.join(" · ");
+  return record.name?.trim() || undefined;
+}
+
+function locationFieldsFromInput(
+  data: {
+    latitude?: number;
+    longitude?: number;
+    coordinateSource?: QRNFCRecord["coordinateSource"];
+    horizontalAccuracyMeters?: number;
+    buildingName?: string;
+    room?: string;
+    indoorMapId?: string;
+    indoorFeatureId?: string;
+    verificationStatus?: QRNFCRecord["verificationStatus"];
+  },
+  actorId: string,
+  now: string,
+  existing?: QRNFCRecord | null,
+): Partial<QRNFCRecord> {
+  const hasCoords = data.latitude != null && data.longitude != null;
+  if (!hasCoords && data.buildingName == null && data.room == null && data.indoorMapId == null) {
+    return {};
+  }
+  const out: Partial<QRNFCRecord> = {};
+  if (data.buildingName != null) out.buildingName = data.buildingName;
+  if (data.room != null) out.room = data.room;
+  if (data.indoorMapId != null) out.indoorMapId = data.indoorMapId;
+  if (data.indoorFeatureId != null) out.indoorFeatureId = data.indoorFeatureId;
+  if (hasCoords) {
+    out.latitude = data.latitude;
+    out.longitude = data.longitude;
+    out.coordinateSource = data.coordinateSource ?? "MANUAL";
+    if (data.horizontalAccuracyMeters != null) {
+      out.horizontalAccuracyMeters = data.horizontalAccuracyMeters;
+    }
+    out.locationCapturedAt = existing?.locationCapturedAt ?? now;
+    out.lastLocationUpdatedAt = now;
+    out.locationUpdatedBy = actorId;
+    // GPS / map capture never silently verifies — default UNVERIFIED.
+    out.verificationStatus =
+      data.verificationStatus === "VERIFIED"
+        ? "UNVERIFIED"
+        : data.verificationStatus ?? "UNVERIFIED";
+    const logEntry = {
+      at: now,
+      by: actorId,
+      latitude: data.latitude!,
+      longitude: data.longitude!,
+      coordinateSource: out.coordinateSource!,
+      verificationStatus: out.verificationStatus!,
+    };
+    const prev = existing?.locationChangeLog ?? [];
+    out.locationChangeLog = [...prev, logEntry].slice(-25);
+  }
+  return out;
 }
 
 export class QrNfcService {
@@ -123,6 +196,7 @@ export class QrNfcService {
       updatedAt: now,
       ...(callNumber ? { callNumber } : {}),
       ...(ttl ? { ttl } : {}),
+      ...locationFieldsFromInput(parsed.data, user.userId, now, null),
     };
 
     await repo.put(record);
@@ -255,7 +329,30 @@ export class QrNfcService {
         throw err;
       }
     }
-    const updated = await repo.update(existing.agencyId, qrId, parsed.data as UpdateQRNFCInput);
+    const now = new Date().toISOString();
+    const { markLocationVerified, ...rawPatch } = parsed.data as UpdateQRNFCInput & {
+      markLocationVerified?: boolean;
+    };
+    const locationPatch = locationFieldsFromInput(rawPatch, user.userId, now, existing);
+    const patch: Partial<QRNFCRecord> = { ...rawPatch, ...locationPatch };
+    // Strip client-only flag / force unverified unless explicit verify.
+    delete (patch as { markLocationVerified?: boolean }).markLocationVerified;
+    if (markLocationVerified === true) {
+      if (existing.latitude == null || existing.longitude == null) {
+        if (locationPatch.latitude == null || locationPatch.longitude == null) {
+          const err = new Error("VALIDATION:Cannot verify a safety point without coordinates");
+          (err as Error & { statusCode?: number }).statusCode = 400;
+          throw err;
+        }
+      }
+      patch.verificationStatus = "VERIFIED";
+      patch.verifiedAt = now;
+      patch.verifiedBy = user.userId;
+    } else if ("verificationStatus" in patch && patch.verificationStatus === "VERIFIED") {
+      // Never accept VERIFIED from a generic patch — require markLocationVerified.
+      patch.verificationStatus = "UNVERIFIED";
+    }
+    const updated = await repo.update(existing.agencyId, qrId, patch);
     if (updated?.vertical === "campus") {
       try {
         await upsertCampusBuildingFromQr(updated);
@@ -408,16 +505,57 @@ export class QrNfcService {
     const agency = await agencies.get(record.agencyId);
     const callNumber =
       record.callNumber ?? (await resolveAgencyCallNumber(record.agencyId));
+    const campusCfg = (agency as { config?: { campus?: CampusAgencyConfig } } | null)?.config?.campus;
     const institutionType =
       record.vertical === "campus"
         ? resolveCampusInstitutionType({
             institutionType: (agency as { institutionType?: unknown } | null)?.institutionType
-              ?? (agency as { config?: { campus?: { institutionType?: unknown; campusType?: unknown } } } | null)
-                  ?.config?.campus?.institutionType,
-            campusType: (agency as { config?: { campus?: { campusType?: unknown } } } | null)?.config
-              ?.campus?.campusType,
+              ?? campusCfg?.institutionType,
+            campusType: campusCfg?.campusType,
           })
         : undefined;
+    const infoTabPublic =
+      record.vertical === "campus"
+        ? toPublicCampusInfoTab(resolveCampusInfoTab(campusCfg, record.siteCode))
+        : undefined;
+    const collectPhone =
+      record.vertical === "campus"
+        ? campusCfg?.publicReportForm?.collectPhone !== false
+        : undefined;
+    const escortIqAvailable =
+      record.vertical === "campus" &&
+      isEscortIqEnabled({
+        platformEnabled: env.enableEscortIq,
+        tenantEnabled: campusCfg?.escortIq?.enabled === true,
+        vertical: "campus",
+        agencyType: (agency as { type?: string } | null)?.type,
+        institutionType:
+          (agency as { institutionType?: unknown } | null)?.institutionType ??
+          campusCfg?.institutionType,
+        campusType: campusCfg?.campusType,
+      });
+    const campusAlertsAvailable =
+      record.vertical === "campus" &&
+      isCampusAlertsFeatureEnabled({
+        platformEnabled: env.enableCampusAlerts,
+        tenantEnabled: campusCfg?.campusAlerts?.enabled === true,
+        selfRegistrationEnabled: campusCfg?.campusAlerts?.selfRegistrationEnabled !== false,
+        vertical: "campus",
+        agencyType: (agency as { type?: string } | null)?.type,
+        institutionType:
+          (agency as { institutionType?: unknown } | null)?.institutionType ??
+          campusCfg?.institutionType,
+        campusType: campusCfg?.campusType,
+      });
+    const hasRegisteredLocation =
+      record.latitude != null &&
+      record.longitude != null &&
+      Number.isFinite(record.latitude) &&
+      Number.isFinite(record.longitude);
+    const locationVerificationStatus = hasRegisteredLocation
+      ? record.verificationStatus ?? "UNVERIFIED"
+      : "MISSING";
+    const locationDescription = buildLocationDescription(record);
     return {
       active: true,
       qrId: record.qrId,
@@ -429,6 +567,15 @@ export class QrNfcService {
       reportType: record.reportType,
       medium,
       ...(institutionType ? { institutionType } : {}),
+      ...(collectPhone !== undefined ? { collectPhone } : {}),
+      ...(infoTabPublic ? { infoTab: infoTabPublic } : {}),
+      ...(escortIqAvailable ? { escortIqAvailable: true } : {}),
+      ...(campusAlertsAvailable ? { campusAlertsAvailable: true } : {}),
+      ...(locationDescription ? { locationDescription } : {}),
+      ...(record.buildingName ? { buildingName: record.buildingName } : {}),
+      ...(record.floor ? { floor: record.floor } : {}),
+      hasRegisteredLocation,
+      locationVerificationStatus,
       ...(callNumber
         ? {
             callNumber,
@@ -436,5 +583,172 @@ export class QrNfcService {
           }
         : {}),
     };
+  }
+
+  /**
+   * GIS / CSV bulk import preview — validates rows and resolves tenant matches.
+   * Never writes. Coordinate updates stay UNVERIFIED until explicit verify.
+   */
+  async previewGisImport(
+    user: UserContext,
+    input: unknown,
+  ): Promise<{
+    agencyId: string;
+    valid: Array<{
+      safetyPointId: string;
+      siteCode?: string;
+      buildingName?: string;
+      floor?: string;
+      zone?: string;
+      latitude: number;
+      longitude: number;
+      name?: string;
+    }>;
+    unmatched: Array<{ safetyPointId: string; reason: string }>;
+    invalid: Array<{ row: unknown; errors: string[] }>;
+    summary: { total: number; valid: number; unmatched: number; invalid: number };
+  }> {
+    const parsed = safetyPointGisImportPreviewSchema.safeParse(input);
+    if (!parsed.success) {
+      const err = new Error("VALIDATION");
+      (err as Error & { zodError?: unknown; statusCode?: number }).statusCode = 400;
+      (err as Error & { zodError?: unknown }).zodError = parsed.error;
+      throw err;
+    }
+    const agencyId = resolveQrNfcAgencyId(user, parsed.data.agencyId);
+    assertManage(user, agencyId);
+
+    const valid: Array<(typeof parsed.data.rows)[number] & { name?: string }> = [];
+    const unmatched: Array<{ safetyPointId: string; reason: string }> = [];
+    const invalid: Array<{ row: unknown; errors: string[] }> = [];
+
+    for (const row of parsed.data.rows) {
+      const existing = await repo.getByQrId(row.safetyPointId);
+      if (!existing) {
+        unmatched.push({
+          safetyPointId: row.safetyPointId,
+          reason: "No QR/NFC code with this id — import never creates new codes or URLs",
+        });
+        continue;
+      }
+      if (existing.agencyId !== agencyId) {
+        unmatched.push({
+          safetyPointId: row.safetyPointId,
+          reason: "Code belongs to a different agency (tenant isolation)",
+        });
+        continue;
+      }
+      if (isTradeShowSiteQrId(existing.qrId) || isMarketingSiteQrRecord(existing)) {
+        unmatched.push({
+          safetyPointId: row.safetyPointId,
+          reason: "Marketing / site codes cannot receive GIS coordinates",
+        });
+        continue;
+      }
+      valid.push({ ...row, name: existing.name });
+    }
+
+    return {
+      agencyId,
+      valid,
+      unmatched,
+      invalid,
+      summary: {
+        total: parsed.data.rows.length,
+        valid: valid.length,
+        unmatched: unmatched.length,
+        invalid: invalid.length,
+      },
+    };
+  }
+
+  /**
+   * Controlled GIS commit — updates coordinates only for matched tenant codes.
+   * Preserves qrId/url; forces UNVERIFIED; never auto-verifies.
+   */
+  async commitGisImport(
+    user: UserContext,
+    input: unknown,
+  ): Promise<{
+    agencyId: string;
+    updated: number;
+    skipped: number;
+    results: Array<{ safetyPointId: string; status: "updated" | "skipped"; reason?: string }>;
+  }> {
+    const parsed = safetyPointGisImportCommitSchema.safeParse(input);
+    if (!parsed.success) {
+      const err = new Error("VALIDATION");
+      (err as Error & { zodError?: unknown; statusCode?: number }).statusCode = 400;
+      (err as Error & { zodError?: unknown }).zodError = parsed.error;
+      throw err;
+    }
+    const agencyId = resolveQrNfcAgencyId(user, parsed.data.agencyId);
+    assertManage(user, agencyId);
+    const now = new Date().toISOString();
+    const results: Array<{ safetyPointId: string; status: "updated" | "skipped"; reason?: string }> = [];
+    let updated = 0;
+    let skipped = 0;
+
+    for (const row of parsed.data.rows) {
+      const existing = await repo.getByQrId(row.safetyPointId);
+      if (!existing || existing.agencyId !== agencyId) {
+        skipped += 1;
+        results.push({
+          safetyPointId: row.safetyPointId,
+          status: "skipped",
+          reason: !existing ? "not_found" : "cross_tenant",
+        });
+        continue;
+      }
+      if (isTradeShowSiteQrId(existing.qrId)) {
+        skipped += 1;
+        results.push({ safetyPointId: row.safetyPointId, status: "skipped", reason: "site_code" });
+        continue;
+      }
+      const locationPatch = locationFieldsFromInput(
+        {
+          latitude: row.latitude,
+          longitude: row.longitude,
+          coordinateSource: "GIS_IMPORT",
+          buildingName: row.buildingName,
+          verificationStatus: "UNVERIFIED",
+        },
+        user.userId,
+        now,
+        existing,
+      );
+      const patch: Partial<QRNFCRecord> = {
+        ...locationPatch,
+        ...(row.floor != null ? { floor: row.floor } : {}),
+        ...(row.zone != null ? { zoneName: row.zone } : {}),
+        ...(row.siteCode != null ? { siteCode: row.siteCode } : {}),
+        // Never change public URL or qrId — preserve stable links + historical snapshots.
+      };
+      await repo.update(existing.agencyId, existing.qrId, patch);
+      updated += 1;
+      results.push({ safetyPointId: row.safetyPointId, status: "updated" });
+    }
+
+    try {
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.QR_NFC_CODE_UPDATED,
+        details: {
+          action: "gis_import_commit",
+          updated,
+          skipped,
+          rowCount: parsed.data.rows.length,
+        },
+        createdAt: now,
+        resourceType: "integration",
+        resourceId: agencyId,
+      });
+    } catch (err) {
+      console.warn("[qr-nfc] gis import audit failed", err);
+    }
+
+    return { agencyId, updated, skipped, results };
   }
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "next/navigation";
 import { RapidVisionPanel } from "@/components/rapid-vision/RapidVisionPanel";
 import { useSession } from "@/components/auth/session-context";
 import { loadIncidents } from "@/lib/queries";
@@ -17,8 +18,9 @@ function canVerifyRapidVision(role: string | undefined): boolean {
   );
 }
 
-export default function DispatcherVisionPage() {
+function DispatcherVisionPageInner() {
   const { user } = useSession();
+  const searchParams = useSearchParams();
   const rapidVisionEnabled = isRapidVisionEnabled();
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
 
@@ -28,6 +30,14 @@ export default function DispatcherVisionPage() {
   });
 
   const incidents = useMemo(() => incidentsQuery.data ?? [], [incidentsQuery.data]);
+  const queryIncident =
+    searchParams?.get("incident")?.trim() || searchParams?.get("incidentId")?.trim() || null;
+
+  useEffect(() => {
+    if (queryIncident && incidents.some((i) => i.incidentId === queryIncident)) {
+      setSelectedIncidentId(queryIncident);
+    }
+  }, [queryIncident, incidents]);
 
   useEffect(() => {
     if (!incidents.length) {
@@ -100,5 +110,17 @@ export default function DispatcherVisionPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function DispatcherVisionPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-4 text-sm text-slate-400">Loading iQ Vision…</div>
+      }
+    >
+      <DispatcherVisionPageInner />
+    </Suspense>
   );
 }

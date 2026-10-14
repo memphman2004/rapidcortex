@@ -9,6 +9,7 @@ import type {
   VisionWebSocketEvent,
 } from "rapid-cortex-shared";
 import { useAgencyWebSocket, type AgencyWebSocketMessage } from "@/hooks/use-agency-websocket";
+import { setIqVisionViewingIncident } from "@/lib/rapid-vision/iq-vision-nav-alert-store";
 import { VisionIntelligenceFeed as FeedComponent } from "./VisionIntelligenceFeed";
 import type { StreamingObservationEntry } from "./VisionIntelligenceFeed";
 import { VisionCameraList } from "./VisionCameraList";
@@ -63,6 +64,11 @@ export function RapidVisionPanel({
     new Map(),
   );
   const [latestWsEvent, setLatestWsEvent] = useState<VisionWebSocketEvent | null>(null);
+
+  useEffect(() => {
+    setIqVisionViewingIncident(incidentId);
+    return () => setIqVisionViewingIncident(null);
+  }, [incidentId]);
 
   const loadFeed = useCallback(async () => {
     try {
@@ -273,7 +279,7 @@ export function RapidVisionPanel({
           </div>
           <div>
             <div style={{ fontSize: 12, fontWeight: 700, color: V.vision, letterSpacing: "0.05em" }}>
-              RAPID VISION™
+              iQ VISION™
             </div>
             <div style={{ fontSize: 9, color: V.muted, marginTop: 1 }}>
               AI-powered visual intelligence

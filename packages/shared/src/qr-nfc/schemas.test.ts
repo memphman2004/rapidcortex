@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createQRNFCSchema } from "./schemas.js";
+import { createQRNFCSchema, publicReportSubmitSchema } from "./schemas.js";
 
 describe("createQRNFCSchema", () => {
   it("accepts 10-digit US call numbers and normalizes to E.164", () => {
@@ -42,5 +42,19 @@ describe("createQRNFCSchema", () => {
     expect(parsed.stationId).toBe("central");
     expect(parsed.routeId).toBe("line-2");
     expect(parsed.cameraIds).toEqual(["cam-central-plat"]);
+  });
+});
+
+describe("publicReportSubmitSchema", () => {
+  it("accepts shareLiveLocation with callback phone", () => {
+    const parsed = publicReportSubmitSchema.parse({
+      qrId: "01HQRTEST0000000000000000",
+      message: "Need help near the library",
+      medium: "qr",
+      reporterPhone: "+15551234567",
+      shareLiveLocation: true,
+    });
+    expect(parsed.shareLiveLocation).toBe(true);
+    expect(parsed.reporterPhone).toBe("+15551234567");
   });
 });

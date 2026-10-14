@@ -8,8 +8,8 @@ import { join } from 'node:path';
  * keys below only for existing credentials; do not ship new Expo iOS builds.
  *
  * First Play submission: QR/NFC field tool for Venue + Campus staff.
- * Safe & Sound UI stays flag-gated. Camera, BLE, and location permissions are
- * blocked on Android so the Play listing matches that product.
+ * Safe & Sound UI stays flag-gated. Camera and BLE stay blocked on Android.
+ * Foreground fine/coarse location is allowed for on-site QR/NFC install GPS.
  * react-native-ble-plx is still linked, so iOS requires
  * NSBluetoothAlwaysUsageDescription (ITMS-90683) even when BLE is unused.
  * Do not add bluetooth-central UIBackgroundModes until Guardian ships.
@@ -121,17 +121,18 @@ const config: ExpoConfig = {
       'android.permission.NFC',
       'android.permission.VIBRATE',
       'android.permission.RECORD_AUDIO',
+      'android.permission.ACCESS_FINE_LOCATION',
+      'android.permission.ACCESS_COARSE_LOCATION',
     ],
     /**
-     * Play v1 is QR/NFC field codes + Translator (STT). Linked Safe & Sound
-     * native modules (BLE, maps, camera, background location, FCM) still
-     * autolink — strip their dangerous permissions so Data safety / Photos /
-     * Nearby devices declarations match the shipped product.
+     * Play v1 is QR/NFC field codes + Translator (STT) + install GPS.
+     * Linked Safe & Sound native modules (BLE, camera, background location, FCM)
+     * still autolink — strip those dangerous permissions so Data safety / Photos /
+     * Nearby devices declarations match the shipped product. Keep foreground
+     * location for Register Installation Location; block background only.
      */
     blockedPermissions: [
       'android.permission.CAMERA',
-      'android.permission.ACCESS_FINE_LOCATION',
-      'android.permission.ACCESS_COARSE_LOCATION',
       'android.permission.ACCESS_BACKGROUND_LOCATION',
       'android.permission.ACCESS_MEDIA_LOCATION',
       'android.permission.FOREGROUND_SERVICE',

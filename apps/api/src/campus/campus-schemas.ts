@@ -71,6 +71,22 @@ export const createIncidentSchema = z.object({
   siteShortName: z.string().trim().max(16).optional(),
   latitude: z.number().min(-90).max(90).optional(),
   longitude: z.number().min(-180).max(180).optional(),
+  horizontalAccuracyMeters: z.number().finite().min(0).max(5000).optional(),
+  safetyPointSnapshot: z
+    .object({
+      safetyPointId: z.string().min(1).max(64),
+      siteCode: z.string().max(20).optional(),
+      latitude: z.number().min(-90).max(90).optional(),
+      longitude: z.number().min(-180).max(180).optional(),
+      buildingName: z.string().max(200).optional(),
+      floor: z.string().max(16).optional(),
+      room: z.string().max(64).optional(),
+      zone: z.string().max(200).optional(),
+      verificationStatus: z.string().max(32),
+      coordinateSource: z.string().max(32).optional(),
+      capturedAt: z.string(),
+    })
+    .optional(),
 });
 
 export const updateIncidentSchema = z.object({

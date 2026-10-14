@@ -7,12 +7,17 @@ import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent } fro
 import { usePathname } from "next/navigation";
 import type { UserContext } from "rapid-cortex-shared/types";
 import { hardNavigateTo } from "@/lib/auth/postAuthRedirect";
+import { useIqVisionNavAlert } from "@/hooks/use-iq-vision-nav-alert";
 import { requiresHardCrossShellNav } from "@/lib/navigation/cross-shell-nav";
 import { buildNavContext } from "@/lib/navigation/nav-context";
 import { filterRoleNavByFeatures } from "@/lib/navigation/filter-role-nav";
 import { navIconByName } from "@/lib/navigation/nav-icons";
 import { getRoleNav, type NavBadge, type NavItem, type RoleNav } from "@/lib/navigation/role-nav";
 import { useNavBadgeCounts, type NavBadgeCounts } from "@/lib/navigation/use-nav-badge-counts";
+import {
+  acknowledgeIqVisionIncident,
+  clearIqVisionNavAlerts,
+} from "@/lib/rapid-vision/iq-vision-nav-alert-store";
 import { SidebarHomeButton } from "@/components/ui/sidebar-home-button";
 import { SidebarSignOutFooter } from "@/components/ui/sidebar-sign-out-footer";
 import { SITE_SQUARE_ICON_HEIGHT, SITE_SQUARE_ICON_PATH, SITE_SQUARE_ICON_WIDTH } from "@/lib/site";
@@ -71,30 +76,50 @@ function SidebarNavLink({
   counts?: NavBadgeCounts;
 }) {
   const Icon = navIconByName(item.icon);
+  const iqAlert = useIqVisionNavAlert();
+  const isIqVision = item.id === "rapid-vision";
+  const iqPulsing = isIqVision && iqAlert.pulsing;
+
+  const href =
+    iqPulsing && iqAlert.focusIncidentId
+      ? `${navHrefPath(item.href)}?incident=${encodeURIComponent(iqAlert.focusIncidentId)}`
+      : item.href;
+
   const linkClass =
     variant === "compact"
       ? `block rounded-md border px-3 py-2 text-sm font-semibold transition-colors ${
-          active
-            ? "bg-slate-800 text-white"
-            : "border-slate-700 bg-slate-900/70 text-slate-200 hover:border-slate-600 hover:bg-slate-800"
+          iqPulsing
+            ? "iq-vision-nav-pulse border-red-500/60 bg-red-950/50 text-red-100"
+            : active
+              ? "bg-slate-800 text-white"
+              : "border-slate-700 bg-slate-900/70 text-slate-200 hover:border-slate-600 hover:bg-slate-800"
         }`
       : `flex items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors ${
           nested ? "py-1.5 text-[13px]" : ""
         } ${
-          active
-            ? "bg-slate-900/90 text-white"
-            : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+          iqPulsing
+            ? "iq-vision-nav-pulse text-red-100"
+            : active
+              ? "bg-slate-900/90 text-white"
+              : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
         }`;
 
   const hardCrossShell =
-    !item.external && requiresHardCrossShellNav(pathname, item.href);
+    !item.external && requiresHardCrossShellNav(pathname, href);
 
   const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (isIqVision && iqPulsing) {
+      if (iqAlert.focusIncidentId) {
+        acknowledgeIqVisionIncident(iqAlert.focusIncidentId);
+      } else {
+        clearIqVisionNavAlerts();
+      }
+    }
     if (hardCrossShell) {
       // Soft RSC nav between /rc-admin and /sales shells corrupts the App Router stream.
       e.preventDefault();
       onNavigate?.();
-      hardNavigateTo(navHrefPath(item.href));
+      hardNavigateTo(navHrefPath(href));
       return;
     }
     onNavigate?.();
@@ -102,27 +127,33 @@ function SidebarNavLink({
 
   return (
     <Link
-      href={item.href}
+      href={href}
       prefetch={false}
       aria-current={active ? "page" : undefined}
+      aria-label={iqPulsing ? `${item.label} — camera detection alert` : undefined}
       className={linkClass}
       style={
-        variant === "compact" && active
+        iqPulsing && variant === "sidebar"
           ? {
-              borderColor: "color-mix(in srgb, var(--role-accent) 40%, transparent)",
+              borderLeft: "3px solid #ef4444",
+              paddingLeft: "calc(0.5rem - 3px)",
             }
-          : variant === "sidebar" && active
+          : variant === "compact" && active
             ? {
-                borderLeft: "3px solid var(--role-accent)",
-                paddingLeft: "calc(0.5rem - 3px)",
-                backgroundColor:
-                  "color-mix(in srgb, var(--role-accent-dim) 55%, var(--rc-nav-active-mix, rgb(2 6 23)))",
-                boxShadow:
-                  "inset 0 0 0 1px color-mix(in srgb, var(--role-accent) 20%, transparent)",
+                borderColor: "color-mix(in srgb, var(--role-accent) 40%, transparent)",
               }
-            : variant === "sidebar"
-              ? { borderLeft: "3px solid transparent" }
-              : undefined
+            : variant === "sidebar" && active
+              ? {
+                  borderLeft: "3px solid var(--role-accent)",
+                  paddingLeft: "calc(0.5rem - 3px)",
+                  backgroundColor:
+                    "color-mix(in srgb, var(--role-accent-dim) 55%, var(--rc-nav-active-mix, rgb(2 6 23)))",
+                  boxShadow:
+                    "inset 0 0 0 1px color-mix(in srgb, var(--role-accent) 20%, transparent)",
+                }
+              : variant === "sidebar"
+                ? { borderLeft: "3px solid transparent" }
+                : undefined
       }
       onClick={handleClick}
       {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
@@ -130,12 +161,22 @@ function SidebarNavLink({
       {variant === "sidebar" ? (
         <Icon
           className={`shrink-0 opacity-90 ${nested ? "h-3.5 w-3.5" : "h-4 w-4"}`}
-          style={{ color: active ? "var(--role-accent)" : "var(--rc-text-muted, rgb(148 163 184))" }}
+          style={{
+            color: iqPulsing
+              ? "#fca5a5"
+              : active
+                ? "var(--role-accent)"
+                : "var(--rc-text-muted, rgb(148 163 184))",
+          }}
           aria-hidden
         />
       ) : null}
       <span className="min-w-0 flex-1 leading-snug">{item.label}</span>
-      {item.badge && counts ? <NavItemBadge badge={item.badge} counts={counts} /> : null}
+      {iqPulsing ? (
+        <span className="ml-auto h-2 w-2 shrink-0 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]" aria-hidden />
+      ) : item.badge && counts ? (
+        <NavItemBadge badge={item.badge} counts={counts} />
+      ) : null}
     </Link>
   );
 }

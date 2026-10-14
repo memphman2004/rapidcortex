@@ -33,6 +33,11 @@ type ReportFormProps = {
   submitLabel: string;
   showAnonymousToggle: boolean;
   showIdentity: boolean;
+  /** Callback phone without requiring full identity (campus). */
+  showCallbackPhone?: boolean;
+  /** Opt-in to create a browser live-location session after submit. */
+  shareLiveLocation?: boolean;
+  onShareLiveLocationChange?: (v: boolean) => void;
   submitting: boolean;
   error: string | null;
   onSubmit: (e: React.FormEvent) => void;
@@ -54,6 +59,9 @@ export function ReportForm({
   submitLabel,
   showAnonymousToggle,
   showIdentity,
+  showCallbackPhone = false,
+  shareLiveLocation = false,
+  onShareLiveLocationChange,
   submitting,
   error,
   onSubmit,
@@ -61,6 +69,7 @@ export function ReportForm({
 }: ReportFormProps) {
   const { t } = useReportLanguage();
   const useK12Picker = Boolean(k12Types && k12Types.length > 0);
+  const phoneFieldVisible = showIdentity || showCallbackPhone;
 
   return (
     <section
@@ -171,35 +180,61 @@ export function ReportForm({
         ) : null}
 
         {showIdentity ? (
-          <>
-            <label className="mt-4 block text-sm font-medium" style={{ color: SAFETY_BRAND.textDark }}>
-              <span className="inline-flex items-center gap-1.5">
-                <UserRound className="h-3.5 w-3.5" style={{ color: SAFETY_BRAND.muted }} aria-hidden />
-                {t("yourName")}
+          <label className="mt-4 block text-sm font-medium" style={{ color: SAFETY_BRAND.textDark }}>
+            <span className="inline-flex items-center gap-1.5">
+              <UserRound className="h-3.5 w-3.5" style={{ color: SAFETY_BRAND.muted }} aria-hidden />
+              {t("yourName")}
+            </span>
+            <input
+              value={values.reporterName}
+              onChange={(e) => onChange({ reporterName: e.target.value })}
+              placeholder={t("optionalPlaceholder")}
+              autoComplete="name"
+              className={fieldClass}
+              style={{ borderColor: SAFETY_BRAND.border, color: SAFETY_BRAND.textDark }}
+            />
+          </label>
+        ) : null}
+
+        {phoneFieldVisible ? (
+          <label className="mt-4 block text-sm font-medium" style={{ color: SAFETY_BRAND.textDark }}>
+            {t("yourPhone")}
+            {shareLiveLocation || showCallbackPhone ? (
+              <span className="ml-1 text-xs font-normal" style={{ color: SAFETY_BRAND.muted }}>
+                {shareLiveLocation ? "(required to share location)" : "(callback)"}
               </span>
-              <input
-                value={values.reporterName}
-                onChange={(e) => onChange({ reporterName: e.target.value })}
-                placeholder={t("optionalPlaceholder")}
-                autoComplete="name"
-                className={fieldClass}
-                style={{ borderColor: SAFETY_BRAND.border, color: SAFETY_BRAND.textDark }}
-              />
-            </label>
-            <label className="mt-4 block text-sm font-medium" style={{ color: SAFETY_BRAND.textDark }}>
-              {t("yourPhone")}
-              <input
-                type="tel"
-                value={values.reporterPhone}
-                onChange={(e) => onChange({ reporterPhone: e.target.value })}
-                placeholder={t("optionalPlaceholder")}
-                autoComplete="tel"
-                inputMode="tel"
-                className={fieldClass}
-                style={{ borderColor: SAFETY_BRAND.border, color: SAFETY_BRAND.textDark }}
-              />
-            </label>
-          </>
+            ) : null}
+            <input
+              type="tel"
+              value={values.reporterPhone}
+              onChange={(e) => onChange({ reporterPhone: e.target.value })}
+              placeholder={t("optionalPlaceholder")}
+              autoComplete="tel"
+              inputMode="tel"
+              required={shareLiveLocation}
+              className={fieldClass}
+              style={{ borderColor: SAFETY_BRAND.border, color: SAFETY_BRAND.textDark }}
+            />
+          </label>
+        ) : null}
+
+        {onShareLiveLocationChange ? (
+          <label className="mt-4 flex items-start gap-3 rounded-xl border px-3 py-3">
+            <input
+              type="checkbox"
+              checked={shareLiveLocation}
+              onChange={(e) => onShareLiveLocationChange(e.target.checked)}
+              className="mt-0.5 h-5 w-5 rounded border-slate-300"
+              style={{ accentColor: SAFETY_BRAND.deepBlue }}
+            />
+            <span className="text-left text-sm" style={{ color: SAFETY_BRAND.textDark }}>
+              <span className="font-semibold">Share my location until help arrives</span>
+              <span className="mt-0.5 block text-xs" style={{ color: SAFETY_BRAND.muted }}>
+                Optional. Your live location is only shared with campus safety and stops when they
+                arrive or you cancel. Keep this screen open.
+              </span>
+            </span>
+          </label>
         ) : null}
 
         {showOptionalActions ? (

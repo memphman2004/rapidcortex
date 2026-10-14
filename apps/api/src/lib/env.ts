@@ -208,6 +208,24 @@ export const env = {
   pinpointPublicBaseUrl: process.env.PINPOINT_PUBLIC_BASE_URL?.trim() ?? "",
   pinpointSmsMock: process.env.PINPOINT_SMS_MOCK === "true",
   enablePinpoint: featureEnabled("ENABLE_PINPOINT"),
+  /**
+   * Escort iQ™ (higher-ed Campus only). Fail-closed — unset/false disables.
+   * Tenant must also set campus.config.escortIq.enabled.
+   */
+  enableEscortIq: featureEnabled("ENABLE_ESCORT_IQ", false),
+  /**
+   * NexCort iQ Campus Alerts (higher-ed Campus only). Fail-closed — unset/false disables.
+   * Tenant must also set campus.config.campusAlerts.enabled.
+   */
+  enableCampusAlerts: featureEnabled("ENABLE_CAMPUS_ALERTS", false),
+  /** HMAC secret for tenant-scoped phone lookup digests (prefer ARN). */
+  campusAlertsPhoneHmacSecret: process.env.CAMPUS_ALERTS_PHONE_HMAC_SECRET?.trim() ?? "",
+  campusAlertsPhoneHmacSecretArn:
+    process.env.CAMPUS_ALERTS_PHONE_HMAC_SECRET_ARN?.trim() ?? "",
+  /** AES key material for phone-at-rest (prefer ARN). */
+  campusAlertsPhoneEncSecret: process.env.CAMPUS_ALERTS_PHONE_ENC_SECRET?.trim() ?? "",
+  campusAlertsPhoneEncSecretArn: process.env.CAMPUS_ALERTS_PHONE_ENC_SECRET_ARN?.trim() ?? "",
+
   /** SMS location tokens for campus/venue citizen GPS links. */
   locationTokensTable: process.env.LOCATION_TOKENS_TABLE?.trim() ?? "",
   smsRoutingTable: process.env.SMS_ROUTING_TABLE?.trim() ?? "",

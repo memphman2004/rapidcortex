@@ -1,3 +1,50 @@
+import type { CampusInfoTabPublic } from "../campus/info-tab.js";
+
+
+export type SafetyPointCoordinateSource =
+  | "DEVICE_GPS"
+  | "MAP_PIN"
+  | "GIS_IMPORT"
+  | "MANUAL";
+
+export type SafetyPointVerificationStatus = "DRAFT" | "UNVERIFIED" | "VERIFIED";
+
+/** Registered installation location for a QR/NFC safety point (not caller GPS). */
+export interface RegisteredSafetyPointLocation {
+  latitude: number;
+  longitude: number;
+  coordinateSource: SafetyPointCoordinateSource;
+  horizontalAccuracyMeters?: number;
+  buildingName?: string;
+  buildingId?: string;
+  floor?: string;
+  room?: string;
+  zone?: string;
+  indoorMapId?: string;
+  indoorFeatureId?: string;
+  verificationStatus: SafetyPointVerificationStatus;
+  verifiedAt?: string;
+  verifiedBy?: string;
+  locationCapturedAt?: string;
+  lastLocationUpdatedAt?: string;
+  locationUpdatedBy?: string;
+}
+
+/** Immutable snapshot attached to an incident at report time. */
+export interface IncidentSafetyPointSnapshot {
+  safetyPointId: string;
+  siteCode?: string;
+  latitude?: number;
+  longitude?: number;
+  buildingName?: string;
+  floor?: string;
+  room?: string;
+  zone?: string;
+  verificationStatus: string;
+  coordinateSource?: string;
+  capturedAt: string;
+}
+
 export type ReportMedium = "qr" | "nfc" | "sms" | "direct" | "url";
 
 export type ReportVertical = "911" | "campus" | "venue" | "hospital" | "transit";
@@ -55,6 +102,34 @@ export interface QRNFCRecord {
    * Optional for backward compatibility with records created before this field existed.
    */
   nfcWriteLog?: QRNFCWriteEvent[];
+  /**
+   * Registered installation coordinates (agency-approved). Never overwrite with caller GPS.
+   * Optional for backward compatibility with tags created before location registration.
+   */
+  latitude?: number;
+  longitude?: number;
+  coordinateSource?: SafetyPointCoordinateSource;
+  horizontalAccuracyMeters?: number;
+  buildingName?: string;
+  room?: string;
+  indoorMapId?: string;
+  indoorFeatureId?: string;
+  verificationStatus?: SafetyPointVerificationStatus;
+  verifiedAt?: string;
+  verifiedBy?: string;
+  locationCapturedAt?: string;
+  lastLocationUpdatedAt?: string;
+  locationUpdatedBy?: string;
+  /** Recent location change audit trail (capped by service layer). */
+  locationChangeLog?: Array<{
+    at: string;
+    by: string;
+    latitude: number;
+    longitude: number;
+    coordinateSource: SafetyPointCoordinateSource;
+    verificationStatus: SafetyPointVerificationStatus;
+    note?: string;
+  }>;
   createdBy: string;
   createdByRole: string;
   createdAt: string;
@@ -93,6 +168,15 @@ export interface CreateQRNFCInput {
   nfcTagId?: string;
   expiresAt?: string;
   callNumber?: string;
+  latitude?: number;
+  longitude?: number;
+  coordinateSource?: SafetyPointCoordinateSource;
+  horizontalAccuracyMeters?: number;
+  buildingName?: string;
+  room?: string;
+  indoorMapId?: string;
+  indoorFeatureId?: string;
+  verificationStatus?: SafetyPointVerificationStatus;
 }
 
 export interface UpdateQRNFCInput {
@@ -111,6 +195,16 @@ export interface UpdateQRNFCInput {
   nfcTagId?: string;
   active?: boolean;
   callNumber?: string;
+  latitude?: number;
+  longitude?: number;
+  coordinateSource?: SafetyPointCoordinateSource;
+  horizontalAccuracyMeters?: number;
+  buildingName?: string;
+  room?: string;
+  indoorMapId?: string;
+  indoorFeatureId?: string;
+  /** Set true via dedicated verify action — never implied by GPS capture alone. */
+  markLocationVerified?: boolean;
 }
 
 /** Public-safe fields for `/report/{qrId}` intake. */
@@ -129,6 +223,27 @@ export interface QRNFCPublicRecord {
   callNumberDisplay?: string;
   /** Campus agencies only — drives K-12 vs higher-ed public concern categories. */
   institutionType?: "higher_ed" | "k12";
+  /** When true, intake should collect a callback phone (campus default). */
+  collectPhone?: boolean;
+  /** Campus Information tab content for this site / tenant. */
+  infoTab?: CampusInfoTabPublic;
+  /**
+   * Escort iQ™ available on this scan point (higher-ed + flags).
+   * Absent/false on K-12 and when feature is disabled.
+   */
+  escortIqAvailable?: boolean;
+  /**
+   * NexCort iQ Campus Alerts self-registration available (higher-ed + flags).
+   * Absent/false on K-12 and when feature is disabled.
+   */
+  campusAlertsAvailable?: boolean;
+  /** Human-readable registered place (building / floor / zone). */
+  locationDescription?: string;
+  buildingName?: string;
+  floor?: string;
+  /** True when registered coordinates exist (not caller GPS). */
+  hasRegisteredLocation?: boolean;
+  locationVerificationStatus?: SafetyPointVerificationStatus | "MISSING";
 }
 
 export interface PublicReportSubmitInput {
@@ -139,4 +254,5 @@ export interface PublicReportSubmitInput {
   reporterPhone?: string;
   medium: ReportMedium;
   mediaKeys?: string[];
+  shareLiveLocation?: boolean;
 }

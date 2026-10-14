@@ -4239,6 +4239,81 @@ Resources:
             Auth:
               Authorizer: NONE
 
+  # NexCort iQ Campus Alerts — staff metrics (JWT). Public OTP routes live on AppSamQrStack.
+  CampusAlertsStaffHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/campus-alerts-http.staffHandler
+      Timeout: 60
+      Environment:
+        Variables:
+          ENABLE_CAMPUS_ALERTS: "false"
+          SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, SmsProvider]
+          MOCK_SMS_PROVIDER: !FindInMap [SmsEnvironmentDefaults, !Ref DeploymentStage, MockSmsProvider]
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - Statement:
+            - Sid: CampusAlertsEmergencySmsSend
+              Effect: Allow
+              Action:
+                - sms-voice:SendTextMessage
+              Resource:
+                - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:phone-number/*
+                - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:pool/*
+                - !Sub arn:${AWS::Partition}:sms-voice:${AWS::Region}:${AWS::AccountId}:configuration-set/*
+            - Sid: CampusAlertsEmergencySmsDescribe
+              Effect: Allow
+              Action:
+                - sms-voice:DescribePhoneNumbers
+                - sms-voice:DescribePools
+              Resource: "*"
+              Condition:
+                StringEquals:
+                  aws:RequestedRegion: !Ref AWS::Region
+      Events:
+        GetCampusAlerts:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{campusCode}/campus-alerts
+            Method: GET
+        GetCampusAlertsUsage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{campusCode}/campus-alerts/usage
+            Method: GET
+        GetCampusAlertsRenewalOutreach:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{campusCode}/campus-alerts/renewal-outreach
+            Method: GET
+        PostCampusAlertsExpire:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{campusCode}/campus-alerts/expire
+            Method: POST
+        PostCampusAlertsEmergencyPreview:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{campusCode}/campus-alerts/emergency/preview
+            Method: POST
+        PostCampusAlertsEmergencyConfirm:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{campusCode}/campus-alerts/emergency/confirm
+            Method: POST
+
   CampusEapHttpFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -5416,6 +5491,14 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/pinpoint/t/{token}/location
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        PostRevoke:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/pinpoint/t/{token}/revoke
             Method: POST
             Auth:
               Authorizer: NONE

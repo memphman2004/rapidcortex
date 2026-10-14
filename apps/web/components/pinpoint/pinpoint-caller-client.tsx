@@ -27,13 +27,24 @@ export function PinpointCallerClient({ token }: { token: string }) {
   const [sharing, setSharing] = useState(false);
   const [updateCount, setUpdateCount] = useState(0);
   const [mapInstance, setMapInstance] = useState<Map | null>(null);
+  const [revokePending, setRevokePending] = useState(false);
+  const [serverRevokeFailed, setServerRevokeFailed] = useState(false);
+  /** True after server-confirmed revoke — same token cannot resume. */
+  const [sessionEnded, setSessionEnded] = useState(false);
   const watchIdRef = useRef<number | null>(null);
   const lastSentRef = useRef(0);
+
+  const clearWatch = useCallback(() => {
+    if (watchIdRef.current != null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+  }, []);
 
   const load = useCallback(async () => {
     const res = await fetch(apiPath(token), { cache: "no-store" });
     if (res.status === 410) {
-      setErr("This link has expired.");
+      setErr("This link has expired or was revoked.");
       return;
     }
     if (!res.ok) {
@@ -58,25 +69,58 @@ export function PinpointCallerClient({ token }: { token: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+      if (res.status === 410) {
+        clearWatch();
+        setSharing(false);
+        throw new Error("Location sharing ended — this link was revoked or expired.");
+      }
       if (!res.ok) {
         const t = await res.text();
         throw new Error(t || "Could not send location.");
       }
       const next = await readJson<PinpointLinkPublicView>(res);
       setData(next);
-      setUpdateCount((c) => c + 1);
+      if (typeof next.updateCount === "number") setUpdateCount(next.updateCount);
+      else setUpdateCount((c) => c + 1);
       setErr(null);
+    },
+    [token, clearWatch],
+  );
+
+  const revokeOnServer = useCallback(
+    async (reason: "caller_stop" | "browser_interrupt") => {
+      const res = await fetch(apiPath(token, "revoke"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
+      if (!res.ok) {
+        throw new Error("Server could not confirm that sharing stopped.");
+      }
     },
     [token],
   );
 
-  const stopSharing = useCallback(() => {
-    if (watchIdRef.current != null) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-    }
+  const stopSharing = useCallback(async () => {
+    // Privacy-first: stop the browser watch immediately, then confirm with the server.
+    clearWatch();
     setSharing(false);
-  }, []);
+    setRevokePending(true);
+    setServerRevokeFailed(false);
+    try {
+      await revokeOnServer("caller_stop");
+      setErr(null);
+      setServerRevokeFailed(false);
+      setSessionEnded(true);
+    } catch {
+      setServerRevokeFailed(true);
+      setErr(
+        "Stopped on this device, but the server did not confirm revocation. Tap Retry to confirm stop with responders.",
+      );
+    } finally {
+      setRevokePending(false);
+    }
+  }, [clearWatch, revokeOnServer]);
 
   const startSharing = useCallback(() => {
     if (!navigator.geolocation) {
@@ -117,8 +161,29 @@ export function PinpointCallerClient({ token }: { token: string }) {
 
   useEffect(() => {
     void load();
-    return () => stopSharing();
-  }, [load, stopSharing]);
+  }, [load]);
+
+  useEffect(() => {
+    // pagehide/beforeunload only — React unmount (Strict Mode) must not revoke the session.
+    const onPageHide = () => {
+      clearWatch();
+      if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+        const blob = new Blob([JSON.stringify({ reason: "browser_interrupt" })], {
+          type: "application/json",
+        });
+        navigator.sendBeacon(apiPath(token, "revoke"), blob);
+        return;
+      }
+      void revokeOnServer("browser_interrupt").catch(() => {
+        /* ignore */
+      });
+    };
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      clearWatch();
+      window.removeEventListener("pagehide", onPageHide);
+    };
+  }, [clearWatch, revokeOnServer, token]);
 
   if (!data && !err) {
     return (
@@ -136,7 +201,7 @@ export function PinpointCallerClient({ token }: { token: string }) {
     );
   }
 
-  const last = data?.pings?.length ? data.pings[data.pings.length - 1] : null;
+  const last = data?.lastAccepted ?? null;
   const confidence = last?.accuracyM != null ? calculateLocationConfidence(last.accuracyM) : null;
 
   return (
@@ -158,15 +223,20 @@ export function PinpointCallerClient({ token }: { token: string }) {
         ) : null}
         {sharing ? (
           <div className="mt-4 rounded-lg border border-emerald-800/60 bg-emerald-950/40 px-3 py-2 text-sm text-emerald-200">
-            Sharing location… {updateCount > 0 ? `${updateCount} update${updateCount === 1 ? "" : "s"} sent` : ""}
+            Sharing location… {updateCount > 0 ? `${updateCount} update${updateCount === 1 ? "" : "s"} accepted` : ""}
           </div>
         ) : null}
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-          {!sharing ? (
+          {sessionEnded ? (
+            <p className="w-full rounded-lg border border-slate-700 bg-slate-900/50 px-3 py-3 text-sm text-slate-300">
+              Location sharing has ended for this link. Responders can no longer receive new GPS updates
+              from this session.
+            </p>
+          ) : !sharing ? (
             <button
               type="button"
               onClick={startSharing}
-              disabled={busy || data?.status !== "active"}
+              disabled={busy || !data?.sharingAllowed}
               className="w-full rounded-lg bg-red-600 py-3 text-sm font-semibold text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busy ? "Starting…" : "Share my location"}
@@ -174,12 +244,23 @@ export function PinpointCallerClient({ token }: { token: string }) {
           ) : (
             <button
               type="button"
-              onClick={stopSharing}
-              className="w-full rounded-lg border border-slate-600 bg-slate-900 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-800"
+              onClick={() => void stopSharing()}
+              disabled={revokePending}
+              className="w-full rounded-lg border border-slate-600 bg-slate-900 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-800 disabled:opacity-50"
             >
-              Stop sharing
+              {revokePending ? "Stopping…" : "Stop sharing"}
             </button>
           )}
+          {serverRevokeFailed ? (
+            <button
+              type="button"
+              onClick={() => void stopSharing()}
+              disabled={revokePending}
+              className="w-full rounded-lg border border-amber-700/60 bg-amber-950/40 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-950/60 disabled:opacity-50"
+            >
+              Retry confirm stop with server
+            </button>
+          ) : null}
         </div>
         {last ? (
           <div className="mt-8 rounded-lg border border-slate-800 bg-slate-900/60 p-4">

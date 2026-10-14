@@ -57,6 +57,38 @@ describe("campus settings mapper", () => {
     expect(patch.campus.geojsonOverlayUrl).toBe("https://gis.iu.edu/overlay.json");
   });
 
+  it("defaults collectPhone true and maps infoTab", () => {
+    const view = campusSettingsFromAgency({
+      agencyId: "test-campus-csu",
+      name: "CSU",
+      type: "campus",
+      status: "active",
+      config: { agencyId: "test-campus-csu", campus: {} },
+    } as never);
+    expect(view.publicForm.collectPhone).toBe(true);
+
+    const patch = campusPatchFromSettingsView({
+      infoTab: {
+        displayName: "Main Campus",
+        logoUrl: "https://cdn.example.edu/logo.png",
+        brandColor: "#0F766E",
+        emergencyContacts: [{ label: "Police", phone: "901-555-0100" }],
+        sections: [{ title: "Evac", content: "Exit **north**.", order: 0, visible: true }],
+        externalLinks: [],
+      },
+      infoTabBySiteCode: {
+        NORTH: {
+          displayName: "North Annex",
+          emergencyContacts: [],
+          sections: [],
+          externalLinks: [],
+        },
+      },
+    });
+    expect(patch.campus.infoTab?.displayName).toBe("Main Campus");
+    expect(patch.campus.infoTabBySiteCode?.NORTH?.displayName).toBe("North Annex");
+  });
+
   it("round-trips campusType, timezone, escalation, and disclaimer without data loss", () => {
     const sourceAgency = {
       agencyId: "test-campus-csu",

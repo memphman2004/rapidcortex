@@ -13,6 +13,10 @@ import {
 } from "@/components/intake/report-language";
 import { intakePageBackgroundStyle } from "@/components/intake/vertical-theme";
 import { isGuestAssistEnabled } from "@/lib/runtime-flags";
+import { CampusAlertsRegistration } from "@/components/qr-nfc/campus-alerts-registration";
+import { CampusInfoTabPanel } from "@/components/qr-nfc/campus-info-tab-panel";
+import { CampusLiveLocationShare } from "@/components/qr-nfc/campus-live-location-share";
+import { EscortIqLanding } from "@/components/qr-nfc/escort-iq/escort-iq-landing";
 import {
   EmergencyCallCard,
   ReportDivider,
@@ -60,12 +64,20 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [screen, setScreen] = useState<"chooser" | "report">("chooser");
+  const [screen, setScreen] = useState<"chooser" | "report" | "escort" | "campus-alerts">(
+    "chooser",
+  );
+  const [intakeTab, setIntakeTab] = useState<"info" | "report">(
+    isCampus && record.infoTab ? "info" : "report",
+  );
+  const [shareLiveLocation, setShareLiveLocation] = useState(false);
   const [referenceCode, setReferenceCode] = useState<string | null>(null);
+  const [trackingToken, setTrackingToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const showIdentity =
     record.reportType === "identified" || (record.reportType === "both" && !values.anonymous);
+  const collectPhone = isCampus && record.collectPhone !== false;
 
   const productLabel = isCampus
     ? t("campusHeader")
@@ -105,12 +117,14 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
       setError(t("whatHappeningError"));
       return;
     }
+    if (shareLiveLocation && !values.reporterPhone.trim()) {
+      setError("Enter a callback phone number to share your location.");
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
     try {
-      // Category / K-12 type is UI-only: prepend into message so public report schema stays unchanged.
-      // Store English labels (or type values for K-12) so ops queues stay language-stable.
       let prefix = "";
       if (isK12 && values.category) {
         const typeMeta = config.k12Types?.find((x) => x.value === values.category);
@@ -135,13 +149,23 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
           message,
           locationNote: values.locationNote || undefined,
           reporterName: showIdentity ? values.reporterName || undefined : undefined,
-          reporterPhone: showIdentity ? values.reporterPhone || undefined : undefined,
+          reporterPhone:
+            showIdentity || collectPhone || shareLiveLocation
+              ? values.reporterPhone || undefined
+              : undefined,
           medium,
+          ...(isCampus && shareLiveLocation ? { shareLiveLocation: true } : {}),
         }),
       });
-      const body = (await res.json()) as { referenceCode?: string; error?: string };
+      const body = (await res.json()) as {
+        referenceCode?: string;
+        trackingToken?: string;
+        liveLocationToken?: string;
+        error?: string;
+      };
       if (!res.ok) throw new Error(body.error ?? "Please check your connection and try again.");
       setReferenceCode(body.referenceCode ?? null);
+      setTrackingToken(body.trackingToken ?? body.liveLocationToken ?? null);
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Please check your connection and try again.");
@@ -164,13 +188,16 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
           referenceCode={referenceCode}
           title={isVenue ? t("venueSuccessTitle") : t("campusSuccessTitle")}
           description={isVenue ? t("venueSuccessDesc") : t("campusSuccessDesc")}
-        />
+        >
+          {trackingToken ? <CampusLiveLocationShare token={trackingToken} /> : null}
+        </ReportSuccessState>
       </div>
     );
   }
 
   const reportingPointName = record.name?.trim() || record.agencyName;
   const locationDetails = record.zoneName?.trim() || undefined;
+  const locationLabel = [reportingPointName, locationDetails].filter(Boolean).join(" — ");
 
   if (screen === "chooser") {
     return (
@@ -182,8 +209,47 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
         vertical={record.vertical}
         agencyId={record.agencyId}
         guestAssistEnabled={isGuestAssistEnabled()}
+        escortIqAvailable={Boolean(isCampus && record.escortIqAvailable)}
         onPoliceSecurity={() => setScreen("report")}
+        onEscortIq={() => setScreen("escort")}
       />
+    );
+  }
+
+  if (screen === "escort" && isCampus && record.escortIqAvailable) {
+    return (
+      <EscortIqLanding
+        qrId={record.qrId}
+        medium={medium}
+        callNumber={record.callNumber}
+        locationLabel={locationLabel}
+        onBack={() => setScreen("chooser")}
+      />
+    );
+  }
+
+  if (screen === "campus-alerts" && isCampus && record.campusAlertsAvailable) {
+    return (
+      <div
+        className="flex min-h-[100dvh] flex-col"
+        dir={dir}
+        lang={langCode.toLowerCase()}
+        style={pageBackground}
+      >
+        <SafetyHeader productLabel={productLabel} />
+        <main className="mx-auto w-full max-w-lg flex-1 px-4 pb-28 pt-4">
+          <CampusAlertsRegistration
+            qrId={record.qrId}
+            medium={medium === "sms" ? "direct" : medium}
+            universityNameHint={record.agencyName}
+            onBack={() => {
+              setScreen("report");
+              setIntakeTab("info");
+            }}
+          />
+        </main>
+        <StickyEmergencyFooter />
+      </div>
     );
   }
 
@@ -215,32 +281,83 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
           supporting={supporting}
         />
 
-        {record.callNumber ? (
-          <>
-            <EmergencyCallCard
-              callLabel={callLabel}
-              callNumber={record.callNumber}
-              callNumberDisplay={record.callNumberDisplay}
-            />
-            <ReportDivider />
-          </>
+        {isCampus && record.infoTab ? (
+          <div
+            className="flex gap-1 rounded-xl border p-1"
+            style={{ borderColor: SAFETY_BRAND.border, backgroundColor: "#fff" }}
+            role="tablist"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={intakeTab === "info"}
+              onClick={() => setIntakeTab("info")}
+              className="min-h-10 flex-1 rounded-lg text-sm font-semibold"
+              style={{
+                backgroundColor: intakeTab === "info" ? SAFETY_BRAND.deepBlue : "transparent",
+                color: intakeTab === "info" ? "#fff" : SAFETY_BRAND.textDark,
+              }}
+            >
+              Information
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={intakeTab === "report"}
+              onClick={() => setIntakeTab("report")}
+              className="min-h-10 flex-1 rounded-lg text-sm font-semibold"
+              style={{
+                backgroundColor: intakeTab === "report" ? SAFETY_BRAND.deepBlue : "transparent",
+                color: intakeTab === "report" ? "#fff" : SAFETY_BRAND.textDark,
+              }}
+            >
+              Report
+            </button>
+          </div>
         ) : null}
 
-        <ReportForm
-          values={values}
-          onChange={patchValues}
-          categories={config.categories}
-          categoryLabels={categoryLabels}
-          k12Types={isK12 ? config.k12Types : undefined}
-          locationFieldLabel={locationFieldLabel}
-          locationPlaceholder={config.defaultLocationPlaceholder}
-          submitLabel={submitLabel}
-          showAnonymousToggle={record.reportType === "both"}
-          showIdentity={showIdentity}
-          submitting={submitting}
-          error={error}
-          onSubmit={(e) => void onSubmit(e)}
-        />
+        {isCampus && record.infoTab && intakeTab === "info" ? (
+          <CampusInfoTabPanel
+            infoTab={record.infoTab}
+            locationLabel={locationLabel}
+            campusAlertsAvailable={Boolean(record.campusAlertsAvailable)}
+            onRegisterCampusAlerts={
+              record.campusAlertsAvailable ? () => setScreen("campus-alerts") : undefined
+            }
+          />
+        ) : (
+          <>
+            {record.callNumber ? (
+              <>
+                <EmergencyCallCard
+                  callLabel={callLabel}
+                  callNumber={record.callNumber}
+                  callNumberDisplay={record.callNumberDisplay}
+                />
+                <ReportDivider />
+              </>
+            ) : null}
+
+            <ReportForm
+              values={values}
+              onChange={patchValues}
+              categories={config.categories}
+              categoryLabels={categoryLabels}
+              k12Types={isK12 ? config.k12Types : undefined}
+              locationFieldLabel={locationFieldLabel}
+              locationPlaceholder={config.defaultLocationPlaceholder}
+              submitLabel={submitLabel}
+              showAnonymousToggle={record.reportType === "both"}
+              showIdentity={showIdentity}
+              showCallbackPhone={collectPhone && !showIdentity}
+              shareLiveLocation={isCampus ? shareLiveLocation : false}
+              onShareLiveLocationChange={isCampus ? setShareLiveLocation : undefined}
+              submitting={submitting}
+              error={error}
+              onSubmit={(e) => void onSubmit(e)}
+            />
+          </>
+        )}
       </main>
 
       <StickyEmergencyFooter />

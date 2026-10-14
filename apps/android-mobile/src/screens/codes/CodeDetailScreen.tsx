@@ -197,6 +197,38 @@ export default function CodeDetailScreen() {
           </Card>
         ) : null}
 
+        <Card onPress={() => router.push(href(`/code/${code.codeId}/register-location`) as never)} style={{ marginBottom: spacing['3'] }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ flex: 1, paddingRight: 8 }}>
+              <Text style={[typography.bodyMedium, { color: palette.textPrimary }]}>Installation location</Text>
+              <Badge
+                label={
+                  code.locationVerified
+                    ? 'Verified'
+                    : code.latitude != null && code.longitude != null
+                      ? 'Unverified pin'
+                      : 'No coordinates'
+                }
+                tone={code.locationVerified ? 'success' : code.latitude != null ? 'warning' : 'neutral'}
+                size="sm"
+              />
+              {code.latitude != null && code.longitude != null ? (
+                <Text style={[typography.caption, { color: palette.textSecondary, marginTop: 4 }]}>
+                  {code.latitude.toFixed(5)}, {code.longitude.toFixed(5)}
+                  {code.locationAccuracyMeters != null
+                    ? ` · ±${Math.round(code.locationAccuracyMeters)} m`
+                    : ''}
+                </Text>
+              ) : (
+                <Text style={[typography.caption, { color: palette.textSecondary, marginTop: 4 }]}>
+                  Capture GPS at the sign, adjust the pin, then verify.
+                </Text>
+              )}
+            </View>
+            <Text style={[typography.label, { color: palette.amber }]}>Register</Text>
+          </View>
+        </Card>
+
         <Card onPress={() => router.push(href(`/code/${code.codeId}/nfc-write`) as never)} style={{ marginBottom: spacing['3'] }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <View>

@@ -35,6 +35,15 @@ export {
   campusEscalationContactSchema,
   type CampusAgencyConfig,
 } from "./campus-config.js";
+export {
+  campusInfoTabSchema,
+  campusInfoTabPublicSchema,
+  campusInfoTabBySiteCodeSchema,
+  resolveCampusInfoTab,
+  toPublicCampusInfoTab,
+  type CampusInfoTab,
+  type CampusInfoTabPublic,
+} from "../campus/info-tab.js";
 export type { InviteRecord, InviteStatus } from "./invite.js";
 export type { UserProfile, UserAccountStatus } from "./user-profile.js";
 export type { CognitoIdTokenClaims, ResolvedPrincipal } from "./cognito-claims.js";

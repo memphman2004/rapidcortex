@@ -10,7 +10,9 @@ import type { z } from "zod";
 import type { VenueIncidentCameraSummary } from "rapid-cortex-shared";
 import { campusAutomationRuleMatches, isCampusCounselorQueueType } from "rapid-cortex-shared";
 import { makeId } from "../lib/ids.js";
+import { hashPhoneSha256, maskPhoneLast4 } from "../lib/phone-hash.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
+import { toE164 } from "rapid-cortex-shared";
 import { getCamerasForBuildingFloor } from "../handlers/campus/cameras/campus-camera-registry-service.js";
 import { notifyMilestoneOfCampusIncident } from "../integrations/milestone/milestone-service.js";
 import { broadcastVenueIncidentCreated } from "../venue/venue-incident-realtime.js";
@@ -81,6 +83,8 @@ export async function createCampusIncident(
     }
   }
 
+  const callerCallback = toE164(input.phoneNumber) ?? undefined;
+
   const item: CampusIncident = {
     pk: CAMPUS_KEYS.incidentPk(input.campusCode),
     sk: CAMPUS_KEYS.incidentSk(id),
@@ -119,21 +123,32 @@ export async function createCampusIncident(
     suggestedActions: assignee.assignedTo
       ? { assignRole: assignee.assignedTo }
       : undefined,
+    ...(callerCallback
+      ? {
+          callerCallback,
+          phoneHash: hashPhoneSha256(callerCallback),
+          reporterLast4: maskPhoneLast4(callerCallback),
+        }
+      : {}),
     locationData:
       input.latitude != null && input.longitude != null
         ? [
             {
               source: "MANUAL" as const,
-              accuracyMeters: 25,
+              accuracyMeters: input.horizontalAccuracyMeters ?? 25,
               receivedAt: now,
+              locationText: "Registered Safety Point",
               coordinates: {
                 latitude: input.latitude,
                 longitude: input.longitude,
-                accuracy: 25,
+                accuracy: input.horizontalAccuracyMeters ?? 25,
               },
             },
           ]
         : undefined,
+    ...(input.safetyPointSnapshot
+      ? { safetyPointSnapshot: input.safetyPointSnapshot }
+      : {}),
   };
 
   try {

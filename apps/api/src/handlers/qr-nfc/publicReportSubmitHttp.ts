@@ -3,7 +3,7 @@
  * POST /api/public/report
  */
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { publicReportSubmitSchema } from "rapid-cortex-shared";
+import { PINPOINT_CONFIG, publicReportSubmitSchema, toE164 } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { withCorrelationHeaders } from "../../lib/correlation.js";
 import { makeId } from "../../lib/ids.js";
@@ -19,9 +19,11 @@ import {
 import { createIncidentFromQrNfcReport } from "../../qr-nfc/qr-nfc-incident-service.js";
 import { QrNfcRepository } from "../../repositories/qrNfcRepository.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
+import { PinpointService } from "../../services/pinpointService.js";
 
 const repo = new QrNfcRepository();
 const auditRepo = new AuditRepository();
+const pinpoint = new PinpointService();
 const limiter = new PublicBurstLimiter(5, 600_000);
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
@@ -49,9 +51,22 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     const input = { ...parsed.data };
+    const phoneE164 = toE164(input.reporterPhone) ?? undefined;
+    if (phoneE164) input.reporterPhone = phoneE164;
+
     if (record.reportType === "anonymous") {
       input.reporterName = undefined;
-      input.reporterPhone = undefined;
+      // Campus: keep callback phone for ops + optional live location even when anonymous.
+      if (record.vertical !== "campus") {
+        input.reporterPhone = undefined;
+      }
+    }
+
+    if (input.shareLiveLocation && record.vertical === "campus" && !input.reporterPhone) {
+      return withCorrelationHeaders(
+        event,
+        badRequest("A callback phone number is required to share live location."),
+      );
     }
 
     const incidentId = await createIncidentFromQrNfcReport(record, input);
@@ -63,18 +78,52 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       incidentId,
       actorId: "public-report",
       type: AUDIT_EVENT_TYPES.PUBLIC_REPORT_SUBMITTED,
-      details: { qrId: record.qrId, medium: input.medium, vertical: record.vertical },
+      details: {
+        qrId: record.qrId,
+        medium: input.medium,
+        vertical: record.vertical,
+        shareLiveLocation: Boolean(input.shareLiveLocation),
+      },
       createdAt: now,
       resourceType: "incident",
       resourceId: incidentId,
     });
+
+    let liveLocationToken: string | undefined;
+    let liveLocationExpiresHintMin: number | undefined;
+    if (input.shareLiveLocation && record.vertical === "campus") {
+      try {
+        const share = await pinpoint.createInlineQrShare({
+          agencyId: record.agencyId,
+          incidentId,
+          rcli: record.qrId,
+          callerPhoneE164: input.reporterPhone,
+          consentGrantedAt: now,
+        });
+        if (share) {
+          liveLocationToken = share.token;
+          liveLocationExpiresHintMin = PINPOINT_CONFIG.LINK_EXPIRY_MINUTES;
+        }
+      } catch (err) {
+        console.warn("[public-report] live share create failed", err);
+      }
+    }
 
     return withCorrelationHeaders(
       event,
       jsonStatus(
         {
           incidentId,
-          referenceCode: incidentId.replace(/^inc_/, "").slice(0, 8).toUpperCase() || incidentId.slice(0, 8).toUpperCase(),
+          referenceCode:
+            incidentId.replace(/^inc_/, "").slice(0, 8).toUpperCase() ||
+            incidentId.slice(0, 8).toUpperCase(),
+          ...(liveLocationToken
+            ? {
+                trackingToken: liveLocationToken,
+                liveLocationToken,
+                liveLocationExpiresHintMin,
+              }
+            : {}),
         },
         201,
       ),

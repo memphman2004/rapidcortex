@@ -85,7 +85,15 @@ enum TradeShowSite {
                 zoneCode: nil,
                 smsNumber: nil,
                 nfcWriteLog: [],
-                lastActivityAt: nil
+                lastActivityAt: nil,
+                latitude: nil,
+                longitude: nil,
+                locationAccuracyMeters: nil,
+                locationSource: nil,
+                locationVerified: false,
+                locationVerifiedAt: nil,
+                locationVerifiedBy: nil,
+                floorLevel: nil
             )
         }
     }

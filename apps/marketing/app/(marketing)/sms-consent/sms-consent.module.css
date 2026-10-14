@@ -71,6 +71,21 @@
   scroll-margin-top: 96px;
 }
 
+.connectTitle {
+  font-size: 22px;
+  font-weight: 800;
+  color: #f0f4fa;
+  letter-spacing: -0.02em;
+  margin: 8px 0 8px;
+}
+
+.connectLead {
+  font-size: 17px;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 14px;
+}
+
 .optInFormBlock code {
   font-size: 12px;
   color: #94a3b8;

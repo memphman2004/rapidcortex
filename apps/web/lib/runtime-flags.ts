@@ -121,6 +121,8 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_CONTEXT_CARDS: process.env.NEXT_PUBLIC_ENABLE_CONTEXT_CARDS,
   NEXT_PUBLIC_ENABLE_COMMAND_INTELLIGENCE: process.env.NEXT_PUBLIC_ENABLE_COMMAND_INTELLIGENCE,
   NEXT_PUBLIC_ENABLE_NEXIQ_VAULT: process.env.NEXT_PUBLIC_ENABLE_NEXIQ_VAULT,
+  NEXT_PUBLIC_ENABLE_ESCORT_IQ: process.env.NEXT_PUBLIC_ENABLE_ESCORT_IQ,
+  NEXT_PUBLIC_ENABLE_CAMPUS_ALERTS: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_ALERTS,
 };
 
 const CAD_WRITEBACK_FLAG = "NEXT_PUBLIC_ENABLE_CAD_WRITEBACK";
@@ -128,6 +130,8 @@ const CAD_CONNECTOR_FLAG = "NEXT_PUBLIC_ENABLE_CAD_CONNECTOR";
 const CHANNEL_MONITORING_FLAG = "NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING";
 const PHYSICAL_SECURITY_COMMANDS_FLAG = "NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS";
 const SCENARIO_CENTER_FLAG = "NEXT_PUBLIC_ENABLE_SCENARIO_CENTER";
+const ESCORT_IQ_FLAG = "NEXT_PUBLIC_ENABLE_ESCORT_IQ";
+const CAMPUS_ALERTS_FLAG = "NEXT_PUBLIC_ENABLE_CAMPUS_ALERTS";
 
 function isEnabledValue(value: string | undefined): boolean {
   if (!value) return false;
@@ -152,7 +156,9 @@ function envFlag(name: string): boolean {
     name === CAD_WRITEBACK_FLAG ||
     name === CAD_CONNECTOR_FLAG ||
     name === PHYSICAL_SECURITY_COMMANDS_FLAG ||
-    name === SCENARIO_CENTER_FLAG
+    name === SCENARIO_CENTER_FLAG ||
+    name === ESCORT_IQ_FLAG ||
+    name === CAMPUS_ALERTS_FLAG
   ) {
     if (isEnabledValue(value)) return true;
     return false;
@@ -500,6 +506,22 @@ export function isPostIncidentReviewsEnabled(): boolean {
 /** LiveLocation (SMS GPS link) — API ENABLE_PINPOINT. */
 export function isPinpointEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_PINPOINT");
+}
+
+/**
+ * Escort iQ™ (higher-ed Campus only). Fail-closed — unset/false disables.
+ * Must match API `ENABLE_ESCORT_IQ` (also fail-closed). Tenant `escortIq.enabled` still required.
+ */
+export function isEscortIqEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_ESCORT_IQ");
+}
+
+/**
+ * NexCort iQ Campus Alerts (higher-ed Campus only). Fail-closed — unset/false disables.
+ * Must match API `ENABLE_CAMPUS_ALERTS`. Tenant `campusAlerts.enabled` still required.
+ */
+export function isCampusAlertsEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CAMPUS_ALERTS");
 }
 
 /** QR/NFC Guest Assist (static page + public Claude/staff chat). Default on when unset. */

@@ -14,9 +14,12 @@ import {
   Check,
   ChevronDown,
 } from "lucide-react";
+import type { CampusInfoTab } from "rapid-cortex-shared";
 import type { CampusSettingsView } from "@/lib/campus/campus-settings-mapper";
+import { fetchCampusSites } from "@/lib/campus/campus-dashboard-api";
 import { postAgencySharePartner } from "@/lib/api";
 import { isCrossJurisdictionSharesUiEnabled } from "@/lib/runtime-flags";
+import { CampusInfoTabEditor } from "./CampusInfoTabEditor";
 import { CampusSitesEditor } from "./CampusSitesEditor";
 
 async function fetchCampusSettings(agencyId: string): Promise<CampusSettingsView> {
@@ -207,6 +210,12 @@ export function CampusSettingsClient({
   const [draft, setDraft] = useState<Partial<CampusSettingsView>>({});
   const [isDirty, setIsDirty] = useState(false);
   const [savedOk, setSavedOk] = useState(false);
+  const [infoTabSiteCode, setInfoTabSiteCode] = useState("");
+
+  const sitesQuery = useQuery({
+    queryKey: ["campus-sites", agencyId],
+    queryFn: () => fetchCampusSites(agencyId),
+  });
 
   const update = <K extends keyof CampusSettingsView>(
     section: K,
@@ -248,7 +257,7 @@ export function CampusSettingsClient({
       title: "Report a Safety Concern",
       instructions: "",
       collectName: true,
-      collectPhone: false,
+      collectPhone: true,
       collectLocation: true,
       customFields: [],
       disclaimerText:
@@ -261,10 +270,64 @@ export function CampusSettingsClient({
       ...(data?.mapOverlay ?? {}),
       ...(draft.mapOverlay ?? {}),
     },
+    infoTab: {
+      displayName: "",
+      logoUrl: "",
+      emergencyContacts: [],
+      sections: [],
+      externalLinks: [],
+      ...(data?.infoTab ?? {}),
+      ...(draft.infoTab ?? {}),
+    },
+    infoTabBySiteCode: {
+      ...(data?.infoTabBySiteCode ?? {}),
+      ...(draft.infoTabBySiteCode ?? {}),
+    },
+    infoTabEditingSiteCode: infoTabSiteCode,
+  };
+
+  const activeInfoTab: CampusInfoTab = infoTabSiteCode
+    ? {
+        displayName: "",
+        logoUrl: "",
+        emergencyContacts: [],
+        sections: [],
+        externalLinks: [],
+        ...(merged.infoTabBySiteCode[infoTabSiteCode] ?? {}),
+      }
+    : merged.infoTab;
+
+  const setActiveInfoTab = (next: CampusInfoTab) => {
+    if (infoTabSiteCode) {
+      setDraft((d) => ({
+        ...d,
+        infoTabBySiteCode: {
+          ...(data?.infoTabBySiteCode ?? {}),
+          ...(d.infoTabBySiteCode ?? {}),
+          [infoTabSiteCode]: next,
+        },
+      }));
+    } else {
+      setDraft((d) => ({ ...d, infoTab: next }));
+    }
+    setIsDirty(true);
+    setSavedOk(false);
   };
 
   const mutation = useMutation({
-    mutationFn: () => saveCampusSettings(agencyId, draft),
+    mutationFn: () =>
+      saveCampusSettings(agencyId, {
+        ...draft,
+        ...(draft.infoTab || draft.infoTabBySiteCode
+          ? {
+              infoTab: draft.infoTab ?? data?.infoTab,
+              infoTabBySiteCode: {
+                ...(data?.infoTabBySiteCode ?? {}),
+                ...(draft.infoTabBySiteCode ?? {}),
+              },
+            }
+          : {}),
+      }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["campus-settings", agencyId] });
       setDraft({});
@@ -559,7 +622,7 @@ export function CampusSettingsClient({
               <Toggle
                 checked={merged.publicForm.collectPhone}
                 onChange={(v) => update("publicForm", { collectPhone: v })}
-                label="Phone number (optional field)"
+                label="Callback phone (recommended — required to share live location)"
               />
               <Toggle
                 checked={merged.publicForm.collectLocation}
@@ -585,6 +648,14 @@ export function CampusSettingsClient({
             </Field>
           </div>
         </section>
+
+        <CampusInfoTabEditor
+          sites={sitesQuery.data?.sites ?? []}
+          editingSiteCode={infoTabSiteCode}
+          onEditingSiteCodeChange={setInfoTabSiteCode}
+          value={activeInfoTab}
+          onChange={setActiveInfoTab}
+        />
 
         <section className="rounded-xl border border-slate-700/60 bg-slate-900 p-6">
           <SectionHeader

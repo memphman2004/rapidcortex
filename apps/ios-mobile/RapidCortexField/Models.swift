@@ -27,8 +27,17 @@ struct QRNFCCode: Identifiable, Codable, Equatable, Hashable {
     var smsNumber: String?
     var nfcWriteLog: [NFCWriteEvent]
     var lastActivityAt: String?
+    var latitude: Double?
+    var longitude: Double?
+    var locationAccuracyMeters: Double?
+    var locationSource: String?
+    var locationVerified: Bool
+    var locationVerifiedAt: String?
+    var locationVerifiedBy: String?
+    var floorLevel: String?
 
     var isNfcProgrammed: Bool { !nfcWriteLog.isEmpty }
+    var hasRegisteredCoordinates: Bool { latitude != nil && longitude != nil }
 
     static func fromLiveCode(_ dto: RCCodeDTO) -> QRNFCCode {
         let scans = dto.metrics?.qrScans ?? 0
@@ -53,12 +62,20 @@ struct QRNFCCode: Identifiable, Codable, Equatable, Hashable {
             updatedAt: dto.updatedAt ?? "",
             locationName: dto.name,
             building: nil,
-            floor: nil,
+            floor: dto.floorLevel,
             zone: dto.zone,
             zoneCode: nil,
             smsNumber: dto.smsNumber,
             nfcWriteLog: dto.nfcWriteLog ?? [],
-            lastActivityAt: dto.metrics?.lastNfcTap ?? dto.metrics?.lastQrScan
+            lastActivityAt: dto.metrics?.lastNfcTap ?? dto.metrics?.lastQrScan,
+            latitude: dto.latitude,
+            longitude: dto.longitude,
+            locationAccuracyMeters: dto.locationAccuracyMeters,
+            locationSource: dto.locationSource,
+            locationVerified: dto.locationVerified ?? false,
+            locationVerifiedAt: dto.locationVerifiedAt,
+            locationVerifiedBy: dto.locationVerifiedBy,
+            floorLevel: dto.floorLevel
         )
     }
 }
@@ -244,8 +261,25 @@ struct RCCodeDTO: Codable {
     let status: String?
     let metrics: RCCodeMetricsDTO?
     let nfcWriteLog: [NFCWriteEvent]?
+    let latitude: Double?
+    let longitude: Double?
+    let locationAccuracyMeters: Double?
+    let locationSource: String?
+    let locationVerified: Bool?
+    let locationVerifiedAt: String?
+    let locationVerifiedBy: String?
+    let floorLevel: String?
     let createdAt: String?
     let updatedAt: String?
+}
+
+struct UpdateCodeLocationRequest: Encodable {
+    let latitude: Double?
+    let longitude: Double?
+    let locationAccuracyMeters: Double?
+    let locationSource: String?
+    let altitudeMeters: Double?
+    let markLocationVerified: Bool?
 }
 
 struct RCCodeMetricsDTO: Codable {

@@ -20,6 +20,7 @@ import {
 import { isAddonNotEnabledError } from "@/lib/addon-gate-errors";
 import { CallerTranslationSection } from "@/components/dispatch/caller-translation-section";
 import { resolveIncidentCallerLanguage } from "@/lib/dispatch/caller-language";
+import { setIqVisionViewingIncident } from "@/lib/rapid-vision/iq-vision-nav-alert-store";
 import { isCallerTranslationReplyEnabled, isLiveSttCaptureEnabled } from "@/lib/runtime-flags";
 import {
   isCallerCardEnabled,
@@ -113,10 +114,16 @@ export function DashboardWorkspace() {
 
   const setSelectedId = useCallback(
     (id: string) => {
+      setIqVisionViewingIncident(id);
       router.replace(dispatchDashboardHref(jurisdiction, { incidentId: id }));
     },
     [router, jurisdiction],
   );
+
+  useEffect(() => {
+    setIqVisionViewingIncident(selectedId);
+    return () => setIqVisionViewingIncident(null);
+  }, [selectedId]);
 
   const handleIncidentCreated = useCallback(
     async (result: CreateIncidentResult) => {

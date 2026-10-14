@@ -1,4 +1,4 @@
-/** LiveLocation — caller GPS via time-limited SMS link. */
+/** LiveLocation — caller GPS via time-limited SMS / browser link. */
 export const PINPOINT_CONFIG = {
   LINK_EXPIRY_MINUTES: 30,
   MAX_LINKS_PER_HOUR: 100,
@@ -7,6 +7,11 @@ export const PINPOINT_CONFIG = {
   MAX_ACCURACY_METERS: 1000,
   HIGH_CONFIDENCE_THRESHOLD_METERS: 25,
   MEDIUM_CONFIDENCE_THRESHOLD_METERS: 100,
+  /**
+   * Pinpoint iQ — max age of last server-received ping to stay LIVE.
+   * Subject to browser watchPosition cadence; tune against field tests.
+   */
+  LIVE_FRESHNESS_SECONDS: 30,
 } as const;
 
 /** Surge View — duplicate-call clustering heuristics. */

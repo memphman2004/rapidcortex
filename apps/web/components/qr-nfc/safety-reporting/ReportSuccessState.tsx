@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { useReportLanguage } from "@/components/intake/report-language";
 import { intakePageBackgroundStyle } from "@/components/intake/vertical-theme";
@@ -11,6 +12,8 @@ type ReportSuccessStateProps = {
   referenceCode?: string | null;
   title?: string;
   description?: string;
+  /** Optional slot under the reference code (e.g. live location sharing). */
+  children?: ReactNode;
 };
 
 export function ReportSuccessState({
@@ -18,6 +21,7 @@ export function ReportSuccessState({
   referenceCode,
   title,
   description,
+  children,
 }: ReportSuccessStateProps) {
   const { t } = useReportLanguage();
   const pageBackground =
@@ -60,6 +64,7 @@ export function ReportSuccessState({
               <span className="font-mono font-semibold tracking-wide">{referenceCode}</span>
             </p>
           ) : null}
+          {children ? <div className="mt-5 w-full text-left">{children}</div> : null}
           <p className="mt-6 text-xs" style={{ color: SAFETY_BRAND.muted }}>
             {t("lifeThreat")}
           </p>

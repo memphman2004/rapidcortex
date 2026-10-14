@@ -71,6 +71,25 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return withCorrelationHeaders(event, ok({ items }));
     }
 
+    const isGisPreview =
+      path.endsWith("/gis-import/preview") || path.includes("/qr-nfc/gis-import/preview");
+    const isGisCommit =
+      path.endsWith("/gis-import/commit") || path.includes("/qr-nfc/gis-import/commit");
+
+    if (isGisPreview && m === "POST") {
+      const body = parseBody(event);
+      if (body === null) return withCorrelationHeaders(event, badRequest("Invalid JSON"));
+      const preview = await service.previewGisImport(user, body);
+      return withCorrelationHeaders(event, ok(preview));
+    }
+
+    if (isGisCommit && m === "POST") {
+      const body = parseBody(event);
+      if (body === null) return withCorrelationHeaders(event, badRequest("Invalid JSON"));
+      const result = await service.commitGisImport(user, body);
+      return withCorrelationHeaders(event, ok(result));
+    }
+
     if (m === "GET" && !qrId) {
       const agencyId = event.queryStringParameters?.agencyId;
       const vertical = event.queryStringParameters?.vertical as never;

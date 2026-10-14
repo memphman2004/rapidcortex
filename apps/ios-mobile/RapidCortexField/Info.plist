@@ -30,6 +30,8 @@
 	<true/>
 	<key>NFCReaderUsageDescription</key>
 	<string>NexCort iQ Mobile uses NFC to program location reporting tags and NexCort iQ site signs.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>NexCort iQ Mobile uses your location while in use so field staff can register QR and NFC installation coordinates on site.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>NexCort iQ Mobile uses the microphone for live language translation between staff and individuals.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

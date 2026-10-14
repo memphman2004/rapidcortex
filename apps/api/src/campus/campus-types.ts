@@ -139,7 +139,26 @@ export interface CampusIncident {
   /** SHA-256 hash of reporter phone — never plain text. */
   phoneHash?: string;
   reporterLast4?: string;
+  /** Callback phone (E.164) from QR/public report — ops contact + Pinpoint. */
+  callerCallback?: string | null;
   locationData?: CampusIncidentLocationEntry[];
+  /**
+   * Immutable QR/NFC registered-location snapshot at incident create time.
+   * Later tag relocation must not mutate this.
+   */
+  safetyPointSnapshot?: {
+    safetyPointId: string;
+    siteCode?: string;
+    latitude?: number;
+    longitude?: number;
+    buildingName?: string;
+    floor?: string;
+    room?: string;
+    zone?: string;
+    verificationStatus: string;
+    coordinateSource?: string;
+    capturedAt: string;
+  };
   locationLinkSent?: boolean;
   smsChatMessages?: CampusSmsChatMessage[];
 }

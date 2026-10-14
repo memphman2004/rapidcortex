@@ -5,6 +5,7 @@ import type {
   CreateCodePayload,
   NFCWriteEvent,
   RCCode,
+  UpdateCodePayload,
 } from '../../types/mobile';
 
 function unwrap<T>(response: { data: ApiEnvelope<T> }): T {
@@ -47,7 +48,7 @@ export async function getCode(codeId: string): Promise<RCCode> {
 
 export async function updateCode(
   codeId: string,
-  patchBody: Partial<RCCode>,
+  patchBody: UpdateCodePayload,
 ): Promise<RCCode> {
   const response = await patch<ApiEnvelope<{ code: RCCode }>>(
     `/api/codes/${codeId}`,

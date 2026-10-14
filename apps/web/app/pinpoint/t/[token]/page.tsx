@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { PinpointCallerClient } from "@/components/pinpoint/pinpoint-caller-client";
 
 export const metadata: Metadata = {
-  title: "Share location — LiveLocation · NexCort iQ",
+  title: "Share location — Pinpoint iQ · NexCort iQ",
   robots: { index: false, follow: false },
+  referrer: "no-referrer",
 };
 
 export default async function PinpointTokenPage({ params }: { params: Promise<{ token: string }> }) {

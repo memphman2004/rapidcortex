@@ -267,6 +267,17 @@ export class AgencyService {
                   ...row.config.campus?.publicReportForm,
                   ...patch.campus.publicReportForm,
                 },
+                infoTab:
+                  patch.campus.infoTab !== undefined
+                    ? { ...row.config.campus?.infoTab, ...patch.campus.infoTab }
+                    : row.config.campus?.infoTab,
+                infoTabBySiteCode:
+                  patch.campus.infoTabBySiteCode !== undefined
+                    ? {
+                        ...row.config.campus?.infoTabBySiteCode,
+                        ...patch.campus.infoTabBySiteCode,
+                      }
+                    : row.config.campus?.infoTabBySiteCode,
               }
             : row.config.campus,
         updatedAt: now,

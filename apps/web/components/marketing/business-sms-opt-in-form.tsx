@@ -160,7 +160,6 @@ export function BusinessSmsOptInForm() {
           onFocus={scrollMarketingFieldIntoViewOnFocus}
         />
       </label>
-      <BusinessSmsConsentField disabled={status === "sending"} />
       <label className={labelClass}>
         Organization / agency <span className="text-rose-300">*</span>
         <input
@@ -183,6 +182,7 @@ export function BusinessSmsOptInForm() {
           placeholder="Tell us what you would like to discuss"
         />
       </label>
+      <BusinessSmsConsentField disabled={status === "sending"} />
       <input type="text" name="website" autoComplete="off" tabIndex={-1} className="hidden" aria-hidden />
       <button
         type="submit"

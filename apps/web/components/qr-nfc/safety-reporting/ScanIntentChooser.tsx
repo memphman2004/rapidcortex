@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Info, Phone, Shield } from "lucide-react";
+import { Info, Phone, Shield, Route } from "lucide-react";
 import { useReportLanguage } from "@/components/intake/report-language";
 import { intakePageBackgroundStyle } from "@/components/intake/vertical-theme";
 import { guestAssistUrl } from "@/lib/qr-nfc/guest-assist-url";
@@ -17,7 +17,10 @@ export type ScanIntentChooserProps = {
   vertical: string;
   agencyId?: string;
   guestAssistEnabled: boolean;
+  /** Higher-ed Escort iQ entry (never K-12). */
+  escortIqAvailable?: boolean;
   onPoliceSecurity: () => void;
+  onEscortIq?: () => void;
 };
 
 export function ScanIntentChooser({
@@ -28,7 +31,9 @@ export function ScanIntentChooser({
   vertical,
   agencyId,
   guestAssistEnabled,
+  escortIqAvailable = false,
   onPoliceSecurity,
+  onEscortIq,
 }: ScanIntentChooserProps) {
   const { t, dir, code: langCode } = useReportLanguage();
   const pageBackground =
@@ -86,6 +91,15 @@ export function ScanIntentChooser({
             onClick={onPoliceSecurity}
             tone="security"
           />
+          {escortIqAvailable && onEscortIq ? (
+            <IntentButton
+              label="Escort iQ"
+              hint="Your Journey. Your Safety. Your Choice."
+              icon={<Route className="h-6 w-6" aria-hidden />}
+              onClick={onEscortIq}
+              tone="info"
+            />
+          ) : null}
           <a
             href="tel:911"
             className="flex min-h-[4.5rem] items-center gap-4 rounded-2xl border-2 px-4 py-3.5 no-underline transition active:scale-[0.99]"

@@ -48,6 +48,8 @@ import {
   isCommandIntelligenceEnabled,
   isNexiqVaultEnabled,
   isGisEnabled,
+  isEscortIqEnabled,
+  isCampusAlertsEnabled,
 } from "@/lib/runtime-flags";
 import { isVerticalEnabled } from "@/lib/features";
 
@@ -154,6 +156,10 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isLoadoutPortalEnabled();
     case "gis":
       return isGisEnabled();
+    case "escortIq":
+      return isEscortIqEnabled();
+    case "campusAlerts":
+      return isCampusAlertsEnabled();
     default:
       return true;
   }

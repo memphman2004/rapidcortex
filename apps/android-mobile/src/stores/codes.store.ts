@@ -13,6 +13,7 @@ import type {
   CreateCodePayload,
   NFCWriteEvent,
   RCCode,
+  UpdateCodePayload,
 } from '../types/mobile';
 
 export type CodesStatusFilter = 'all' | 'active' | 'inactive' | 'nfcWritten' | 'notWritten';
@@ -30,7 +31,7 @@ interface CodesStoreState {
 
   fetchCodes: (agencyId: string) => Promise<void>;
   createNewCode: (payload: CreateCodePayload) => Promise<RCCode>;
-  patchCode: (codeId: string, patch: Partial<RCCode>) => Promise<RCCode>;
+  patchCode: (codeId: string, patch: UpdateCodePayload) => Promise<RCCode>;
   removeCode: (codeId: string) => Promise<void>;
   recordNfcWrite: (
     codeId: string,

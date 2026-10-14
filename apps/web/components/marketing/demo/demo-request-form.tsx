@@ -181,7 +181,6 @@ export function DemoRequestForm() {
           onFocus={scrollMarketingFieldIntoViewOnFocus}
         />
       </label>
-      <BusinessSmsConsentField disabled={status === "sending"} />
       <label className={labelClass}>
         Agency / organization <span className="text-rose-300">*</span>
         <input
@@ -250,6 +249,7 @@ export function DemoRequestForm() {
           onFocus={scrollMarketingFieldIntoViewOnFocus}
         />
       </label>
+      <BusinessSmsConsentField disabled={status === "sending"} />
       <input type="text" name="website" autoComplete="off" tabIndex={-1} className="hidden" aria-hidden />
       <button
         type="submit"

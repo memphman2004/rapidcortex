@@ -21,6 +21,8 @@ export const smsMessageTypeSchema = z.enum([
   "call_assist_confirmation",
   "call_assist_routing_alert",
   "translate_session_link",
+  "campus_alerts_otp",
+  "campus_alerts_emergency",
 ]);
 export type SmsMessageType = z.infer<typeof smsMessageTypeSchema>;
 

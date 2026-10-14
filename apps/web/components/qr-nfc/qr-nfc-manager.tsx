@@ -26,8 +26,32 @@ import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
 import { useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 import { useCampusInstitutionType } from "@/lib/campus/use-campus-institution";
 import { createCampusZone, fetchCampusZones } from "@/lib/campus/campus-dashboard-api";
+import { SafetyPointMapPinPicker } from "./safety-point-map-pin-picker";
+import { GisBulkImportPanel } from "./gis-bulk-import-panel";
 
 type ListItem = Omit<QRNFCRecord, "qrImageBase64">;
+
+function safetyPointLocationLabel(row: ListItem): {
+  key: "VERIFIED" | "UNVERIFIED" | "MISSING LOCATION" | "INACTIVE";
+  className: string;
+} {
+  if (!row.active) {
+    return { key: "INACTIVE", className: "bg-slate-700 text-slate-200" };
+  }
+  const has =
+    row.latitude != null &&
+    row.longitude != null &&
+    Number.isFinite(row.latitude) &&
+    Number.isFinite(row.longitude);
+  if (!has) {
+    return { key: "MISSING LOCATION", className: "bg-amber-900/70 text-amber-100" };
+  }
+  if (row.verificationStatus === "VERIFIED") {
+    return { key: "VERIFIED", className: "bg-emerald-800 text-emerald-100" };
+  }
+  return { key: "UNVERIFIED", className: "bg-sky-900/70 text-sky-100" };
+}
+
 type MediumView = "qr" | "nfc" | "all";
 
 type Props = {
@@ -96,6 +120,7 @@ export function QRNFCManager({
   const [created, setCreated] = useState<QRNFCRecord | null>(null);
   const [filterVertical, setFilterVertical] = useState<string>("all");
   const [filterActive, setFilterActive] = useState<string>("all");
+  const [filterLocation, setFilterLocation] = useState<string>("all");
   const [mediumView, setMediumView] = useState<MediumView>("all");
   const [expandedNfcId, setExpandedNfcId] = useState<string | null>(null);
 
@@ -209,13 +234,23 @@ export function QRNFCManager({
   }, [campusZones, primarySiteCode, selectedSiteCode, vertical]);
 
   const visibleItems = useMemo(() => {
-    const byMedium =
-      mediumView === "nfc" ? items.filter((row) => row.nfcEnabled) : items;
-    if (vertical !== "campus") return byMedium;
-    return byMedium.filter((row) =>
-      matchesCampusSiteScope(row.siteCode, scope, primarySiteCode),
-    );
-  }, [items, mediumView, vertical, scope, primarySiteCode]);
+    let rows = mediumView === "nfc" ? items.filter((row) => row.nfcEnabled) : items;
+    if (vertical === "campus") {
+      rows = rows.filter((row) =>
+        matchesCampusSiteScope(row.siteCode, scope, primarySiteCode),
+      );
+    }
+    if (filterLocation !== "all") {
+      rows = rows.filter((row) => {
+        const label = safetyPointLocationLabel(row).key;
+        if (filterLocation === "verified") return label === "VERIFIED";
+        if (filterLocation === "unverified") return label === "UNVERIFIED";
+        if (filterLocation === "missing") return label === "MISSING LOCATION";
+        return true;
+      });
+    }
+    return rows;
+  }, [items, mediumView, vertical, scope, primarySiteCode, filterLocation]);
 
   const emptyCreateForm = useCallback((): CreateQRNFCInput & { callNumber?: string } => {
     const defaultSite =
@@ -363,6 +398,29 @@ export function QRNFCManager({
       setModalError("Network error — please try again.");
     } finally {
       setCreating(false);
+    }
+  }
+
+
+  async function verifyLocation(qrId: string) {
+    setBusyId(qrId);
+    try {
+      const res = await fetch(`${apiBase}/${encodeURIComponent(qrId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markLocationVerified: true }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        flash("err", body.error ?? "Could not verify location");
+        return;
+      }
+      flash("ok", "Installation location verified.");
+      await load();
+    } catch {
+      flash("err", "Could not verify location");
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -600,6 +658,15 @@ export function QRNFCManager({
         showLocationUsage={!tenantConsole}
       />
 
+      {canCreate ? (
+        <GisBulkImportPanel
+          agencyId={agencyId}
+          apiBase={apiBase}
+          canImport={canCreate}
+          onCommitted={() => void load()}
+        />
+      ) : null}
+
       {showSiteQr ? (
       <TradeShowMarketingQrPanel
         onCopied={(label) => flash("ok", `${label} copied.`)}
@@ -658,6 +725,16 @@ export function QRNFCManager({
           <option value="all">All status</option>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
+        </select>
+        <select
+          value={filterLocation}
+          onChange={(e) => setFilterLocation(e.target.value)}
+          className="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-sm"
+        >
+          <option value="all">All locations</option>
+          <option value="verified">Verified location</option>
+          <option value="unverified">Unverified location</option>
+          <option value="missing">Missing location</option>
         </select>
         {vertical === "campus" ? (
           <CampusSiteSwitcher sites={sites} value={scope} onChange={setScope} />
@@ -782,6 +859,16 @@ export function QRNFCManager({
                     {row.active ? "Active" : "Inactive"}
                   </span>
                 )}
+                {(() => {
+                  const loc = safetyPointLocationLabel(row);
+                  return (
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${loc.className}`}
+                    >
+                      {loc.key}
+                    </span>
+                  );
+                })()}
               </div>
               <p className="text-xs text-slate-400">
                 QR: {row.scanCount} scans · NFC: {row.nfcTapCount} taps · Total: {row.totalEngagements}
@@ -837,6 +924,20 @@ export function QRNFCManager({
                     className="rounded border border-rose-800 px-2 py-1 text-xs text-rose-300 hover:bg-rose-950/40 disabled:opacity-50"
                   >
                     Deactivate
+                  </button>
+                ) : null}
+                {canCreate &&
+                row.active &&
+                row.latitude != null &&
+                row.longitude != null &&
+                row.verificationStatus !== "VERIFIED" ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void verifyLocation(row.qrId)}
+                    className="rounded border border-emerald-700 px-2 py-1 text-xs text-emerald-200 hover:bg-emerald-950/40 disabled:opacity-50"
+                  >
+                    Verify installation location
                   </button>
                 ) : null}
                 {locationCamerasEnabled && canCreate ? (
@@ -1196,6 +1297,63 @@ export function QRNFCManager({
                   </label>
                     </>
                   )}
+                </div>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <label className="block text-sm text-slate-300">
+                    Latitude
+                    <input
+                      type="number"
+                      step="any"
+                      value={form.latitude ?? ""}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          latitude: e.target.value === "" ? undefined : Number(e.target.value),
+                          coordinateSource: e.target.value === "" ? undefined : f.coordinateSource ?? "MANUAL",
+                          verificationStatus: e.target.value === "" ? undefined : "UNVERIFIED",
+                        }))
+                      }
+                      placeholder="Optional"
+                      className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
+                    />
+                  </label>
+                  <label className="block text-sm text-slate-300">
+                    Longitude
+                    <input
+                      type="number"
+                      step="any"
+                      value={form.longitude ?? ""}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          longitude: e.target.value === "" ? undefined : Number(e.target.value),
+                          coordinateSource: e.target.value === "" ? undefined : f.coordinateSource ?? "MANUAL",
+                          verificationStatus: e.target.value === "" ? undefined : "UNVERIFIED",
+                        }))
+                      }
+                      placeholder="Optional"
+                      className="mt-1 w-full rounded border border-slate-600 bg-slate-950 px-2 py-1.5"
+                    />
+                  </label>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Registered installation coordinates stay UNVERIFIED until an authorized user confirms
+                  them. Do not use caller GPS here.
+                </p>
+                <div className="mt-3">
+                  <SafetyPointMapPinPicker
+                    latitude={form.latitude}
+                    longitude={form.longitude}
+                    onChange={({ latitude, longitude, coordinateSource }) =>
+                      setForm((f) => ({
+                        ...f,
+                        latitude,
+                        longitude,
+                        coordinateSource,
+                        verificationStatus: "UNVERIFIED",
+                      }))
+                    }
+                  />
                 </div>
                 <fieldset className="mt-3">
                   <legend className="text-sm text-slate-300">Assigned cameras</legend>

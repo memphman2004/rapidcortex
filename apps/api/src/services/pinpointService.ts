@@ -11,6 +11,8 @@ import {
   PINPOINT_CONFIG,
   createPinpointLinkBodySchema,
   pinpointLocationCaptureBodySchema,
+  pinpointPublicRevokeBodySchema,
+  resolvePinpointIqLocationStatus,
 } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES, TenantAccessGuard } from "rapid-cortex-security";
 import { env } from "../lib/env.js";
@@ -37,6 +39,26 @@ function assertPinpointEnabled(): void {
   if (!env.enablePinpoint) throw new Error("PINPOINT_DISABLED");
   if (!env.pinpointLinksTable) throw new Error("PINPOINT_LINKS_TABLE_NOT_CONFIGURED");
 }
+
+function toPublicSession(row: PinpointLinkDdbItem): PinpointLinkPublicView {
+  const last = row.pings.length ? row.pings[row.pings.length - 1]! : null;
+  const sharingAllowed = row.status === "active" && Date.parse(row.expiresAt) > Date.now();
+  return {
+    status: row.status,
+    expiresAt: row.expiresAt,
+    sharingAllowed,
+    updateCount: row.pings.length,
+    lastAccepted: last
+      ? {
+          capturedAt: last.capturedAt,
+          lat: last.lat,
+          lng: last.lng,
+          ...(last.accuracyM != null ? { accuracyM: last.accuracyM } : {}),
+        }
+      : null,
+  };
+}
+
 
 export class PinpointService {
   async createLink(
@@ -98,6 +120,7 @@ export class PinpointService {
       expiresAt,
       pings: [],
       callerPhoneE164: body.callerPhoneE164,
+      channel: "sms",
       smsSentAt: sms.status === "sent" ? now : null,
       smsProviderRef: sms.messageId ?? null,
       ttl,
@@ -129,6 +152,7 @@ export class PinpointService {
     incidentId: string;
     rcli?: string;
     callerPhoneE164?: string | null;
+    consentGrantedAt?: string | null;
   }): Promise<{ linkId: string; token: string; publicUrl: string } | null> {
     try {
       assertPinpointEnabled();
@@ -169,6 +193,8 @@ export class PinpointService {
       expiresAt,
       pings: [],
       callerPhoneE164: phone,
+      channel: "browser",
+      consentGrantedAt: opts.consentGrantedAt ?? now,
       smsSentAt: null,
       smsProviderRef: null,
       ttl,
@@ -182,7 +208,14 @@ export class PinpointService {
         incidentId,
         actorId: "system:qr-intake",
         type: AUDIT_EVENT_TYPES.PINPOINT_LINK_GENERATED,
-        details: { linkId, smsStatus: "skipped", source: "qr_inline", rcli: opts.rcli ?? null },
+        details: {
+          linkId,
+          smsStatus: "skipped",
+          source: "qr_inline",
+          channel: "browser",
+          rcli: opts.rcli ?? null,
+          consentGrantedAt: opts.consentGrantedAt ?? now,
+        },
         createdAt: now,
         resourceType: "incident",
         resourceId: linkId,
@@ -215,6 +248,8 @@ export class PinpointService {
       expiresAt: l.expiresAt,
       smsSentAt: l.smsSentAt ?? null,
       lastPingAt: l.pings.length ? l.pings[l.pings.length - 1]!.capturedAt : null,
+      channel: l.channel ?? null,
+      consentGrantedAt: l.consentGrantedAt ?? null,
     }));
     return { items: brief };
   }
@@ -231,6 +266,13 @@ export class PinpointService {
       const agencyId = String(user.agencyId ?? "").trim();
       if (!agencyId || row.agencyId !== agencyId) throw new Error("NOT_FOUND");
     }
+    const locationStatusView = resolvePinpointIqLocationStatus({
+      hasTrackingSession: true,
+      sessionStatus: row.status,
+      consentGrantedAt: row.consentGrantedAt ?? null,
+      expiresAt: row.expiresAt,
+      pings: row.pings,
+    });
     return {
       linkId: row.linkId,
       status: row.status,
@@ -238,10 +280,14 @@ export class PinpointService {
       expiresAt: row.expiresAt,
       smsSentAt: row.smsSentAt ?? null,
       lastPingAt: row.pings.length ? row.pings[row.pings.length - 1]!.capturedAt : null,
+      channel: row.channel ?? null,
+      consentGrantedAt: row.consentGrantedAt ?? null,
       agencyId: row.agencyId,
       incidentId: row.incidentId,
       pings: row.pings,
       revokedAt: row.revokedAt ?? null,
+      locationStatus: locationStatusView.status,
+      locationStatusView,
     };
   }
 
@@ -258,19 +304,108 @@ export class PinpointService {
       if (!agencyId || row.agencyId !== agencyId) throw new Error("NOT_FOUND");
     }
     const now = new Date().toISOString();
-    await linkRepo.put({ ...row, status: "revoked", revokedAt: now, updatedAt: now });
-    await auditRepo.create({
-      eventId: makeId("aud"),
-      agencyId: row.agencyId,
-      incidentId,
-      actorId: user.userId,
-      type: AUDIT_EVENT_TYPES.PINPOINT_LINK_REVOKED,
-      details: { linkId },
-      createdAt: now,
-      resourceType: "incident",
-      resourceId: linkId,
+    const outcome = await linkRepo.revokeIfActive(linkId, {
+      revokedAt: now,
+      updatedAt: now,
+      revokedReason: "operator",
+      revokedBy: user.userId,
     });
+    if (outcome === "not_found") throw new Error("NOT_FOUND");
+    // already_ended and revoked are both success (idempotent).
+    try {
+      await auditRepo.create({
+        eventId: makeId("aud"),
+        agencyId: row.agencyId,
+        incidentId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.PINPOINT_LINK_REVOKED,
+        details: {
+          linkId,
+          reason: "operator",
+          outcome,
+          actorRole: "operator",
+        },
+        createdAt: now,
+        resourceType: "incident",
+        resourceId: linkId,
+      });
+    } catch {
+      /* non-fatal */
+    }
     return { ok: true };
+  }
+
+  /**
+   * Caller consent withdrawal — authorized solely by possession of the opaque token.
+   * Idempotent: already revoked/expired links return ok.
+   */
+  async revokeByToken(
+    token: string,
+    rawBody: unknown,
+  ): Promise<{ ok: true; alreadyEnded: boolean }> {
+    assertPinpointEnabled();
+    const body = pinpointPublicRevokeBodySchema.parse(rawBody ?? {});
+    const tokenHash = hashToken(token);
+    const row = await linkRepo.getByTokenHash(tokenHash);
+    if (!row) throw new Error("NOT_FOUND");
+
+    const now = new Date().toISOString();
+    const reason = body.reason ?? "caller_stop";
+
+    if (row.status === "revoked" || row.status === "expired") {
+      try {
+        await auditRepo.create({
+          eventId: makeId("aud"),
+          agencyId: row.agencyId,
+          incidentId: row.incidentId,
+          actorId: "caller:token",
+          type: AUDIT_EVENT_TYPES.PINPOINT_LINK_REVOKED,
+          details: {
+            linkId: row.linkId,
+            reason,
+            outcome: "already_ended",
+            actorRole: "caller",
+          },
+          createdAt: now,
+          resourceType: "incident",
+          resourceId: row.linkId,
+        });
+      } catch {
+        /* non-fatal */
+      }
+      return { ok: true, alreadyEnded: true };
+    }
+
+    const outcome = await linkRepo.revokeIfActive(row.linkId, {
+      revokedAt: now,
+      updatedAt: now,
+      revokedReason: reason,
+      revokedBy: "caller:token",
+    });
+    if (outcome === "not_found") throw new Error("NOT_FOUND");
+
+    try {
+      await auditRepo.create({
+        eventId: makeId("aud"),
+        agencyId: row.agencyId,
+        incidentId: row.incidentId,
+        actorId: "caller:token",
+        type: AUDIT_EVENT_TYPES.PINPOINT_LINK_REVOKED,
+        details: {
+          linkId: row.linkId,
+          reason,
+          outcome,
+          actorRole: "caller",
+        },
+        createdAt: now,
+        resourceType: "incident",
+        resourceId: row.linkId,
+      });
+    } catch {
+      /* non-fatal */
+    }
+
+    return { ok: true, alreadyEnded: outcome === "already_ended" };
   }
 
   async getPublicByToken(token: string): Promise<PinpointLinkPublicView> {
@@ -279,20 +414,19 @@ export class PinpointService {
     const row = await linkRepo.getByTokenHash(tokenHash);
     if (!row) throw new Error("NOT_FOUND");
     const now = Date.now();
-    if (row.status === "revoked") throw new Error("NOT_FOUND");
+    if (row.status === "revoked") throw new Error("SESSION_REVOKED");
     if (Date.parse(row.expiresAt) < now) {
       if (row.status !== "expired") {
-        await linkRepo.put({ ...row, status: "expired", updatedAt: new Date().toISOString() });
+        // Best-effort mark expired; GPS path uses conditional writes so this cannot resurrect.
+        try {
+          await linkRepo.put({ ...row, status: "expired", updatedAt: new Date().toISOString() });
+        } catch {
+          /* ignore */
+        }
       }
       throw new Error("SESSION_EXPIRED");
     }
-    return {
-      linkId: row.linkId,
-      incidentId: row.incidentId,
-      status: row.status,
-      expiresAt: row.expiresAt,
-      pings: row.pings,
-    };
+    return toPublicSession(row);
   }
 
   async captureLocation(token: string, rawBody: unknown): Promise<PinpointLinkPublicView> {
@@ -303,10 +437,9 @@ export class PinpointService {
     const tokenHash = hashToken(token);
     const row = await linkRepo.getByTokenHash(tokenHash);
     if (!row) throw new Error("NOT_FOUND");
-    if (row.status === "revoked") throw new Error("NOT_FOUND");
+    if (row.status === "revoked") throw new Error("SESSION_REVOKED");
     const nowMs = Date.now();
     if (Date.parse(row.expiresAt) < nowMs) {
-      await linkRepo.put({ ...row, status: "expired", updatedAt: new Date().toISOString() });
       throw new Error("SESSION_EXPIRED");
     }
     if (body.accuracyM != null) {
@@ -314,14 +447,10 @@ export class PinpointService {
         throw new Error("VALIDATION:accuracyM out of allowed range");
       }
     }
-    const last = row.pings[row.pings.length - 1];
-    if (last) {
-      const deltaSec = (nowMs - Date.parse(last.capturedAt)) / 1000;
-      if (deltaSec < PINPOINT_CONFIG.LOCATION_UPDATE_RATE_LIMIT_SECONDS) {
-        throw new Error("VALIDATION:Please wait before sending another location update.");
-      }
-    }
     const capturedAt = new Date().toISOString();
+    const rateLimitCutoffIso = new Date(
+      nowMs - PINPOINT_CONFIG.LOCATION_UPDATE_RATE_LIMIT_SECONDS * 1000,
+    ).toISOString();
     const ping = {
       capturedAt,
       lat: body.lat,
@@ -331,29 +460,46 @@ export class PinpointService {
       speedMps: body.speedMps,
       clientNote: body.clientNote,
     };
-    const next = { ...row, pings: [...row.pings, ping].slice(-80), updatedAt: capturedAt };
-    await linkRepo.put(next);
-
-    await auditRepo.create({
-      eventId: makeId("aud"),
-      agencyId: row.agencyId,
-      incidentId: row.incidentId,
-      type: AUDIT_EVENT_TYPES.PINPOINT_LOCATION_CAPTURED,
-      details: {
-        linkId: row.linkId,
-        confidence: classifyLocationConfidence(body.accuracyM),
-      },
-      createdAt: capturedAt,
-      resourceType: "incident",
-      resourceId: row.linkId,
+    const nextPings = [...row.pings, ping].slice(-80);
+    const outcome = await linkRepo.appendPingIfActive(row.linkId, ping, nextPings, {
+      updatedAt: capturedAt,
+      expiresAtMustBeAfterIso: new Date(nowMs).toISOString(),
+      rateLimitCutoffIso,
     });
+    if (outcome === "not_found") throw new Error("NOT_FOUND");
+    if (outcome === "session_ended") {
+      const current = await linkRepo.get(row.linkId);
+      if (current?.status === "revoked") throw new Error("SESSION_REVOKED");
+      throw new Error("SESSION_EXPIRED");
+    }
+    if (outcome === "rate_limited") {
+      throw new Error("VALIDATION:Please wait before sending another location update.");
+    }
 
-    return {
-      linkId: next.linkId,
-      incidentId: next.incidentId,
-      status: next.status,
-      expiresAt: next.expiresAt,
-      pings: next.pings,
-    };
+    try {
+      await auditRepo.create({
+        eventId: makeId("aud"),
+        agencyId: row.agencyId,
+        incidentId: row.incidentId,
+        type: AUDIT_EVENT_TYPES.PINPOINT_LOCATION_CAPTURED,
+        details: {
+          linkId: row.linkId,
+          confidence: classifyLocationConfidence(body.accuracyM),
+        },
+        createdAt: capturedAt,
+        resourceType: "incident",
+        resourceId: row.linkId,
+      });
+    } catch {
+      /* non-fatal */
+    }
+
+    return toPublicSession({
+      ...row,
+      pings: nextPings,
+      updatedAt: capturedAt,
+      lastPingAt: capturedAt,
+      status: "active",
+    });
   }
 }

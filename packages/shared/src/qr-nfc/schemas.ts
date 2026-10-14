@@ -5,6 +5,60 @@ export const reportVerticalSchema = z.enum(["911", "campus", "venue", "hospital"
 export const qrNfcReportTypeSchema = z.enum(["anonymous", "identified", "both"]);
 export const reportMediumSchema = z.enum(["qr", "nfc", "sms", "direct", "url"]);
 
+export const safetyPointCoordinateSourceSchema = z.enum([
+  "DEVICE_GPS",
+  "MAP_PIN",
+  "GIS_IMPORT",
+  "MANUAL",
+]);
+export const safetyPointVerificationStatusSchema = z.enum(["DRAFT", "UNVERIFIED", "VERIFIED"]);
+
+const latSchema = z.number().finite().min(-90).max(90);
+const lngSchema = z.number().finite().min(-180).max(180);
+
+export const registeredSafetyPointLocationSchema = z.object({
+  latitude: latSchema,
+  longitude: lngSchema,
+  coordinateSource: safetyPointCoordinateSourceSchema,
+  horizontalAccuracyMeters: z.number().finite().min(0).max(5000).optional(),
+  buildingName: z.string().max(200).optional(),
+  buildingId: z.string().max(50).optional(),
+  floor: z.string().max(16).optional(),
+  room: z.string().max(64).optional(),
+  zone: z.string().max(200).optional(),
+  indoorMapId: z.string().max(128).optional(),
+  indoorFeatureId: z.string().max(128).optional(),
+  verificationStatus: safetyPointVerificationStatusSchema,
+  verifiedAt: z.string().datetime().optional(),
+  verifiedBy: z.string().max(128).optional(),
+  locationCapturedAt: z.string().datetime().optional(),
+  lastLocationUpdatedAt: z.string().datetime().optional(),
+  locationUpdatedBy: z.string().max(128).optional(),
+});
+
+/** GIS / CSV bulk row — imported locations stay UNVERIFIED until confirmed. */
+export const safetyPointGisImportRowSchema = z.object({
+  safetyPointId: z.string().min(1).max(64),
+  siteCode: z.string().trim().max(20).optional(),
+  buildingName: z.string().max(200).optional(),
+  floor: z.string().max(16).optional(),
+  zone: z.string().max(200).optional(),
+  latitude: z.coerce.number().finite().min(-90).max(90),
+  longitude: z.coerce.number().finite().min(-180).max(180),
+});
+
+export const safetyPointGisImportPreviewSchema = z.object({
+  agencyId: z.string().min(1).max(128).optional(),
+  rows: z.array(safetyPointGisImportRowSchema).min(1).max(5000),
+});
+
+export const safetyPointGisImportCommitSchema = z.object({
+  agencyId: z.string().min(1).max(128),
+  /** Hard gate — preview alone never writes. */
+  confirmCommit: z.literal(true),
+  rows: z.array(safetyPointGisImportRowSchema).min(1).max(5000),
+});
+
 const e164PhoneSchema = z
   .string()
   .trim()
@@ -42,6 +96,15 @@ export const createQRNFCSchema = z.object({
   nfcTagId: z.string().max(128).optional(),
   expiresAt: z.string().datetime().optional(),
   callNumber: optionalCallNumberSchema,
+  latitude: latSchema.optional(),
+  longitude: lngSchema.optional(),
+  coordinateSource: safetyPointCoordinateSourceSchema.optional(),
+  horizontalAccuracyMeters: z.number().finite().min(0).max(5000).optional(),
+  buildingName: z.string().max(200).optional(),
+  room: z.string().max(64).optional(),
+  indoorMapId: z.string().max(128).optional(),
+  indoorFeatureId: z.string().max(128).optional(),
+  verificationStatus: safetyPointVerificationStatusSchema.optional(),
 });
 
 export const updateQRNFCSchema = z.object({
@@ -60,6 +123,20 @@ export const updateQRNFCSchema = z.object({
   nfcTagId: z.string().max(128).optional(),
   active: z.boolean().optional(),
   callNumber: optionalCallNumberSchema,
+  latitude: latSchema.optional(),
+  longitude: lngSchema.optional(),
+  coordinateSource: safetyPointCoordinateSourceSchema.optional(),
+  horizontalAccuracyMeters: z.number().finite().min(0).max(5000).optional(),
+  buildingName: z.string().max(200).optional(),
+  room: z.string().max(64).optional(),
+  indoorMapId: z.string().max(128).optional(),
+  indoorFeatureId: z.string().max(128).optional(),
+  verificationStatus: safetyPointVerificationStatusSchema.optional(),
+  markLocationVerified: z.boolean().optional(),
+});
+
+export const verifySafetyPointLocationSchema = z.object({
+  confirmed: z.literal(true),
 });
 
 export const trackEngagementSchema = z.object({
@@ -92,4 +169,9 @@ export const publicReportSubmitSchema = z.object({
   reporterPhone: z.string().max(32).optional(),
   medium: reportMediumSchema,
   mediaKeys: z.array(z.string().min(1).max(256)).max(5).optional(),
+  /**
+   * When true (campus QR), create a browser Pinpoint session so the reporter
+   * can stream GPS after explicit consent on the success screen.
+   */
+  shareLiveLocation: z.boolean().optional(),
 });

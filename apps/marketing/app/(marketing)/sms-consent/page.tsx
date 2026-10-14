@@ -105,9 +105,9 @@ export default function SmsConsentPage() {
           <a href="https://www.nexcortiq.us">nexcortiq.us</a>.
         </p>
         <p>
-          The SMS consent option is a separate checkbox beneath the mobile phone field. It is not
-          selected by default. Submitting a form without checking the box does not enroll the
-          submitter in Business Communications SMS.
+          The SMS consent option is a separate checkbox below the form. It is not selected by
+          default. Submitting a form without checking the box does not enroll the submitter in
+          Business Communications SMS.
         </p>
         <p>
           Customers may also provide express consent during an individual conversation with a NexCort
@@ -122,13 +122,21 @@ export default function SmsConsentPage() {
         </p>
 
         <div className={styles.optInFormBlock} id="opt-in-form">
-          <h4 className={styles.subhead} id="opt-in-form-heading">
-            Request Information from NexCort iQ — Business Communications SMS Opt-In
+          <h4 className={styles.connectTitle} id="opt-in-form-heading">
+            Connect with NexCort iQ
           </h4>
+          <p className={styles.connectLead}>Let&apos;s start a conversation.</p>
           <p>
-            Use this public form to request product information. Optional SMS consent is unchecked by
-            default. Carrier and messaging campaign reviewers can inspect this form without logging
-            in.
+            Interested in learning how NexCort iQ can enhance safety, security, and emergency
+            response for your organization?
+          </p>
+          <p>
+            Complete the form below to request more information, schedule a demonstration, or connect
+            with a NexCort iQ representative.
+          </p>
+          <p>
+            If you&apos;d prefer to communicate by text, you can also opt in to receive SMS updates
+            and follow-up messages from our team.
           </p>
           <BusinessSmsOptInForm />
         </div>

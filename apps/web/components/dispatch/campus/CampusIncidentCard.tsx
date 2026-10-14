@@ -110,6 +110,38 @@ export function CampusIncidentCard({
     return `${incident.description.slice(0, 180)}…`;
   }, [expanded, incident.description]);
 
+  const scanLocationLabel = useMemo(
+    () =>
+      [incident.qrLocationName, incident.zoneLabel || incident.buildingLabel]
+        .filter(Boolean)
+        .join(" — ") || null,
+    [incident.qrLocationName, incident.zoneLabel, incident.buildingLabel],
+  );
+
+  const scanMapLocation = useMemo(() => {
+    const snap = (incident as { safetyPointSnapshot?: { latitude?: number; longitude?: number } })
+      .safetyPointSnapshot;
+    if (
+      snap?.latitude != null &&
+      snap?.longitude != null &&
+      Number.isFinite(snap.latitude) &&
+      Number.isFinite(snap.longitude)
+    ) {
+      return {
+        lat: snap.latitude,
+        lng: snap.longitude,
+        label: "Registered Safety Point",
+      };
+    }
+    const coords = incident.locationData?.find((e) => e.coordinates)?.coordinates;
+    if (!coords) return null;
+    return {
+      lat: coords.latitude,
+      lng: coords.longitude,
+      label: "Registered Safety Point",
+    };
+  }, [incident.locationData, incident]);
+
   return (
     <article
       className={`rounded-lg border border-slate-800 bg-slate-900/60 p-4 border-l-4 ${statusAccent(incident.status)}`}
@@ -153,6 +185,15 @@ export function CampusIncidentCard({
         />
       </div>
 
+      {incident.callerCallback || incident.reporterLast4 ? (
+        <p className="mt-2 text-xs text-slate-400">
+          Callback:{" "}
+          <span className="font-medium text-slate-200">
+            {incident.callerCallback ?? incident.reporterLast4}
+          </span>
+        </p>
+      ) : null}
+
       {incident.source === "sms" && isSmsLocationEnabled() ? (
         <SmsLocationPanel
           incidentId={incident.id}
@@ -164,7 +205,14 @@ export function CampusIncidentCard({
 
       {isPinpointEnabled() ? (
         <div className="mt-3">
-          <PinpointPanel incidentId={incident.id} embedded liveOnly />
+          <PinpointPanel
+            incidentId={incident.id}
+            embedded
+            liveOnly
+            ani={incident.callerCallback}
+            scanLocationLabel={scanLocationLabel}
+            scanLocation={scanMapLocation}
+          />
         </div>
       ) : null}
 

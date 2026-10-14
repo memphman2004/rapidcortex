@@ -196,7 +196,6 @@ export function ContactSalesForm({ interestFromSearch = null, onSuccess }: Conta
           />
         </label>
       </div>
-      <BusinessSmsConsentField disabled={status === "sending"} />
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm font-medium text-slate-300">
           Role <span className="font-normal text-slate-600">optional</span>
@@ -262,6 +261,7 @@ export function ContactSalesForm({ interestFromSearch = null, onSuccess }: Conta
           onFocus={scrollMarketingFieldIntoViewOnFocus}
         />
       </label>
+      <BusinessSmsConsentField disabled={status === "sending"} />
       <input
         aria-hidden="true"
         tabIndex={-1}

@@ -10,8 +10,13 @@ import {
   postPinpointLinkRevoke,
 } from "@/lib/api";
 import { isPinpointEnabled } from "@/lib/runtime-flags";
-import { PinpointDispatcherLive } from "@/components/pinpoint/pinpoint-dispatcher-live";
+import {
+  PinpointDispatcherLive,
+  type ScanMapLocation,
+} from "@/components/pinpoint/pinpoint-dispatcher-live";
+import { PinpointIqStatusCard } from "@/components/pinpoint/pinpoint-iq-status-card";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { resolvePinpointIqLocationStatus } from "rapid-cortex-shared/pinpoint-surge";
 
 export function PinpointPanel({
   incidentId,
@@ -19,11 +24,17 @@ export function PinpointPanel({
   embedded = false,
   /** Campus/venue: show live QR shares only (no SMS create). */
   liveOnly = false,
+  /** Original QR/NFC scan point label (text). */
+  scanLocationLabel,
+  /** Optional scan coordinates for dual markers. */
+  scanLocation,
 }: {
   incidentId: string | null;
   ani?: string | null;
   embedded?: boolean;
   liveOnly?: boolean;
+  scanLocationLabel?: string | null;
+  scanLocation?: ScanMapLocation | null;
 }) {
   const queryClient = useQueryClient();
   const [phoneE164, setPhoneE164] = useState<string | null>(null);
@@ -54,6 +65,28 @@ export function PinpointPanel({
     refetchInterval: 5000,
     staleTime: 2000,
   });
+
+  const hasScanLocation = Boolean(scanLocationLabel || scanLocation);
+
+  const statusView = useMemo(() => {
+    if (detailQ.data) {
+      return resolvePinpointIqLocationStatus({
+        hasTrackingSession: true,
+        hasScanLocation,
+        sessionStatus: detailQ.data.status,
+        consentGrantedAt: detailQ.data.consentGrantedAt,
+        expiresAt: detailQ.data.expiresAt,
+        pings: detailQ.data.pings,
+      });
+    }
+    if (!q.isLoading && (q.data?.length ?? 0) === 0) {
+      return resolvePinpointIqLocationStatus({
+        hasTrackingSession: false,
+        hasScanLocation,
+      });
+    }
+    return null;
+  }, [detailQ.data, q.data, q.isLoading, hasScanLocation]);
 
   const createMut = useMutation({
     mutationFn: async () => {
@@ -89,15 +122,16 @@ export function PinpointPanel({
 
   const rootClass = embedded ? "p-3" : "rounded-lg border border-slate-800 bg-slate-950/40 p-3";
   const hasLinks = (q.data?.length ?? 0) > 0;
+  const brandTitle = liveOnly ? "Pinpoint iQ" : "NexiQ Pinpoint";
 
   return (
     <section className={rootClass}>
       {!embedded ? (
         <>
-          <div className="text-[10px] font-semibold tracking-wide text-sky-400">NexiQ Pinpoint</div>
+          <div className="text-[10px] font-semibold tracking-wide text-sky-400">{brandTitle}</div>
           <p className="mt-1 text-[11px] leading-snug text-slate-500">
             {liveOnly
-              ? "Live GPS from the reporter when they opted in on the QR report page."
+              ? "Live GPS from the reporter when they opted in on the QR report page — distinct from the original scan point."
               : "Send a secure SMS link for live GPS — accuracy radius, movement, and location history on this incident."}
           </p>
         </>
@@ -113,6 +147,15 @@ export function PinpointPanel({
               {localErr}
             </p>
           ) : null}
+          {statusView ? (
+            <div className="mt-2">
+              <PinpointIqStatusCard
+                view={statusView}
+                scanLocationLabel={scanLocationLabel}
+                compact={embedded}
+              />
+            </div>
+          ) : null}
           {!liveOnly ? (
             <div className="mt-2 flex flex-col gap-2">
               <PhoneInput label="Caller mobile" ani={ani} onChange={setPhoneE164} disabled={createMut.isPending} />
@@ -125,34 +168,36 @@ export function PinpointPanel({
                 {createMut.isPending ? "Sending…" : "Send Pinpoint link"}
               </button>
             </div>
-          ) : !hasLinks && !q.isLoading ? (
-            <p className="mt-2 text-xs text-slate-500">No live location share on this report yet.</p>
           ) : null}
-          <ul className="mt-3 max-h-28 space-y-1 overflow-y-auto text-[11px] text-slate-400">
-            {(q.data ?? []).map((l) => (
-              <li key={l.linkId} className="flex items-center justify-between gap-2 border-t border-slate-800/80 pt-1">
-                <button
-                  type="button"
-                  className={`truncate text-left font-mono text-[10px] ${activeLinkId === l.linkId ? "text-sky-300" : "text-slate-400"}`}
-                  onClick={() => setSelectedLinkId(l.linkId)}
-                >
-                  {l.linkId.slice(0, 14)}… · {l.status}
-                  {l.lastPingAt ? ` · ${new Date(l.lastPingAt).toLocaleTimeString()}` : ""}
-                </button>
-                {!liveOnly && l.status === "active" ? (
+          {hasLinks ? (
+            <ul className="mt-3 max-h-28 space-y-1 overflow-y-auto text-[11px] text-slate-400">
+              {(q.data ?? []).map((l) => (
+                <li key={l.linkId} className="flex items-center justify-between gap-2 border-t border-slate-800/80 pt-1">
                   <button
                     type="button"
-                    className="shrink-0 text-rose-400 underline"
-                    onClick={() => revokeMut.mutate(l.linkId)}
-                    disabled={revokeMut.isPending}
+                    className={`truncate text-left font-mono text-[10px] ${activeLinkId === l.linkId ? "text-sky-300" : "text-slate-400"}`}
+                    onClick={() => setSelectedLinkId(l.linkId)}
                   >
-                    Revoke
+                    {l.linkId.slice(0, 14)}… · {l.status}
+                    {l.lastPingAt ? ` · ${new Date(l.lastPingAt).toLocaleTimeString()}` : ""}
                   </button>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-          {detailQ.data ? <PinpointDispatcherLive detail={detailQ.data} /> : null}
+                  {!liveOnly && l.status === "active" ? (
+                    <button
+                      type="button"
+                      className="shrink-0 text-rose-400 underline"
+                      onClick={() => revokeMut.mutate(l.linkId)}
+                      disabled={revokeMut.isPending}
+                    >
+                      Revoke
+                    </button>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {detailQ.data ? (
+            <PinpointDispatcherLive detail={detailQ.data} scanLocation={scanLocation} />
+          ) : null}
         </>
       )}
     </section>

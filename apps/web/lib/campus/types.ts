@@ -92,6 +92,21 @@ export interface CampusIncident {
   updatedAt: string;
   resolvedAt: string | null;
   reporterLast4?: string;
+  /** Callback phone (E.164) from QR/public report. */
+  callerCallback?: string | null;
+  safetyPointSnapshot?: {
+    safetyPointId: string;
+    siteCode?: string;
+    latitude?: number;
+    longitude?: number;
+    buildingName?: string;
+    floor?: string;
+    room?: string;
+    zone?: string;
+    verificationStatus: string;
+    coordinateSource?: string;
+    capturedAt: string;
+  };
   locationData?: CampusIncidentLocationEntry[];
   locationLinkSent?: boolean;
   cameraRefs?: string[];

@@ -1,4 +1,10 @@
 import { z } from "zod";
+import {
+  campusInfoTabBySiteCodeSchema,
+  campusInfoTabSchema,
+} from "../campus/info-tab.js";
+import { campusEscortIqConfigSchema } from "../campus/escort-iq/schemas.js";
+import { campusAlertsConfigSchema } from "../campus/campus-alerts/schemas.js";
 
 export const campusEscalationContactSchema = z.object({
   name: z.string().min(1).max(120),
@@ -70,6 +76,23 @@ export const campusAgencyConfigSchema = z.object({
     .optional(),
   /** HTTPS GeoJSON or ArcGIS FeatureServer URL drawn as an operational map overlay (INT-026). */
   geojsonOverlayUrl: z.string().url().max(2000).optional().or(z.literal("")),
+  /**
+   * Public Information tab shown after QR/NFC scan (tenant / primary site default).
+   * Multi-campus overrides live in `infoTabBySiteCode`.
+   */
+  infoTab: campusInfoTabSchema.optional(),
+  /** Per-site Information tab overrides keyed by normalized siteCode (max 50). */
+  infoTabBySiteCode: campusInfoTabBySiteCodeSchema.optional(),
+  /**
+   * Escort iQ™ — higher-ed only. Tenant default is disabled;
+   * platform flag ENABLE_ESCORT_IQ must also be on.
+   */
+  escortIq: campusEscortIqConfigSchema.optional(),
+  /**
+   * NexCort iQ Campus Alerts — higher-ed only. Tenant default disabled;
+   * platform flag ENABLE_CAMPUS_ALERTS must also be on.
+   */
+  campusAlerts: campusAlertsConfigSchema.optional(),
 });
 
 export type CampusAgencyConfig = z.infer<typeof campusAgencyConfigSchema>;

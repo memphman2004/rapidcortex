@@ -23,6 +23,8 @@ export interface RCCodeMetrics {
   lastQrScan?: string | null;
 }
 
+export type CodeLocationSource = 'gps' | 'manual' | 'gis_import' | 'indoor_map';
+
 export interface RCCode {
   codeId: string;
   agencyId: string;
@@ -36,9 +38,26 @@ export interface RCCode {
   status: CodeStatus;
   nfcWriteLog: NFCWriteEvent[];
   metrics: RCCodeMetrics;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationAccuracyMeters?: number | null;
+  locationSource?: CodeLocationSource | null;
+  locationVerified?: boolean;
+  locationVerifiedAt?: string | null;
+  locationVerifiedBy?: string | null;
+  altitudeMeters?: number | null;
+  floorLevel?: string | null;
+  indoorMapId?: string | null;
+  indoorX?: number | null;
+  indoorY?: number | null;
   createdAt: string;
   updatedAt: string;
 }
+
+/** PATCH body for /api/codes — includes verify flag not present on RCCode. */
+export type UpdateCodePayload = Partial<RCCode> & {
+  markLocationVerified?: boolean;
+};
 
 export type SSDeviceType = 'home' | 'guardian';
 export type SSDeviceStatus = 'online' | 'offline' | 'lost';
