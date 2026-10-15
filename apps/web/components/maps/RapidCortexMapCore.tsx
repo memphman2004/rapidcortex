@@ -19,7 +19,6 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { alsMapStyleUrl, alsNamedMapStyleUrl, getMapAuthenticationOptions, isAlsMapApiV2, shouldFallbackAlsV2ToNamedMap } from "rapid-cortex-maps";
 import { useALSMap } from "@/lib/map/als-map-context";
-
 import {
   CALLER_LABEL_LAYER,
   CALLER_LAYER,
@@ -154,6 +153,12 @@ import {
   saveMapLayers,
   saveMapTheme,
 } from "@/lib/maps/persisted-map-prefs";
+
+// MapLibre 6 ESM worker + shared chunk must load same-origin (Next/webpack
+// otherwise builds a broken worker URL → "Worker failed to load").
+if (typeof window !== "undefined") {
+  maplibregl.setWorkerUrl("/maplibre-gl-worker.mjs");
+}
 
 type MapClickHandler = (
   e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }

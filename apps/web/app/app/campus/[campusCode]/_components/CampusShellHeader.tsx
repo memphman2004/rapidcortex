@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { CAMPUS_INSTITUTION_LABELS, buildPsapAvailabilityNotice } from "rapid-cortex-shared";
 import {
   campusMatrixRoleFromRole,
-  campusProductFromRole,
+  resolveCampusInstitutionType,
 } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { CampusDashboardHeaderUtilities } from "@/components/campus/campus-dashboard-header-utilities";
 import { CampusSiteSwitcher } from "@/components/campus/campus-site-switcher";
@@ -52,7 +52,7 @@ export function CampusShellHeader({
   leadingSlot?: ReactNode;
 }) {
   const { institutionType: agencyInstitutionType } = useCampusInstitutionType();
-  const institutionType = campusProductFromRole(role) ?? agencyInstitutionType;
+  const institutionType = resolveCampusInstitutionType(role, agencyInstitutionType);
   const familyKey =
     campusMatrixRoleFromRole(role) ??
     role.trim().toUpperCase().replace(/_K12$/, "").replace(/_HIGHERED$/, "");

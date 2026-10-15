@@ -36,6 +36,20 @@ describe("resolvePinpointIqLocationStatus", () => {
     });
     expect(v.status).toBe("location_unavailable");
     expect(v.trackingSessionActive).toBe(true);
+    expect(v.locationConsent).toBe(true);
+  });
+
+  it("does not claim consent for an active SMS session before the first GPS share", () => {
+    const v = resolvePinpointIqLocationStatus({
+      hasTrackingSession: true,
+      sessionStatus: "active",
+      consentGrantedAt: null,
+      expiresAt: "2026-10-14T12:30:00.000Z",
+      pings: [],
+      nowMs: NOW,
+    });
+    expect(v.status).toBe("location_unavailable");
+    expect(v.locationConsent).toBe(false);
   });
 
   it("returns LIVE when a fresh ping arrives", () => {

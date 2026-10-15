@@ -55,7 +55,21 @@ function sampleIncident(overrides: Partial<CanonicalIncident> = {}): CanonicalIn
 describe("CAD bridge config", () => {
   it("accepts every company vendor identity used on the admin dropdown", () => {
     expect(CAD_BRIDGE_VENDORS).toEqual(
-      expect.arrayContaining(["AXON", "HARRIS", "VERSATERM", "MARK43", "ORACLE", "SOUTHERN_SOFTWARE"]),
+      expect.arrayContaining([
+        "AXON",
+        "HARRIS",
+        "VERSATERM",
+        "MARK43",
+        "ORACLE",
+        "SOUTHERN_SOFTWARE",
+        "CALIBER",
+        "RAPIDDEPLOY",
+        "ZETRON",
+        "EFORCE",
+        "CODY",
+        "SUNRIDGE",
+        "KABAT_ONE",
+      ]),
     );
     for (const vendor of CAD_BRIDGE_VENDORS) {
       expect(cadBridgeVendorSchema.parse(vendor)).toBe(vendor);

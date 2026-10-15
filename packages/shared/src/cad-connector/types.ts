@@ -12,10 +12,40 @@ export const CAD_VENDOR_IDS = [
   "hexagon_intergraph",
   "central_square",
   "spillman",
+  "mark43",
+  "caliber",
+  "versaterm",
+  "rapiddeploy",
+  "zetron",
+  "eforce",
+  "cody",
+  "sunridge_rims",
+  "kabat_one",
+  "oracle_psdc",
   "generic_rest",
 ] as const;
 
 export type CadVendorId = (typeof CAD_VENDOR_IDS)[number];
+
+/** Display labels for Multi-CAD Connector UI and admin surfaces. */
+export const CAD_VENDOR_LABELS: Record<CadVendorId, string> = {
+  motorola_premierone: "Motorola PremierOne",
+  tyler_new_world: "Tyler New World",
+  hexagon_intergraph: "Hexagon I/CAD",
+  central_square: "CentralSquare / TriTech",
+  spillman: "Spillman Flex",
+  mark43: "Mark43",
+  caliber: "Caliber Public Safety",
+  versaterm: "Versaterm",
+  rapiddeploy: "RapidDeploy (Cloud Aided Dispatch)",
+  zetron: "Zetron / Intertalk",
+  eforce: "EFORCE CAD",
+  cody: "CODY CAD",
+  sunridge_rims: "Sunridge Systems (RIMS)",
+  kabat_one: "KabatOne (K-Dispatch)",
+  oracle_psdc: "Oracle Public Safety Dispatch",
+  generic_rest: "Generic REST",
+};
 
 export const CAD_DEPARTMENT_TYPES = [
   "law_enforcement",

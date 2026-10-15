@@ -3,10 +3,10 @@
 #
 # Usage:
 #   source scripts/env-api-dev.sh
-#   ./scripts/deploy-lean-dev.sh [dev] [--sam1-only|--sam2-only|--sam3-only|--qr-only|--sam4-only|--sam5-only|--transit-only]
+#   ./scripts/deploy-lean-dev.sh [dev] [--sam1-only|--sam2-only|--sam3-only|--qr-only|--rms-only|--sam4-only|--sam5-only|--transit-only]
 #
 # Env (optional):
-#   LEAN_DEPLOY_STACKS=sam1,sam2,sam3,qr,sam4,sam5,transit   default qr + sam5
+#   LEAN_DEPLOY_STACKS=sam1,sam2,sam3,qr,rms,sam4,sam5,transit   default qr + sam5
 #   ROUTE53_HOSTED_ZONE_ID       when set, passed to AppSam4 deploy (api4.rapidcortex.us ACM + alias)
 #   SAM_BUILD_DIR                default /Volumes/Mac Mini/.sam-lean-build (or repo .sam-lean-build)
 #   SAM_BUILD_USE_CACHE=0        default 0 (fresh build, no stale rsync cache)
@@ -21,6 +21,7 @@ DEPLOY_SAM1=0
 DEPLOY_SAM2=0
 DEPLOY_SAM3=0
 DEPLOY_QR=0
+DEPLOY_RMS=0
 DEPLOY_SAM4=0
 DEPLOY_SAM5=0
 DEPLOY_TRANSIT=0
@@ -30,6 +31,7 @@ if [[ -n "${LEAN_STACKS}" ]]; then
   DEPLOY_SAM2=0
   DEPLOY_SAM3=0
   DEPLOY_QR=0
+  DEPLOY_RMS=0
   DEPLOY_SAM4=0
   DEPLOY_SAM5=0
   DEPLOY_TRANSIT=0
@@ -40,11 +42,12 @@ if [[ -n "${LEAN_STACKS}" ]]; then
       sam2) DEPLOY_SAM2=1 ;;
       sam3) DEPLOY_SAM3=1 ;;
       qr) DEPLOY_QR=1 ;;
+      rms) DEPLOY_RMS=1 ;;
       sam4) DEPLOY_SAM4=1 ;;
       sam5) DEPLOY_SAM5=1 ;;
       transit) DEPLOY_TRANSIT=1 ;;
       *)
-        echo "Unknown LEAN_DEPLOY_STACKS entry: ${_part} (use sam1, sam2, sam3, qr, sam4, sam5, transit)" >&2
+        echo "Unknown LEAN_DEPLOY_STACKS entry: ${_part} (use sam1, sam2, sam3, qr, rms, sam4, sam5, transit)" >&2
         exit 1
         ;;
     esac
@@ -53,22 +56,23 @@ fi
 for arg in "$@"; do
   case "$arg" in
     dev | staging | prod | pilot) STAGE="$arg" ;;
-    --sam1-only) DEPLOY_SAM1=1; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
-    --sam2-only) DEPLOY_SAM1=0; DEPLOY_SAM2=1; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
-    --sam3-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=1; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
-    --qr-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=1; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
-    --sam4-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=1; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
-    --sam5-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=1; DEPLOY_TRANSIT=0 ;;
-    --transit-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=1 ;;
+    --sam1-only) DEPLOY_SAM1=1; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_RMS=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
+    --sam2-only) DEPLOY_SAM1=0; DEPLOY_SAM2=1; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_RMS=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
+    --sam3-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=1; DEPLOY_QR=0; DEPLOY_RMS=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
+    --qr-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=1; DEPLOY_RMS=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
+    --rms-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_RMS=1; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
+    --sam4-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_RMS=0; DEPLOY_SAM4=1; DEPLOY_SAM5=0; DEPLOY_TRANSIT=0 ;;
+    --sam5-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_RMS=0; DEPLOY_SAM4=0; DEPLOY_SAM5=1; DEPLOY_TRANSIT=0 ;;
+    --transit-only) DEPLOY_SAM1=0; DEPLOY_SAM2=0; DEPLOY_SAM3=0; DEPLOY_QR=0; DEPLOY_RMS=0; DEPLOY_SAM4=0; DEPLOY_SAM5=0; DEPLOY_TRANSIT=1 ;;
     *)
       echo "Unknown argument: $arg" >&2
-      echo "Usage: $0 [dev] [--sam1-only|--sam2-only|--sam3-only|--qr-only|--sam4-only|--sam5-only|--transit-only]" >&2
+      echo "Usage: $0 [dev] [--sam1-only|--sam2-only|--sam3-only|--qr-only|--rms-only|--sam4-only|--sam5-only|--transit-only]" >&2
       exit 1
       ;;
   esac
 done
-if [[ "${DEPLOY_SAM1}" -eq 0 && "${DEPLOY_SAM2}" -eq 0 && "${DEPLOY_SAM3}" -eq 0 && "${DEPLOY_QR}" -eq 0 && "${DEPLOY_SAM4}" -eq 0 && "${DEPLOY_SAM5}" -eq 0 && "${DEPLOY_TRANSIT}" -eq 0 ]]; then
-  echo "ERROR: no nested stack selected (use --sam1-only, --sam2-only, --sam3-only, --sam4-only, --qr-only, --sam5-only, --transit-only, or LEAN_DEPLOY_STACKS)" >&2
+if [[ "${DEPLOY_SAM1}" -eq 0 && "${DEPLOY_SAM2}" -eq 0 && "${DEPLOY_SAM3}" -eq 0 && "${DEPLOY_QR}" -eq 0 && "${DEPLOY_RMS}" -eq 0 && "${DEPLOY_SAM4}" -eq 0 && "${DEPLOY_SAM5}" -eq 0 && "${DEPLOY_TRANSIT}" -eq 0 ]]; then
+  echo "ERROR: no nested stack selected (use --sam1-only, --sam2-only, --sam3-only, --sam4-only, --qr-only, --rms-only, --sam5-only, --transit-only, or LEAN_DEPLOY_STACKS)" >&2
   exit 1
 fi
 
@@ -108,6 +112,7 @@ echo " SAM1 stack:          $([[ "${DEPLOY_SAM1}" -eq 1 ]] && echo yes || echo n
 echo " SAM2 stack:          $([[ "${DEPLOY_SAM2}" -eq 1 ]] && echo yes || echo no)"
 echo " SAM3 stack:          $([[ "${DEPLOY_SAM3}" -eq 1 ]] && echo yes || echo no)"
 echo " QR stack:            $([[ "${DEPLOY_QR}" -eq 1 ]] && echo yes || echo no)"
+echo " RMS stack:           $([[ "${DEPLOY_RMS}" -eq 1 ]] && echo yes || echo no)"
 echo " SAM4 stack:          $([[ "${DEPLOY_SAM4}" -eq 1 ]] && echo yes || echo no)"
 echo " SAM5 stack:          $([[ "${DEPLOY_SAM5}" -eq 1 ]] && echo yes || echo no)"
 echo " Transit stack:       $([[ "${DEPLOY_TRANSIT}" -eq 1 ]] && echo yes || echo no)"
@@ -126,7 +131,18 @@ if [[ "${DEPLOY_SAM3}" -eq 1 ]]; then
   sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3.yaml"
 fi
 if [[ "${DEPLOY_QR}" -eq 1 ]]; then
-  sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-qr.yaml"
+  if [[ "${SKIP_SAM_LINT:-0}" == "1" ]]; then
+    sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-qr.yaml"
+  else
+    sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-qr.yaml"
+  fi
+fi
+if [[ "${DEPLOY_RMS}" -eq 1 ]]; then
+  if [[ "${SKIP_SAM_LINT:-0}" == "1" ]]; then
+    sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-rms.yaml"
+  else
+    sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-rms.yaml"
+  fi
 fi
 if [[ "${DEPLOY_SAM4}" -eq 1 ]]; then
   sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-4.yaml"
@@ -331,6 +347,21 @@ if [[ "${DEPLOY_QR}" -eq 1 ]]; then
   fi
   lean_sam_deploy_nested "${SAM_BUILD_DIR}/qr/template.yaml" "${QR_STACK}" ${_qr_extra[@]:+"${_qr_extra[@]}"}
   echo "✅ AppSamQrStack deploy complete"
+fi
+
+if [[ "${DEPLOY_RMS}" -eq 1 ]]; then
+  RMS_STACK="$(nested_stack_name AppSamRmsStack)"
+  if [[ -z "${RMS_STACK}" || "${RMS_STACK}" == "None" ]]; then
+    echo "ERROR: AppSamRmsStack not found under ${STACK_NAME}" >&2
+    exit 1
+  fi
+  echo ""
+  echo "▶ AppSamRmsStack (${RMS_STACK})"
+  # RMS ships shared deps via NodeDepsLayer — keep lean CodeUri.
+  export SAM_LEAN_BUILD=1
+  lean_sam_build "${ROOT}/infra/nested/stack-app-sam-rms.yaml" "rms"
+  lean_sam_deploy_nested "${SAM_BUILD_DIR}/rms/template.yaml" "${RMS_STACK}"
+  echo "✅ AppSamRmsStack deploy complete"
 fi
 
 if [[ "${DEPLOY_SAM4}" -eq 1 ]]; then

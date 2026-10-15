@@ -34,9 +34,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
-  campusProductFromRole,
   campusRoleFamily,
   isCampusAdminRole,
+  resolveCampusInstitutionType,
 } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import { getZoneDefaults, matchesCampusSiteScope } from "rapid-cortex-shared";
@@ -432,9 +432,8 @@ function CampusConsoleHomeInner({
   const isAdmin = isCampusAdminRole(userRole);
 
   const { institutionType } = useCampusInstitutionType();
-  // Role product wins for seat holders; agency institutionType is fallback for RC preview.
-  const roleProduct = campusProductFromRole(userRole);
-  const effectiveInstitutionType = roleProduct ?? institutionType;
+  // Explicit *_K12 / *_HIGHERED seat wins; legacy unsuffixed seats follow the agency record.
+  const effectiveInstitutionType = resolveCampusInstitutionType(userRole, institutionType);
   const isK12 = effectiveInstitutionType === "k12";
 
   // Keep product suffix on the role (`*_HIGHERED` / `*_K12`) so getRoleNav can

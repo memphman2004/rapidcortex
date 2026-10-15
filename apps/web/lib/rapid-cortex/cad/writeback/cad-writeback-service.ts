@@ -1,6 +1,7 @@
 import type { CadAdapter } from "@/lib/rapid-cortex/cad/cad-adapter";
 import { CadAdapterFactory, readCadConnectionConfig } from "@/lib/rapid-cortex/cad/cad-adapter-factory";
 import { CadAuditService } from "@/lib/rapid-cortex/cad/audit/cad-audit-service";
+import { CAD_WRITEBACK_ENV_DISABLED_ERROR } from "@/lib/rapid-cortex/cad/cad-writeback-gate";
 import type {
   CadAdapterResult,
   CadDispositionUpdate,
@@ -66,6 +67,29 @@ export class CadWritebackService {
   ): Promise<CadAdapterResult<WritebackSuccess>> {
     const config = readCadConnectionConfig(request.agencyId);
     const adapter: CadAdapter = this.adapterFactory.create(config);
+
+    // Fail-closed: never call vendor adapters when write-back is disabled for the env.
+    if (!config.writebackEnabled) {
+      await this.auditService.record({
+        agencyId: request.agencyId,
+        userId: request.requestedBy,
+        incidentId: request.incidentId,
+        cadVendor: config.vendor,
+        action: request.action,
+        requestPayload: request.requestPayload,
+        resultStatus: "blocked",
+        errorMessage: CAD_WRITEBACK_ENV_DISABLED_ERROR,
+        timestamp: new Date().toISOString(),
+        approvalStatus: request.approvalStatus,
+        approvedBy: request.approvedBy,
+      });
+      return {
+        ok: false,
+        vendor: config.vendor,
+        error: { code: "WRITEBACK_DISABLED", message: CAD_WRITEBACK_ENV_DISABLED_ERROR },
+      };
+    }
+
     const validationError = this.validateRequest(request);
     if (validationError) {
       await this.recordStart(request, config.vendor);

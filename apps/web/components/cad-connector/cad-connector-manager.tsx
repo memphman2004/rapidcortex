@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { CadConnectorConfig, CadVendorId, UserContext } from "rapid-cortex-shared";
+import {
+  CAD_VENDOR_IDS,
+  CAD_VENDOR_LABELS,
+  type CadConnectorConfig,
+  type CadVendorId,
+  type UserContext,
+} from "rapid-cortex-shared";
 import { canDeleteCadConnectors } from "@/lib/cad-connector/cad-authz";
 import {
   createCadConnector,
@@ -13,14 +19,10 @@ import {
   testCadConnectorHealth,
 } from "@/lib/cad-connector/cad-connector-api";
 
-const VENDORS: Array<{ id: CadVendorId; label: string }> = [
-  { id: "motorola_premierone", label: "Motorola PremierOne" },
-  { id: "tyler_new_world", label: "Tyler New World" },
-  { id: "hexagon_intergraph", label: "Hexagon I/CAD" },
-  { id: "central_square", label: "CentralSquare" },
-  { id: "spillman", label: "Spillman Flex" },
-  { id: "generic_rest", label: "Generic REST" },
-];
+const VENDORS: Array<{ id: CadVendorId; label: string }> = CAD_VENDOR_IDS.map((id) => ({
+  id,
+  label: CAD_VENDOR_LABELS[id],
+}));
 
 type Draft = {
   vendorId: CadVendorId;

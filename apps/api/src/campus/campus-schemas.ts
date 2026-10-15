@@ -61,6 +61,8 @@ export const createIncidentSchema = z.object({
   confidential: z.boolean().optional(),
   phoneNumber: z.string().optional().nullable(),
   photoDataUrl: z.string().optional().nullable(),
+  /** S3 object keys from public report media upload (photo/video). */
+  mediaKeys: z.array(z.string().min(1).max(256)).max(5).optional(),
   zoneCode: z.string().max(16).optional(),
   qrRcli: z.string().max(32).optional(),
   qrLocationName: z.string().max(200).optional(),

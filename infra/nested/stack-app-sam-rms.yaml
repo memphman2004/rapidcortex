@@ -250,6 +250,9 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
+  # Legacy alias GET /api/rms/contact is CLI-managed (ghost RmsHttpIntegrationV2 wgj3ic3).
+  # Live repair recreates it alongside other /api/rms/* routes on HttpApi 3.
+
   RouteRmsGenerateV2:
     Type: AWS::ApiGatewayV2::Route
     Properties:

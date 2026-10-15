@@ -97,8 +97,8 @@ export function resolvePinpointIqLocationStatus(
     expiredByTime;
   const trackingSessionActive =
     input.hasTrackingSession && !sessionEnded && (sessionStatus === "active" || sessionStatus === "");
-  const consent =
-    Boolean(input.consentGrantedAt) || (input.hasTrackingSession && !sessionEnded);
+  // Explicit consent timestamp, or an accepted GPS ping (SMS first-share records consent on capture).
+  const consent = Boolean(input.consentGrantedAt) || Boolean(ping);
 
   let status: PinpointIqLocationStatus;
 

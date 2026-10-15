@@ -7,10 +7,12 @@ import {
   RAPID_CORTEX_ROLES,
   campusAssignableRolesForProduct,
   campusMatrixRoleFromRole,
+  campusExplicitProductFromRole,
   campusProductFromRole,
   campusRoleFamily,
   isCampusAdminRole,
   isCampusRoleToken,
+  resolveCampusInstitutionType,
   isHospitalAdminPortalRole,
   isHospitalStaffPortalRole,
   migrateLegacyRapidCortexRoleTokenValue,
@@ -103,6 +105,14 @@ describe("rapid-cortex-roles", () => {
     expect(campusProductFromRole("CAMPUS_ADMIN")).toBe("k12");
     expect(campusProductFromRole("campusadmin")).toBe("k12");
     expect(campusProductFromRole("dispatcher")).toBeNull();
+    expect(campusExplicitProductFromRole("CAMPUS_ADMIN_HIGHERED")).toBe("higher_ed");
+    expect(campusExplicitProductFromRole("campus_admin_k12")).toBe("k12");
+    expect(campusExplicitProductFromRole("CAMPUS_ADMIN")).toBeNull();
+    expect(campusExplicitProductFromRole("campusadmin")).toBeNull();
+    expect(resolveCampusInstitutionType("CAMPUS_ADMIN", "higher_ed")).toBe("higher_ed");
+    expect(resolveCampusInstitutionType("CAMPUS_ADMIN", "k12")).toBe("k12");
+    expect(resolveCampusInstitutionType("CAMPUS_ADMIN_HIGHERED", "k12")).toBe("higher_ed");
+    expect(resolveCampusInstitutionType("CAMPUS_ADMIN_K12", "higher_ed")).toBe("k12");
     expect(campusRoleFamily("CAMPUS_DISPATCH_HIGHERED")).toBe("dispatch");
     expect(campusRoleFamily("campus_admin_k12")).toBe("admin");
     expect(campusMatrixRoleFromRole("campus_supervisor_highered")).toBe("CAMPUS_SUPERVISOR");

@@ -4,7 +4,10 @@ import type {
   CampusInfoTab,
   CampusInstitutionType,
 } from "rapid-cortex-shared";
-import { normalizeCampusSiteCode, resolveCampusInstitutionType } from "rapid-cortex-shared";
+import {
+  normalizeCampusSiteCode,
+  resolveCampusInstitutionTypeFromConfig,
+} from "rapid-cortex-shared";
 
 export type CampusSettingsView = {
   general: {
@@ -142,7 +145,7 @@ export function campusSettingsFromAgency(agency: AgencyTenant): CampusSettingsVi
     general: {
       displayName: campus?.displayName ?? agency.name ?? "",
       campusType: campus?.campusType ?? DEFAULT_SETTINGS.general.campusType,
-      institutionType: resolveCampusInstitutionType({
+      institutionType: resolveCampusInstitutionTypeFromConfig({
         institutionType: agency.institutionType ?? campus?.institutionType,
         campusType: campus?.campusType,
       }),
@@ -282,6 +285,7 @@ export function campusPatchFromSettingsView(
 
   if (patch.campusAlerts) {
     campus.campusAlerts = {
+      ...(campus.campusAlerts ?? {}),
       enabled: Boolean(patch.campusAlerts.enabled),
       selfRegistrationEnabled: patch.campusAlerts.selfRegistrationEnabled !== false,
       registrationValidityDays: patch.campusAlerts.registrationValidityDays || 365,
@@ -291,6 +295,18 @@ export function campusPatchFromSettingsView(
       remindersEnabled: false,
       campusWideRenewalCampaignEnabled: false,
       reminderDaysBeforeExpiration: [],
+      smsNotificationsEnabled: campus.campusAlerts?.smsNotificationsEnabled ?? true,
+      retentionDaysAfterExpiration: campus.campusAlerts?.retentionDaysAfterExpiration ?? 90,
+      subscriberExportEnabled: campus.campusAlerts?.subscriberExportEnabled ?? false,
+      consentTextVersion: campus.campusAlerts?.consentTextVersion ?? "campus-alerts-sms-v1",
+      publicActiveAlertBannerEnabled: campus.campusAlerts?.publicActiveAlertBannerEnabled ?? true,
+      requireDualAuthorization: campus.campusAlerts?.requireDualAuthorization ?? false,
+      allClearMassSmsEnabled: campus.campusAlerts?.allClearMassSmsEnabled ?? true,
+      contractualBillingMode: campus.campusAlerts?.contractualBillingMode ?? "nexcort_managed",
+      estimatedRatePerSegmentUsd: campus.campusAlerts?.estimatedRatePerSegmentUsd ?? 0.01,
+      billingCostDisclaimer:
+        campus.campusAlerts?.billingCostDisclaimer ??
+        "Estimates are illustrative. Actual charges depend on carrier fees, message length, encoding, and your service agreement.",
     };
   }
 

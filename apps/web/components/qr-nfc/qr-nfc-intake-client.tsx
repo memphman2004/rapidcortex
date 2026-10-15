@@ -28,8 +28,31 @@ import {
   StickyEmergencyFooter,
   SAFETY_BRAND,
   safetyConfigForVertical,
+  type ReportFormMediaFile,
   type ReportFormValues,
 } from "./safety-reporting";
+
+async function uploadPublicReportMedia(qrId: string, file: File): Promise<string | null> {
+  const isVideo = file.type.startsWith("video/");
+  const mediaType = isVideo ? "video" : "image";
+  const presignRes = await fetch(
+    `/api/public/report/media-upload-url?qrId=${encodeURIComponent(qrId)}&type=${mediaType}`,
+  );
+  if (!presignRes.ok) return null;
+  const presign = (await presignRes.json()) as {
+    uploadUrl?: string;
+    key?: string;
+    contentType?: string;
+  };
+  if (!presign.uploadUrl || !presign.key) return null;
+  const putRes = await fetch(presign.uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": presign.contentType ?? (isVideo ? "video/mp4" : "image/jpeg") },
+    body: file,
+  });
+  if (!putRes.ok) return null;
+  return presign.key;
+}
 
 type Props = {
   record: QRNFCPublicRecord;
@@ -74,6 +97,7 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
   const [referenceCode, setReferenceCode] = useState<string | null>(null);
   const [trackingToken, setTrackingToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [mediaFile, setMediaFile] = useState<ReportFormMediaFile | null>(null);
 
   const showIdentity =
     record.reportType === "identified" || (record.reportType === "both" && !values.anonymous);
@@ -141,6 +165,15 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
       }
       const message = `${prefix}${trimmed}`;
 
+      const mediaKeys: string[] = [];
+      if (mediaFile) {
+        const key = await uploadPublicReportMedia(record.qrId, mediaFile.file);
+        if (!key) {
+          throw new Error("Could not upload photo/video. Try again or submit without media.");
+        }
+        mediaKeys.push(key);
+      }
+
       const res = await fetch("/api/public/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -154,6 +187,7 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
               ? values.reporterPhone || undefined
               : undefined,
           medium,
+          ...(mediaKeys.length ? { mediaKeys } : {}),
           ...(isCampus && shareLiveLocation ? { shareLiveLocation: true } : {}),
         }),
       });
@@ -220,7 +254,7 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
     return (
       <EscortIqLanding
         qrId={record.qrId}
-        medium={medium}
+        medium={medium === "sms" ? "url" : medium}
         callNumber={record.callNumber}
         locationLabel={locationLabel}
         onBack={() => setScreen("chooser")}
@@ -355,6 +389,9 @@ function QRNfcIntakeClientInner({ record, medium }: Props) {
               submitting={submitting}
               error={error}
               onSubmit={(e) => void onSubmit(e)}
+              showOptionalActions
+              mediaFile={mediaFile}
+              onMediaFileChange={setMediaFile}
             />
           </>
         )}

@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "dev:webpack": "next dev --webpack",
+    "postinstall": "bash ./scripts/sync-maplibre-worker.sh",
+    "prebuild": "bash ./scripts/sync-maplibre-worker.sh",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",

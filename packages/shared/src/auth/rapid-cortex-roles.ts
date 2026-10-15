@@ -143,6 +143,9 @@ export function isCampusRoleToken(role: string | undefined | null): boolean {
  * Dashboard product from role suffix.
  * Unsuffixed legacy campus roles → `k12` (Camden-compatible).
  * Non-campus roles → `null`.
+ *
+ * Prefer {@link resolveCampusInstitutionType} for console chrome so higher-ed
+ * agencies are not forced to K-12 when a seat still carries a legacy token.
  */
 export function campusProductFromRole(
   role: string | undefined | null,
@@ -157,6 +160,51 @@ export function campusProductFromRole(
   // Legacy unsuffixed → k12
   if (normalized.startsWith("campus_")) return "k12";
   return "k12";
+}
+
+/** True when the token already carries an explicit `_K12` / `_HIGHERED` product suffix. */
+function campusRoleHasExplicitProductSuffix(role: string): boolean {
+  const lower = role.trim().toLowerCase().replace(/-/g, "_");
+  return (
+    lower.endsWith("_highered") ||
+    lower.includes("_highered_") ||
+    lower.endsWith("_k12") ||
+    lower.includes("_k12_")
+  );
+}
+
+/**
+ * Product from an **explicit** role suffix only (no legacy → K-12 alias).
+ * Legacy unsuffixed / compact seats return `null` so callers can defer to the agency record.
+ */
+export function campusExplicitProductFromRole(
+  role: string | undefined | null,
+): CampusInstitutionType | null {
+  if (!isCampusRoleToken(role)) return null;
+  const raw = (role ?? "").trim();
+  if (!raw) return null;
+  if (!campusRoleHasExplicitProductSuffix(raw)) {
+    // Compact alias `campusadmin` and unsuffixed `CAMPUS_ADMIN` are not product-binding for UI.
+    return null;
+  }
+  const normalized = (migrateLegacyRapidCortexRoleTokenValue(raw) ?? raw)
+    .trim()
+    .toLowerCase()
+    .replace(/-/g, "_");
+  if (normalized.endsWith("_highered") || normalized.includes("_highered_")) return "higher_ed";
+  if (normalized.endsWith("_k12") || normalized.includes("_k12_")) return "k12";
+  return null;
+}
+
+/**
+ * Effective campus product for console chrome / copy.
+ * Explicit seat suffix wins; otherwise use the agency `institutionType`.
+ */
+export function resolveCampusInstitutionType(
+  role: string | undefined | null,
+  agencyInstitutionType: CampusInstitutionType,
+): CampusInstitutionType {
+  return campusExplicitProductFromRole(role) ?? agencyInstitutionType;
 }
 
 /** Family segment: admin | supervisor | security | dispatch | counselor | faculty. */

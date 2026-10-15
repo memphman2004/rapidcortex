@@ -9,6 +9,7 @@
  * POST   /api/rms/reports/{reportId}/push
  * POST   /api/rms/nibrs/classify
  * GET    /api/rms/context
+ * GET    /api/rms/contact  (legacy alias → context)
  */
 
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
@@ -185,8 +186,8 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       ? decodeURIComponent(event.pathParameters.reportId)
       : undefined;
 
-    // GET /api/rms/context
-    if (method === "GET" && /\/rms\/context\/?$/.test(path)) {
+    // GET /api/rms/context (and legacy /api/rms/contact)
+    if (method === "GET" && /\/rms\/(context|contact)\/?$/.test(path)) {
       try {
         authz.assertCanPerform(user, "rms.view_context");
       } catch {

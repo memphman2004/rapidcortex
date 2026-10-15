@@ -18,8 +18,11 @@ export type SafetyPointMapPinPickerProps = {
   disabled?: boolean;
 };
 
-function isFiniteCoord(lat?: number, lng?: number): lat is number {
-  return (
+function isFiniteCoord(
+  lat?: number,
+  lng?: number,
+): { lat: number; lng: number } | null {
+  if (
     typeof lat === "number" &&
     typeof lng === "number" &&
     Number.isFinite(lat) &&
@@ -28,7 +31,10 @@ function isFiniteCoord(lat?: number, lng?: number): lat is number {
     lat <= 90 &&
     lng >= -180 &&
     lng <= 180
-  );
+  ) {
+    return { lat, lng };
+  }
+  return null;
 }
 
 export function SafetyPointMapPinPicker({
@@ -44,8 +50,8 @@ export function SafetyPointMapPinPicker({
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
-  const hasPin = isFiniteCoord(latitude, longitude);
-  const center: [number, number] = hasPin ? [longitude, latitude] : [-98.5795, 39.8283];
+  const pin = isFiniteCoord(latitude, longitude);
+  const center: [number, number] = pin ? [pin.lng, pin.lat] : [-98.5795, 39.8283];
 
   useEffect(() => {
     if (!map || disabled) return;
@@ -78,9 +84,9 @@ export function SafetyPointMapPinPicker({
       markerRef.current = marker;
     };
 
-    if (hasPin) {
-      ensureMarker(longitude, latitude);
-      map.easeTo({ center: [longitude, latitude], zoom: Math.max(map.getZoom(), 16), duration: 400 });
+    if (pin) {
+      ensureMarker(pin.lng, pin.lat);
+      map.easeTo({ center: [pin.lng, pin.lat], zoom: Math.max(map.getZoom(), 16), duration: 400 });
     }
 
     const onClick = (e: maplibregl.MapMouseEvent) => {
@@ -97,7 +103,7 @@ export function SafetyPointMapPinPicker({
     return () => {
       map.off("click", onClick);
     };
-  }, [map, hasPin, latitude, longitude, accent, disabled]);
+  }, [map, pin, accent, disabled]);
 
   useEffect(() => {
     return () => {
@@ -119,15 +125,15 @@ export function SafetyPointMapPinPicker({
       <div style={{ height, position: "relative" }}>
         <RapidCortexMap
           center={center}
-          zoom={hasPin ? 17 : 4}
+          zoom={pin ? 17 : 4}
           theme="dark"
           showControls
           onMapLoad={setMap}
         />
       </div>
-      {hasPin ? (
+      {pin ? (
         <p className="border-t border-slate-700 bg-slate-950/60 px-3 py-1.5 font-mono text-[11px] text-slate-400">
-          {latitude!.toFixed(6)}, {longitude!.toFixed(6)}
+          {pin.lat.toFixed(6)}, {pin.lng.toFixed(6)}
         </p>
       ) : (
         <p className="border-t border-slate-700 bg-slate-950/60 px-3 py-1.5 text-[11px] text-amber-200/80">

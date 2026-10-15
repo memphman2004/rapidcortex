@@ -3,6 +3,17 @@ export type CadVendor =
   | "centralsquare"
   | "tyler"
   | "hexagon"
+  | "spillman"
+  | "mark43"
+  | "caliber"
+  | "versaterm"
+  | "rapiddeploy"
+  | "zetron"
+  | "eforce"
+  | "cody"
+  | "sunridge_rims"
+  | "kabat_one"
+  | "oracle_psdc"
   | "generic"
   | "mock";
 
@@ -96,6 +107,7 @@ export type CadAdapterError = {
     | "NOT_FOUND"
     | "FORBIDDEN"
     | "MOCK_FAILURE"
+    | "WRITEBACK_DISABLED"
     | "UNKNOWN_ERROR";
   message: string;
   details?: Record<string, unknown>;

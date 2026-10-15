@@ -87,7 +87,15 @@ export * from "./onboarding/index.js";
 export * from "./campus/dashboard-schemas.js";
 export * from "./campus/campus-buildings-from-qr.js";
 export * from "./campus/campus-sites.js";
-export * from "./campus/institution-type.js";
+export {
+  CAMPUS_INSTITUTION_TYPES,
+  CAMPUS_INSTITUTION_LABELS,
+  isCampusInstitutionType,
+  parseCampusInstitutionType,
+  // Avoid clashing with auth/rapid-cortex-roles.resolveCampusInstitutionType(role, agencyType)
+  resolveCampusInstitutionType as resolveCampusInstitutionTypeFromConfig,
+} from "./campus/institution-type.js";
+export type { CampusInstitutionType } from "./campus/institution-type.js";
 export * from "./campus/district-school.js";
 export * from "./campus/incident-types.js";
 export * from "./campus/k12-intake.js";

@@ -45,7 +45,7 @@ const EMERGENCY_CLASSIFICATIONS: CampusAlertBroadcastClassification[] = [
 ];
 
 async function fetchMetrics(campusCode: string): Promise<Metrics> {
-  const res = await fetch(`/api/campus/${encodeURIComponent(campusCode)}/campus-alerts`, {
+  const res = await fetch(`/api/campus/code/${encodeURIComponent(campusCode)}/campus-alerts`, {
     credentials: "include",
   });
   if (!res.ok) throw new Error("Failed to load Campus Alerts");
@@ -53,7 +53,7 @@ async function fetchMetrics(campusCode: string): Promise<Metrics> {
 }
 
 async function fetchUsage(campusCode: string): Promise<{ items: CampusAlertsUsageRecordStaff[] }> {
-  const res = await fetch(`/api/campus/${encodeURIComponent(campusCode)}/campus-alerts/usage`, {
+  const res = await fetch(`/api/campus/code/${encodeURIComponent(campusCode)}/campus-alerts/usage`, {
     credentials: "include",
   });
   if (!res.ok) throw new Error("Failed to load usage");
@@ -62,7 +62,7 @@ async function fetchUsage(campusCode: string): Promise<{ items: CampusAlertsUsag
 
 async function fetchOutreach(campusCode: string): Promise<Outreach> {
   const res = await fetch(
-    `/api/campus/${encodeURIComponent(campusCode)}/campus-alerts/renewal-outreach`,
+    `/api/campus/code/${encodeURIComponent(campusCode)}/campus-alerts/renewal-outreach`,
     { credentials: "include" },
   );
   if (!res.ok) throw new Error("Failed to load outreach pack");
@@ -113,7 +113,7 @@ export function CampusAlertsOpsClient({ campusCode }: { campusCode: string }) {
     setSendError(null);
     setSendResult(null);
     const res = await fetch(
-      `/api/campus/${encodeURIComponent(campusCode)}/campus-alerts/emergency/preview`,
+      `/api/campus/code/${encodeURIComponent(campusCode)}/campus-alerts/emergency/preview`,
       {
         method: "POST",
         credentials: "include",
@@ -143,7 +143,7 @@ export function CampusAlertsOpsClient({ campusCode }: { campusCode: string }) {
     setBusy(true);
     setSendError(null);
     const res = await fetch(
-      `/api/campus/${encodeURIComponent(campusCode)}/campus-alerts/emergency/confirm`,
+      `/api/campus/code/${encodeURIComponent(campusCode)}/campus-alerts/emergency/confirm`,
       {
         method: "POST",
         credentials: "include",

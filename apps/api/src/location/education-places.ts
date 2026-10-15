@@ -13,13 +13,6 @@ export const EDUCATION_SEARCH_PAGE_SIZE = 100;
 export const EDUCATION_SEARCH_MAX_PAGES = 3;
 export const EDUCATION_SEARCH_MAX_RESULTS = 300;
 
-export class EducationPlacesUnavailableError extends Error {
-  constructor() {
-    super("Schools / Campuses are temporarily unavailable.");
-    this.name = "EducationPlacesUnavailableError";
-  }
-}
-
 function text(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -130,7 +123,11 @@ export async function searchNearbyEducation(
     }
     return educationToGeoJSON(collected.slice(0, EDUCATION_SEARCH_MAX_RESULTS), origin);
   } catch (err) {
-    if (err instanceof EducationPlacesUnavailableError) throw err;
-    throw new EducationPlacesUnavailableError();
+    // Match hospital overlay: soft-fail to empty so dispatcher map stays usable when GeoPlaces is down.
+    console.warn(
+      "searchNearbyEducation unavailable:",
+      err instanceof Error ? err.message : String(err),
+    );
+    return educationToGeoJSON([], origin);
   }
 }

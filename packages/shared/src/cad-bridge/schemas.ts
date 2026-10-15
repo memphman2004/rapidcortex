@@ -13,6 +13,13 @@ export const CAD_BRIDGE_VENDORS = [
   "MARK43",
   "ORACLE",
   "SOUTHERN_SOFTWARE",
+  "CALIBER",
+  "RAPIDDEPLOY",
+  "ZETRON",
+  "EFORCE",
+  "CODY",
+  "SUNRIDGE",
+  "KABAT_ONE",
 ] as const;
 
 export const cadBridgeVendorSchema = z.enum(CAD_BRIDGE_VENDORS);
@@ -21,15 +28,22 @@ export type CADVendor = z.infer<typeof cadBridgeVendorSchema>;
 export const CAD_BRIDGE_VENDOR_LABELS: Record<CADVendor, string> = {
   MOTOROLA: "Motorola Solutions",
   TYLER: "Tyler Technologies",
-  CENTRALSQUARE: "CentralSquare Technologies",
+  CENTRALSQUARE: "CentralSquare / TriTech",
   HEXAGON: "Hexagon",
   SPILLMAN: "Spillman Flex",
   AXON: "Axon",
   HARRIS: "Harris Computer / Constellation Software",
   VERSATERM: "Versaterm",
   MARK43: "Mark43",
-  ORACLE: "Oracle",
+  ORACLE: "Oracle Public Safety Dispatch",
   SOUTHERN_SOFTWARE: "Southern Software",
+  CALIBER: "Caliber Public Safety",
+  RAPIDDEPLOY: "RapidDeploy (Cloud Aided Dispatch)",
+  ZETRON: "Zetron / Intertalk",
+  EFORCE: "EFORCE CAD",
+  CODY: "CODY CAD",
+  SUNRIDGE: "Sunridge Systems (RIMS)",
+  KABAT_ONE: "KabatOne (K-Dispatch)",
 };
 
 /** Hub capacity: up to 8 CAD participants on one NexCort iQ bridge. */

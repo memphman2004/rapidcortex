@@ -135,10 +135,19 @@ export class PinpointLinkRepository {
     linkId: string,
     ping: PinpointPing,
     nextPings: PinpointPing[],
-    opts: { updatedAt: string; expiresAtMustBeAfterIso: string; rateLimitCutoffIso: string | null },
+    opts: {
+      updatedAt: string;
+      expiresAtMustBeAfterIso: string;
+      rateLimitCutoffIso: string | null;
+      /** When set, persist consent if the link has none yet (SMS first share). */
+      recordConsentAt?: string | null;
+    },
   ): Promise<"accepted" | "session_ended" | "rate_limited" | "not_found"> {
     const rateClause = opts.rateLimitCutoffIso
       ? " AND (attribute_not_exists(lastPingAt) OR lastPingAt <= :cutoff)"
+      : "";
+    const consentExpr = opts.recordConsentAt
+      ? ", consentGrantedAt = if_not_exists(consentGrantedAt, :consent)"
       : "";
     try {
       await ddb.send(
@@ -147,7 +156,7 @@ export class PinpointLinkRepository {
           Key: { linkId },
           ConditionExpression:
             `attribute_exists(linkId) AND #s = :active AND expiresAt > :expAfter${rateClause}`,
-          UpdateExpression: "SET pings = :pings, updatedAt = :ua, lastPingAt = :ua",
+          UpdateExpression: `SET pings = :pings, updatedAt = :ua, lastPingAt = :ua${consentExpr}`,
           ExpressionAttributeNames: { "#s": "status" },
           ExpressionAttributeValues: {
             ":active": "active",
@@ -155,6 +164,7 @@ export class PinpointLinkRepository {
             ":pings": nextPings,
             ":ua": opts.updatedAt,
             ...(opts.rateLimitCutoffIso ? { ":cutoff": opts.rateLimitCutoffIso } : {}),
+            ...(opts.recordConsentAt ? { ":consent": opts.recordConsentAt } : {}),
           },
         }),
       );

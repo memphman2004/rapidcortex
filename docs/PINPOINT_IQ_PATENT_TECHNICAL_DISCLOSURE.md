@@ -57,11 +57,11 @@ A **separate** campus/venue path (`SmsLocationService` + `/locate/{token}`) uses
 | Item | Status in codebase |
 |------|-------------------|
 | `createBrowserPinpointLinkBodySchema` (`channel: "browser"`) | Defined in shared schemas; **browser creation is implemented via `createInlineQrShare`**, not a separate authenticated “create browser link” HTTP route mirroring the SMS create body. |
-| Caller “Stop sharing” as server revoke | **Client-only** (`clearWatch`). Does **not** call `POST .../pinpoint/links/{linkId}/revoke`. Token remains valid until expiry or operator revoke. |
-| Explicit “stale position” state machine | **Not** a first-class server status. UI shows last `capturedAt`; session has `active` / `revoked` / `expired`. |
-| Photo/video on campus safety `ReportForm` | UI controls marked “Coming soon” / disabled. |
-| Dispatcher help article (`apps/web/public/help/dispatcher/pinpoint.md`) | Still largely SMS-centric; campus browser path is newer and documented mainly in product UI copy. |
-| Backend enforcement that `consentGrantedAt` must be present before GPS accept | Consent is **recorded** on browser create; `captureLocation` validates token/status/expiry/accuracy/rate-limit, **not** a separate consent flag check. |
+| Caller “Stop sharing” as server revoke | **Implemented** — public `POST /api/pinpoint/t/{token}/revoke` (+ BFF); caller client confirms revoke; pagehide may sendBeacon. |
+| Explicit “stale position” state machine | **Implemented** — `resolvePinpointIqLocationStatus` (`live` / `stale` / `sharing_stopped` / …) on dispatcher detail + `PinpointIqStatusCard`. |
+| Backend enforcement that `consentGrantedAt` must be present before GPS accept | **Implemented** — browser channel requires `consentGrantedAt` before accept; SMS records consent on first accepted GPS (`if_not_exists`). |
+| Dispatcher help article (`apps/web/public/help/dispatcher/pinpoint.md`) | Covers SMS + campus browser channels, status badges, and caller stop/revoke. |
+| Photo/video on campus safety `ReportForm` | Wired via `/api/public/report/media-upload-url` + `mediaKeys` on public report submit. |
 
 ---
 

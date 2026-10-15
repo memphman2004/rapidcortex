@@ -142,6 +142,7 @@ export async function createIncidentFromQrNfcReport(
         confidential: false,
         phoneNumber: reporterPhone ?? null,
         photoDataUrl: null,
+        mediaKeys: input.mediaKeys ?? [],
         cameraIds: record.cameraIds,
         siteCode: record.siteCode,
         ...(hasRegistered

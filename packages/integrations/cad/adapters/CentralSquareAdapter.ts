@@ -1,6 +1,6 @@
 import { RestCadAdapterBase } from "./RestCadAdapterBase.js";
 
-/** CentralSquare CAD Pro / OnDemand REST adapter. Auth: OAuth2 client credentials. */
+/** CentralSquare / TriTech CAD REST adapter. Auth: OAuth2 client credentials. */
 export class CentralSquareAdapter extends RestCadAdapterBase {
   readonly vendorId = "central_square" as const;
 

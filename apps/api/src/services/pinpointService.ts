@@ -442,6 +442,15 @@ export class PinpointService {
     if (Date.parse(row.expiresAt) < nowMs) {
       throw new Error("SESSION_EXPIRED");
     }
+
+    // Browser/QR sessions record consent at create; GPS must never be accepted without it.
+    // SMS sessions record consent on the first accepted share (tapping Allow + posting GPS).
+    const channel = row.channel ?? "sms";
+    const hasConsent = Boolean(row.consentGrantedAt);
+    if (channel === "browser" && !hasConsent) {
+      throw new Error("VALIDATION:Location consent is required before sharing.");
+    }
+
     if (body.accuracyM != null) {
       if (body.accuracyM < PINPOINT_CONFIG.MIN_ACCURACY_METERS || body.accuracyM > PINPOINT_CONFIG.MAX_ACCURACY_METERS) {
         throw new Error("VALIDATION:accuracyM out of allowed range");
@@ -465,6 +474,7 @@ export class PinpointService {
       updatedAt: capturedAt,
       expiresAtMustBeAfterIso: new Date(nowMs).toISOString(),
       rateLimitCutoffIso,
+      recordConsentAt: hasConsent ? null : capturedAt,
     });
     if (outcome === "not_found") throw new Error("NOT_FOUND");
     if (outcome === "session_ended") {
@@ -485,6 +495,7 @@ export class PinpointService {
         details: {
           linkId: row.linkId,
           confidence: classifyLocationConfidence(body.accuracyM),
+          consentRecorded: !hasConsent,
         },
         createdAt: capturedAt,
         resourceType: "incident",
@@ -499,6 +510,7 @@ export class PinpointService {
       pings: nextPings,
       updatedAt: capturedAt,
       lastPingAt: capturedAt,
+      consentGrantedAt: row.consentGrantedAt ?? capturedAt,
       status: "active",
     });
   }

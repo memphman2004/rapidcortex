@@ -1,11 +1,22 @@
 import type { CadAdapter } from "@/lib/rapid-cortex/cad/cad-adapter";
+import { CaliberCadAdapter } from "@/lib/rapid-cortex/cad/adapters/caliber-adapter";
 import { CentralsquareCadAdapter } from "@/lib/rapid-cortex/cad/adapters/centralsquare-adapter";
+import { CodyCadAdapter } from "@/lib/rapid-cortex/cad/adapters/cody-adapter";
+import { EforceCadAdapter } from "@/lib/rapid-cortex/cad/adapters/eforce-adapter";
 import { GenericCadAdapter } from "@/lib/rapid-cortex/cad/adapters/generic-cad-adapter";
 import { HexagonCadAdapter } from "@/lib/rapid-cortex/cad/adapters/hexagon-adapter";
+import { KabatOneCadAdapter } from "@/lib/rapid-cortex/cad/adapters/kabat-one-adapter";
+import { Mark43CadAdapter } from "@/lib/rapid-cortex/cad/adapters/mark43-adapter";
 import { MockCadAdapter } from "@/lib/rapid-cortex/cad/adapters/mock-cad-adapter";
 import { MotorolaCadAdapter } from "@/lib/rapid-cortex/cad/adapters/motorola-adapter";
 import { NotConfiguredCadAdapter } from "@/lib/rapid-cortex/cad/adapters/not-configured-adapter";
+import { OraclePsdcCadAdapter } from "@/lib/rapid-cortex/cad/adapters/oracle-psdc-adapter";
+import { RapidDeployCadAdapter } from "@/lib/rapid-cortex/cad/adapters/rapiddeploy-adapter";
+import { SpillmanCadAdapter } from "@/lib/rapid-cortex/cad/adapters/spillman-adapter";
+import { SunridgeRimsCadAdapter } from "@/lib/rapid-cortex/cad/adapters/sunridge-rims-adapter";
 import { TylerCadAdapter } from "@/lib/rapid-cortex/cad/adapters/tyler-adapter";
+import { VersatermCadAdapter } from "@/lib/rapid-cortex/cad/adapters/versaterm-adapter";
+import { ZetronCadAdapter } from "@/lib/rapid-cortex/cad/adapters/zetron-adapter";
 import { isCadWritebackEnvEnabled } from "@/lib/rapid-cortex/cad/cad-writeback-gate";
 import type { CadConnectionConfig, CadVendor } from "@/lib/rapid-cortex/cad/types";
 
@@ -14,25 +25,38 @@ function asNumber(raw: string | undefined, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function asBool(raw: string | undefined, fallback: boolean): boolean {
-  if (raw == null) return fallback;
-  const normalized = raw.trim().toLowerCase();
-  if (["1", "true", "yes", "y", "on"].includes(normalized)) return true;
-  if (["0", "false", "no", "n", "off"].includes(normalized)) return false;
-  return fallback;
-}
+const PILOT_VENDORS = new Set<CadVendor>([
+  "motorola",
+  "centralsquare",
+  "tyler",
+  "hexagon",
+  "spillman",
+  "mark43",
+  "caliber",
+  "versaterm",
+  "rapiddeploy",
+  "zetron",
+  "eforce",
+  "cody",
+  "sunridge_rims",
+  "kabat_one",
+  "oracle_psdc",
+  "generic",
+  "mock",
+]);
 
 function normalizeVendor(raw: string | undefined): CadVendor {
-  const vendor = (raw ?? "mock").trim().toLowerCase();
-  if (
-    vendor === "motorola" ||
-    vendor === "centralsquare" ||
-    vendor === "tyler" ||
-    vendor === "hexagon" ||
-    vendor === "generic" ||
-    vendor === "mock"
-  ) {
-    return vendor;
+  const vendor = (raw ?? "mock").trim().toLowerCase().replace(/-/g, "_");
+  // Aliases for connector / marketing names → pilot CadVendor ids
+  if (vendor === "tritech" || vendor === "central_square" || vendor === "centralsquare") {
+    return "centralsquare";
+  }
+  if (vendor === "motorola_premierone" || vendor === "motorola_premier_one") return "motorola";
+  if (vendor === "tyler_new_world") return "tyler";
+  if (vendor === "hexagon_intergraph") return "hexagon";
+  if (vendor === "generic_rest") return "generic";
+  if (PILOT_VENDORS.has(vendor as CadVendor)) {
+    return vendor as CadVendor;
   }
   return "mock";
 }
@@ -63,10 +87,6 @@ export function readCadConnectionConfig(agencyId: string): CadConnectionConfig {
 
 export class CadAdapterFactory {
   create(config: CadConnectionConfig): CadAdapter {
-    // TODO(prod) — Section 4.1: assert production task definitions set `CAD_WRITEBACK_ENABLED=false` and
-    // `CAD_WRITEBACK_REQUIRES_SUPERVISOR_APPROVAL` / manual-mode defaults via env; optionally wrap adapters so
-    // `writebackEnabled===false` always routes to DisabledWrite stubs even if CAD_VENDOR≠mock.
-
     if (config.mode === "disabled") {
       return new NotConfiguredCadAdapter(config.vendor);
     }
@@ -82,6 +102,28 @@ export class CadAdapterFactory {
         return new TylerCadAdapter();
       case "hexagon":
         return new HexagonCadAdapter();
+      case "spillman":
+        return new SpillmanCadAdapter();
+      case "mark43":
+        return new Mark43CadAdapter();
+      case "caliber":
+        return new CaliberCadAdapter();
+      case "versaterm":
+        return new VersatermCadAdapter();
+      case "rapiddeploy":
+        return new RapidDeployCadAdapter();
+      case "zetron":
+        return new ZetronCadAdapter();
+      case "eforce":
+        return new EforceCadAdapter();
+      case "cody":
+        return new CodyCadAdapter();
+      case "sunridge_rims":
+        return new SunridgeRimsCadAdapter();
+      case "kabat_one":
+        return new KabatOneCadAdapter();
+      case "oracle_psdc":
+        return new OraclePsdcCadAdapter();
       case "generic":
         return new GenericCadAdapter();
       default:

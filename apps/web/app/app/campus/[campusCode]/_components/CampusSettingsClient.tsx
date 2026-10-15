@@ -217,14 +217,26 @@ export function CampusSettingsClient({
     queryFn: () => fetchCampusSites(agencyId),
   });
 
-  const update = <K extends keyof CampusSettingsView>(
+  const update = <K extends Exclude<keyof CampusSettingsView, "infoTabEditingSiteCode">>(
     section: K,
     value: Partial<CampusSettingsView[K]>,
   ) => {
-    setDraft((d) => ({
-      ...d,
-      [section]: { ...(data?.[section] ?? {}), ...(d[section] ?? {}), ...value },
-    }));
+    setDraft((d) => {
+      const fromData = data?.[section];
+      const fromDraft = d[section];
+      const base =
+        fromData && typeof fromData === "object" && !Array.isArray(fromData)
+          ? (fromData as Record<string, unknown>)
+          : {};
+      const prev =
+        fromDraft && typeof fromDraft === "object" && !Array.isArray(fromDraft)
+          ? (fromDraft as Record<string, unknown>)
+          : {};
+      return {
+        ...d,
+        [section]: { ...base, ...prev, ...(value as Record<string, unknown>) },
+      };
+    });
     setIsDirty(true);
     setSavedOk(false);
   };
@@ -284,6 +296,22 @@ export function CampusSettingsClient({
       ...(draft.infoTabBySiteCode ?? {}),
     },
     infoTabEditingSiteCode: infoTabSiteCode,
+    escortIq: {
+      enabled: false,
+      campusSafetyPhone: "",
+      studentInstructions: "",
+      ...(data?.escortIq ?? {}),
+      ...(draft.escortIq ?? {}),
+    },
+    campusAlerts: {
+      enabled: false,
+      selfRegistrationEnabled: true,
+      registrationValidityDays: 365,
+      renewalOutreachEnabled: true,
+      emergencyMassSmsEnabled: true,
+      ...(data?.campusAlerts ?? {}),
+      ...(draft.campusAlerts ?? {}),
+    },
   };
 
   const activeInfoTab: CampusInfoTab = infoTabSiteCode

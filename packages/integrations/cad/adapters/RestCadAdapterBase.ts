@@ -172,7 +172,23 @@ export abstract class RestCadAdapterBase implements CadAdapter {
     if (isCadConnectorMock()) {
       return { success: true, vendorResponseCode: 200, vendorResponseBody: JSON.stringify({ mock: true, payload }) };
     }
-    const vendorIncidentId = String(payload.EventNumber ?? payload.inc_nbr ?? payload.CallId ?? payload.call_number ?? payload.callId ?? "");
+    const vendorIncidentId = String(
+      payload.EventNumber ??
+        payload.inc_nbr ??
+        payload.CallId ??
+        payload.call_number ??
+        payload.callId ??
+        payload.id ??
+        payload.incidentId ??
+        payload.incidentNumber ??
+        payload.eventId ??
+        payload.callNumber ??
+        payload.caseNumber ??
+        payload.dispatchId ??
+        payload.IncidentId ??
+        payload.call_id ??
+        "",
+    );
     try {
       const res = await cadHttpRequest({
         baseUrl: params.config.baseUrl ?? "",

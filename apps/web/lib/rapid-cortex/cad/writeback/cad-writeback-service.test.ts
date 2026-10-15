@@ -8,9 +8,34 @@ afterEach(() => {
 });
 
 describe("CadWritebackService", () => {
+  it("fail-closes when CAD_WRITEBACK_ENABLED is unset", async () => {
+    process.env.CAD_VENDOR = "mock";
+    process.env.RAPID_CORTEX_CAD_MODE = "assisted_writeback";
+    delete process.env.CAD_WRITEBACK_ENABLED;
+    const service = new CadWritebackService();
+    const result = await service.executeWriteback({
+      agencyId: "demo-agency",
+      incidentId: "INC-1001",
+      action: "addNarrativeNote",
+      approvalStatus: "approved",
+      approvedBy: "supervisor-1",
+      requestedBy: "dispatcher-1",
+      requestPayload: {
+        agencyId: "demo-agency",
+        incidentId: "INC-1001",
+        note: "Should be blocked",
+        createdBy: "dispatcher-1",
+        createdAt: new Date().toISOString(),
+      },
+    });
+    expect(result.ok).toBe(false);
+    expect(result.error?.code).toBe("WRITEBACK_DISABLED");
+  });
+
   it("requires approval before write-back", async () => {
     process.env.CAD_VENDOR = "mock";
     process.env.RAPID_CORTEX_CAD_MODE = "assisted_writeback";
+    process.env.CAD_WRITEBACK_ENABLED = "true";
     const service = new CadWritebackService();
     const result = await service.executeWriteback({
       agencyId: "demo-agency",
@@ -33,6 +58,7 @@ describe("CadWritebackService", () => {
   it("blocks dangerous actions", async () => {
     process.env.CAD_VENDOR = "mock";
     process.env.RAPID_CORTEX_CAD_MODE = "assisted_writeback";
+    process.env.CAD_WRITEBACK_ENABLED = "true";
     const service = new CadWritebackService();
     const result = await service.executeWriteback({
       agencyId: "demo-agency",
@@ -50,6 +76,7 @@ describe("CadWritebackService", () => {
   it("creates audit events around approved write-back", async () => {
     process.env.CAD_VENDOR = "mock";
     process.env.RAPID_CORTEX_CAD_MODE = "assisted_writeback";
+    process.env.CAD_WRITEBACK_ENABLED = "true";
     const service = new CadWritebackService();
     const result = await service.executeWriteback({
       agencyId: "demo-agency",
@@ -74,6 +101,7 @@ describe("CadWritebackService", () => {
   it("returns not configured behavior for placeholder vendor adapters", async () => {
     process.env.CAD_VENDOR = "tyler";
     process.env.RAPID_CORTEX_CAD_MODE = "assisted_writeback";
+    process.env.CAD_WRITEBACK_ENABLED = "true";
     const service = new CadWritebackService();
     const result = await service.executeWriteback({
       agencyId: "demo-agency",

@@ -54,6 +54,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const phoneE164 = toE164(input.reporterPhone) ?? undefined;
     if (phoneE164) input.reporterPhone = phoneE164;
 
+    // Only accept keys minted for this QR by the public media-upload endpoint.
+    const keyPrefix = `qr-intake/${record.agencyId}/${record.qrId}/`;
+    if (input.mediaKeys?.length) {
+      input.mediaKeys = input.mediaKeys.filter((k) => k.startsWith(keyPrefix) && !k.includes(".."));
+    }
+
     if (record.reportType === "anonymous") {
       input.reporterName = undefined;
       // Campus: keep callback phone for ops + optional live location even when anonymous.

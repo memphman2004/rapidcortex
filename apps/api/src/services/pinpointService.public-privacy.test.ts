@@ -127,4 +127,36 @@ describe("Pinpoint public response privacy", () => {
       svc.captureLocation(TOKEN, { lat: 1, lng: 2, accuracyM: 15 }),
     ).rejects.toThrow("SESSION_REVOKED");
   });
+
+  it("rejects browser-channel capture when consentGrantedAt is missing", async () => {
+    getByTokenHashMock.mockResolvedValue({
+      ...BASE_ROW,
+      pings: [],
+      channel: "browser",
+      consentGrantedAt: null,
+    });
+    const svc = new PinpointService();
+    await expect(
+      svc.captureLocation(TOKEN, { lat: 1, lng: 2, accuracyM: 15 }),
+    ).rejects.toThrow(/consent/i);
+    expect(appendPingIfActiveMock).not.toHaveBeenCalled();
+  });
+
+  it("records consent on first SMS-channel GPS accept", async () => {
+    getByTokenHashMock.mockResolvedValue({
+      ...BASE_ROW,
+      pings: [],
+      channel: "sms",
+      consentGrantedAt: null,
+    });
+    appendPingIfActiveMock.mockResolvedValue("accepted");
+    const svc = new PinpointService();
+    await svc.captureLocation(TOKEN, { lat: 39.1, lng: -86.5, accuracyM: 15 });
+    expect(appendPingIfActiveMock).toHaveBeenCalledWith(
+      BASE_ROW.linkId,
+      expect.objectContaining({ lat: 39.1, lng: -86.5 }),
+      expect.any(Array),
+      expect.objectContaining({ recordConsentAt: expect.any(String) }),
+    );
+  });
 });

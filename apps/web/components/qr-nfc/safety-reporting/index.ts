@@ -6,7 +6,7 @@ export { SafetyHeroCard } from "./SafetyHeroCard";
 export { EmergencyCallCard } from "./EmergencyCallCard";
 export { ReportDivider } from "./ReportDivider";
 export { ReportForm } from "./ReportForm";
-export type { ReportFormValues } from "./ReportForm";
+export type { ReportFormMediaFile, ReportFormValues } from "./ReportForm";
 export { K12ConcernPicker } from "./K12ConcernPicker";
 export type { K12FollowUpAnswers } from "./K12ConcernPicker";
 export { TrustNote } from "./TrustNote";

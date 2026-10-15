@@ -29,6 +29,7 @@ import {
 } from "rapid-cortex-integrations/cad";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { withCorrelationHeaders } from "../../lib/correlation.js";
+import { env } from "../../lib/env.js";
 import { makeId } from "../../lib/ids.js";
 import {
   badRequest,
@@ -134,6 +135,25 @@ async function deliverWriteBack(
   writeBack: CadWriteBackRequest,
   overrideUnhealthy?: { justification: string },
 ): Promise<CadWriteBackRequest> {
+  // Fail-closed: never POST to vendor CAD unless CAD_WRITEBACK_ENABLED is explicitly on.
+  if (!env.cadWritebackEnabled) {
+    const blocked: CadWriteBackRequest = {
+      ...writeBack,
+      status: "failed",
+      resultMessage: "CAD write-back is not enabled for this environment",
+      auditTrail: [
+        ...writeBack.auditTrail,
+        {
+          at: new Date().toISOString(),
+          actorId: user.userId,
+          action: "blocked_writeback_disabled",
+        },
+      ],
+    };
+    await cadWriteBackStore.put(blocked);
+    return blocked;
+  }
+
   const incident = await cadUnifiedIncidentStore.get(user.agencyId, writeBack.unifiedId);
   if (!incident) {
     return { ...writeBack, status: "failed", resultMessage: "Incident not found" };

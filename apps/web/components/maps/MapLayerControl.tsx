@@ -189,24 +189,35 @@ export function MapLayerControl({
         </button>
       )}
 
-      {/* Panel */}
+      {/* Panel — scrollable so long layer lists stay reachable on short viewports */}
       {(!collapsible || open) && (
         <div
           style={{
-            marginTop:    collapsible ? 6 : 0,
-            background:   T.surface,
-            border:       `1px solid ${T.border}`,
-            borderRadius: 8,
-            padding:      "10px 0",
-            minWidth:     186,
-            boxShadow:    "0 4px 16px rgba(0,0,0,.55)",
+            marginTop:     collapsible ? 6 : 0,
+            background:    T.surface,
+            border:        `1px solid ${T.border}`,
+            borderRadius:  8,
+            padding:       "10px 0",
+            minWidth:      186,
+            maxWidth:      260,
+            // Absolute panel has no parent height — cap to viewport so the list scrolls.
+            maxHeight:     "min(70vh, calc(100dvh - 96px))",
+            overflowY:     "auto",
+            overflowX:     "hidden",
+            overscrollBehavior: "contain",
+            WebkitOverflowScrolling: "touch",
+            boxShadow:     "0 4px 16px rgba(0,0,0,.55)",
           }}
         >
           <div
             style={{
+              position:      "sticky",
+              top:           0,
+              zIndex:        1,
               padding:       "0 12px 8px",
               borderBottom:  `1px solid ${T.border}`,
               marginBottom:  6,
+              background:    T.surface,
             }}
           >
             <span

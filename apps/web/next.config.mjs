@@ -314,6 +314,14 @@ const nextConfig = {
       return baseHeaders;
     };
     return [
+      {
+        // MapLibre ESM worker must be served as a classic JS module (not octet-stream).
+        source: "/maplibre-gl-:file.mjs",
+        headers: [
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
       { source: "/pinpoint/:path*", headers: buildBlock(ppPinpoint) },
       { source: "/:path*", headers: buildBlock(ppDefault) },
     ];

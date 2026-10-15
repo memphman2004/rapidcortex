@@ -19,7 +19,7 @@ type EscortItem = {
 
 async function fetchEscorts(campusCode: string): Promise<EscortItem[]> {
   const res = await fetch(
-    `/api/campus/${encodeURIComponent(campusCode)}/escort-iq`,
+    `/api/campus/code/${encodeURIComponent(campusCode)}/escort-iq`,
     { credentials: "include" },
   );
   if (!res.ok) {

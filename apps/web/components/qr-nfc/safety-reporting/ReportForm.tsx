@@ -1,6 +1,7 @@
 "use client";
 
-import { Camera, Check, MapPin, MessageSquare, UserRound } from "lucide-react";
+import { Camera, Check, MapPin, MessageSquare, UserRound, Video, X } from "lucide-react";
+import { useRef, useState } from "react";
 import type { CampusIncidentTypeConfig } from "rapid-cortex-shared";
 import { useReportLanguage } from "@/components/intake/report-language";
 import { K12ConcernPicker, type K12FollowUpAnswers } from "./K12ConcernPicker";
@@ -17,6 +18,12 @@ export type ReportFormValues = {
   category: string | null;
   /** K-12 dynamic follow-up answers keyed by question id. */
   followUpAnswers?: K12FollowUpAnswers;
+};
+
+export type ReportFormMediaFile = {
+  file: File;
+  previewUrl: string;
+  kind: "image" | "video";
 };
 
 type ReportFormProps = {
@@ -41,12 +48,17 @@ type ReportFormProps = {
   submitting: boolean;
   error: string | null;
   onSubmit: (e: React.FormEvent) => void;
-  /** When true, show optional media / geolocation UI (not wired for public report). */
+  /** When true, show optional media / one-shot geolocation UI. */
   showOptionalActions?: boolean;
+  /** Selected media (max 1 for now) — parent uploads on submit. */
+  mediaFile?: ReportFormMediaFile | null;
+  onMediaFileChange?: (media: ReportFormMediaFile | null) => void;
 };
 
 const fieldClass =
   "mt-1.5 w-full rounded-xl border bg-white px-3.5 py-3 text-base outline-none transition focus:ring-2";
+
+const MAX_MEDIA_BYTES = 25 * 1024 * 1024;
 
 export function ReportForm({
   values,
@@ -66,10 +78,72 @@ export function ReportForm({
   error,
   onSubmit,
   showOptionalActions = false,
+  mediaFile = null,
+  onMediaFileChange,
 }: ReportFormProps) {
   const { t } = useReportLanguage();
   const useK12Picker = Boolean(k12Types && k12Types.length > 0);
   const phoneFieldVisible = showIdentity || showCallbackPhone;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [mediaError, setMediaError] = useState<string | null>(null);
+  const [locating, setLocating] = useState(false);
+
+  function clearMedia() {
+    if (mediaFile?.previewUrl) URL.revokeObjectURL(mediaFile.previewUrl);
+    onMediaFileChange?.(null);
+    setMediaError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function onPickFile(file: File | null) {
+    if (!file || !onMediaFileChange) return;
+    const isVideo = file.type.startsWith("video/");
+    const isImage = file.type.startsWith("image/");
+    if (!isVideo && !isImage) {
+      setMediaError("Please choose a photo or short video.");
+      return;
+    }
+    if (file.size > MAX_MEDIA_BYTES) {
+      setMediaError("File must be 25 MB or smaller.");
+      return;
+    }
+    if (mediaFile?.previewUrl) URL.revokeObjectURL(mediaFile.previewUrl);
+    setMediaError(null);
+    onMediaFileChange({
+      file,
+      previewUrl: URL.createObjectURL(file),
+      kind: isVideo ? "video" : "image",
+    });
+  }
+
+  function shareDeviceLocation() {
+    if (!navigator.geolocation) {
+      setMediaError("This device cannot share GPS location.");
+      return;
+    }
+    setLocating(true);
+    setMediaError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude.toFixed(5);
+        const lng = pos.coords.longitude.toFixed(5);
+        const tag = `GPS ${lat}, ${lng}`;
+        const current = values.locationNote.trim();
+        const next = current.includes("GPS ")
+          ? current.replace(/GPS\s+-?\d+\.\d+,\s*-?\d+\.\d+/, tag)
+          : current
+            ? `${current} · ${tag}`
+            : tag;
+        onChange({ locationNote: next.slice(0, 200) });
+        setLocating(false);
+      },
+      () => {
+        setMediaError("Location permission was denied or unavailable.");
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 20_000, maximumAge: 0 },
+    );
+  }
 
   return (
     <section
@@ -238,31 +312,77 @@ export function ReportForm({
         ) : null}
 
         {showOptionalActions ? (
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {/* TODO: Wire photo/video upload to public report mediaKeys when upload API is available. */}
-            <button
-              type="button"
-              disabled
-              title="Coming soon"
-              className="flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 text-xs font-semibold opacity-60"
-              style={{ borderColor: SAFETY_BRAND.border, color: SAFETY_BRAND.muted }}
-              aria-label={t("addPhotoVideo")}
-            >
-              <Camera className="h-4 w-4" aria-hidden />
-              {t("addPhotoVideo")}
-            </button>
-            {/* TODO: Wire geolocation share into locationNote when browser permission UX is finalized. */}
-            <button
-              type="button"
-              disabled
-              title="Coming soon"
-              className="flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 text-xs font-semibold opacity-60"
-              style={{ borderColor: SAFETY_BRAND.border, color: SAFETY_BRAND.muted }}
-              aria-label={t("shareLocation")}
-            >
-              <MapPin className="h-4 w-4" aria-hidden />
-              {t("shareLocation")}
-            </button>
+          <div className="mt-4 space-y-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={submitting || !onMediaFileChange}
+                className="flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 text-xs font-semibold disabled:opacity-50"
+                style={{ borderColor: SAFETY_BRAND.border, color: SAFETY_BRAND.textDark }}
+                aria-label={t("addPhotoVideo")}
+              >
+                {mediaFile?.kind === "video" ? (
+                  <Video className="h-4 w-4" aria-hidden />
+                ) : (
+                  <Camera className="h-4 w-4" aria-hidden />
+                )}
+                {mediaFile ? "Change photo/video" : t("addPhotoVideo")}
+              </button>
+              <button
+                type="button"
+                onClick={shareDeviceLocation}
+                disabled={submitting || locating}
+                className="flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 text-xs font-semibold disabled:opacity-50"
+                style={{ borderColor: SAFETY_BRAND.border, color: SAFETY_BRAND.textDark }}
+                aria-label={t("shareLocation")}
+              >
+                <MapPin className="h-4 w-4" aria-hidden />
+                {locating ? "Locating…" : t("shareLocation")}
+              </button>
+            </div>
+            {mediaFile ? (
+              <div
+                className="relative overflow-hidden rounded-xl border"
+                style={{ borderColor: SAFETY_BRAND.border }}
+              >
+                {mediaFile.kind === "video" ? (
+                  <video
+                    src={mediaFile.previewUrl}
+                    controls
+                    className="max-h-48 w-full bg-black object-contain"
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element -- blob preview, not a remote asset
+                  <img
+                    src={mediaFile.previewUrl}
+                    alt="Selected media preview"
+                    className="max-h-48 w-full object-contain"
+                  />
+                )}
+                <button
+                  type="button"
+                  onClick={clearMedia}
+                  className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white"
+                  aria-label="Remove media"
+                >
+                  <X className="h-3.5 w-3.5" aria-hidden />
+                </button>
+              </div>
+            ) : null}
+            {mediaError ? (
+              <p className="text-xs" style={{ color: SAFETY_BRAND.rapidRed }} role="alert">
+                {mediaError}
+              </p>
+            ) : null}
           </div>
         ) : null}
 

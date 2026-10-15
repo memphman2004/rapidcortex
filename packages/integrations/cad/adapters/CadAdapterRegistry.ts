@@ -4,6 +4,16 @@ import { TylerNewWorldAdapter } from "./TylerNewWorldAdapter.js";
 import { HexagonIntergraphAdapter } from "./HexagonIntergraphAdapter.js";
 import { CentralSquareAdapter } from "./CentralSquareAdapter.js";
 import { SpillmanAdapter } from "./SpillmanAdapter.js";
+import { Mark43Adapter } from "./Mark43Adapter.js";
+import { CaliberAdapter } from "./CaliberAdapter.js";
+import { VersatermAdapter } from "./VersatermAdapter.js";
+import { RapidDeployAdapter } from "./RapidDeployAdapter.js";
+import { ZetronAdapter } from "./ZetronAdapter.js";
+import { EforceAdapter } from "./EforceAdapter.js";
+import { CodyAdapter } from "./CodyAdapter.js";
+import { SunridgeRimsAdapter } from "./SunridgeRimsAdapter.js";
+import { KabatOneAdapter } from "./KabatOneAdapter.js";
+import { OraclePsdcAdapter } from "./OraclePsdcAdapter.js";
 import { GenericRestAdapter } from "./GenericRestAdapter.js";
 
 /**
@@ -17,6 +27,16 @@ export class CadAdapterRegistry {
     ["hexagon_intergraph", new HexagonIntergraphAdapter()],
     ["central_square", new CentralSquareAdapter()],
     ["spillman", new SpillmanAdapter()],
+    ["mark43", new Mark43Adapter()],
+    ["caliber", new CaliberAdapter()],
+    ["versaterm", new VersatermAdapter()],
+    ["rapiddeploy", new RapidDeployAdapter()],
+    ["zetron", new ZetronAdapter()],
+    ["eforce", new EforceAdapter()],
+    ["cody", new CodyAdapter()],
+    ["sunridge_rims", new SunridgeRimsAdapter()],
+    ["kabat_one", new KabatOneAdapter()],
+    ["oracle_psdc", new OraclePsdcAdapter()],
     ["generic_rest", new GenericRestAdapter()],
   ]);
 
