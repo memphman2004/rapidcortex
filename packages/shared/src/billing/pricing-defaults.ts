@@ -174,6 +174,12 @@ export const PRICING_DEFAULTS = {
   "call_assist.tty_accommodation": 500,
   "call_assist.external_routing": 750,
   "call_assist.demo_runner": 0,
+  /**
+   * Pre-Arrival iQ — CAD-triggered caller engagement ($/agency/year).
+   * Flat platform license; includes 50k SMS/year. Monthly equivalent $250.
+   */
+  "pre_arrival.module": 3000,
+  "pre_arrival.module.monthly": 250,
   /** Multi-CAD Connector base ($/agency/month). Additional vendor connectors billed separately. */
   "cad.connector": 3500,
   "cad.avl.lo": 500,

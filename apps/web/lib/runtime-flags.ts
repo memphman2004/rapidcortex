@@ -57,6 +57,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_GUEST_ASSIST: process.env.NEXT_PUBLIC_ENABLE_GUEST_ASSIST,
   NEXT_PUBLIC_ENABLE_SMS_LOCATION: process.env.NEXT_PUBLIC_ENABLE_SMS_LOCATION,
   NEXT_PUBLIC_ENABLE_SILENT_TEXT: process.env.NEXT_PUBLIC_ENABLE_SILENT_TEXT,
+  NEXT_PUBLIC_ENABLE_PRE_ARRIVAL_IQ: process.env.NEXT_PUBLIC_ENABLE_PRE_ARRIVAL_IQ,
   NEXT_PUBLIC_ENABLE_CALLER_TRANSLATION_REPLY: process.env.NEXT_PUBLIC_ENABLE_CALLER_TRANSLATION_REPLY,
   NEXT_PUBLIC_ENABLE_VOICE_BRIDGE: process.env.NEXT_PUBLIC_ENABLE_VOICE_BRIDGE,
   NEXT_PUBLIC_ENABLE_LIVE_STT: process.env.NEXT_PUBLIC_ENABLE_LIVE_STT,
@@ -541,6 +542,11 @@ export function isSmsLocationEnabled(): boolean {
  */
 export function isSilentTextEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SILENT_TEXT");
+}
+
+/** Pre-Arrival iQ (Response iQ guidance + ETA). Align with API `ENABLE_PRE_ARRIVAL_IQ`. Default on when unset. */
+export function isPreArrivalIqEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_PRE_ARRIVAL_IQ");
 }
 
 /** Dispatcher English → caller-language reply compose + Silent Text translation UI. */

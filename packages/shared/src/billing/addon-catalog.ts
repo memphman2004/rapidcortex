@@ -575,13 +575,24 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     planAvailability: professionalPlus,
   }),
 
-  // Caller Media
+  // Caller Media — Pre-Arrival iQ Pro is the umbrella SKU; SMS-link / text-only remain a la carte precursors.
   withLegacyIncludedInPlans({
-    key: "caller_media.sms_link",
-    name: "Caller SMS Link Generation",
+    key: "caller_media.pre_arrival_iq",
+    name: "Pre-Arrival iQ Pro",
     category: "Caller Media",
     description:
-      "Send callers a secure, expiring SMS link to submit photos or start media sessions.",
+      "Umbrella Caller Media B.5 SKU: Response iQ caller guidance (SOP hierarchy + stay-on-line), protocol reconciliation on CAD nature change, and ETA SMS while units respond. Photo/video volume SKUs stack on top for high media volume.",
+    billingType: "monthly",
+    monthlyPrice: 4500,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "caller_media.sms_link",
+    name: "Caller SMS Link Generation (a la carte)",
+    category: "Caller Media",
+    description:
+      "A la carte precursor: send callers a secure, expiring SMS link to submit photos or start media sessions. Prefer Pre-Arrival iQ Pro when purchasing the full B.5 guidance + ETA suite.",
     billingType: "monthly",
     monthlyPrice: 1500,
     oneTimePrice: 0,
@@ -589,10 +600,10 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "caller_media.text_conversation",
-    name: "Text-Only Emergency Conversation",
+    name: "Text-Only Emergency Conversation (a la carte)",
     category: "Caller Media",
     description:
-      "Secure text chat channel for callers who cannot speak safely. 300-1K conversations/month.",
+      "A la carte precursor: secure text chat for callers who cannot speak safely (Silent Text). 300-1K conversations/month. Prefer Pre-Arrival iQ Pro for guidance + ETA; keep this SKU when text chat is purchased alone.",
     billingType: "monthly",
     monthlyPrice: 2000,
     oneTimePrice: 0,
@@ -602,7 +613,8 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     key: "caller_media.photo.basic",
     name: "Caller Photo Upload - Basic",
     category: "Caller Media",
-    description: "Under 500 photos/month, 5MB max, 30-day retention.",
+    description:
+      "Under 500 photos/month, 5MB max, 30-day retention. Stacks on Pre-Arrival iQ Pro for agencies that need photo volume beyond the base suite.",
     billingType: "monthly",
     monthlyPrice: 1000,
     oneTimePrice: 0,
@@ -1300,6 +1312,18 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     oneTimePrice: 0,
     planAvailability: professionalPlus,
     featureFlag: "callAssist",
+  }),
+
+  withLegacyIncludedInPlans({
+    key: "pre_arrival.module",
+    name: "Pre-Arrival iQ — Caller Engagement ($3,000/yr)",
+    category: "Pre-Arrival iQ",
+    description:
+      "CAD-event-driven secure SMS session for the 911 caller: responder status, pre-arrival steps, two-way messaging, and media/GPS share. Flat $3,000/agency/year ($250/mo). Includes 50,000 SMS deliveries/year; SMS overage at carrier cost (~$0.01). Onboarding, CAD EventBridge setup, and protocol library customization included.",
+    billingType: "monthly",
+    monthlyPrice: 250,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
   }),
 
   withLegacyIncludedInPlans({

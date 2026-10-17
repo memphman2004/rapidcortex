@@ -31,5 +31,7 @@ describe("PRICING_DEFAULTS vs RC_Pricing_Master_Guide_v4 (Oct 2026)", () => {
     expect(PRICING_DEFAULTS["comms.intel.lo"]).toBe(1500);
     expect(PRICING_DEFAULTS["call_assist.module"]).toBe(4500);
     expect(PRICING_DEFAULTS["call_assist.module.hi"]).toBe(9000);
+    expect(PRICING_DEFAULTS["pre_arrival.module"]).toBe(3000);
+    expect(PRICING_DEFAULTS["pre_arrival.module.monthly"]).toBe(250);
   });
 });

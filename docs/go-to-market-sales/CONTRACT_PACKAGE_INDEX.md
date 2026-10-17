@@ -48,7 +48,7 @@ Keep **signed** copies outside git (CRM, Adobe Sign ledger, agency secure share)
 | Public MSA copy | `apps/web/public/docs/MASTER SERVICES AGREEMENT.docx` | Template | Same family as complete MSA; operational review 2026-09-20 |
 | **Platform Services Agreement** | `NexCort iQ Internal Docs/Contract_legal stuff/RC_Platform_Services_Agreement.docx` | v1.0 template | Adobe Sign path; Exhibit A has `$TBD` pricing |
 | Exhibit A — Statement of Work | Inside MSA / Platform Agreement | Template | Populate from [SALES_SCOPE_MATRIX.md](./SALES_SCOPE_MATRIX.md) |
-| Exhibit B — Pricing | Inside MSA | **TBD amounts** | Finance + `RC_Pricing_Master_Guide_v4.xlsx` |
+| Exhibit B — Pricing | Inside MSA | **TBD amounts** | Finance + `RC_Pricing_Master_Guide_v4.xlsx` + catalog keys (`caller_media.pre_arrival_iq` = Pre-Arrival iQ Pro). Paste-ready: [EXHIBIT_B_PRE_ARRIVAL_IQ.md](../pricing-billing/EXHIBIT_B_PRE_ARRIVAL_IQ.md). Word MSA rewrite is counsel-gated (LEG-007/008). |
 | Exhibit C — SLA | Inside MSA | Template | Do not promise public SLA until executed |
 | **Order Form** | [ORDER_FORM_DRAFT.md](./legal-drafts/ORDER_FORM_DRAFT.md) | **DRAFT** | Counsel + Finance; references MSA |
 | **Change Order** | [CHANGE_ORDER_DRAFT.md](./legal-drafts/CHANGE_ORDER_DRAFT.md) | **DRAFT** | Scope/fee amendments |

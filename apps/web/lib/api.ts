@@ -42,7 +42,9 @@ import type {
   UserRole,
   CallIdBody,
   CreateSilentTextSessionBody,
+  CreatePreArrivalSessionBody,
   CreateVideoAssistSessionBody,
+  PreArrivalSession,
   SilentTextDispatcherSession,
   VideoAssistDispatcherSession,
   RequestLiveVideoPayload,
@@ -1176,6 +1178,52 @@ export async function postSilentTextHighRisk(
     `/api/incidents/${encodeURIComponent(incidentId)}/silent-text/sessions/${encodeURIComponent(sessionId)}/high-risk`,
     { method: "POST", body: JSON.stringify({}) },
   );
+}
+
+export async function fetchPreArrivalSessions(incidentId: string): Promise<PreArrivalSession[]> {
+  const data = await request<{ sessions: PreArrivalSession[] }>(
+    `/api/incidents/${encodeURIComponent(incidentId)}/pre-arrival/sessions`,
+  );
+  return data.sessions ?? [];
+}
+
+export async function postPreArrivalSession(
+  incidentId: string,
+  body: CreatePreArrivalSessionBody,
+): Promise<{ session: PreArrivalSession; token: string; publicUrl: string }> {
+  return request(`/api/incidents/${encodeURIComponent(incidentId)}/pre-arrival/sessions`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function fetchPreArrivalSession(
+  incidentId: string,
+  sessionToken: string,
+): Promise<PreArrivalSession> {
+  return request(
+    `/api/incidents/${encodeURIComponent(incidentId)}/pre-arrival/sessions/${encodeURIComponent(sessionToken)}`,
+  );
+}
+
+export async function postPreArrivalSessionEnd(
+  incidentId: string,
+  sessionToken: string,
+): Promise<PreArrivalSession> {
+  return request(
+    `/api/incidents/${encodeURIComponent(incidentId)}/pre-arrival/sessions/${encodeURIComponent(sessionToken)}/end`,
+    { method: "POST", body: JSON.stringify({}) },
+  );
+}
+
+export async function postPreArrivalEta(
+  incidentId: string,
+  body: { etaMinutes: number; note?: string },
+): Promise<unknown> {
+  return request(`/api/incidents/${encodeURIComponent(incidentId)}/pre-arrival/eta`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export async function postLanguageSessionStart(

@@ -16,6 +16,7 @@ export const smsMessageTypeSchema = z.enum([
   "live_video",
   "pinpoint_location",
   "silent_text",
+  "pre_arrival",
   "sms_location",
   "call_assist_self_service",
   "call_assist_confirmation",

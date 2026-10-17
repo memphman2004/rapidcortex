@@ -18,6 +18,7 @@ import { IncidentMediaPanel } from "@/components/dispatch/incident-media-panel";
 import { IntelligenceWorkstation } from "@/components/dispatch/intelligence-workstation";
 import { LiveVideoPanel } from "@/components/dispatch/live-video-panel";
 import { PinpointPanel } from "@/components/dispatch/pinpoint-panel";
+import { PreArrivalPanel } from "@/components/dispatch/pre-arrival-panel";
 import { SilentTextPanel } from "@/components/dispatch/silent-text-panel";
 import { TranscriptPanel } from "@/components/dispatch/transcript-panel";
 import { VideoAssistPanel } from "@/components/dispatch/video-assist-panel";
@@ -26,7 +27,14 @@ import { WorkstationPanel } from "@/components/dispatch/workstation-panel";
 import { ModuleDock } from "@/components/dispatch/module-dock";
 import type { DockState } from "@/lib/dispatcher/module-dock";
 import type { WorkstationPanelName } from "@/lib/dispatcher/workstation-prefs";
-import { isIncidentMediaEnabled, isLiveVideoEnabled, isPinpointEnabled, isRapidVisionSceneIntelEnabled, isSilentTextEnabled } from "@/lib/runtime-flags";
+import {
+  isIncidentMediaEnabled,
+  isLiveVideoEnabled,
+  isPinpointEnabled,
+  isPreArrivalIqEnabled,
+  isRapidVisionSceneIntelEnabled,
+  isSilentTextEnabled,
+} from "@/lib/runtime-flags";
 
 function PanelUnavailable({ message }: { message: string }) {
   return <p className="text-[12px] text-[var(--rc-text-muted)]">{message}</p>;
@@ -275,6 +283,24 @@ export function DispatcherIncidentWorkstationBody({
                 />
               ) : (
                 <PanelUnavailable message="Silent text is not enabled for this agency." />
+              ),
+            ),
+          },
+          {
+            key: "pre_arrival",
+            label: "Pre-Arrival iQ",
+            body: panel(
+              "pre_arrival",
+              "Pre-Arrival iQ",
+              isPreArrivalIqEnabled() ? (
+                <PreArrivalPanel
+                  incidentId={incidentId}
+                  ani={incident?.callerCallback}
+                  cadNatureCode={incident?.cadNatureCode ?? null}
+                  embedded
+                />
+              ) : (
+                <PanelUnavailable message="Pre-Arrival iQ is not enabled for this agency." />
               ),
             ),
           },

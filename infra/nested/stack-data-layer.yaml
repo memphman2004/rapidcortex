@@ -4421,6 +4421,168 @@
         ]
       }
     },
+    "PreArrivalSessionsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-pre-arrival-sessions-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        },
+        "AttributeDefinitions": [
+          { "AttributeName": "pk", "AttributeType": "S" },
+          { "AttributeName": "sk", "AttributeType": "S" },
+          { "AttributeName": "gsi1pk", "AttributeType": "S" },
+          { "AttributeName": "gsi1sk", "AttributeType": "S" },
+          { "AttributeName": "sessionToken", "AttributeType": "S" }
+        ],
+        "KeySchema": [
+          { "AttributeName": "pk", "KeyType": "HASH" },
+          { "AttributeName": "sk", "KeyType": "RANGE" }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "ByIncident",
+            "KeySchema": [
+              { "AttributeName": "gsi1pk", "KeyType": "HASH" },
+              { "AttributeName": "gsi1sk", "KeyType": "RANGE" }
+            ],
+            "Projection": { "ProjectionType": "ALL" }
+          },
+          {
+            "IndexName": "ByToken",
+            "KeySchema": [
+              { "AttributeName": "sessionToken", "KeyType": "HASH" }
+            ],
+            "Projection": { "ProjectionType": "ALL" }
+          }
+        ]
+      }
+    },
+    "PreArrivalInstructionLibraryTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-pre-arrival-instruction-library-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "AttributeDefinitions": [
+          { "AttributeName": "pk", "AttributeType": "S" },
+          { "AttributeName": "sk", "AttributeType": "S" }
+        ],
+        "KeySchema": [
+          { "AttributeName": "pk", "KeyType": "HASH" },
+          { "AttributeName": "sk", "KeyType": "RANGE" }
+        ]
+      }
+    },
+    "ProtocolCompatibilityTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-protocol-compatibility-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "AttributeDefinitions": [
+          { "AttributeName": "pk", "AttributeType": "S" },
+          { "AttributeName": "targetNatureCode", "AttributeType": "S" }
+        ],
+        "KeySchema": [
+          { "AttributeName": "pk", "KeyType": "HASH" },
+          { "AttributeName": "targetNatureCode", "KeyType": "RANGE" }
+        ]
+      }
+    },
+    "ReconciliationAuditTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": {
+          "Ref": "DynamoBillingMode"
+        },
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-reconciliation-audit-${DeploymentStage}"
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        },
+        "AttributeDefinitions": [
+          { "AttributeName": "pk", "AttributeType": "S" },
+          { "AttributeName": "sk", "AttributeType": "S" }
+        ],
+        "KeySchema": [
+          { "AttributeName": "pk", "KeyType": "HASH" },
+          { "AttributeName": "sk", "KeyType": "RANGE" }
+        ]
+      }
+    },
     "PinpointLinksTable": {
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
@@ -6835,6 +6997,30 @@
       "Description": "Physical table name for SilentTextSessionsTable",
       "Value": {
         "Ref": "SilentTextSessionsTable"
+      }
+    },
+    "PreArrivalSessionsTable": {
+      "Description": "Physical table name for PreArrivalSessionsTable",
+      "Value": {
+        "Ref": "PreArrivalSessionsTable"
+      }
+    },
+    "PreArrivalInstructionLibraryTable": {
+      "Description": "Physical table name for PreArrivalInstructionLibraryTable",
+      "Value": {
+        "Ref": "PreArrivalInstructionLibraryTable"
+      }
+    },
+    "ProtocolCompatibilityTable": {
+      "Description": "Physical table name for ProtocolCompatibilityTable",
+      "Value": {
+        "Ref": "ProtocolCompatibilityTable"
+      }
+    },
+    "ReconciliationAuditTable": {
+      "Description": "Physical table name for ReconciliationAuditTable",
+      "Value": {
+        "Ref": "ReconciliationAuditTable"
       }
     },
     "PinpointLinksTable": {

@@ -247,6 +247,8 @@ export const ADDON_SECTIONS = [
       { label: "Call Assist RMS drafts", key: "call_assist.rms_integration" },
       { label: "Call Assist TTY", key: "call_assist.tty_accommodation" },
       { label: "Call Assist external routing", key: "call_assist.external_routing" },
+      { label: "Pre-Arrival iQ platform license", key: "pre_arrival.module" },
+      { label: "Pre-Arrival iQ monthly equivalent", key: "pre_arrival.module.monthly" },
       { label: "Map unit overlays (AVL)", loKey: "cad.avl.lo", hiKey: "cad.avl.hi" },
     ],
   },

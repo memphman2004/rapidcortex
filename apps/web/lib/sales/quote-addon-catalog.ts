@@ -11,6 +11,12 @@ export const ADDON_CATALOG: QuoteAddOn[] = [
   { id: "command-dashboard", label: "Command Dashboard & War Rooms", monthlyLow: 5000, monthlyHigh: 20000 },
   { id: "premium_support", label: "Priority Support", monthlyLow: 2500, monthlyHigh: 7500 },
   { id: "call_assist", label: "Call Assist (Non-Emergency)", monthlyLow: 4500, monthlyHigh: 9000 },
+  {
+    id: "pre_arrival",
+    label: "Pre-Arrival iQ ($3,000/yr · 50k SMS included)",
+    monthlyLow: 250,
+    monthlyHigh: 250,
+  },
   { id: "rapid_vision", label: "NexIQ Vision™", monthlyLow: 500, monthlyHigh: 12000 },
   { id: "rc_translate", label: "NexCort Translate", monthlyLow: 1000, monthlyHigh: 3000 },
   { id: "cad_mesh", label: "CAD-to-CAD Mesh", monthlyLow: 3500, monthlyHigh: 8000 },

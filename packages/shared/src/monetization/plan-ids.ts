@@ -17,6 +17,7 @@ export type MonetizationAddOnId =
   | "onsite_deployment_training"
   | "setup_implementation_fee"
   | "call_assist"
+  | "pre_arrival"
   | "rapid_vision"
   | "rc_translate"
   | "cad_mesh"

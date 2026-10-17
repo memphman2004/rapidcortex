@@ -48,6 +48,7 @@ export * from "./hospital-routing/index.js";
 export * from "./hl7/index.js";
 export * from "./video-assist/index.js";
 export * from "./silent-text/index.js";
+export * from "./pre-arrival/index.js";
 export * from "./media/index.js";
 export * from "./triage/triage.js";
 export * from "./triage/f3-queue.js";

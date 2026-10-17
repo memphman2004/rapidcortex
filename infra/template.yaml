@@ -4593,6 +4593,81 @@ Resources:
         ExistingCleryActTableName: !Ref ExistingCleryActTableName
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
+  AppSamPreArrivalStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSam5Stack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-pre-arrival.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSam5Stack.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: ""
+        PreArrivalSessionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PreArrivalSessionsTable
+            - !Sub "${DynamoTableNamePrefix}-pre-arrival-sessions-${DeploymentStage}"
+        PreArrivalInstructionLibraryTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.PreArrivalInstructionLibraryTable
+            - !Sub "${DynamoTableNamePrefix}-pre-arrival-instruction-library-${DeploymentStage}"
+        ProtocolCompatibilityTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ProtocolCompatibilityTable
+            - !Sub "${DynamoTableNamePrefix}-protocol-compatibility-${DeploymentStage}"
+        ReconciliationAuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ReconciliationAuditTable
+            - !Sub "${DynamoTableNamePrefix}-reconciliation-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
+        TranscriptsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.TranscriptsTable
+            - !Sub "${DynamoTableNamePrefix}-transcripts-${DeploymentStage}"
+        AnalysesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AnalysesTable
+            - !Sub "${DynamoTableNamePrefix}-analyses-${DeploymentStage}"
+        InvitesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.InvitesTable
+            - !Sub "${DynamoTableNamePrefix}-invites-${DeploymentStage}"
+        AssetsBucket:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AssetsBucket
+            - !Sub "${DynamoTableNamePrefix}-assets-${DeploymentStage}-${AWS::AccountId}"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+        PreArrivalPublicBaseUrl: !Ref AppPublicBaseUrl
+
   AppSamPhysicalSecurityStack5:
     Type: AWS::CloudFormation::Stack
     Metadata:

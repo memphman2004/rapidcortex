@@ -14,6 +14,7 @@ describe("module dock reducer", () => {
       "Caller Mobile",
       "Video Assist",
       "Silent Text Link",
+      "Pre-Arrival iQ",
       "NexiQ Pinpoint",
       "Location",
       "Premise Notice",

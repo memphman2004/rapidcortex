@@ -11,6 +11,7 @@ describe("workstation layout prefs", () => {
         "caller_mobile",
         "video_assist",
         "silent_text",
+        "pre_arrival",
         "pinpoint",
         "cad_entry",
         "premise_notes",

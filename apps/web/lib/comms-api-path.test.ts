@@ -177,7 +177,7 @@ describe("isCommsPlatformApiPath", () => {
     expect(resolveUpstreamApiBase("/api/psap/continuity")).toBe("https://stack2.example.com");
   });
 
-  it("routes live-video to stack 5 and call-control lists to stack 2", () => {
+  it("routes live-video and pre-arrival to stack 5 and call-control lists to stack 2", () => {
     process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
     process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
     process.env.API_UPSTREAM_BASE_5 = "https://stack5.example.com";
@@ -185,6 +185,9 @@ describe("isCommsPlatformApiPath", () => {
     expect(resolveUpstreamApiBase("/api/incidents/inc-1/live-video")).toBe(
       "https://stack5.example.com",
     );
+    expect(isSam5ApiPath("/api/incidents/inc-1/pre-arrival/sessions")).toBe(true);
+    expect(isSam5ApiPath("/api/public/pre-arrival/tok")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/public/pre-arrival/tok")).toBe("https://stack5.example.com");
     expect(isStack2ApiPath("/api/supervisor/active-calls")).toBe(true);
     expect(isStack2ApiPath("/api/dispatcher/active-calls")).toBe(true);
     expect(resolveUpstreamApiBase("/api/supervisor/active-calls")).toBe(

@@ -222,6 +222,7 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-cad.yaml
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-4.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-5.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-pre-arrival.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-milestone.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-physical-security.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-location.yaml"

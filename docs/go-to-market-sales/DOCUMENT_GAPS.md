@@ -13,7 +13,7 @@
 | LEG-005 | Standalone order form | P1 | **DRAFT** | Legal | [ORDER_FORM_DRAFT.md](./legal-drafts/ORDER_FORM_DRAFT.md) |
 | LEG-006 | Change order template | P2 | **DRAFT** | Legal | [CHANGE_ORDER_DRAFT.md](./legal-drafts/CHANGE_ORDER_DRAFT.md) |
 | LEG-007 | Entity naming reconciliation | P0 | OPEN | NEEDS OWNER | AOD LLC vs NexCort iQ LLC |
-| LEG-008 | MSA Exhibit B pricing (filled) | P0 | TBD | Finance | `RC_Pricing_Master_Guide_v4.xlsx` |
+| LEG-008 | MSA Exhibit B pricing (filled) | P0 | TBD | Finance | `RC_Pricing_Master_Guide_v4.xlsx` — must include **Pre-Arrival iQ Pro** (`caller_media.pre_arrival_iq`); SMS-link / text-only remain a la carte. Paste-ready bullets: [EXHIBIT_B_PRE_ARRIVAL_IQ.md](../pricing-billing/EXHIBIT_B_PRE_ARRIVAL_IQ.md) |
 | LEG-009 | Per-vendor CAD SOW | P1 | GAP | NEEDS OWNER | GA-013 |
 | LEG-010 | Pen-test SOW / report | P2 | DRAFT inquiry | Jeff | Send [LEG-010-PENTEST-INQUIRY.md](../security-compliance/soc2/LEG-010-PENTEST-INQUIRY.md) to Cobalt (`sales@cobalt.io`); Schellman backup |
 | LEG-011 | SOC 2 Type II **report** | P2 | N/A | CPA firm | Third-party attestation only — [OUT-OF-BAND.md](../security-compliance/soc2/OUT-OF-BAND.md) |

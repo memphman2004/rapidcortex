@@ -103,6 +103,11 @@
       "import": "./dist/silent-text/schemas.js",
       "require": "./dist/silent-text/schemas.js"
     },
+    "./pre-arrival": {
+      "types": "./dist/pre-arrival/index.d.ts",
+      "import": "./dist/pre-arrival/index.js",
+      "require": "./dist/pre-arrival/index.js"
+    },
     "./sla-types": {
       "types": "./dist/sla-types.d.ts",
       "import": "./dist/sla-types.js",

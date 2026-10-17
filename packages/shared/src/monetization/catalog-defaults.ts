@@ -165,6 +165,11 @@ export function defaultAddOnSeed(now: string): Record<MonetizationAddOnId, impor
       "Call Assist (Non-Emergency)",
       "AI-assisted non-emergency intake, greetings, callbacks, and operator console.",
     ),
+    pre_arrival: mk(
+      "pre_arrival",
+      "Pre-Arrival iQ",
+      "CAD-triggered caller engagement via secure SMS — status, pre-arrival steps, messaging, media. $3,000/agency/year; 50k SMS included.",
+    ),
     rapid_vision: mk(
       "rapid_vision",
       "NexIQ Vision™",

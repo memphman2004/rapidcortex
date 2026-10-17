@@ -203,6 +203,14 @@ export const env = {
   /** Empty table disables silent-text handlers even when the feature flag is on. */
   silentTextTable: process.env.SILENT_TEXT_TABLE?.trim() ?? "",
   silentTextPublicBaseUrl: process.env.SILENT_TEXT_PUBLIC_BASE_URL?.trim() ?? "",
+  /** Pre-Arrival iQ (Response iQ caller guidance + ETA). Default ON when unset. */
+  enablePreArrivalIq: featureEnabled("ENABLE_PRE_ARRIVAL_IQ"),
+  preArrivalSessionsTable: process.env.PRE_ARRIVAL_SESSIONS_TABLE?.trim() ?? "",
+  preArrivalInstructionLibraryTable:
+    process.env.PRE_ARRIVAL_INSTRUCTION_LIBRARY_TABLE?.trim() ?? "",
+  protocolCompatibilityTable: process.env.PROTOCOL_COMPATIBILITY_TABLE?.trim() ?? "",
+  reconciliationAuditTable: process.env.RECONCILIATION_AUDIT_TABLE?.trim() ?? "",
+  preArrivalPublicBaseUrl: process.env.PRE_ARRIVAL_PUBLIC_BASE_URL?.trim() ?? "",
   /** Pinpoint — caller GPS SMS links; empty table disables handlers. */
   pinpointLinksTable: process.env.PINPOINT_LINKS_TABLE?.trim() ?? "",
   pinpointPublicBaseUrl: process.env.PINPOINT_PUBLIC_BASE_URL?.trim() ?? "",
