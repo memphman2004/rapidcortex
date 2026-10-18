@@ -4,7 +4,6 @@ import type { BlogPost } from "./types";
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://www.nexcortiq.us";
 export const SITE_NAME = "NexCort iQ";
-export const SITE_FORMER_NAME = "Rapid Cortex";
 
 export function buildPostMetadata(post: BlogPost): Metadata {
   const url = `${SITE_URL}/blog/${post.slug}`;
@@ -46,7 +45,7 @@ export function buildPostJsonLd(post: BlogPost) {
     publisher: {
       "@type": "Organization",
       name: SITE_NAME,
-      alternateName: SITE_FORMER_NAME,
+      alternateName: ["NexCortIQ", "NexCort"],
       url: SITE_URL,
     },
   };

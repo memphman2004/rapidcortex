@@ -1735,6 +1735,18 @@ Resources:
             ApiId: !Ref Api
             Path: /api/rc-admin/leads/{leadId}
             Method: GET
+        LeadFromProspectPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/leads/from-prospect
+            Method: POST
+        LeadDelete:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/leads/{leadId}
+            Method: DELETE
         LeadStagePatch:
           Type: HttpApi
           Properties:

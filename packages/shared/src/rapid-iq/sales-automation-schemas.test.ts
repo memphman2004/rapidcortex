@@ -77,7 +77,7 @@ describe("outlook campaign-send schemas", () => {
 
   it("accepts a content draft edit body", () => {
     const parsed = updateRapidIqSalesDraftBodySchema.parse({
-      subject: "Inside the Cortex",
+      subject: "Inside iQ",
       bodyText: "Week notes",
     });
     expect(parsed.bodyText).toBe("Week notes");

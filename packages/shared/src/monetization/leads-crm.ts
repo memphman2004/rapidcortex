@@ -178,7 +178,7 @@ export const CHANNEL_CONFIG: Record<
   },
   inside_the_cortex: {
     icon: "🧠",
-    label: "Inside the Cortex",
+    label: "Inside iQ",
     color: "#a78bfa",
     description: "Newsletter signup popup",
   },
@@ -350,6 +350,53 @@ export const addSalesLeadActivityBodySchema = z
 
 export type AddSalesLeadActivityBody = z.infer<typeof addSalesLeadActivityBodySchema>;
 
+/** Manual handoff from Prospects into Leads CRM. Does not remove the prospect. */
+export const sendProspectToLeadBodySchema = z
+  .object({
+    prospectId: z.string().trim().min(1).max(128),
+    existingLeadId: z.string().trim().min(1).max(128).optional(),
+    agencyName: z.string().trim().min(1).max(300),
+    contactName: z.string().trim().max(200).optional(),
+    contactTitle: z.string().trim().max(200).optional(),
+    contactEmail: z.string().trim().max(320).optional(),
+    contactPhone: z.string().trim().max(40).optional(),
+    city: z.string().trim().max(100).optional(),
+    state: z.string().trim().max(8).optional(),
+    vertical: z.enum(["psap", "campus", "venue", "hospital", "transit"]).optional(),
+    outreachStatus: z.enum([
+      "UNCONTACTED",
+      "MAILED",
+      "CALLED",
+      "EMAILED",
+      "ENGAGED",
+      "DEMO_SCHEDULED",
+      "PILOT",
+      "CUSTOMER",
+      "NOT_INTERESTED",
+      "DO_NOT_CONTACT",
+    ]),
+    estimatedValue: z.number().optional(),
+    notes: z.string().trim().max(2000).optional(),
+  })
+  .strict();
+
+export type SendProspectToLeadBody = z.infer<typeof sendProspectToLeadBodySchema>;
+
+/** Engaged or later starts as Qualified; earlier outreach starts as Contacted. */
+export function leadStageForProspectOutreach(
+  status: SendProspectToLeadBody["outreachStatus"],
+): "CONTACTED" | "QUALIFIED" {
+  if (
+    status === "ENGAGED" ||
+    status === "DEMO_SCHEDULED" ||
+    status === "PILOT" ||
+    status === "CUSTOMER"
+  ) {
+    return "QUALIFIED";
+  }
+  return "CONTACTED";
+}
+
 /** Full CRM lead shape returned to the UI (existing fields + extensions). */
 export type SalesLeadCrmRecord = {
   leadId: string;
@@ -408,6 +455,8 @@ export type SalesLeadCrmRecord = {
   smsConsentAt?: string | null;
   smsConsentDisclosureVersion?: string;
   formSource?: string;
+  /** PSAP / outreach prospect this lead was created from. Prospect record is kept. */
+  prospectId?: string;
   /**
    * Advisor-facing authorization status. Prefer {@link resolveLeadSmsConsentStatus}.
    * opted_out can be set manually when a prospect revokes consent (e.g. STOP).

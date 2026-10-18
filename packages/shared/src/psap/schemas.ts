@@ -33,6 +33,7 @@ export const patchPsapProspectBodySchema = z
     nextActionDate: z.string().trim().max(40).optional(),
     nextActionNote: z.string().trim().max(500).optional(),
     estimatedValue: z.number().int().min(0).max(100_000_000_00).optional(),
+    leadsCrmLeadId: z.string().trim().min(1).max(128).optional(),
   })
   .strict();
 

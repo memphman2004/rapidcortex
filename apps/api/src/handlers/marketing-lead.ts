@@ -1,5 +1,5 @@
 /**
- * Marketing Lead Capture — Inside the Cortex
+ * Marketing Lead Capture — Inside iQ
  * Route: POST /api/marketing/lead (public, Authorizer NONE)
  */
 
@@ -167,13 +167,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         {
           activityId: randomUUID(),
           type: "created",
-          description: "Lead created · Source: Inside the Cortex",
+          description: "Lead created · Source: Inside iQ",
           createdAt: now,
         },
       ],
       attribution: {
         channel: "inside_the_cortex",
-        channelLabel: "Inside the Cortex",
+        channelLabel: "Inside iQ",
         landingPage: landingPage ?? null,
         referrerUrl: referrer,
         referrerDomain,
@@ -212,20 +212,20 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           Source: `NexCort iQ <${sesFrom}>`,
           Destination: { ToAddresses: [`${firstName} ${lastName} <${emailLower}>`] },
           Message: {
-            Subject: { Data: `You're inside the Cortex, ${firstName}.` },
+            Subject: { Data: `You're on Inside iQ, ${firstName}.` },
             Body: {
               Text: {
                 Data: [
                   `Hey ${firstName},`,
                   "",
-                  "Signal acquired. You're inside the Cortex.",
+                  "Signal acquired. You're on Inside iQ.",
                   "",
                   "NexCort iQ exists for one reason: the people running toward the emergency",
 "dispatchers, supervisors, first responders, the whole chain deserves technology",
 "that moves at their speed. Not enterprise software wearing a vest. Not AI that",
 "doesn't understand what's at stake. The actual thing, built for the actual work.",
 "",
-"Inside the Cortex is our open channel. You'll get the real version of what's",
+"Inside iQ is our open channel. You'll get the real version of what's",
 "happening — what we're building, what we're learning in the field, and where",
 "public safety technology is actually headed. We won't flood your inbox.",
 "When we have something worth your attention, you'll hear it.",
@@ -262,11 +262,11 @@ siteUrl,
           Source: `NexCort iQ <${sesFrom}>`,
           Destination: { ToAddresses: [teamEmail] },
           Message: {
-            Subject: { Data: `New Cortex signup — ${firstName} ${lastName} (${state})` },
+            Subject: { Data: `New Inside iQ signup — ${firstName} ${lastName} (${state})` },
             Body: {
               Text: {
                 Data: [
-                  "New Inside the Cortex signup",
+                  "New Inside iQ signup",
                   "",
                   `Name:     ${firstName} ${lastName}`,
                   `Email:    ${emailLower}`,
@@ -318,7 +318,7 @@ function buildWelcomeEmail({
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>You're inside the Cortex</title></head>
+<title>You're on Inside iQ</title></head>
 <body style="margin:0;padding:24px 16px;background:#0a0f1e;font-family:system-ui,-apple-system,sans-serif;">
 <div style="max-width:520px;margin:0 auto;">
 
@@ -329,14 +329,14 @@ function buildWelcomeEmail({
 
   <div style="background:#0c1428;border-left:1px solid #1b2b47;border-right:1px solid #1b2b47;padding:32px 28px 28px;">
     <div style="display:inline-block;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.25);border-radius:20px;padding:4px 14px;margin-bottom:22px;">
-      <span style="font-size:10px;font-weight:600;color:#93c5fd;letter-spacing:0.08em;">&#9679;&nbsp; INSIDE THE CORTEX</span>
+      <span style="font-size:10px;font-weight:600;color:#93c5fd;letter-spacing:0.08em;">&#9679;&nbsp; INSIDE IQ</span>
     </div>
     <p style="font-size:20px;font-weight:500;color:#dce6f5;margin:0 0 6px;line-height:1.3;">You're inside, ${name}.</p>
     <p style="font-size:13px;color:#6b83a8;margin:0 0 28px;">Welcome to the response.</p>
     <div style="border-top:1px solid #1b2b47;padding-top:24px;">
       <p style="font-size:14px;color:#a8bdd6;line-height:1.75;margin:0 0 18px;">Hey ${name}, thank you &mdash; genuinely &mdash; for signing up.</p>
       <p style="font-size:14px;color:#a8bdd6;line-height:1.75;margin:0 0 18px;">We started NexCort iQ because we believe the people who protect communities deserve technology that&apos;s actually built for them. Not retrofitted from enterprise software. Not watered down. Purpose-built for the speed and stakes of emergency response.</p>
-      <p style="font-size:14px;color:#a8bdd6;line-height:1.75;margin:0 0 18px;">Every signup like yours tells us this work matters. <strong style="color:#dce6f5;font-weight:500;">Inside the Cortex</strong> is how we stay connected &mdash; real updates, real progress, honest insight from the people building the platform. You&apos;ll hear from us when we have something worth saying.</p>
+      <p style="font-size:14px;color:#a8bdd6;line-height:1.75;margin:0 0 18px;">Every signup like yours tells us this work matters. <strong style="color:#dce6f5;font-weight:500;">Inside iQ</strong> is how we stay connected &mdash; real updates, real progress, honest insight from the people building the platform. You&apos;ll hear from us when we have something worth saying.</p>
       <p style="font-size:14px;color:#dce6f5;line-height:1.75;margin:0 0 28px;font-weight:500;">Thank you for being here. We won&apos;t let you down.</p>
       <div style="background:#0f1e38;border:1px solid #1b2b47;border-radius:8px;padding:16px 20px;">
         <p style="font-size:12px;color:#6b83a8;margin:0 0 4px;">FROM</p>

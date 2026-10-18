@@ -363,6 +363,11 @@ export function LeadsCrmPage() {
   const [verticalFilter, setVerticalFilter] = useState<VerticalFilter>("all");
   const [view, setView] = useState<ViewMode>("board");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const lead = new URLSearchParams(window.location.search).get("lead");
+    if (lead) setSelectedId(lead);
+  }, []);
   const [stageModal, setStageModal] = useState<{
     leadId: string;
     targetStage: PipelineStage | null;
@@ -495,7 +500,7 @@ export function LeadsCrmPage() {
     { id: "all", label: "All Sources" },
     { id: "ring_waitlist", label: "Ring™ Waitlist" },
     { id: "contact_sales", label: "Contact Sales" },
-    { id: "inside_the_cortex", label: "Inside the Cortex" },
+    { id: "inside_the_cortex", label: "Inside iQ" },
   ];
 
   return (
@@ -641,7 +646,7 @@ export function LeadsCrmPage() {
             <div className="text-5xl opacity-[0.05]">◎</div>
             <div className="text-sm font-semibold text-slate-400">Pipeline is empty</div>
             <div className="max-w-[260px] text-xs text-slate-600">
-              Leads from Contact Sales, Ring™ Waitlist, and Inside the Cortex appear here
+              Leads from Contact Sales, Ring™ Waitlist, and Inside iQ appear here
               automatically.
             </div>
           </div>
@@ -672,6 +677,18 @@ export function LeadsCrmPage() {
             attributionSummary={attrQ.data}
             onClose={() => setSelectedId(null)}
             onLeadUpdated={patchCacheLead}
+            onLeadDeleted={(leadId) => {
+              setSelectedId(null);
+              qc.setQueryData(PIPELINE_QUERY_KEY, (prev: PipelineData | undefined) => {
+                if (!prev) return prev;
+                const stages = { ...prev.stages };
+                for (const stage of PIPELINE_STAGES) {
+                  stages[stage] = (stages[stage] ?? []).filter((lead) => lead.leadId !== leadId);
+                }
+                return { ...prev, stages };
+              });
+              void qc.invalidateQueries({ queryKey: PIPELINE_QUERY_KEY });
+            }}
             onOpenStageModal={() => {
               setStageError(null);
               setStageModal({ leadId: selected.leadId, targetStage: null });

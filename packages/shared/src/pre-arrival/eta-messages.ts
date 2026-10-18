@@ -1,3 +1,4 @@
+import { blurEstimatedArrivalMinutes } from "./mode-policy.js";
 import type { EtaNotificationTrigger } from "./eta-types.js";
 
 /**
@@ -36,16 +37,11 @@ export function buildEtaMessage(
 }
 
 function buildMinuteMessage(etaMinutes: number, prefix: string): string {
-  const rounded = Math.max(1, Math.round(etaMinutes));
-  const minuteWord = rounded === 1 ? "minute" : "minutes";
-
-  if (rounded <= 2) {
-    return `${prefix} ${rounded} ${minuteWord} away. Stay where you are and keep this phone close.`;
+  const range = blurEstimatedArrivalMinutes(etaMinutes);
+  if (!range) {
+    return `${prefix} arriving now. Stay where you are and keep this phone close.`;
   }
-  if (rounded <= 5) {
-    return `${prefix} approximately ${rounded} ${minuteWord} away. Keep following the instructions and stay calm.`;
-  }
-  return `${prefix} approximately ${rounded} ${minuteWord} away. Continue following the guidance and stay on location.`;
+  return `${prefix} about ${range.low} to ${range.high} minutes away. Keep following the guidance and stay on location.`;
 }
 
 /**

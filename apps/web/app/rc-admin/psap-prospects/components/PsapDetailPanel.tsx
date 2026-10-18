@@ -13,7 +13,12 @@ import {
 } from "rapid-cortex-shared";
 import { AlertCircle, CheckCircle, Copy, Mail, Phone, Sparkles, X } from "lucide-react";
 import { SafetySourceLookupLink } from "@/components/psap/safety-source-lookup-link";
-import { addPsapActivity, enrichPsapContacts, patchPsapProspect } from "@/lib/psap/psap-api";
+import {
+  addPsapActivity,
+  enrichPsapContacts,
+  patchPsapProspect,
+  sendProspectToLeadsCrm,
+} from "@/lib/psap/psap-api";
 import {
   addOutreachActivityLocal,
   patchOutreachProspectLocal,
@@ -31,6 +36,7 @@ type Props = {
   persistence?: "api" | "local";
   /** Campus enrollment when viewing sheet prospects. */
   studentCount?: number;
+  vertical?: "psap" | "campus" | "venue" | "hospital" | "transit";
 };
 
 const ACTIVITY_TYPES: { type: Exclude<ActivityType, "stage_change">; label: string }[] = [
@@ -176,6 +182,7 @@ export function PsapDetailPanel({
   onUpdated,
   persistence = "api",
   studentCount,
+  vertical = "psap",
 }: Props) {
   const [tab, setTab] = useState<Tab>("details");
   const [draft, setDraft] = useState(prospect);
@@ -186,6 +193,7 @@ export function PsapDetailPanel({
   const [activityType, setActivityType] = useState<Exclude<ActivityType, "stage_change">>("note");
   const [activityText, setActivityText] = useState("");
   const [copyMsg, setCopyMsg] = useState<string | null>(null);
+  const [sendingLead, setSendingLead] = useState(false);
   const isLocal = persistence === "local";
 
   useEffect(() => {
@@ -193,6 +201,41 @@ export function PsapDetailPanel({
     setError(null);
     setEnrichNotice(null);
   }, [prospect]);
+
+  async function sendToLeads() {
+    setSendingLead(true);
+    setError(null);
+    try {
+      const primary =
+        draft.contacts?.find((c) => c.roleTier === "primary") ?? draft.contacts?.[0];
+      const result = await sendProspectToLeadsCrm({
+        prospectId: draft.psapId,
+        existingLeadId: draft.leadsCrmLeadId,
+        agencyName: draft.psapName,
+        contactName: draft.primaryContactName?.trim() || primary?.name || undefined,
+        contactTitle: draft.primaryContactTitle?.trim() || primary?.title || undefined,
+        contactEmail: draft.primaryContactEmail?.trim() || primary?.email || undefined,
+        contactPhone: draft.primaryContactPhone?.trim() || primary?.phone || draft.phone,
+        city: draft.city,
+        state: draft.state,
+        vertical,
+        outreachStatus: draft.outreachStatus,
+        estimatedValue: draft.estimatedValue,
+        notes: draft.notes,
+      });
+      if (draft.leadsCrmLeadId !== result.leadId) {
+        const updated = isLocal
+          ? patchOutreachProspectLocal(draft, { leadsCrmLeadId: result.leadId })
+          : await patchPsapProspect(draft.psapId, { leadsCrmLeadId: result.leadId });
+        onUpdated(updated);
+        setDraft(updated);
+      }
+      window.location.assign(`/rc-admin/leads?lead=${encodeURIComponent(result.leadId)}`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not send to Leads CRM");
+      setSendingLead(false);
+    }
+  }
 
   async function savePatch(patch: PatchPsapProspectBody) {
     setSaving(true);
@@ -318,6 +361,14 @@ export function PsapDetailPanel({
         <div className="min-w-0">
           <PsapStatusBadge status={draft.outreachStatus} size="md" />
           <h2 className="mt-2 truncate text-base font-semibold text-slate-100">{draft.psapName}</h2>
+          {draft.leadsCrmLeadId ? (
+            <a
+              href={`/rc-admin/leads?lead=${encodeURIComponent(draft.leadsCrmLeadId)}`}
+              className="mt-1 inline-block text-[11px] font-semibold text-sky-400 hover:text-sky-300"
+            >
+              In Leads CRM
+            </a>
+          ) : null}
           <p className="text-xs text-slate-500">
             {draft.city}, {draft.state} · {draft.phone}
             {studentCount != null
@@ -325,6 +376,19 @@ export function PsapDetailPanel({
               : ""}
           </p>
         </div>
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <button
+            type="button"
+            disabled={sendingLead}
+            onClick={() => void sendToLeads()}
+            className="rounded bg-sky-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
+          >
+            {sendingLead
+              ? "Sending…"
+              : draft.leadsCrmLeadId
+                ? "Open in Leads CRM"
+                : "Send to Leads CRM"}
+          </button>
         <button
           type="button"
           onClick={onClose}
@@ -333,6 +397,7 @@ export function PsapDetailPanel({
         >
           <X className="h-4 w-4" />
         </button>
+        </div>
       </div>
 
       <div className="flex border-b border-[#1e2130]">

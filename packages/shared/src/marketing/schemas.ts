@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** Personal inbox domains rejected for Inside the Cortex business-email capture. */
+/** Personal inbox domains rejected for Inside iQ business-email capture. */
 export const MARKETING_BLOCKED_EMAIL_DOMAINS = [
   "gmail.com",
   "yahoo.com",

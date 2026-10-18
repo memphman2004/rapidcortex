@@ -22,6 +22,9 @@ final class TranslateSessionController: NSObject, ObservableObject {
     private var recognitionTask: SFSpeechRecognitionTask?
     private var speechRecognizer: SFSpeechRecognizer?
     private var subjectLanguage = "es"
+    private var pendingUtterance = ""
+    private var micGeneration = 0
+    private var utteranceSent = false
 
     struct TranslateFeedItem: Identifiable {
         let id: String
@@ -89,30 +92,67 @@ final class TranslateSessionController: NSObject, ObservableObject {
 
     func startMic(as speakerRole: String) {
         if listening { return }
+        guard connected else {
+            errorMessage = "Translator is still connecting"
+            return
+        }
         errorMessage = nil
         speaker = speakerRole
 
-        SFSpeechRecognizer.requestAuthorization { [weak self] status in
+        AVAudioSession.sharedInstance().requestRecordPermission { [weak self] micAllowed in
             Task { @MainActor in
                 guard let self else { return }
-                guard status == .authorized else {
-                    self.errorMessage = "Speech recognition permission is required"
+                guard micAllowed else {
+                    self.errorMessage = "Microphone permission is required"
                     return
                 }
-                self.beginRecognition()
+                SFSpeechRecognizer.requestAuthorization { status in
+                    Task { @MainActor in
+                        guard status == .authorized else {
+                            self.errorMessage = "Speech recognition permission is required"
+                            return
+                        }
+                        self.beginRecognition()
+                    }
+                }
             }
         }
     }
 
     func stopMic() {
+        let text = pendingUtterance
+        tearDownMic()
+        submitPhrase(text)
+    }
+
+    private func tearDownMic() {
+        micGeneration += 1
+        pendingUtterance = ""
         recognitionRequest?.endAudio()
         recognitionRequest = nil
         recognitionTask?.cancel()
         recognitionTask = nil
-        audioEngine?.inputNode.removeTap(onBus: 0)
-        audioEngine?.stop()
+        if let engine = audioEngine {
+            engine.inputNode.removeTap(onBus: 0)
+            engine.stop()
+        }
         audioEngine = nil
         listening = false
+    }
+
+    private func submitPhrase(_ raw: String) {
+        let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty, !utteranceSent else { return }
+        guard connected else {
+            errorMessage = "Translator is not connected"
+            return
+        }
+        utteranceSent = true
+        sendJSON([
+            "type": "phrase",
+            "speaker": speaker,
+            "text": text,
+        ])
     }
 
     private func beginRecognition() {
@@ -125,7 +165,7 @@ final class TranslateSessionController: NSObject, ObservableObject {
 
         do {
             let audioSession = AVAudioSession.sharedInstance()
-            try audioSession.setCategory(.playAndRecord, mode: .measurement, options: [.defaultToSpeaker, .duckOthers])
+            try audioSession.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetoothHFP])
             try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
             errorMessage = "Microphone unavailable"
@@ -133,12 +173,17 @@ final class TranslateSessionController: NSObject, ObservableObject {
         }
 
         let engine = AVAudioEngine()
+        engine.prepare()
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
         request.addsPunctuation = true
 
         let input = engine.inputNode
         let format = input.outputFormat(forBus: 0)
+        guard format.sampleRate > 0 else {
+            errorMessage = "Microphone unavailable"
+            return
+        }
         input.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
             request.append(buffer)
         }
@@ -146,24 +191,29 @@ final class TranslateSessionController: NSObject, ObservableObject {
         recognitionRequest = request
         audioEngine = engine
         listening = true
+        pendingUtterance = ""
+        utteranceSent = false
+        let generation = micGeneration
 
         recognitionTask = speechRecognizer.recognitionTask(with: request) { [weak self] result, error in
             Task { @MainActor in
-                guard let self else { return }
-                if let result, result.isFinal {
-                    let text = result.bestTranscription.formattedString.trimmingCharacters(in: .whitespacesAndNewlines)
-                    self.stopMic()
-                    if !text.isEmpty {
-                        self.sendJSON([
-                            "type": "phrase",
-                            "speaker": self.speaker,
-                            "text": text,
-                        ])
+                guard let self, generation == self.micGeneration else { return }
+                if let result {
+                    let text = result.bestTranscription.formattedString
+                    self.pendingUtterance = text
+                    if result.isFinal {
+                        self.tearDownMic()
+                        self.submitPhrase(text)
                     }
                 } else if let error {
-                    self.stopMic()
+                    let spoken = self.pendingUtterance
+                    self.tearDownMic()
                     let ns = error as NSError
-                    if ns.code != 216 && ns.domain != "kAFAssistantErrorDomain" {
+                    if ns.domain == "kAFAssistantErrorDomain" && (ns.code == 216 || ns.code == 1110) {
+                        self.submitPhrase(spoken)
+                    } else if !spoken.isEmpty {
+                        self.submitPhrase(spoken)
+                    } else {
                         self.errorMessage = error.localizedDescription
                     }
                 }
@@ -173,7 +223,7 @@ final class TranslateSessionController: NSObject, ObservableObject {
         do {
             try engine.start()
         } catch {
-            stopMic()
+            tearDownMic()
             errorMessage = "Could not start microphone"
         }
     }
@@ -209,7 +259,7 @@ final class TranslateSessionController: NSObject, ObservableObject {
         let task = session.webSocketTask(with: url)
         webSocket = task
         task.resume()
-        connected = true
+        connected = false
         receiveLoop()
         pingTask = Task { [weak self] in
             while !Task.isCancelled {
@@ -255,6 +305,8 @@ final class TranslateSessionController: NSObject, ObservableObject {
               let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let type = obj["type"] as? String
         else { return }
+
+        connected = true
 
         switch type {
         case "error":

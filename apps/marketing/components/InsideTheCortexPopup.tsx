@@ -250,7 +250,7 @@ export function InsideTheCortexPopup() {
                   animation: "rcBlink 1.8s ease-in-out infinite",
                 }} />
                 <span style={{ fontSize: "10px", fontWeight: 500, color: "#93c5fd", letterSpacing: "0.07em" }}>
-                  INSIDE THE CORTEX
+                  INSIDE IQ
                 </span>
               </div>
 
@@ -275,7 +275,7 @@ export function InsideTheCortexPopup() {
               }}>
                 Emergency communications is changing fast. We&apos;re at the center
                 of it — and we want you there too.{" "}
-                <strong style={{ color: "#dce6f5", fontWeight: 500 }}>Inside the Cortex</strong>{" "}
+                <strong style={{ color: "#dce6f5", fontWeight: 500 }}>Inside iQ</strong>{" "}
                 is where we share what we&apos;re building, what we&apos;re learning, and
                 where public safety technology is heading. No fluff. Just signal
                 from the people building it.
@@ -369,7 +369,7 @@ export function InsideTheCortexPopup() {
                     Locking you in…
                   </>
                 ) : (
-                  <>→ Get inside the Cortex</>
+                  <>→ Get Inside iQ</>
                 )}
               </button>
 
@@ -490,7 +490,7 @@ function SuccessView({ firstName, onClose }: { firstName: string; onClose: () =>
           ✓
         </div>
         <h3 style={{ fontSize: "18px", fontWeight: 500, color: "#dce6f5", marginBottom: "10px" }}>
-          You&apos;re inside the Cortex.
+          You&apos;re on Inside iQ.
         </h3>
         <p style={{ fontSize: "13px", color: "#6b83a8", lineHeight: 1.65, maxWidth: "300px" }}>
           {firstName ? `We'll be in touch, ${firstName}.` : "We'll be in touch."}{" "}

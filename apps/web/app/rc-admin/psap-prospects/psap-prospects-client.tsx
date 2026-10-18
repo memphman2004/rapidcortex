@@ -474,6 +474,7 @@ export function PsapProspectsClient() {
               <PsapDetailPanel
                 prospect={selected}
                 persistence={isOutreach ? "local" : "api"}
+                vertical={listQuery.vertical === "all" ? "psap" : listQuery.vertical}
                 studentCount={selected.studentCount}
                 onClose={() => setSelected(null)}
                 onUpdated={(p) => {

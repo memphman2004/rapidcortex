@@ -50,6 +50,21 @@ if [[ ! -f "${ROOT}/apps/api/dist/handlers/rc-admin/rcAdminLeadsHttp.js" ]]; the
 fi
 echo "── Using apps/api/dist/handlers/rc-admin/rcAdminLeadsHttp.js ──"
 
+# cp -al cannot cross from /Volumes onto the internal SAM build dir.
+if [[ -n "${SAM_NODE_MODULES_HARDLINK:-}" ]]; then
+  _nm_src="${SAM_NODE_MODULES_SRC:-${ROOT}/apps/api/node_modules}"
+  _src_dev="$(stat -f '%d' "${_nm_src}" 2>/dev/null || true)"
+  _dst_dev="$(stat -f '%d' "${SAM_BUILD_DIR}" 2>/dev/null || true)"
+  if [[ -n "${_src_dev}" && -n "${_dst_dev}" && "${_src_dev}" != "${_dst_dev}" ]]; then
+    _freeze="${HOME}/.rapid-cortex-api-node-modules"
+    echo "SAM_NODE_MODULES_HARDLINK: freezing ${_nm_src} → ${_freeze}"
+    mkdir -p "${_freeze}"
+    rsync -a --delete "${_nm_src}/" "${_freeze}/"
+    export SAM_NODE_MODULES_SRC="${_freeze}"
+  fi
+  unset _nm_src _src_dev _dst_dev _freeze
+fi
+
 TEMPLATE="${ROOT}/infra/nested/stack-app-sam-3-leads-crm.yaml"
 echo "── skip sam validate --lint (nodejs20 EOL warning noise) ──"
 

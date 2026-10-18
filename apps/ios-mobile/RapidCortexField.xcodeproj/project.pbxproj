@@ -8,9 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		16180FBD3683BFA383D624B3 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654A542785A3A65C131D6BA0 /* SettingsView.swift */; };
-		A11F10000000000000000020 /* TranslateRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000021 /* TranslateRootView.swift */; };
-		A11F10000000000000000022 /* RCAPIClient+Translate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000023 /* RCAPIClient+Translate.swift */; };
-		A11F10000000000000000024 /* TranslateSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000025 /* TranslateSessionController.swift */; };
 		1A10B271CBEC16332E2A0C6D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1D67F9C6BA25D2460EB0B39F /* Assets.xcassets */; };
 		1FAE77695459CF7D7BBF77E9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 057FE9DD183AB56F2B705B77 /* PrivacyInfo.xcprivacy */; };
 		549C3397BB4147D7114D9784 /* SiteQrNfcView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCD7A49737FBDFF668306B5 /* SiteQrNfcView.swift */; };
@@ -24,6 +21,17 @@
 		7FB286C1831F86A67AAE69C3 /* NFCWriterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2AACB12525FDDC372A48FD3 /* NFCWriterView.swift */; };
 		837EF0FF5D55556F8AB3D82E /* EnterTheCortexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B435077A0EF9220C61909040 /* EnterTheCortexView.swift */; };
 		956CF0F79134636ECD405A33 /* CodeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19837D545796E0FFCAA37A0D /* CodeDetailView.swift */; };
+		A11F10000000000000000005 /* RCAPIClient+AccessRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000006 /* RCAPIClient+AccessRequest.swift */; };
+		A11F10000000000000000007 /* RCAPIClient+FieldCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000008 /* RCAPIClient+FieldCommand.swift */; };
+		A11F10000000000000000009 /* CommandHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F1000000000000000000A /* CommandHomeView.swift */; };
+		A11F1000000000000000000B /* IncidentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F1000000000000000000C /* IncidentDetailView.swift */; };
+		A11F1000000000000000000D /* ContinuityLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F1000000000000000000E /* ContinuityLogView.swift */; };
+		A11F1000000000000000000F /* DispatcherStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000010 /* DispatcherStatusView.swift */; };
+		A11F10000000000000000011 /* RCRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000012 /* RCRouter.swift */; };
+		A11F10000000000000000013 /* AgencySelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000014 /* AgencySelectView.swift */; };
+		A11F10000000000000000020 /* TranslateRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000021 /* TranslateRootView.swift */; };
+		A11F10000000000000000022 /* RCAPIClient+Translate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000023 /* RCAPIClient+Translate.swift */; };
+		A11F10000000000000000024 /* TranslateSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000025 /* TranslateSessionController.swift */; };
 		ABA864AB6F8D9678FAAE2FED /* NewCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BBA1522382B1DC0D524A09 /* NewCodeView.swift */; };
 		AC8233B06BC7DE757AC2A884 /* QRCodeGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21FCDADDE3B105919E10A34 /* QRCodeGenerator.swift */; };
 		BDDAD1193D99921A2859FE0F /* CodesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B252404851C891A2616CAD4E /* CodesListView.swift */; };
@@ -33,14 +41,6 @@
 		E4576C96109EB52ABF768449 /* RCAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6593C4876F9DDEB383A5424 /* RCAPIClient.swift */; };
 		F3D826B2EFF4C7268A211B14 /* NFCTagWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7822122D60E0CE42710DB109 /* NFCTagWriter.swift */; };
 		F733E58FB3465919C9AAEF52 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8538AB9AA07AFFCE1B642AE /* Models.swift */; };
-		A11F10000000000000000005 /* RCAPIClient+AccessRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000006 /* RCAPIClient+AccessRequest.swift */; };
-		A11F10000000000000000007 /* RCAPIClient+FieldCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000008 /* RCAPIClient+FieldCommand.swift */; };
-		A11F10000000000000000009 /* CommandHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F1000000000000000000A /* CommandHomeView.swift */; };
-		A11F1000000000000000000B /* IncidentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F1000000000000000000C /* IncidentDetailView.swift */; };
-		A11F1000000000000000000D /* ContinuityLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F1000000000000000000E /* ContinuityLogView.swift */; };
-		A11F1000000000000000000F /* DispatcherStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000010 /* DispatcherStatusView.swift */; };
-		A11F10000000000000000011 /* RCRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000012 /* RCRouter.swift */; };
-		A11F10000000000000000013 /* AgencySelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000014 /* AgencySelectView.swift */; };
 		F9397BE94CFBF1FC2C216C24 /* BigInt in Frameworks */ = {isa = PBXBuildFile; productRef = F9A46F04A315A71390FF0FF5 /* BigInt */; };
 /* End PBXBuildFile section */
 
@@ -55,13 +55,21 @@
 		5A518817267A64322DA4A72A /* CognitoAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CognitoAuthManager.swift; sourceTree = "<group>"; };
 		603AF2D2575FFC8F8DD842EF /* RapidCortexFieldApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RapidCortexFieldApp.swift; sourceTree = "<group>"; };
 		654A542785A3A65C131D6BA0 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		A11F10000000000000000021 /* TranslateRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateRootView.swift; sourceTree = "<group>"; };
-		A11F10000000000000000023 /* RCAPIClient+Translate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+Translate.swift"; sourceTree = "<group>"; };
-		A11F10000000000000000025 /* TranslateSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateSessionController.swift; sourceTree = "<group>"; };
 		7822122D60E0CE42710DB109 /* NFCTagWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCTagWriter.swift; sourceTree = "<group>"; };
 		7F6237F881810AA1BB3C4415 /* NeuralFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeuralFieldView.swift; sourceTree = "<group>"; };
 		81ADA5F5FDE82F22CBF15AE8 /* CognitoSRPHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CognitoSRPHelper.swift; sourceTree = "<group>"; };
 		96D3566610236B84B3A54FBA /* RCConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCConfig.swift; sourceTree = "<group>"; };
+		A11F10000000000000000006 /* RCAPIClient+AccessRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+AccessRequest.swift"; sourceTree = "<group>"; };
+		A11F10000000000000000008 /* RCAPIClient+FieldCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+FieldCommand.swift"; sourceTree = "<group>"; };
+		A11F1000000000000000000A /* CommandHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandHomeView.swift; sourceTree = "<group>"; };
+		A11F1000000000000000000C /* IncidentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncidentDetailView.swift; sourceTree = "<group>"; };
+		A11F1000000000000000000E /* ContinuityLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuityLogView.swift; sourceTree = "<group>"; };
+		A11F10000000000000000010 /* DispatcherStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DispatcherStatusView.swift; sourceTree = "<group>"; };
+		A11F10000000000000000012 /* RCRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCRouter.swift; sourceTree = "<group>"; };
+		A11F10000000000000000014 /* AgencySelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgencySelectView.swift; sourceTree = "<group>"; };
+		A11F10000000000000000021 /* TranslateRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateRootView.swift; sourceTree = "<group>"; };
+		A11F10000000000000000023 /* RCAPIClient+Translate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+Translate.swift"; sourceTree = "<group>"; };
+		A11F10000000000000000025 /* TranslateSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateSessionController.swift; sourceTree = "<group>"; };
 		A21FCDADDE3B105919E10A34 /* QRCodeGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeGenerator.swift; sourceTree = "<group>"; };
 		B252404851C891A2616CAD4E /* CodesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodesListView.swift; sourceTree = "<group>"; };
 		B435077A0EF9220C61909040 /* EnterTheCortexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnterTheCortexView.swift; sourceTree = "<group>"; };
@@ -74,14 +82,6 @@
 		E6593C4876F9DDEB383A5424 /* RCAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCAPIClient.swift; sourceTree = "<group>"; };
 		E87EB121463FCBE16D183EF3 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		EE074FA881BD0A28AEEE4F4B /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
-		A11F10000000000000000006 /* RCAPIClient+AccessRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+AccessRequest.swift"; sourceTree = "<group>"; };
-		A11F10000000000000000008 /* RCAPIClient+FieldCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+FieldCommand.swift"; sourceTree = "<group>"; };
-		A11F1000000000000000000A /* CommandHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandHomeView.swift; sourceTree = "<group>"; };
-		A11F1000000000000000000C /* IncidentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncidentDetailView.swift; sourceTree = "<group>"; };
-		A11F1000000000000000000E /* ContinuityLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuityLogView.swift; sourceTree = "<group>"; };
-		A11F10000000000000000010 /* DispatcherStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DispatcherStatusView.swift; sourceTree = "<group>"; };
-		A11F10000000000000000012 /* RCRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCRouter.swift; sourceTree = "<group>"; };
-		A11F10000000000000000014 /* AgencySelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgencySelectView.swift; sourceTree = "<group>"; };
 		FF6E82D55A05DC4330AF5F57 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -316,7 +316,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 6D7D94PU3M;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -331,7 +331,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = us.rapidcortex.field;
@@ -405,7 +405,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 6D7D94PU3M;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -426,7 +426,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

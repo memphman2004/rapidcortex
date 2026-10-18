@@ -5,7 +5,7 @@ import {
   validateMarketingLeadBody,
 } from "@/lib/server/marketing-lead-submit";
 
-/** Anonymous Inside the Cortex capture — public CORS for www/apex marketing. */
+/** Anonymous Inside iQ capture — public CORS for www/apex marketing. */
 const CORS_HEADERS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "POST,OPTIONS",

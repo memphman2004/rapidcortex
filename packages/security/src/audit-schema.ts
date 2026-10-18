@@ -267,6 +267,8 @@ export const AUDIT_EVENT_TYPES = {
   PRE_ARRIVAL_ETA_SENT: "pre_arrival.eta.sent",
   PRE_ARRIVAL_ON_SCENE: "pre_arrival.eta.on_scene",
   PRE_ARRIVAL_SESSION_ENDED: "pre_arrival.session.ended",
+  PRE_ARRIVAL_CAD_OPENED: "pre_arrival.session.cad_opened",
+  PRE_ARRIVAL_CALLER_MESSAGE: "pre_arrival.channel.message",
   QA_SESSION_CREATED: "qa.session.created",
   QA_SESSION_UPDATED: "qa.session.updated",
   QA_SESSION_SCORED: "qa.session.scored",

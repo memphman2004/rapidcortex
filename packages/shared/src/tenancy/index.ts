@@ -7,6 +7,7 @@ export {
   isRcInternalOperator,
   canAccessRcFinancePortal,
   canAccessSalesLeadsCrm,
+  canDeleteSalesLead,
   canAccessRcRevenuePortal,
   canAccessRcUsagePortal,
 } from "./principal.js";

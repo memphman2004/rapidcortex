@@ -5,9 +5,12 @@ import * as maplibregl from "maplibre-gl";
 
 import type { MapTheme } from "../types/map-types";
 import { getMapAuthenticationOptions, isMapAuthReady, subscribeMapAuthReady } from "../utils/map-auth";
-import { RAPID_CORTEX_MAP_STYLES } from "../utils/map-styles";
+import { alsNamedMapStyleUrl, RAPID_CORTEX_MAP_STYLES, shouldFallbackAlsV2ToNamedMap } from "../utils/map-styles";
+import { ensureMapLibreWorker } from "../utils/map-worker";
 
 export type { MapTheme } from "../types/map-types";
+
+ensureMapLibreWorker();
 
 export interface RapidCortexMapProps {
   center?: [number, number]; // [lng, lat]
@@ -108,6 +111,19 @@ export function RapidCortexMap({
 
       clickBound = (e: maplibregl.MapMouseEvent) => clickHandler.current?.(e);
       instance.on("click", clickBound);
+
+      let fellBackToNamedMap = false;
+      instance.on("error", (event) => {
+        if (fellBackToNamedMap || !instance) return;
+        if (!shouldFallbackAlsV2ToNamedMap(event, RAPID_CORTEX_MAP_STYLES[theme])) return;
+        fellBackToNamedMap = true;
+        const namedTheme = theme === "dark" ? "dark" : "light";
+        instance.setStyle(alsNamedMapStyleUrl(namedTheme));
+        instance.once("style.load", () => {
+          kickResize?.();
+          if (onMapLoad && instance) onMapLoad(instance);
+        });
+      });
 
       kickResize = () => safeResize(instance);
       instance.once("load", () => {

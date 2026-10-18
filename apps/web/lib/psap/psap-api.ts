@@ -77,6 +77,39 @@ export async function patchPsapProspect(
   return unwrapProspect(body);
 }
 
+export async function sendProspectToLeadsCrm(input: {
+  prospectId: string;
+  existingLeadId?: string;
+  agencyName: string;
+  contactName?: string;
+  contactTitle?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  city?: string;
+  state?: string;
+  vertical?: "psap" | "campus" | "venue" | "hospital" | "transit";
+  outreachStatus: PsapProspect["outreachStatus"];
+  estimatedValue?: number;
+  notes?: string;
+}): Promise<{ leadId: string; created: boolean }> {
+  const res = await fetch("/api/rc-admin/leads/from-prospect", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  const body = await parseJson<{
+    success?: boolean;
+    data?: { leadId: string; created: boolean };
+    error?: string;
+    message?: string;
+  }>(res);
+  if (!res.ok || !body.data?.leadId) {
+    throw new Error(body.error ?? body.message ?? "Could not send prospect to Leads CRM");
+  }
+  return body.data;
+}
+
 export async function addPsapActivity(
   psapId: string,
   activity: AddPsapActivityRequest,

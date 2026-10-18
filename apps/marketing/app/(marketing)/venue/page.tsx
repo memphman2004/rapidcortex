@@ -14,7 +14,7 @@ const venueSoftwareJsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "NexCort iQ Venue",
-  alternateName: "Rapid Cortex Venue",
+  alternateName: ["NexCort iQ", "NexCortIQ Venue"],
   applicationCategory: "BusinessApplication",
   url: absoluteUrl("/venue"),
   description:
@@ -28,7 +28,7 @@ const venueSoftwareJsonLd = {
   provider: {
     "@type": "Organization",
     name: "NexCort iQ",
-    alternateName: "Rapid Cortex",
+    alternateName: ["NexCortIQ", "NexCort"],
     url: absoluteUrl("/"),
   },
 };

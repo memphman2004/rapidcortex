@@ -17,7 +17,7 @@ export function scrollMarketingFieldIntoViewOnFocus(event: FocusEvent<HTMLElemen
 }
 
 /**
- * Static marketing (www) has no Next BFF — post to app origin (same pattern as Inside the Cortex).
+ * Static marketing (www) has no Next BFF — post to app origin (same pattern as Inside iQ).
  * On app.rapidcortex.us, same-origin `/api/contact-sales` is the BFF.
  */
 export function contactSalesSubmitUrl(): string {

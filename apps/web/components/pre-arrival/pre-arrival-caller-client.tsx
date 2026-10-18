@@ -1,23 +1,25 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { PreArrivalPublicView, ResponseIQInstruction } from "rapid-cortex-shared";
+import { callerGuidancePresentation, type PreArrivalPublicView, type ResponseIQInstruction } from "rapid-cortex-shared";
+import { PreArrivalCallerChannel } from "@/components/pre-arrival/pre-arrival-caller-channel";
 
-function statusLabel(status: PreArrivalPublicView["status"], responder: PreArrivalPublicView["responderStatus"]): string {
-  if (status === "terminated" || status === "ended") return "Session closed";
-  if (responder === "arrived" || status === "active") {
-    if (responder === "arrived") return "Responders on scene";
-    return "Help is on the way";
-  }
-  if (status === "opened" || status === "sms_sent" || status === "pending_send") return "Connecting you with guidance";
-  return "Help is on the way";
+function statusLabel(
+  status: PreArrivalPublicView["status"],
+  responder: PreArrivalPublicView["responderStatus"],
+  headline: string,
+  arrived: string,
+): string {
+  if (status === "terminated" || status === "ended") return "You can close this page";
+  if (responder === "arrived") return arrived;
+  if (status === "opened" || status === "sms_sent" || status === "pending_send") return headline;
+  return headline;
 }
 
-function etaCopy(minutes: number | null | undefined): string | null {
-  if (minutes == null) return null;
-  if (minutes <= 1) return "Responders are arriving now";
-  const rounded = Math.max(1, Math.round(minutes));
-  return `Estimated arrival: about ${rounded} ${rounded === 1 ? "minute" : "minutes"}`;
+function etaCopy(view: PreArrivalPublicView): string | null {
+  if (view.sessionMode !== "FULL" || view.responderStatus === "arrived") return null;
+  if (view.etaRangeLow == null || view.etaRangeHigh == null) return null;
+  return `Estimated arrival: ${view.etaRangeLow}–${view.etaRangeHigh} minutes`;
 }
 
 export function PreArrivalCallerClient({ token }: { token: string }) {
@@ -46,7 +48,7 @@ export function PreArrivalCallerClient({ token }: { token: string }) {
 
   useEffect(() => {
     void load();
-    const id = window.setInterval(() => void load(), 15_000);
+    const id = window.setInterval(() => void load(), 10_000);
     return () => window.clearInterval(id);
   }, [load]);
 
@@ -90,18 +92,44 @@ export function PreArrivalCallerClient({ token }: { token: string }) {
   }
 
   const closed = view.status === "ended" || view.status === "terminated";
-  const eta = etaCopy(view.lastKnownEtaMinutes);
+  const eta = etaCopy(view);
+  const copy =
+    view.sessionMode === "STATUS_ONLY"
+      ? {
+          ...callerGuidancePresentation(null),
+          headline: "Help has been dispatched.",
+          heardLine: "Your call is in. You can stay on this page for status.",
+          footer: "Stay where you are if it is safe.",
+        }
+      : callerGuidancePresentation(view.cadNatureCode);
   const instructions = view.showInstructions
     ? [...view.instructions].sort((a, b) => a.order - b.order)
     : [];
+  const statusLine =
+    view.responderStatus === "arrived"
+      ? copy.arrived
+      : view.responderStatus === "responding"
+        ? copy.enRoute
+        : copy.dispatched;
 
   return (
     <main className="min-h-screen bg-[#0f1117] text-slate-100">
       <div className="mx-auto flex max-w-lg flex-col gap-4 px-4 py-6">
-        <header className="space-y-1">
+        <header className="space-y-2">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-sky-400">Pre-Arrival iQ</p>
-          <h1 className="text-xl font-semibold text-white">{statusLabel(view.status, view.responderStatus)}</h1>
+          <h1 className="text-2xl font-semibold leading-tight text-white">
+            {statusLabel(view.status, view.responderStatus, copy.headline, copy.arrived)}
+          </h1>
+          {!closed ? <p className="text-base leading-snug text-slate-200">{copy.heardLine}</p> : null}
           {eta ? <p className="text-sm text-slate-300">{eta}</p> : null}
+          {view.sessionMode === "FULL" && typeof view.routeProgress === "number" && !closed ? (
+            <div className="h-1.5 overflow-hidden rounded-full bg-slate-800" aria-hidden>
+              <div
+                className="h-full rounded-full bg-sky-500 transition-all duration-700"
+                style={{ width: `${Math.round(view.routeProgress * 100)}%` }}
+              />
+            </div>
+          ) : null}
         </header>
 
         {view.stayOnLine ? (
@@ -109,19 +137,13 @@ export function PreArrivalCallerClient({ token }: { token: string }) {
             className="rounded-md border border-amber-500/50 bg-amber-950/50 px-3 py-3 text-sm text-amber-100"
             role="status"
           >
-            Your dispatcher is on the line — keep this call open.
+            Someone is on the phone with you. Keep this call open if you can do it safely.
           </div>
         ) : null}
 
         <section className="rounded-md border border-slate-800 bg-slate-950/60 px-3 py-3">
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Status</h2>
-          <p className="text-sm text-slate-200">
-            {view.responderStatus === "arrived"
-              ? "Responders have arrived."
-              : view.responderStatus === "responding"
-                ? "Responders are en route."
-                : "Responders have been dispatched."}
-          </p>
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Right now</h2>
+          <p className="text-base text-slate-100">{statusLine}</p>
           {view.onSceneAt ? (
             <p className="mt-1 text-xs text-slate-500">On scene reported at {new Date(view.onSceneAt).toLocaleTimeString()}</p>
           ) : null}
@@ -130,7 +152,7 @@ export function PreArrivalCallerClient({ token }: { token: string }) {
         {view.showInstructions && !closed ? (
           <section className="rounded-md border border-slate-800 bg-slate-950/60 px-3 py-3">
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Guidance while you wait
+              {copy.guidanceTitle}
             </h2>
             <ol className="space-y-3">
               {instructions.map((step) => {
@@ -167,12 +189,12 @@ export function PreArrivalCallerClient({ token }: { token: string }) {
           </section>
         ) : null}
 
+        {view.channelOpen && !closed ? <PreArrivalCallerChannel token={token} /> : null}
+
         {!closed ? (
-          <p className="text-center text-xs text-slate-500">
-            If you can safely share photos, use the media link your dispatcher sends separately.
-          </p>
+          <p className="text-center text-sm leading-snug text-slate-400">{copy.footer}</p>
         ) : (
-          <p className="text-center text-sm text-slate-400">You can close this page.</p>
+          <p className="text-center text-sm text-slate-400">You can close this page. Thank you for staying with us.</p>
         )}
 
         {error ? (

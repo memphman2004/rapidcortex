@@ -1216,6 +1216,37 @@ export async function postPreArrivalSessionEnd(
   );
 }
 
+export async function fetchPreArrivalChannel(
+  incidentId: string,
+  sessionToken: string,
+): Promise<{
+  messages: Array<{
+    messageId: string;
+    kind: string;
+    from: "caller" | "dispatcher";
+    text?: string;
+    latitude?: number;
+    longitude?: number;
+    viewUrl?: string;
+    createdAt: string;
+  }>;
+}> {
+  return request(
+    `/api/incidents/${encodeURIComponent(incidentId)}/pre-arrival/sessions/${encodeURIComponent(sessionToken)}/channel`,
+  );
+}
+
+export async function postPreArrivalDispatcherReply(
+  incidentId: string,
+  sessionToken: string,
+  text: string,
+): Promise<unknown> {
+  return request(
+    `/api/incidents/${encodeURIComponent(incidentId)}/pre-arrival/sessions/${encodeURIComponent(sessionToken)}/channel`,
+    { method: "POST", body: JSON.stringify({ text }) },
+  );
+}
+
 export async function postPreArrivalEta(
   incidentId: string,
   body: { etaMinutes: number; note?: string },

@@ -8,9 +8,13 @@ import {
   addSalesLeadActivityBodySchema,
   addSalesLeadNoteBodySchema,
   canAccessSalesLeadsCrm,
+  canDeleteSalesLead,
+  leadStageForProspectOutreach,
   LeadVerticalSchema,
   patchSalesLeadBodySchema,
   patchSalesLeadStageBodySchema,
+  sendProspectToLeadBodySchema,
+  type LeadVertical,
 } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
@@ -90,6 +94,99 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       const leads = await repo.listNormalized(500);
       const data = repo.buildAttributionSummary(leads);
       return ok({ success: true, data });
+    }
+
+    if (m === "POST" && path.endsWith("/from-prospect")) {
+      const body = parseBody(event);
+      if (body === null) return ok({ error: "Invalid JSON body" }, 400);
+      const parsed = sendProspectToLeadBodySchema.safeParse(body);
+      if (!parsed.success) return badRequestFromZod(parsed.error);
+      const input = parsed.data;
+
+      if (input.existingLeadId) {
+        const existing = await repo.getNormalized(input.existingLeadId);
+        if (existing) {
+          return ok({ success: true, data: { leadId: existing.leadId, created: false } });
+        }
+      }
+
+      const recent = await repo.listRecent(500);
+      const already = recent.find((row) => row.prospectId === input.prospectId);
+      if (already) {
+        return ok({ success: true, data: { leadId: already.leadId, created: false } });
+      }
+
+      const stage = leadStageForProspectOutreach(input.outreachStatus);
+      const now = new Date().toISOString();
+      const leadId = makeId("lead");
+      const contactName = input.contactName?.trim() || input.agencyName;
+      const [firstName, ...rest] = contactName.split(/\s+/);
+      const lastName = rest.join(" ") || undefined;
+      const email =
+        input.contactEmail?.trim() && input.contactEmail.includes("@")
+          ? input.contactEmail.trim()
+          : `prospect+${input.prospectId.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40)}@prospects.nexcortiq.us`;
+      const vertical: LeadVertical =
+        input.vertical === "campus" ||
+        input.vertical === "venue" ||
+        input.vertical === "hospital" ||
+        input.vertical === "transit"
+          ? input.vertical
+          : "rc911";
+      const customerType =
+        vertical === "campus"
+          ? "campus"
+          : vertical === "venue"
+            ? "venue"
+            : "agency";
+      const note = [
+        `Sent from Prospects (${input.prospectId}). Outreach status left unchanged (${input.outreachStatus}).`,
+        input.notes?.trim() ? input.notes.trim() : "",
+      ]
+        .filter(Boolean)
+        .join(" ");
+
+      await repo.putLead({
+        leadId,
+        createdAt: now,
+        name: contactName,
+        firstName,
+        lastName,
+        email,
+        phone: input.contactPhone?.trim() || undefined,
+        agencyCompany: input.agencyName,
+        agencyName: input.agencyName,
+        role: input.contactTitle?.trim() || undefined,
+        title: input.contactTitle?.trim() || undefined,
+        customerType,
+        interestedIn: ["pilot_program"],
+        message: note,
+        source: "psap-prospect",
+        status: stage === "QUALIFIED" ? "qualified" : "contacted",
+        pipelineStage: stage,
+        prospectId: input.prospectId,
+        vertical,
+        estimatedValue: input.estimatedValue,
+        state: input.state?.trim() || null,
+        requestedState: input.state?.trim() || null,
+        requestedCity: input.city?.trim() || null,
+        assignee: user.email ?? user.userId,
+        updatedAt: now,
+        updatedBy: user.userId,
+      });
+
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: "platform",
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.SALES_LEAD_UPDATED,
+        details: { leadId, prospectId: input.prospectId, action: "created_from_prospect", stage },
+        createdAt: now,
+        resourceType: "sales_lead",
+        resourceId: leadId,
+      });
+
+      return ok({ success: true, data: { leadId, created: true } }, 201);
     }
 
     if (m === "GET" && leadId && !path.includes("/notes")) {
@@ -209,6 +306,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       });
       if (!updated) return ok({ error: "Lead not found" }, 404);
       return ok({ success: true, data: updated, item: updated });
+    }
+
+    if (m === "DELETE" && leadId && !path.includes("/notes/")) {
+      if (!canDeleteSalesLead(user.role)) return forbidden();
+      const deleted = await repo.deleteById(leadId);
+      if (!deleted) return ok({ error: "Lead not found" }, 404);
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: "platform",
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.SALES_LEAD_UPDATED,
+        details: { leadId, action: "deleted" },
+        createdAt: new Date().toISOString(),
+        resourceType: "sales_lead",
+        resourceId: leadId,
+      });
+      return ok({ success: true, data: { leadId, deleted: true } });
     }
 
     if (m === "DELETE" && leadId && noteId && path.includes("/notes/")) {

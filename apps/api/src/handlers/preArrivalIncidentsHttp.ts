@@ -12,6 +12,7 @@ import {
   serviceUnavailable,
   unauthorized,
 } from "../lib/response.js";
+import { listDispatcherChannel, postDispatcherReply } from "../pre-arrival/caller-channel-service.js";
 import { preArrivalService } from "../pre-arrival/preArrivalService.js";
 import { processEtaEvent } from "../pre-arrival/eta/eta-notification-handler.js";
 import { dispatcherEtaUpdateSchema } from "rapid-cortex-shared";
@@ -21,6 +22,9 @@ const authz = new AuthorizationService();
 function mapErr(e: unknown) {
   const msg = e instanceof Error ? e.message : String(e);
   const statusCode = (e as Error & { statusCode?: number }).statusCode;
+  if (msg === "PRE_ARRIVAL_RESTRICTED") {
+    return forbidden("Pre-Arrival is not available for this incident type.");
+  }
   if (msg === "FORBIDDEN_PERMISSION" || statusCode === 403) return forbidden();
   if (msg.startsWith("VALIDATION:")) return badRequest(msg.slice("VALIDATION:".length));
   if (msg === "NOT_FOUND" || statusCode === 404) return notFound();
@@ -28,6 +32,9 @@ function mapErr(e: unknown) {
   if (msg === "PRE_ARRIVAL_TABLE_NOT_CONFIGURED")
     return serviceUnavailable("Pre-Arrival iQ is not configured");
   if (msg === "TENANT_MISMATCH") return forbidden("Tenant mismatch");
+  if (msg === "PRE_ARRIVAL_REASON_REQUIRED") {
+    return badRequest("Choose a call reason before sending Pre-Arrival guidance.");
+  }
   if (msg === "MISSING_PUBLIC_BASE_URL") {
     return badRequest(
       "Public app URL is not configured. Set PRE_ARRIVAL_PUBLIC_BASE_URL or pass publicAppBaseUrl.",
@@ -85,6 +92,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (routeKey === "GET /api/incidents/{id}/pre-arrival/sessions/{sessionToken}") {
       const s = await preArrivalService.getDispatcherSession(incidentId, sessionToken, user.agencyId);
       return ok(s);
+    }
+
+    if (routeKey === "GET /api/incidents/{id}/pre-arrival/sessions/{sessionToken}/channel") {
+      if (!sessionToken) return notFound("Missing session token");
+      return ok(await listDispatcherChannel(incidentId, sessionToken, user.agencyId));
+    }
+
+    if (routeKey === "POST /api/incidents/{id}/pre-arrival/sessions/{sessionToken}/channel") {
+      if (!sessionToken) return notFound("Missing session token");
+      const message = await postDispatcherReply(
+        incidentId,
+        sessionToken,
+        user.agencyId,
+        user.userId,
+        JSON.parse(event.body ?? "{}"),
+      );
+      return ok(message, 201);
     }
 
     if (routeKey === "POST /api/incidents/{id}/pre-arrival/sessions/{sessionToken}/end") {

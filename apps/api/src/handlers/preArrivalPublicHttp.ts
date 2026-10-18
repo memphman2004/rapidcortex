@@ -9,6 +9,12 @@ import {
   serverError,
   serviceUnavailable,
 } from "../lib/response.js";
+import {
+  confirmCallerMedia,
+  issueCallerMediaUpload,
+  listPublicChannel,
+  postCallerChannel,
+} from "../pre-arrival/caller-channel-service.js";
 import { preArrivalService } from "../pre-arrival/preArrivalService.js";
 
 function mapErr(e: unknown) {
@@ -19,6 +25,7 @@ function mapErr(e: unknown) {
     return serviceUnavailable("Pre-Arrival iQ is not configured");
   if (msg === "SESSION_EXPIRED") return jsonStatus({ error: "session_expired" }, 410);
   if (msg === "SESSION_ENDED") return jsonStatus({ error: "session_closed" }, 409);
+  if (msg === "CHANNEL_NOT_AVAILABLE") return jsonStatus({ error: "channel_not_available" }, 403);
   if (msg.startsWith("VALIDATION:")) return badRequest(msg.slice("VALIDATION:".length));
   return serverError();
 }
@@ -34,6 +41,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (routeKey === "GET /api/public/pre-arrival/{token}") {
       const view = await preArrivalService.getPublic(token);
       return ok(view);
+    }
+
+    if (routeKey === "GET /api/public/pre-arrival/{token}/channel") {
+      return ok({ messages: await listPublicChannel(token) });
+    }
+
+    if (routeKey === "POST /api/public/pre-arrival/{token}/channel") {
+      const item = await postCallerChannel(token, JSON.parse(event.body ?? "{}"));
+      return ok(item, 201);
+    }
+
+    if (routeKey === "POST /api/public/pre-arrival/{token}/channel/upload-url") {
+      return ok(await issueCallerMediaUpload(token, JSON.parse(event.body ?? "{}")));
+    }
+
+    if (routeKey === "POST /api/public/pre-arrival/{token}/channel/confirm") {
+      return ok(await confirmCallerMedia(token, JSON.parse(event.body ?? "{}")));
     }
 
     if (routeKey === "POST /api/public/pre-arrival/{token}/steps/complete") {

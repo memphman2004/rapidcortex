@@ -74,8 +74,8 @@ final class RCAPIClient: ObservableObject {
         return try await execute(req)
     }
 
-    func post<T: Decodable, B: Encodable>(path: String, body: B) async throws -> T {
-        var req = try await buildRequest(method: "POST", path: path)
+    func post<T: Decodable, B: Encodable>(path: String, body: B, timeout: TimeInterval = 15) async throws -> T {
+        var req = try await buildRequest(method: "POST", path: path, timeout: timeout)
         req.httpBody = try JSONEncoder().encode(body)
         return try await execute(req)
     }
@@ -91,7 +91,7 @@ final class RCAPIClient: ObservableObject {
         try await executeVoid(req)
     }
 
-    private func buildRequest(method: String, path: String) async throws -> URLRequest {
+    private func buildRequest(method: String, path: String, timeout: TimeInterval = 15) async throws -> URLRequest {
         let base = RCConfig.apiBaseURL
         guard let url = URL(string: base + path) else {
             throw RCAPIError.invalidURL(path)
@@ -101,7 +101,7 @@ final class RCAPIClient: ObservableObject {
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.setValue("application/json", forHTTPHeaderField: "Accept")
         req.setValue("RCMobile-iOS/1.0", forHTTPHeaderField: "User-Agent")
-        req.timeoutInterval = 15
+        req.timeoutInterval = timeout
 
         let token = try await CognitoAuthManager.shared.validIdToken()
         req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")

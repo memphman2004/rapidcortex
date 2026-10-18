@@ -175,7 +175,7 @@ struct TranslateRootView: View {
                         .background(controller.listening && controller.speaker == "officer" ? RCTheme.danger : RCTheme.amber)
                         .cornerRadius(10)
                 }
-                .disabled(controller.listening)
+                .disabled(controller.listening || !controller.connected)
                 Button {
                     controller.startMic(as: "subject")
                 } label: {
@@ -187,7 +187,7 @@ struct TranslateRootView: View {
                         .background(controller.listening && controller.speaker == "subject" ? RCTheme.danger : RCTheme.amber)
                         .cornerRadius(10)
                 }
-                .disabled(controller.listening)
+                .disabled(controller.listening || !controller.connected)
             }
 
             if controller.listening {

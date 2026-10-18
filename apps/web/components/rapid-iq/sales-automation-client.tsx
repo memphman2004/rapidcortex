@@ -1401,7 +1401,7 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
             ))}
             {drafts.length === 0 ? (
               <div className="py-16 text-center text-sm text-slate-600">
-                No drafts yet. The Monday composer writes Inside the Cortex here.
+                No drafts yet. The Monday composer writes Inside iQ here.
               </div>
             ) : null}
           </div>

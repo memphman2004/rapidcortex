@@ -15,13 +15,13 @@ import {
 } from "@/lib/marketing-links";
 import { MarketingPilotResourcesStrip } from "@/components/marketing/pilot-resources-strip";
 import { NewFeaturesSection } from "@/components/sections/NewFeaturesSection";
-import { SITE_MISSION, SITE_NAME, SITE_NAME_WITH_FORMER, SITE_SLOGAN } from "@/lib/site";
+import { SITE_MISSION, SITE_NAME, SITE_SLOGAN } from "@/lib/site";
 import { absoluteUrl, buildOrganizationJsonLd, buildWebsiteJsonLd, buildOgShareImage } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `${SITE_NAME} | ${SITE_SLOGAN}`,
-    description: `${SITE_NAME_WITH_FORMER} is an intelligence layer for emergency response teams with AI-assisted situational awareness, transcription, translation, and command coordination.`,
+    description: `${SITE_NAME} is a public safety intelligence platform for 911 centers, dispatch, campus, and venue teams — AI-assisted situational awareness, transcription, translation, and command coordination.`,
     keywords: [
       "nexcort iq",
       "911 dispatch intelligence",
@@ -31,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
     ],
     openGraph: {
       title: `${SITE_NAME} | ${SITE_SLOGAN}`,
-      description: `${SITE_SLOGAN}. ${SITE_NAME_WITH_FORMER}.`,
+      description: `${SITE_SLOGAN}. ${SITE_NAME} public safety intelligence for dispatch, campus, and venue teams.`,
       url: absoluteUrl("/"),
       siteName: SITE_NAME,
       images: [buildOgShareImage(`${SITE_NAME} home`)],
@@ -60,7 +60,7 @@ export default function MarketingHomePage() {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     name: SITE_NAME,
-    alternateName: "Rapid Cortex",
+    alternateName: ["NexCortIQ", "NexCort"],
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web, Windows, macOS",
     url: absoluteUrl("/"),
@@ -79,7 +79,7 @@ export default function MarketingHomePage() {
     provider: {
       "@type": "Organization",
       name: SITE_NAME,
-      alternateName: "Rapid Cortex",
+      alternateName: ["NexCortIQ", "NexCort"],
       url: absoluteUrl("/"),
       email: "Support@nexcortiq.us",
       founder: { "@type": "Person", name: "Dr. Jeffrey W. Coleman" },
@@ -113,7 +113,7 @@ export default function MarketingHomePage() {
             {SITE_MISSION}
           </p>
           <p className="mx-auto mt-3 max-w-2xl text-pretty text-sm text-slate-400/95 drop-shadow-sm">
-            {SITE_NAME_WITH_FORMER}.
+            {SITE_NAME} — public safety intelligence for 911 centers, campuses, and venues.
           </p>
           <p className="mx-auto mt-4 max-w-2xl text-pretty text-base text-slate-400/95 drop-shadow-sm">
             <strong className="font-medium text-slate-200">

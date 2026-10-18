@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type RefObject } from "react";
+import { canDeleteSalesLead } from "rapid-cortex-shared";
+import { useSession } from "@/components/auth/session-context";
 import {
   ACTIVE_PIPELINE_STAGES,
   BUSINESS_SMS_OPT_IN_FORM_URL,
@@ -20,7 +22,7 @@ import {
   type SalesLeadPackageSold,
 } from "rapid-cortex-shared";
 import type { AttributionSummary } from "./leads-api";
-import { addActivity, addNote, updateLead } from "./leads-api";
+import { addActivity, addNote, deleteLead, updateLead } from "./leads-api";
 import {
   formatCurrency,
   formatDateTime,
@@ -42,6 +44,7 @@ type Props = {
   attributionSummary: AttributionSummary | undefined;
   onClose: () => void;
   onLeadUpdated: (lead: SalesLeadCrmRecord) => void;
+  onLeadDeleted: (leadId: string) => void;
   onOpenStageModal: () => void;
   focusNoteToken: number;
   activityTabToken: number;
@@ -271,6 +274,7 @@ export function LeadDetailPanel({
   attributionSummary,
   onClose,
   onLeadUpdated,
+  onLeadDeleted,
   onOpenStageModal,
   focusNoteToken,
   activityTabToken,
@@ -288,6 +292,10 @@ export function LeadDetailPanel({
   const [taskPriority, setTaskPriority] = useState("normal");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const { user } = useSession();
+  const canDelete = Boolean(user && canDeleteSalesLead(user.role));
   const [smsLinkCopied, setSmsLinkCopied] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
   const smsStatus = resolveLeadSmsConsentStatus(lead);
@@ -298,6 +306,7 @@ export function LeadDetailPanel({
     setPinned(false);
     setEmailTo(lead.email);
     setError(null);
+    setConfirmDelete(false);
   }, [lead.leadId, lead.email]);
 
   useEffect(() => {
@@ -476,6 +485,52 @@ export function LeadDetailPanel({
           → Move Stage
         </button>
       </div>
+
+      {canDelete ? (
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-b border-[rgba(255,255,255,0.06)] px-5 py-2">
+          {confirmDelete ? (
+            <>
+              <span className="mr-auto text-[11px] text-rose-300">Delete this lead permanently?</span>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setConfirmDelete(false)}
+                className="rounded-lg px-2 py-1 text-[10px] font-bold text-slate-400 hover:text-slate-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => {
+                  setDeleting(true);
+                  setError(null);
+                  void deleteLead(lead.leadId)
+                    .then(() => onLeadDeleted(lead.leadId))
+                    .catch((err: unknown) => {
+                      setError(err instanceof Error ? err.message : "Could not delete lead");
+                      setDeleting(false);
+                    });
+                }}
+                className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-2.5 py-1 text-[10px] font-bold text-rose-300 hover:bg-rose-500/20 disabled:opacity-50"
+              >
+                {deleting ? "Deleting…" : "Confirm delete"}
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              className="rounded-lg border border-rose-500/25 px-2.5 py-1 text-[10px] font-bold text-rose-400/80 hover:bg-rose-500/10 hover:text-rose-300"
+            >
+              Delete lead
+            </button>
+          )}
+          {error && confirmDelete ? (
+            <p className="w-full text-[11px] text-rose-300">{error}</p>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="flex shrink-0 border-b border-[rgba(255,255,255,0.06)] bg-[#0a1628] px-5">
         {(

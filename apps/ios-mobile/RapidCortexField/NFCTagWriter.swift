@@ -1,5 +1,5 @@
 import Combine
-import CoreNFC
+@preconcurrency import CoreNFC
 import Foundation
 
 enum NFCHardware {
@@ -13,7 +13,7 @@ enum NFCHardware {
 /// Uses `NFCTagReaderSession` (not `NFCNDEFReaderSession`) so factory-blank
 /// NTAG213 tags are detected. All Core NFC I/O stays on the session queue;
 /// hopping to the main actor mid-write is a common cause of a hung “Ready to Scan” sheet.
-final class NFCTagWriter: NSObject, ObservableObject {
+final class NFCTagWriter: NSObject, ObservableObject, @unchecked Sendable {
     @Published private(set) var state: WriteState = .idle
     @Published private(set) var tagsWritten = 0
 
@@ -123,8 +123,10 @@ final class NFCTagWriter: NSObject, ObservableObject {
 
         publish { self.state = .writing }
 
+        let sessionBox = NFCSendBox(session)
         ndef.writeNDEF(message) { [weak self] error in
             guard let self else { return }
+            let session = sessionBox.value
             if let error {
                 self.publish { self.state = .failure(error.localizedDescription) }
                 session.invalidate(errorMessage: "Write failed. Hold still and try again.")
@@ -191,8 +193,10 @@ extension NFCTagWriter: NFCTagReaderSessionDelegate {
         }
         guard let tag = tags.first else { return }
 
+        let sessionBox = NFCSendBox(session)
         session.connect(to: tag) { [weak self] error in
             guard let self else { return }
+            let session = sessionBox.value
             if error != nil {
                 session.alertMessage = "Hold still — rest the top of the iPhone on the sticker."
                 session.restartPolling()
@@ -204,8 +208,12 @@ extension NFCTagWriter: NFCTagReaderSessionDelegate {
                 return
             }
 
+            let ndefBox = NFCSendBox(ndef)
+            let statusSession = NFCSendBox(session)
             ndef.queryNDEFStatus { [weak self] status, capacity, error in
                 guard let self else { return }
+                let session = statusSession.value
+                let ndef = ndefBox.value
                 if let error {
                     self.publish { self.state = .failure(error.localizedDescription) }
                     session.invalidate(errorMessage: "Could not read this tag. Try another sticker.")
@@ -226,6 +234,11 @@ extension NFCTagWriter: NFCTagReaderSessionDelegate {
             }
         }
     }
+}
+
+private struct NFCSendBox<T>: @unchecked Sendable {
+    let value: T
+    init(_ value: T) { self.value = value }
 }
 
 enum NFCWriteError: LocalizedError {

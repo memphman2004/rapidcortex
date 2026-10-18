@@ -42,6 +42,12 @@ export function canAccessSalesLeadsCrm(role: UserRole | string): boolean {
   return canAccessRcFinancePortal(e) || e === "salescontractor";
 }
 
+/** Permanently delete a sales lead. RC admin and RC superadmin only. */
+export function canDeleteSalesLead(role: UserRole | string): boolean {
+  const e = effective(role);
+  return e === "rcadmin" || e === "rcsuperadmin";
+}
+
 /** Revenue / MRR totals — rcsuperadmin only (Role Access Matrix v2). */
 export function canAccessRcRevenuePortal(role: UserRole | string): boolean {
   return effective(role) === "rcsuperadmin";

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { EventBridgeClient, PutEventsCommand } from "@aws-sdk/client-eventbridge";
 import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import type { CadVendor } from "rapid-cortex-shared";
@@ -23,6 +24,7 @@ import { tryConsumeCadWebhookRateSlot } from "./cadWebhookRateLimiter.js";
 import { maybeDepositAddressIntelOnCadClose } from "../../feature-suite/integrations.js";
 
 const sns = new SNSClient({ region: env.region });
+const cadEvents = new EventBridgeClient({ region: env.region });
 const agencyRepo = new AgencyRepository();
 const auditRepo = new AuditRepository();
 const integrationRepo = new CadIntegrationRepository();
@@ -468,6 +470,29 @@ async function ingestNormalizedCadIncident(args: {
     resourceType: "integration",
     resourceId: msg.integrationId,
   });
+
+  try {
+    await cadEvents.send(
+      new PutEventsCommand({
+        Entries: [
+          {
+            EventBusName: process.env.CAD_EVENT_BUS_NAME || "default",
+            Source: "rapidcortex.cad",
+            DetailType: "incident.created",
+            Detail: JSON.stringify({
+              incidentId: incident.incidentId,
+              agencyId: incident.agencyId,
+              cadNatureCode: incident.cadNatureCode ?? "",
+              callerPhoneE164: incident.callerCallback ?? null,
+              timestamp: now,
+            }),
+          },
+        ],
+      }),
+    );
+  } catch (err) {
+    console.error(JSON.stringify({ type: "pre_arrival.cad_event_emit_failed", message: String(err) }));
+  }
 
   return { incidentId: incident.incidentId, action: "created", rawId: activeRawId };
 }

@@ -12329,7 +12329,7 @@ var require_leads_crm = __commonJS({
       },
       inside_the_cortex: {
         icon: "\u{1F9E0}",
-        label: "Inside the Cortex",
+        label: "Inside iQ",
         color: "#a78bfa",
         description: "Newsletter signup popup"
       },

@@ -666,7 +666,7 @@ export const env = {
 
   /** GSI name for pipeline queries (Scan-first until ~1K leads) [CR-7]. */
   pipelineStageGsiName: process.env.PIPELINE_STAGE_GSI?.trim() || "PipelineStageIndex",
-  /** Inside the Cortex marketing lead capture (pk/sk + unsubscribe tokens). */
+  /** Inside iQ marketing lead capture (pk/sk + unsubscribe tokens). */
   marketingLeadsTable: process.env.MARKETING_LEADS_TABLE?.trim() ?? "",
   /** Careers / ATS applications (PK applicationId). */
   jobApplicationsTable: process.env.JOB_APPLICATIONS_TABLE?.trim() ?? "",

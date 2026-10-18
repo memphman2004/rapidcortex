@@ -1,7 +1,12 @@
 import { resolvePlainOrSecretArn } from "../runtimeSecrets.js";
 
 const CLAUDE_MODEL = "claude-sonnet-4-6";
+const OPENAI_MODEL = "gpt-4o";
 const ANTHROPIC_API = "https://api.anthropic.com/v1/messages";
+const OPENAI_API = "https://api.openai.com/v1/chat/completions";
+/** Leave the rest of the 180s Lambda budget for an OpenAI completion. */
+const CLAUDE_TIMEOUT_MS = 90_000;
+const OPENAI_TIMEOUT_MS = 70_000;
 
 export type GrantWriterSections = {
   executiveSummary: string;
@@ -77,6 +82,8 @@ ${form.additionalContext || "None."}
 ABOUT NEXCORT IQ:
 NexCort iQ is a public safety AI platform that enhances — does NOT replace — CAD systems, dispatchers, or responders. It provides real-time AI transcription, supervisor dashboards, automated QA, incident command tools, multi-language translation, and post-incident analytics. CJIS-compliant, AWS-hosted, integrates with Tyler Technologies, Motorola, CentralSquare, and Hexagon.
 
+Keep each paragraph to 2–4 sentences and each bullet to one sentence so the JSON finishes completely.
+
 Respond ONLY with a valid JSON object — no markdown, no preamble:
 {
   "executiveSummary": "2-3 paragraphs...",
@@ -92,6 +99,110 @@ Respond ONLY with a valid JSON object — no markdown, no preamble:
 }`;
 }
 
+function isProviderTimeout(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  return err.name === "TimeoutError" || err.name === "AbortError";
+}
+
+function parseGrantJson(rawText: string, provider: "Claude" | "OpenAI"): GrantWriterSections {
+  const cleaned = rawText.replace(/```json\n?|```\n?/g, "").trim();
+  const withPrefill = cleaned.startsWith("{") ? cleaned : `{${cleaned}`;
+  const start = withPrefill.indexOf("{");
+  const end = withPrefill.lastIndexOf("}");
+  const jsonText = start >= 0 && end > start ? withPrefill.slice(start, end + 1) : withPrefill;
+  try {
+    return normalizeGrantWriterSections(JSON.parse(jsonText) as Record<string, unknown>);
+  } catch {
+    console.error(
+      JSON.stringify({
+        msg: "grant_writer_json_parse_failed",
+        provider,
+        chars: rawText.length,
+        startsWithBrace: cleaned.startsWith("{"),
+      }),
+    );
+    throw new Error(`${provider} returned an unexpected format. Please try again.`);
+  }
+}
+
+async function generateWithClaude(form: Record<string, unknown>, apiKey: string): Promise<GrantWriterSections> {
+  const res = await fetch(ANTHROPIC_API, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: process.env.GRANT_WRITER_MODEL?.trim() || CLAUDE_MODEL,
+      max_tokens: 8192,
+      messages: [
+        { role: "user", content: buildGrantWriterPrompt(form) },
+        { role: "assistant", content: "{" },
+      ],
+    }),
+    signal: AbortSignal.timeout(CLAUDE_TIMEOUT_MS),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Claude API ${res.status}: ${text.slice(0, 200)}`);
+  }
+
+  const payload = (await res.json()) as {
+    stop_reason?: string;
+    content?: { type: string; text?: string }[];
+  };
+  if (payload.stop_reason === "max_tokens") {
+    throw new Error("Claude cut the narrative off before it finished. Please try again.");
+  }
+  const rawText = (payload.content ?? [])
+    .filter((b) => b.type === "text" && b.text)
+    .map((b) => b.text)
+    .join("");
+  return parseGrantJson(rawText, "Claude");
+}
+
+async function generateWithOpenAi(form: Record<string, unknown>, apiKey: string): Promise<GrantWriterSections> {
+  const res = await fetch(OPENAI_API, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: process.env.GRANT_WRITER_OPENAI_MODEL?.trim() || OPENAI_MODEL,
+      temperature: 0.2,
+      max_tokens: 8192,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: "You are a senior grant writer. Return ONLY valid JSON matching the requested schema — no markdown.",
+        },
+        { role: "user", content: buildGrantWriterPrompt(form) },
+      ],
+    }),
+    signal: AbortSignal.timeout(OPENAI_TIMEOUT_MS),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    const quota = res.status === 429 && /insufficient_quota|exceeded your current quota/i.test(text);
+    throw new Error(
+      quota
+        ? "OpenAI quota exceeded — add billing/credits at platform.openai.com"
+        : `OpenAI API ${res.status}: ${text.slice(0, 200)}`,
+    );
+  }
+
+  const payload = (await res.json()) as {
+    choices?: { message?: { content?: string } }[];
+  };
+  const rawText = payload.choices?.[0]?.message?.content ?? "";
+  return parseGrantJson(rawText, "OpenAI");
+}
+
 export async function generateGrantWriterSections(
   form: Record<string, unknown>,
 ): Promise<GrantWriterSections> {
@@ -104,39 +215,26 @@ export async function generateGrantWriterSections(
     throw new Error("Anthropic secret is not configured (ANTHROPIC_API_KEY_SECRET_ARN).");
   }
 
-  const res = await fetch(ANTHROPIC_API, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: process.env.GRANT_WRITER_MODEL?.trim() || CLAUDE_MODEL,
-      max_tokens: 4096,
-      messages: [{ role: "user", content: buildGrantWriterPrompt(form) }],
-    }),
-    signal: AbortSignal.timeout(120_000),
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Claude API ${res.status}: ${text.slice(0, 200)}`);
-  }
-
-  const payload = (await res.json()) as {
-    content?: { type: string; text?: string }[];
-  };
-  const rawText = (payload.content ?? [])
-    .filter((b) => b.type === "text" && b.text)
-    .map((b) => b.text)
-    .join("");
-  const cleaned = rawText.replace(/```json\n?|```\n?/g, "").trim();
-  let parsed: Record<string, unknown>;
   try {
-    parsed = JSON.parse(cleaned) as Record<string, unknown>;
-  } catch {
-    throw new Error("Claude returned an unexpected format. Please try again.");
+    return await generateWithClaude(form, apiKey);
+  } catch (err) {
+    if (!isProviderTimeout(err)) throw err;
+    console.error(
+      JSON.stringify({
+        msg: "grant_writer_claude_timeout",
+        timeoutMs: CLAUDE_TIMEOUT_MS,
+      }),
+    );
   }
-  return normalizeGrantWriterSections(parsed);
+
+  const openAiKey = await resolvePlainOrSecretArn(
+    process.env.OPENAI_API_KEY,
+    process.env.OPENAI_API_KEY_SECRET_ARN,
+    { preferredField: "OPENAI_API_KEY" },
+  );
+  if (!openAiKey) {
+    throw new Error("Claude timed out and OpenAI is not configured.");
+  }
+  console.info(JSON.stringify({ msg: "grant_writer_openai_fallback" }));
+  return generateWithOpenAi(form, openAiKey);
 }

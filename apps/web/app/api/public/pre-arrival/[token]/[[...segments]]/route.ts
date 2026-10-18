@@ -35,6 +35,9 @@ export async function GET(_request: NextRequest, ctx: Ctx) {
   if (!segments?.length) {
     return proxyUpstream(`/api/public/pre-arrival/${enc}`);
   }
+  if (segments.length === 1 && segments[0] === "channel") {
+    return proxyUpstream(`/api/public/pre-arrival/${enc}/channel`);
+  }
   return NextResponse.json({ error: "Not found" }, { status: 404 });
 }
 
@@ -45,6 +48,15 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   const init: RequestInit = { method: "POST", body: body || undefined };
   if (segments?.length === 2 && segments[0] === "steps" && segments[1] === "complete") {
     return proxyUpstream(`/api/public/pre-arrival/${enc}/steps/complete`, init);
+  }
+  if (segments?.length === 1 && segments[0] === "channel") {
+    return proxyUpstream(`/api/public/pre-arrival/${enc}/channel`, init);
+  }
+  if (segments?.length === 2 && segments[0] === "channel" && segments[1] === "upload-url") {
+    return proxyUpstream(`/api/public/pre-arrival/${enc}/channel/upload-url`, init);
+  }
+  if (segments?.length === 2 && segments[0] === "channel" && segments[1] === "confirm") {
+    return proxyUpstream(`/api/public/pre-arrival/${enc}/channel/confirm`, init);
   }
   return NextResponse.json({ error: "Not found" }, { status: 404 });
 }

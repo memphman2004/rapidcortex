@@ -112,6 +112,15 @@ export const RESTRICTED_NATURE_CODES = [
 
 export type RestrictedNatureCode = (typeof RESTRICTED_NATURE_CODES)[number];
 
+/** Collapse spaces and punctuation so "active shooter" matches ACTIVE_SHOOTER. */
+export function normalizeNatureCode(code: string): string {
+  return code.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "");
+}
+
 export function isRestrictedNatureCode(code: string): boolean {
-  return (RESTRICTED_NATURE_CODES as readonly string[]).includes(code.toUpperCase());
+  const normalized = normalizeNatureCode(code);
+  if (!normalized) return false;
+  return (RESTRICTED_NATURE_CODES as readonly string[]).some(
+    (entry) => normalized === entry || normalized.startsWith(`${entry}_`) || normalized.includes(`_${entry}`),
+  );
 }

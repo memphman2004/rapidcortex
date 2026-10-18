@@ -484,7 +484,6 @@ struct ShareSheet: UIViewControllerRepresentable {
 
 // MARK: - Register Installation Location (GPS + MapKit pin)
 
-@MainActor
 final class InstallationLocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var coordinate: CLLocationCoordinate2D?
     @Published var accuracyMeters: CLLocationAccuracy?
@@ -513,29 +512,45 @@ final class InstallationLocationManager: NSObject, ObservableObject, CLLocationM
         }
     }
 
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        switch manager.authorizationStatus {
-        case .authorizedWhenInUse, .authorizedAlways:
-            permissionDenied = false
-            manager.requestLocation()
-        case .denied, .restricted:
-            permissionDenied = true
-            errorMessage = "Location permission is required to register the installation pin."
-        default:
-            break
+    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        let status = manager.authorizationStatus
+        Task { @MainActor in
+            switch status {
+            case .authorizedWhenInUse, .authorizedAlways:
+                self.permissionDenied = false
+                self.manager.requestLocation()
+            case .denied, .restricted:
+                self.permissionDenied = true
+                self.errorMessage = "Location permission is required to register the installation pin."
+            default:
+                break
+            }
         }
     }
 
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let loc = locations.last else { return }
-        coordinate = loc.coordinate
-        accuracyMeters = loc.horizontalAccuracy >= 0 ? loc.horizontalAccuracy : nil
-        altitudeMeters = loc.altitude
+        let coordinate = loc.coordinate
+        let accuracy = loc.horizontalAccuracy
+        let altitude = loc.altitude
+        Task { @MainActor in
+            self.coordinate = coordinate
+            self.accuracyMeters = accuracy >= 0 ? accuracy : nil
+            self.altitudeMeters = altitude
+        }
     }
 
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        errorMessage = error.localizedDescription
+    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        let message = error.localizedDescription
+        Task { @MainActor in
+            self.errorMessage = message
+        }
     }
+}
+
+private struct InstallationPin: Identifiable {
+    let id = "installation"
+    let coordinate: CLLocationCoordinate2D
 }
 
 struct RegisterLocationView: View {
@@ -543,7 +558,11 @@ struct RegisterLocationView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var location = InstallationLocationManager()
     @State private var pin: CLLocationCoordinate2D?
-    @State private var cameraPosition: MapCameraPosition = .automatic
+    @State private var region = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795),
+        latitudinalMeters: 80,
+        longitudinalMeters: 80
+    )
     @State private var accuracyMeters: Double?
     @State private var altitudeMeters: Double?
     @State private var busy = false
@@ -563,24 +582,7 @@ struct RegisterLocationView: View {
                         .font(.system(size: 13))
                         .foregroundColor(RCTheme.textSecondary)
 
-                    ZStack {
-                        if let pin {
-                            Map(position: $cameraPosition) {
-                                Marker("Installation", coordinate: pin)
-                                    .tint(RCTheme.amber)
-                            }
-                            .mapStyle(.standard(elevation: .realistic))
-                            .gesture(
-                                DragGesture(minimumDistance: 0)
-                                    .onEnded { _ in }
-                            )
-                            .onTapGesture { } // keep map interactive; reposition via buttons
-                        } else {
-                            Color.black.opacity(0.35)
-                            Text("Capture GPS to show the map")
-                                .foregroundColor(RCTheme.textSecondary)
-                        }
-                    }
+                    installationMap
                     .frame(maxWidth: .infinity)
                     .frame(height: 320)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
@@ -673,15 +675,15 @@ struct RegisterLocationView: View {
                     let c = CLLocationCoordinate2D(latitude: lat, longitude: lng)
                     pin = c
                     accuracyMeters = code.locationAccuracyMeters
-                    cameraPosition = .region(MKCoordinateRegion(center: c, latitudinalMeters: 80, longitudinalMeters: 80))
+                    region = MKCoordinateRegion(center: c, latitudinalMeters: 80, longitudinalMeters: 80)
                 }
             }
-            .onChange(of: location.coordinate?.latitude) { _, _ in
+            .onChange(of: location.coordinate?.latitude) { _ in
                 guard let c = location.coordinate else { return }
                 pin = c
                 accuracyMeters = location.accuracyMeters
                 altitudeMeters = location.altitudeMeters
-                cameraPosition = .region(MKCoordinateRegion(center: c, latitudinalMeters: 80, longitudinalMeters: 80))
+                region = MKCoordinateRegion(center: c, latitudinalMeters: 80, longitudinalMeters: 80)
             }
             .alert("Verify Installation Location", isPresented: $showVerifyConfirm) {
                 Button("Cancel", role: .cancel) {}
@@ -699,7 +701,26 @@ struct RegisterLocationView: View {
         let next = CLLocationCoordinate2D(latitude: pin.latitude + latDelta, longitude: pin.longitude + lngDelta)
         self.pin = next
         accuracyMeters = nil
-        cameraPosition = .region(MKCoordinateRegion(center: next, latitudinalMeters: 80, longitudinalMeters: 80))
+        region = MKCoordinateRegion(center: next, latitudinalMeters: 80, longitudinalMeters: 80)
+    }
+
+    private var installationPins: [InstallationPin] {
+        guard let pin else { return [] }
+        return [InstallationPin(coordinate: pin)]
+    }
+
+    private var installationMap: some View {
+        ZStack {
+            if pin != nil {
+                Map(coordinateRegion: $region, annotationItems: installationPins) { item in
+                    MapMarker(coordinate: item.coordinate, tint: RCTheme.amber)
+                }
+            } else {
+                Color.black.opacity(0.35)
+                Text("Capture GPS to show the map")
+                    .foregroundColor(RCTheme.textSecondary)
+            }
+        }
     }
 
     private func save(verify: Bool) async {

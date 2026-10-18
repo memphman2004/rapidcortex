@@ -9,6 +9,9 @@ import {
   subscribeMapAuthReady,
 } from "../utils/map-auth";
 import { RAPID_CORTEX_MAP_STYLES } from "../utils/map-styles";
+import { ensureMapLibreWorker } from "../utils/map-worker";
+
+ensureMapLibreWorker();
 
 export interface UseMapLibreOptions {
   center?: [number, number]; // lng, lat

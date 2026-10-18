@@ -695,7 +695,7 @@ export function isHostedUiSsoEnabled(): boolean {
   return Boolean(domain);
 }
 
-/** Inside the Cortex marketing lead popup (marketing site). Default on when unset. */
+/** Inside iQ marketing lead popup (marketing site). Default on when unset. */
 export function isInsideTheCortexEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_INSIDE_THE_CORTEX");
 }

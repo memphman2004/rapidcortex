@@ -698,7 +698,7 @@ export function listCampaignCards(
     {
       id: "newsletter",
       name: "Weekly Newsletter",
-      description: "Inside the Cortex draft every Monday 08:00 UTC. Approval required before any send.",
+      description: "Inside iQ draft every Monday 08:00 UTC. Approval required before any send.",
       next: "Mondays 08:00 UTC",
       status: "active",
     },

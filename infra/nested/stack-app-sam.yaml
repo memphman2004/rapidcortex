@@ -3148,6 +3148,7 @@ Resources:
           CAD_INCIDENTS_RAW_TABLE: !Ref CadIncidentsRawTable
           CAD_WEBHOOK_SECRET_SALT: !Ref CadWebhookSecretSalt
           CAD_WEBHOOK_SNS_TOPIC_ARN: !Ref CadWebhookProcessingTopic
+          CAD_EVENT_BUS_NAME: default
           CAD_WEBHOOK_RATE_LIMITS_TABLE: !Ref CadWebhookRateLimitsTable
           CAD_WEBHOOK_IDEMPOTENCY_TABLE: !Ref CadWebhookIdempotencyTable
       CodeUri: ../../apps/api/
@@ -3174,6 +3175,11 @@ Resources:
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWebhookRateLimitsTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CadWebhookIdempotencyTable}
+            - Sid: CadWorkerPreArrivalEvents
+              Effect: Allow
+              Action:
+                - events:PutEvents
+              Resource: !Sub arn:aws:events:${AWS::Region}:${AWS::AccountId}:event-bus/default
             - Sid: CadWorkerSns
               Effect: Allow
               Action:

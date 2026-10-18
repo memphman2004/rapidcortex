@@ -178,6 +178,8 @@ export interface PsapProspect {
   nextActionNote?: string;
   estimatedValue?: number;
   notes?: string;
+  /** Linked Leads CRM record. Prospect stays in the outbound registry. */
+  leadsCrmLeadId?: string;
   activities: PsapActivity[];
   createdAt: string;
   updatedAt: string;
@@ -198,6 +200,7 @@ export interface PatchPsapProspectBody {
   nextActionDate?: string;
   nextActionNote?: string;
   estimatedValue?: number;
+  leadsCrmLeadId?: string;
 }
 
 export interface AddPsapActivityRequest {

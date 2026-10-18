@@ -71,8 +71,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[grant-writer]", message);
-    if (message.includes("Anthropic secret") || message.includes("Claude API")) {
+    if (message.includes("Anthropic secret") || message.includes("not configured")) {
       return ok({ error: "Grant writer is not configured. Contact your RC administrator." }, 503);
+    }
+    if (message.startsWith("Claude ") || message.startsWith("OpenAI ")) {
+      return ok({ error: message }, 502);
     }
     return serverError();
   }

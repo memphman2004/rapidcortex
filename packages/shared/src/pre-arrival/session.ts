@@ -1,7 +1,13 @@
 import { z } from "zod";
 import { activeStepSchema } from "./reconciliation-types.js";
 import { etaNotificationRecordSchema } from "./eta-types.js";
-import { responseIQModePolicySchema } from "./mode-policy.js";
+import {
+  blurEstimatedArrivalMinutes,
+  callerRouteProgress,
+  classifyPreArrivalSessionMode,
+  preArrivalSessionModeSchema,
+  responseIQModePolicySchema,
+} from "./mode-policy.js";
 import { responseIQInstructionSchema } from "./instructions.js";
 
 export const preArrivalSessionStatusSchema = z.enum([
@@ -43,6 +49,8 @@ export const preArrivalSessionSchema = z.object({
   activeSteps: z.array(activeStepSchema).default([]),
   modePolicy: responseIQModePolicySchema.optional(),
   responderStatus: preArrivalResponderStatusSchema.default("dispatched"),
+  /** Derived from the nature code. Not accepted from a dispatcher request body. */
+  sessionMode: preArrivalSessionModeSchema.optional(),
   publicUrl: z.string().url().optional(),
   createdAt: z.string().min(20),
   updatedAt: z.string().min(20),
@@ -75,33 +83,59 @@ export const completePreArrivalStepBodySchema = z.object({
 });
 export type CompletePreArrivalStepBody = z.infer<typeof completePreArrivalStepBodySchema>;
 
-/** Public caller view — never includes unit IDs or dispatcher PII. */
+/** Public caller view — never includes unit IDs, coordinates, or a precise ETA. */
 export const preArrivalPublicViewSchema = z.object({
   sessionToken: z.string(),
   status: preArrivalSessionStatusSchema,
+  sessionMode: z.enum(["STATUS_ONLY", "FULL"]),
   cadNatureCode: z.string(),
   responderStatus: preArrivalResponderStatusSchema,
   stayOnLine: z.boolean(),
   showInstructions: z.boolean(),
   instructions: z.array(responseIQInstructionSchema),
-  lastKnownEtaMinutes: z.number().nullable().optional(),
+  etaRangeLow: z.number().int().optional(),
+  etaRangeHigh: z.number().int().optional(),
+  /** 0–1 progress along the response. Too coarse to recover a coordinate or exact minute. */
+  routeProgress: z.number().min(0).max(1).optional(),
   onSceneAt: z.string().optional(),
   helpDispatchedAt: z.string().optional(),
+  /** Caller may send text, photo, video, or location, and read dispatcher replies. */
+  channelOpen: z.boolean(),
 });
 export type PreArrivalPublicView = z.infer<typeof preArrivalPublicViewSchema>;
 
 export function toPreArrivalPublicView(session: PreArrivalSession): PreArrivalPublicView {
+  const mode = session.sessionMode ?? classifyPreArrivalSessionMode(session.cadNatureCode);
+  const disclosure = mode === "STATUS_ONLY" ? "STATUS_ONLY" : "FULL";
   const policy = session.modePolicy;
+  const range =
+    disclosure === "FULL" && session.responderStatus !== "arrived"
+      ? blurEstimatedArrivalMinutes(session.lastKnownEtaMinutes ?? Number.NaN)
+      : null;
+  const visibleInstructions =
+    disclosure === "FULL"
+      ? session.instructions.filter((step) => step.status !== "SUSPENDED")
+      : [];
   return {
     sessionToken: session.sessionToken,
     status: session.status,
-    cadNatureCode: session.cadNatureCode,
+    sessionMode: disclosure,
+    cadNatureCode: disclosure === "FULL" ? session.cadNatureCode : "STATUS",
     responderStatus: session.responderStatus,
-    stayOnLine: policy?.stayOnLine ?? false,
-    showInstructions: policy?.showInstructions ?? true,
-    instructions: session.instructions,
-    lastKnownEtaMinutes: session.lastKnownEtaMinutes ?? null,
+    stayOnLine: disclosure === "FULL" ? (policy?.stayOnLine ?? false) : false,
+    showInstructions: disclosure === "FULL" && (policy?.showInstructions ?? true),
+    instructions: visibleInstructions,
+    etaRangeLow: range?.low,
+    etaRangeHigh: range?.high,
+    routeProgress:
+      disclosure === "FULL"
+        ? callerRouteProgress({
+            responderStatus: session.responderStatus,
+            etaMinutes: session.lastKnownEtaMinutes,
+          })
+        : undefined,
     onSceneAt: session.onSceneAt,
     helpDispatchedAt: session.createdAt,
+    channelOpen: disclosure === "FULL" && session.status !== "ended" && session.status !== "terminated",
   };
 }

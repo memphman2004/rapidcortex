@@ -176,9 +176,9 @@ describe("sales automation engine", () => {
         updatedAt: "2026-09-16T00:00:00.000Z",
         generatedBy: "composer",
       },
-      { subject: "Inside the Cortex — 2026-09-14", bodyText: "Edited notes" },
+      { subject: "Inside iQ — 2026-09-14", bodyText: "Edited notes" },
     );
-    expect(next.subject).toBe("Inside the Cortex — 2026-09-14");
+    expect(next.subject).toBe("Inside iQ — 2026-09-14");
     expect(next.bodyText).toBe("Edited notes");
   });
 });

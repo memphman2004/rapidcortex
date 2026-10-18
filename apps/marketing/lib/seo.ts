@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SITE_BRAND_MARK_PATH, SITE_DESCRIPTION, SITE_FORMER_NAME, SITE_NAME } from "./site";
+import { SITE_BRAND_MARK_PATH, SITE_DESCRIPTION, SITE_NAME } from "./site";
 
 const DEFAULT_SITE_URL = "https://www.nexcortiq.us";
 
@@ -99,15 +99,11 @@ export function buildOrganizationJsonLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: SITE_NAME,
-    alternateName: [SITE_FORMER_NAME, "NexCortIQ", "NexCort"],
+    alternateName: ["NexCortIQ", "NexCort"],
     url,
     logo: absoluteUrl(SITE_BRAND_MARK_PATH),
     description: SITE_DESCRIPTION,
-    sameAs: [
-      absoluteUrl("/rapid-cortex"),
-      absoluteUrl("/about"),
-      absoluteUrl("/press"),
-    ],
+    sameAs: [absoluteUrl("/about"), absoluteUrl("/press")],
   };
 }
 
@@ -117,13 +113,13 @@ export function buildWebsiteJsonLd() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: SITE_NAME,
-    alternateName: SITE_FORMER_NAME,
+    alternateName: ["NexCortIQ", "NexCort"],
     url,
     description: SITE_DESCRIPTION,
     publisher: {
       "@type": "Organization",
       name: SITE_NAME,
-      alternateName: SITE_FORMER_NAME,
+      alternateName: ["NexCortIQ", "NexCort"],
     },
     potentialAction: {
       "@type": "SearchAction",

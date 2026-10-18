@@ -148,7 +148,7 @@ export default function UnsubscribePage() {
         <div style={S.header}>
           <span style={S.logo}>NEXCORT IQ</span>
           <span style={{ fontSize: "10px", color: "#334466", letterSpacing: "0.05em" }}>
-            Inside the Cortex
+            Inside iQ
           </span>
         </div>
 
@@ -169,7 +169,7 @@ export default function UnsubscribePage() {
               <div style={{ ...S.icon, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)" }}>
                 <span style={{ fontSize: "22px" }}>✕</span>
               </div>
-              <h1 style={S.title}>Unsubscribe from Inside the Cortex?</h1>
+              <h1 style={S.title}>Unsubscribe from Inside iQ?</h1>
               <p style={S.sub}>
                 You won&apos;t receive any more updates from us. You can always sign up again
                 at nexcortiq.us if you change your mind.

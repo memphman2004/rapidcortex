@@ -38,7 +38,7 @@ Users sign in with the **same email and password** already in Cognito (`us-east-
 
 ## Apple review
 
-Unlisted App Store listing. Bundle `us.rapidcortex.field`. Version **1.0.0**. Increment **build** on every upload (current: **4**). The binary is iPhone-only (`TARGETED_DEVICE_FAMILY = 1`); iPad may still install it in compatibility mode — QR works there, NFC does not.
+Unlisted App Store listing. Bundle `us.rapidcortex.field`. Version **1.0.1**. Increment **build** on every upload (current: **5**). The binary is iPhone-only (`TARGETED_DEVICE_FAMILY = 1`); iPad may still install it in compatibility mode — QR works there, NFC does not.
 
 ### Listing (App Store Connect)
 

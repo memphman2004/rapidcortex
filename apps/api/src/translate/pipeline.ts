@@ -202,7 +202,7 @@ async function synthesizeAndStore(
     const url = await getSignedUrl(
       s3,
       new GetObjectCommand({ Bucket: env.translateAudioBucket, Key: key }),
-      { expiresIn: 60 },
+      { expiresIn: 300 },
     );
     return { key, url, durationMs };
   } catch (error) {

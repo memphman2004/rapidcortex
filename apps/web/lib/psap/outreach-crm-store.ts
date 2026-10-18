@@ -23,6 +23,7 @@ export type OutreachCrmOverlay = {
   nextActionDate?: string;
   nextActionNote?: string;
   estimatedValue?: number;
+  leadsCrmLeadId?: string;
   activities?: PsapActivity[];
   mailingStreet?: string;
   updatedAt?: string;
@@ -87,6 +88,7 @@ export function applyOutreachOverlay(base: PsapProspect, overlay?: OutreachCrmOv
     nextActionDate: overlay.nextActionDate ?? base.nextActionDate,
     nextActionNote: overlay.nextActionNote ?? base.nextActionNote,
     estimatedValue: overlay.estimatedValue ?? base.estimatedValue,
+    leadsCrmLeadId: overlay.leadsCrmLeadId ?? base.leadsCrmLeadId,
     activities: overlay.activities ?? base.activities,
     mailingAddress,
     updatedAt: overlay.updatedAt ?? base.updatedAt,
@@ -117,6 +119,7 @@ export function patchOutreachProspectLocal(
   if (body.nextActionDate !== undefined) nextOverlay.nextActionDate = body.nextActionDate;
   if (body.nextActionNote !== undefined) nextOverlay.nextActionNote = body.nextActionNote;
   if (body.estimatedValue !== undefined) nextOverlay.estimatedValue = body.estimatedValue;
+  if (body.leadsCrmLeadId !== undefined) nextOverlay.leadsCrmLeadId = body.leadsCrmLeadId;
   if (body.mailingAddress?.streetAddress !== undefined) {
     nextOverlay.mailingStreet = body.mailingAddress.streetAddress;
   }

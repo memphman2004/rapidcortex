@@ -20,7 +20,7 @@ export const SITE_MISSION =
  * Default `<meta name="description">` / OG description — short, scannable, SEO-friendly.
  * Uses the slogan plus a one-line value prop.
  */
-export const SITE_DESCRIPTION = `${SITE_SLOGAN} — Real-time decision support for public safety from NexCort iQ (formerly Rapid Cortex): dispatch, supervision, and emergency response. Does not replace CAD, telephony, or your agency's systems of record.`;
+export const SITE_DESCRIPTION = `${SITE_SLOGAN} — Real-time decision support for public safety from NexCort iQ: dispatch, supervision, and emergency response. Does not replace CAD, telephony, or your agency's systems of record.`;
 
 /** Canonical marketing host (apex redirects to www). */
 export const SITE_MARKETING_ORIGIN = "https://www.nexcortiq.us";

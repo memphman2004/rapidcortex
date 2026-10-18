@@ -157,6 +157,15 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*
 
+  RouteLeadsFromProspectPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rc-admin/leads/from-prospect"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
   RouteLeadsPipelineGet:
     Type: AWS::ApiGatewayV2::Route
     Properties:
@@ -180,6 +189,15 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/leads/attribution-summary"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsDelete:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "DELETE /api/rc-admin/leads/{leadId}"
       Target: !Sub "integrations/${LeadsCrmIntegration}"
       AuthorizationType: JWT
       AuthorizerId: !Ref HttpApiJwtAuthorizerId

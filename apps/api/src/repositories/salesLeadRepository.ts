@@ -1,4 +1,4 @@
-import { GetCommand, PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DeleteCommand, GetCommand, PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { randomUUID } from "node:crypto";
 import type {
   ContactSalesLeadBody,
@@ -39,6 +39,16 @@ export type SalesLeadRecord = ContactSalesLeadBody & {
   smsConsentAt?: string | null;
   /** Advisor-facing SMS authorization: pending | opted_in | opted_out. */
   smsConsentStatus?: "pending" | "opted_in" | "opted_out";
+  prospectId?: string;
+  agencyName?: string;
+  title?: string;
+  vertical?: string;
+  firstName?: string;
+  lastName?: string;
+  estimatedValue?: number;
+  state?: string | null;
+  requestedCity?: string | null;
+  requestedState?: string | null;
 };
 
 export type AnySalesLeadRecord = SalesLeadRecord;
@@ -96,6 +106,18 @@ export class SalesLeadRepository {
       if ((err as { name?: string }).name === "ConditionalCheckFailedException") return "exists";
       throw err;
     }
+  }
+
+  async deleteById(leadId: string): Promise<boolean> {
+    const existing = await this.getById(leadId);
+    if (!existing) return false;
+    await ddb.send(
+      new DeleteCommand({
+        TableName: table(),
+        Key: { leadId },
+      }),
+    );
+    return true;
   }
 
   async getById(leadId: string): Promise<AnySalesLeadRecord | null> {

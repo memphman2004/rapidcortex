@@ -31,8 +31,10 @@ struct TranslateSegmentDTO: Decodable {
 }
 
 struct TranslateCreateResponse: Decodable {
-    let session: TranslateSessionDTO
+    let session: TranslateSessionDTO?
     let wsEndpoint: String?
+    let aiDisabled: Bool?
+    let message: String?
 }
 
 struct TranslateSegmentsResponse: Decodable {
@@ -81,8 +83,11 @@ extension RCAPIClient {
     }
 
     func createTranslateSession(body: TranslateSessionCreateBody) async throws -> TranslateSessionDTO {
-        let resp: TranslateCreateResponse = try await post(path: "/api/translate/sessions", body: body)
-        return resp.session
+        let resp: TranslateCreateResponse = try await post(path: "/api/translate/sessions", body: body, timeout: 45)
+        guard resp.aiDisabled != true, let session = resp.session else {
+            throw RCAPIError.serverError(403, resp.message ?? "Translation is not enabled for this agency")
+        }
+        return session
     }
 
     func getTranslateWsToken(sessionId: String, role: String = "officer") async throws -> TranslateWsTokenResponse {
@@ -112,7 +117,8 @@ extension RCAPIClient {
         let encoded = sessionId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? sessionId
         return try await post(
             path: "/api/translate/sessions/\(encoded)/close",
-            body: TranslateCloseBody(writebackNote: writebackNote)
+            body: TranslateCloseBody(writebackNote: writebackNote),
+            timeout: 60
         )
     }
 }

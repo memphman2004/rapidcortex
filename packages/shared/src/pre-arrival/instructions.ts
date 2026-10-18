@@ -63,18 +63,70 @@ export const DEFAULT_PROTOCOL_LIBRARY: ProtocolLibraryEntry[] = [
     ],
   },
   {
+    protocolId: "CRIME_IN_PROGRESS_v1",
+    cadNaturePatterns: [
+      "*ROBBERY*",
+      "*BURGLAR*",
+      "*ASSAULT*",
+      "*THEFT*",
+      "*INVASION*",
+      "*WEAPON*",
+      "*STABB*",
+      "*FIGHT*",
+      "*DISTURBANCE*",
+      "*SUSPICIOUS*",
+      "211",
+    ],
+    steps: [
+      {
+        text: "You did the right thing by calling. Stay on the phone if you can do it safely.",
+        category: "COMMUNICATION",
+      },
+      {
+        text: "If you can, move somewhere you can lock the door. Stay quiet and out of sight.",
+        category: "SCENE_SAFETY",
+      },
+      {
+        text: "Do not open the door until responders identify themselves. Do not confront anyone.",
+        category: "SCENE_SAFETY",
+      },
+    ],
+  },
+  {
     protocolId: "GENERIC_MEDICAL_v1",
+    cadNaturePatterns: [
+      "MEDICAL*",
+      "EMS*",
+      "ILLNESS*",
+      "SICK*",
+      "INJURY*",
+      "INJURED*",
+      "FALL*",
+      "SEIZURE*",
+      "OVERDOSE*",
+      "UNCONSCIOUS*",
+      "BLEED*",
+      "PATIENT*",
+    ],
+    steps: [
+      { text: "Stay with them if it is safe. Help is on the way — keep this phone nearby.", category: "GENERAL" },
+      { text: "Unlock the door only if it is safe, so responders can reach you.", category: "SCENE_SAFETY" },
+      { text: "Do not give food, drink, or medicine unless your dispatcher tells you to.", category: "GENERAL" },
+    ],
+  },
+  {
+    protocolId: "GENERIC_SAFETY_v1",
     cadNaturePatterns: ["*"],
     steps: [
-      { text: "Stay calm — help is on the way. Keep this phone nearby.", category: "GENERAL" },
-      { text: "Unlock your door or send someone outside so responders can find you.", category: "SCENE_SAFETY" },
-      { text: "Do not give food or water unless your dispatcher instructs you to.", category: "GENERAL" },
+      { text: "You are not alone. Help is on the way — keep this phone with you.", category: "COMMUNICATION" },
+      { text: "Tell your dispatcher if anything changes, including if you need to move.", category: "COMMUNICATION" },
+      { text: "If you are safe where you are, stay there. If you are not, move somewhere safer and say so.", category: "SCENE_SAFETY" },
     ],
   },
 ];
 
 export const GENERIC_FALLBACK_STEPS: string[] = [
-  "Stay calm — help is coming.",
+  "You are not alone. Help is on the way.",
   "Keep this phone nearby so we can reach you.",
-  "Unlock your door if it is safe so responders can get in quickly.",
+  "If you are safe where you are, stay there. If you are not, move somewhere safer and tell the dispatcher.",
 ];

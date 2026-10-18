@@ -152,6 +152,14 @@ export async function addActivity(
   return unwrapLead(body);
 }
 
+export async function deleteLead(leadId: string): Promise<void> {
+  const res = await fetch(`${BASE}/${encodeURIComponent(leadId)}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  await parseJson<ApiEnvelope<{ leadId: string; deleted: boolean }>>(res);
+}
+
 export async function getAttributionSummary(): Promise<AttributionSummary> {
   const res = await fetch(`${BASE}/attribution-summary`, { credentials: "include" });
   const body = await parseJson<ApiEnvelope<AttributionSummary>>(res);

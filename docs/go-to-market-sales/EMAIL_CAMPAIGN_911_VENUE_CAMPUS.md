@@ -16,7 +16,7 @@ This is one program with **three vertical tracks**. Do not mix tracks. A PSAP di
 | **Goal** | Book a 20-minute product walkthrough that can convert to a **controlled pilot**. Not self-serve GA. |
 | **Primary CTA** | [Contact sales](https://www.rapidcortex.us/contact-sales?interest=demo) with vertical UTM (below). |
 | **Offer** | Assistive intelligence layer alongside existing CAD / campus PD / venue security — not a replacement for 911, CAD, radio, ENS, or VMS. |
-| **Duration** | Always-on 6-touch outbound + weekly *Inside the Cortex* for opted-in contacts. |
+| **Duration** | Always-on 6-touch outbound + weekly *Inside iQ* for opted-in contacts. |
 | **Owner** | Sales. NexiQ drafts sequences; an `rcadmin` approves each send. |
 
 **Success (90 days)**
@@ -409,7 +409,7 @@ Conference pre-outreach (~30 days out) stays on the existing NexiQ `conference_p
 
 ---
 
-## 9. Weekly newsletter (*Inside the Cortex*)
+## 9. Weekly newsletter (*Inside iQ*)
 
 Opted-in contacts only. NexiQ composes Monday drafts; approve before send.
 

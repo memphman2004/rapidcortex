@@ -1,8 +1,11 @@
 import { randomBytes } from "node:crypto";
 import {
+  classifyPreArrivalSessionMode,
+  decideCadAutoOpen,
   createPreArrivalSessionBodySchema,
   DEFAULT_RESPONSE_IQ_MODE_POLICY,
   resolveResponseIQInstructions,
+  toE164,
   toPreArrivalPublicView,
   type ActiveStep,
   type CreatePreArrivalSessionBody,
@@ -40,17 +43,20 @@ export class PreArrivalService {
     const incident = TenantAccessGuard.assertIncidentAccess(await incidentRepo.get(incidentId), user);
 
     const now = new Date().toISOString();
-    const sessionToken = randomBytes(24).toString("base64url");
-    const cadNatureCode = (
-      input.cadNatureCode ??
-      incident.cadNatureCode ??
-      incident.type ??
-      "UNKNOWN"
-    ).toString();
+    const cadNatureCode = (input.cadNatureCode ?? incident.cadNatureCode ?? "").toString().trim();
+    if (!cadNatureCode || cadNatureCode.toUpperCase() === "UNKNOWN") {
+      throw Object.assign(new Error("PRE_ARRIVAL_REASON_REQUIRED"), { statusCode: 400 });
+    }
+    const sessionMode = classifyPreArrivalSessionMode(cadNatureCode);
+    if (sessionMode === "RESTRICTED") {
+      throw Object.assign(new Error("PRE_ARRIVAL_RESTRICTED"), { statusCode: 403 });
+    }
+    const sessionToken = randomBytes(16).toString("hex");
     const modePolicy = { ...DEFAULT_RESPONSE_IQ_MODE_POLICY, ...input.modePolicy };
     const resolved = resolveResponseIQInstructions({ cadNatureCode, policy: modePolicy });
 
-    const activeSteps: ActiveStep[] = resolved.instructions.map((ins) => ({
+    const instructionSet = sessionMode === "FULL" ? resolved.instructions : [];
+    const activeSteps: ActiveStep[] = instructionSet.map((ins) => ({
       stepId: ins.stepId,
       protocolId: resolved.protocolId,
       cadNatureCode,
@@ -66,7 +72,7 @@ export class PreArrivalService {
       env.preArrivalPublicBaseUrl.replace(/\/$/, "") ||
       "";
     if (!baseUrl) throw Object.assign(new Error("MISSING_PUBLIC_BASE_URL"), { statusCode: 400 });
-    const publicUrl = `${baseUrl}/pre-arrival/${sessionToken}`;
+    const publicUrl = `${baseUrl}/r/${sessionToken}`;
 
     const ttlMinutes = input.ttlMinutes ?? 120;
     const session: PreArrivalSession = {
@@ -78,10 +84,11 @@ export class PreArrivalService {
       cadNatureCode,
       protocolId: resolved.protocolId,
       instructionSource: resolved.source,
-      instructions: resolved.instructions,
+      instructions: instructionSet,
       activeSteps,
       modePolicy,
       responderStatus: "dispatched",
+      sessionMode,
       publicUrl,
       createdAt: now,
       updatedAt: now,
@@ -95,7 +102,10 @@ export class PreArrivalService {
     if (input.sendSms !== false) {
       const sms = await sendPreArrivalSms({
         phoneE164: input.callerPhoneE164,
-        message: `Help is on the way. Open this secure link for guidance while you wait: ${publicUrl}`,
+        message:
+          sessionMode === "STATUS_ONLY"
+            ? `Help has been dispatched. You can check response status here: ${publicUrl}`
+            : `Help is on the way. You can track the response and get guidance here: ${publicUrl}`,
         agencyId: incident.agencyId,
         incidentId,
       });
@@ -198,6 +208,9 @@ export class PreArrivalService {
     assertEnabled();
     const session = await preArrivalSessionStore.getByToken(sessionToken);
     if (!session) throw Object.assign(new Error("NOT_FOUND"), { statusCode: 404 });
+    if ((session.sessionMode ?? classifyPreArrivalSessionMode(session.cadNatureCode)) !== "FULL") {
+      throw Object.assign(new Error("INSTRUCTIONS_NOT_AVAILABLE"), { statusCode: 403 });
+    }
 
     const now = new Date().toISOString();
     const instructions = session.instructions.map((ins) =>
@@ -256,6 +269,62 @@ export class PreArrivalService {
       /* ignore */
     }
     return { ...session, status: "ended" as const, endedAt: now };
+  }
+
+  /**
+   * Open a session from a CAD incident event. Restricted natures leave no record.
+   * An incident that already has an open session is left alone.
+   */
+  async createFromCad(input: {
+    incidentId: string;
+    agencyId: string;
+    cadNatureCode?: string;
+    callerPhoneE164?: string | null;
+  }) {
+    assertEnabled();
+    const incident = await incidentRepo.get(input.incidentId);
+    if (!incident || incident.agencyId !== input.agencyId) {
+      return { opened: false, reason: "not_found" as const };
+    }
+    const existing = await preArrivalSessionStore.getActiveByIncident(input.incidentId, input.agencyId);
+    const nature = (input.cadNatureCode ?? incident.cadNatureCode ?? "").trim();
+    const phone = toE164(input.callerPhoneE164 ?? incident.callerCallback);
+    const decision = decideCadAutoOpen({
+      natureCode: nature,
+      callerPhoneE164: phone,
+      hasOpenSession: Boolean(existing),
+    });
+    if (decision !== "open" || !phone) {
+      return { opened: false, reason: decision, sessionToken: existing?.sessionToken };
+    }
+    const user: UserContext = {
+      userId: "system:cad",
+      agencyId: input.agencyId,
+      role: "dispatcher",
+      email: "cad@nexcortiq.local",
+    };
+    const created = await this.createSession(input.incidentId, user, {
+      incidentId: input.incidentId,
+      callerPhoneE164: phone,
+      cadNatureCode: nature,
+      sendSms: true,
+    });
+    try {
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: input.agencyId,
+        incidentId: input.incidentId,
+        actorId: "system:cad",
+        type: AUDIT_EVENT_TYPES.PRE_ARRIVAL_CAD_OPENED,
+        details: { sessionToken: created.token.slice(0, 8), cadNatureCode: nature },
+        createdAt: new Date().toISOString(),
+        resourceType: "session",
+        resourceId: created.token,
+      });
+    } catch {
+      /* never abort */
+    }
+    return { opened: true, reason: "open" as const, sessionToken: created.token, publicUrl: created.publicUrl };
   }
 }
 
