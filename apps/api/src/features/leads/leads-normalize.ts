@@ -19,6 +19,7 @@ function asRecord(item: unknown): Record<string, unknown> {
 
 function sourceToChannel(source: string | undefined): LeadChannel {
   const s = (source ?? "").toLowerCase();
+  if (s.includes("apollo") || s.includes("email_campaign")) return "email_campaign";
   if (s.includes("ring")) return "ring_waitlist";
   if (s.includes("contact") || s === "contact-sales" || s.includes("demo")) return "contact_sales";
   if (s.includes("cortex") || s.includes("inside")) return "inside_the_cortex";

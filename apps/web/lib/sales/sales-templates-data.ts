@@ -9,6 +9,14 @@ export type SalesOutreachTemplate = {
   body: string;
 };
 
+/** Instantly-compatible opt-out; paste into sequencers that honor `<%…%>`. */
+export const SEQUENCE_OPT_OUT_MESSAGE =
+  "If you don't want to hear from me again, please <%let me know%>.";
+
+function withEmailOptOut(body: string): string {
+  return `${body.trimEnd()}\n\n${SEQUENCE_OPT_OUT_MESSAGE}`;
+}
+
 export const SALES_OUTREACH_TEMPLATES: readonly SalesOutreachTemplate[] = [
   {
     id: "rc911-intro",
@@ -16,14 +24,14 @@ export const SALES_OUTREACH_TEMPLATES: readonly SalesOutreachTemplate[] = [
     vertical: "rc911",
     channel: "email",
     subject: "Operational intelligence for {{agency_name}}",
-    body: `Hi {{first_name}},
+    body: withEmailOptOut(`Hi {{first_name}},
 
 I work with PSAPs that want clearer visibility into call load, language demand, and dispatcher time — without replacing CAD.
 
 Would a 20-minute look at how {{agency_name}} compares to peer centers be useful?
 
 Best,
-{{sender_name}}`,
+{{sender_name}}`),
   },
   {
     id: "rc911-wellness",
@@ -31,13 +39,13 @@ Best,
     vertical: "rc911",
     channel: "email",
     subject: "Free dispatcher wellness check-in for {{agency_name}}",
-    body: `Hi {{first_name}},
+    body: withEmailOptOut(`Hi {{first_name}},
 
 NexCort iQ Wellness is free for accredited PSAPs — anonymous end-of-shift check-ins, aggregate supervisor view, no CJIS data.
 
 Happy to turn it on for {{agency_name}} this week.
 
-{{sender_name}}`,
+{{sender_name}}`),
   },
   {
     id: "campus-tip",
@@ -45,13 +53,13 @@ Happy to turn it on for {{agency_name}} this week.
     vertical: "campus",
     channel: "email",
     subject: "Free campus tip line for {{agency_name}}",
-    body: `Hi {{first_name}},
+    body: withEmailOptOut(`Hi {{first_name}},
 
 NexCort iQ Community Connect gives {{agency_name}} one QR tip zone with email forwarding — free for qualifying institutions. No console required to start.
 
 Worth a quick walkthrough?
 
-{{sender_name}}`,
+{{sender_name}}`),
   },
   {
     id: "venue-tip",
@@ -59,13 +67,13 @@ Worth a quick walkthrough?
     vertical: "venue",
     channel: "email",
     subject: "Guest tip intake for {{agency_name}}",
-    body: `Hi {{first_name}},
+    body: withEmailOptOut(`Hi {{first_name}},
 
 Guest tip QR + email forwarding is available free via NexCort iQ Community Connect for qualifying venues.
 
 Can I send a one-pager?
 
-{{sender_name}}`,
+{{sender_name}}`),
   },
   {
     id: "hospital-intro",
@@ -73,13 +81,13 @@ Can I send a one-pager?
     vertical: "hospital",
     channel: "email",
     subject: "Live capacity coordination for {{agency_name}}",
-    body: `Hi {{first_name}},
+    body: withEmailOptOut(`Hi {{first_name}},
 
 NexCort iQ helps hospitals share live ER capacity and diversion status with EMS partners in real time.
 
 Open to a short demo for {{agency_name}}?
 
-{{sender_name}}`,
+{{sender_name}}`),
   },
   {
     id: "transit-intro",
@@ -87,13 +95,13 @@ Open to a short demo for {{agency_name}}?
     vertical: "transit",
     channel: "email",
     subject: "Passenger safety ops for {{agency_name}}",
-    body: `Hi {{first_name}},
+    body: withEmailOptOut(`Hi {{first_name}},
 
 NexCort iQ Transit gives security and ops a shared view of passenger reports and route incidents.
 
 Worth 15 minutes?
 
-{{sender_name}}`,
+{{sender_name}}`),
   },
   {
     id: "intel-scan",
@@ -101,13 +109,13 @@ Worth 15 minutes?
     vertical: "general",
     channel: "email",
     subject: "Complimentary ops intelligence report",
-    body: `Hi {{first_name}},
+    body: withEmailOptOut(`Hi {{first_name}},
 
 We offer a complimentary Operational Intelligence Report from anonymized CAD/call export data — volume by hour, language %, peak load.
 
 Limited slots. Interested for {{agency_name}}?
 
-{{sender_name}}`,
+{{sender_name}}`),
   },
   {
     id: "follow-up",
@@ -115,11 +123,11 @@ Limited slots. Interested for {{agency_name}}?
     vertical: "general",
     channel: "email",
     subject: "Following up — {{agency_name}}",
-    body: `Hi {{first_name}},
+    body: withEmailOptOut(`Hi {{first_name}},
 
 Checking back on our conversation about NexCort iQ for {{agency_name}}. Happy to answer questions or schedule a brief demo.
 
-{{sender_name}}`,
+{{sender_name}}`),
   },
   {
     id: "linkedin-short",

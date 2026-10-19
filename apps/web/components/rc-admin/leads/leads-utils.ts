@@ -42,8 +42,9 @@ export function leadAgency(lead: SalesLeadCrmRecord): string {
 }
 
 export function resolveLeadChannel(lead: SalesLeadCrmRecord): LeadChannel {
-  if (lead.attribution?.channel) return lead.attribution.channel;
   const src = String(lead.source ?? "").toLowerCase();
+  if (src.includes("apollo") || src.includes("email_campaign")) return "email_campaign";
+  if (lead.attribution?.channel && lead.attribution.channel !== "other") return lead.attribution.channel;
   if (src.includes("ring")) return "ring_waitlist";
   if (src.includes("contact") || src.includes("sales") || src.includes("demo")) return "contact_sales";
   if (src.includes("cortex") || src.includes("newsletter") || src.includes("inside")) {
@@ -58,6 +59,7 @@ export function resolveLeadChannel(lead: SalesLeadCrmRecord): LeadChannel {
 
 export function channelShortLabel(channel: LeadChannel): string {
   if (channel === "ring_waitlist") return "RING";
+  if (channel === "email_campaign") return "EMAIL";
   if (channel === "contact_sales") return "SALES";
   if (channel === "inside_the_cortex") return "CORTEX";
   return CHANNEL_CONFIG[channel].label.toUpperCase().slice(0, 8);
@@ -65,6 +67,7 @@ export function channelShortLabel(channel: LeadChannel): string {
 
 export function channelBadgeClass(channel: LeadChannel): string {
   if (channel === "ring_waitlist") return "bg-emerald-500/10 text-emerald-300";
+  if (channel === "email_campaign") return "bg-sky-500/10 text-sky-300";
   if (channel === "contact_sales") return "bg-sky-500/10 text-sky-300";
   if (channel === "inside_the_cortex") return "bg-violet-500/10 text-violet-300";
   if (channel === "organic_search") return "bg-yellow-500/10 text-yellow-300";
@@ -169,7 +172,7 @@ export function matchesSearch(lead: SalesLeadCrmRecord, q: string): boolean {
   return hay.includes(q.trim().toLowerCase());
 }
 
-export type SourceFilter = "all" | "ring_waitlist" | "contact_sales" | "inside_the_cortex";
+export type SourceFilter = "all" | "email_campaign" | "contact_sales" | "inside_the_cortex";
 
 export function matchesSourceFilter(lead: SalesLeadCrmRecord, filter: SourceFilter): boolean {
   if (filter === "all") return true;

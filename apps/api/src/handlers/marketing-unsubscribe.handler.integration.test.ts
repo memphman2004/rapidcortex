@@ -82,4 +82,23 @@ describe("marketing-unsubscribe handler", () => {
     expect(res.statusCode).toBe(400);
     expect(mockDdbSend).not.toHaveBeenCalled();
   });
+
+  it("marks lead unsubscribed via email without token lookup", async () => {
+    mockDdbSend.mockResolvedValueOnce({});
+    const res = await invokeHttpHandler(
+      handler,
+      makeUnauthenticatedEvent({
+        routeKey: "POST /api/marketing/unsubscribe",
+        rawPath: "/api/marketing/unsubscribe",
+        body: JSON.stringify({ email: "Alex@PSAP.Example" }),
+      }),
+    );
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.body ?? "{}")).toEqual({ success: true });
+    expect(mockDdbSend).toHaveBeenCalledTimes(1);
+    expect(mockDdbSend.mock.calls[0]?.[0]).toBeInstanceOf(UpdateCommand);
+    const update = mockDdbSend.mock.calls[0]?.[0] as UpdateCommand;
+    const input = update.input as { Key: { pk: string; sk: string } };
+    expect(input.Key).toEqual({ pk: "LEAD#alex@psap.example", sk: "PROFILE" });
+  });
 });

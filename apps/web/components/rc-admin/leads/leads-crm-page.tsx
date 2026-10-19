@@ -498,7 +498,7 @@ export function LeadsCrmPage() {
 
   const sourceChips: { id: SourceFilter; label: string }[] = [
     { id: "all", label: "All Sources" },
-    { id: "ring_waitlist", label: "Ring™ Waitlist" },
+    { id: "email_campaign", label: "Email campaign" },
     { id: "contact_sales", label: "Contact Sales" },
     { id: "inside_the_cortex", label: "Inside iQ" },
   ];

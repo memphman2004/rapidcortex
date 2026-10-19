@@ -1031,7 +1031,7 @@ export function LeadDetailPanel({
             <section>
               <SectionHeader title="All Lead Sources" />
               <div className="mt-2 flex flex-col gap-2">
-                {(["ring_waitlist", "contact_sales", "inside_the_cortex"] as const).map((ch) => {
+                {(["email_campaign", "contact_sales", "inside_the_cortex"] as const).map((ch) => {
                   const cfg = CHANNEL_CONFIG[ch];
                   const count = attributionSummary?.byChannel[ch]?.count ?? 0;
                   return (

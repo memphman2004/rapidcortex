@@ -112,6 +112,7 @@ export type StageEvent = z.infer<typeof StageEventSchema>;
 
 export const LeadChannelSchema = z.enum([
   "ring_waitlist",
+  "email_campaign",
   "contact_sales",
   "inside_the_cortex",
   "organic_search",
@@ -169,6 +170,12 @@ export const CHANNEL_CONFIG: Record<
     label: "Ring Waitlist",
     color: "#22c55e",
     description: "Homeowner enrolled their Ring device",
+  },
+  email_campaign: {
+    icon: "✉️",
+    label: "Email campaign",
+    color: "#38bdf8",
+    description: "Contact added from an Apollo email campaign",
   },
   contact_sales: {
     icon: "💼",

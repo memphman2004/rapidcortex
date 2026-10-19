@@ -52,10 +52,11 @@ rm -f "${OUT_TMP}" "${OUT_FINAL}"
   # Info-ZIP '*' never crosses '/'; -x '*node_modules*' will not prune trees. Use find -prune.
   # Also prune native/mobile build trees (ios/Pods, Gradle, Expo) — they bloat the zip and stall
   # packaging from external volumes; CodeBuild only needs workspace package.json + web sources.
+  # Prune */out so stale marketing export trees cannot break the walk on macOS find.
   find packages apps \
     \( -path '*/node_modules' -o -path '*/.war-room-staging' -o -path '*/.aws-sam' \
        -o -path '*/.next' -o -path '*/coverage' -o -path '*/.git' \
-       -o -path '*/dist' -o -path 'results' \
+       -o -path '*/dist' -o -path '*/out' -o -path 'results' \
        -o -path '*/ios/Pods' -o -path '*/Pods' \
        -o -path '*/.gradle' -o -path '*/android/build' -o -path '*/.expo' \
        -o -path '*/DerivedData' -o -path '*/build/Release' -o -path '*/build/Debug' \) -prune -o \

@@ -93,6 +93,12 @@ export async function checkSuppression(
   return { suppressed: false };
 }
 
+/** Instantly-style opt-out after signature; `<%…%>` becomes an unsubscribe link in HTML. */
+export const SEQUENCE_OPT_OUT_MESSAGE =
+  "If you don't want to hear from me again, please <%let me know%>.";
+
+const UNSUBSCRIBE_URL = "https://www.nexcortiq.us/unsubscribe";
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -101,11 +107,27 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
+/** Turn Instantly `<%label%>` markers into unsubscribe anchors (Outlook / HTML sends). */
+function expandOptOutMarkersForHtml(bodyText: string): string {
+  const tokenPrefix = "\u0000OPT:";
+  const tokenSuffix = "\u0000";
+  const withTokens = bodyText.replace(/<%\s*([^%]+?)\s*%>/g, (_m, label: string) => {
+    return `${tokenPrefix}${label.trim()}${tokenSuffix}`;
+  });
+  return escapeHtml(withTokens)
+    .replace(/\n/g, "<br>")
+    .replace(
+      new RegExp(`${tokenPrefix}(.*?)${tokenSuffix}`, "g"),
+      (_m, label: string) =>
+        `<a href="${UNSUBSCRIBE_URL}" style="color:#555;text-decoration:underline;">${label}</a>`,
+    );
+}
+
 export function buildHtmlEmail(subject: string, bodyText: string): string {
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>${escapeHtml(subject)}</title></head>
 <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;max-width:560px;margin:40px auto;padding:0 20px;">
-${escapeHtml(bodyText).replace(/\n/g, "<br>")}
+${expandOptOutMarkersForHtml(bodyText)}
 <p style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e5e5;color:#555;font-size:13px;">NexCort iQ · rapidcortex.us</p>
 </body></html>`;
 }
@@ -129,7 +151,7 @@ function scheduleStepsFromOrigin(
 
 function wrapBody(firstName: string | undefined, body: string): string {
   const hi = firstName?.trim() ? `Hi ${firstName.trim()},` : "Hi,";
-  return `${hi}\n\n${body.trim()}\n\nBest,\nThe NexCort iQ team\nrapidcortex.us`;
+  return `${hi}\n\n${body.trim()}\n\nBest,\nThe NexCort iQ team\nrapidcortex.us\n\n${SEQUENCE_OPT_OUT_MESSAGE}`;
 }
 
 export function heuristicThreeTouch(input: {

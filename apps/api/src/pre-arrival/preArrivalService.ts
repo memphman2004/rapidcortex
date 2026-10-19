@@ -72,7 +72,8 @@ export class PreArrivalService {
       env.preArrivalPublicBaseUrl.replace(/\/$/, "") ||
       "";
     if (!baseUrl) throw Object.assign(new Error("MISSING_PUBLIC_BASE_URL"), { statusCode: 400 });
-    const publicUrl = `${baseUrl}/r/${sessionToken}`;
+    // Short public path. /r/* is reserved for QR intake (RCLI), so Pre-Arrival uses /pa/.
+    const publicUrl = `${baseUrl}/pa/${sessionToken}`;
 
     const ttlMinutes = input.ttlMinutes ?? 120;
     const session: PreArrivalSession = {

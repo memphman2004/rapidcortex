@@ -21,6 +21,11 @@ describe("sales automation engine", () => {
     expect(steps.every((s) => s.status === "pending")).toBe(true);
     expect(steps[0]?.email.bodyText).toContain("Hi Maria");
     expect(steps[0]?.email.bodyText).toContain("The NexCort iQ team");
+    expect(steps[0]?.email.bodyText).toContain(
+      "If you don't want to hear from me again, please <%let me know%>.",
+    );
+    expect(steps[0]?.email.bodyHtml).toContain("https://www.nexcortiq.us/unsubscribe");
+    expect(steps[0]?.email.bodyHtml).toContain(">let me know</a>");
     expect(steps[0]?.email.bodyText).not.toMatch(/Jeff Coleman/i);
     expect(steps[0]?.email.subject).toMatch(/less typing while the call is still live/i);
     expect(steps[0]?.email.bodyText).toMatch(/does not replace CAD/i);

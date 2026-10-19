@@ -199,7 +199,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     );
   }
 
-  const siteUrl = "https://www.rapidcortex.us";
+  const siteUrl = "https://www.nexcortiq.us";
   const unsubUrl = `${siteUrl}/unsubscribe?token=${unsubscribeToken}`;
   const sesFrom = env.sesFromEmail || env.contactFromEmail || "noreply@nexcortiq.us";
   const teamEmail = env.rcTeamNotifyEmail || "team@nexcortiq.us";

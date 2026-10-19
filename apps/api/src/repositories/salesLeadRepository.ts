@@ -40,6 +40,7 @@ export type SalesLeadRecord = ContactSalesLeadBody & {
   /** Advisor-facing SMS authorization: pending | opted_in | opted_out. */
   smsConsentStatus?: "pending" | "opted_in" | "opted_out";
   prospectId?: string;
+  apolloContactId?: string;
   agencyName?: string;
   title?: string;
   vertical?: string;

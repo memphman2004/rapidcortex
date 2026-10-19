@@ -105,8 +105,9 @@ export default function RootLayout({
             gtag('config', '${GA_MEASUREMENT_ID}');
           `}
         </Script>
-        <Script id="apollo-website-tracker" strategy="lazyOnload">
-          {`function initApollo(){var o=document.createElement("script");o.src="https://assets.apollo.io/micro/website-tracker/tracker.iife.js";o.async=!0;o.defer=!0;o.onload=function(){window.trackingFunctions.onLoad({appId:"6a79214cacb3420018db7ea1"})};document.head.appendChild(o)}if("requestIdleCallback"in window){requestIdleCallback(initApollo,{timeout:4000})}else{window.addEventListener("load",function(){setTimeout(initApollo,1)})}`}
+        {/* Apollo Website Tracker — must run immediately so Apollo's "Test connection" can detect it. */}
+        <Script id="apollo-website-tracker" strategy="beforeInteractive">
+          {`function initApollo(){var n=Math.random().toString(36).substring(7),o=document.createElement("script");o.src="https://assets.apollo.io/micro/website-tracker/tracker.iife.js?nocache="+n,o.async=!0,o.defer=!0,o.onload=function(){window.trackingFunctions.onLoad({appId:"6a79214cacb3420018db7ea1"})},document.head.appendChild(o)}initApollo();`}
         </Script>
       </head>
       <body className="min-h-full min-h-dvh font-sans text-slate-100 antialiased">

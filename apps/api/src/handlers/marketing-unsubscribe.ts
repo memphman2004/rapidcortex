@@ -1,6 +1,7 @@
 /**
  * Marketing Unsubscribe
- * Route: POST /api/marketing/unsubscribe (public, token-authenticated)
+ * Route: POST /api/marketing/unsubscribe (public)
+ * Accepts either a one-time token or an email (bare /unsubscribe form).
  */
 
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
@@ -18,6 +19,29 @@ const CORS = {
 
 function json(body: object, statusCode = 200) {
   return { statusCode, headers: CORS, body: JSON.stringify(body) };
+}
+
+async function markLeadUnsubscribed(table: string, email: string): Promise<void> {
+  try {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: table,
+        Key: { pk: `LEAD#${email}`, sk: "PROFILE" },
+        UpdateExpression: "SET #status = :unsub, unsubscribedAt = :now",
+        ExpressionAttributeNames: { "#status": "status" },
+        ExpressionAttributeValues: {
+          ":unsub": "unsubscribed",
+          ":now": new Date().toISOString(),
+        },
+        ConditionExpression: "attribute_exists(pk)",
+      }),
+    );
+  } catch (err: unknown) {
+    if ((err as { name?: string }).name === "ConditionalCheckFailedException") {
+      return;
+    }
+    throw err;
+  }
 }
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
@@ -45,15 +69,20 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     return json({ error: msg }, 400);
   }
 
-  const token = parsed.data.token;
   const table = env.marketingLeadsTable;
   if (!table) {
     console.error(JSON.stringify({ msg: "marketing_unsub_error", error: "MARKETING_LEADS_TABLE not set" }));
     return json({ error: "Service unavailable" }, 500);
   }
 
-  let email: string;
   try {
+    if ("email" in parsed.data) {
+      await markLeadUnsubscribed(table, parsed.data.email);
+      console.info(JSON.stringify({ msg: "marketing_lead_unsubscribed", via: "email" }));
+      return json({ success: true });
+    }
+
+    const token = parsed.data.token;
     const tokenRecord = await ddb.send(
       new GetCommand({
         TableName: table,
@@ -65,45 +94,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return json({ success: true });
     }
 
-    email = String(tokenRecord.Item["email"] ?? "");
+    const email = String(tokenRecord.Item["email"] ?? "");
     if (!email) return json({ success: true });
+
+    await markLeadUnsubscribed(table, email);
+    console.info(JSON.stringify({ msg: "marketing_lead_unsubscribed", via: "token" }));
+    return json({ success: true });
   } catch (err) {
     console.error(
       JSON.stringify({
-        msg: "marketing_unsub_token_lookup_error",
+        msg: "marketing_unsub_error",
         error: err instanceof Error ? err.message : String(err),
       }),
     );
     return json({ error: "Failed to process unsubscribe" }, 500);
   }
-
-  try {
-    await ddb.send(
-      new UpdateCommand({
-        TableName: table,
-        Key: { pk: `LEAD#${email}`, sk: "PROFILE" },
-        UpdateExpression: "SET #status = :unsub, unsubscribedAt = :now",
-        ExpressionAttributeNames: { "#status": "status" },
-        ExpressionAttributeValues: {
-          ":unsub": "unsubscribed",
-          ":now": new Date().toISOString(),
-        },
-        ConditionExpression: "attribute_exists(pk)",
-      }),
-    );
-  } catch (err: unknown) {
-    if ((err as { name?: string }).name === "ConditionalCheckFailedException") {
-      return json({ success: true });
-    }
-    console.error(
-      JSON.stringify({
-        msg: "marketing_unsub_update_error",
-        error: err instanceof Error ? err.message : String(err),
-      }),
-    );
-    return json({ error: "Failed to process unsubscribe" }, 500);
-  }
-
-  console.info(JSON.stringify({ msg: "marketing_lead_unsubscribed" }));
-  return json({ success: true });
 };

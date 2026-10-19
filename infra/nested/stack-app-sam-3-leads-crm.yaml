@@ -130,6 +130,18 @@ Resources:
                 - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LeadSignalsTable}/index/*
             - !Ref AWS::NoValue
 
+  ApolloLeadsIngestFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      FunctionName: !Sub "${ManagedPolicyNamePrefix}-apollo-leads-ingest-${DeploymentStage}"
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/rc-admin/apolloLeadsIngest.handler
+      Policies:
+        - !Ref AppManagedPolicyLeadsCrmDdb
+
   RcAdminLeadsCrmFunction:
     Type: AWS::Serverless::Function
     Metadata:

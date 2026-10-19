@@ -1,21 +1,25 @@
 "use client";
 
 /**
- * Unsubscribe page — apps/marketing/src/app/unsubscribe/page.tsx
+ * Unsubscribe page — apps/marketing/app/unsubscribe/page.tsx
  *
- * Reads ?token= from the URL, POSTs to the unsubscribe Lambda,
- * and shows a confirmation. Works as a static export (client-side only).
- *
- * URL format: https://www.nexcortiq.us/unsubscribe?token={uuid}
+ * Token flow:  https://www.nexcortiq.us/unsubscribe?token={uuid}
+ * Bare link:   https://www.nexcortiq.us/unsubscribe  (email form — Instantly / sequence opt-out)
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_APP_ORIGIN ?? "https://app.rapidcortex.us";
+const API_BASE =
+  process.env.NEXT_PUBLIC_APP_ORIGIN?.replace(/\/$/, "") ?? "https://app.rapidcortex.us";
 
-type PageState = "loading" | "confirming" | "processing" | "success" | "already" | "error";
+type PageState =
+  | "loading"
+  | "confirming"
+  | "email_form"
+  | "processing"
+  | "success"
+  | "error";
 
-// ── Styles ────────────────────────────────────────────────────────────────────
 const S = {
   page: {
     minHeight: "100vh",
@@ -83,17 +87,31 @@ const S = {
     margin: "0 auto 24px",
   } as React.CSSProperties,
 
-  btn: (variant: "primary" | "ghost") => ({
+  input: {
+    width: "100%",
     height: "40px",
-    padding: "0 20px",
+    padding: "0 12px",
     borderRadius: "5px",
+    border: "1px solid #1b2b47",
+    background: "#060c1a",
+    color: "#dce6f5",
     fontSize: "13px",
-    fontWeight: 500,
-    cursor: "pointer",
-    border: variant === "primary" ? "none" : "1px solid #1b2b47",
-    background: variant === "primary" ? "#3b82f6" : "transparent",
-    color: variant === "primary" ? "#fff" : "#6b83a8",
-  }) as React.CSSProperties,
+    marginBottom: "12px",
+    boxSizing: "border-box" as const,
+  } as React.CSSProperties,
+
+  btn: (variant: "primary" | "ghost") =>
+    ({
+      height: "40px",
+      padding: "0 20px",
+      borderRadius: "5px",
+      fontSize: "13px",
+      fontWeight: 500,
+      cursor: "pointer",
+      border: variant === "primary" ? "none" : "1px solid #1b2b47",
+      background: variant === "primary" ? "#3b82f6" : "transparent",
+      color: variant === "primary" ? "#fff" : "#6b83a8",
+    }) as React.CSSProperties,
 
   spinner: {
     width: "20px",
@@ -106,36 +124,53 @@ const S = {
   } as React.CSSProperties,
 };
 
-// ── Component ─────────────────────────────────────────────────────────────────
-
 export default function UnsubscribePage() {
   const [state, setState] = useState<PageState>("loading");
   const [token, setToken] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const t = params.get("token")?.trim() ?? null;
     setToken(t);
-    setState(t ? "confirming" : "error");
+    setState(t ? "confirming" : "email_form");
   }, []);
 
-  const handleUnsubscribe = async () => {
-    if (!token) return;
+  const postUnsubscribe = async (body: { token: string } | { email: string }) => {
     setState("processing");
-
+    setFormError(null);
     try {
       const res = await fetch(`${API_BASE}/api/marketing/unsubscribe`, {
-        method:  "POST",
+        method: "POST",
         headers: { "content-type": "application/json" },
-        body:    JSON.stringify({ token }),
+        body: JSON.stringify(body),
       });
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
       setState("success");
     } catch (err) {
       console.error("[unsubscribe]", err);
-      setState("error");
+      setFormError(err instanceof Error ? err.message : "Request failed");
+      setState(token ? "error" : "email_form");
     }
+  };
+
+  const handleTokenUnsubscribe = () => {
+    if (!token) return;
+    void postUnsubscribe({ token });
+  };
+
+  const handleEmailSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    const trimmed = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setFormError("Enter a valid email address.");
+      return;
+    }
+    void postUnsubscribe({ email: trimmed });
   };
 
   return (
@@ -143,8 +178,6 @@ export default function UnsubscribePage() {
       <style>{`@keyframes rcSpin { to { transform: rotate(360deg); } }`}</style>
 
       <div style={S.card}>
-
-        {/* Header */}
         <div style={S.header}>
           <span style={S.logo}>NEXCORT IQ</span>
           <span style={{ fontSize: "10px", color: "#334466", letterSpacing: "0.05em" }}>
@@ -152,10 +185,7 @@ export default function UnsubscribePage() {
           </span>
         </div>
 
-        {/* Body */}
         <div style={S.body}>
-
-          {/* Loading */}
           {state === "loading" && (
             <>
               <div style={S.spinner} />
@@ -163,29 +193,90 @@ export default function UnsubscribePage() {
             </>
           )}
 
-          {/* Confirm */}
           {state === "confirming" && (
             <>
-              <div style={{ ...S.icon, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)" }}>
+              <div
+                style={{
+                  ...S.icon,
+                  background: "rgba(239,68,68,0.1)",
+                  border: "1px solid rgba(239,68,68,0.25)",
+                }}
+              >
                 <span style={{ fontSize: "22px" }}>✕</span>
               </div>
               <h1 style={S.title}>Unsubscribe from Inside iQ?</h1>
               <p style={S.sub}>
-                You won&apos;t receive any more updates from us. You can always sign up again
-                at nexcortiq.us if you change your mind.
+                You won&apos;t receive any more updates from us. You can always sign up again at
+                nexcortiq.us if you change your mind.
               </p>
               <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
                 <a href="https://www.nexcortiq.us" style={{ textDecoration: "none" }}>
-                  <button style={S.btn("ghost")}>Keep me in</button>
+                  <button type="button" style={S.btn("ghost")}>
+                    Keep me in
+                  </button>
                 </a>
-                <button onClick={() => void handleUnsubscribe()} style={S.btn("primary")}>
+                <button type="button" onClick={handleTokenUnsubscribe} style={S.btn("primary")}>
                   Yes, unsubscribe
                 </button>
               </div>
             </>
           )}
 
-          {/* Processing */}
+          {state === "email_form" && (
+            <>
+              <div
+                style={{
+                  ...S.icon,
+                  background: "rgba(59,130,246,0.1)",
+                  border: "1px solid rgba(59,130,246,0.25)",
+                  color: "#3b82f6",
+                }}
+              >
+                ✉
+              </div>
+              <h1 style={S.title}>Unsubscribe from NexCort iQ emails</h1>
+              <p style={S.sub}>
+                Enter the email address that receives our messages and we&apos;ll remove you from
+                the list.
+              </p>
+              <form onSubmit={handleEmailSubmit} style={{ textAlign: "left", maxWidth: 320, margin: "0 auto" }}>
+                <label htmlFor="unsub-email" style={{ display: "block", fontSize: 12, color: "#6b83a8", marginBottom: 6 }}>
+                  Email
+                </label>
+                <input
+                  id="unsub-email"
+                  type="email"
+                  name="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(ev) => setEmail(ev.target.value)}
+                  placeholder="you@agency.gov"
+                  style={S.input}
+                />
+                {formError && (
+                  <p style={{ color: "#f87171", fontSize: 12, margin: "0 0 12px" }}>{formError}</p>
+                )}
+                <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+                  <a href="https://www.nexcortiq.us" style={{ textDecoration: "none" }}>
+                    <button type="button" style={S.btn("ghost")}>
+                      Cancel
+                    </button>
+                  </a>
+                  <button type="submit" style={S.btn("primary")}>
+                    Unsubscribe
+                  </button>
+                </div>
+              </form>
+              <p style={{ ...S.sub, marginTop: 20, marginBottom: 0 }}>
+                Or email{" "}
+                <a href="mailto:hello@nexcortiq.us" style={{ color: "#3b82f6" }}>
+                  hello@nexcortiq.us
+                </a>
+              </p>
+            </>
+          )}
+
           {state === "processing" && (
             <>
               <div style={S.spinner} />
@@ -193,45 +284,75 @@ export default function UnsubscribePage() {
             </>
           )}
 
-          {/* Success */}
           {state === "success" && (
             <>
-              <div style={{ ...S.icon, background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.25)", color: "#22c55e" }}>
+              <div
+                style={{
+                  ...S.icon,
+                  background: "rgba(34,197,94,0.1)",
+                  border: "1px solid rgba(34,197,94,0.25)",
+                  color: "#22c55e",
+                }}
+              >
                 ✓
               </div>
               <h1 style={S.title}>You&apos;ve been unsubscribed.</h1>
               <p style={S.sub}>
-                We&apos;re sorry to see you go. You won&apos;t hear from us again — unless
-                you sign up at the site and we hope one day you will.{" "}
-                Thank you for the time you gave us.
+                We&apos;re sorry to see you go. You won&apos;t hear from us again — unless you sign
+                up at the site and we hope one day you will. Thank you for the time you gave us.
               </p>
               <a href="https://www.nexcortiq.us" style={{ textDecoration: "none" }}>
-                <button style={S.btn("ghost")}>Back to nexcortiq.us</button>
+                <button type="button" style={S.btn("ghost")}>
+                  Back to nexcortiq.us
+                </button>
               </a>
             </>
           )}
 
-          {/* Error / invalid token */}
           {state === "error" && (
             <>
-              <div style={{ ...S.icon, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444" }}>
+              <div
+                style={{
+                  ...S.icon,
+                  background: "rgba(239,68,68,0.08)",
+                  border: "1px solid rgba(239,68,68,0.2)",
+                  color: "#ef4444",
+                }}
+              >
                 !
               </div>
               <h1 style={S.title}>Something went wrong.</h1>
               <p style={S.sub}>
-                This unsubscribe link may have expired or already been used.
-                If you still want to unsubscribe, email us at{" "}
+                This unsubscribe link may have expired or already been used. If you still want to
+                unsubscribe, enter your email{" "}
+                <button
+                  type="button"
+                  onClick={() => setState("email_form")}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#3b82f6",
+                    cursor: "pointer",
+                    padding: 0,
+                    font: "inherit",
+                    textDecoration: "underline",
+                  }}
+                >
+                  here
+                </button>{" "}
+                or email{" "}
                 <a href="mailto:hello@nexcortiq.us" style={{ color: "#3b82f6" }}>
                   hello@nexcortiq.us
-                </a>{" "}
-                and we'll take care of it right away.
+                </a>
+                .
               </p>
               <a href="https://www.nexcortiq.us" style={{ textDecoration: "none" }}>
-                <button style={S.btn("ghost")}>Back to nexcortiq.us</button>
+                <button type="button" style={S.btn("ghost")}>
+                  Back to nexcortiq.us
+                </button>
               </a>
             </>
           )}
-
         </div>
       </div>
     </div>

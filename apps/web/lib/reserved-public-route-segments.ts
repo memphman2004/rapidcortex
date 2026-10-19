@@ -64,6 +64,9 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "register",
   /** Legacy RCLI intake (`/r/{rcli}`). */
   "r",
+  /** Pre-Arrival iQ caller session (`/pa/{token}` and `/pre-arrival/{token}`). */
+  "pa",
+  "pre-arrival",
   /** Public escalation viewer (`/e/{token}`). */
   "e",
   /** Translate officer SMS deep link (`/translate/{sessionId}`) — not a jurisdiction slug. */

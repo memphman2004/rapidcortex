@@ -52,12 +52,18 @@ describe("marketing lead schemas", () => {
     expect(resolveMarketingLeadSource(built.body.referrer)).toBe("twitter");
   });
 
-  it("validates unsubscribe UUID v4", () => {
+  it("validates unsubscribe UUID v4 or email", () => {
     expect(
       marketingUnsubscribeBodySchema.safeParse({
         token: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
       }).success,
     ).toBe(true);
     expect(marketingUnsubscribeBodySchema.safeParse({ token: "not-a-uuid" }).success).toBe(false);
+    const byEmail = marketingUnsubscribeBodySchema.safeParse({ email: "Alex@PSAP.Example" });
+    expect(byEmail.success).toBe(true);
+    if (byEmail.success && "email" in byEmail.data) {
+      expect(byEmail.data.email).toBe("alex@psap.example");
+    }
+    expect(marketingUnsubscribeBodySchema.safeParse({ email: "not-an-email" }).success).toBe(false);
   });
 });

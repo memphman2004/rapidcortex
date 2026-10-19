@@ -110,7 +110,7 @@ export function resolveMarketingLeadSource(referrer: string | null | undefined):
   return "referral";
 }
 
-export const marketingUnsubscribeBodySchema = z
+const marketingUnsubscribeTokenSchema = z
   .object({
     token: z
       .string()
@@ -121,5 +121,23 @@ export const marketingUnsubscribeBodySchema = z
       ),
   })
   .strict();
+
+/** Email path for bare /unsubscribe links (e.g. Instantly opt-out → nexcortiq.us/unsubscribe). */
+const marketingUnsubscribeEmailSchema = z
+  .object({
+    email: z
+      .string()
+      .trim()
+      .min(1, "Required")
+      .email("Invalid email address")
+      .max(320)
+      .transform((v) => v.toLowerCase()),
+  })
+  .strict();
+
+export const marketingUnsubscribeBodySchema = z.union([
+  marketingUnsubscribeTokenSchema,
+  marketingUnsubscribeEmailSchema,
+]);
 
 export type MarketingUnsubscribeBody = z.infer<typeof marketingUnsubscribeBodySchema>;
