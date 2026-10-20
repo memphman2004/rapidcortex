@@ -128,6 +128,9 @@ export function isMarketingPublicPath(pathname: string): boolean {
     first === "status" ||
     first === "crime-log" ||
     first === "rc-guest-assist.html" ||
+    // Pre-Arrival iQ caller SMS links — must stay on app host (not www marketing).
+    first === "pre-arrival" ||
+    first === "pa" ||
     // Authenticated campus/venue/NexCort Admin wizards — reserved so they are not a
     // jurisdiction slug, but they are not marketing pages.
     first === "onboarding" ||

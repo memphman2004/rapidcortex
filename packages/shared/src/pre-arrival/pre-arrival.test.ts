@@ -59,6 +59,22 @@ describe("resolveResponseIQInstructions hierarchy", () => {
     const out = resolveResponseIQInstructions({ cadNatureCode: "MEDICAL" });
     expect(out.protocolId).toBe("GENERIC_MEDICAL_v1");
   });
+
+  it.each([
+    ["MVC", "VEHICLE_CRASH_v1", "hazard"],
+    ["OVERDOSE", "OVERDOSE_v1", "naloxone"],
+    ["STROKE", "STROKE_v1", "last seen normal"],
+    ["UNCONSCIOUS", "UNCONSCIOUS_v1", "wake them"],
+    ["RESPIRATORY", "RESPIRATORY_v1", "sit upright"],
+    ["SEIZURE", "SEIZURE_v1", "mouth"],
+    ["HAZMAT", "HAZMAT_EVACUATE_v1", "fresh air"],
+    ["WELFARE_CHECK", "WELFARE_CHECK_v1", "stay with them"],
+    ["MISSING_PERSON", "MISSING_PERSON_v1", "phone"],
+  ] as const)("maps %s to %s with caller steps", (nature, protocolId, needle) => {
+    const out = resolveResponseIQInstructions({ cadNatureCode: nature });
+    expect(out.protocolId).toBe(protocolId);
+    expect(out.instructions.map((i) => i.text).join(" ").toLowerCase()).toContain(needle);
+  });
 });
 
 describe("callerGuidancePresentation", () => {
@@ -68,6 +84,13 @@ describe("callerGuidancePresentation", () => {
     expect(copy.heardLine.toLowerCase()).toContain("robbery");
     expect(copy.headline.toLowerCase()).toContain("hidden");
     expect(copy.footer.toLowerCase()).toContain("do not take photos");
+  });
+
+  it("uses crash-specific copy for MVC", () => {
+    const copy = callerGuidancePresentation("MVC");
+    expect(copy.tone).toBe("crash");
+    expect(copy.heardLine.toLowerCase()).toContain("vehicle crash");
+    expect(copy.headline.toLowerCase()).toContain("traffic");
   });
 
   it("treats a blank or unknown nature as no caller reason", () => {

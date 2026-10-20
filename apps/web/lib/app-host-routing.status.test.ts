@@ -36,6 +36,13 @@ describe("app-host-routing — public status", () => {
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/translate/xlat_abc"))).toBeNull();
   });
 
+  it("keeps Pre-Arrival caller SMS links on the app host", () => {
+    expect(isMarketingPublicPath("/pre-arrival/tok")).toBe(false);
+    expect(isMarketingPublicPath("/pa/tok")).toBe(false);
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/pre-arrival/tok"))).toBeNull();
+    expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/pa/tok"))).toBeNull();
+  });
+
   it("keeps caller live-video SMS links on the app host", () => {
     expect(isMarketingPublicPath("/media/live/tok")).toBe(false);
     expect(isMarketingPublicPath("/media/upload/tok")).toBe(false);

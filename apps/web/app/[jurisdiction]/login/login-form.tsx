@@ -35,7 +35,7 @@ import {
 } from "@/components/auth/mfa-method-picker";
 import { MfaSetupOptions } from "@/components/auth/mfa-setup-options";
 import { buildRapidCortexTotpOtpauthUrl } from "@/lib/auth/totp-otpauth";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 
 type AuthChallenge =
   | "NEW_PASSWORD_REQUIRED"
@@ -112,14 +112,6 @@ export function LoginForm({
   const [forgotNewPasswordConfirm, setForgotNewPasswordConfirm] = useState("");
   const [forgotInfoMessage, setForgotInfoMessage] = useState<string | null>(null);
   const [passwordResetNoticeVisible, setPasswordResetNoticeVisible] = useState(loginQuery.passwordReset);
-  /** Dev-only: safe auth diagnostics (no tokens). */
-  const [authDbg, setAuthDbg] = useState({
-    step: "idle",
-    sessionPresent: false as boolean,
-    role: "—",
-    redirectTarget: "—",
-    lastError: "—",
-  });
 
   const homePathFor = useCallback(
     (sessionUser: UserContext | null, afterPasswordChange = false): string | null => {
@@ -191,13 +183,6 @@ export function LoginForm({
           sessionPresent: Boolean(sessionUser),
           role: sessionUser?.role ?? null,
           redirectTarget: path,
-        });
-        setAuthDbg({
-          step: ctx,
-          sessionPresent: Boolean(sessionUser),
-          role: sessionUser?.role ?? "(none)",
-          redirectTarget: path ?? "/unauthorized?reason=session",
-          lastError: "—",
         });
       }
       if (sessionUser && path) {
@@ -651,13 +636,6 @@ export function LoginForm({
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as { error?: string } | null;
         setError(body?.error ?? "Sign in failed");
-        if (process.env.NODE_ENV !== "production") {
-          setAuthDbg((d) => ({
-            ...d,
-            step: "signin_failed",
-            lastError: body?.error ?? `http_${res.status}`,
-          }));
-        }
         return;
       }
       const signInBody = (await res.json().catch(() => ({}))) as { redirectTo?: string };
@@ -843,19 +821,23 @@ export function LoginForm({
           <>
             <label className="rc-login-field">
               <span className="rc-login-label">Email</span>
-              <input
-                type="email"
-                autoComplete="username"
-                required
-                placeholder="you@agency.gov"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="rc-login-input"
-              />
+              <div className="rc-login-input-wrap">
+                <Mail className="rc-login-input-icon" aria-hidden />
+                <input
+                  type="email"
+                  autoComplete="username"
+                  required
+                  placeholder="you@agency.gov"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="rc-login-input rc-login-input--icon"
+                />
+              </div>
             </label>
             <label className="rc-login-field">
               <span className="rc-login-label">Password</span>
               <div className="rc-login-password-wrap">
+                <Lock className="rc-login-input-icon" aria-hidden />
                 <input
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
@@ -863,7 +845,7 @@ export function LoginForm({
                   placeholder="••••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="rc-login-input rc-login-input--password"
+                  className="rc-login-input rc-login-input--password rc-login-input--icon"
                 />
                 <button
                   type="button"
@@ -1076,7 +1058,7 @@ export function LoginForm({
                       ? "Reset password and sign in"
                       : inForgotRequest
                         ? "Send verification code"
-                        : "Sign in"}
+                        : "Sign in →"}
           </button>
         )}
 
@@ -1103,17 +1085,6 @@ export function LoginForm({
           </button>
         ) : null}
 
-        {process.env.NODE_ENV !== "production" ? (
-          <div className="mt-6 rounded-md border border-amber-900/40 bg-slate-950/80 p-3 font-mono text-[10px] leading-relaxed text-amber-100/90">
-            <div className="font-semibold text-amber-200">Auth debug (dev only)</div>
-            <div>step: {authDbg.step}</div>
-            <div>session: {authDbg.sessionPresent ? "yes" : "no"}</div>
-            <div>role: {authDbg.role}</div>
-            <div className="break-all">target: {authDbg.redirectTarget}</div>
-            <div className="break-all">last error: {authDbg.lastError}</div>
-          </div>
-        ) : null}
-
         {!activeChallenge && !inForgotRequest && !inForgotConfirm ? (
           <div className="rc-login-card__footer">
             <p className="rc-login-card__account-note">
@@ -1122,8 +1093,8 @@ export function LoginForm({
             <div className="rc-login-card__request-access">
               <h2>New to NexCort iQ?</h2>
               <p>
-                NexCort iQ is an AI-powered platform for verified 911 dispatch centers and public
-                safety agencies.
+                NexCort iQ supports emergency communications and public safety operations with
+                real-time intelligence, decision support, and operational awareness.
               </p>
               <a href={requestAccessHref}>Request Access for Your Agency</a>
             </div>

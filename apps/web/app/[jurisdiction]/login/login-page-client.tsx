@@ -4,7 +4,8 @@ import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
 import type { LoginQuerySnapshot } from "@/lib/auth/login-query";
 import { marketingHomePath } from "@/lib/marketing-links";
-import { SITE_LOGO_HEIGHT, SITE_LOGO_PATH, SITE_LOGO_WIDTH, SITE_NAME } from "@/lib/site";
+import { SITE_NAME } from "@/lib/site";
+import { LoginBackground } from "@/components/auth/login-background";
 import { RapidCortexPulse, type PulseState } from "@/components/auth/rapid-cortex-pulse";
 import { LoginForm } from "./login-form";
 
@@ -39,19 +40,17 @@ export function LoginPageClient({ loginQuery, signInConfigured, year }: Props) {
 
   return (
     <main className="rc-login-page">
-      <div className="rc-login-page__grid" aria-hidden />
-      <div className="rc-login-page__glow-blue" aria-hidden />
-      <div className="rc-login-page__glow-red" aria-hidden />
+      <LoginBackground />
       <RapidCortexPulse state={pulseState} onSuccessComplete={handleSuccessComplete} />
 
       <div className="rc-login-page__column">
         <header className="rc-login-brand">
           <a href={marketingHomePath()} aria-label={`${SITE_NAME} home`}>
             <Image
-              src={SITE_LOGO_PATH}
+              src="/Logo/nexcort-iq-logo-alpha.png"
               alt={SITE_NAME}
-              width={SITE_LOGO_WIDTH}
-              height={SITE_LOGO_HEIGHT}
+              width={1024}
+              height={682}
               priority
               unoptimized
               className="rc-login-brand__logo"
