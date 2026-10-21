@@ -1,8 +1,9 @@
 "use client";
 
 import type { RapidIqOpportunity, RapidIqVertical } from "@/lib/rapid-iq/types";
-import type { RapidIqPipelineSignal } from "rapid-cortex-shared";
+import type { NexiqSignalRecord, RapidIqPipelineSignal } from "rapid-cortex-shared";
 import { ActNowSection } from "./act-now-section";
+import { CivicIqInboxCard } from "./civic-iq-inbox-card";
 import { IncomingSignalCard } from "./incoming-signal-card";
 import { OpportunityCard } from "./opportunity-card";
 
@@ -23,6 +24,9 @@ type Props = {
   onAddSignalToPipeline?: (signal: RapidIqPipelineSignal) => void;
   onDismissSignal?: (signal: RapidIqPipelineSignal) => void;
   pipelineEnabled?: boolean;
+  civicSignals?: NexiqSignalRecord[];
+  civicBusyId?: string | null;
+  onCivicAction?: (signal: NexiqSignalRecord, action: "track" | "dismiss" | "push_to_crm") => void;
 };
 
 export function OpportunityFeed({
@@ -42,10 +46,14 @@ export function OpportunityFeed({
   onAddSignalToPipeline,
   onDismissSignal,
   pipelineEnabled = true,
+  civicSignals = [],
+  civicBusyId = null,
+  onCivicAction,
 }: Props) {
   const actNow = opportunities.filter((o) => o.isActNow);
   const rest = opportunities.filter((o) => !o.isActNow);
-  const total = opportunities.length + incomingSignals.length;
+  const total = opportunities.length + incomingSignals.length + civicSignals.length;
+  const inboxRows = mixedInboxRows(incomingSignals, civicSignals);
 
   const card = (opp: RapidIqOpportunity) => (
     <OpportunityCard
@@ -76,19 +84,29 @@ export function OpportunityFeed({
       </div>
 
       <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[rgba(255,255,255,0.06)]">
-        {incomingSignals.map((signal) => (
-          <IncomingSignalCard
-            key={signal.signalId}
-            signal={signal}
-            selected={selectedSignalId === signal.signalId}
-            busy={addingPipelineId === signal.signalId || dismissingId === signal.signalId}
-            vertical={vertical}
-            demo={demo}
-            onSelect={() => onSelectSignal?.(signal.signalId)}
-            onAddToPipeline={() => onAddSignalToPipeline?.(signal)}
-            onDismiss={() => onDismissSignal?.(signal)}
-          />
-        ))}
+        {inboxRows.map((row) =>
+          row.kind === "pipeline" ? (
+            <IncomingSignalCard
+              key={row.signal.signalId}
+              signal={row.signal}
+              selected={selectedSignalId === row.signal.signalId}
+              busy={addingPipelineId === row.signal.signalId || dismissingId === row.signal.signalId}
+              vertical={vertical}
+              demo={demo}
+              onSelect={() => onSelectSignal?.(row.signal.signalId)}
+              onAddToPipeline={() => onAddSignalToPipeline?.(row.signal)}
+              onDismiss={() => onDismissSignal?.(row.signal)}
+            />
+          ) : (
+            <CivicIqInboxCard
+              key={`civic-${row.signal.signalId}`}
+              signal={row.signal}
+              feedTab={vertical}
+              busy={civicBusyId === row.signal.signalId}
+              onAction={(action) => onCivicAction?.(row.signal, action)}
+            />
+          ),
+        )}
         {actNow.length > 0 && (
           <ActNowSection count={actNow.length}>
             {actNow.map((opp) => card(opp))}
@@ -107,4 +125,32 @@ export function OpportunityFeed({
       </div>
     </div>
   );
+}
+
+function mixedInboxRows(
+  incoming: RapidIqPipelineSignal[],
+  civic: NexiqSignalRecord[],
+): Array<
+  | { kind: "pipeline"; at: number; signal: RapidIqPipelineSignal }
+  | { kind: "civic"; at: number; signal: NexiqSignalRecord }
+> {
+  const rows = [
+    ...incoming.map((signal) => ({
+      kind: "pipeline" as const,
+      at: timeOf(signal.signalDate || signal.ingestedAt),
+      signal,
+    })),
+    ...civic.map((signal) => ({
+      kind: "civic" as const,
+      at: timeOf(signal.createdAt),
+      signal,
+    })),
+  ];
+  rows.sort((a, b) => b.at - a.at);
+  return rows;
+}
+
+function timeOf(iso: string | null | undefined): number {
+  const t = Date.parse(iso ?? "");
+  return Number.isFinite(t) ? t : 0;
 }

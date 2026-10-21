@@ -3,7 +3,12 @@
 import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { RapidIqOpportunity, IntentStage, RapidIqVertical } from "@/lib/rapid-iq/types";
-import type { RapidIqPipelineSignal, RapidIqProcurementStageFilterId } from "rapid-cortex-shared";
+import type {
+  NexiqSignalRecord,
+  NexiqSignalVertical,
+  RapidIqPipelineSignal,
+  RapidIqProcurementStageFilterId,
+} from "rapid-cortex-shared";
 import { matchesProcurementStageFilter, matchesWatchFeedFilter, resolveProcurementStage } from "rapid-cortex-shared";
 import {
   computeStats,
@@ -30,7 +35,8 @@ import {
   pipelineOpportunityIdSet as pipelineOppIds,
 } from "@/lib/rapid-iq/pipeline-api";
 import { fetchRfpCounts, RFP_COUNTS_QUERY_KEY } from "@/lib/rapid-iq/intel-api";
-import { isRapidIqIntelUiEnabled, isRapidIqPipelineUiEnabled } from "@/lib/runtime-flags";
+import { isNexiqSignalsUiEnabled, isRapidIqIntelUiEnabled, isRapidIqPipelineUiEnabled } from "@/lib/runtime-flags";
+import { listNexiqSignals, NEXIQ_SIGNALS_QUERY_KEY, patchNexiqSignal } from "@/lib/nexiq-signals/api";
 import { IncomingSignalDetail } from "./incoming-signal-detail";
 import { OpportunityDetailPanel } from "./opportunity-detail-panel";
 import { OpportunityFeed } from "./opportunity-feed";
@@ -43,7 +49,14 @@ import { ManualSignalForm } from "./manual-signal-form";
 import { OpportunityIntelView } from "./opportunity-intel-view";
 import { FEED_TAB_LABELS, VerticalTabs, type FeedTab } from "./vertical-tabs";
 import { ProcurementStageTabs } from "./procurement-stage-tabs";
-import { NexiqSignalsPanel } from "./nexiq-signals-panel";
+
+const CIVIC_VERTICAL_FOR_TAB: Record<FeedTab, NexiqSignalVertical | null> = {
+  "911": "core_psap",
+  campus: "campus",
+  venue: "venue",
+  transit: "transit",
+  competitor: null,
+};
 
 const US_STATES = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS",
@@ -74,6 +87,8 @@ export function RapidIqClient() {
   const [dismissingId, setDismissingId] = useState<string | null>(null);
   const [pipelineToast, setPipelineToast] = useState<string | null>(null);
   const [pipelineActionError, setPipelineActionError] = useState<string | null>(null);
+  const [civicBusyId, setCivicBusyId] = useState<string | null>(null);
+  const civicEnabled = isNexiqSignalsUiEnabled();
 
   const listVertical: RapidIqVertical | undefined =
     feedTab === "competitor" ? undefined : feedTab;
@@ -98,6 +113,15 @@ export function RapidIqClient() {
     staleTime: 30_000,
     refetchInterval: 60_000,
     enabled: pipelineEnabled,
+    retry: 1,
+  });
+
+  const civicQ = useQuery({
+    queryKey: [...NEXIQ_SIGNALS_QUERY_KEY, "inbox", "new"],
+    queryFn: () => listNexiqSignals({ status: "new", limit: 40 }),
+    enabled: civicEnabled,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
     retry: 1,
   });
 
@@ -128,6 +152,36 @@ export function RapidIqClient() {
       }),
     [pipelineItems, feedTab, procurementStageFilter, taxonomyFilter],
   );
+
+  const civicSignals = useMemo(() => {
+    if (
+      !civicEnabled ||
+      procurementStageFilter !== "all" ||
+      stageFilter !== "all" ||
+      taxonomyFilter
+    ) {
+      return [];
+    }
+    const vertical = CIVIC_VERTICAL_FOR_TAB[feedTab];
+    if (!vertical) return [];
+    const q = search.trim().toLowerCase();
+    return (civicQ.data?.items ?? []).filter((signal) => {
+      if (signal.vertical !== vertical || signal.status !== "new") return false;
+      if (stateFilter !== "all" && signal.geography?.state !== stateFilter) return false;
+      if (!q) return true;
+      const hay = `${signal.title} ${signal.agencyName} ${signal.summary} ${signal.geography?.state ?? ""}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }, [
+    civicEnabled,
+    civicQ.data?.items,
+    feedTab,
+    procurementStageFilter,
+    search,
+    stageFilter,
+    stateFilter,
+    taxonomyFilter,
+  ]);
   const taxonomyChips = useMemo(() => {
     const counts = new Map<string, number>();
     for (const s of inboxPipelineSignals(pipelineItems, feedTab)) {
@@ -365,9 +419,27 @@ export function RapidIqClient() {
     }
   }
 
+  async function handleCivicAction(
+    signal: NexiqSignalRecord,
+    action: "track" | "dismiss" | "push_to_crm",
+  ) {
+    setCivicBusyId(signal.signalId);
+    setPipelineActionError(null);
+    try {
+      await patchNexiqSignal(signal.signalId, action);
+      await qc.invalidateQueries({ queryKey: NEXIQ_SIGNALS_QUERY_KEY });
+      const label =
+        action === "push_to_crm" ? "Pushed to CRM" : action === "track" ? "Tracking" : "Dismissed";
+      setPipelineToast(`${label} — ${signal.agencyName || signal.title}`);
+    } catch (err) {
+      setPipelineActionError(err instanceof Error ? err.message : "Civic IQ action failed");
+    } finally {
+      setCivicBusyId(null);
+    }
+  }
+
   return (
     <div className="flex min-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#050c1a]">
-      <NexiqSignalsPanel />
       <RapidIqStatsBar
         stats={stats}
         lastUpdated={
@@ -567,6 +639,9 @@ export function RapidIqClient() {
                 onAddSignalToPipeline={(s) => void handleAddSignalToPipeline(s)}
                 onDismissSignal={(s) => void handleDismissSignal(s)}
                 pipelineEnabled={pipelineEnabled}
+                civicSignals={civicSignals}
+                civicBusyId={civicBusyId}
+                onCivicAction={(signal, action) => void handleCivicAction(signal, action)}
               />
             )}
           </div>
