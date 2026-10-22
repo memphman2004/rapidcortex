@@ -4,7 +4,7 @@ export function salesAutomationPathRequiresManage(
   segments: string[] | undefined,
 ): boolean {
   const m = method.toUpperCase();
-  if (m === "PATCH" || m === "PUT") return true;
+  if (m === "DELETE" || m === "PATCH" || m === "PUT") return true;
   if (m !== "POST" && m !== "GET") return false;
   const path = (segments ?? []).join("/");
   if (path.includes("approve") || path.includes("suppress")) return true;

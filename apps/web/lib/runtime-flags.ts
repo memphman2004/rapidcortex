@@ -123,6 +123,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_COMMAND_INTELLIGENCE: process.env.NEXT_PUBLIC_ENABLE_COMMAND_INTELLIGENCE,
   NEXT_PUBLIC_ENABLE_NEXIQ_VAULT: process.env.NEXT_PUBLIC_ENABLE_NEXIQ_VAULT,
   NEXT_PUBLIC_ENABLE_ESCORT_IQ: process.env.NEXT_PUBLIC_ENABLE_ESCORT_IQ,
+  NEXT_PUBLIC_ENABLE_BUSINESS_CARDS: process.env.NEXT_PUBLIC_ENABLE_BUSINESS_CARDS,
   NEXT_PUBLIC_ENABLE_CAMPUS_ALERTS: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_ALERTS,
 };
 
@@ -132,6 +133,7 @@ const CHANNEL_MONITORING_FLAG = "NEXT_PUBLIC_ENABLE_CHANNEL_MONITORING";
 const PHYSICAL_SECURITY_COMMANDS_FLAG = "NEXT_PUBLIC_ENABLE_PHYSICAL_SECURITY_COMMANDS";
 const SCENARIO_CENTER_FLAG = "NEXT_PUBLIC_ENABLE_SCENARIO_CENTER";
 const ESCORT_IQ_FLAG = "NEXT_PUBLIC_ENABLE_ESCORT_IQ";
+const BUSINESS_CARDS_FLAG = "NEXT_PUBLIC_ENABLE_BUSINESS_CARDS";
 const CAMPUS_ALERTS_FLAG = "NEXT_PUBLIC_ENABLE_CAMPUS_ALERTS";
 
 function isEnabledValue(value: string | undefined): boolean {
@@ -159,6 +161,7 @@ function envFlag(name: string): boolean {
     name === PHYSICAL_SECURITY_COMMANDS_FLAG ||
     name === SCENARIO_CENTER_FLAG ||
     name === ESCORT_IQ_FLAG ||
+    name === BUSINESS_CARDS_FLAG ||
     name === CAMPUS_ALERTS_FLAG
   ) {
     if (isEnabledValue(value)) return true;
@@ -515,6 +518,11 @@ export function isPinpointEnabled(): boolean {
  */
 export function isEscortIqEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_ESCORT_IQ");
+}
+
+/** Digital business cards. Fail-closed until NEXT_PUBLIC_ENABLE_BUSINESS_CARDS is true. */
+export function isBusinessCardsUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_BUSINESS_CARDS");
 }
 
 /**

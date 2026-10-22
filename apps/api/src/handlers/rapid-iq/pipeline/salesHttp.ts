@@ -21,13 +21,18 @@ import { makeId } from "../../../lib/ids.js";
 import { env } from "../../../lib/env.js";
 import {
   deleteOutlookConnection,
+  deleteSalesDraft,
+  deleteSalesSequence,
   getOutlookConnection,
+  getSalesCampaignControl,
   getSalesDraft,
   getSalesSequence,
+  listSalesCampaignControls,
   listSalesDrafts,
   listSalesSequences,
   putOutlookConnection,
   putSalesDraft,
+  upsertSalesCampaignControl,
 } from "../../../lib/rapid-iq/sales-automation-db.js";
 import {
   buildOutlookAuthorizeUrl,
@@ -42,11 +47,13 @@ import {
   type SalesOutlookConnection,
 } from "../../../lib/rapid-iq/outlook-graph.js";
 import {
+  applyCampaignControls,
   approveBulkCampaign,
   approveSequence,
   computeSalesMetrics,
   createBulkCampaign,
   createSequenceFromTrigger,
+  deleteBulkCampaign,
   listCampaignCards,
   summarizeBulkBatches,
   suppressSequence,
@@ -64,6 +71,7 @@ import {
   serviceUnavailable,
 } from "../../../lib/response.js";
 import { AuditRepository } from "../../../repositories/auditRepository.js";
+import { listApolloEmailerCampaigns } from "../../../lib/rapid-iq/apollo-campaigns.js";
 import { sendDueStepsNow } from "./sales-automation-send.js";
 
 const auditRepo = new AuditRepository();
@@ -151,6 +159,47 @@ export async function handleSalesAutomationHttp(
     return ok({ metrics });
   }
 
+  const campaignMatch = path.match(/\/sales-automation\/campaigns\/([^/]+)/);
+  if (campaignMatch?.[1]) {
+    const campaignId = decodeURIComponent(campaignMatch[1]);
+    if (method === "DELETE") {
+      const denied = denyUnlessManage(user);
+      if (denied) return denied;
+      await upsertSalesCampaignControl(campaignId, { deleted: true });
+      await audit(user, "rapid_iq.sales_campaign_deleted", campaignId, {});
+      return ok({ deleted: true, campaignId });
+    }
+    if (method === "POST" && path.endsWith("/approve")) {
+      const denied = denyUnlessManage(user);
+      if (denied) return denied;
+      const control = await upsertSalesCampaignControl(campaignId, { approved: true, deleted: false });
+      await audit(user, "rapid_iq.sales_campaign_approved", campaignId, { approved: control.approved });
+      return ok({ campaignId, approved: true });
+    }
+    if (method === "PATCH" || method === "PUT") {
+      const denied = denyUnlessManage(user);
+      if (denied) return denied;
+      const body = parseBody(event);
+      if (body === null) return badRequest("Invalid JSON");
+      const parsed = updateNexiQSalesDraftBodySchema.safeParse(body);
+      if (!parsed.success) return badRequestFromZod(parsed.error);
+      const subject = parsed.data.subject?.trim();
+      const bodyText = parsed.data.bodyText?.trim();
+      if (!subject && !bodyText) return badRequest("Provide a subject or message");
+      const control = await upsertSalesCampaignControl(campaignId, {
+        ...(subject ? { subject } : {}),
+        ...(bodyText ? { bodyText } : {}),
+      });
+      await audit(user, "rapid_iq.sales_campaign_edited", campaignId, {});
+      return ok({ campaign: control });
+    }
+    if (method === "GET") {
+      const control = await getSalesCampaignControl(campaignId);
+      if (!control || control.deleted) return notFound("Campaign not found");
+      return ok({ campaign: control });
+    }
+  }
+
   if (method === "GET" && path.includes("/sales-automation/campaigns")) {
     let conferences: Awaited<ReturnType<ConferenceRepository["listByAgency"]>> = [];
     if (env.conferencesTable) {
@@ -166,7 +215,23 @@ export async function handleSalesAutomationHttp(
       }
     }
     const sequences = await listSalesSequences(500);
-    return ok({ campaigns: listCampaignCards(conferences), batches: summarizeBulkBatches(sequences) });
+    const apollo = await listApolloEmailerCampaigns();
+    let controls: Awaited<ReturnType<typeof listSalesCampaignControls>> = [];
+    try {
+      controls = await listSalesCampaignControls();
+    } catch (err) {
+      console.warn(
+        JSON.stringify({
+          msg: "rapid_iq_sales_campaign_controls_failed",
+          error: err instanceof Error ? err.message : String(err),
+        }),
+      );
+    }
+    return ok({
+      campaigns: applyCampaignControls(listCampaignCards(conferences), controls),
+      batches: summarizeBulkBatches(sequences),
+      apollo,
+    });
   }
 
   if (method === "GET" && (path.endsWith("/sales-automation/drafts") || path.endsWith("/sales-automation/drafts/"))) {
@@ -203,6 +268,14 @@ export async function handleSalesAutomationHttp(
         if (message === "Draft not found") return notFound(message);
         return badRequest(message);
       }
+    }
+    if (method === "DELETE" && !path.endsWith("/approve")) {
+      const denied = denyUnlessManage(user);
+      if (denied) return denied;
+      const removed = await deleteSalesDraft(draftId);
+      if (!removed) return notFound("Draft not found");
+      await audit(user, "rapid_iq.sales_draft_deleted", draftId, {});
+      return ok({ deleted: true, draftId });
     }
     if (method === "GET") {
       const draft = await getSalesDraft(draftId);
@@ -291,6 +364,14 @@ export async function handleSalesAutomationHttp(
         if (message === "Sequence not found") return notFound(message);
         return badRequest(message);
       }
+    }
+    if (method === "DELETE" && !path.endsWith("/approve") && !path.endsWith("/suppress")) {
+      const denied = denyUnlessManage(user);
+      if (denied) return denied;
+      const removed = await deleteSalesSequence(seqId);
+      if (!removed) return notFound("Sequence not found");
+      await audit(user, "rapid_iq.sales_seq_deleted", seqId, {});
+      return ok({ deleted: true, sequenceId: seqId });
     }
     if (method === "GET") {
       const sequence = await getSalesSequence(seqId);
@@ -474,6 +555,17 @@ async function handleBulk(
     } catch (err) {
       return badRequest(err instanceof Error ? err.message : "Bulk copy update failed");
     }
+  }
+
+  const bulkCampaignId = path.match(/\/sales-automation\/bulk\/([^/]+)/)?.[1];
+  if (method === "DELETE" && bulkCampaignId && bulkCampaignId !== "approve") {
+    const denied = denyUnlessManage(user);
+    if (denied) return denied;
+    const campaignId = decodeURIComponent(bulkCampaignId);
+    const result = await deleteBulkCampaign(campaignId);
+    if (result.deleted === 0) return notFound("Campaign not found");
+    await audit(user, "rapid_iq.sales_seq_deleted", campaignId, { bulk: true, deleted: result.deleted });
+    return ok({ result });
   }
 
   if (method === "POST" && (path.endsWith("/sales-automation/bulk") || path.endsWith("/sales-automation/bulk/"))) {

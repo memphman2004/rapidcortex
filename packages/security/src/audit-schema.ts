@@ -569,6 +569,11 @@ export const AUDIT_EVENT_TYPES = {
   /** Supervisor loaded the live operator presence list. */
   SUPERVISOR_OPERATORS_VIEWED: "supervisor.operators.viewed",
 
+  /** K-12 silent panic pressed. Does not page law enforcement. */
+  SILENT_PANIC_ACTIVATED: "campus.silent_panic.activated",
+  SILENT_PANIC_ACKNOWLEDGED: "campus.silent_panic.acknowledged",
+  SILENT_PANIC_CLOSED: "campus.silent_panic.closed",
+
   AI_GATE_ENABLED: "ai_gate.enabled",
   AI_GATE_DISABLED: "ai_gate.disabled",
   AI_GATE_FEATURE_CHANGED: "ai_gate.feature_changed",

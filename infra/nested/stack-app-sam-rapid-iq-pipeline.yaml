@@ -188,7 +188,7 @@ Globals:
         OUTLOOK_OAUTH_REDIRECT_URI: !Ref OutlookOAuthRedirectUri
         OUTLOOK_OAUTH_TENANT: !Ref OutlookOAuthTenant
         OUTLOOK_GRAPH_MOCK: !Ref OutlookGraphMock
-        OUTLOOK_SALES_MAILBOX: hello@nexcortiq.us
+        OUTLOOK_SALES_MAILBOX: jeff@nexcortiq.us
 
 Resources:
   NodeDepsLayer:
@@ -935,7 +935,7 @@ Resources:
           Properties:
             Schedule: cron(0 8 ? * MON *)
             Enabled: true
-            Description: NexiQ Inside the Cortex newsletter draft
+            Description: NexiQ Inside iQ newsletter draft
             Input: '{"job":"newsletter"}'
         BudgetSeason:
           Type: Schedule

@@ -113,6 +113,7 @@ export * from "./campus/place-cameras.js";
 export * from "./campus/info-tab.js";
 export * from "./campus/escort-iq/index.js";
 export * from "./campus/campus-alerts/index.js";
+export * from "./campus/silent-panic.js";
 export * from "./venue/dashboard-schemas.js";
 export * from "./qr-nfc/types.js";
 export * from "./qr-nfc/schemas.js";

@@ -50,6 +50,7 @@ import {
   isGisEnabled,
   isEscortIqEnabled,
   isCampusAlertsEnabled,
+  isBusinessCardsUiEnabled,
 } from "@/lib/runtime-flags";
 import { isVerticalEnabled } from "@/lib/features";
 
@@ -160,6 +161,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isEscortIqEnabled();
     case "campusAlerts":
       return isCampusAlertsEnabled();
+    case "businessCards":
+      return isBusinessCardsUiEnabled();
     default:
       return true;
   }

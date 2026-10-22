@@ -1,7 +1,8 @@
 /**
  * Sales automation persistence on RAPID_IQ_PIPELINE_SIGNALS_TABLE.
- * SEQ#{id}/META sequences, DRAFT#{id}/META content, SENT#{email}/{iso} contact window,
- * UNSUB#{email}/META local suppression, OUTLOOK#PLATFORM/META Graph mailbox tokens.
+ * SEQ#{id}/META sequences, DRAFT#{id}/META content, SALES_CAMPAIGN#{id}/META schedule controls,
+ * SENT#{email}/{iso} contact window, UNSUB#{email}/META local suppression,
+ * OUTLOOK#PLATFORM/META Graph mailbox tokens.
  */
 
 import { DeleteCommand, GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
@@ -28,6 +29,34 @@ function seqPk(id: string): string {
 
 function draftPk(id: string): string {
   return `DRAFT#${id}`;
+}
+
+const SALES_CAMPAIGN_GSI2PK = "SALES_CAMPAIGN#ALL";
+
+export type SalesCampaignControl = {
+  campaignId: string;
+  deleted: boolean;
+  approved: boolean;
+  subject?: string;
+  bodyText?: string;
+  updatedAt: string;
+};
+
+function campaignPk(id: string): string {
+  return `SALES_CAMPAIGN#${id}`;
+}
+
+function parseCampaignControl(item: Record<string, unknown>): SalesCampaignControl | null {
+  const campaignId = typeof item.campaignId === "string" ? item.campaignId.trim() : "";
+  if (!campaignId) return null;
+  return {
+    campaignId,
+    deleted: item.deleted === true,
+    approved: item.approved === true,
+    subject: typeof item.subject === "string" ? item.subject : undefined,
+    bodyText: typeof item.bodyText === "string" ? item.bodyText : undefined,
+    updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : new Date().toISOString(),
+  };
 }
 
 function stripKeys(obj: Record<string, unknown>): Record<string, unknown> {
@@ -114,6 +143,83 @@ export async function getSalesDraft(id: string): Promise<RapidIqSalesContentDraf
   if (!res.Item) return null;
   const parsed = rapidIqSalesContentDraftSchema.safeParse(stripKeys(res.Item as Record<string, unknown>));
   return parsed.success ? parsed.data : null;
+}
+
+export async function deleteSalesSequence(id: string): Promise<boolean> {
+  const existing = await getSalesSequence(id);
+  if (!existing) return false;
+  await pipelineDdb.send(
+    new DeleteCommand({ TableName: table(), Key: { pk: seqPk(id), sk: "META" } }),
+  );
+  return true;
+}
+
+export async function deleteSalesDraft(id: string): Promise<boolean> {
+  const existing = await getSalesDraft(id);
+  if (!existing) return false;
+  await pipelineDdb.send(
+    new DeleteCommand({ TableName: table(), Key: { pk: draftPk(id), sk: "META" } }),
+  );
+  return true;
+}
+
+export async function getSalesCampaignControl(id: string): Promise<SalesCampaignControl | null> {
+  const res = await pipelineDdb.send(
+    new GetCommand({ TableName: table(), Key: { pk: campaignPk(id), sk: "META" } }),
+  );
+  if (!res.Item) return null;
+  return parseCampaignControl(res.Item as Record<string, unknown>);
+}
+
+export async function listSalesCampaignControls(): Promise<SalesCampaignControl[]> {
+  const items: SalesCampaignControl[] = [];
+  let ExclusiveStartKey: Record<string, unknown> | undefined;
+  do {
+    const res = await pipelineDdb.send(
+      new QueryCommand({
+        TableName: table(),
+        IndexName: "gsi2-source-date",
+        KeyConditionExpression: "gsi2pk = :pk",
+        ExpressionAttributeValues: { ":pk": SALES_CAMPAIGN_GSI2PK },
+        ExclusiveStartKey,
+      }),
+    );
+    for (const item of res.Items ?? []) {
+      const parsed = parseCampaignControl(item as Record<string, unknown>);
+      if (parsed) items.push(parsed);
+    }
+    ExclusiveStartKey = res.LastEvaluatedKey as Record<string, unknown> | undefined;
+  } while (ExclusiveStartKey);
+  return items;
+}
+
+export async function upsertSalesCampaignControl(
+  id: string,
+  patch: Partial<Pick<SalesCampaignControl, "deleted" | "approved" | "subject" | "bodyText">>,
+): Promise<SalesCampaignControl> {
+  const current = await getSalesCampaignControl(id);
+  const next: SalesCampaignControl = {
+    campaignId: id,
+    deleted: patch.deleted ?? current?.deleted ?? false,
+    approved: patch.approved ?? current?.approved ?? false,
+    subject: patch.subject !== undefined ? patch.subject : current?.subject,
+    bodyText: patch.bodyText !== undefined ? patch.bodyText : current?.bodyText,
+    updatedAt: new Date().toISOString(),
+  };
+  await pipelineDdb.send(
+    new PutCommand({
+      TableName: table(),
+      Item: {
+        ...next,
+        pk: campaignPk(id),
+        sk: "META",
+        entityType: "sales_campaign",
+        gsi2pk: SALES_CAMPAIGN_GSI2PK,
+        gsi2sk: next.updatedAt,
+      },
+    }),
+  );
+  return next;
 }
 
 export async function listSalesDrafts(limit = 50): Promise<RapidIqSalesContentDraft[]> {

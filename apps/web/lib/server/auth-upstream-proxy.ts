@@ -87,6 +87,10 @@ export async function proxyToAuthUpstream(
   if (contentType) responseHeaders.set("content-type", contentType);
   const contentDisposition = upstream.headers.get("content-disposition");
   if (contentDisposition) responseHeaders.set("content-disposition", contentDisposition);
+  for (const name of ["location", "cache-control", "retry-after"]) {
+    const value = upstream.headers.get(name);
+    if (value) responseHeaders.set(name, value);
+  }
 
   const response = new NextResponse(upstream.body, {
     status: upstream.status,

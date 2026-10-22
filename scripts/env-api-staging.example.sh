@@ -221,8 +221,8 @@ export NEXT_PUBLIC_ENABLE_NEXIQ_SIGNALS="${NEXT_PUBLIC_ENABLE_NEXIQ_SIGNALS:-1}"
 export ENABLE_RAPID_IQ_PIPELINE=true
 export ENABLE_SALES_AUTOMATION=true
 export NEXT_PUBLIC_ENABLE_SALES_AUTOMATION="${NEXT_PUBLIC_ENABLE_SALES_AUTOMATION:-1}"
-# NC Sales Automation campaign mail via Microsoft Graph (hello@nexcortiq.us).
-export OUTLOOK_SALES_MAILBOX="${OUTLOOK_SALES_MAILBOX:-hello@nexcortiq.us}"
+# NC Sales Automation campaign mail via Microsoft Graph (jeff@nexcortiq.us).
+export OUTLOOK_SALES_MAILBOX="${OUTLOOK_SALES_MAILBOX:-jeff@nexcortiq.us}"
 export OUTLOOK_GRAPH_MOCK="${OUTLOOK_GRAPH_MOCK:-false}"
 export OUTLOOK_OAUTH_CLIENT_ID="${OUTLOOK_OAUTH_CLIENT_ID:-6110ccac-58b6-4976-86c9-46339151aa9f}"
 export OUTLOOK_OAUTH_TENANT="${OUTLOOK_OAUTH_TENANT:-0a85f08a-54a8-43de-bdc1-4ad4e52d3af8}"

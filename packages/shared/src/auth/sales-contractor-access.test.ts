@@ -42,14 +42,18 @@ describe("sales contractor CRM access helpers", () => {
     expect(canAccessPricingCatalog("dispatcher")).toBe(false);
   });
 
-  it("keeps rcitadmin off NexiQ workspace", () => {
-    expect(canAccessRapidIqWorkspace("rcitadmin")).toBe(false);
+  it("opens the NexiQ workspace to every RC internal role", () => {
+    expect(canAccessRapidIqWorkspace("rcsuperadmin")).toBe(true);
+    expect(canAccessRapidIqWorkspace("rcadmin")).toBe(true);
+    expect(canAccessRapidIqWorkspace("rcitadmin")).toBe(true);
+    expect(canAccessRapidIqWorkspace("dispatcher")).toBe(false);
   });
 
   it("aligns NexiQ Signals access with workspace roles", () => {
     expect(canAccessNexiqSignals("salescontractor")).toBe(true);
     expect(canAccessNexiqSignalsPanel("salescontractor")).toBe(true);
-    expect(canAccessNexiqSignals("rcitadmin")).toBe(false);
+    expect(canAccessNexiqSignals("rcitadmin")).toBe(true);
+    expect(canAccessNexiqSignals("dispatcher")).toBe(false);
   });
 
   it("lets sales view email campaigns but not approve or edit", () => {

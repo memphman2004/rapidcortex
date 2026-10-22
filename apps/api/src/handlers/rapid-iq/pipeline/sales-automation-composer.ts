@@ -10,8 +10,9 @@ import { isCollectorsMockEnabled } from "../../../lib/rapid-iq/agenda-finder.js"
 import { listIntelOpportunities } from "../../../lib/rapid-iq/intel-db.js";
 import { createJsonResponse } from "../../../lib/rapid-iq/openai-client.js";
 import { isNexiQAiEnabled, rapidIqModelStrategy } from "../../../lib/rapid-iq/openai-config.js";
+import { fetchLatestBlogArticle, scrubSalesBrand } from "../../../lib/rapid-iq/blog-article.js";
 import { createSequenceFromTrigger, emptyDraft } from "../../../lib/rapid-iq/sales-automation-engine.js";
-import { putSalesDraft } from "../../../lib/rapid-iq/sales-automation-db.js";
+import { getSalesCampaignControl, putSalesDraft } from "../../../lib/rapid-iq/sales-automation-db.js";
 import { ConferenceRepository } from "../../../repositories/conferenceRepository.js";
 import { SalesLeadRepository } from "../../../repositories/salesLeadRepository.js";
 
@@ -29,7 +30,16 @@ function conferenceVerticalToSales(v: string | undefined): RapidIqSalesVertical 
   return normalizeSalesAutomationVertical(v ?? "PSAP");
 }
 
+async function savedCampaignCopy(campaignId: string): Promise<{ subject?: string; bodyText?: string } | null> {
+  const control = await getSalesCampaignControl(campaignId);
+  if (!control || control.deleted) return null;
+  if (!control.subject && !control.bodyText) return null;
+  return { subject: control.subject, bodyText: control.bodyText };
+}
+
 async function composeNewsletter(weekOf: string) {
+  const control = await getSalesCampaignControl("newsletter");
+  if (control?.deleted) return null;
   const intel = await listIntelOpportunities(80);
   const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
   const top = intel
@@ -40,15 +50,23 @@ async function composeNewsletter(weekOf: string) {
     ? top.map((r) => `- [${r.market}] ${r.title} — ${r.agency}`).join("\n")
     : "No high-fit intel this week. Write a short industry pulse.";
 
-  let bodyText = `Inside iQ — week of ${weekOf}\n\n${signalLines}\n\nNexCort iQ continues to watch procurement and board activity across 911, campus, and venue. We'll send a fuller brief when the feed warrants it.\n\n— The NexCort iQ team`;
-  let linkedinText: string | undefined;
-  let subject = `Inside iQ — ${weekOf}`;
+  const saved = await savedCampaignCopy("newsletter");
+  const article = saved?.bodyText ? null : await fetchLatestBlogArticle();
+  let bodyText = saved?.bodyText
+    ? saved.bodyText
+    : article
+    ? `${article.text}\n\nRead the full article: ${article.url}\n\n— The NexCort iQ team`
+    : `Inside iQ — week of ${weekOf}\n\n${signalLines}\n\nNexCort iQ continues to watch procurement and board activity across 911, campus, and venue. We'll send a fuller brief when the feed warrants it.\n\n— The NexCort iQ team`;
+  let linkedinText = article
+    ? article.text.split("\n\n").slice(0, 2).join("\n\n").slice(0, 600)
+    : undefined;
+  let subject = saved?.subject ?? article?.title ?? `Inside iQ — ${weekOf}`;
 
-  if (isNexiQAiEnabled() && !isCollectorsMockEnabled()) {
+  if (!saved?.bodyText && !article && isNexiQAiEnabled() && !isCollectorsMockEnabled()) {
     const raw = await createJsonResponse({
       model: rapidIqModelStrategy(),
       system:
-        'You write "Inside iQ", a weekly note for 911 directors and campus/venue safety leaders. Practitioner tone, not ads. 350–450 words. Sign off as The NexCort iQ team. Return JSON.',
+        'You write "Inside iQ", a weekly note for 911 directors and campus/venue safety leaders. Practitioner tone, not ads. 350–450 words. Sign off as The NexCort iQ team. Never write Rapid Cortex. Return JSON.',
       jsonSchemaName: "rapid_iq_newsletter",
       jsonSchema: {
         type: "object",
@@ -82,9 +100,9 @@ async function composeNewsletter(weekOf: string) {
     contentType: "newsletter",
     vertical: "ALL",
     weekOf,
-    subject,
-    bodyText,
-    linkedinText,
+    subject: scrubSalesBrand(subject),
+    bodyText: scrubSalesBrand(bodyText),
+    linkedinText: linkedinText ? scrubSalesBrand(linkedinText) : undefined,
   });
   await putSalesDraft(draft);
   return draft;
@@ -154,13 +172,20 @@ export async function handler(event: { job?: string; weekOf?: string }): Promise
     case "newsletter": {
       const weekOf = event.weekOf ?? new Date().toISOString().slice(0, 10);
       const draft = await composeNewsletter(weekOf);
+      if (!draft) return { job, skipped: true, reason: "campaign_deleted" };
       return { job, draftId: draft.draftId, status: draft.status };
     }
     case "budget_season": {
+      if ((await getSalesCampaignControl("budget-season"))?.deleted) {
+        return { job, queued: 0, reason: "campaign_deleted" };
+      }
       const queued = await queueLeadSequences("budget_season");
       return { job, queued };
     }
     case "re_engagement": {
+      if ((await getSalesCampaignControl("re-engagement"))?.deleted) {
+        return { job, queued: 0, reason: "campaign_deleted" };
+      }
       const queued = await queueLeadSequences("re_engagement");
       return { job, queued };
     }
@@ -173,6 +198,7 @@ export async function handler(event: { job?: string; weekOf?: string }): Promise
       let queued = 0;
       for (const conf of conferences) {
         if (conf.isCancelled) continue;
+        if ((await getSalesCampaignControl(`conf-${conf.conferenceId}`))?.deleted) continue;
         const start = Date.parse(conf.startDate);
         if (!Number.isFinite(start)) continue;
         const days = (start - now) / 86_400_000;

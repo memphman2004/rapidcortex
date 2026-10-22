@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyCampaignControls,
   applyDraftEmailPatch,
   applySequenceEmailPatch,
   heuristicThreeTouch,
@@ -21,6 +22,9 @@ describe("sales automation engine", () => {
     expect(steps.every((s) => s.status === "pending")).toBe(true);
     expect(steps[0]?.email.bodyText).toContain("Hi Maria");
     expect(steps[0]?.email.bodyText).toContain("The NexCort iQ team");
+    expect(steps[0]?.email.bodyText).not.toMatch(/rapid cortex/i);
+    expect(steps[0]?.email.bodyText).toContain("nexcortiq.us");
+    expect(steps[0]?.email.bodyHtml).not.toMatch(/rapidcortex/i);
     expect(steps[0]?.email.bodyText).toContain(
       "If you don't want to hear from me again, please <%let me know%>.",
     );
@@ -91,6 +95,35 @@ describe("sales automation engine", () => {
     expect(conf.find((c) => c.id === "conf-in-window")?.status).toBe("active");
     expect(conf.find((c) => c.id === "conf-too-soon")?.status).toBe("scheduled");
     expect(conf.find((c) => c.id === "conf-too-far")?.status).toBe("scheduled");
+  });
+
+  it("lets an operator approve, edit, or remove a scheduled campaign", () => {
+    const cards = listCampaignCards([]);
+    const budget = cards.find((card) => card.id === "budget-season");
+    expect(budget?.status).toBe("scheduled");
+    expect(budget?.bodyText).toBeTruthy();
+    const next = applyCampaignControls(cards, [
+      {
+        campaignId: "budget-season",
+        deleted: false,
+        approved: true,
+        subject: "Budget note",
+        bodyText: "Use this copy.",
+        updatedAt: "2026-10-20T00:00:00.000Z",
+      },
+      {
+        campaignId: "re-engagement",
+        deleted: true,
+        approved: false,
+        updatedAt: "2026-10-20T00:00:00.000Z",
+      },
+    ]);
+    expect(next.find((card) => card.id === "budget-season")).toMatchObject({
+      status: "active",
+      subject: "Budget note",
+      bodyText: "Use this copy.",
+    });
+    expect(next.find((card) => card.id === "re-engagement")).toBeUndefined();
   });
 
   it("rolls 100+ sequences into one bulk batch for approval", () => {

@@ -667,6 +667,14 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: When true, AppSamTransitStack skips creating retained transit DynamoDB tables.
+  IncludeBusinessCardsNestedStack:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      When true, create the digital business card table, photo bucket, and API routes.
+      Default false so a routine root deploy does not add the feature. Enable on dev or
+      staging first. Production still requires authorization from Jeff Coleman.
   IncludeAppSamTransitNestedStack:
     Type: String
     Default: "true"
@@ -867,6 +875,7 @@ Parameters:
 Conditions:
   HasDataLayerNestedStack: !Equals [!Ref IncludeDataLayerNestedStack, "true"]
   HasAppSamAlarmsNestedStack: !Equals [!Ref IncludeAppSamAlarmsNestedStack, "true"]
+  HasBusinessCardsNestedStack: !Equals [!Ref IncludeBusinessCardsNestedStack, "true"]
   HasAppSamTransitNestedStack: !Equals [!Ref IncludeAppSamTransitNestedStack, "true"]
   HasAppSamBillingNestedStack: !Equals [!Ref IncludeAppSamBillingNestedStack, "true"]
   HasAppSamCadMeshNestedStack: !Equals [!Ref IncludeAppSamCadMeshNestedStack, "true"]
@@ -1459,6 +1468,29 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-webhooks-${DeploymentStage}"
         WwwCnameTarget: !Ref WwwCnameTarget
 
+  AppSamBusinessCardsStack:
+    Type: AWS::CloudFormation::Stack
+    Condition: HasBusinessCardsNestedStack
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-business-cards.yaml
+      Parameters:
+        AppName: !Ref AppName
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSamStackV2.Outputs.HttpApiId
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
   AppSamQrStack:
     Type: AWS::CloudFormation::Stack
     Properties:

@@ -119,12 +119,11 @@ export function emptyNexiqSignalSummary(): NexiqSignalSummary {
 }
 
 /**
- * Spec roles `admin` / `bd_manager` map to Cognito:
- * admin → rcsuperadmin | rcadmin; bd_manager → salescontractor.
+ * Same seats as the NexiQ workspace: rcsuperadmin, rcadmin, rcitadmin, and sales contractors.
  */
 export function canAccessNexiqSignals(role: string | undefined | null): boolean {
   const r = String(role ?? "")
     .trim()
     .toLowerCase();
-  return r === "rcsuperadmin" || r === "rcadmin" || r === "salescontractor";
+  return r === "rcsuperadmin" || r === "rcadmin" || r === "rcitadmin" || r === "salescontractor";
 }

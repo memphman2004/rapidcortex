@@ -123,4 +123,14 @@ export interface CampusIncident {
     openWarRoom?: boolean;
     assignRole?: string;
   };
+  silentPanic?: {
+    mode: "live" | "drill";
+    schoolName: string;
+    buildingName: string;
+    activatedByName: string;
+    lawEnforcementPaged?: boolean;
+    audibleAlarm?: boolean;
+    acknowledgedAt?: string;
+    closedAt?: string;
+  };
 }

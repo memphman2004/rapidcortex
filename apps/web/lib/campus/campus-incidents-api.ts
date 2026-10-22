@@ -19,6 +19,24 @@ export async function fetchCampusIncidents(
   return rows;
 }
 
+export async function createCampusIncident(
+  body: Record<string, unknown>,
+): Promise<CampusIncident> {
+  const res = await fetch("/api/campus/incidents", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = (await res.json().catch(() => ({}))) as {
+    incident?: CampusIncident;
+    error?: string;
+  };
+  if (!res.ok || !data.incident) {
+    throw new Error(data.error || `Silent panic failed (${res.status})`);
+  }
+  return data.incident;
+}
+
 export async function patchCampusIncident(
   campusCode: string,
   incidentId: string,

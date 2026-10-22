@@ -6,6 +6,7 @@ import type {
   NexiQSalesBulkBatch,
   NexiQSalesBulkResult,
   NexiQSalesCampaignCard,
+  RapidIqApolloCampaignRead,
   NexiQSalesContentDraft,
   NexiQSalesMetrics,
   NexiQSalesSequence,
@@ -44,13 +45,19 @@ export async function listSalesDrafts(): Promise<NexiQSalesContentDraft[]> {
 export async function listSalesCampaigns(): Promise<{
   campaigns: NexiQSalesCampaignCard[];
   batches: NexiQSalesBulkBatch[];
+  apollo: RapidIqApolloCampaignRead;
 }> {
   const res = await fetch(`${BASE}/campaigns`, { credentials: "include" });
   const body = await parseJson<{
     campaigns: NexiQSalesCampaignCard[];
     batches?: NexiQSalesBulkBatch[];
+    apollo?: RapidIqApolloCampaignRead;
   }>(res);
-  return { campaigns: body.campaigns ?? [], batches: body.batches ?? [] };
+  return {
+    campaigns: body.campaigns ?? [],
+    batches: body.batches ?? [],
+    apollo: body.apollo ?? { connected: false, campaigns: [] },
+  };
 }
 
 export async function createSalesBulkCampaign(
@@ -126,6 +133,59 @@ export async function approveSalesSequence(sequenceId: string): Promise<NexiQSal
   });
   const body = await parseJson<{ sequence: NexiQSalesSequence }>(res);
   return body.sequence;
+}
+
+export async function deleteSalesSequence(sequenceId: string): Promise<void> {
+  const res = await fetch(`${BASE}/sequences/${encodeURIComponent(sequenceId)}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  await parseJson(res);
+}
+
+export async function deleteSalesDraft(draftId: string): Promise<void> {
+  const res = await fetch(`${BASE}/drafts/${encodeURIComponent(draftId)}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  await parseJson(res);
+}
+
+export async function approveScheduledCampaign(campaignId: string): Promise<void> {
+  const res = await fetch(`${BASE}/campaigns/${encodeURIComponent(campaignId)}/approve`, {
+    method: "POST",
+    credentials: "include",
+  });
+  await parseJson(res);
+}
+
+export async function updateScheduledCampaign(
+  campaignId: string,
+  body: { subject: string; bodyText: string },
+): Promise<void> {
+  const res = await fetch(`${BASE}/campaigns/${encodeURIComponent(campaignId)}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  await parseJson(res);
+}
+
+export async function deleteScheduledCampaign(campaignId: string): Promise<void> {
+  const res = await fetch(`${BASE}/campaigns/${encodeURIComponent(campaignId)}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  await parseJson(res);
+}
+
+export async function deleteSalesBulkCampaign(campaignId: string): Promise<void> {
+  const res = await fetch(`${BASE}/bulk/${encodeURIComponent(campaignId)}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  await parseJson(res);
 }
 
 export async function suppressSalesSequence(sequenceId: string): Promise<NexiQSalesSequence> {

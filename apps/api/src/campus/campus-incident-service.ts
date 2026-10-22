@@ -8,7 +8,12 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import type { z } from "zod";
 import type { VenueIncidentCameraSummary } from "rapid-cortex-shared";
-import { campusAutomationRuleMatches, isCampusCounselorQueueType } from "rapid-cortex-shared";
+import {
+  campusAutomationRuleMatches,
+  isCampusCounselorQueueType,
+  silentPanicIncidentDescription,
+} from "rapid-cortex-shared";
+import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { makeId } from "../lib/ids.js";
 import { hashPhoneSha256, maskPhoneLast4 } from "../lib/phone-hash.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
@@ -65,10 +70,15 @@ export async function createCampusIncident(
   const id = makeIncidentId(input.campusCode);
   const now = new Date().toISOString();
   // Schema validates against the catalog enum; widen is typed as string[] so cast after parse.
-  const incidentType = input.type as CampusIncidentType;
-  const confidential = input.confidential ?? isConfidentialType(incidentType);
+  const incidentType = (input.silentPanic ? "active_threat" : input.type) as CampusIncidentType;
+  const description = input.silentPanic
+    ? silentPanicIncidentDescription(input.silentPanic)
+    : input.description;
+  const confidential = input.silentPanic
+    ? false
+    : (input.confidential ?? isConfidentialType(incidentType));
   const assignee = defaultCounselorAssignment(incidentType);
-  const cleryCategorySuggested = suggestCleryCategory(incidentType, input.description);
+  const cleryCategorySuggested = suggestCleryCategory(incidentType, description);
 
   const siteCode = input.siteCode?.trim().toUpperCase() || undefined;
   let siteShortName = input.siteShortName?.trim() || undefined;
@@ -94,20 +104,22 @@ export async function createCampusIncident(
     siteCode,
     siteShortName,
     buildingCode: input.buildingCode,
-    buildingLabel: input.buildingCode,
+    buildingLabel: input.silentPanic?.buildingName ?? input.buildingCode,
     floor: input.floor ?? null,
     roomCode: input.roomCode ?? "",
     zoneCode: input.zoneCode ?? input.roomCode ?? undefined,
-    zoneLabel: input.qrLocationName
-      ? `${input.qrLocationName} · Zone ${input.zoneCode ?? input.roomCode}`
-      : [input.buildingCode, input.roomCode].filter(Boolean).join(" · "),
+    zoneLabel: input.silentPanic
+      ? `${input.silentPanic.schoolName} · ${input.silentPanic.buildingName}`
+      : input.qrLocationName
+        ? `${input.qrLocationName} · Zone ${input.zoneCode ?? input.roomCode}`
+        : [input.buildingCode, input.roomCode].filter(Boolean).join(" · "),
     qrRcli: input.qrRcli,
     qrLocationName: input.qrLocationName,
     type: incidentType,
-    source: input.source,
+    source: input.silentPanic ? "manual" : input.source,
     status: "open",
-    description: input.description,
-    isAnonymous: input.isAnonymous,
+    description,
+    isAnonymous: input.silentPanic ? false : input.isAnonymous,
     confidential,
     assignedTo: assignee.assignedTo,
     assignedToName: assignee.assignedToName,
@@ -149,6 +161,19 @@ export async function createCampusIncident(
     ...(input.safetyPointSnapshot
       ? { safetyPointSnapshot: input.safetyPointSnapshot }
       : {}),
+    ...(input.silentPanic
+      ? {
+          silentPanic: {
+            mode: input.silentPanic.mode,
+            schoolName: input.silentPanic.schoolName,
+            buildingName: input.silentPanic.buildingName,
+            activatedByName: input.silentPanic.activatedByName,
+            activatedById: actorId ?? "unknown",
+            lawEnforcementPaged: false as const,
+            audibleAlarm: false as const,
+          },
+        }
+      : {}),
   };
 
   try {
@@ -183,11 +208,42 @@ export async function createCampusIncident(
     incidentId: id,
     actorId: actorId ?? "anonymous",
     type: "CAMPUS_INCIDENT_CREATED",
-    details: { campusCode: input.campusCode, type: input.type, source: input.source },
+    details: { campusCode: input.campusCode, type: incidentType, source: item.source },
     createdAt: now,
     resourceType: "incident",
     resourceId: id,
   });
+
+  if (item.silentPanic) {
+    try {
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId,
+        incidentId: id,
+        actorId: actorId ?? "unknown",
+        type: AUDIT_EVENT_TYPES.SILENT_PANIC_ACTIVATED,
+        details: {
+          campusCode: input.campusCode,
+          mode: item.silentPanic.mode,
+          schoolName: item.silentPanic.schoolName,
+          buildingName: item.silentPanic.buildingName,
+          activatedByName: item.silentPanic.activatedByName,
+          lawEnforcementPaged: false,
+          audibleAlarm: false,
+          publicAnnouncement: false,
+        },
+        createdAt: now,
+        resourceType: "incident",
+        resourceId: id,
+      });
+    } catch (err) {
+      console.error("[campus-incident] silent panic activation audit failed", {
+        incidentId: id,
+        agencyId,
+        err,
+      });
+    }
+  }
 
   return item;
 }
@@ -288,17 +344,20 @@ export async function finalizeCampusIntakeIncident(
     cameras,
   });
 
-  void notifyMilestoneOfCampusIncident({
-    agencyId,
-    incidentId: incident.id,
-    title: `${incident.type} · ${incident.buildingCode}`,
-    description: incident.description,
-    severity: incident.type === "active_threat" ? "critical" : "high",
-    latitude: origin?.latitude,
-    longitude: origin?.longitude,
-    cameraIds: cameras.map((c) => c.cameraId),
-    raiseAlarm: true,
-  });
+  // Silent panic stays on the campus console. No XProtect alarm, no siren, no public page.
+  if (!incident.silentPanic) {
+    void notifyMilestoneOfCampusIncident({
+      agencyId,
+      incidentId: incident.id,
+      title: `${incident.type} · ${incident.buildingCode}`,
+      description: incident.description,
+      severity: incident.type === "active_threat" ? "critical" : "high",
+      latitude: origin?.latitude,
+      longitude: origin?.longitude,
+      cameraIds: cameras.map((c) => c.cameraId),
+      raiseAlarm: true,
+    });
+  }
 
   return { incident, cameras };
 }
@@ -422,6 +481,29 @@ export async function updateCampusIncident(
     values[":cg"] = update.cleryGeography;
   }
 
+  const panic = existing.silentPanic;
+  const acknowledging =
+    !!panic &&
+    !panic.acknowledgedAt &&
+    (update.status === "assigned" || update.status === "responding");
+  const closing = !!panic && !panic.closedAt && update.status === "resolved";
+  if (acknowledging) {
+    updates.push("silentPanic.acknowledgedAt = :panicAckAt");
+    updates.push("silentPanic.acknowledgedById = :panicAckBy");
+    updates.push("silentPanic.acknowledgedByName = :panicAckName");
+    values[":panicAckAt"] = now;
+    values[":panicAckBy"] = actorId;
+    values[":panicAckName"] = actorName;
+  }
+  if (closing) {
+    updates.push("silentPanic.closedAt = :panicClosedAt");
+    updates.push("silentPanic.closedById = :panicClosedBy");
+    updates.push("silentPanic.closedByName = :panicClosedName");
+    values[":panicClosedAt"] = now;
+    values[":panicClosedBy"] = actorId;
+    values[":panicClosedName"] = actorName;
+  }
+
   const result = await ddb.send(
     new UpdateCommand({
       TableName: campusIncidentsTable(),
@@ -451,6 +533,38 @@ export async function updateCampusIncident(
       });
     } catch (err) {
       console.error("[campus-incident] audit status change failed", {
+        incidentId,
+        campusCode,
+        err,
+      });
+    }
+  }
+
+  if (panic && (acknowledging || closing)) {
+    try {
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: existing.agencyId || campusCode,
+        incidentId,
+        actorId,
+        type: closing
+          ? AUDIT_EVENT_TYPES.SILENT_PANIC_CLOSED
+          : AUDIT_EVENT_TYPES.SILENT_PANIC_ACKNOWLEDGED,
+        details: {
+          campusCode,
+          mode: panic.mode,
+          schoolName: panic.schoolName,
+          buildingName: panic.buildingName,
+          actorName,
+          lawEnforcementPaged: false,
+          audibleAlarm: false,
+        },
+        createdAt: now,
+        resourceType: "incident",
+        resourceId: incidentId,
+      });
+    } catch (err) {
+      console.error("[campus-incident] silent panic audit failed", {
         incidentId,
         campusCode,
         err,

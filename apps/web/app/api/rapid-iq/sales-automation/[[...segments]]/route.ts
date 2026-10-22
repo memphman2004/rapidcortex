@@ -30,6 +30,13 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
   return proxyToAuthUpstream(request, upstreamPath(segments));
 }
 
+export async function DELETE(request: NextRequest, ctx: Ctx) {
+  const { segments } = await ctx.params;
+  const denied = await salesAutomationMutateGate(request, segments);
+  if (denied) return denied;
+  return proxyToAuthUpstream(request, upstreamPath(segments));
+}
+
 export async function PUT(request: NextRequest, ctx: Ctx) {
   const { segments } = await ctx.params;
   const denied = await salesAutomationMutateGate(request, segments);

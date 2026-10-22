@@ -17,6 +17,7 @@ import { RoleDashboardHomeLayout } from "./role-dashboard-home-layout";
 import { VERTICAL_CONFIG, normalizeVertical, verticalThemeAttrFromDashboardPrefix } from "@/lib/vertical";
 import { VerticalBadge } from "@/components/ui/VerticalBadge";
 import { ActiveNoticesBanner } from "@/components/notices/ActiveNoticesBanner";
+import { BusinessCardLoginPrompt } from "@/components/business-cards/login-prompt";
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
@@ -174,6 +175,9 @@ function DashboardShellInner({
           ) : null}
           <DemoModeBanner />
           <ActiveNoticesBanner />
+          <BusinessCardLoginPrompt
+            isAdmin={["agencyadmin", "agencyit", "rcadmin", "rcsuperadmin", "rcitadmin", "CAMPUS_ADMIN", "VENUE_ADMIN", "TRANSIT_ADMIN", "HOSPITAL_ADMIN", "CALL_ASSIST_ADMIN"].includes(user.role)}
+          />
           <RoleDashboardHeaderStrip prefix={prefix} user={user} />
           <main className="flex-1 bg-[var(--rc-bg)] p-4 md:p-6">
             <RoleDashboardHomeLayout prefix={prefix}>{children}</RoleDashboardHomeLayout>

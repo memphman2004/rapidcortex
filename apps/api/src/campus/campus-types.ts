@@ -161,6 +161,25 @@ export interface CampusIncident {
   };
   locationLinkSent?: boolean;
   smsChatMessages?: CampusSmsChatMessage[];
+  /**
+   * K-12 silent panic. Present only when a campus admin, security, or dispatch
+   * seat activated it. Never means law enforcement was paged.
+   */
+  silentPanic?: {
+    mode: "live" | "drill";
+    schoolName: string;
+    buildingName: string;
+    activatedByName: string;
+    activatedById: string;
+    lawEnforcementPaged: false;
+    audibleAlarm: false;
+    acknowledgedAt?: string;
+    acknowledgedById?: string;
+    acknowledgedByName?: string;
+    closedAt?: string;
+    closedById?: string;
+    closedByName?: string;
+  };
 }
 
 export interface CampusIncidentNote {

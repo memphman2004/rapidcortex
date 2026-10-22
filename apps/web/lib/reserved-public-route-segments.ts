@@ -46,6 +46,9 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "crime-log",
   /** CDN-backed public media entrypoints at site root (not `{jurisdiction}/media`). */
   "media",
+  /** Public digital business card (`/card/{slug}`) and NFC tag (`/c/{cardId}`). */
+  "card",
+  "c",
   /** Public QR/NFC citizen intake — no auth (`/report/{qrId}`). */
   "report",
   /** Public Call Assist SMS self-service (`/call-assist/report/{token}`). Not a jurisdiction slug. */

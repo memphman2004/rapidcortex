@@ -166,6 +166,7 @@ const protectedSubpaths = [
   "/history",
   "/demo",
   "/admin",
+  "/profile",
   "/rc-admin",
   "/staff",
   "/dispatcher",
@@ -998,6 +999,15 @@ function isAiTrainingBot(ua: string): boolean {
   return AI_TRAINING_UA_FRAGMENTS.some((f) => lower.includes(f));
 }
 
+/**
+ * ChatGPT Watch actions send User-Agent `ChatGPT-User`. That agent is blocked
+ * everywhere else, but ingest is machine-authenticated with the watch API key.
+ */
+function isChatGptWatchIngestPath(pathname: string): boolean {
+  const path = pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+  return path === "/api/watch/ingest";
+}
+
 async function runMiddleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
@@ -1007,8 +1017,9 @@ async function runMiddleware(request: NextRequest) {
   }
 
   // Block AI training scrapers at the edge (robots.txt is advisory only).
+  // Watch ingest stays open to ChatGPT-User; the route still requires the API key.
   const ua = request.headers.get("user-agent") ?? "";
-  if (ua && isAiTrainingBot(ua)) {
+  if (ua && isAiTrainingBot(ua) && !isChatGptWatchIngestPath(pathname)) {
     return new NextResponse(JSON.stringify({ error: "Access denied" }), {
       status: 403,
       headers: {

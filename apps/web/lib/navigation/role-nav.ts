@@ -735,6 +735,24 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
       items: [
         { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
         { id: "psap-prospects", label: "Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
+        { id: "rapid-iq", label: "NexiQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
+        {
+          id: "nexiq-signals",
+          label: "NexiQ Signals",
+          href: "/rc-admin/rapid-iq#nexiq-signals",
+          icon: "Radio",
+          feature: "nexiqSignals",
+          badge: { type: "count", key: "nexiqSignalsNew" },
+        },
+        {
+          id: "watch-inbox",
+          label: "Watch Inbox",
+          href: "/rc-admin/intelligence/watch",
+          icon: "Radar",
+          feature: "rapidIq",
+        },
+        { id: "nexiq-intel-sources", label: "Intel Sources", href: "/rc-admin/nexiq/intel/sources", icon: "Radar", feature: "nexiqIntel" },
+        { id: "nexiq-intel-coverage", label: "Intel Coverage", href: "/rc-admin/nexiq/intel/coverage", icon: "Activity", feature: "nexiqIntel" },
       ],
     },
     {
@@ -2275,7 +2293,68 @@ export function applyCampusInstitutionNav(
   return { ...nav, roleBadge, sections: next };
 }
 
+const BUSINESS_CARD_ADMIN_NAV_ROLES = new Set([
+  "agencyadmin",
+  "agencyit",
+  "rcadmin",
+  "rcsuperadmin",
+  "rcitadmin",
+  "CAMPUS_ADMIN",
+  "VENUE_ADMIN",
+  "TRANSIT_ADMIN",
+  "HOSPITAL_ADMIN",
+  "CALL_ASSIST_ADMIN",
+]);
+
+function businessCardBase(role: string, ctx: NavContext): string {
+  const resolved = resolveNavRole(role);
+  if (resolved.startsWith("CAMPUS")) return `/app/campus/${ctx.campusCode ?? "campus"}`;
+  if (resolved.startsWith("VENUE")) return `/app/venue/${ctx.venueCode ?? "venue"}`;
+  if (resolved.startsWith("TRANSIT")) return `/transit/${ctx.transitCode ?? "transit"}`;
+  if (resolved === "HOSPITAL_ADMIN") return "/hospital-admin";
+  if (resolved === "HOSPITAL_STAFF" || resolved === "HOSPITAL_COORDINATOR") return "/hospital-staff";
+  if (resolved === "CALL_ASSIST_ADMIN") return "/app/call-assist/admin";
+  if (resolved === "CALL_ASSIST_SUPERVISOR") return "/app/call-assist/supervisor";
+  if (resolved === "CALL_ASSIST_OPERATOR") return "/app/call-assist/operator";
+  if (resolved === "rcsuperadmin" || resolved === "rcadmin" || resolved === "rcitadmin") return "/rc-admin";
+  return `/${ctx.jurisdiction ?? "jurisdiction"}`;
+}
+
+function decorateBusinessCardNav(role: string, ctx: NavContext, nav: RoleNav): RoleNav {
+  if (nav.roleBadge === "UNKNOWN") return nav;
+  const base = businessCardBase(role, ctx);
+  const isAdmin = BUSINESS_CARD_ADMIN_NAV_ROLES.has(resolveNavRole(role));
+  const feature = "businessCards";
+  const items: NavItem[] = [
+    {
+      id: "bizcard-mine",
+      label: "Business Card",
+      href: `${base}/profile/business-card`,
+      icon: "CreditCard",
+      feature,
+    },
+  ];
+  if (isAdmin) {
+    items.push(
+      { id: "bizcard-directory", label: "All Employee Cards", href: `${base}/admin/business-cards`, icon: "Users", feature },
+      { id: "bizcard-new", label: "Create Business Card", href: `${base}/admin/business-cards/new`, icon: "Plus", feature },
+      { id: "bizcard-nfc", label: "NFC Card Management", href: `${base}/admin/nfc-cards`, icon: "Radio", feature },
+      { id: "bizcard-analytics", label: "Card Analytics", href: `${base}/admin/analytics/business-cards`, icon: "BarChart3", feature },
+      { id: "bizcard-audit", label: "Card Audit", href: `${base}/admin/business-cards/audit`, icon: "ScrollText", feature },
+      { id: "bizcard-settings", label: "Card Settings", href: `${base}/admin/business-cards/settings`, icon: "Settings", feature },
+    );
+  }
+  return {
+    ...nav,
+    sections: [...nav.sections, { id: "business-cards", label: "BUSINESS CARDS", items }],
+  };
+}
+
 export function getRoleNav(role: string, ctx: NavContext): RoleNav {
+  return decorateBusinessCardNav(role, ctx, buildRoleNav(role, ctx));
+}
+
+function buildRoleNav(role: string, ctx: NavContext): RoleNav {
   const j = ctx.jurisdiction ?? "jurisdiction";
   const v = ctx.venueCode ?? "venue";
   const c = ctx.campusCode ?? "campus";

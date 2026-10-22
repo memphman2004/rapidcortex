@@ -1,5 +1,10 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { AuthorizationService } from "rapid-cortex-security";
+import {
+  canActivateSilentPanic,
+  isSilentPanicCampus,
+  resolveCampusInstitutionTypeFromConfig,
+} from "rapid-cortex-shared";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { withCorrelationHeaders } from "../../lib/correlation.js";
 import { operationalPasswordBlock } from "../../lib/operationalPasswordGate.js";
@@ -11,6 +16,7 @@ import {
   serverError,
   unauthorized,
 } from "../../lib/response.js";
+import { AgencyRepository } from "../../repositories/agencyRepository.js";
 import {
   createCampusIncident,
   finalizeCampusIntakeIncident,
@@ -18,6 +24,7 @@ import {
 import { createIncidentSchema } from "../campus-schemas.js";
 
 const authz = new AuthorizationService();
+const agencies = new AgencyRepository();
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
@@ -40,6 +47,31 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const parsed = createIncidentSchema.safeParse(body);
     if (!parsed.success) {
       return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+    }
+
+    if (parsed.data.silentPanic) {
+      if (!canActivateSilentPanic(user.role)) {
+        return withCorrelationHeaders(
+          event,
+          forbidden("Silent panic is limited to campus admin, security, and dispatch."),
+        );
+      }
+      const agency = await agencies.get(user.agencyId);
+      const campusCfg = (
+        agency as { config?: { campus?: Record<string, unknown> } } | null
+      )?.config?.campus;
+      const agencyInstitution = resolveCampusInstitutionTypeFromConfig({
+        institutionType:
+          (agency as { institutionType?: unknown } | null)?.institutionType ??
+          campusCfg?.institutionType,
+        campusType: campusCfg?.campusType,
+      });
+      if (!agency || !isSilentPanicCampus(user.role, agencyInstitution)) {
+        return withCorrelationHeaders(
+          event,
+          forbidden("Silent panic is available on K-12 campuses only."),
+        );
+      }
     }
 
     const created = await createCampusIncident(parsed.data, user.agencyId, user.userId);

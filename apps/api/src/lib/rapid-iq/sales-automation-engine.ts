@@ -23,11 +23,14 @@ import {
   type UpdateNexiQSalesSequenceBody,
 } from "rapid-cortex-shared";
 import { isCollectorsMockEnabled } from "./agenda-finder.js";
+import { scrubSalesBrand } from "./blog-article.js";
 import { findContactsViaHunter } from "./hunter-enrichment.js";
 import { createJsonResponse } from "./openai-client.js";
 import { isNexiQAiEnabled, rapidIqModelStrategy } from "./openai-config.js";
 import { pipelineDdb } from "./pipeline-ddb.js";
 import {
+  deleteSalesSequence,
+  getSalesCampaignControl,
   getSalesDraft,
   getSalesSequence,
   hasRecentSend,
@@ -36,6 +39,7 @@ import {
   listSalesSequences,
   putSalesDraft,
   putSalesSequence,
+  type SalesCampaignControl,
 } from "./sales-automation-db.js";
 import { verticalThreeTouchCopy } from "./vertical-email-campaign.js";
 
@@ -124,11 +128,12 @@ function expandOptOutMarkersForHtml(bodyText: string): string {
 }
 
 export function buildHtmlEmail(subject: string, bodyText: string): string {
+  const cleanSubject = scrubSalesBrand(subject);
   return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>${escapeHtml(subject)}</title></head>
+<html><head><meta charset="utf-8"><title>${escapeHtml(cleanSubject)}</title></head>
 <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;max-width:560px;margin:40px auto;padding:0 20px;">
-${expandOptOutMarkersForHtml(bodyText)}
-<p style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e5e5;color:#555;font-size:13px;">NexCort iQ · rapidcortex.us</p>
+${expandOptOutMarkersForHtml(scrubSalesBrand(bodyText))}
+<p style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e5e5;color:#555;font-size:13px;">NexCort iQ · nexcortiq.us</p>
 </body></html>`;
 }
 
@@ -149,9 +154,46 @@ function scheduleStepsFromOrigin(
   }));
 }
 
+function catalogCampaignId(body: CreateNexiQSalesSequenceBody): string | null {
+  if (body.campaignType === "budget_season") return "budget-season";
+  if (body.campaignType === "re_engagement") return "re-engagement";
+  if (body.campaignType === "conference_pre") return null;
+  if (body.type !== "campaign") return null;
+  const vertical = normalizeSalesAutomationVertical(body.vertical);
+  if (vertical === "PSAP") return "psap-core-2026";
+  if (vertical === "CAMPUS") return "campus-safety-2026";
+  if (vertical === "VENUE") return "venue-ops-2026";
+  return null;
+}
+
+async function applySavedCampaignCopy(
+  body: CreateNexiQSalesSequenceBody,
+  firstName: string | undefined,
+  steps: RapidIqSalesOutreachStep[],
+): Promise<RapidIqSalesOutreachStep[]> {
+  const catalogId = catalogCampaignId(body);
+  if (!catalogId || steps.length === 0) return steps;
+  const saved = await getSalesCampaignControl(catalogId);
+  const custom = saved?.bodyText?.trim();
+  if (!saved || saved.deleted || !custom) return steps;
+  const subject = saved.subject?.trim() || steps[0]!.email.subject;
+  const bodyText = /The NexCort iQ team/.test(custom) ? scrubSalesBrand(custom) : wrapBody(firstName, custom);
+  const [first, ...rest] = steps;
+  if (!first) return steps;
+  return [
+    {
+      ...first,
+      email: { subject, bodyText, bodyHtml: buildHtmlEmail(subject, bodyText) },
+    },
+    ...rest,
+  ];
+}
+
 function wrapBody(firstName: string | undefined, body: string): string {
   const hi = firstName?.trim() ? `Hi ${firstName.trim()},` : "Hi,";
-  return `${hi}\n\n${body.trim()}\n\nBest,\nThe NexCort iQ team\nrapidcortex.us\n\n${SEQUENCE_OPT_OUT_MESSAGE}`;
+  return scrubSalesBrand(
+    `${hi}\n\n${body.trim()}\n\nBest,\nThe NexCort iQ team\nnexcortiq.us\n\n${SEQUENCE_OPT_OUT_MESSAGE}`,
+  );
 }
 
 export function heuristicThreeTouch(input: {
@@ -309,7 +351,8 @@ export async function createSequenceFromTrigger(
     conferenceName: body.conferenceName,
   });
   const sendOrigin = parseSendAt(body.sendAt);
-  const steps = sendOrigin !== undefined ? scheduleStepsFromOrigin(stepsRaw, sendOrigin) : stepsRaw;
+  const scheduled = sendOrigin !== undefined ? scheduleStepsFromOrigin(stepsRaw, sendOrigin) : stepsRaw;
+  const steps = await applySavedCampaignCopy(body, firstName, scheduled);
 
   const seq: RapidIqSalesSequence = {
     sequenceId: newId("seq"),
@@ -631,6 +674,16 @@ export async function updateBulkCampaignCopy(
   return { updated };
 }
 
+export async function deleteBulkCampaign(campaignId: string): Promise<{ deleted: number }> {
+  const sequences = await listSalesSequences(500);
+  const targets = sequences.filter((s) => s.attribution.campaignId === campaignId);
+  let deleted = 0;
+  for (const seq of targets) {
+    if (await deleteSalesSequence(seq.sequenceId)) deleted += 1;
+  }
+  return { deleted };
+}
+
 export async function computeSalesMetrics(): Promise<RapidIqSalesMetrics> {
   const sequences = await listSalesSequences(500);
   const drafts = await listSalesDrafts(50);
@@ -747,7 +800,31 @@ export function listCampaignCards(
       status: inWindow ? "active" : "scheduled",
     });
   }
-  return cards;
+  return cards.map((card) => ({
+    ...card,
+    subject: card.subject ?? card.name,
+    bodyText: card.bodyText ?? card.description,
+  }));
+}
+
+/** Hide deleted schedules and apply saved approval or copy. */
+export function applyCampaignControls(
+  cards: RapidIqSalesCampaignCard[],
+  controls: SalesCampaignControl[],
+): RapidIqSalesCampaignCard[] {
+  const byId = new Map(controls.map((control) => [control.campaignId, control]));
+  const visible: RapidIqSalesCampaignCard[] = [];
+  for (const card of cards) {
+    const control = byId.get(card.id);
+    if (control?.deleted) continue;
+    visible.push({
+      ...card,
+      status: control?.approved ? "active" : card.status,
+      subject: control?.subject ?? card.subject,
+      bodyText: control?.bodyText ?? card.bodyText,
+    });
+  }
+  return visible;
 }
 
 export function emptyDraft(partial: Omit<RapidIqSalesContentDraft, "createdAt" | "updatedAt" | "status" | "generatedBy" | "draftId"> & { draftId?: string }): RapidIqSalesContentDraft {

@@ -222,6 +222,11 @@ export const env = {
    */
   enableEscortIq: featureEnabled("ENABLE_ESCORT_IQ", false),
   /**
+   * Digital business cards. Fail-closed. A tenant config row can turn the
+   * feature on for one agency while this global default stays off.
+   */
+  enableBusinessCards: featureEnabled("ENABLE_BUSINESS_CARDS", false),
+  /**
    * NexCort iQ Campus Alerts (higher-ed Campus only). Fail-closed — unset/false disables.
    * Tenant must also set campus.config.campusAlerts.enabled.
    */
@@ -714,7 +719,7 @@ export const env = {
   },
   /** Campaign From / reply-to mailbox. Connect Outlook must sign in as this address. */
   get outlookSalesMailbox(): string {
-    return process.env.OUTLOOK_SALES_MAILBOX?.trim() || "hello@nexcortiq.us";
+    return process.env.OUTLOOK_SALES_MAILBOX?.trim() || "jeff@nexcortiq.us";
   },
   /** Careers UI + public apply. Default ON when unset. */
   enableHiring: featureEnabled("ENABLE_HIRING"),

@@ -28,7 +28,7 @@ export type SalesOutlookConnection = {
 
 const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
 const SCOPES = "openid profile email offline_access User.Read Mail.Send";
-export const DEFAULT_SALES_OUTLOOK_MAILBOX = "hello@nexcortiq.us";
+export const DEFAULT_SALES_OUTLOOK_MAILBOX = "jeff@nexcortiq.us";
 
 export function salesOutlookMailbox(): string {
   return (env.outlookSalesMailbox || DEFAULT_SALES_OUTLOOK_MAILBOX).trim().toLowerCase();

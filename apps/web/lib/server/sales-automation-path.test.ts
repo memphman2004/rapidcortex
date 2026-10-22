@@ -17,5 +17,8 @@ describe("salesAutomationPathRequiresManage", () => {
     expect(salesAutomationPathRequiresManage("PATCH", ["sequences", "x"])).toBe(true);
     expect(salesAutomationPathRequiresManage("GET", ["outlook", "connect"])).toBe(true);
     expect(salesAutomationPathRequiresManage("POST", ["outlook", "disconnect"])).toBe(true);
+    expect(salesAutomationPathRequiresManage("DELETE", ["sequences", "x"])).toBe(true);
+    expect(salesAutomationPathRequiresManage("DELETE", ["drafts", "x"])).toBe(true);
+    expect(salesAutomationPathRequiresManage("DELETE", ["bulk", "camp"])).toBe(true);
   });
 });

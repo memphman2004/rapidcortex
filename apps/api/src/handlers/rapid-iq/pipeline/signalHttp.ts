@@ -1,7 +1,7 @@
 /**
  * HTTP API for NexiQ procurement pipeline signals.
  * Routes: /api/rapid-iq/signals* (legacy /api/rapid-iq/pipeline/signals* still accepted).
- * RBAC: rcsuperadmin / rcadmin / salescontractor (canAccessNexiQWorkspace).
+ * RBAC: rcsuperadmin / rcadmin / rcitadmin / salescontractor (canAccessNexiQWorkspace).
  */
 
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";

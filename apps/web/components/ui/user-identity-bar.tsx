@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { businessCardSelfHref } from "@/lib/business-cards/client";
 import { isRapidCortexRole, migrateLegacyRapidCortexRoleTokenValue, ROLE_LABELS } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { signOutFromClient } from "@/lib/auth/sign-out-client";
 import {
@@ -21,8 +24,25 @@ export interface UserIdentityBarProps {
 
 export function UserIdentityBar({ email, role, userId, roleLabel }: UserIdentityBarProps) {
   const [signingOut, setSigningOut] = useState(false);
+  const [showCard, setShowCard] = useState(false);
+  const pathname = usePathname() ?? "";
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const read = () => {
+      try {
+        const raw = window.sessionStorage.getItem("bizCardStatus");
+        const parsed = raw ? (JSON.parse(raw) as { enabled?: boolean; profileStatus?: string }) : null;
+        setShowCard(Boolean(parsed?.enabled && parsed.profileStatus === "active"));
+      } catch {
+        setShowCard(false);
+      }
+    };
+    read();
+    window.addEventListener("rc-bizcard-status", read);
+    return () => window.removeEventListener("rc-bizcard-status", read);
+  }, []);
 
   useEffect(() => {
     setAvatarUrl(readAccountAvatar(userId));
@@ -119,6 +139,11 @@ export function UserIdentityBar({ email, role, userId, roleLabel }: UserIdentity
         </div>
       </div>
 
+      {showCard ? (
+        <Link href={businessCardSelfHref(pathname)} className="hidden text-[11px] text-slate-300 underline sm:inline">
+          My Digital Card
+        </Link>
+      ) : null}
       <button
         type="button"
         onClick={() => void handleSignOut()}

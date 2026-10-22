@@ -10,11 +10,11 @@ describe("canAccessNexiqSignals", () => {
   it("allows RC admin family and salescontractor (admin / bd_manager mapping)", () => {
     expect(canAccessNexiqSignals("rcsuperadmin")).toBe(true);
     expect(canAccessNexiqSignals("rcadmin")).toBe(true);
+    expect(canAccessNexiqSignals("rcitadmin")).toBe(true);
     expect(canAccessNexiqSignals("salescontractor")).toBe(true);
   });
 
   it("denies other roles", () => {
-    expect(canAccessNexiqSignals("rcitadmin")).toBe(false);
     expect(canAccessNexiqSignals("dispatcher")).toBe(false);
     expect(canAccessNexiqSignals("agencyadmin")).toBe(false);
   });

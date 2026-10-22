@@ -34,6 +34,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
+  canActivateSilentPanic,
+  canOperateSilentPanic,
+} from "rapid-cortex-shared";
+import {
   campusRoleFamily,
   isCampusAdminRole,
   resolveCampusInstitutionType,
@@ -76,6 +80,7 @@ import { CampusSiteSwitcher } from "./campus-site-switcher";
 import { CampusSiteScopeProvider, useCampusSiteScope } from "@/lib/campus/use-campus-site-scope";
 import { useCampusInstitutionType } from "@/lib/campus/use-campus-institution";
 import { DistrictSchoolsPanel } from "@/components/campus/k12/DistrictSchoolsPanel";
+import { SilentPanicPanel } from "@/components/campus/k12/silent-panic-panel";
 import {
   consoleBgStorageKey,
   loadConsoleBg,
@@ -470,6 +475,7 @@ function CampusConsoleHomeInner({
     incidents,
     activeCameraIncident,
     clearActiveCameraIncident,
+    refresh,
   } = useCampusDashboard(agencyId, codeUpper);
 
   const { scope, setScope, sites, primarySiteCode } = useCampusSiteScope(agencyId, {
@@ -1439,6 +1445,21 @@ function CampusConsoleHomeInner({
                 </button>
               </div>
 
+              {isK12 ? (
+                <div style={{ marginTop: 12 }}>
+                  <SilentPanicPanel
+                    campusCode={codeUpper}
+                    actorName={displayName || userEmail || "Campus staff"}
+                    sites={sites}
+                    buildings={scopedBuildings}
+                    incidents={scopedIncidents}
+                    canActivate={canActivateSilentPanic(userRole)}
+                    canOperate={canOperateSilentPanic(userRole)}
+                    onChanged={() => void refresh()}
+                  />
+                </div>
+              ) : null}
+
               {/* Three panels */}
               <div
                 style={{
@@ -1563,6 +1584,23 @@ function CampusConsoleHomeInner({
                                   })()}
                                 </div>
                                 <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                                  {inc.silentPanic ? (
+                                    <span
+                                      style={{
+                                        fontSize: 9.5,
+                                        fontWeight: 700,
+                                        padding: "2px 6px",
+                                        borderRadius: 4,
+                                        background:
+                                          inc.silentPanic.mode === "drill"
+                                            ? "rgba(245,158,11,0.18)"
+                                            : "rgba(239,68,68,0.18)",
+                                        color: inc.silentPanic.mode === "drill" ? C.amber : "#fca5a5",
+                                      }}
+                                    >
+                                      {inc.silentPanic.mode === "drill" ? "DRILL" : "SILENT"}
+                                    </span>
+                                  ) : null}
                                   {inc.source === "physical_security" ? (
                                     <span
                                       style={{

@@ -178,6 +178,7 @@ describe("getRoleNav", () => {
 
     const it = getRoleNav("rcitadmin", {});
     expect(it.sections.map((s) => s.id)).toEqual([
+      "docs",
       "infra",
       "tenants",
       "sales-crm",
@@ -310,8 +311,12 @@ describe("getRoleNav", () => {
     ).toBe("/rc-admin/rapid-iq#nexiq-signals");
     const itNav = getRoleNav("rcitadmin", {});
     const itItems = itNav.sections.flatMap((s) => s.items);
+    expect(itItems.find((i) => i.id === "rapid-iq")?.href).toBe("/rc-admin/rapid-iq");
+    expect(itItems.find((i) => i.id === "nexiq-signals")?.href).toBe(
+      "/rc-admin/rapid-iq#nexiq-signals",
+    );
+    expect(itItems.find((i) => i.id === "watch-inbox")?.href).toBe("/rc-admin/intelligence/watch");
     expect(itItems.find((i) => i.id === "rapid-iq-pipeline")).toBeUndefined();
-    expect(itItems.find((i) => i.id === "nexiq-signals")).toBeUndefined();
     expect(itItems.find((i) => i.id === "conferences")).toBeUndefined();
     expect(itItems.find((i) => i.id === "sales-automation")).toBeUndefined();
   });

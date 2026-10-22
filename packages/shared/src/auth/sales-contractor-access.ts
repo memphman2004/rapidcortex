@@ -31,15 +31,14 @@ export function canAccessPsapProspectsCrm(role: string | undefined | null): bool
   return canAccessRcFinancePortal(roleToken(role) || "") || isSalesContractorRole(role);
 }
 
-/** NexiQ / Conferences workspace — NexiQ operators + sales contractors. */
+/** NexiQ workspace — every RC internal role, plus sales contractors. */
 export function canAccessRapidIqWorkspace(role: string | undefined | null): boolean {
   const r = roleToken(role);
-  return r === "rcsuperadmin" || r === "rcadmin" || r === "salescontractor";
+  return isRcInternalOperator(r) || r === "salescontractor";
 }
 
 /**
- * NexiQ Signals (Civic IQ ingest panel) — spec `admin` / `bd_manager`.
- * Maps to rcsuperadmin|rcadmin (admin) and salescontractor (bd_manager).
+ * NexiQ Signals panel — same seats as the NexiQ workspace.
  */
 export function canAccessNexiqSignalsPanel(role: string | undefined | null): boolean {
   return canAccessRapidIqWorkspace(role);

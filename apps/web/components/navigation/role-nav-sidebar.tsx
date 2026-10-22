@@ -23,6 +23,7 @@ import { SidebarSignOutFooter } from "@/components/ui/sidebar-sign-out-footer";
 import { SITE_SQUARE_ICON_HEIGHT, SITE_SQUARE_ICON_PATH, SITE_SQUARE_ICON_WIDTH } from "@/lib/site";
 import { defaultJurisdictionSlug } from "@/lib/marketing-links";
 import { useOptionalJurisdictionSlug } from "@/lib/jurisdiction-context";
+import { omitBusinessCardsUntilEnabled, useBusinessCardTenantEnabled } from "@/lib/business-cards/use-tenant-enabled";
 
 const ACCENT_STYLES: Record<
   RoleNav["accent"],
@@ -458,10 +459,11 @@ export function RoleNavSidebar({
 }) {
   const jurisdictionSlug = useOptionalJurisdictionSlug() ?? defaultJurisdictionSlug();
   const counts = useNavBadgeCounts(user.role);
+  const bizCardsOn = useBusinessCardTenantEnabled();
   const nav = useMemo(() => {
     const ctx = buildNavContext(user, jurisdictionSlug);
-    return filterRoleNavByFeatures(getRoleNav(user.role, ctx));
-  }, [user, jurisdictionSlug]);
+    return omitBusinessCardsUntilEnabled(filterRoleNavByFeatures(getRoleNav(user.role, ctx)), bizCardsOn);
+  }, [user, jurisdictionSlug, bizCardsOn]);
 
   const palette = ACCENT_STYLES[nav.accent];
   const shellVars = {

@@ -180,8 +180,32 @@ export const rapidIqSalesCampaignCardSchema = z.object({
   description: z.string(),
   next: z.string(),
   status: z.enum(["scheduled", "active", "pending"]),
+  subject: z.string().optional(),
+  bodyText: z.string().optional(),
 });
 export type RapidIqSalesCampaignCard = z.infer<typeof rapidIqSalesCampaignCardSchema>;
+
+/** Read-only Apollo sequence shown on the Email Campaign page. */
+export const rapidIqApolloCampaignSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  active: z.boolean(),
+  archived: z.boolean(),
+  steps: z.number().int().nonnegative(),
+  scheduled: z.number().int().nonnegative(),
+  delivered: z.number().int().nonnegative(),
+  opened: z.number().int().nonnegative(),
+  replied: z.number().int().nonnegative(),
+  clicked: z.number().int().nonnegative(),
+});
+export type RapidIqApolloCampaign = z.infer<typeof rapidIqApolloCampaignSchema>;
+
+export const rapidIqApolloCampaignReadSchema = z.object({
+  connected: z.boolean(),
+  campaigns: z.array(rapidIqApolloCampaignSchema),
+  error: z.string().max(300).optional(),
+});
+export type RapidIqApolloCampaignRead = z.infer<typeof rapidIqApolloCampaignReadSchema>;
 
 export const createRapidIqSalesSequenceBodySchema = z.object({
   type: z.enum(["rfp_signal", "new_lead", "stage_advance", "campaign"]),

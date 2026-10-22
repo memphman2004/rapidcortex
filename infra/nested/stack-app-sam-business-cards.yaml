@@ -1,0 +1,298 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: NexCort iQ digital business cards. New table, bucket, and routes. Does not modify QR/NFC resources.
+
+Parameters:
+  AppName:
+    Type: String
+    Default: rapid-cortex
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  AuditTable:
+    Type: String
+  AgenciesTable:
+    Type: String
+    Default: ""
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoIssuer:
+    Type: String
+
+Conditions:
+  HasAgenciesTable: !Not [!Equals [!Ref AgenciesTable, ""]]
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Timeout: 15
+    MemorySize: 256
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        AUDIT_TABLE: !Ref AuditTable
+        AGENCIES_TABLE: !Ref AgenciesTable
+        COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+        COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+        COGNITO_ISSUER: !Ref ImportedCognitoIssuer
+        ENABLE_BUSINESS_CARDS: "false"
+        BIZCARD_TABLE_NAME: !Ref BusinessCardsTable
+        BIZCARD_PHOTO_BUCKET: !Ref BusinessCardPhotoBucket
+        BIZCARD_PUBLIC_BASE_URL: https://www.nexcortiq.us
+        BIZCARD_CLOUDFRONT_DOMAIN: ""
+
+Resources:
+  BusinessCardsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${AppName}-business-cards-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gsi1pk
+          AttributeType: S
+        - AttributeName: gsi1sk
+          AttributeType: S
+        - AttributeName: gsi2pk
+          AttributeType: S
+        - AttributeName: gsi2sk
+          AttributeType: S
+        - AttributeName: gsi3pk
+          AttributeType: S
+        - AttributeName: gsi3sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: gsi1
+          KeySchema:
+            - AttributeName: gsi1pk
+              KeyType: HASH
+            - AttributeName: gsi1sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: gsi2
+          KeySchema:
+            - AttributeName: gsi2pk
+              KeyType: HASH
+            - AttributeName: gsi2sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: gsi3
+          KeySchema:
+            - AttributeName: gsi3pk
+              KeyType: HASH
+            - AttributeName: gsi3sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  BusinessCardPhotoBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub "${AppName}-bizcard-photos-${DeploymentStage}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  BusinessCardsEnableParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/nexcortiq/${DeploymentStage}/business-cards/enable"
+      Type: String
+      Value: "false"
+  BusinessCardsBucketParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/nexcortiq/${DeploymentStage}/business-cards/photo-bucket"
+      Type: String
+      Value: !Ref BusinessCardPhotoBucket
+  BusinessCardsAdminRoleParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/nexcortiq/${DeploymentStage}/business-cards/admin-role"
+      Type: String
+      Value: agencyadmin
+
+  BusinessCardsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/business-cards/businessCardsHttp.handler
+      Policies:
+        - Statement:
+            - Sid: BusinessCardTable
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+                - dynamodb:Query
+              Resource:
+                - !GetAtt BusinessCardsTable.Arn
+                - !Sub "${BusinessCardsTable.Arn}/index/*"
+            - Sid: BusinessCardPhotos
+              Effect: Allow
+              Action:
+                - s3:PutObject
+                - s3:GetObject
+                - s3:DeleteObject
+              Resource: !Sub "${BusinessCardPhotoBucket.Arn}/biz-cards/*"
+            - !If
+              - HasAgenciesTable
+              - Sid: ReadAgencyName
+                Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                Resource: !Sub "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
+              - !Ref AWS::NoValue
+
+  BusinessCardsPublicHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/business-cards/businessCardsPublicHttp.handler
+      Policies:
+        - Statement:
+            - Sid: PublicBusinessCardRead
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:Query
+              Resource:
+                - !GetAtt BusinessCardsTable.Arn
+                - !Sub "${BusinessCardsTable.Arn}/index/*"
+
+  BusinessCardsHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BusinessCardsHttpFunction.Arn}/invocations"
+      PayloadFormatVersion: "2.0"
+
+  BusinessCardsPublicIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BusinessCardsPublicHttpFunction.Arn}/invocations"
+      PayloadFormatVersion: "2.0"
+
+  BusinessCardsHttpPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref BusinessCardsHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*"
+
+  BusinessCardsPublicPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref BusinessCardsPublicHttpFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*"
+
+  RouteBusinessCardsProxy:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/business-cards/{proxy+}"
+      Target: !Sub "integrations/${BusinessCardsHttpIntegration}"
+
+  RouteAdminBusinessCards:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/admin/business-cards"
+      Target: !Sub "integrations/${BusinessCardsHttpIntegration}"
+
+  RouteAdminBusinessCardsProxy:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/admin/business-cards/{proxy+}"
+      Target: !Sub "integrations/${BusinessCardsHttpIntegration}"
+
+  RouteAdminNfcCards:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/admin/nfc-cards"
+      Target: !Sub "integrations/${BusinessCardsHttpIntegration}"
+
+  RouteAdminNfcCardsProxy:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/admin/nfc-cards/{proxy+}"
+      Target: !Sub "integrations/${BusinessCardsHttpIntegration}"
+
+  RouteAdminBusinessCardAnalytics:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/admin/analytics/business-cards"
+      Target: !Sub "integrations/${BusinessCardsHttpIntegration}"
+
+  RoutePublicBusinessCardsProxy:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      AuthorizationType: NONE
+      RouteKey: "ANY /api/public/business-cards/{proxy+}"
+      Target: !Sub "integrations/${BusinessCardsPublicIntegration}"
+
+  RoutePublicNfc:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      AuthorizationType: NONE
+      RouteKey: "GET /api/public/c/{cardId}"
+      Target: !Sub "integrations/${BusinessCardsPublicIntegration}"
+
+Outputs:
+  BusinessCardsTableName:
+    Value: !Ref BusinessCardsTable
+  BusinessCardPhotoBucketName:
+    Value: !Ref BusinessCardPhotoBucket

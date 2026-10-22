@@ -42,14 +42,14 @@ export function OutlookCallbackClient() {
         <>
           <p className="text-red-300">{error}</p>
           <p className="mt-2 text-slate-500">
-            Sign in as hello@nexcortiq.us, not your personal NexCort iQ mailbox.
+            Sign in as jeff@nexcortiq.us, not another NexCort iQ mailbox.
           </p>
           <a href="/rc-admin/sales-automation" className="mt-4 inline-block text-sky-400">
             Back to Sales Automation
           </a>
         </>
       ) : (
-        <p>Connecting hello@nexcortiq.us…</p>
+        <p>Connecting jeff@nexcortiq.us…</p>
       )}
     </div>
   );

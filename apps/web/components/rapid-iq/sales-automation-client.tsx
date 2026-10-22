@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
+  RapidIqApolloCampaign,
   RapidIqSalesBulkBatch,
+  RapidIqSalesCampaignCard,
   RapidIqSalesContentDraft,
   RapidIqSalesOutreachStep,
   RapidIqSalesSequence,
@@ -17,11 +19,16 @@ import {
   SALES_AUTOMATION_OUTLOOK_QUERY_KEY,
   SALES_AUTOMATION_SEQUENCES_QUERY_KEY,
   approveSalesBulkCampaign,
+  approveScheduledCampaign,
   approveSalesDraft,
   approveSalesSequence,
   connectSalesOutlook,
   createSalesBulkCampaign,
   createSalesSequence,
+  deleteSalesBulkCampaign,
+  deleteSalesDraft,
+  deleteSalesSequence,
+  deleteScheduledCampaign,
   disconnectSalesOutlook,
   getSalesMetrics,
   getSalesOutlookStatus,
@@ -32,10 +39,34 @@ import {
   updateSalesBulkCopy,
   updateSalesDraft,
   updateSalesSequence,
+  updateScheduledCampaign,
 } from "@/lib/rapid-iq/sales-automation-api";
 import { parseCampaignCsv } from "@/lib/rapid-iq/parse-campaign-csv";
 
 type Tab = "queue" | "active" | "content" | "campaigns";
+
+function apolloRate(part: number, whole: number): string {
+  if (whole <= 0) return "—";
+  return `${Math.round((part / whole) * 100)}%`;
+}
+
+function ApolloCampaignCard({ campaign }: { campaign: RapidIqApolloCampaign }) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-lg border border-white/[0.06] bg-[#071224] px-4 py-3">
+      <div className="min-w-0">
+        <div className="text-sm font-semibold text-slate-100">{campaign.name}</div>
+        <div className="mt-0.5 text-[11px] text-slate-500">
+          {campaign.steps} steps · {campaign.scheduled} scheduled · {campaign.delivered} delivered · open{" "}
+          {apolloRate(campaign.opened, campaign.delivered)} · reply{" "}
+          {apolloRate(campaign.replied, campaign.delivered)}
+        </div>
+      </div>
+      <div className={`shrink-0 text-[10px] font-bold ${campaign.active ? "text-emerald-400" : "text-slate-500"}`}>
+        {campaign.active ? "ACTIVE" : "PAUSED"}
+      </div>
+    </div>
+  );
+}
 
 const VERTICAL_BADGE: Record<string, string> = {
   PSAP: "bg-sky-500/10 text-sky-300",
@@ -115,6 +146,7 @@ function SequenceCard({
   canManage,
   onApprove,
   onSuppress,
+  onDelete,
   onPreview,
 }: {
   seq: RapidIqSalesSequence;
@@ -122,6 +154,7 @@ function SequenceCard({
   canManage: boolean;
   onApprove: (id: string) => void;
   onSuppress: (id: string) => void;
+  onDelete: (id: string) => void;
   onPreview: (seq: RapidIqSalesSequence) => void;
 }) {
   const isDraft = seq.status === "draft";
@@ -208,6 +241,16 @@ function SequenceCard({
               </button>
             </>
           ) : null}
+          {canManage ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onDelete(seq.sequenceId)}
+              className="rounded border border-slate-700 px-2.5 py-1 text-[10px] text-slate-500 hover:border-red-500 hover:text-red-300 disabled:opacity-50"
+            >
+              Delete
+            </button>
+          ) : null}
         </div>
       </div>
     </div>
@@ -220,12 +263,14 @@ function ContentDraftCard({
   canManage,
   onApprove,
   onSave,
+  onDelete,
 }: {
   draft: RapidIqSalesContentDraft;
   busyId: string | null;
   canManage: boolean;
   onApprove: (id: string) => void;
   onSave: (id: string, patch: { subject: string; bodyText: string; linkedinText: string }) => void;
+  onDelete: (id: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -349,6 +394,16 @@ function ContentDraftCard({
               className="rounded bg-emerald-700 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-50"
             >
               {busy ? "…" : "Approve draft"}
+            </button>
+          ) : null}
+          {canManage ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onDelete(draft.draftId)}
+              className="rounded border border-slate-700 px-2.5 py-1 text-[10px] text-slate-500 hover:border-red-500 hover:text-red-300 disabled:opacity-50"
+            >
+              Delete
             </button>
           ) : null}
         </div>
@@ -607,6 +662,7 @@ function BulkBatchCard({
   onApprove,
   onEditCopy,
   onView,
+  onDelete,
 }: {
   campaignId: string;
   name: string;
@@ -617,6 +673,7 @@ function BulkBatchCard({
   onApprove: (campaignId: string) => void;
   onEditCopy: (campaignId: string) => void;
   onView: (campaignId: string) => void;
+  onDelete: (campaignId: string) => void;
 }) {
   return (
     <div className="rounded-lg border border-sky-500/30 bg-[#071224] p-3">
@@ -654,6 +711,14 @@ function BulkBatchCard({
                 className="rounded bg-sky-600 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
               >
                 {busy ? "…" : `Approve ${count}`}
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => onDelete(campaignId)}
+                className="rounded border border-slate-700 px-2.5 py-1 text-[10px] text-slate-500 hover:border-red-500 hover:text-red-300 disabled:opacity-50"
+              >
+                Delete
               </button>
             </>
           ) : (
@@ -891,6 +956,73 @@ function BulkCampaignModal({
   );
 }
 
+function ScheduledCampaignModal({
+  campaign,
+  busy,
+  onClose,
+  onSave,
+}: {
+  campaign: RapidIqSalesCampaignCard;
+  busy: boolean;
+  onClose: () => void;
+  onSave: (subject: string, bodyText: string) => void;
+}) {
+  const [subject, setSubject] = useState(campaign.subject ?? campaign.name);
+  const [bodyText, setBodyText] = useState(campaign.bodyText ?? campaign.description);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-xl border border-slate-700 bg-[#050c1a] shadow-2xl">
+        <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-3">
+          <div>
+            <div className="text-sm font-bold text-slate-100">{campaign.name}</div>
+            <div className="text-[11px] text-slate-500">Next: {campaign.next}</div>
+          </div>
+          <button type="button" onClick={onClose} className="text-lg text-slate-500 hover:text-slate-300">
+            ×
+          </button>
+        </div>
+        <div className="flex-1 space-y-3 overflow-y-auto p-5">
+          <label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+            Subject
+            <input
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="mt-1 w-full rounded-md border border-white/10 bg-[#071224] px-3 py-2 text-sm text-white"
+            />
+          </label>
+          <label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+            Message
+            <textarea
+              rows={12}
+              value={bodyText}
+              onChange={(e) => setBodyText(e.target.value)}
+              className="mt-1 w-full rounded-md border border-white/10 bg-[#071224] px-3 py-2 text-[12px] leading-relaxed text-slate-200"
+            />
+          </label>
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-white/[0.06] px-5 py-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded border border-slate-700 px-4 py-1.5 text-xs text-slate-400 hover:text-slate-200"
+          >
+            Close
+          </button>
+          <button
+            type="button"
+            disabled={busy || !subject.trim() || !bodyText.trim()}
+            onClick={() => onSave(subject.trim(), bodyText.trim())}
+            className="rounded bg-sky-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
+          >
+            {busy ? "Saving…" : "Save"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function SalesAutomationClient({ canManage = false }: { canManage?: boolean }) {
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("queue");
@@ -898,6 +1030,7 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
   const [bulkEdit, setBulkEdit] = useState<RapidIqSalesSequence | null>(null);
   const [triggerOpen, setTriggerOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [scheduleEdit, setScheduleEdit] = useState<RapidIqSalesCampaignCard | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -927,6 +1060,7 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
     void qc.invalidateQueries({ queryKey: SALES_AUTOMATION_SEQUENCES_QUERY_KEY });
     void qc.invalidateQueries({ queryKey: SALES_AUTOMATION_DRAFTS_QUERY_KEY });
     void qc.invalidateQueries({ queryKey: SALES_AUTOMATION_METRICS_QUERY_KEY });
+    void qc.invalidateQueries({ queryKey: SALES_AUTOMATION_CAMPAIGNS_QUERY_KEY });
     void qc.invalidateQueries({ queryKey: SALES_AUTOMATION_OUTLOOK_QUERY_KEY });
   };
 
@@ -971,6 +1105,95 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
     onSuccess: () => {
       invalidate();
       showToast("Sequence suppressed");
+    },
+    onError: (err: Error) => setError(err.message),
+    onSettled: () => setBusyId(null),
+  });
+
+  const deleteSeq = useMutation({
+    mutationFn: deleteSalesSequence,
+    onMutate: (id) => {
+      setBusyId(id);
+      setError(null);
+    },
+    onSuccess: () => {
+      invalidate();
+      setPreview(null);
+      showToast("Campaign deleted");
+    },
+    onError: (err: Error) => setError(err.message),
+    onSettled: () => setBusyId(null),
+  });
+
+  const deleteDraft = useMutation({
+    mutationFn: deleteSalesDraft,
+    onMutate: (id) => {
+      setBusyId(id);
+      setError(null);
+    },
+    onSuccess: () => {
+      invalidate();
+      showToast("Draft deleted");
+    },
+    onError: (err: Error) => setError(err.message),
+    onSettled: () => setBusyId(null),
+  });
+
+  const approveSchedule = useMutation({
+    mutationFn: approveScheduledCampaign,
+    onMutate: (id) => {
+      setBusyId(id);
+      setError(null);
+    },
+    onSuccess: () => {
+      invalidate();
+      showToast("Campaign approved. It stays on its schedule, and the saved message is what goes out.");
+    },
+    onError: (err: Error) => setError(err.message),
+    onSettled: () => setBusyId(null),
+  });
+
+  const saveSchedule = useMutation({
+    mutationFn: ({ campaignId, subject, bodyText }: { campaignId: string; subject: string; bodyText: string }) =>
+      updateScheduledCampaign(campaignId, { subject, bodyText }),
+    onMutate: ({ campaignId }) => {
+      setBusyId(campaignId);
+      setError(null);
+    },
+    onSuccess: () => {
+      invalidate();
+      setScheduleEdit(null);
+      showToast("Campaign message saved");
+    },
+    onError: (err: Error) => setError(err.message),
+    onSettled: () => setBusyId(null),
+  });
+
+  const deleteSchedule = useMutation({
+    mutationFn: deleteScheduledCampaign,
+    onMutate: (id) => {
+      setBusyId(id);
+      setError(null);
+    },
+    onSuccess: () => {
+      invalidate();
+      setScheduleEdit(null);
+      showToast("Campaign deleted");
+    },
+    onError: (err: Error) => setError(err.message),
+    onSettled: () => setBusyId(null),
+  });
+
+  const deleteBulk = useMutation({
+    mutationFn: deleteSalesBulkCampaign,
+    onMutate: (id) => {
+      setBusyId(id);
+      setError(null);
+    },
+    onSuccess: () => {
+      invalidate();
+      setBulkEdit(null);
+      showToast("Campaign deleted");
     },
     onError: (err: Error) => setError(err.message),
     onSettled: () => setBusyId(null),
@@ -1063,7 +1286,7 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
       invalidate();
       showToast(
         body.mock
-          ? `Outlook mock connected as ${body.mailbox ?? "hello@nexcortiq.us"} — live Graph send is off`
+          ? `Outlook mock connected as ${body.mailbox ?? "jeff@nexcortiq.us"} — live Graph send is off`
           : `Outlook connected as ${body.mailbox ?? "sales mailbox"}`,
       );
     },
@@ -1169,7 +1392,7 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-6 py-4">
         <div className="min-w-0">
           <p className="text-[11px] text-slate-500">
-            Campaigns send from <span className="text-slate-300">hello@nexcortiq.us</span>. Queue up
+            Campaigns send from <span className="text-slate-300">jeff@nexcortiq.us</span>. Queue up
             to 100 addresses, edit copy, and pick a send time for each email. Approval sends due mail
             immediately (100 at a time).
           </p>
@@ -1180,10 +1403,17 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
             </p>
           ) : (
             <p className="mt-1 text-[11px] text-amber-400">
-              Connect Outlook as hello@nexcortiq.us. Until then, approved mail is logged only or
+              Connect Outlook as jeff@nexcortiq.us. Until then, approved mail is logged only or
               sent via SES fallback.
             </p>
           )}
+          {campaignsQ.data?.apollo?.connected ? (
+            <p className="mt-1 text-[11px] text-emerald-400">
+              Apollo connected · {campaignsQ.data.apollo.campaigns.length} sequences
+            </p>
+          ) : campaignsQ.data?.apollo?.error ? (
+            <p className="mt-1 text-[11px] text-amber-400">Apollo: {campaignsQ.data.apollo.error}</p>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
           {canManage ? (
@@ -1203,7 +1433,7 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
                 onClick={() => connectOutlook.mutate()}
                 className="rounded border border-sky-700 px-3 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-900/40 disabled:opacity-50"
               >
-                {connectOutlook.isPending ? "Connecting…" : "Connect hello@nexcortiq.us"}
+                {connectOutlook.isPending ? "Connecting…" : "Connect jeff@nexcortiq.us"}
               </button>
             )
           ) : null}
@@ -1308,6 +1538,11 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
                       onView={() => {
                         if (seqs[0]) setBulkEdit(seqs[0]);
                       }}
+                      onDelete={(id) => {
+                        if (window.confirm(`Delete ${seqs[0]?.attribution.campaignName ?? "this campaign"}?`)) {
+                          deleteBulk.mutate(id);
+                        }
+                      }}
                     />
                   ))}
                 </div>
@@ -1327,6 +1562,11 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
                       canManage={canManage}
                       onApprove={(id) => approveSeq.mutate(id)}
                       onSuppress={(id) => suppressSeq.mutate(id)}
+                      onDelete={(id) => {
+                        if (window.confirm("Delete this campaign? It will be removed from the queue.")) {
+                          deleteSeq.mutate(id);
+                        }
+                      }}
                       onPreview={setPreview}
                     />
                   ))}
@@ -1347,6 +1587,9 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
                       canManage={canManage}
                       onApprove={(id) => approveDraft.mutate(id)}
                       onSave={(id, patch) => saveDraft.mutate({ draftId: id, patch })}
+                      onDelete={(id) => {
+                        if (window.confirm("Delete this draft?")) deleteDraft.mutate(id);
+                      }}
                     />
                   ))}
                 </div>
@@ -1374,6 +1617,11 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
                   canManage={canManage}
                   onApprove={(id) => approveSeq.mutate(id)}
                   onSuppress={(id) => suppressSeq.mutate(id)}
+                  onDelete={(id) => {
+                    if (window.confirm("Delete this campaign? It will be removed from the queue.")) {
+                      deleteSeq.mutate(id);
+                    }
+                  }}
                   onPreview={setPreview}
                 />
               ))}
@@ -1397,6 +1645,9 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
                 canManage={canManage}
                 onApprove={(id) => approveDraft.mutate(id)}
                 onSave={(id, patch) => saveDraft.mutate({ draftId: id, patch })}
+                onDelete={(id) => {
+                  if (window.confirm("Delete this draft?")) deleteDraft.mutate(id);
+                }}
               />
             ))}
             {drafts.length === 0 ? (
@@ -1409,6 +1660,25 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
 
         {!loading && tab === "campaigns" ? (
           <div className="space-y-6">
+            <section>
+              <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                Apollo sequences
+              </h2>
+              {campaignsQ.data?.apollo?.connected ? (
+                <div className="space-y-3">
+                  {campaignsQ.data.apollo.campaigns.map((campaign) => (
+                    <ApolloCampaignCard key={campaign.id} campaign={campaign} />
+                  ))}
+                  {campaignsQ.data.apollo.campaigns.length === 0 ? (
+                    <p className="text-sm text-slate-500">No active Apollo sequences in this workspace.</p>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="text-sm text-amber-300">
+                  {campaignsQ.data?.apollo?.error ?? "Apollo sequences are not loaded."}
+                </p>
+              )}
+            </section>
             {(campaignsQ.data?.batches ?? []).length > 0 ? (
               <section>
                 <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
@@ -1427,20 +1697,40 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
                           {batch.completedCount} done · {batch.suppressedCount} held
                         </div>
                       </div>
-                      {canManage && batch.draftCount > 0 ? (
-                        <button
-                          type="button"
-                          disabled={busyId === batch.campaignId}
-                          onClick={() => approveBulk.mutate(batch.campaignId)}
-                          className="shrink-0 rounded bg-sky-600 px-3 py-1.5 text-[10px] font-semibold text-white disabled:opacity-50"
-                        >
-                          Approve {batch.draftCount}
-                        </button>
-                      ) : batch.draftCount > 0 ? (
-                        <div className="text-[10px] font-bold text-amber-400">AWAITING APPROVAL</div>
-                      ) : (
-                        <div className="text-[10px] font-bold text-emerald-400">SENDING</div>
-                      )}
+                      <div className="flex shrink-0 items-center gap-2">
+                        {canManage && batch.draftCount > 0 ? (
+                          <button
+                            type="button"
+                            disabled={busyId === batch.campaignId}
+                            onClick={() => approveBulk.mutate(batch.campaignId)}
+                            className="rounded bg-sky-600 px-3 py-1.5 text-[10px] font-semibold text-white disabled:opacity-50"
+                          >
+                            Approve {batch.draftCount}
+                          </button>
+                        ) : batch.draftCount > 0 ? (
+                          <div className="text-[10px] font-bold text-amber-400">AWAITING APPROVAL</div>
+                        ) : (
+                          <div className="text-[10px] font-bold text-emerald-400">SENDING</div>
+                        )}
+                        {canManage ? (
+                          <button
+                            type="button"
+                            disabled={busyId === batch.campaignId}
+                            onClick={() => {
+                              if (
+                                window.confirm(
+                                  `Delete ${batch.campaignName}? This removes every email in the batch.`,
+                                )
+                              ) {
+                                deleteBulk.mutate(batch.campaignId);
+                              }
+                            }}
+                            className="rounded border border-slate-700 px-3 py-1.5 text-[10px] text-slate-400 hover:border-red-500 hover:text-red-300 disabled:opacity-50"
+                          >
+                            Delete
+                          </button>
+                        ) : null}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1459,7 +1749,7 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
                     <div className="text-sm font-semibold text-slate-100">{c.name}</div>
                     <div className="mt-0.5 max-w-lg text-[11px] text-slate-500">{c.description}</div>
                   </div>
-                  <div className="shrink-0 text-right">
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
                     <div
                       className={`text-[10px] font-bold ${
                         c.status === "active"
@@ -1471,7 +1761,39 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
                     >
                       {c.status.toUpperCase()}
                     </div>
-                    <div className="mt-0.5 text-[10px] text-slate-600">Next: {c.next}</div>
+                    <div className="text-[10px] text-slate-600">Next: {c.next}</div>
+                    {canManage ? (
+                      <div className="mt-1 flex gap-1.5">
+                        <button
+                          type="button"
+                          disabled={busyId === c.id}
+                          onClick={() => approveSchedule.mutate(c.id)}
+                          className="rounded bg-sky-600 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busyId === c.id}
+                          onClick={() => setScheduleEdit(c)}
+                          className="rounded border border-slate-700 px-2.5 py-1 text-[10px] text-slate-300 hover:border-sky-500 hover:text-sky-300 disabled:opacity-50"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busyId === c.id}
+                          onClick={() => {
+                            if (window.confirm(`Delete ${c.name}? It will leave the schedule.`)) {
+                              deleteSchedule.mutate(c.id);
+                            }
+                          }}
+                          className="rounded border border-slate-700 px-2.5 py-1 text-[10px] text-slate-400 hover:border-red-500 hover:text-red-300 disabled:opacity-50"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               ))}
@@ -1479,6 +1801,17 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
           </div>
         ) : null}
       </div>
+
+      {scheduleEdit ? (
+        <ScheduledCampaignModal
+          campaign={scheduleEdit}
+          busy={busyId === scheduleEdit.id}
+          onClose={() => setScheduleEdit(null)}
+          onSave={(subject, bodyText) =>
+            saveSchedule.mutate({ campaignId: scheduleEdit.id, subject, bodyText })
+          }
+        />
+      ) : null}
 
       {preview ? (
         <PreviewModal

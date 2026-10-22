@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { HIGHER_ED_INCIDENT_TYPES, K12_INCIDENT_TYPES } from "rapid-cortex-shared";
+import {
+  HIGHER_ED_INCIDENT_TYPES,
+  K12_INCIDENT_TYPES,
+  silentPanicActivationSchema,
+} from "rapid-cortex-shared";
 
 /** Operational + catalog types (higher-ed and K-12). Unknown values rejected. */
 const CAMPUS_INCIDENT_TYPE_VALUES = Array.from(
@@ -89,6 +93,8 @@ export const createIncidentSchema = z.object({
       capturedAt: z.string(),
     })
     .optional(),
+  /** K-12 silent panic. The handler rejects this unless the seat and agency are K-12. */
+  silentPanic: silentPanicActivationSchema.optional(),
 });
 
 export const updateIncidentSchema = z.object({
