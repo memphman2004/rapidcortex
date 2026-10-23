@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import {
+  PSAP_CONTACT_METHOD_LABELS,
   PSAP_OUTREACH_STATUSES,
   PSAP_OUTREACH_STATUS_CONFIG,
+  isPsapContactMethod,
+  summarizePsapContacts,
   type AddPsapActivityRequest,
   type PatchPsapProspectBody,
   type PsapActivity,
@@ -37,6 +40,9 @@ type Props = {
   /** Campus enrollment when viewing sheet prospects. */
   studentCount?: number;
   vertical?: "psap" | "campus" | "venue" | "hospital" | "transit";
+  /** Name written on new contact log entries. */
+  actorName?: string;
+  actorUserId?: string;
 };
 
 const ACTIVITY_TYPES: { type: Exclude<ActivityType, "stage_change">; label: string }[] = [
@@ -46,6 +52,27 @@ const ACTIVITY_TYPES: { type: Exclude<ActivityType, "stage_change">; label: stri
   { type: "note", label: "Note" },
   { type: "demo", label: "Demo" },
 ];
+
+function activityLabel(activity: PsapActivity): string {
+  if (isPsapContactMethod(activity.type)) return PSAP_CONTACT_METHOD_LABELS[activity.type];
+  if (activity.type === "note") return "Note";
+  return "Status";
+}
+
+function ActivityRow({ activity }: { activity: PsapActivity }) {
+  return (
+    <li className="rounded border border-[#1e2130] bg-[#0a0b0f] px-3 py-2">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-wide text-violet-300">
+          {activityLabel(activity)}
+        </span>
+        <span className="text-[10px] text-slate-600">{formatActivityTime(activity.performedAt)}</span>
+      </div>
+      <p className="mt-1 text-sm text-slate-300">{activity.description}</p>
+      <p className="mt-1 text-[11px] text-slate-500">{activity.performedByName}</p>
+    </li>
+  );
+}
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -183,6 +210,8 @@ export function PsapDetailPanel({
   persistence = "api",
   studentCount,
   vertical = "psap",
+  actorName,
+  actorUserId,
 }: Props) {
   const [tab, setTab] = useState<Tab>("details");
   const [draft, setDraft] = useState(prospect);
@@ -190,7 +219,7 @@ export function PsapDetailPanel({
   const [enriching, setEnriching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [enrichNotice, setEnrichNotice] = useState<string | null>(null);
-  const [activityType, setActivityType] = useState<Exclude<ActivityType, "stage_change">>("note");
+  const [activityType, setActivityType] = useState<Exclude<ActivityType, "stage_change">>("call");
   const [activityText, setActivityText] = useState("");
   const [copyMsg, setCopyMsg] = useState<string | null>(null);
   const [sendingLead, setSendingLead] = useState(false);
@@ -292,7 +321,14 @@ export function PsapDetailPanel({
     setError(null);
     try {
       const updated = isLocal
-        ? addOutreachActivityLocal(draft, { type: activityType, description })
+        ? addOutreachActivityLocal(
+            draft,
+            { type: activityType, description },
+            {
+              userId: actorUserId || "local",
+              displayName: actorName?.trim() || "You",
+            },
+          )
         : await addPsapActivity(prospect.psapId, {
             type: activityType,
             description,
@@ -354,6 +390,9 @@ export function PsapDetailPanel({
   const activities: PsapActivity[] = [...(draft.activities ?? [])].sort((a, b) =>
     b.performedAt.localeCompare(a.performedAt),
   );
+  const contactSummary = summarizePsapContacts(draft);
+  const contactLog = activities.filter((a) => isPsapContactMethod(a.type));
+  const otherActivity = activities.filter((a) => !isPsapContactMethod(a.type));
 
   return (
     <aside className="flex h-full w-full max-w-md flex-col border-l border-[#1e2130] bg-[#0f1117]">
@@ -401,7 +440,13 @@ export function PsapDetailPanel({
       </div>
 
       <div className="flex border-b border-[#1e2130]">
-        {(["details", "activity", "mailing"] as Tab[]).map((t) => (
+        {(
+          [
+            ["details", "Details"],
+            ["activity", "Contact"],
+            ["mailing", "Mailing"],
+          ] as const
+        ).map(([t, label]) => (
           <button
             key={t}
             type="button"
@@ -412,7 +457,7 @@ export function PsapDetailPanel({
                 : "text-slate-500 hover:text-slate-300"
             }`}
           >
-            {t}
+            {label}
           </button>
         ))}
       </div>
@@ -647,6 +692,23 @@ export function PsapDetailPanel({
 
         {tab === "activity" && (
           <div className="space-y-4">
+            <div className="rounded border border-[#1e2130] bg-[#0a0b0f] px-3 py-2">
+              <p className="text-sm font-medium text-slate-100">
+                Contacted {contactSummary.count}{" "}
+                {contactSummary.count === 1 ? "time" : "times"}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                {contactSummary.lastAt
+                  ? `Last ${formatActivityTime(contactSummary.lastAt)}${
+                      contactSummary.lastBy ? ` by ${contactSummary.lastBy}` : ""
+                    }${
+                      contactSummary.lastMethod
+                        ? ` via ${PSAP_CONTACT_METHOD_LABELS[contactSummary.lastMethod]}`
+                        : ""
+                    }`
+                  : "No outreach logged yet."}
+              </p>
+            </div>
             <div className="space-y-2 rounded border border-[#1e2130] bg-[#0a0b0f] p-3">
               <div className="flex flex-wrap gap-1">
                 {ACTIVITY_TYPES.map((a) => (
@@ -668,7 +730,7 @@ export function PsapDetailPanel({
                 value={activityText}
                 onChange={(e) => setActivityText(e.target.value)}
                 rows={3}
-                placeholder="Log outreach…"
+                placeholder="What happened on this contact…"
                 className="w-full rounded border border-[#1e2130] bg-[#0f1117] px-2.5 py-1.5 text-sm text-slate-200 focus:border-violet-500/40 focus:outline-none"
               />
               <button
@@ -677,32 +739,29 @@ export function PsapDetailPanel({
                 onClick={() => void postActivity()}
                 className="rounded border border-violet-500/40 bg-violet-500/10 px-2.5 py-1 text-xs text-violet-200 disabled:opacity-50"
               >
-                Post
+                Log
               </button>
             </div>
 
+            <SectionHeader title="Contact log" />
             <ul className="space-y-2">
-              {activities.length === 0 && (
-                <li className="text-sm text-slate-500">No activity yet.</li>
+              {contactLog.length === 0 && (
+                <li className="text-sm text-slate-500">No contacts logged yet.</li>
               )}
-              {activities.map((a) => (
-                <li
-                  key={a.activityId}
-                  className="rounded border border-[#1e2130] bg-[#0a0b0f] px-3 py-2"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wide text-violet-300">
-                      {a.type}
-                    </span>
-                    <span className="text-[10px] text-slate-600">
-                      {formatActivityTime(a.performedAt)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-slate-300">{a.description}</p>
-                  <p className="mt-1 text-[11px] text-slate-500">{a.performedByName}</p>
-                </li>
+              {contactLog.map((a) => (
+                <ActivityRow key={a.activityId} activity={a} />
               ))}
             </ul>
+            {otherActivity.length > 0 && (
+              <>
+                <SectionHeader title="Notes and status" />
+                <ul className="space-y-2">
+                  {otherActivity.map((a) => (
+                    <ActivityRow key={a.activityId} activity={a} />
+                  ))}
+                </ul>
+              </>
+            )}
           </div>
         )}
 

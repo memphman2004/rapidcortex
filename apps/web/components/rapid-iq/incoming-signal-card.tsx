@@ -12,6 +12,7 @@ import {
 import { fetchTalkingPoints } from "@/lib/rapid-iq/api";
 import type { RapidIqVertical } from "@/lib/rapid-iq/types";
 import { formatCurrency, formatShortDate } from "@/lib/rapid-iq/scoring";
+import { httpDocumentUrl, solicitationLinkLabel } from "@/lib/rapid-iq/solicitation-link";
 import { ProcurementStageBadge } from "./procurement-stage-badge";
 import { DualScoreBadge } from "./dual-score-badge";
 import { SignalEvidenceBlock } from "./signal-evidence";
@@ -241,6 +242,20 @@ export function IncomingSignalCard({
       <div className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-slate-400">
         {signal.excerpt || signal.summary || signal.rawSnippet || signal.rawTitle}
       </div>
+      {httpDocumentUrl(signal.sourceUrl) ? (
+        <a
+          href={httpDocumentUrl(signal.sourceUrl)!}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-1.5 inline-block text-[11px] font-semibold text-sky-400 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {solicitationLinkLabel(
+            `${signal.rawTitle} ${signal.summary ?? ""} ${signal.solicitationNumber ?? ""}`,
+          )}{" "}
+          ↗
+        </a>
+      ) : null}
       {signal.taxonomyTags && signal.taxonomyTags.length > 0 && (
         <div className="mt-1 flex flex-wrap gap-1">
           {signal.taxonomyTags.slice(0, 4).map((tag) => (

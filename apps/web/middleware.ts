@@ -55,7 +55,7 @@ import { defaultJurisdictionSlug, marketingLoginPath } from "@/lib/marketing-lin
 import { mapJurisdictionPlatformPathToRcAdmin } from "@/lib/platform-command-nav";
 import { RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS } from "@/lib/reserved-public-route-segments";
 import { getMobileOperationalAuthMiddlewareResponse } from "@/lib/device/middleware-mobile-auth";
-import { isAppHostRequest, maybeRedirectAppHostAwayFromMarketing } from "@/lib/app-host-routing";
+import { isAppHostRequest, maybeRedirectAppHostAwayFromMarketing, maybeRedirectMarketingContactCard } from "@/lib/app-host-routing";
 import { maybeRedirectReportHost } from "@/lib/report-host-routing";
 import { publicAbsoluteUrl, resolveRedirectUrl } from "@/lib/request-origin";
 import { requiresOperationalPasswordRenewal } from "rapid-cortex-shared/auth/password-policy";
@@ -1010,6 +1010,9 @@ function isChatGptWatchIngestPath(pathname: string): boolean {
 
 async function runMiddleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+
+  const marketingCardRedirect = maybeRedirectMarketingContactCard(request);
+  if (marketingCardRedirect) return marketingCardRedirect;
 
   // ALB/ECS probes must not load the edge middleware graph (see matcher + node:crypto note below).
   if (pathname === "/api/health" || pathname.startsWith("/api/health/")) {

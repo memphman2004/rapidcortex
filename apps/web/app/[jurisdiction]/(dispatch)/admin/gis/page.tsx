@@ -12,11 +12,13 @@ import {
 } from "@/lib/gis/client";
 import { isGisEnabled } from "@/lib/runtime-flags";
 import { useJurisdictionLink } from "@/lib/jurisdiction-context";
+import { useTheme } from "@/lib/theme/theme-context";
 import Link from "next/link";
 
 type Tab = "discover" | "layers";
 
 export default function AdminGisPage() {
+  const { theme } = useTheme();
   const to = useJurisdictionLink();
   const [tab, setTab] = useState<Tab>("discover");
   const [serviceUrl, setServiceUrl] = useState("");
@@ -257,7 +259,7 @@ export default function AdminGisPage() {
         <div className="h-[420px]">
           <RapidCortexMap
             height="420px"
-            theme="dark"
+            theme={theme}
             showLayerControl={false}
             enableGisLayers={false}
             previewGeoJson={preview}

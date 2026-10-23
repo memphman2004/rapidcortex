@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   isMarketingPublicPath,
   maybeRedirectAppHostAwayFromMarketing,
+  maybeRedirectMarketingContactCard,
 } from "@/lib/app-host-routing";
 import { NextRequest } from "next/server";
 
@@ -76,5 +77,26 @@ describe("app-host-routing — public status", () => {
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/sales"))).toBeNull();
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/roi/abc"))).toBeNull();
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/register/free"))).toBeNull();
+  });
+
+  it("sends marketing-host contact cards to the app and leaves the app host alone", () => {
+    const nfc = new NextRequest(new URL("https://www.nexcortiq.us/c/card-1?src=nfc"), {
+      headers: { host: "www.nexcortiq.us" },
+    });
+    const sent = maybeRedirectMarketingContactCard(nfc);
+    expect(sent?.status).toBe(302);
+    expect(sent?.headers.get("location")).toBe("https://app.rapidcortex.us/c/card-1?src=nfc");
+
+    const page = new NextRequest(new URL("https://nexcortiq.us/card/ada"), {
+      headers: { host: "nexcortiq.us" },
+    });
+    expect(maybeRedirectMarketingContactCard(page)?.headers.get("location")).toBe("https://app.rapidcortex.us/card/ada");
+
+    const contact = new NextRequest(new URL("https://www.nexcortiq.us/contact"), {
+      headers: { host: "www.nexcortiq.us" },
+    });
+    expect(maybeRedirectMarketingContactCard(contact)).toBeNull();
+    expect(maybeRedirectMarketingContactCard(appRequest("/c/card-1"))).toBeNull();
+    expect(maybeRedirectMarketingContactCard(appRequest("/card/ada"))).toBeNull();
   });
 });

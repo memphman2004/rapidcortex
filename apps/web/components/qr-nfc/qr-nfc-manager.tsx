@@ -16,6 +16,7 @@ import {
 } from "rapid-cortex-shared";
 import { features } from "@/lib/features";
 import { qrNfcSetupGuidePath } from "@/lib/marketing-links";
+import { WriteNfcButton } from "@/components/business-cards/write-nfc-button";
 import { NFCInstructions } from "./nfc-instructions";
 import { QrNfcUsagePanel } from "./qr-nfc-usage-panel";
 import { TradeShowMarketingQrPanel } from "./trade-show-marketing-qr";
@@ -123,6 +124,7 @@ export function QRNFCManager({
   const [filterLocation, setFilterLocation] = useState<string>("all");
   const [mediumView, setMediumView] = useState<MediumView>("all");
   const [expandedNfcId, setExpandedNfcId] = useState<string | null>(null);
+  const [programUrl, setProgramUrl] = useState<string | null>(null);
 
   const [form, setForm] = useState<CreateQRNFCInput & { callNumber?: string }>({
     name: "",
@@ -170,6 +172,14 @@ export function QRNFCManager({
 
   const flash = useCallback((tone: "ok" | "err", text: string) => {
     setActionMsg({ tone, text });
+  }, []);
+
+  useEffect(() => {
+    const value = new URLSearchParams(window.location.search).get("programUrl");
+    if (value?.startsWith("https://")) {
+      setProgramUrl(value);
+      setMediumView("nfc");
+    }
   }, []);
 
   const load = useCallback(async () => {
@@ -582,6 +592,16 @@ export function QRNFCManager({
       className="space-y-4"
       {...(globalView || vertical === "911" ? {} : { "data-vertical": vertical })}
     >
+      {programUrl ? (
+        <div className="rounded-lg border border-amber-700/60 bg-amber-950/40 p-4">
+          <p className="text-sm font-medium text-amber-100">Business card tag</p>
+          <p className="mt-1 text-xs text-amber-200/80">
+            Program this URL with the NexCort iQ mobile app, then return to NFC Card Management and mark the card programmed.
+          </p>
+          <WriteNfcButton url={programUrl} />
+          <NFCInstructions url={programUrl} />
+        </div>
+      ) : null}
       <div className={`flex flex-wrap items-center gap-3 ${hideHeading ? "justify-end" : "justify-between"}`}>
         {hideHeading ? <span className="sr-only">{title}</span> : <h2 className="text-lg font-semibold text-slate-100">{title}</h2>}
         <div className="flex flex-wrap items-center gap-2">

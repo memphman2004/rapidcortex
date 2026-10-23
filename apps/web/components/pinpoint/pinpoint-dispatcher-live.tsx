@@ -16,6 +16,7 @@ import {
   resolvePinpointIqLocationStatus,
 } from "rapid-cortex-shared/pinpoint-surge";
 import { PinpointLocationTimeline } from "@/components/pinpoint/pinpoint-location-timeline";
+import { useTheme } from "@/lib/theme/theme-context";
 
 export type ScanMapLocation = {
   lat: number;
@@ -70,6 +71,7 @@ export function PinpointDispatcherLive({
   /** Original QR/NFC coordinates when known — kept visually distinct from caller GPS. */
   scanLocation?: ScanMapLocation | null;
 }) {
+  const { theme } = useTheme();
   const [mapInstance, setMapInstance] = useState<Map | null>(null);
   const [focusPing, setFocusPing] = useState<PinpointPing | null>(null);
   const pings = detail.pings;
@@ -133,7 +135,7 @@ export function PinpointDispatcherLive({
       </div>
       <div className="h-[200px] overflow-hidden rounded-md border border-slate-800">
         <RapidCortexMap
-          theme="dark"
+          theme={theme}
           center={[centerLng, centerLat]}
           zoom={16}
           showControls

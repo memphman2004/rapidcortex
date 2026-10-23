@@ -83,6 +83,13 @@ export type BusinessCardProfile = {
   socialLinks: SocialLink[];
   photoKey?: string;
   companyLogoKey?: string;
+  /** Optional override of the preset theme. Empty means the preset is in use. */
+  backgroundColor?: string;
+  accentColor?: string;
+  coverKey?: string;
+  /** Profile photo focal point, 0–100. Omitted means centered. */
+  photoFocusX?: number;
+  photoFocusY?: number;
   visibilitySettings: Record<string, boolean>;
   lockedFields: string[];
   cardTheme: CardTheme;
@@ -196,6 +203,11 @@ export type PublicBusinessCard = {
   officeAddress?: OfficeAddress;
   socialLinks: SocialLink[];
   photoUrl?: string;
+  coverUrl?: string;
+  backgroundColor?: string;
+  accentColor?: string;
+  photoFocusX?: number;
+  photoFocusY?: number;
   cardTheme: CardTheme;
   permanentUrl: string;
 };

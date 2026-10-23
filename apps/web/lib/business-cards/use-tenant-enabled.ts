@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { isBusinessCardsUiEnabled } from "@/lib/runtime-flags";
 
 /** True only after the tenant status call says business cards are enabled. */
-export function useBusinessCardTenantEnabled(): boolean {
+export function useBusinessCardTenantEnabled(agencyId?: string): boolean {
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
-    if (!isBusinessCardsUiEnabled()) return;
+    if (agencyId !== "__platform__" || !isBusinessCardsUiEnabled()) return;
     const read = () => {
       try {
         const raw = window.sessionStorage.getItem("bizCardStatus");
@@ -29,7 +29,7 @@ export function useBusinessCardTenantEnabled(): boolean {
       })
       .catch(() => undefined);
     return () => window.removeEventListener("rc-bizcard-status", read);
-  }, []);
+  }, [agencyId]);
 
   return enabled;
 }

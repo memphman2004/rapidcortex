@@ -7,6 +7,7 @@ import type * as maplibregl from "maplibre-gl";
 import * as maplibreglLib from "maplibre-gl";
 
 import { activateMciPlan } from "@/lib/hospital-routing/api";
+import { useTheme } from "@/lib/theme/theme-context";
 import { formatTraumaLevel } from "./hospital-utils";
 
 export interface MciDashboardProps {
@@ -36,6 +37,7 @@ export function MciDashboard({
   incidentLocation,
   onUpdatePlan,
 }: MciDashboardProps) {
+  const { theme } = useTheme();
   const [map, setMap] = useState<maplibregl.Map | null>(null);
   const [selectedHospital, setSelectedHospital] = useState<string | null>(null);
   const [plan, setPlan] = useState(distributionPlan);
@@ -122,7 +124,7 @@ export function MciDashboard({
           <RapidCortexMap
             center={[center.lon, center.lat]}
             zoom={10}
-            theme="dark"
+            theme={theme}
             onMapLoad={setMap}
           >
             {map && incidentLocation ? (

@@ -17,6 +17,7 @@ import {
   PSAP_ICON_URL,
   buildPsapPopupHTML,
 } from "@/components/maps/psap-overlay";
+import { useTheme } from "@/lib/theme/theme-context";
 
 const US_CENTER: [number, number] = [-98.5795, 39.8283];
 const SOURCE_ID = "psap-prospect-pins";
@@ -32,6 +33,7 @@ type Props = {
 };
 
 export function PsapMapView({ pins, statusFilter, onSelectProspect, isLoading }: Props) {
+  const { theme } = useTheme();
   const [map, setMap] = useState<maplibregl.Map | null>(null);
   const [error, setError] = useState<string | null>(null);
   const selectingRef = useRef(false);
@@ -280,7 +282,7 @@ export function PsapMapView({ pins, statusFilter, onSelectProspect, isLoading }:
         <RapidCortexMap
           center={US_CENTER}
           zoom={3.4}
-          theme="dark"
+          theme={theme}
           showControls
           className="h-full w-full"
           onMapLoad={setMap}

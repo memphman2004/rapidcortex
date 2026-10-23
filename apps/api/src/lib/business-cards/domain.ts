@@ -11,21 +11,31 @@ export const RESERVED_SLUGS = new Set([
   "null",
 ]);
 
-export const BUSINESS_CARD_ADMIN_ROLES = new Set([
-  "agencyadmin",
-  "agencyit",
-  "rcadmin",
+/** NexCort iQ staff. Agency, campus, venue, hospital, and transit roles are excluded. */
+export const NEXCORT_EMPLOYEE_ROLES = new Set([
   "rcsuperadmin",
+  "rcadmin",
   "rcitadmin",
-  "CAMPUS_ADMIN",
-  "VENUE_ADMIN",
-  "TRANSIT_ADMIN",
-  "HOSPITAL_ADMIN",
-  "CALL_ASSIST_ADMIN",
+  "salescontractor",
 ]);
 
-/** Fields an employee can never change, even when an admin has not locked them. */
-export const ALWAYS_LOCKED_FIELDS = ["companyName", "website", "primaryEmail"] as const;
+export const BUSINESS_CARD_ADMIN_ROLES = new Set(["rcsuperadmin", "rcadmin"]);
+
+/** Cognito `custom:agencyId` for NexCort iQ staff. Customer agencies never receive cards. */
+export const PLATFORM_CARD_AGENCY_ID = "__platform__";
+
+export function isPlatformCardAgency(agencyId: string): boolean {
+  return agencyId.trim() === PLATFORM_CARD_AGENCY_ID;
+}
+
+/** Locked company name on every NexCort iQ employee card. */
+export const NEXCORT_COMPANY_NAME = "NexCort iQ";
+
+/** Company name stays locked. Email and website are editable. */
+export const ALWAYS_LOCKED_FIELDS = ["companyName"] as const;
+
+/** About text on the public card. Long enough for a multi-paragraph bio. */
+export const BIOGRAPHY_MAX_LENGTH = 1200;
 
 export class BizCardError extends Error {
   constructor(
@@ -36,6 +46,10 @@ export class BizCardError extends Error {
     super(message);
     this.name = "BizCardError";
   }
+}
+
+export function isNexCortEmployee(role: string): boolean {
+  return NEXCORT_EMPLOYEE_ROLES.has(role.trim());
 }
 
 export function isBusinessCardAdmin(role: string): boolean {
@@ -87,6 +101,14 @@ export function assertHttpsUrl(value: string, field: string): void {
   if (url.protocol !== "https:") {
     throw new BizCardError(400, "invalid_url", `${field} must start with https://.`);
   }
+}
+
+/** `www.nexcortiq.com` becomes `https://www.nexcortiq.com`. Schemes already present are left alone. */
+export function normalizeWebsite(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return trimmed;
+  return `https://${trimmed.replace(/^\/+/, "")}`;
 }
 
 export function assertWebsite(value: string): void {

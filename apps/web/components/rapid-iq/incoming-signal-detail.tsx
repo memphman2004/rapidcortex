@@ -5,6 +5,7 @@ import {
   RAPID_IQ_PIPELINE_SOURCE_LABELS,
   type RapidIqPipelineSignal,
 } from "rapid-cortex-shared";
+import { httpDocumentUrl, solicitationLinkLabel } from "@/lib/rapid-iq/solicitation-link";
 import { DualScoreBadge } from "./dual-score-badge";
 import { ProcurementStageBadge } from "./procurement-stage-badge";
 import { SignalEvidenceBlock } from "./signal-evidence";
@@ -154,15 +155,20 @@ export function IncomingSignalDetail({
         <SignalEvidenceBlock signal={signal} />
       </div>
 
-      {signal.sourceUrl && (
+      {httpDocumentUrl(signal.sourceUrl) ? (
         <a
-          href={signal.sourceUrl}
+          href={httpDocumentUrl(signal.sourceUrl)!}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 truncate text-[11px] text-sky-400 hover:underline"
+          className="mt-3 inline-flex items-center rounded-md border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-[11px] font-semibold text-sky-200 hover:bg-sky-500/20"
         >
-          {signal.sourceUrl}
+          {solicitationLinkLabel(
+            `${signal.rawTitle} ${signal.summary ?? ""} ${signal.solicitationNumber ?? ""}`,
+          )}{" "}
+          ↗
         </a>
+      ) : (
+        <p className="mt-3 text-[11px] text-amber-200/80">No RFI or RFP link was stored with this signal.</p>
       )}
       <div className="mt-4 flex flex-wrap gap-2">
         <button

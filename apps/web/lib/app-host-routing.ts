@@ -155,6 +155,31 @@ export function isMarketingPublicPath(pathname: string): boolean {
   return false;
 }
 
+const MARKETING_CARD_HOSTS = new Set([
+  "www.nexcortiq.us",
+  "nexcortiq.us",
+  "www.rapidcortex.us",
+  "rapidcortex.us",
+]);
+
+function isContactCardPath(pathname: string): boolean {
+  return pathname === "/c" || pathname === "/card" || pathname.startsWith("/c/") || pathname.startsWith("/card/");
+}
+
+/**
+ * Marketing CloudFront forwards `/c` and `/card` to this app. Send the browser
+ * to the app host so the page, its scripts, and Save Contact stay on one origin.
+ * The address stored on a tag remains `https://www.nexcortiq.us/c/{cardId}`.
+ */
+export function maybeRedirectMarketingContactCard(request: NextRequest): NextResponse | null {
+  const host = viewerHostname(request);
+  if (!host || !MARKETING_CARD_HOSTS.has(host)) return null;
+  const pathname = request.nextUrl.pathname;
+  if (!isContactCardPath(pathname)) return null;
+  const destination = new URL(`${pathname}${request.nextUrl.search}`, "https://app.rapidcortex.us");
+  return NextResponse.redirect(destination, 302);
+}
+
 /**
  * On the app subdomain, send marketing pages to www and `/` to sign-in.
  * Returns null when no redirect applies.

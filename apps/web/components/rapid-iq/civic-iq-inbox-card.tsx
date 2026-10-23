@@ -2,6 +2,7 @@
 
 import type { NexiqSignalRecord } from "rapid-cortex-shared";
 import { formatCurrency, formatShortDate, intentFitBadgeClass } from "@/lib/rapid-iq/scoring";
+import { httpDocumentUrl, solicitationLinkLabel } from "@/lib/rapid-iq/solicitation-link";
 import { VERTICAL_BORDER } from "./opportunity-card";
 import type { FeedTab } from "./vertical-tabs";
 
@@ -21,20 +22,41 @@ const TIER_STYLES: Record<string, string> = {
 type Props = {
   signal: NexiqSignalRecord;
   feedTab: FeedTab;
+  selected?: boolean;
   busy?: boolean;
+  onSelect: () => void;
   onAction: (action: "track" | "dismiss" | "push_to_crm") => void;
 };
 
-export function CivicIqInboxCard({ signal, feedTab, busy = false, onAction }: Props) {
+export function CivicIqInboxCard({
+  signal,
+  feedTab,
+  selected = false,
+  busy = false,
+  onSelect,
+  onAction,
+}: Props) {
   const borderClass =
     feedTab === "competitor" ? "border-l-sky-500" : VERTICAL_BORDER[feedTab] ?? "border-l-sky-500";
   const state = signal.geography?.state;
+  const documentUrl = httpDocumentUrl(signal.sourceUrl);
+  const linkLabel = solicitationLinkLabel(`${signal.title} ${signal.summary}`);
 
   return (
     <article
+      role="button"
+      tabIndex={0}
+      onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
       className={[
-        "border-b border-slate-900/80 border-l-2 px-4 py-3",
+        "cursor-pointer border-b border-slate-900/80 border-l-2 px-4 py-3 transition-colors hover:bg-slate-900/60",
         borderClass,
+        selected ? "bg-sky-950/40" : "",
       ].join(" ")}
     >
       <div className="flex items-start gap-2.5">
@@ -75,12 +97,31 @@ export function CivicIqInboxCard({ signal, feedTab, busy = false, onAction }: Pr
         <div className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-slate-400">{signal.summary}</div>
       ) : null}
 
+      <div className="mt-2">
+        {documentUrl ? (
+          <a
+            href={documentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] font-semibold text-sky-400 hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {linkLabel} ↗
+          </a>
+        ) : (
+          <span className="text-[11px] text-slate-500">More information</span>
+        )}
+      </div>
+
       <div className="mt-2 flex flex-wrap items-center gap-2.5">
         <button
           type="button"
           className="signal-pipeline-btn"
           disabled={busy}
-          onClick={() => onAction("track")}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAction("track");
+          }}
         >
           {busy ? "…" : "Track"}
         </button>
@@ -88,7 +129,10 @@ export function CivicIqInboxCard({ signal, feedTab, busy = false, onAction }: Pr
           type="button"
           className="btn-dismiss"
           disabled={busy}
-          onClick={() => onAction("dismiss")}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAction("dismiss");
+          }}
         >
           Dismiss
         </button>
@@ -96,7 +140,10 @@ export function CivicIqInboxCard({ signal, feedTab, busy = false, onAction }: Pr
           type="button"
           className="rounded border border-violet-500/40 px-2 py-1 text-[10px] font-medium text-violet-200 hover:bg-violet-500/10 disabled:opacity-50"
           disabled={busy}
-          onClick={() => onAction("push_to_crm")}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAction("push_to_crm");
+          }}
         >
           Push to CRM
         </button>

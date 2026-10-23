@@ -7,77 +7,71 @@
  * Also rewrites trailing-slash URIs to .../index.html for S3 static export
  * (same behavior as marketing-uri-rewrite.js) when not redirecting.
  */
+/**
+ * Public contact cards live on the app. Marketing S3 has no /c or /card
+ * objects, and a missing key is rewritten to the homepage. Send those paths
+ * to the app before any host or index.html rewrite.
+ */
+function isContactCardPath(uri) {
+  return (
+    uri === "/c" ||
+    uri === "/card" ||
+    uri.indexOf("/c/") === 0 ||
+    uri.indexOf("/card/") === 0
+  );
+}
+
+function queryString(request) {
+  if (!request.querystring || Object.keys(request.querystring).length === 0) {
+    return "";
+  }
+  var parts = [];
+  for (var key in request.querystring) {
+    if (!Object.prototype.hasOwnProperty.call(request.querystring, key)) continue;
+    var q = request.querystring[key];
+    if (q.multiValue) {
+      for (var i = 0; i < q.multiValue.length; i++) {
+        parts.push(encodeURIComponent(key) + "=" + encodeURIComponent(q.multiValue[i].value));
+      }
+    } else if (q.value !== undefined) {
+      parts.push(encodeURIComponent(key) + "=" + encodeURIComponent(q.value));
+    }
+  }
+  return parts.length > 0 ? "?" + parts.join("&") : "";
+}
+
+function redirect(statusCode, location) {
+  return {
+    statusCode: statusCode,
+    statusDescription: statusCode === 301 ? "Moved Permanently" : "Found",
+    headers: {
+      location: { value: location },
+      "cache-control": { value: statusCode === 301 ? "max-age=3600" : "no-store" },
+    },
+  };
+}
+
 function handler(event) {
   var request = event.request;
   var headers = request.headers;
   var hostHeader = headers.host && headers.host.value ? headers.host.value : "";
   var host = hostHeader.toLowerCase().split(":")[0];
 
+  if (isContactCardPath(request.uri)) {
+    return redirect(302, "https://app.rapidcortex.us" + request.uri + queryString(request));
+  }
+
   var legacy =
     host === "rapidcortex.us" ||
     host === "www.rapidcortex.us";
 
   if (legacy) {
-    var loc = "https://www.nexcortiq.us" + request.uri;
-    if (request.querystring && Object.keys(request.querystring).length > 0) {
-      var parts = [];
-      for (var key in request.querystring) {
-        if (!Object.prototype.hasOwnProperty.call(request.querystring, key)) continue;
-        var q = request.querystring[key];
-        if (q.multiValue) {
-          for (var i = 0; i < q.multiValue.length; i++) {
-            parts.push(
-              encodeURIComponent(key) + "=" + encodeURIComponent(q.multiValue[i].value)
-            );
-          }
-        } else if (q.value !== undefined) {
-          parts.push(encodeURIComponent(key) + "=" + encodeURIComponent(q.value));
-        }
-      }
-      if (parts.length > 0) {
-        loc += "?" + parts.join("&");
-      }
-    }
-    return {
-      statusCode: 301,
-      statusDescription: "Moved Permanently",
-      headers: {
-        location: { value: loc },
-        "cache-control": { value: "max-age=3600" },
-      },
-    };
+    return redirect(301, "https://www.nexcortiq.us" + request.uri + queryString(request));
   }
 
   // Prefer www for apex nexcortiq.us (canonical host).
   if (host === "nexcortiq.us") {
-    var wwwLoc = "https://www.nexcortiq.us" + request.uri;
-    if (request.querystring && Object.keys(request.querystring).length > 0) {
-      var wwwParts = [];
-      for (var k in request.querystring) {
-        if (!Object.prototype.hasOwnProperty.call(request.querystring, k)) continue;
-        var qq = request.querystring[k];
-        if (qq.multiValue) {
-          for (var j = 0; j < qq.multiValue.length; j++) {
-            wwwParts.push(
-              encodeURIComponent(k) + "=" + encodeURIComponent(qq.multiValue[j].value)
-            );
-          }
-        } else if (qq.value !== undefined) {
-          wwwParts.push(encodeURIComponent(k) + "=" + encodeURIComponent(qq.value));
-        }
-      }
-      if (wwwParts.length > 0) {
-        wwwLoc += "?" + wwwParts.join("&");
-      }
-    }
-    return {
-      statusCode: 301,
-      statusDescription: "Moved Permanently",
-      headers: {
-        location: { value: wwwLoc },
-        "cache-control": { value: "max-age=3600" },
-      },
-    };
+    return redirect(301, "https://www.nexcortiq.us" + request.uri + queryString(request));
   }
 
   var uri = request.uri;

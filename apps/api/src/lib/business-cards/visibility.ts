@@ -18,6 +18,7 @@ const INTERNAL_PUBLIC_KEYS = [
   "gsi3sk",
   "internalNotes",
   "photoKey",
+  "coverKey",
   "companyLogoKey",
 ] as const;
 
@@ -29,6 +30,7 @@ export function toPublicProfile(
   profile: BusinessCardProfile,
   photoUrl: string | undefined,
   permanentUrl: string,
+  coverUrl?: string,
 ): PublicBusinessCard {
   const settings = profile.visibilitySettings ?? {};
   const card: PublicBusinessCard = {
@@ -57,6 +59,11 @@ export function toPublicProfile(
     card.officeAddress = profile.officeAddress;
   }
   if (photoUrl && isFieldPublic(settings, "photo")) card.photoUrl = photoUrl;
+  if (coverUrl) card.coverUrl = coverUrl;
+  if (profile.backgroundColor) card.backgroundColor = profile.backgroundColor;
+  if (profile.accentColor) card.accentColor = profile.accentColor;
+  if (profile.photoFocusX !== undefined) card.photoFocusX = profile.photoFocusX;
+  if (profile.photoFocusY !== undefined) card.photoFocusY = profile.photoFocusY;
   return card;
 }
 

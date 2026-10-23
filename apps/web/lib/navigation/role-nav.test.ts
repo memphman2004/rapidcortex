@@ -152,8 +152,9 @@ describe("getRoleNav", () => {
       "locations",
       "onboarding",
       "infra",
+      "nexcort-card",
     ];
-    const superadmin = getRoleNav("rcsuperadmin", {});
+    const superadmin = getRoleNav("rcsuperadmin", { agencyId: "__platform__" });
     expect(superadmin.sections.map((s) => s.id)).toEqual(expectedSuperadmin);
     expect(superadmin.sections.every((s) => Boolean(s.label))).toBe(true);
     expect(superadmin.sections.find((s) => s.id === "tenants")?.label).toBe("TENANTS");
@@ -161,7 +162,7 @@ describe("getRoleNav", () => {
       "overview",
     ]);
 
-    const admin = getRoleNav("rcadmin", {});
+    const admin = getRoleNav("rcadmin", { agencyId: "__platform__" });
     expect(admin.sections.map((s) => s.id)).toEqual([
       "home",
       "training",
@@ -172,11 +173,12 @@ describe("getRoleNav", () => {
       "ops",
       "locations",
       "onboarding",
+      "nexcort-card",
     ]);
     expect(admin.sections.find((s) => s.id === "ops")?.items.map((i) => i.id)).toContain("reports");
     expect(admin.sections.every((s) => Boolean(s.label))).toBe(true);
 
-    const it = getRoleNav("rcitadmin", {});
+    const it = getRoleNav("rcitadmin", { agencyId: "__platform__" });
     expect(it.sections.map((s) => s.id)).toEqual([
       "docs",
       "infra",
@@ -185,6 +187,7 @@ describe("getRoleNav", () => {
       "talent",
       "locations",
       "audit-settings",
+      "nexcort-card",
     ]);
     expect(it.sections.every((s) => Boolean(s.label))).toBe(true);
     expect(it.sections.find((s) => s.id === "audit-settings")?.label).toBe("AUDIT & SETTINGS");
@@ -260,6 +263,24 @@ describe("getRoleNav", () => {
     expect(callAssistAdmin.sections.flatMap((s) => s.items).map((i) => i.href)).toContain(
       "/app/call-assist/analytics",
     );
+  });
+
+  it("puts the contact card on NexCort employee dashboards only", () => {
+    for (const role of ["rcsuperadmin", "rcadmin", "rcitadmin"] as const) {
+      const hrefs = getRoleNav(role, { agencyId: "__platform__" }).sections.flatMap((section) => section.items).map((item) => item.href);
+      expect(hrefs).toContain("/rc-admin/profile/business-card");
+      expect(getRoleNav(role, { agencyId: "kcpd" }).sections.some((section) => section.id === "nexcort-card")).toBe(false);
+    }
+    expect(
+      getRoleNav("salescontractor", { agencyId: "__platform__" }).sections.flatMap((section) => section.items).map((item) => item.href),
+    ).toContain("/sales/business-card");
+    expect(getRoleNav("salescontractor", { agencyId: "kcpd" }).sections.some((section) => section.id === "nexcort-card")).toBe(false);
+    expect(
+      getRoleNav("dispatcher", { jurisdiction: "metro" }).sections.flatMap((section) => section.items).map((item) => item.href),
+    ).not.toContain("/metro/profile/business-card");
+    expect(
+      getRoleNav("agencyadmin", { jurisdiction: "metro" }).sections.some((section) => section.id === "nexcort-card"),
+    ).toBe(false);
   });
 
   it("sales contractor nav includes CRM tools and feature-only catalogs", () => {

@@ -22,18 +22,30 @@ export function NFCInstructions({ url }: Props) {
     }
   }
 
+  const businessCard = /\/c\/[^/]+/.test(url);
   return (
     <section className="mt-4 rounded-lg border border-slate-700 bg-slate-900/50 p-4 text-sm text-slate-300">
       <h3 className="font-semibold text-slate-100">How to program an NFC tag</h3>
       <ol className="mt-3 list-decimal space-y-2 pl-5">
-        <li>Order NTAG213 NFC stickers (about $15–20 per 100 tags).</li>
-        <li>Open the NexCort iQ mobile app (Campus or Venue).</li>
-        <li>Open this location code, then tap Program NFC Tag.</li>
-        <li>Hold an NTAG213 to the back of your mobile device until the write succeeds.</li>
-        <li>Stick the programmed tag to the back of your sign.</li>
+        {businessCard ? (
+          <>
+            <li>Use a blank NTAG213 sticker.</li>
+            <li>On an Android phone, open this page in Chrome and tap Write to tag.</li>
+            <li>Hold the sticker to the back of the phone until the write succeeds.</li>
+            <li>Tap the sticker with another phone. It should open this contact card.</li>
+          </>
+        ) : (
+          <>
+            <li>Order NTAG213 NFC stickers (about $15–20 per 100 tags).</li>
+            <li>Open the NexCort iQ mobile app (Campus or Venue).</li>
+            <li>Open this location code, then tap Program NFC Tag.</li>
+            <li>Hold an NTAG213 to the back of your mobile device until the write succeeds.</li>
+            <li>Stick the programmed tag to the back of your sign.</li>
+          </>
+        )}
       </ol>
       <p className="mt-3 text-xs text-slate-500">
-        The app writes this URL to the tag (no paste needed):
+        {businessCard ? "Write this address onto the sticker:" : "The app writes this URL to the tag (no paste needed):"}
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <code className="break-all rounded bg-slate-950 px-2 py-1 text-xs text-emerald-300">{url}</code>

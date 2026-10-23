@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { RapidCortexMap } from "rapid-cortex-maps";
+import { useTheme } from "@/lib/theme/theme-context";
 
 export type SafetyPointMapPinPickerProps = {
   latitude?: number;
@@ -45,6 +46,7 @@ export function SafetyPointMapPinPicker({
   accent = "#38bdf8",
   disabled = false,
 }: SafetyPointMapPinPickerProps) {
+  const { theme } = useTheme();
   const [map, setMap] = useState<maplibregl.Map | null>(null);
   const markerRef = useRef<maplibregl.Marker | null>(null);
   const onChangeRef = useRef(onChange);
@@ -126,7 +128,7 @@ export function SafetyPointMapPinPicker({
         <RapidCortexMap
           center={center}
           zoom={pin ? 17 : 4}
-          theme="dark"
+          theme={theme}
           showControls
           onMapLoad={setMap}
         />

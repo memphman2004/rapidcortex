@@ -2164,6 +2164,7 @@ function resolveCampusNavProduct(
 
 export type NavContext = {
   jurisdiction?: string;   // PSAP slug
+  agencyId?: string;
   venueCode?: string;
   campusCode?: string;
   transitCode?: string;
@@ -2293,60 +2294,35 @@ export function applyCampusInstitutionNav(
   return { ...nav, roleBadge, sections: next };
 }
 
-const BUSINESS_CARD_ADMIN_NAV_ROLES = new Set([
-  "agencyadmin",
-  "agencyit",
-  "rcadmin",
-  "rcsuperadmin",
-  "rcitadmin",
-  "CAMPUS_ADMIN",
-  "VENUE_ADMIN",
-  "TRANSIT_ADMIN",
-  "HOSPITAL_ADMIN",
-  "CALL_ASSIST_ADMIN",
-]);
-
-function businessCardBase(role: string, ctx: NavContext): string {
-  const resolved = resolveNavRole(role);
-  if (resolved.startsWith("CAMPUS")) return `/app/campus/${ctx.campusCode ?? "campus"}`;
-  if (resolved.startsWith("VENUE")) return `/app/venue/${ctx.venueCode ?? "venue"}`;
-  if (resolved.startsWith("TRANSIT")) return `/transit/${ctx.transitCode ?? "transit"}`;
-  if (resolved === "HOSPITAL_ADMIN") return "/hospital-admin";
-  if (resolved === "HOSPITAL_STAFF" || resolved === "HOSPITAL_COORDINATOR") return "/hospital-staff";
-  if (resolved === "CALL_ASSIST_ADMIN") return "/app/call-assist/admin";
-  if (resolved === "CALL_ASSIST_SUPERVISOR") return "/app/call-assist/supervisor";
-  if (resolved === "CALL_ASSIST_OPERATOR") return "/app/call-assist/operator";
-  if (resolved === "rcsuperadmin" || resolved === "rcadmin" || resolved === "rcitadmin") return "/rc-admin";
-  return `/${ctx.jurisdiction ?? "jurisdiction"}`;
-}
+const NEXCORT_EMPLOYEE_NAV_ROLES = new Set(["rcsuperadmin", "rcadmin", "rcitadmin", "salescontractor"]);
+const NEXCORT_CARD_ADMIN_NAV_ROLES = new Set(["rcsuperadmin", "rcadmin"]);
 
 function decorateBusinessCardNav(role: string, ctx: NavContext, nav: RoleNav): RoleNav {
-  if (nav.roleBadge === "UNKNOWN") return nav;
-  const base = businessCardBase(role, ctx);
-  const isAdmin = BUSINESS_CARD_ADMIN_NAV_ROLES.has(resolveNavRole(role));
-  const feature = "businessCards";
+  const resolved = resolveNavRole(role);
+  if (ctx.agencyId !== "__platform__") return nav;
+  if (!NEXCORT_EMPLOYEE_NAV_ROLES.has(resolved) || nav.roleBadge === "UNKNOWN") return nav;
+  const selfHref = resolved === "salescontractor" ? "/sales/business-card" : "/rc-admin/profile/business-card";
   const items: NavItem[] = [
     {
       id: "bizcard-mine",
-      label: "Business Card",
-      href: `${base}/profile/business-card`,
+      label: "My Contact Card",
+      href: selfHref,
       icon: "CreditCard",
-      feature,
     },
   ];
-  if (isAdmin) {
+  if (NEXCORT_CARD_ADMIN_NAV_ROLES.has(resolved)) {
     items.push(
-      { id: "bizcard-directory", label: "All Employee Cards", href: `${base}/admin/business-cards`, icon: "Users", feature },
-      { id: "bizcard-new", label: "Create Business Card", href: `${base}/admin/business-cards/new`, icon: "Plus", feature },
-      { id: "bizcard-nfc", label: "NFC Card Management", href: `${base}/admin/nfc-cards`, icon: "Radio", feature },
-      { id: "bizcard-analytics", label: "Card Analytics", href: `${base}/admin/analytics/business-cards`, icon: "BarChart3", feature },
-      { id: "bizcard-audit", label: "Card Audit", href: `${base}/admin/business-cards/audit`, icon: "ScrollText", feature },
-      { id: "bizcard-settings", label: "Card Settings", href: `${base}/admin/business-cards/settings`, icon: "Settings", feature },
+      { id: "bizcard-directory", label: "All Employee Cards", href: "/rc-admin/admin/business-cards", icon: "Users" },
+      { id: "bizcard-new", label: "Create Business Card", href: "/rc-admin/admin/business-cards/new", icon: "Plus" },
+      { id: "bizcard-nfc", label: "NFC Card Management", href: "/rc-admin/admin/nfc-cards", icon: "Radio" },
+      { id: "bizcard-analytics", label: "Card Analytics", href: "/rc-admin/admin/analytics/business-cards", icon: "BarChart3" },
+      { id: "bizcard-audit", label: "Card Audit", href: "/rc-admin/admin/business-cards/audit", icon: "ScrollText" },
+      { id: "bizcard-settings", label: "Card Settings", href: "/rc-admin/admin/business-cards/settings", icon: "Settings" },
     );
   }
   return {
     ...nav,
-    sections: [...nav.sections, { id: "business-cards", label: "BUSINESS CARDS", items }],
+    sections: [...nav.sections, { id: "nexcort-card", label: "CONTACT CARD", items }],
   };
 }
 

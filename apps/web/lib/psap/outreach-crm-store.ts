@@ -1,5 +1,6 @@
 import {
   PSAP_OUTREACH_STATUSES,
+  stampPsapContactFields,
   type AddPsapActivityRequest,
   type PatchPsapProspectBody,
   type PsapActivity,
@@ -20,6 +21,9 @@ export type OutreachCrmOverlay = {
   primaryContactPhone?: string;
   website?: string;
   lastContactedAt?: string;
+  lastContactedBy?: string;
+  lastContactMethod?: PsapProspect["lastContactMethod"];
+  outreachTouchCount?: number;
   nextActionDate?: string;
   nextActionNote?: string;
   estimatedValue?: number;
@@ -85,6 +89,9 @@ export function applyOutreachOverlay(base: PsapProspect, overlay?: OutreachCrmOv
     primaryContactPhone: overlay.primaryContactPhone ?? base.primaryContactPhone,
     website: overlay.website ?? base.website,
     lastContactedAt: overlay.lastContactedAt ?? base.lastContactedAt,
+    lastContactedBy: overlay.lastContactedBy ?? base.lastContactedBy,
+    lastContactMethod: overlay.lastContactMethod ?? base.lastContactMethod,
+    outreachTouchCount: overlay.outreachTouchCount ?? base.outreachTouchCount,
     nextActionDate: overlay.nextActionDate ?? base.nextActionDate,
     nextActionNote: overlay.nextActionNote ?? base.nextActionNote,
     estimatedValue: overlay.estimatedValue ?? base.estimatedValue,
@@ -138,7 +145,6 @@ export function patchOutreachProspectLocal(
       },
       ...activities,
     ];
-    nextOverlay.lastContactedAt = now;
   }
   nextOverlay.activities = activities;
 
@@ -150,6 +156,7 @@ export function patchOutreachProspectLocal(
 export function addOutreachActivityLocal(
   current: PsapProspect,
   req: AddPsapActivityRequest,
+  actor?: { userId: string; displayName: string },
 ): PsapProspect {
   const store = readStore();
   const prev = store[current.psapId] ?? {};
@@ -158,16 +165,20 @@ export function addOutreachActivityLocal(
     activityId: `act_${Date.now()}`,
     type: req.type,
     description: req.description,
-    performedByUserId: "local",
-    performedByName: "You",
+    performedByUserId: actor?.userId || "local",
+    performedByName: actor?.displayName?.trim() || "You",
     performedAt: now,
     metadata: req.metadata,
   };
   const activities = [activity, ...(prev.activities ?? current.activities ?? [])];
+  const stamped = stampPsapContactFields({ ...current, activities, updatedAt: now });
   const nextOverlay: OutreachCrmOverlay = {
     ...prev,
     activities,
-    lastContactedAt: now,
+    lastContactedAt: stamped.lastContactedAt,
+    lastContactedBy: stamped.lastContactedBy,
+    lastContactMethod: stamped.lastContactMethod,
+    outreachTouchCount: stamped.outreachTouchCount,
     updatedAt: now,
   };
   // Auto-bump status on first contact actions when still uncontacted.

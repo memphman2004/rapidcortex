@@ -459,7 +459,7 @@ export function RoleNavSidebar({
 }) {
   const jurisdictionSlug = useOptionalJurisdictionSlug() ?? defaultJurisdictionSlug();
   const counts = useNavBadgeCounts(user.role);
-  const bizCardsOn = useBusinessCardTenantEnabled();
+  const bizCardsOn = useBusinessCardTenantEnabled(user.agencyId);
   const nav = useMemo(() => {
     const ctx = buildNavContext(user, jurisdictionSlug);
     return omitBusinessCardsUntilEnabled(filterRoleNavByFeatures(getRoleNav(user.role, ctx)), bizCardsOn);

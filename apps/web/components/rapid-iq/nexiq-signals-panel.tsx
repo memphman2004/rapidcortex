@@ -11,6 +11,7 @@ import {
   patchNexiqSignal,
 } from "@/lib/nexiq-signals/api";
 import { isNexiqSignalsUiEnabled } from "@/lib/runtime-flags";
+import { httpDocumentUrl, solicitationLinkLabel } from "@/lib/rapid-iq/solicitation-link";
 
 type VerticalTab = "all" | NexiqSignalVertical;
 
@@ -251,6 +252,18 @@ function SignalCard({
           {signal.summary ? (
             <p className="mt-1 line-clamp-2 text-xs text-slate-500">{signal.summary}</p>
           ) : null}
+          {httpDocumentUrl(signal.sourceUrl) ? (
+            <a
+              href={httpDocumentUrl(signal.sourceUrl)!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1 inline-block text-[11px] font-semibold text-sky-400 hover:underline"
+            >
+              {solicitationLinkLabel(`${signal.title} ${signal.summary}`)} ↗
+            </a>
+          ) : (
+            <p className="mt-1 text-[11px] text-slate-500">No solicitation link stored.</p>
+          )}
         </div>
         <div className="flex flex-wrap gap-1.5">
           <button

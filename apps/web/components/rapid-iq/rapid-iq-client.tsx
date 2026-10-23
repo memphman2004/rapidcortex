@@ -37,6 +37,7 @@ import {
 import { fetchRfpCounts, RFP_COUNTS_QUERY_KEY } from "@/lib/rapid-iq/intel-api";
 import { isNexiqSignalsUiEnabled, isRapidIqIntelUiEnabled, isRapidIqPipelineUiEnabled } from "@/lib/runtime-flags";
 import { listNexiqSignals, NEXIQ_SIGNALS_QUERY_KEY, patchNexiqSignal } from "@/lib/nexiq-signals/api";
+import { CivicSignalDetail } from "./civic-signal-detail";
 import { IncomingSignalDetail } from "./incoming-signal-detail";
 import { OpportunityDetailPanel } from "./opportunity-detail-panel";
 import { OpportunityFeed } from "./opportunity-feed";
@@ -78,6 +79,7 @@ export function RapidIqClient() {
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedSignalId, setSelectedSignalId] = useState<string | null>(null);
+  const [selectedCivicId, setSelectedCivicId] = useState<string | null>(null);
   const [showPipeline, setShowPipeline] = useState(false);
   const [showAccounts, setShowAccounts] = useState(false);
   const [showIntel, setShowIntel] = useState(false);
@@ -260,6 +262,10 @@ export function RapidIqClient() {
     () => incomingSignals.find((s) => s.signalId === selectedSignalId) ?? null,
     [incomingSignals, selectedSignalId],
   );
+  const selectedCivic = useMemo(
+    () => civicSignals.find((s) => s.signalId === selectedCivicId) ?? null,
+    [civicSignals, selectedCivicId],
+  );
 
   const detailQ = useQuery({
     queryKey: ["rapid-iq-detail", selectedId, demo],
@@ -273,11 +279,19 @@ export function RapidIqClient() {
   function selectOpportunity(id: string) {
     setSelectedId(id);
     setSelectedSignalId(null);
+    setSelectedCivicId(null);
   }
 
   function selectIncoming(id: string) {
     setSelectedSignalId(id);
     setSelectedId(null);
+    setSelectedCivicId(null);
+  }
+
+  function selectCivic(id: string) {
+    setSelectedCivicId(id);
+    setSelectedId(null);
+    setSelectedSignalId(null);
   }
 
   async function handleAddToPipeline(opportunity: RapidIqOpportunity) {
@@ -427,6 +441,7 @@ export function RapidIqClient() {
     setPipelineActionError(null);
     try {
       await patchNexiqSignal(signal.signalId, action);
+      if (action === "dismiss" && selectedCivicId === signal.signalId) setSelectedCivicId(null);
       await qc.invalidateQueries({ queryKey: NEXIQ_SIGNALS_QUERY_KEY });
       const label =
         action === "push_to_crm" ? "Pushed to CRM" : action === "track" ? "Tracking" : "Dismissed";
@@ -458,6 +473,7 @@ export function RapidIqClient() {
             setFeedTab(v);
             setSelectedId(null);
             setSelectedSignalId(null);
+            setSelectedCivicId(null);
           }}
         />
         <ProcurementStageTabs
@@ -465,6 +481,7 @@ export function RapidIqClient() {
           onChange={(v) => {
             setProcurementStageFilter(v);
             setSelectedSignalId(null);
+            setSelectedCivicId(null);
           }}
         />
         {taxonomyChips.length > 0 && (
@@ -640,13 +657,22 @@ export function RapidIqClient() {
                 onDismissSignal={(s) => void handleDismissSignal(s)}
                 pipelineEnabled={pipelineEnabled}
                 civicSignals={civicSignals}
+                selectedCivicId={selectedCivicId}
                 civicBusyId={civicBusyId}
+                onSelectCivic={selectCivic}
                 onCivicAction={(signal, action) => void handleCivicAction(signal, action)}
               />
             )}
           </div>
 
-          {selectedIncoming ? (
+          {selectedCivic ? (
+            <CivicSignalDetail
+              signal={selectedCivic}
+              busy={civicBusyId === selectedCivic.signalId}
+              onClose={() => setSelectedCivicId(null)}
+              onAction={(action) => void handleCivicAction(selectedCivic, action)}
+            />
+          ) : selectedIncoming ? (
             <IncomingSignalDetail
               signal={selectedIncoming}
               busy={

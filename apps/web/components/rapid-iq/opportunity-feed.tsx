@@ -25,7 +25,9 @@ type Props = {
   onDismissSignal?: (signal: RapidIqPipelineSignal) => void;
   pipelineEnabled?: boolean;
   civicSignals?: NexiqSignalRecord[];
+  selectedCivicId?: string | null;
   civicBusyId?: string | null;
+  onSelectCivic?: (signalId: string) => void;
   onCivicAction?: (signal: NexiqSignalRecord, action: "track" | "dismiss" | "push_to_crm") => void;
 };
 
@@ -47,7 +49,9 @@ export function OpportunityFeed({
   onDismissSignal,
   pipelineEnabled = true,
   civicSignals = [],
+  selectedCivicId,
   civicBusyId = null,
+  onSelectCivic,
   onCivicAction,
 }: Props) {
   const actNow = opportunities.filter((o) => o.isActNow);
@@ -102,7 +106,9 @@ export function OpportunityFeed({
               key={`civic-${row.signal.signalId}`}
               signal={row.signal}
               feedTab={vertical}
+              selected={selectedCivicId === row.signal.signalId}
               busy={civicBusyId === row.signal.signalId}
+              onSelect={() => onSelectCivic?.(row.signal.signalId)}
               onAction={(action) => onCivicAction?.(row.signal, action)}
             />
           ),

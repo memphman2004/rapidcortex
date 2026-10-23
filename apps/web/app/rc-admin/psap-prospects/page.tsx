@@ -23,7 +23,10 @@ export default async function RcAdminPsapProspectsPage() {
         <div className="py-12 text-center text-sm text-slate-500">Loading Prospects…</div>
       }
     >
-      <PsapProspectsClient />
+      <PsapProspectsClient
+        actorName={user.displayName?.trim() || user.email}
+        actorUserId={user.userId}
+      />
     </Suspense>
   );
 }

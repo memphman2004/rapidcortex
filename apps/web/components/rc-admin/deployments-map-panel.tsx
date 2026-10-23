@@ -22,6 +22,7 @@ import {
   setPsapOverlayData,
 } from "@/components/maps/psap-overlay";
 import { DeploymentsCoverageLayer } from "@/components/rc-admin/deployments-coverage-layer";
+import { useTheme } from "@/lib/theme/theme-context";
 
 type Marker = AgencyDeploymentsMapPayload["markers"][number];
 type Vertical = "core" | "campus" | "venue" | "hospital";
@@ -202,6 +203,7 @@ export function DeploymentsMapPanel({
   className = "",
   showPsapProspectsLayer = false,
 }: DeploymentsMapPanelProps) {
+  const { theme } = useTheme();
   const enabled = isDeploymentsMapEnabled();
   const psapLayerAllowed = showPsapProspectsLayer && isPsapProspectsUiEnabled();
   const [map, setMap] = useState<maplibregl.Map | null>(null);
@@ -376,7 +378,7 @@ export function DeploymentsMapPanel({
         <RapidCortexMap
           center={US_CENTER}
           zoom={3.4}
-          theme="dark"
+          theme={theme}
           showControls={!compact}
           className="h-full w-full"
           onMapLoad={setMap}

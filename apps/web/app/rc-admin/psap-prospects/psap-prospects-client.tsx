@@ -110,7 +110,13 @@ function queryToParams(q: ClientQuery): URLSearchParams {
   return p;
 }
 
-export function PsapProspectsClient() {
+export function PsapProspectsClient({
+  actorName,
+  actorUserId,
+}: {
+  actorName?: string;
+  actorUserId?: string;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -476,6 +482,8 @@ export function PsapProspectsClient() {
                 persistence={isOutreach ? "local" : "api"}
                 vertical={listQuery.vertical === "all" ? "psap" : listQuery.vertical}
                 studentCount={selected.studentCount}
+                actorName={actorName}
+                actorUserId={actorUserId}
                 onClose={() => setSelected(null)}
                 onUpdated={(p) => {
                   setSelected({ ...p, studentCount: selected.studentCount });
@@ -507,6 +515,8 @@ export function PsapProspectsClient() {
             <div className="fixed inset-y-0 right-0 z-40 w-full max-w-md shadow-2xl lg:sticky lg:top-4 lg:z-10 lg:h-[calc(100vh-6rem)] lg:max-h-[860px]">
               <PsapDetailPanel
                 prospect={selected}
+                actorName={actorName}
+                actorUserId={actorUserId}
                 onClose={() => setSelected(null)}
                 onUpdated={(p) => {
                   setSelected(p);

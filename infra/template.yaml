@@ -1478,6 +1478,7 @@ Resources:
         AppName: !Ref AppName
         DeploymentStage: !Ref DeploymentStage
         HttpApiId: !GetAtt AppSamStackV2.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: pg3ok4
         AuditTable:
           Fn::If:
             - HasDataLayerNestedStack

@@ -5,7 +5,9 @@ import {
   canAccessPsapProspectsCrm,
   patchPsapProspectBodySchema,
   psapPinsToGeoJSON,
+  PSAP_CONTACT_METHOD_LABELS,
   psapProspectListQuerySchema,
+  summarizePsapContacts,
   type UserContext,
 } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
@@ -191,15 +193,19 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         "Contact Name",
         "Contact Email",
         "Assigned To",
+        "Times Contacted",
         "Last Contacted",
+        "Contacted By",
+        "Contact Method",
         "Notes",
         "County",
         "FIPS",
         "Latitude",
         "Longitude",
       ];
-      const rows = items.map((p) =>
-        [
+      const rows = items.map((p) => {
+        const contact = summarizePsapContacts(p);
+        return [
           p.psapName,
           attnLine(p),
           p.mailingAddress?.streetAddress ?? "",
@@ -211,7 +217,10 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
           p.primaryContactName ?? "",
           p.primaryContactEmail ?? "",
           p.assignedToName ?? "",
-          p.lastContactedAt ?? "",
+          String(contact.count),
+          contact.lastAt ?? "",
+          contact.lastBy ?? "",
+          contact.lastMethod ? PSAP_CONTACT_METHOD_LABELS[contact.lastMethod] : "",
           p.notes ?? "",
           p.county,
           p.fips,
@@ -219,8 +228,8 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
           p.longitude,
         ]
           .map(csvEscape)
-          .join(","),
-      );
+          .join(",");
+      });
       const csv = [headers.join(","), ...rows].join("\n");
       const date = new Date().toISOString().slice(0, 10);
       await auditRepo.create({

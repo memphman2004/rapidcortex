@@ -1,5 +1,6 @@
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { consumeRateLimit } from "../../lib/business-cards/domain.js";
+import { consumeRateLimit, NEXCORT_COMPANY_NAME } from "../../lib/business-cards/domain.js";
 import { DynamoBizCardRepo } from "../../lib/business-cards/dynamo-repo.js";
 import { EventSchema } from "../../lib/business-cards/schemas.js";
 import { BusinessCardService } from "../../lib/business-cards/service.js";
@@ -7,15 +8,25 @@ import { withCorrelationHeaders } from "../../lib/correlation.js";
 import { jsonStatus, ok } from "../../lib/response.js";
 import { mapBizCardError, readJson, zodFailure } from "./present.js";
 
+const s3 = new S3Client({});
+
 function buildService(): BusinessCardService {
   const table = process.env.BIZCARD_TABLE_NAME?.trim();
   if (!table) throw new Error("BIZCARD_TABLE_NAME is not set");
   const domain = process.env.BIZCARD_CLOUDFRONT_DOMAIN?.trim();
+  const bucket = process.env.BIZCARD_PHOTO_BUCKET?.trim();
   return new BusinessCardService(new DynamoBizCardRepo(table), {
     globalEnabled: process.env.ENABLE_BUSINESS_CARDS === "true" || process.env.ENABLE_BUSINESS_CARDS === "1",
     publicBaseUrl: process.env.BIZCARD_PUBLIC_BASE_URL?.trim() || "https://www.nexcortiq.us",
     photoBaseUrl: domain ? `https://${domain}` : undefined,
-    resolveCompany: async () => ({ name: "Agency" }),
+    resolveCompany: async () => ({ name: NEXCORT_COMPANY_NAME, website: "https://www.nexcortiq.us" }),
+    loadPhoto: async (key) => {
+      if (!bucket || !key.startsWith("biz-cards/")) return null;
+      const object = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+      const bytes = await object.Body?.transformToByteArray();
+      if (!bytes) return null;
+      return { contentType: object.ContentType ?? "application/octet-stream", bytes };
+    },
   });
 }
 

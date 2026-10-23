@@ -8,13 +8,13 @@ import { isBusinessCardsUiEnabled } from "@/lib/runtime-flags";
 
 const DISMISS_KEY = "bizcard-setup";
 
-export function BusinessCardLoginPrompt({ isAdmin }: { isAdmin: boolean }) {
+export function BusinessCardLoginPrompt({ isAdmin, agencyId }: { isAdmin: boolean; agencyId?: string }) {
   const pathname = usePathname() ?? "";
   const [status, setStatus] = useState<BizCardStatus | null>(null);
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
-    if (!isBusinessCardsUiEnabled()) return;
+    if (agencyId !== "__platform__" || !isBusinessCardsUiEnabled()) return;
     setDismissed(window.localStorage.getItem(DISMISS_KEY) === "1");
     void bizCardFetch<BizCardStatus>("/api/business-cards/status")
       .then((next) => {
@@ -23,7 +23,7 @@ export function BusinessCardLoginPrompt({ isAdmin }: { isAdmin: boolean }) {
         window.dispatchEvent(new CustomEvent("rc-bizcard-status", { detail: next }));
       })
       .catch(() => undefined);
-  }, []);
+  }, [agencyId]);
 
   if (!status?.enabled) return null;
   const href = businessCardSelfHref(pathname);

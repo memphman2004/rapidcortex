@@ -1,7 +1,11 @@
 "use client";
 
 import type { PsapOutreachStatus, PsapProspect } from "rapid-cortex-shared";
-import { PSAP_OUTREACH_STATUS_CONFIG } from "rapid-cortex-shared";
+import {
+  PSAP_CONTACT_METHOD_LABELS,
+  PSAP_OUTREACH_STATUS_CONFIG,
+  summarizePsapContacts,
+} from "rapid-cortex-shared";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   formatStudentCount,
@@ -47,6 +51,26 @@ function formatDate(iso?: string): string {
   } catch {
     return "—";
   }
+}
+
+function ContactedCell({ prospect }: { prospect: PsapProspect }) {
+  const contact = summarizePsapContacts(prospect);
+  if (contact.count === 0) {
+    return <span className="text-slate-600">Never</span>;
+  }
+  const method = contact.lastMethod ? PSAP_CONTACT_METHOD_LABELS[contact.lastMethod] : "Contact";
+  return (
+    <span className="block leading-snug">
+      <span className="font-medium text-slate-200">
+        {contact.count} {contact.count === 1 ? "time" : "times"}
+      </span>
+      <span className="block text-[11px] text-slate-500">{formatDate(contact.lastAt)}</span>
+      <span className="block truncate text-[11px] text-slate-500">
+        {method}
+        {contact.lastBy ? ` · ${contact.lastBy}` : ""}
+      </span>
+    </span>
+  );
 }
 
 function SortBtn({
@@ -151,9 +175,9 @@ export function PsapProspectTable({
               <th className="w-[80px] px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                 Addr
               </th>
-              <th className="w-[120px] px-3 py-2">
+              <th className="w-[160px] px-3 py-2">
                 <SortBtn
-                  label="Last Contact"
+                  label="Contacted"
                   active={sortBy === "lastContactedAt"}
                   dir={sortDir}
                   onClick={() => onSort("lastContactedAt")}
@@ -227,8 +251,8 @@ export function PsapProspectTable({
                         </span>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-xs text-slate-500">
-                      {formatDate(p.lastContactedAt)}
+                    <td className="px-3 py-2 text-xs text-slate-400">
+                      <ContactedCell prospect={p} />
                     </td>
                     <td className="truncate px-3 py-2 text-slate-400">
                       {p.assignedToName ?? "—"}

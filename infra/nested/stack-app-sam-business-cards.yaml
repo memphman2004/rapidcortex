@@ -11,6 +11,8 @@ Parameters:
     AllowedValues: [dev, staging, prod, pilot]
   HttpApiId:
     Type: String
+  HttpApiJwtAuthorizerId:
+    Type: String
   AuditTable:
     Type: String
   AgenciesTable:
@@ -31,6 +33,8 @@ Globals:
     Runtime: nodejs22.x
     Timeout: 15
     MemorySize: 256
+    Layers:
+      - !Ref NodeDepsLayer
     Environment:
       Variables:
         DEPLOYMENT_STAGE: !Ref DeploymentStage
@@ -123,25 +127,33 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - PUT
+              - GET
+              - HEAD
+            AllowedOrigins:
+              - https://app.rapidcortex.us
+              - https://www.nexcortiq.us
+              - http://localhost:3000
+            ExposedHeaders:
+              - ETag
+            MaxAge: 3000
 
-  BusinessCardsEnableParam:
-    Type: AWS::SSM::Parameter
+  NodeDepsLayer:
+    Type: AWS::Serverless::LayerVersion
     Properties:
-      Name: !Sub "/nexcortiq/${DeploymentStage}/business-cards/enable"
-      Type: String
-      Value: "false"
-  BusinessCardsBucketParam:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/nexcortiq/${DeploymentStage}/business-cards/photo-bucket"
-      Type: String
-      Value: !Ref BusinessCardPhotoBucket
-  BusinessCardsAdminRoleParam:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/nexcortiq/${DeploymentStage}/business-cards/admin-role"
-      Type: String
-      Value: agencyadmin
+      LayerName: !Sub "${AppName}-business-cards-deps-${DeploymentStage}"
+      Description: Shared node_modules for business card Lambdas
+      ContentUri: ../../apps/api/layer/
+      CompatibleRuntimes:
+        - nodejs22.x
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: makefile
 
   BusinessCardsHttpFunction:
     Type: AWS::Serverless::Function
@@ -200,6 +212,11 @@ Resources:
               Resource:
                 - !GetAtt BusinessCardsTable.Arn
                 - !Sub "${BusinessCardsTable.Arn}/index/*"
+            - Sid: PublicCardPhotoRead
+              Effect: Allow
+              Action:
+                - s3:GetObject
+              Resource: !Sub "${BusinessCardPhotoBucket.Arn}/biz-cards/*"
 
   BusinessCardsHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
@@ -238,6 +255,8 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/business-cards/{proxy+}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
       Target: !Sub "integrations/${BusinessCardsHttpIntegration}"
 
   RouteAdminBusinessCards:
@@ -245,6 +264,8 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/admin/business-cards"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
       Target: !Sub "integrations/${BusinessCardsHttpIntegration}"
 
   RouteAdminBusinessCardsProxy:
@@ -252,6 +273,8 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/admin/business-cards/{proxy+}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
       Target: !Sub "integrations/${BusinessCardsHttpIntegration}"
 
   RouteAdminNfcCards:
@@ -259,6 +282,8 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/admin/nfc-cards"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
       Target: !Sub "integrations/${BusinessCardsHttpIntegration}"
 
   RouteAdminNfcCardsProxy:
@@ -266,6 +291,8 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/admin/nfc-cards/{proxy+}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
       Target: !Sub "integrations/${BusinessCardsHttpIntegration}"
 
   RouteAdminBusinessCardAnalytics:
@@ -273,6 +300,8 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/admin/analytics/business-cards"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
       Target: !Sub "integrations/${BusinessCardsHttpIntegration}"
 
   RoutePublicBusinessCardsProxy:

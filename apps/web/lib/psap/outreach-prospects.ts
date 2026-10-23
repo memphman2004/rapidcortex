@@ -5,7 +5,11 @@ import type {
   PsapProspectListResponse,
   PsapProspectStats,
 } from "rapid-cortex-shared";
-import { PSAP_OUTREACH_STATUSES } from "rapid-cortex-shared";
+import {
+  PSAP_CONTACT_METHOD_LABELS,
+  PSAP_OUTREACH_STATUSES,
+  summarizePsapContacts,
+} from "rapid-cortex-shared";
 import catalog from "./outreach-prospects.json";
 import { applyOutreachOverlay, getOutreachOverlay } from "./outreach-crm-store";
 
@@ -328,10 +332,15 @@ export function buildOutreachCsv(items: ProspectTableRow[]): string {
     "Website",
     "Address",
     "Status",
+    "Times Contacted",
+    "Last Contacted",
+    "Contacted By",
+    "Contact Method",
     "Notes",
   ];
   const lines = [header.join(",")];
   for (const p of items) {
+    const contact = summarizePsapContacts(p);
     const cols = [
       p.psapName,
       p.state,
@@ -345,6 +354,10 @@ export function buildOutreachCsv(items: ProspectTableRow[]): string {
       p.website ?? "",
       p.mailingAddress?.streetAddress ?? "",
       p.outreachStatus,
+      String(contact.count),
+      contact.lastAt ?? "",
+      contact.lastBy ?? "",
+      contact.lastMethod ? PSAP_CONTACT_METHOD_LABELS[contact.lastMethod] : "",
       p.notes ?? "",
     ].map((c) => `"${String(c).replace(/"/g, '""')}"`);
     lines.push(cols.join(","));

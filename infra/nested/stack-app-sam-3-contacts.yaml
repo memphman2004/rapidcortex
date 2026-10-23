@@ -108,11 +108,9 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyContactsDdb
 
-  # 2026-10-21: stack-recorded route IDs (oiwtvqb, oqvvfsc, …) were deleted from
-  # HttpApi tbr4zvjlk5, so /api/contacts/* returned API Gateway 404. Recreated
-  # out of band. Do not sam-deploy this stack until those logical IDs are
-  # imported onto the live IDs, or the update will miss the ghosts and can
-  # collide with the live RouteKeys.
+  # 2026-10-22: logical IDs were imported onto the live HttpApi tbr4zvjlk5
+  # resources (stack IMPORT_COMPLETE). A later sam deploy updates these in
+  # place. Do not recreate the routes.
   # Integration gb6zoiv → ContactsHttpFunction-gPjsDFLvRD2D, JWT authorizer k8rjdh.
   # GET search ay0nzmj, GET companies 85vojlc, POST companies 6u0283m,
   # GET company eq3tmsp, PATCH company y7j8fqd, DELETE company kun7sec,

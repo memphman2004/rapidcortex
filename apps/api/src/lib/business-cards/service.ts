@@ -9,7 +9,10 @@ import {
   changedFieldNames,
   counterAttribute,
   isBusinessCardAdmin,
+  isNexCortEmployee,
+  isPlatformCardAgency,
   isBusinessCardsEnabled,
+  BIOGRAPHY_MAX_LENGTH,
   isCardTheme,
   monthKey,
   slugifyName,
@@ -48,6 +51,7 @@ export type ServiceOptions = {
   now?: () => number;
   newId?: () => string;
   resolveCompany: (tenantId: string) => Promise<{ name: string; website?: string }>;
+  loadPhoto?: (key: string) => Promise<{ contentType: string; bytes: Uint8Array } | null>;
 };
 
 type Draft = {
@@ -67,7 +71,12 @@ type Draft = {
   socialLinks?: SocialLink[];
   photoKey?: string;
   cardTheme?: CardTheme;
+  backgroundColor?: string;
+  accentColor?: string;
+  photoFocusX?: number;
+  photoFocusY?: number;
   visibilitySettings?: Record<string, boolean>;
+  internalNotes?: string;
   version?: number;
 };
 
@@ -90,6 +99,16 @@ const DEFAULT_VISIBILITY: Record<string, boolean> = {
   "link:calendar": true,
   "link:custom": true,
 };
+
+function optionalColor(incoming: string | undefined, current: string | undefined, allowed: boolean): string | undefined {
+  if (!allowed || incoming === undefined) return current;
+  return incoming === "" ? undefined : incoming;
+}
+
+function optionalFocus(incoming: number | undefined, current: number | undefined, allowed: boolean): number | undefined {
+  if (!allowed || incoming === undefined) return current;
+  return incoming;
+}
 
 function keysOf(profile: BusinessCardProfile): Pick<
   BusinessCardProfile,
@@ -130,18 +149,29 @@ export class BusinessCardService {
     return `${this.options.photoBaseUrl.replace(/\/$/, "")}/${key}`;
   }
 
-  private async requireEnabled(tenantId: string): Promise<TenantBizCardConfig | null> {
-    const config = await this.repo.getConfig(tenantId);
+  private requirePlatformAgency(actor: Actor): void {
+    if (!isPlatformCardAgency(actor.tenantId)) {
+      throw new BizCardError(404, "not_found", "Not found.");
+    }
+  }
+
+  private async requireEnabled(actor: Actor): Promise<TenantBizCardConfig | null> {
+    if (!isNexCortEmployee(actor.role)) {
+      throw new BizCardError(403, "nexcort_only", "Business cards are for NexCort iQ employees.");
+    }
+    this.requirePlatformAgency(actor);
+    const config = await this.repo.getConfig(actor.tenantId);
     if (!isBusinessCardsEnabled(this.options.globalEnabled, config)) {
-      throw new BizCardError(403, "feature_not_enabled", "feature_not_enabled");
+      throw new BizCardError(403, "feature_not_enabled", "Turn on business cards for this agency in Card Settings, then try again.");
     }
     return config;
   }
 
   private requireAdmin(actor: Actor): void {
-    if (!isBusinessCardAdmin(actor.role)) {
-      throw new BizCardError(403, "admin_required", "This action requires an agency administrator.");
+    if (!isNexCortEmployee(actor.role) || !isBusinessCardAdmin(actor.role)) {
+      throw new BizCardError(403, "admin_required", "This action requires a NexCort iQ administrator.");
     }
+    this.requirePlatformAgency(actor);
   }
 
   private async loadOwn(actor: Actor, profileId: string): Promise<BusinessCardProfile> {
@@ -160,6 +190,7 @@ export class BusinessCardService {
       profile,
       this.photoUrl(profile.photoKey),
       `${this.base()}/card/${profile.slug}`,
+      this.photoUrl(profile.coverKey),
     );
   }
 
@@ -170,6 +201,9 @@ export class BusinessCardService {
     activeProfiles: number;
     totalProfiles: number;
   }> {
+    if (!isNexCortEmployee(actor.role) || !isPlatformCardAgency(actor.tenantId)) {
+      return { enabled: false, hasProfile: false, activeProfiles: 0, totalProfiles: 0 };
+    }
     const config = await this.repo.getConfig(actor.tenantId);
     const enabled = isBusinessCardsEnabled(this.options.globalEnabled, config);
     const mine = await this.repo.getProfileByUser(actor.tenantId, actor.userId);
@@ -187,14 +221,14 @@ export class BusinessCardService {
   }
 
   async getMine(actor: Actor): Promise<BusinessCardProfile> {
-    await this.requireEnabled(actor.tenantId);
+    await this.requireEnabled(actor);
     const profile = await this.repo.getProfileByUser(actor.tenantId, actor.userId);
     if (!profile) throw new BizCardError(404, "not_found", "You do not have a card yet.");
     return profile;
   }
 
   async saveMine(actor: Actor, draft: Draft): Promise<BusinessCardProfile> {
-    const config = await this.requireEnabled(actor.tenantId);
+    const config = await this.requireEnabled(actor);
     const existing = await this.repo.getProfileByUser(actor.tenantId, actor.userId);
     if (!existing) return this.createForUser(actor, actor, draft, config, "inactive");
     return this.applyDraft(actor, existing, draft, false);
@@ -207,7 +241,7 @@ export class BusinessCardService {
 
   async adminCreate(actor: Actor, cognitoUserId: string, draft: Draft): Promise<BusinessCardProfile> {
     this.requireAdmin(actor);
-    const config = await this.requireEnabled(actor.tenantId);
+    const config = await this.requireEnabled(actor);
     const owner: Actor = { ...actor, userId: cognitoUserId, email: draft.emailAddresses?.find((e) => e.type === "primary")?.address || actor.email };
     const taken = await this.repo.getProfileByUser(actor.tenantId, cognitoUserId);
     if (taken) throw new BizCardError(409, "profile_exists", "That person already has a card.");
@@ -216,7 +250,7 @@ export class BusinessCardService {
 
   async adminUpdate(actor: Actor, profileId: string, draft: Draft): Promise<BusinessCardProfile> {
     this.requireAdmin(actor);
-    await this.requireEnabled(actor.tenantId);
+    await this.requireEnabled(actor);
     const profile = await this.repo.getProfile(profileId);
     if (!profile || profile.tenantId !== actor.tenantId) {
       throw new BizCardError(404, "not_found", "Profile not found.");
@@ -232,13 +266,13 @@ export class BusinessCardService {
     version: number,
   ): Promise<BusinessCardProfile> {
     this.requireAdmin(actor);
-    await this.requireEnabled(actor.tenantId);
+    await this.requireEnabled(actor);
     return this.setStatus(actor, profileId, status, reason, version);
   }
 
   async adminSetLocks(actor: Actor, profileId: string, lockedFields: string[]): Promise<BusinessCardProfile> {
     this.requireAdmin(actor);
-    await this.requireEnabled(actor.tenantId);
+    await this.requireEnabled(actor);
     const profile = await this.loadOwn(actor, profileId);
     const next = { ...profile, lockedFields: [...new Set([...lockedFields, ...ALWAYS_LOCKED_FIELDS])], updatedAt: this.now(), updatedBy: actor.userId, version: profile.version + 1 };
     const saved = await this.repo.saveProfile({ ...next, ...keysOf(next) }, profile.version);
@@ -249,13 +283,13 @@ export class BusinessCardService {
 
   async listAdmin(actor: Actor, cursor?: string): Promise<{ items: BusinessCardProfile[]; cursor?: string }> {
     this.requireAdmin(actor);
-    await this.requireEnabled(actor.tenantId);
+    await this.requireEnabled(actor);
     return this.repo.listProfiles(actor.tenantId, 50, cursor);
   }
 
   async getAdmin(actor: Actor, profileId: string): Promise<BusinessCardProfile> {
     this.requireAdmin(actor);
-    await this.requireEnabled(actor.tenantId);
+    await this.requireEnabled(actor);
     const profile = await this.repo.getProfile(profileId);
     if (!profile || profile.tenantId !== actor.tenantId) {
       throw new BizCardError(404, "not_found", "Profile not found.");
@@ -302,7 +336,7 @@ export class BusinessCardService {
 
   async createCard(actor: Actor, tagType: TagType): Promise<NFCCard> {
     this.requireAdmin(actor);
-    await this.requireEnabled(actor.tenantId);
+    await this.requireEnabled(actor);
     const now = this.now();
     const cardId = this.id();
     const card: NFCCard = {
@@ -329,13 +363,13 @@ export class BusinessCardService {
 
   async listCards(actor: Actor): Promise<NFCCard[]> {
     this.requireAdmin(actor);
-    await this.requireEnabled(actor.tenantId);
+    await this.requireEnabled(actor);
     return this.repo.listCards(actor.tenantId);
   }
 
   async getCard(actor: Actor, cardId: string): Promise<NFCCard> {
     this.requireAdmin(actor);
-    await this.requireEnabled(actor.tenantId);
+    await this.requireEnabled(actor);
     const card = await this.repo.getCard(cardId);
     if (!card || card.tenantId !== actor.tenantId) throw new BizCardError(404, "not_found", "Card not found.");
     return card;
@@ -343,7 +377,7 @@ export class BusinessCardService {
 
   async assignCard(actor: Actor, cardId: string, profileId: string, version: number): Promise<NFCCard> {
     this.requireAdmin(actor);
-    await this.requireEnabled(actor.tenantId);
+    await this.requireEnabled(actor);
     const card = await this.getCard(actor, cardId);
     if (card.version !== version) throw new BizCardError(409, "version_conflict", "The NFC card changed. Reload and try again.");
     if (card.status === "revoked") throw new BizCardError(400, "revoked", "A revoked tag cannot be assigned. Issue a new card.");
@@ -368,7 +402,7 @@ export class BusinessCardService {
 
   async setCardStatus(actor: Actor, cardId: string, status: NfcStatus, version: number): Promise<NFCCard> {
     this.requireAdmin(actor);
-    await this.requireEnabled(actor.tenantId);
+    await this.requireEnabled(actor);
     if (status === "revoked") {
       throw new BizCardError(400, "use_revoke", "Revocation requires a reason.");
     }
@@ -392,7 +426,7 @@ export class BusinessCardService {
 
   async revokeCard(actor: Actor, cardId: string, reason: string, version: number): Promise<NFCCard> {
     this.requireAdmin(actor);
-    await this.requireEnabled(actor.tenantId);
+    await this.requireEnabled(actor);
     if (!reason.trim()) throw new BizCardError(400, "reason_required", "A revocation reason is required.");
     const card = await this.getCard(actor, cardId);
     if (card.version !== version) throw new BizCardError(409, "version_conflict", "The NFC card changed. Reload and try again.");
@@ -434,9 +468,25 @@ export class BusinessCardService {
   }
 
   async vcardForPublicId(publicProfileId: string): Promise<{ body: string; fileName: string }> {
-    const card = await this.publicById(publicProfileId);
-    const { buildVCard, sanitizeVCardFileName } = await import("./vcard.js");
-    return { body: buildVCard(card), fileName: sanitizeVCardFileName(card.displayName) };
+    const profile = await this.repo.getProfileByPublicId(publicProfileId);
+    if (!profile || profile.status !== "active") throw new BizCardError(404, "not_found", "Card not found.");
+    const config = await this.repo.getConfig(profile.tenantId);
+    if (!isBusinessCardsEnabled(this.options.globalEnabled, config)) {
+      throw new BizCardError(404, "not_found", "Card not found.");
+    }
+    const card = this.project(profile);
+    const { buildVCard, sanitizeVCardFileName, vcardPhotoFromBytes } = await import("./vcard.js");
+    let photo = null;
+    const portraitPublic = profile.visibilitySettings?.photo !== false;
+    if (portraitPublic && profile.photoKey && this.options.loadPhoto) {
+      try {
+        const file = await this.options.loadPhoto(profile.photoKey);
+        photo = file ? vcardPhotoFromBytes(file.contentType, file.bytes) : null;
+      } catch {
+        photo = null;
+      }
+    }
+    return { body: buildVCard(card, photo), fileName: sanitizeVCardFileName(card.displayName) };
   }
 
   async resolveNfc(cardId: string): Promise<{ location: string; profile?: BusinessCardProfile }> {
@@ -491,7 +541,7 @@ export class BusinessCardService {
   }
 
   async analyticsFor(actor: Actor, profileId?: string): Promise<Record<string, number | undefined>> {
-    await this.requireEnabled(actor.tenantId);
+    await this.requireEnabled(actor);
     const profile = profileId
       ? await this.getAdmin(actor, profileId)
       : await this.getMine(actor);
@@ -507,7 +557,7 @@ export class BusinessCardService {
 
   async tenantAnalytics(actor: Actor): Promise<{ activeProfiles: number; totalProfiles: number; totalViews: number }> {
     this.requireAdmin(actor);
-    await this.requireEnabled(actor.tenantId);
+    await this.requireEnabled(actor);
     const page = await this.repo.listProfiles(actor.tenantId, 200);
     return {
       activeProfiles: page.items.filter((item) => item.status === "active").length,
@@ -518,7 +568,7 @@ export class BusinessCardService {
 
   async auditFor(actor: Actor, profileId?: string) {
     this.requireAdmin(actor);
-    await this.requireEnabled(actor.tenantId);
+    await this.requireEnabled(actor);
     if (profileId) await this.getAdmin(actor, profileId);
     return this.repo.listAudit(actor.tenantId, profileId);
   }
@@ -538,6 +588,17 @@ export class BusinessCardService {
     const saved = await this.repo.saveProfile({ ...next, ...keysOf(next) }, profile.version);
     if (saved === "conflict") throw new BizCardError(409, "version_conflict", "The card changed. Reload and try again.");
     await this.audit(actor, profile.profileId, photoKey ? "profile.photo" : "profile.photo.remove", ["photoKey"]);
+  }
+
+  async setCoverKey(actor: Actor, profileId: string, coverKey: string | undefined, asAdmin: boolean): Promise<void> {
+    const profile = asAdmin ? await this.getAdmin(actor, profileId) : await this.getMine(actor);
+    if (!asAdmin && profile.lockedFields.includes("cardTheme")) {
+      throw new BizCardError(400, "field_locked", "Card appearance is locked by an administrator.");
+    }
+    const next = { ...profile, coverKey, updatedAt: this.now(), updatedBy: actor.userId, version: profile.version + 1 };
+    const saved = await this.repo.saveProfile({ ...next, ...keysOf(next) }, profile.version);
+    if (saved === "conflict") throw new BizCardError(409, "version_conflict", "The card changed. Reload and try again.");
+    await this.audit(actor, profile.profileId, coverKey ? "profile.cover" : "profile.cover.remove", ["coverKey"]);
   }
 
   private async createForUser(
@@ -574,10 +635,10 @@ export class BusinessCardService {
       title: draft.title?.trim() || "",
       department: draft.department?.trim(),
       companyName: company.name,
-      biography: draft.biography?.slice(0, 280),
+      biography: draft.biography?.slice(0, BIOGRAPHY_MAX_LENGTH),
       phoneNumbers: draft.phoneNumbers ?? [],
       emailAddresses: this.lockPrimaryEmail(draft.emailAddresses ?? [], owner.email),
-      website: company.website || config?.companyWebsite,
+      website: draft.website || company.website || config?.companyWebsite,
       officeAddress: draft.officeAddress,
       socialLinks: draft.socialLinks ?? [],
       visibilitySettings: draft.visibilitySettings ?? config?.defaultVisibility ?? DEFAULT_VISIBILITY,
@@ -607,14 +668,16 @@ export class BusinessCardService {
     draft: Draft,
     asAdmin: boolean,
   ): Promise<BusinessCardProfile> {
-    if (draft.version === undefined || draft.version !== profile.version) {
+    // A page that never loaded the card sends no version. Keep the owner's typed
+    // fields instead of blocking them. An explicit stale version still conflicts.
+    if (draft.version !== undefined && draft.version !== profile.version) {
       throw new BizCardError(409, "version_conflict", "The card changed. Reload and try again.");
     }
     this.validateDraft(draft);
     const company = await this.options.resolveCompany(actor.tenantId);
-    const locked = new Set(profile.lockedFields);
+    const locked = new Set(profile.lockedFields.filter((field) => field !== "website" && field !== "primaryEmail"));
     if (!asAdmin) this.rejectLockedChanges(profile, draft, locked);
-    const slug = asAdmin && draft.slug ? draft.slug : profile.slug;
+    const slug = (asAdmin || !locked.has("slug")) && draft.slug ? draft.slug : profile.slug;
     if (asAdmin && draft.slug) assertSlug(draft.slug);
     const now = this.now();
     const next: BusinessCardProfile = {
@@ -627,17 +690,23 @@ export class BusinessCardService {
       title: pick(draft.title, profile.title, asAdmin || !locked.has("title")) ?? "",
       department: pick(draft.department, profile.department, asAdmin || !locked.has("department")),
       companyName: company.name,
-      biography: (asAdmin || !locked.has("biography") ? draft.biography ?? profile.biography : profile.biography)?.slice(0, 280),
+      biography: (asAdmin || !locked.has("biography") ? draft.biography ?? profile.biography : profile.biography)?.slice(0, BIOGRAPHY_MAX_LENGTH),
       phoneNumbers: asAdmin || !locked.has("phoneNumbers") ? draft.phoneNumbers ?? profile.phoneNumbers : profile.phoneNumbers,
       emailAddresses: this.lockPrimaryEmail(
         asAdmin || !locked.has("emailAddresses") ? draft.emailAddresses ?? profile.emailAddresses : profile.emailAddresses,
         profile.emailAddresses.find((email) => email.type === "primary")?.address || actor.email,
       ),
-      website: company.website || profile.website,
+      website: draft.website === "" ? undefined : draft.website || profile.website || company.website,
+      lockedFields: profile.lockedFields.filter((field) => field !== "website" && field !== "primaryEmail"),
       officeAddress: asAdmin || !locked.has("officeAddress") ? draft.officeAddress ?? profile.officeAddress : profile.officeAddress,
       socialLinks: asAdmin || !locked.has("socialLinks") ? draft.socialLinks ?? profile.socialLinks : profile.socialLinks,
       cardTheme: asAdmin || !locked.has("cardTheme") ? draft.cardTheme ?? profile.cardTheme : profile.cardTheme,
+      backgroundColor: optionalColor(draft.backgroundColor, profile.backgroundColor, asAdmin || !locked.has("cardTheme")),
+      accentColor: optionalColor(draft.accentColor, profile.accentColor, asAdmin || !locked.has("cardTheme")),
+      photoFocusX: optionalFocus(draft.photoFocusX, profile.photoFocusX, asAdmin || !locked.has("cardTheme")),
+      photoFocusY: optionalFocus(draft.photoFocusY, profile.photoFocusY, asAdmin || !locked.has("cardTheme")),
       visibilitySettings: asAdmin ? draft.visibilitySettings ?? profile.visibilitySettings : profile.visibilitySettings,
+      internalNotes: asAdmin ? draft.internalNotes ?? profile.internalNotes : profile.internalNotes,
       updatedAt: now,
       updatedBy: actor.userId,
       version: profile.version + 1,
@@ -667,14 +736,24 @@ export class BusinessCardService {
       ["officeAddress", draft.officeAddress, profile.officeAddress],
       ["socialLinks", draft.socialLinks, profile.socialLinks],
       ["cardTheme", draft.cardTheme, profile.cardTheme],
+      ["backgroundColor", draft.backgroundColor, profile.backgroundColor ?? ""],
+      ["accentColor", draft.accentColor, profile.accentColor ?? ""],
+      ["photoFocusX", draft.photoFocusX, profile.photoFocusX ?? 50],
+      ["photoFocusY", draft.photoFocusY, profile.photoFocusY ?? 50],
       ["slug", draft.slug, profile.slug],
     ];
     for (const [field, incoming, current] of attempts) {
       if (incoming === undefined) continue;
+      if (field === "backgroundColor" || field === "accentColor" || field === "photoFocusX" || field === "photoFocusY") {
+        if (locked.has("cardTheme") && JSON.stringify(incoming) !== JSON.stringify(current)) {
+          throw new BizCardError(400, "field_locked", "Card appearance is locked.");
+        }
+        continue;
+      }
       if (!locked.has(field) && !ALWAYS_LOCKED_FIELDS.includes(field as (typeof ALWAYS_LOCKED_FIELDS)[number])) continue;
-      if (field === "companyName" || field === "website" || field === "primaryEmail") {
-        if (JSON.stringify(incoming) !== JSON.stringify(current) && field !== "primaryEmail") {
-          throw new BizCardError(400, "field_locked", `${field} is locked.`);
+      if (field === "companyName") {
+        if (JSON.stringify(incoming) !== JSON.stringify(current)) {
+          throw new BizCardError(400, "field_locked", "companyName is locked.");
         }
         continue;
       }
@@ -682,28 +761,35 @@ export class BusinessCardService {
         throw new BizCardError(400, "field_locked", `${field} is locked.`);
       }
     }
-    const primary = draft.emailAddresses?.find((email) => email.type === "primary");
-    const currentPrimary = profile.emailAddresses.find((email) => email.type === "primary");
-    if (primary && currentPrimary && primary.address !== currentPrimary.address) {
-      throw new BizCardError(400, "field_locked", "primaryEmail is locked.");
-    }
   }
 
-  private lockPrimaryEmail(emails: EmailAddress[], primary: string): EmailAddress[] {
+  private lockPrimaryEmail(emails: EmailAddress[], fallback: string): EmailAddress[] {
+    const submitted = emails.find((email) => email.type === "primary");
+    const address = submitted?.address.trim() || fallback;
     const rest = emails.filter((email) => email.type !== "primary");
-    return [{ type: "primary", address: primary, public: emails.find((email) => email.type === "primary")?.public ?? true }, ...rest];
+    return [{ type: "primary", address, public: submitted?.public ?? true }, ...rest];
   }
 
   private validateDraft(draft: Draft): void {
-    if (draft.biography && draft.biography.length > 280) {
-      throw new BizCardError(400, "biography_too_long", "Biography must be 280 characters or fewer.");
+    if (draft.biography && draft.biography.length > BIOGRAPHY_MAX_LENGTH) {
+      throw new BizCardError(400, "biography_too_long", `Biography must be ${BIOGRAPHY_MAX_LENGTH} characters or fewer.`);
     }
     for (const phone of draft.phoneNumbers ?? []) assertE164(phone.number);
     for (const link of draft.socialLinks ?? []) assertHttpsUrl(link.url, "Link");
     if (draft.website) assertWebsite(draft.website);
+    for (const email of draft.emailAddresses ?? []) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.address)) {
+        throw new BizCardError(400, "invalid_email", "Email must be a valid address.");
+      }
+    }
     if (draft.slug) assertSlug(draft.slug);
     if (draft.cardTheme && !isCardTheme(draft.cardTheme)) {
       throw new BizCardError(400, "invalid_theme", "Choose navy, gold, slate, or midnight.");
+    }
+    for (const color of [draft.backgroundColor, draft.accentColor]) {
+      if (color && !/^#[0-9A-Fa-f]{6}$/.test(color)) {
+        throw new BizCardError(400, "invalid_color", "Use a hex color such as #1e1b4b.");
+      }
     }
   }
 

@@ -174,6 +174,10 @@ export interface PsapProspect {
   assignedToName?: string;
   lastContactedAt?: string;
   lastContactedBy?: string;
+  /** Latest outreach method: call, email, mail, or demo. */
+  lastContactMethod?: "call" | "email" | "mail" | "demo";
+  /** Times the prospect was contacted. Notes and status changes are excluded. */
+  outreachTouchCount?: number;
   nextActionDate?: string;
   nextActionNote?: string;
   estimatedValue?: number;

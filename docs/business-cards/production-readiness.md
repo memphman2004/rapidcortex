@@ -4,7 +4,7 @@ Not ready for production. Jeff Coleman has not authorized a production deploy, a
 
 ## Go / no-go
 
-- [x] Unit tests for slug, vCard, visibility, locks, tenant isolation, and NFC revoke passed locally (13 tests).
+- [x] Unit tests for slug, vCard, visibility, locks, tenant isolation, NFC revoke, and the draft-to-revoke journey passed locally (15 tests).
 - [ ] Dev stack created (`IncludeBusinessCardsNestedStack=true`) and one agency enabled.
 - [ ] Staging admin creates, publishes, locks, and revokes a card.
 - [ ] Public `/card/{slug}` and `/c/{cardId}` checked in a browser on the app host.
@@ -16,9 +16,9 @@ Not ready for production. Jeff Coleman has not authorized a production deploy, a
 
 ## Test log
 
-`npx vitest run apps/api/src/lib/business-cards/domain.test.ts apps/api/src/lib/business-cards/service.test.ts`
+`npx vitest run apps/api/src/lib/business-cards/domain.test.ts apps/api/src/lib/business-cards/service.test.ts apps/web/lib/business-cards/form.test.ts`
 
-Result: 2 files, 13 tests, passed.
+Result: 3 files, 15 tests, passed. The signed-in dashboard was not exercised in a browser. The API nested stack is still off.
 
 Playwright is not configured in this repo. End-to-end specs were not added and were not run.
 

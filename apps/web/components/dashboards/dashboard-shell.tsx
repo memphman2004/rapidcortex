@@ -175,9 +175,9 @@ function DashboardShellInner({
           ) : null}
           <DemoModeBanner />
           <ActiveNoticesBanner />
-          <BusinessCardLoginPrompt
-            isAdmin={["agencyadmin", "agencyit", "rcadmin", "rcsuperadmin", "rcitadmin", "CAMPUS_ADMIN", "VENUE_ADMIN", "TRANSIT_ADMIN", "HOSPITAL_ADMIN", "CALL_ASSIST_ADMIN"].includes(user.role)}
-          />
+          {["rcsuperadmin", "rcadmin", "rcitadmin"].includes(user.role) ? (
+            <BusinessCardLoginPrompt isAdmin={user.role === "rcsuperadmin" || user.role === "rcadmin"} agencyId={user.agencyId} />
+          ) : null}
           <RoleDashboardHeaderStrip prefix={prefix} user={user} />
           <main className="flex-1 bg-[var(--rc-bg)] p-4 md:p-6">
             <RoleDashboardHomeLayout prefix={prefix}>{children}</RoleDashboardHomeLayout>

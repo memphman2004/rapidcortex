@@ -1,4 +1,14 @@
 import { z } from "zod";
+import { BIOGRAPHY_MAX_LENGTH, normalizeWebsite } from "./domain.js";
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 export const RESERVED_SLUGS = new Set(["admin", "api", "c", "card", "revoked", "inactive", "public", "null"]);
 
@@ -39,10 +49,16 @@ export const DraftSchema = z.object({
   title: z.string().max(120).optional(),
   department: z.string().max(120).optional(),
   companyName: z.string().max(160).optional(),
-  biography: z.string().max(280).optional(),
+  biography: z.string().max(BIOGRAPHY_MAX_LENGTH).optional(),
   phoneNumbers: z.array(PhoneSchema).max(8).optional(),
   emailAddresses: z.array(EmailSchema).max(4).optional(),
-  website: z.string().url().optional(),
+  website: z
+    .string()
+    .transform((value) => normalizeWebsite(value))
+    .refine((value) => value === "" || isHttpUrl(value), {
+      message: "Website must be a web address, such as https://www.nexcortiq.com.",
+    })
+    .optional(),
   officeAddress: z
     .object({
       street: z.string().max(120).optional(),
@@ -55,13 +71,19 @@ export const DraftSchema = z.object({
     .optional(),
   socialLinks: z.array(LinkSchema).max(8).optional(),
   cardTheme: z.enum(["navy", "gold", "slate", "midnight"]).optional(),
+  backgroundColor: z.union([z.string().regex(/^#[0-9A-Fa-f]{6}$/), z.literal("")]).optional(),
+  accentColor: z.union([z.string().regex(/^#[0-9A-Fa-f]{6}$/), z.literal("")]).optional(),
+  photoFocusX: z.number().min(0).max(100).optional(),
+  photoFocusY: z.number().min(0).max(100).optional(),
   visibilitySettings: z.record(z.string(), z.boolean()).optional(),
+  internalNotes: z.string().max(500).optional(),
   cognitoUserId: z.string().min(1).max(128).optional(),
 });
 
 export const PhotoSchema = z.object({
   contentType: z.enum(["image/jpeg", "image/png", "image/webp"]),
   contentLength: z.number().int().positive().max(5_000_000),
+  purpose: z.enum(["profile", "cover"]).optional(),
 });
 
 export const StatusSchema = z.object({
@@ -81,7 +103,13 @@ export const SettingsSchema = z.object({
   lockedFields: z.array(z.string().max(40)).max(40).optional(),
   defaultTheme: z.enum(["navy", "gold", "slate", "midnight"]).optional(),
   requireSetup: z.boolean().optional(),
-  companyWebsite: z.string().url().optional(),
+  companyWebsite: z
+    .string()
+    .transform((value) => normalizeWebsite(value))
+    .refine((value) => value === "" || isHttpUrl(value), {
+      message: "Company website must be a web address, such as https://www.nexcortiq.com.",
+    })
+    .optional(),
   version: z.number().int().nonnegative().optional(),
 });
 

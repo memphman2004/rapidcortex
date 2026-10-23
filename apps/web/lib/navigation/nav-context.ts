@@ -14,6 +14,7 @@ export function buildNavContext(
 ): NavContext {
   const agencyId = user.agencyId?.trim() ?? "";
   return {
+    agencyId,
     jurisdiction,
     venueCode: agencyId ? extractVenueCode(agencyId) : undefined,
     campusCode: agencyId ? extractCampusCode(agencyId) : undefined,

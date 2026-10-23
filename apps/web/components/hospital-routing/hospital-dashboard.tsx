@@ -7,6 +7,7 @@ import type * as maplibregl from "maplibre-gl";
 import * as maplibreglLib from "maplibre-gl";
 
 import { fetchHospitalRecommendations } from "@/lib/hospital-routing/api";
+import { useTheme } from "@/lib/theme/theme-context";
 import { fetchAlsRoute } from "@/lib/location/fetch-route";
 import { HospitalDetailModal } from "./hospital-detail-modal";
 import { HospitalMarker } from "./hospital-marker";
@@ -44,6 +45,7 @@ export function HospitalDashboard({
   patientNeeds,
   onSelectForTransport,
 }: HospitalDashboardProps) {
+  const { theme } = useTheme();
   const [map, setMap] = useState<maplibregl.Map | null>(null);
   const [recommendations, setRecommendations] = useState<HospitalRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -137,7 +139,7 @@ export function HospitalDashboard({
             className="h-full min-h-[280px]"
             center={[incidentLocation.lon, incidentLocation.lat]}
             zoom={11}
-            theme="dark"
+            theme={theme}
             onMapLoad={setMap}
           >
             {map && routeGeometry.length >= 2 ? (

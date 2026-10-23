@@ -17,7 +17,7 @@ import type {
   PsapProspectListResponse,
   PsapProspectStats,
 } from "rapid-cortex-shared";
-import { PSAP_OUTREACH_STATUSES } from "rapid-cortex-shared";
+import { PSAP_OUTREACH_STATUSES, stampPsapContactFields } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
 import { ddb } from "./baseRepository.js";
 
@@ -402,15 +402,11 @@ export class PsapProspectRepository {
       performedAt: now,
       metadata: body.metadata,
     };
-    const contactTypes = new Set(["call", "email", "mail"]);
-    const next: PsapProspect = {
+    const next = stampPsapContactFields({
       ...current,
       activities: [activity, ...(current.activities ?? [])],
       updatedAt: now,
-      ...(contactTypes.has(body.type)
-        ? { lastContactedAt: now, lastContactedBy: actor.displayName }
-        : {}),
-    };
+    });
     await ddb.send(new PutCommand({ TableName: table(), Item: next }));
     return next;
   }
