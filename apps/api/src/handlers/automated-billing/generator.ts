@@ -19,6 +19,7 @@ import { env } from "../../lib/env.js";
 import { ddb } from "../../repositories/baseRepository.js";
 import { writeAutomatedBillingAudit } from "./audit.js";
 import { sendAutomatedInvoiceEmail } from "./invoice-emailer.js";
+import { configWithProductAddons } from "./entitled-config.js";
 import {
   agencyBillingConfigsTable,
   automatedInvoicesTable,
@@ -74,6 +75,8 @@ async function generateForAgency(job: Job): Promise<void> {
     return;
   }
 
+  const billedConfig = await configWithProductAddons(config);
+
   const existing = await ddb.send(
     new QueryCommand({
       TableName: automatedInvoicesTable(),
@@ -83,14 +86,15 @@ async function generateForAgency(job: Job): Promise<void> {
     }),
   );
   const live = (existing.Items ?? []).filter((row) => (row as AutomatedInvoice).status !== "voided") as AutomatedInvoice[];
-  if (live.length > 0) {
+  const sent = live.filter((row) => row.status !== "draft");
+  if (sent.length > 0) {
     console.log(
       JSON.stringify({
         level: "INFO",
         event: "INVOICE_SKIP_EXISTS",
         agencyId: job.agencyId,
         billingPeriod: job.billingPeriod,
-        invoiceId: live[0]?.invoiceId,
+        invoiceId: sent[0]?.invoiceId,
       }),
     );
     await bumpRun(job.runId, "processed");
@@ -113,11 +117,60 @@ async function generateForAgency(job: Job): Promise<void> {
     throw new Error("Usage snapshot agency/period mismatch");
   }
 
+  const drafts = live.filter((row) => row.status === "draft");
+  if (drafts.length > 0) {
+    const draft = drafts.reduce((latest, row) =>
+      (row.sequenceNumber ?? 0) > (latest.sequenceNumber ?? 0) ? row : latest,
+    );
+    const refreshed = computeInvoice({
+      config: billedConfig,
+      usage,
+      period: parseBillingPeriod(job.billingPeriod),
+      sequenceNumber: draft.sequenceNumber,
+    });
+    const now = new Date().toISOString();
+    await ddb.send(
+      new UpdateCommand({
+        TableName: automatedInvoicesTable(),
+        Key: { invoiceId: draft.invoiceId },
+        ConditionExpression: "agencyId = :a AND #st = :draft",
+        UpdateExpression:
+          "SET #lines = :lines, subtotalCents = :sub, discountCents = :disc, totalCents = :total, tierLabel = :tier, proRated = :proRated, updatedAt = :now",
+        ExpressionAttributeNames: { "#lines": "lines", "#st": "status" },
+        ExpressionAttributeValues: {
+          ":a": job.agencyId,
+          ":draft": "draft",
+          ":lines": refreshed.lines,
+          ":sub": refreshed.subtotalCents,
+          ":disc": refreshed.discountCents,
+          ":total": refreshed.totalCents,
+          ":tier": refreshed.tierLabel,
+          ":proRated": refreshed.proRated,
+          ":now": now,
+        },
+      }),
+    );
+    await writeAutomatedBillingAudit({
+      agencyId: job.agencyId,
+      actorId: "system:invoice-generator",
+      type: AUDIT_EVENT_TYPES.AUTOMATED_INVOICE_GENERATED,
+      invoiceId: draft.invoiceId,
+      details: {
+        billingPeriod: job.billingPeriod,
+        totalCents: refreshed.totalCents,
+        runId: job.runId,
+        refreshedDraft: true,
+      },
+    });
+    await bumpRun(job.runId, "processed");
+    return;
+  }
+
   const sequenceNumber =
     ((existing.Items ?? []) as AutomatedInvoice[]).reduce((max, row) => Math.max(max, row.sequenceNumber ?? 0), 0) + 1;
 
   const invoice = computeInvoice({
-    config,
+    config: billedConfig,
     usage,
     period: parseBillingPeriod(job.billingPeriod),
     sequenceNumber,

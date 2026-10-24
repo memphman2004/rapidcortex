@@ -45,7 +45,7 @@ import { useJurisdictionSlug } from "@/lib/jurisdiction-context";
 import { dispatchDashboardHref } from "@/lib/dispatch-workspace-links";
 import { TRAINING_MODE_LABEL, TRAINING_MODE_API_EXPLANATION } from "@/lib/training-mode";
 
-export function DashboardWorkspace() {
+export function DashboardWorkspace({ popout = false }: { popout?: boolean }) {
   const router = useRouter();
   const jurisdiction = useJurisdictionSlug();
   const searchParams = useSearchParams();
@@ -466,6 +466,7 @@ export function DashboardWorkspace() {
         ) : null
       }
       queueEmptyHint={undefined}
+      popoutSection={popout ? searchParams.get("section") : null}
       createIncidentAction={
         isApiConfigured() ? (
           <CreateIncidentButton

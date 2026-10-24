@@ -9,6 +9,7 @@ import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 import { HelpChrome } from "@/components/help/help-chrome";
 import { IqVisionNavAlertListener } from "@/components/rapid-vision/iq-vision-nav-alert-listener";
 import { isPsapConsoleHomePath } from "@/components/psap/psap-shell-chrome";
+import { isDispatcherPopoutPath } from "@/lib/dispatcher/section-popout";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 import type { UserContext } from "rapid-cortex-shared";
 
@@ -45,11 +46,30 @@ function DispatchShellInner({
   const pathname = usePathname() ?? "";
   const consoleHome = isPsapConsoleHomePath(pathname);
   const workstation = isDispatcherCadPath(pathname);
+  const sectionPopout = isDispatcherPopoutPath(pathname);
   const { rootRef, theme } = useThemeRoot<HTMLDivElement>();
 
   // Console home owns its own chrome (sidebar/header); avoid double nav.
   if (consoleHome) {
     return <>{children}</>;
+  }
+
+  if (sectionPopout) {
+    return (
+      <div
+        ref={rootRef}
+        data-theme={theme}
+        className="rc-workstation-root dispatcher-shell flex h-dvh min-h-0 flex-col"
+        style={{
+          fontFamily: "var(--rc-dashboard-font-family, Inter, ui-sans-serif, system-ui, sans-serif)",
+          background: "var(--rc-workstation-bg)",
+          color: "var(--rc-text)",
+          colorScheme: theme,
+        }}
+      >
+        {children}
+      </div>
+    );
   }
 
   return (

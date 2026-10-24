@@ -35,6 +35,7 @@ import {
 import { ddb } from "../../repositories/baseRepository.js";
 import { writeAutomatedBillingAudit } from "./audit.js";
 import { sendAutomatedInvoiceEmail } from "./invoice-emailer.js";
+import { configWithProductAddons } from "./entitled-config.js";
 import { agencyBillingConfigsTable, automatedInvoicesTable, usageSnapshotsTable } from "./tables.js";
 
 const CORS = {
@@ -346,7 +347,8 @@ async function preview(user: UserContext, rawBody: string | undefined) {
     });
   const usage: MonthlyUsageSnapshot = { ...baseUsage, ...parsed.data.usageOverride, agencyId: parsed.data.agencyId, billingPeriod: parsed.data.billingPeriod };
 
-  const result = previewInvoice(config, usage, parseBillingPeriod(parsed.data.billingPeriod));
+  const billedConfig = await configWithProductAddons(config);
+  const result = previewInvoice(billedConfig, usage, parseBillingPeriod(parsed.data.billingPeriod));
   return ok(result);
 }
 

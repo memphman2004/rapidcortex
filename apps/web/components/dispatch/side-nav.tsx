@@ -76,7 +76,12 @@ export function SideNav({ compactRail = false }: { compactRail?: boolean }) {
                   </span>
                   <div className="h-px flex-1 bg-[var(--rc-border)]" aria-hidden />
                 </div>
-                <ModulePicker dock={moduleRail.rail.dock} onOpenModule={moduleRail.rail.onOpen} />
+                <ModulePicker
+                  dock={moduleRail.rail.dock}
+                  modules={moduleRail.rail.modules}
+                  onOpenModule={moduleRail.rail.onOpen}
+                  onPopOut={moduleRail.rail.onPopOut}
+                />
               </div>
             ) : null}
           </div>

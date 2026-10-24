@@ -22,10 +22,12 @@ import { PreArrivalPanel } from "@/components/dispatch/pre-arrival-panel";
 import { SilentTextPanel } from "@/components/dispatch/silent-text-panel";
 import { TranscriptPanel } from "@/components/dispatch/transcript-panel";
 import { VideoAssistPanel } from "@/components/dispatch/video-assist-panel";
+import { SectionPopOutButton } from "@/components/dispatch/section-popout-button";
 import { CameraAiAlertsPanel } from "@/components/rapid-vision/CameraAiAlertsPanel";
 import { WorkstationPanel } from "@/components/dispatch/workstation-panel";
-import { ModuleDock } from "@/components/dispatch/module-dock";
-import type { DockState } from "@/lib/dispatcher/module-dock";
+import { ModuleDock, type DockItem } from "@/components/dispatch/module-dock";
+import type { DockModuleKey, DockState } from "@/lib/dispatcher/module-dock";
+import { visibleDockModules } from "@/lib/dispatcher/section-popout";
 import type { WorkstationPanelName } from "@/lib/dispatcher/workstation-prefs";
 import {
   isIncidentMediaEnabled,
@@ -136,6 +138,8 @@ export function DispatcherIncidentWorkstationBody({
   onSwapDockSlots,
   onFocusDockSlot,
   onCloseDockSlot,
+  soloModule = null,
+  onPopOutModule,
 }: {
   incidentId: string | null;
   incident: Incident | null;
@@ -163,6 +167,8 @@ export function DispatcherIncidentWorkstationBody({
   onSwapDockSlots: () => void;
   onFocusDockSlot: (slot: "left" | "right") => void;
   onCloseDockSlot: (slot: "left" | "right") => void;
+  soloModule?: DockModuleKey | null;
+  onPopOutModule?: (key: DockModuleKey) => void;
 }) {
   const callerMobile =
     !incidentId ? (
@@ -182,21 +188,45 @@ export function DispatcherIncidentWorkstationBody({
       <VideoAssistPanel incidentId={incidentId} ani={incident?.callerCallback} />
     );
 
+  const shownCollapsed = soloModule
+    ? (new Proxy(collapsed, { get: () => false }) as typeof collapsed)
+    : collapsed;
+
+  const modules = visibleDockModules({
+    callerCard: showCallerCard,
+    liveVideo: isLiveVideoEnabled(),
+    incidentMedia: isIncidentMediaEnabled(),
+    silentText: isSilentTextEnabled(),
+    preArrival: isPreArrivalIqEnabled(),
+    pinpoint: isPinpointEnabled(),
+    cameraAi: isRapidVisionSceneIntelEnabled(),
+  });
+  const visibleKeys = new Set(modules.map((item) => item.key));
+
   const panel = (
     name: WorkstationPanelName,
     title: string,
     body: ReactNode,
-    extra?: { badge?: string; secondary?: boolean; className?: string; bodyClassName?: string },
+    extra?: {
+      badge?: string;
+      secondary?: boolean;
+      className?: string;
+      bodyClassName?: string;
+      moduleKey?: DockModuleKey;
+    },
   ) => (
     <WorkstationPanel
       name={name}
       title={title}
       badge={extra?.badge}
       secondary={extra?.secondary}
-      collapsed={collapsed[name]}
+      collapsed={shownCollapsed[name]}
       maximized={maximized === name}
       onToggleCollapse={() => onToggleCollapse(name)}
       onToggleMaximize={() => onToggleMaximize(name)}
+      onPopOut={
+        extra?.moduleKey && onPopOutModule ? () => onPopOutModule(extra.moduleKey as DockModuleKey) : undefined
+      }
       className={extra?.className}
       bodyClassName={extra?.bodyClassName}
     >
@@ -204,15 +234,7 @@ export function DispatcherIncidentWorkstationBody({
     </WorkstationPanel>
   );
 
-  return (
-    <div className="module-dock-host">
-      <ModuleDock
-        dock={dock}
-        onToggleSplit={onToggleDockSplit}
-        onSwap={onSwapDockSlots}
-        onFocusSlot={onFocusDockSlot}
-        onCloseSlot={onCloseDockSlot}
-        items={[
+  const items: DockItem[] = [
           {
             key: "transcript",
             label: "Transcript",
@@ -233,7 +255,7 @@ export function DispatcherIncidentWorkstationBody({
                       className="!min-h-0 !flex-1 !border-0 !border-r-0 !bg-transparent"
                     />
                   </div>,
-                  { bodyClassName: "!p-0 flex flex-col min-h-0" },
+                  { moduleKey: "transcript", bodyClassName: "!p-0 flex flex-col min-h-0" },
                 )}
               </div>
             ),
@@ -257,16 +279,16 @@ export function DispatcherIncidentWorkstationBody({
                     isRefreshingAi={isRefreshingAi}
                     onRefreshAi={onRefreshAi}
                   />,
-                  { badge: "AI", bodyClassName: "flex min-h-0 flex-col" },
+                  { moduleKey: "incident_picture", badge: "AI", bodyClassName: "flex min-h-0 flex-col" },
                 )}
               </div>
             ),
           },
-          { key: "caller_mobile", label: "Caller Mobile", body: panel("caller_mobile", "Caller mobile", callerMobile) },
+          { key: "caller_mobile", label: "Caller Mobile", body: panel("caller_mobile", "Caller mobile", callerMobile, { moduleKey: "caller_mobile" }) },
           {
             key: "video_assist",
             label: "Video Assist",
-            body: panel("video_assist", "Video Assist (SMS)", videoAssist),
+            body: panel("video_assist", "Video Assist (SMS)", videoAssist, { moduleKey: "video_assist" }),
           },
           {
             key: "silent_text",
@@ -284,6 +306,7 @@ export function DispatcherIncidentWorkstationBody({
               ) : (
                 <PanelUnavailable message="Silent text is not enabled for this agency." />
               ),
+              { moduleKey: "silent_text" },
             ),
           },
           {
@@ -302,6 +325,7 @@ export function DispatcherIncidentWorkstationBody({
               ) : (
                 <PanelUnavailable message="Pre-Arrival iQ is not enabled for this agency." />
               ),
+              { moduleKey: "pre_arrival" },
             ),
           },
           {
@@ -315,6 +339,7 @@ export function DispatcherIncidentWorkstationBody({
               ) : (
                 <PanelUnavailable message="Pinpoint is not enabled for this agency." />
               ),
+              { moduleKey: "pinpoint" },
             ),
           },
           {
@@ -328,7 +353,7 @@ export function DispatcherIncidentWorkstationBody({
               ) : (
                 <PanelUnavailable message="Caller card / location context is not available." />
               ),
-              { secondary: true },
+              { moduleKey: "location", secondary: true },
             ),
           },
           {
@@ -342,7 +367,7 @@ export function DispatcherIncidentWorkstationBody({
               ) : (
                 <PanelUnavailable message="Premise notice requires caller card access." />
               ),
-              { secondary: true },
+              { moduleKey: "premise_notes", secondary: true },
             ),
           },
           {
@@ -352,6 +377,7 @@ export function DispatcherIncidentWorkstationBody({
               <section className="ws-panel h-full min-h-0 w-full" data-panel="map-module">
                 <header className="ws-panel-header">
                   <span className="min-w-0 flex-1 truncate">Map</span>
+                  {onPopOutModule ? <SectionPopOutButton label="Map" onClick={() => onPopOutModule("map")} /> : null}
                 </header>
                 <div className="ws-panel-body flex min-h-0 flex-1 flex-col !overflow-hidden !p-0">
                   <DispatcherIncidentMapPanel incidentId={incidentId} incident={incident} />
@@ -370,10 +396,24 @@ export function DispatcherIncidentWorkstationBody({
               ) : (
                 <PanelUnavailable message="Camera AI alerts are not enabled." />
               ),
-              { badge: "LIVE", bodyClassName: "!p-0 flex flex-col min-h-0" },
+              { moduleKey: "camera_ai", badge: "LIVE", bodyClassName: "!p-0 flex flex-col min-h-0" },
             ),
           },
-        ]}
+  ];
+
+  const shown = items.filter((item) => visibleKeys.has(item.key) || item.key === soloModule);
+
+  return (
+    <div className="module-dock-host">
+      <ModuleDock
+        items={shown}
+        dock={dock}
+        solo={soloModule}
+        onToggleSplit={onToggleDockSplit}
+        onSwap={onSwapDockSlots}
+        onFocusSlot={onFocusDockSlot}
+        onCloseSlot={onCloseDockSlot}
+        onPopOut={onPopOutModule}
       />
     </div>
   );

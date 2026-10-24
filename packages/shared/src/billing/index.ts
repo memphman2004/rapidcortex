@@ -10,5 +10,6 @@ export * from "./pricing-schemas.js";
 export * from "./pricing-table.js";
 export * from "./invoice-types.js";
 export * from "./billing-engine.js";
+export * from "./entitlement-invoice-addons.js";
 export * from "./invoice-email-builder.js";
 export * from "./automated-invoice-schemas.js";

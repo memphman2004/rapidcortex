@@ -3283,6 +3283,11 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.BillingRunsTable
             - !Sub "${DynamoTableNamePrefix}-billing-runs-${DeploymentStage}"
+        BillingProfilesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.BillingProfilesTable
+            - !Sub "${DynamoTableNamePrefix}-billing-profiles-${DeploymentStage}"
         AuditTable:
           Fn::If:
             - HasDataLayerNestedStack

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { SectionPopOutButton } from "@/components/dispatch/section-popout-button";
 import type { WorkstationPanelName } from "@/lib/dispatcher/workstation-prefs";
 
 const MAXIMIZABLE = new Set<WorkstationPanelName>([
@@ -20,6 +21,7 @@ export function WorkstationPanel({
   maximized,
   onToggleCollapse,
   onToggleMaximize,
+  onPopOut,
   children,
   className,
   bodyClassName,
@@ -32,6 +34,7 @@ export function WorkstationPanel({
   maximized: boolean;
   onToggleCollapse: () => void;
   onToggleMaximize?: () => void;
+  onPopOut?: () => void;
   children: ReactNode;
   className?: string;
   bodyClassName?: string;
@@ -72,6 +75,7 @@ export function WorkstationPanel({
         >
           —
         </button>
+        {onPopOut ? <SectionPopOutButton label={title} onClick={onPopOut} /> : null}
         {canMax ? (
           <button
             type="button"

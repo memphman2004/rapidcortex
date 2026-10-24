@@ -13,6 +13,8 @@ import type { DockModuleKey, DockState } from "@/lib/dispatcher/module-dock";
 export type DispatcherModuleRail = {
   dock: DockState;
   onOpen: (key: DockModuleKey) => void;
+  modules?: ReadonlyArray<{ key: DockModuleKey; label: string }>;
+  onPopOut?: (key: DockModuleKey) => void;
 };
 
 type DispatcherModuleRailContextValue = {
@@ -35,14 +37,23 @@ export function useDispatcherModuleRail() {
 }
 
 /** CAD workstation publishes dock state so the far-left Operations rail can list modules. */
-export function useRegisterDispatcherModuleRail(dock: DockState, onOpen: (key: DockModuleKey) => void) {
+export function useRegisterDispatcherModuleRail(
+  dock: DockState,
+  onOpen: (key: DockModuleKey) => void,
+  extras?: {
+    modules?: ReadonlyArray<{ key: DockModuleKey; label: string }>;
+    onPopOut?: (key: DockModuleKey) => void;
+  },
+) {
   const ctx = useDispatcherModuleRail();
   const setRail = ctx?.setRail;
+  const modules = extras?.modules;
+  const onPopOut = extras?.onPopOut;
 
   useEffect(() => {
     if (!setRail) return;
-    setRail({ dock, onOpen });
-  }, [setRail, dock, onOpen]);
+    setRail({ dock, onOpen, modules, onPopOut });
+  }, [setRail, dock, onOpen, modules, onPopOut]);
 
   useEffect(() => {
     if (!setRail) return;

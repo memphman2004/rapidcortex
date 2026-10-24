@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { AIAnalysis, AggregateConfidence, ConfidenceAnalysis, Incident, TranscriptSegment } from "rapid-cortex-shared";
 import { SlaStatusBar } from "@/components/dashboards/sla-status-bar";
@@ -32,9 +32,29 @@ import {
   type UnitBoardStatus,
 } from "@/lib/dispatcher/unit-board";
 import { formatRelativeOpened } from "@/lib/format";
-import { useJurisdictionLink } from "@/lib/jurisdiction-context";
+import { useJurisdictionLink, useJurisdictionSlug } from "@/lib/jurisdiction-context";
+import { isDockModuleKey, type DockModuleKey } from "@/lib/dispatcher/module-dock";
+import {
+  isDispatcherPopoutSection,
+  openDispatcherSectionWindow,
+  POPOUT_SECTION_LABELS,
+  visibleDockModules,
+  type DispatcherPopoutSection,
+} from "@/lib/dispatcher/section-popout";
+import { SectionPopOutButton } from "@/components/dispatch/section-popout-button";
 import { TriageBadge } from "@/components/triage/triage-badge";
-import { isFieldConfidenceEnabled, isNonEmergencyTriageEnabled, isRapidVisionSceneIntelEnabled, isRcsEnabled } from "@/lib/runtime-flags";
+import {
+  isContextCardsEnabled,
+  isFieldConfidenceEnabled,
+  isIncidentMediaEnabled,
+  isLiveVideoEnabled,
+  isNonEmergencyTriageEnabled,
+  isPinpointEnabled,
+  isPreArrivalIqEnabled,
+  isRapidVisionSceneIntelEnabled,
+  isRcsEnabled,
+  isSilentTextEnabled,
+} from "@/lib/runtime-flags";
 import { ContextCardsPanel } from "@/components/dispatch/context-cards-panel";
 import { canManageRcsCall, canViewRcsMonitor } from "@/lib/rcs/rcs-authz";
 import { RcsSilentMonitorTrigger } from "@/components/rcs/RcsSilentMonitorTrigger";
@@ -380,6 +400,7 @@ export function CadDispatcherWorkspaceLayout({
   queueEmptyHint,
   createIncidentAction,
   showDdbQueuePanel = false,
+  popoutSection = null,
 }: {
   trainingBanner: ReactNode;
   liveEmptyBanner: ReactNode;
@@ -417,6 +438,8 @@ export function CadDispatcherWorkspaceLayout({
   createIncidentAction?: ReactNode;
   /** When true, swap the 3-column workspace for the DDB non-emergency queue panel. */
   showDdbQueuePanel?: boolean;
+  /** When set, this window shows only that section. */
+  popoutSection?: string | null;
 }) {
   const to = useJurisdictionLink();
   const clock = useLiveClock();
@@ -432,7 +455,39 @@ export function CadDispatcherWorkspaceLayout({
 
   const apiLive = isApiConfigured();
   const prefs = useWorkstationPrefs();
-  useRegisterDispatcherModuleRail(prefs.dock, prefs.openDockModule);
+  const jurisdiction = useJurisdictionSlug();
+  const popout = isDispatcherPopoutSection(popoutSection) ? popoutSection : null;
+  const popoutInvalid = Boolean(popoutSection) && !popout;
+  const soloModule = popout && isDockModuleKey(popout) ? popout : null;
+  const dockModules = useMemo(
+    () =>
+      visibleDockModules({
+        callerCard: showCallerCard,
+        liveVideo: isLiveVideoEnabled(),
+        incidentMedia: isIncidentMediaEnabled(),
+        silentText: isSilentTextEnabled(),
+        preArrival: isPreArrivalIqEnabled(),
+        pinpoint: isPinpointEnabled(),
+        cameraAi: isRapidVisionSceneIntelEnabled(),
+      }),
+    [showCallerCard],
+  );
+  const popOutSection = useCallback(
+    (section: DispatcherPopoutSection) => {
+      const opened = openDispatcherSectionWindow(jurisdiction, section, selectedId);
+      if (!opened) {
+        window.alert(
+          "The browser blocked the new window. Allow pop-ups for this site to open a section on another monitor.",
+        );
+      }
+    },
+    [jurisdiction, selectedId],
+  );
+  const popOutModule = useCallback((key: DockModuleKey) => popOutSection(key), [popOutSection]);
+  useRegisterDispatcherModuleRail(prefs.dock, prefs.openDockModule, {
+    modules: dockModules,
+    onPopOut: popout ? undefined : popOutModule,
+  });
 
   const cadUnitsQuery = useQuery({
     queryKey: ["cad-units"],
@@ -490,6 +545,17 @@ export function CadDispatcherWorkspaceLayout({
       {liveEmptyBanner}
       {loadErrorBanner}
 
+      {popout || popoutInvalid ? (
+        <header className="flex shrink-0 items-center justify-between border-b px-3 py-2 text-xs" style={{ borderColor: CAD.border }}>
+          <span className="font-medium">{popout ? POPOUT_SECTION_LABELS[popout] : "Section"}</span>
+          <span className="font-mono" style={{ color: CAD.muted }}>{selectedId ?? "No incident selected"}</span>
+        </header>
+      ) : null}
+      {popoutInvalid ? (
+        <p className="p-4 text-sm" style={{ color: CAD.muted }}>This section is not available.</p>
+      ) : null}
+
+      {popout ? null : (
       <header className="ws-toolbar shrink-0">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
           {createIncidentAction ?? (
@@ -564,12 +630,15 @@ export function CadDispatcherWorkspaceLayout({
           </span>
         </div>
       </header>
+      )}
 
+      {popout ? null : (
       <div className="border-b px-3 py-1.5" style={{ borderColor: CAD.border, background: CAD.panel }}>
         <SlaStatusBar />
       </div>
+      )}
 
-      {showDdbQueuePanel ? (
+      {popoutInvalid ? null : showDdbQueuePanel ? (
         <div className="min-h-0 flex-1 overflow-y-auto p-4" style={{ background: CAD.bg }}>
           <div className="mb-3 flex items-center gap-2">
             <button
@@ -591,21 +660,30 @@ export function CadDispatcherWorkspaceLayout({
         className="dispatcher-cad-body min-h-0 flex-1"
         data-max={prefs.maximized ?? ""}
         style={{
-          gridTemplateColumns:
-            prefs.maximized === "map"
+          gridTemplateColumns: popout
+            ? "minmax(0, 1fr)"
+            : prefs.maximized === "map"
               ? "0px 0px 0px 0px minmax(0, 1fr)"
               : `${prefs.queueWidth}px 4px minmax(0, 1fr) 4px ${prefs.contextWidth}px`,
         }}
       >
-        <div className="flex min-h-0 flex-col overflow-hidden" style={{ background: "var(--rc-panel-bg)", borderRight: "1px solid var(--rc-border)" }}>
+        <div
+          className={`flex min-h-0 flex-col overflow-hidden ${popout && popout !== "unit_board" && popout !== "queue" ? "hidden" : ""}`}
+          style={{ background: "var(--rc-panel-bg)", borderRight: "1px solid var(--rc-border)" }}
+        >
+          {popout === "queue" ? null : (
           <div className="ws-panel-header secondary shrink-0" id={UNIT_BOARD_ELEMENT_ID}>
             Unit board
+            {popout ? null : <SectionPopOutButton label="Unit board" onClick={() => popOutSection("unit_board")} />}
             <span className="ml-auto font-mono text-[9px]">
               {unitBoardSource ? `${unitBoardSource} · ` : null}
               {unitBoard.length} units
             </span>
           </div>
-          <div className="max-h-[28%] min-h-[72px] overflow-y-auto border-b" style={{ borderColor: "var(--rc-border)" }}>
+          <div
+            className={`${popout === "unit_board" ? "min-h-0 flex-1" : "max-h-[28%] min-h-[72px]"} overflow-y-auto border-b`}
+            style={{ borderColor: "var(--rc-border)" }}
+          >
             {unitBoard.length === 0 ? (
               <p className="px-2 py-2 font-mono text-[10px] leading-relaxed text-[var(--rc-text-muted)]">
                 No units on live calls. Select an incident, open <span className="text-[var(--rc-text)]">CAD entry</span>,
@@ -639,8 +717,11 @@ export function CadDispatcherWorkspaceLayout({
               })
             )}
           </div>
+          )}
+          {popout === "unit_board" ? null : (
           <div className="ws-panel-header secondary shrink-0">
             Queue
+            {popout ? null : <SectionPopOutButton label="Queue" onClick={() => popOutSection("queue")} />}
             <span className="ml-auto font-mono text-[9px]">
               P1:{p1} P2:{p2} P3:{p3}
             </span>
@@ -684,17 +765,19 @@ export function CadDispatcherWorkspaceLayout({
               }
             />
           </div>
+          )}
         </div>
 
         <div
-          className="ws-resize-x hidden lg:block"
+          className={`ws-resize-x hidden lg:block ${popout ? "!hidden" : ""}`}
           role="separator"
           aria-orientation="vertical"
           onMouseDown={(e) => startHorizontalResize(e.clientX, prefs.queueWidth, false, prefs.setQueueWidth)}
         />
 
-        <div id="cad-center" className="relative flex min-h-0 min-w-0 flex-col overflow-hidden">
-          <div className="incident-workspace min-h-0 flex-1" style={{ gridTemplateRows: "auto minmax(0, 1fr)" }}>
+        <div id="cad-center" className={`relative flex min-h-0 min-w-0 flex-col overflow-hidden ${soloModule ? "" : popout ? "hidden" : ""}`}>
+          <div className="incident-workspace min-h-0 flex-1" style={{ gridTemplateRows: soloModule ? "minmax(0, 1fr)" : "auto minmax(0, 1fr)" }}>
+            {soloModule ? null : (
             <div className="shrink-0">
               <CadActiveIncidentCard
                 incident={incidentForUi}
@@ -703,6 +786,7 @@ export function CadDispatcherWorkspaceLayout({
               />
               <IncidentTimelineStrip incident={incidentForUi ?? undefined} segments={transcriptSegments} analysis={analysisForUi ?? undefined} />
             </div>
+            )}
             <DispatcherIncidentWorkstationBody
               incidentId={selectedIdForPanels}
               incident={incidentForUi}
@@ -730,18 +814,24 @@ export function CadDispatcherWorkspaceLayout({
               onSwapDockSlots={prefs.swapDockSlots}
               onFocusDockSlot={prefs.focusDockSlot}
               onCloseDockSlot={prefs.closeDockSlot}
+              soloModule={soloModule}
+              onPopOutModule={popout ? undefined : popOutModule}
             />
           </div>
         </div>
 
         <div
-          className="ws-resize-x hidden lg:block"
+          className={`ws-resize-x hidden lg:block ${popout ? "!hidden" : ""}`}
           role="separator"
           aria-orientation="vertical"
           onMouseDown={(e) => startHorizontalResize(e.clientX, prefs.contextWidth, true, prefs.setContextWidth)}
         />
 
-        <div className="flex min-h-0 flex-col overflow-hidden" style={{ background: "var(--rc-panel-bg)", borderLeft: "1px solid var(--rc-border)" }}>
+        <div
+          className={`flex min-h-0 flex-col overflow-hidden ${popout && popout !== "cad_ready" && popout !== "context" ? "hidden" : ""}`}
+          style={{ background: "var(--rc-panel-bg)", borderLeft: "1px solid var(--rc-border)" }}
+        >
+          {popout ? null : (
           <WorkstationPanel
             name="map"
             title="Map"
@@ -749,14 +839,37 @@ export function CadDispatcherWorkspaceLayout({
             maximized={prefs.maximized === "map"}
             onToggleCollapse={() => prefs.toggleCollapsed("map")}
             onToggleMaximize={() => prefs.toggleMaximize("map")}
+            onPopOut={() => popOutSection("map")}
             bodyClassName="!p-0 min-h-[220px] h-[280px]"
           >
             <DispatcherIncidentMapPanel incidentId={selectedIdForPanels} incident={incidentForUi} />
           </WorkstationPanel>
+          )}
+          {popout === "context" ? null : (
           <div className="shrink-0 border-b p-2" style={{ borderColor: "var(--rc-border)" }}>
+            {popout ? null : (
+              <div className="mb-1 flex justify-end">
+                <SectionPopOutButton label="CAD-ready" onClick={() => popOutSection("cad_ready")} />
+              </div>
+            )}
             <CadReadyPanel incident={incidentForUi} />
           </div>
-          <ContextCardsPanel incidentId={selectedIdForPanels} />
+          )}
+          {popout === "cad_ready" ? null : (
+          <div className="min-h-0">
+            {popout ? null : (
+              <div className="flex justify-end px-2 pt-1">
+                <SectionPopOutButton label="Context" onClick={() => popOutSection("context")} />
+              </div>
+            )}
+            {isContextCardsEnabled() ? (
+              <ContextCardsPanel incidentId={selectedIdForPanels} />
+            ) : popout === "context" ? (
+              <p className="p-4 text-sm" style={{ color: CAD.muted }}>Context cards are off.</p>
+            ) : null}
+          </div>
+          )}
+          {popout ? null : (
           <div className="grid min-h-0 flex-1 grid-rows-2 overflow-hidden">
             <CadIncidentsTable
               title="Active incidents"
@@ -773,6 +886,7 @@ export function CadDispatcherWorkspaceLayout({
               emptyHint="None pending."
             />
           </div>
+          )}
         </div>
       </div>
       )}

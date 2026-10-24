@@ -6,8 +6,8 @@ import {
   ADDON_CATALOG,
   getAddonByKey,
   isAddonActiveForTenant,
+  entitledMonthlyInvoiceAddons,
   isAddonIncludedInPlan,
-  isAddonOptedOut,
   type AddonDefinition,
   type AddonKey,
   type BillingAuditEventRecord,
@@ -48,6 +48,7 @@ type LastChangeBanner = {
   proRataCents: number;
   invoiceNumber?: string;
   addonLabel: string;
+  monthly: boolean;
 };
 
 function formatUsd(cents: number): string {
@@ -80,6 +81,64 @@ function rowsByCategory(rows: AddonGridRow[]): Map<string, AddonGridRow[]> {
     map.set(cat, list);
   }
   return map;
+}
+
+function priceText(
+  def: AddonDefinition,
+  state: { overridePriceCents?: number } | undefined,
+  plan: string,
+  included: boolean,
+  enabled: boolean,
+): string {
+  if (state?.overridePriceCents != null) {
+    const custom = (state.overridePriceCents / 100).toFixed(2);
+    const list = def.billingType === "monthly" ? `$${def.monthlyPrice}/mo` : `$${def.oneTimePrice}`;
+    const onInvoice = def.billingType === "monthly" && enabled && !included ? ", on the monthly invoice" : "";
+    return `Custom price $${custom} (list ${list})${onInvoice}`;
+  }
+  if (included && enabled) return `Included in ${plan}`;
+  if (included) return `Included in ${plan}. Turn the switch on to use it.`;
+  if (def.billingType === "monthly") {
+    return enabled ? `$${def.monthlyPrice} per month, on the monthly invoice` : `$${def.monthlyPrice} per month`;
+  }
+  return `$${def.oneTimePrice} one-time`;
+}
+
+function statusLabel(enabled: boolean, included: boolean): string {
+  if (enabled && included) return "In the plan";
+  if (enabled) return "On";
+  if (included) return "In the plan, off";
+  return "Off";
+}
+
+function ProductSwitch({
+  on,
+  disabled,
+  label,
+  onChange,
+}: {
+  on: boolean;
+  disabled: boolean;
+  label: string;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange(!on)}
+      className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:cursor-not-allowed disabled:opacity-40 ${
+        on ? "bg-emerald-500" : "bg-slate-600"
+      }`}
+    >
+      <span
+        className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition ${on ? "left-5" : "left-0.5"}`}
+      />
+    </button>
+  );
 }
 
 function invoiceNumberFromRecord(invoice: Record<string, unknown> | null | undefined): string | undefined {
@@ -167,13 +226,29 @@ export function AgencyFeaturesClient({
               style={{ borderTop: "2px solid var(--role-accent)" }}
             >
               <div
-                className="px-4 py-2 text-sm font-medium"
+                className="flex items-baseline justify-between gap-3 px-4 py-2 text-sm font-medium"
                 style={{
                   color: "var(--role-text-accent)",
                   backgroundColor: "color-mix(in srgb, var(--role-accent-dim) 65%, rgb(2 6 23))",
                 }}
               >
-                {category}
+                <span>{category}</span>
+                <span className="text-xs font-normal text-slate-400">
+                  {rows.filter((row) => {
+                    const def = row.kind === "single" ? row.def : getAddonByKey(
+                      activeTierKeyInFamily(
+                        row.family,
+                        row.variants,
+                        entitlements.addons,
+                        entitlements.plan,
+                        isAddonIncludedInPlan,
+                      ) || row.variants[0]!.key,
+                    );
+                    const state = entitlements.addons[def.key];
+                    return isAddonActiveForTenant(def, entitlements.plan, state);
+                  }).length}{" "}
+                  on
+                </span>
               </div>
               <ul className="divide-y divide-slate-800">
                 {rows.map((row) => {
@@ -238,15 +313,18 @@ export function AgencyFeaturesClient({
   }
 
   const { entitlements } = data;
-  const activeCount = ADDON_CATALOG.filter((def) =>
+  const activeCount = visibleCatalog.filter((def) =>
     isAddonActiveForTenant(def, entitlements.plan, entitlements.addons[def.key]),
   ).length;
+  const offCount = Math.max(visibleCatalog.length - activeCount, 0);
   const openInvoice = invoiceData?.invoice as Record<string, unknown> | null | undefined;
   const openInvoiceNumber = invoiceNumberFromRecord(openInvoice);
+  const monthlyInvoiceAddons = entitledMonthlyInvoiceAddons(entitlements, new Date().toISOString());
 
   async function applyPatch(
     body: Parameters<typeof mutation.mutateAsync>[0],
     addonLabel: string,
+    monthly: boolean,
   ) {
     try {
       const result = await mutation.mutateAsync(body);
@@ -256,6 +334,7 @@ export function AgencyFeaturesClient({
         proRataCents,
         invoiceNumber: openInvoiceNumber,
         addonLabel,
+        monthly,
       });
     } catch (err) {
       setBanner(null);
@@ -268,13 +347,13 @@ export function AgencyFeaturesClient({
     if (!canEdit) return;
     if (enabled && def.billingType === "monthly") {
       const ok = window.confirm(
-        `Enable ${def.name}? This will update the current invoice (pro-rated for the remainder of the billing cycle).`,
+        `Turn on ${def.name}? It will be included on the automatic monthly invoice. A draft that has not been sent picks this up the next time invoices run. A sent invoice stays as it was.`,
       );
       if (!ok) return;
     }
     if (!enabled && def.billingType === "monthly") {
       const ok = window.confirm(
-        `Disable ${def.name}? This will remove the add-on from billing immediately.`,
+        `Turn off ${def.name}? It will come off the next automatic monthly invoice. A sent invoice stays as it was.`,
       );
       if (!ok) return;
     }
@@ -285,6 +364,7 @@ export function AgencyFeaturesClient({
         ...(enabled ? {} : { forceImmediateDisable: true }),
       },
       def.name,
+      def.billingType === "monthly",
     );
   }
 
@@ -311,13 +391,14 @@ export function AgencyFeaturesClient({
       await applyPatch(
         { addonKey: v.key, enabled: false, forceImmediateDisable: true },
         v.name,
+        v.billingType === "monthly",
       );
     }
 
     // Selecting the plan-included base just clears paid upgrades — no enable PATCH.
     if (newIsIncluded) return;
 
-    await applyPatch({ addonKey: newKey, enabled: true }, def.name);
+    await applyPatch({ addonKey: newKey, enabled: true }, def.name, def.billingType === "monthly");
   }
 
   async function onOverrideBlur(def: AddonDefinition, raw: string) {
@@ -326,7 +407,11 @@ export function AgencyFeaturesClient({
     const trimmed = raw.trim();
     if (!trimmed) {
       if (state?.overridePriceCents) {
-        await applyPatch({ addonKey: def.key, enabled: Boolean(state.enabled) }, def.name);
+        await applyPatch(
+          { addonKey: def.key, enabled: Boolean(state.enabled) },
+          def.name,
+          def.billingType === "monthly",
+        );
       }
       return;
     }
@@ -339,6 +424,7 @@ export function AgencyFeaturesClient({
         overridePrice: dollars,
       },
       def.name,
+      def.billingType === "monthly",
     );
   }
 
@@ -371,68 +457,86 @@ export function AgencyFeaturesClient({
       const enabled = isAddonActiveForTenant(displayDef, entitlements.plan, state);
       const displayIncluded = isAddonIncludedInPlan(displayDef, entitlements.plan);
 
+      const productName = displayDef.name.replace(/\s+\w+$/, "");
       return (
         <li
           key={row.family}
-          className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 ${
-            enabled ? "bg-slate-950/40" : "bg-slate-950/20 opacity-80"
+          className={`grid gap-4 px-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center ${
+            enabled ? "bg-slate-950/40" : "bg-slate-950/10"
           }`}
         >
-          <div className="min-w-[200px] flex-1">
-            <p className="font-medium text-slate-100">{displayDef.name.replace(/\s+\w+$/, "")}</p>
-            <p className="text-xs text-slate-400">{displayDef.description}</p>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-medium text-slate-100">{productName}</p>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                  enabled ? "bg-emerald-900/60 text-emerald-200" : "bg-slate-800 text-slate-400"
+                }`}
+              >
+                {statusLabel(enabled, displayIncluded)}
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-slate-400">{displayDef.description}</p>
+            <p className="mt-2 text-sm text-slate-300">
+              {priceText(displayDef, state, entitlements.plan, displayIncluded, enabled)}
+            </p>
             {renderAvailabilityNote(displayDef)}
+            {canEdit ? (
+              <details className="mt-2">
+                <summary className="cursor-pointer text-xs text-slate-500">Custom price</summary>
+                <div className="mt-2">
+                  <OverridePriceInput
+                    def={displayDef}
+                    stateCents={state?.overridePriceCents}
+                    draft={overrideDrafts[displayDef.key]}
+                    onDraftChange={(v) => setOverrideDrafts((d) => ({ ...d, [displayDef.key]: v }))}
+                    onBlur={(v) => void onOverrideBlur(displayDef, v)}
+                  />
+                </div>
+              </details>
+            ) : null}
           </div>
-          <select
-            className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
-            value={activeKey || row.variants[0]!.key}
-            disabled={!canEdit || mutation.isPending}
-            title={
-              !canEdit
-                ? "You do not have permission to change add-on tiers"
-                : familyHasIncluded
-                  ? "Change tier — plan-included base stays free; higher tiers bill as add-ons"
-                  : undefined
-            }
-            onChange={(e) => void onTierChange(row.variants, e.target.value as AddonKey)}
-          >
-            {row.variants.map((v) => {
-              const vIncluded = isAddonIncludedInPlan(v, entitlements.plan);
-              return (
-                <option key={v.key} value={v.key}>
-                  {tierLabel(v.key)}
-                  {vIncluded
-                    ? ` — Included in ${entitlements.plan}`
-                    : v.billingType === "monthly"
-                      ? ` — $${v.monthlyPrice}/mo`
-                      : ` — $${v.oneTimePrice}`}
-                </option>
-              );
-            })}
-          </select>
-          {displayIncluded ? (
-            <span className="rounded bg-emerald-900/50 px-2 py-1 text-xs text-emerald-200">
-              {enabled ? `Included in ${entitlements.plan}` : `Off — was included in ${entitlements.plan}`}
-            </span>
-          ) : null}
-          <label className="flex items-center gap-2 text-sm text-slate-200">
-            <input
-              type="checkbox"
-              checked={enabled}
-              disabled={!canEdit || mutation.isPending}
-              onChange={(e) => void onToggle(displayDef, e.target.checked)}
-            />
-            {enabled ? "On" : "Off"}
-          </label>
-          {canEdit ? (
-            <OverridePriceInput
-              def={displayDef}
-              stateCents={state?.overridePriceCents}
-              draft={overrideDrafts[displayDef.key]}
-              onDraftChange={(v) => setOverrideDrafts((d) => ({ ...d, [displayDef.key]: v }))}
-              onBlur={(v) => void onOverrideBlur(displayDef, v)}
-            />
-          ) : null}
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="flex flex-col gap-1 text-xs text-slate-400">
+              Level
+              <select
+                className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+                value={activeKey || row.variants[0]!.key}
+                disabled={!canEdit || mutation.isPending}
+                title={
+                  !canEdit
+                    ? "You can review products. An RC admin changes them."
+                    : familyHasIncluded
+                      ? "The plan includes the base level. A higher level is billed."
+                      : undefined
+                }
+                onChange={(e) => void onTierChange(row.variants, e.target.value as AddonKey)}
+              >
+                {row.variants.map((v) => {
+                  const vIncluded = isAddonIncludedInPlan(v, entitlements.plan);
+                  return (
+                    <option key={v.key} value={v.key}>
+                      {tierLabel(v.key)}
+                      {vIncluded
+                        ? " — in the plan"
+                        : v.billingType === "monthly"
+                          ? ` — $${v.monthlyPrice}/mo`
+                          : ` — $${v.oneTimePrice}`}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+            <div className="flex items-center gap-2">
+              <ProductSwitch
+                on={enabled}
+                disabled={!canEdit || mutation.isPending}
+                label={`${productName}, ${enabled ? "on" : "off"}`}
+                onChange={(next) => void onToggle(displayDef, next)}
+              />
+              <span className="w-8 text-sm text-slate-300">{enabled ? "On" : "Off"}</span>
+            </div>
+          </div>
         </li>
       );
     }
@@ -441,57 +545,52 @@ export function AgencyFeaturesClient({
     const state = entitlements.addons[def.key];
     const included = isAddonIncludedInPlan(def, entitlements.plan);
     const enabled = isAddonActiveForTenant(def, entitlements.plan, state);
-    const optedOut = isAddonOptedOut(state);
 
     return (
       <li
         key={def.key}
-        className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 ${
-          enabled ? "bg-slate-950/40" : "bg-slate-950/20 opacity-80"
+        className={`grid gap-4 px-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center ${
+          enabled ? "bg-slate-950/40" : "bg-slate-950/10"
         }`}
       >
-        <div className="min-w-[200px] flex-1">
-          <p className="font-medium text-slate-100">{def.name}</p>
-          <p className="text-xs text-slate-400">{def.description}</p>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-medium text-slate-100">{def.name}</p>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                enabled ? "bg-emerald-900/60 text-emerald-200" : "bg-slate-800 text-slate-400"
+              }`}
+            >
+              {statusLabel(enabled, included)}
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-slate-400">{def.description}</p>
+          <p className="mt-2 text-sm text-slate-300">{priceText(def, state, entitlements.plan, included, enabled)}</p>
           {renderAvailabilityNote(def)}
+          {canEdit ? (
+            <details className="mt-2">
+              <summary className="cursor-pointer text-xs text-slate-500">Custom price</summary>
+              <div className="mt-2">
+                <OverridePriceInput
+                  def={def}
+                  stateCents={state?.overridePriceCents}
+                  draft={overrideDrafts[def.key]}
+                  onDraftChange={(v) => setOverrideDrafts((d) => ({ ...d, [def.key]: v }))}
+                  onBlur={(v) => void onOverrideBlur(def, v)}
+                />
+              </div>
+            </details>
+          ) : null}
         </div>
-        <p className="text-sm text-slate-300">
-          {state?.overridePriceCents != null ? (
-            <>
-              <span className="text-amber-300">${(state.overridePriceCents / 100).toFixed(2)}</span>
-              <span className="ml-1 text-slate-500 line-through">
-                {def.billingType === "monthly" ? `$${def.monthlyPrice}/mo` : `$${def.oneTimePrice}`}
-              </span>
-            </>
-          ) : def.billingType === "monthly" ? (
-            `$${def.monthlyPrice}/mo`
-          ) : (
-            `$${def.oneTimePrice} one-time`
-          )}
-        </p>
-        {included ? (
-          <span className="rounded bg-emerald-900/50 px-2 py-1 text-xs text-emerald-200">
-            {optedOut ? `Off — was included in ${entitlements.plan}` : `Included in ${entitlements.plan}`}
-          </span>
-        ) : null}
-        <label className="flex items-center gap-2 text-sm text-slate-200">
-          <input
-            type="checkbox"
-            checked={enabled}
+        <div className="flex items-center gap-2">
+          <ProductSwitch
+            on={enabled}
             disabled={!canEdit || mutation.isPending}
-            onChange={(e) => void onToggle(def, e.target.checked)}
+            label={`${def.name}, ${enabled ? "on" : "off"}`}
+            onChange={(next) => void onToggle(def, next)}
           />
-          {enabled ? "On" : "Off"}
-        </label>
-        {canEdit ? (
-          <OverridePriceInput
-            def={def}
-            stateCents={state?.overridePriceCents}
-            draft={overrideDrafts[def.key]}
-            onDraftChange={(v) => setOverrideDrafts((d) => ({ ...d, [def.key]: v }))}
-            onBlur={(v) => void onOverrideBlur(def, v)}
-          />
-        ) : null}
+          <span className="w-8 text-sm text-slate-300">{enabled ? "On" : "Off"}</span>
+        </div>
       </li>
     );
   }
@@ -507,18 +606,6 @@ export function AgencyFeaturesClient({
           ← All agencies
         </Link>
         {vertical ? <VerticalBadge vertical={vertical} size="xs" /> : null}
-        {manageAllAddons ? (
-          <span
-            className="rounded-full px-2 py-0.5 text-[10px] font-medium ring-1"
-            style={{
-              color: "var(--role-text-accent)",
-              backgroundColor: "color-mix(in srgb, var(--role-badge-bg) 40%, rgb(2 6 23))",
-              borderColor: "color-mix(in srgb, var(--role-accent) 45%, transparent)",
-            }}
-          >
-            Full catalog (platform admin)
-          </span>
-        ) : null}
         <span
           className="rounded-full px-3 py-1"
           style={{
@@ -526,10 +613,20 @@ export function AgencyFeaturesClient({
             backgroundColor: "color-mix(in srgb, var(--role-accent-dim) 50%, rgb(2 6 23))",
           }}
         >
-          {entitlements.plan}
+          Plan: {entitlements.plan}
         </span>
-        <span className="text-slate-400">Active add-ons: {activeCount}</span>
+        <span className="text-slate-300">{activeCount} on</span>
+        <span className="text-slate-500">{offCount} off</span>
+        {manageAllAddons ? (
+          <span className="text-xs text-slate-500">Showing every product, including other verticals.</span>
+        ) : null}
       </div>
+
+      {canEdit ? null : (
+        <p className="rounded-md border border-slate-700 bg-slate-900/60 px-4 py-3 text-sm text-slate-300">
+          You can review what {agencyName} has. An RC admin turns products on and off.
+        </p>
+      )}
 
       {banner ? (
         <div
@@ -541,37 +638,71 @@ export function AgencyFeaturesClient({
           }}
         >
           <p>
-            <strong>{banner.addonLabel}</strong> updated — pro-rata impact{" "}
-            <span className="font-mono">{formatUsd(banner.proRataCents)}</span>
-            {banner.invoiceNumber ? (
+            <strong>{banner.addonLabel}</strong>{" "}
+            {banner.monthly
+              ? "is updated for the automatic monthly invoice."
+              : "updated."}{" "}
+            {banner.proRataCents !== 0 ? (
               <>
-                {" "}
-                on invoice <span className="font-mono">#{banner.invoiceNumber}</span>
-              </>
-            ) : openInvoiceNumber ? (
-              <>
-                {" "}
-                on invoice <span className="font-mono">#{openInvoiceNumber}</span>
+                Mid-cycle adjustment{" "}
+                <span className="font-mono">{formatUsd(banner.proRataCents)}</span>
+                {banner.invoiceNumber || openInvoiceNumber ? (
+                  <>
+                    {" "}
+                    on the open invoice{" "}
+                    <span className="font-mono">#{banner.invoiceNumber || openInvoiceNumber}</span>
+                  </>
+                ) : null}
+                .
               </>
             ) : null}
           </p>
           <Link
-            href={`/rc-admin/agencies/${encodeURIComponent(tenantId)}/billing`}
+            href="/rc-admin/automated-invoices"
             className="mt-2 inline-block underline hover:opacity-90"
             style={{ color: "var(--role-accent)" }}
           >
-            View invoice →
+            Monthly invoices →
           </Link>
         </div>
       ) : null}
+
+      <section className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
+        <h2 className="text-sm font-semibold text-slate-200">On the automatic monthly invoice</h2>
+        <p className="mt-1 text-xs text-slate-500">
+          These products are billed each month. Products already in the plan are not charged again. A sent invoice
+          stays as it was. A draft picks up the change the next time invoices run.
+        </p>
+        {monthlyInvoiceAddons.length === 0 ? (
+          <p className="mt-2 text-sm text-slate-400">No extra monthly products.</p>
+        ) : (
+          <ul className="mt-2 space-y-2 text-sm text-slate-300">
+            {monthlyInvoiceAddons.map((addon) => (
+              <li key={addon.key} className="flex flex-wrap justify-between gap-2">
+                <span>{addon.label}</span>
+                <span className="text-slate-400">${(addon.monthlyFeeCents / 100).toFixed(2)}/mo</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <Link
+          href="/rc-admin/automated-invoices"
+          className="mt-3 inline-block text-sm underline hover:opacity-90"
+          style={{ color: "var(--role-accent)" }}
+        >
+          Open monthly invoices →
+        </Link>
+      </section>
 
       {Array.isArray(openInvoice?.addonLineItems) &&
       (openInvoice.addonLineItems as Array<Record<string, unknown>>).length > 0 ? (
         <section className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
           <h2 className="text-sm font-semibold text-slate-200">
-            Add-on line items (open invoice
-            {openInvoiceNumber ? ` #${openInvoiceNumber}` : ""})
+            Mid-cycle adjustment{openInvoiceNumber ? ` #${openInvoiceNumber}` : ""}
           </h2>
+          <p className="mt-1 text-xs text-slate-500">
+            This is the open invoice for the rest of the current cycle. The monthly invoice is the list above.
+          </p>
           <ul className="mt-2 space-y-2 text-sm text-slate-300">
             {(openInvoice.addonLineItems as Array<Record<string, unknown>>).map((row) => {
               const addonKey = String(row.addonKey ?? "");
@@ -609,14 +740,14 @@ export function AgencyFeaturesClient({
                 : undefined
             }
           >
-            {mode === "all" ? "All features" : mode === "active" ? "Active only" : "Available to add"}
+            {mode === "all" ? "All" : mode === "active" ? "On" : "Off"}
           </button>
         ))}
       </div>
 
       <div className="space-y-6">
         {grouped.size === 0 ? (
-          <p className="text-sm text-slate-400">No add-ons match this filter for this tenant.</p>
+          <p className="text-sm text-slate-400">Nothing in this view.</p>
         ) : null}
         {[...grouped.entries()].map(([category, rows]) => (
           <section
@@ -638,8 +769,8 @@ export function AgencyFeaturesClient({
         ))}
       </div>
 
-      <section className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
-        <h2 className="text-sm font-semibold text-slate-200">Change history</h2>
+      <details className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
+        <summary className="cursor-pointer text-sm font-semibold text-slate-200">Change history</summary>
         <ul className="mt-3 space-y-3">
           {(auditData?.items ?? []).map((ev) => {
             const color = auditEventColor(ev);
@@ -672,7 +803,7 @@ export function AgencyFeaturesClient({
             Load more
           </button>
         ) : null}
-      </section>
+      </details>
     </div>
   );
 }
@@ -696,7 +827,7 @@ function OverridePriceInput({
   const overrideActive = stateCents != null && draft === undefined;
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col items-start gap-1">
       <input
         type="number"
         min={0}

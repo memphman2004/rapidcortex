@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { SectionPopOutButton } from "@/components/dispatch/section-popout-button";
 import {
   DOCK_MODULE_LABELS,
   DOCK_MODULES,
@@ -22,12 +23,14 @@ function SlotChrome({
   moduleKey,
   onFocus,
   onClose,
+  onPopOut,
 }: {
   slot: DockFocusedSlot;
   focused: boolean;
   moduleKey: DockModuleKey | null;
   onFocus: () => void;
   onClose: () => void;
+  onPopOut?: (key: DockModuleKey) => void;
 }) {
   const label = moduleKey ? DOCK_MODULE_LABELS[moduleKey] : "Empty";
   return (
@@ -40,6 +43,9 @@ function SlotChrome({
       >
         {label}
       </button>
+      {moduleKey && onPopOut ? (
+        <SectionPopOutButton label={label} onClick={() => onPopOut(moduleKey)} />
+      ) : null}
       {moduleKey ? (
         <button type="button" className="workspace-slot-close" aria-label={`Close ${slot} slot`} onClick={onClose}>
           ×
@@ -51,15 +57,19 @@ function SlotChrome({
 
 export function ModulePicker({
   dock,
+  modules = DOCK_MODULES,
   onOpenModule,
+  onPopOut,
 }: {
   dock: DockState;
+  modules?: ReadonlyArray<{ key: DockModuleKey; label: string }>;
   onOpenModule: (key: DockModuleKey) => void;
+  onPopOut?: (key: DockModuleKey) => void;
 }) {
   const { leftSlot, rightSlot, split } = dock;
   return (
     <nav className="module-picker module-picker-rail" aria-label="Modules">
-      {DOCK_MODULES.map((item) => (
+      {modules.map((item) => (
         <div
           key={item.key}
           role="button"
@@ -78,6 +88,7 @@ export function ModulePicker({
             <div className={`slot-dot ${leftSlot === item.key ? "slot-left" : ""}`} />
             <div className={`slot-dot ${split && rightSlot === item.key ? "slot-right" : ""}`} />
           </div>
+          {onPopOut ? <SectionPopOutButton label={item.label} onClick={() => onPopOut(item.key)} /> : null}
         </div>
       ))}
     </nav>
@@ -87,18 +98,32 @@ export function ModulePicker({
 export function ModuleDock({
   items,
   dock,
+  solo,
   onToggleSplit,
   onSwap,
   onFocusSlot,
   onCloseSlot,
+  onPopOut,
 }: {
   items: DockItem[];
   dock: DockState;
+  /** Render one module full-height. Used by the section pop-out window. */
+  solo?: DockModuleKey | null;
   onToggleSplit: () => void;
   onSwap: () => void;
   onFocusSlot: (slot: DockFocusedSlot) => void;
   onCloseSlot: (slot: DockFocusedSlot) => void;
+  onPopOut?: (key: DockModuleKey) => void;
 }) {
+  if (solo) {
+    const item = items.find((entry) => entry.key === solo);
+    return (
+      <div className="flex h-full min-h-0 flex-col">
+        {item?.body ?? <p className="p-4 text-sm text-[var(--rc-text-muted)]">This section is not available.</p>}
+      </div>
+    );
+  }
+
   const { leftSlot, rightSlot, split, focusedSlot } = dock;
   const canSwap = split && leftSlot != null && rightSlot != null && leftSlot !== rightSlot;
   const anyVisible = items.some((item) => item.key === leftSlot || (split && item.key === rightSlot));
@@ -129,6 +154,7 @@ export function ModuleDock({
           moduleKey={leftSlot}
           onFocus={() => onFocusSlot("left")}
           onClose={() => onCloseSlot("left")}
+          onPopOut={onPopOut}
         />
         {split ? (
           <SlotChrome
@@ -137,6 +163,7 @@ export function ModuleDock({
             moduleKey={rightSlot}
             onFocus={() => onFocusSlot("right")}
             onClose={() => onCloseSlot("right")}
+            onPopOut={onPopOut}
           />
         ) : null}
       </div>
