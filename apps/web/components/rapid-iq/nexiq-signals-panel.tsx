@@ -214,12 +214,32 @@ function SignalCard({
   onAction: (action: "track" | "dismiss" | "push_to_crm") => void;
 }) {
   const money = formatMoney(signal.estimatedValue);
+  const dueDate = signal.dueDate ? new Date(signal.dueDate) : null;
+  const due =
+    dueDate && !Number.isNaN(dueDate.getTime())
+      ? dueDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+      : null;
+  const documentUrl = httpDocumentUrl(signal.sourceUrl);
+  const keywords = signal.keywords.slice(0, 4);
   const high = signal.confidenceTier === "high";
   return (
     <article
+      role={documentUrl ? "link" : undefined}
+      tabIndex={documentUrl ? 0 : undefined}
+      onClick={() => {
+        if (!documentUrl) return;
+        window.open(documentUrl, "_blank", "noopener,noreferrer");
+      }}
+      onKeyDown={(event) => {
+        if (!documentUrl) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          window.open(documentUrl, "_blank", "noopener,noreferrer");
+        }
+      }}
       className={`rounded-lg border border-white/8 bg-[#0b1524] p-3 ${
-        high ? "border-l-4 border-l-amber-400" : ""
-      }`}
+        documentUrl ? "cursor-pointer hover:bg-white/[0.03]" : ""
+      } ${high ? "border-l-4 border-l-amber-400" : ""}`}
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
@@ -246,30 +266,45 @@ function SignalCard({
           </h3>
           <p className="mt-0.5 text-xs text-slate-400">
             {signal.agencyName}
+            {signal.agencyType ? ` · ${signal.agencyType}` : ""}
             {signal.geography?.state ? ` · ${signal.geography.state}` : ""}
             {money ? ` · ${money}` : ""}
+            {due ? ` · Due ${due}` : ""}
           </p>
           {signal.summary ? (
-            <p className="mt-1 line-clamp-2 text-xs text-slate-500">{signal.summary}</p>
+            <p className="mt-1 line-clamp-4 text-xs text-slate-500">{signal.summary}</p>
           ) : null}
-          {httpDocumentUrl(signal.sourceUrl) ? (
+          {keywords.length > 0 ? (
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {keywords.map((keyword) => (
+                <span key={keyword} className="rounded bg-white/5 px-1.5 py-0.5 text-[9px] text-slate-400">
+                  {keyword}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          {documentUrl ? (
             <a
-              href={httpDocumentUrl(signal.sourceUrl)!}
+              href={documentUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-1 inline-block text-[11px] font-semibold text-sky-400 hover:underline"
+              onClick={(event) => event.stopPropagation()}
             >
               {solicitationLinkLabel(`${signal.title} ${signal.summary}`)} ↗
             </a>
           ) : (
-            <p className="mt-1 text-[11px] text-slate-500">No solicitation link stored.</p>
+            <p className="mt-1 text-[11px] text-slate-500">No RFP link was stored with this signal.</p>
           )}
         </div>
         <div className="flex flex-wrap gap-1.5">
           <button
             type="button"
             disabled={busy}
-            onClick={() => onAction("track")}
+            onClick={(event) => {
+              event.stopPropagation();
+              onAction("track");
+            }}
             className="rounded-md border border-sky-500/40 px-2 py-1 text-[11px] text-sky-200 hover:bg-sky-500/10 disabled:opacity-50"
           >
             Track
@@ -277,7 +312,10 @@ function SignalCard({
           <button
             type="button"
             disabled={busy}
-            onClick={() => onAction("dismiss")}
+            onClick={(event) => {
+              event.stopPropagation();
+              onAction("dismiss");
+            }}
             className="rounded-md border border-white/15 px-2 py-1 text-[11px] text-slate-300 hover:bg-white/5 disabled:opacity-50"
           >
             Dismiss
@@ -285,7 +323,10 @@ function SignalCard({
           <button
             type="button"
             disabled={busy}
-            onClick={() => onAction("push_to_crm")}
+            onClick={(event) => {
+              event.stopPropagation();
+              onAction("push_to_crm");
+            }}
             className="rounded-md border border-violet-500/40 px-2 py-1 text-[11px] text-violet-200 hover:bg-violet-500/10 disabled:opacity-50"
           >
             Push to CRM

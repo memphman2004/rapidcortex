@@ -41,16 +41,28 @@ export function CivicIqInboxCard({
   const state = signal.geography?.state;
   const documentUrl = httpDocumentUrl(signal.sourceUrl);
   const linkLabel = solicitationLinkLabel(`${signal.title} ${signal.summary}`);
+  const due = signal.dueDate ? formatShortDate(signal.dueDate) : null;
+  const money =
+    signal.estimatedValue != null && signal.estimatedValue > 0
+      ? formatCurrency(signal.estimatedValue)
+      : null;
+  const keywords = signal.keywords.slice(0, 4);
+
+  function openSolicitation() {
+    onSelect();
+    if (!documentUrl) return;
+    window.open(documentUrl, "_blank", "noopener,noreferrer");
+  }
 
   return (
     <article
       role="button"
       tabIndex={0}
-      onClick={onSelect}
+      onClick={openSolicitation}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onSelect();
+          openSolicitation();
         }
       }}
       className={[
@@ -71,6 +83,9 @@ export function CivicIqInboxCard({
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-sm font-bold text-slate-100">{signal.agencyName || signal.title}</span>
             {state ? <span className="text-sm text-slate-500">, {state}</span> : null}
+            {signal.agencyType ? (
+              <span className="text-[10px] uppercase tracking-wide text-slate-500">{signal.agencyType}</span>
+            ) : null}
           </div>
           <div className="mt-1 flex flex-wrap gap-1">
             <span
@@ -94,8 +109,23 @@ export function CivicIqInboxCard({
         <div className="mt-2 text-xs font-semibold text-slate-200">{signal.title}</div>
       ) : null}
       {signal.summary ? (
-        <div className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-slate-400">{signal.summary}</div>
+        <div className="mt-1 line-clamp-4 text-[11px] leading-relaxed text-slate-400">{signal.summary}</div>
       ) : null}
+
+      {keywords.length > 0 ? (
+        <div className="mt-2 flex flex-wrap gap-1">
+          {keywords.map((keyword) => (
+            <span key={keyword} className="rounded bg-slate-800 px-1.5 py-0.5 text-[9px] text-slate-400">
+              {keyword}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] text-slate-400">
+        {due ? <span className="font-medium text-amber-200/90">Due {due}</span> : null}
+        {money ? <span className="font-bold text-amber-300">{money}</span> : null}
+      </div>
 
       <div className="mt-2">
         {documentUrl ? (
@@ -109,7 +139,7 @@ export function CivicIqInboxCard({
             {linkLabel} ↗
           </a>
         ) : (
-          <span className="text-[11px] text-slate-500">More information</span>
+          <span className="text-[11px] text-slate-500">No RFP link was stored with this signal.</span>
         )}
       </div>
 
@@ -148,11 +178,6 @@ export function CivicIqInboxCard({
           Push to CRM
         </button>
         <span className="text-[10px] text-slate-600">{formatShortDate(signal.createdAt)}</span>
-        {signal.estimatedValue != null && signal.estimatedValue > 0 ? (
-          <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">
-            {formatCurrency(signal.estimatedValue)}
-          </span>
-        ) : null}
         <span className="ml-auto text-[10px] font-semibold uppercase tracking-wide text-slate-500">
           civic iq
         </span>
