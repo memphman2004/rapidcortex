@@ -1,3 +1,4 @@
+import type { AgencyFeatures, CadUserGrant } from "../cad-module/access.js";
 import type { AgencyConfig, AgencyIntegrationMode } from "./agency-config.js";
 import type { AgencyNetworkPolicy } from "../network/access-policy-types.js";
 
@@ -138,6 +139,17 @@ export interface AgencyTenant {
    */
   latitude?: number;
   longitude?: number;
+
+  /**
+   * Licensed modules for this agency. Absent means CAD is off.
+   * Optional so rows written before the module gate stay readable.
+   */
+  features?: AgencyFeatures;
+  /**
+   * Per-user module seats. Keyed by Cognito username.
+   * Not copied onto the Cognito token. Disabling the agency license leaves these rows in place.
+   */
+  cadUserGrants?: Record<string, CadUserGrant>;
 }
 
 export function resolveAgencyVerticalFromTenant(

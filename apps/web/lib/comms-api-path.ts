@@ -80,6 +80,8 @@ const STACK4_PATH_TESTS: RegExp[] = [
   /^\/api\/admin\/invoices/,
   /^\/api\/admin\/pricing/,
   /^\/api\/agency\/entitlements/,
+  /^\/api\/agency\/cad-module$/,
+  /^\/api\/admin\/tenants\/[^/]+\/cad-module/,
   /^\/api\/agency\/network-policy/,
   /^\/api\/agency\/emergency-override/,
   /^\/api\/admin\/tenants\/[^/]+\/entitlements/,

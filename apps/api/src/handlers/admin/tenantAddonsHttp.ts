@@ -1,6 +1,7 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { forbidden, unauthorized } from "../../lib/response.js";
+import { handleCadModuleRoute } from "../../routes/admin/cad-module.js";
 import {
   handleAgencyEntitlementsRoute,
   handleTenantAddonsAdminRoute,
@@ -27,6 +28,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
 
   const path = event.rawPath ?? "";
+  if (path.includes("/cad-module")) {
+    return handleCadModuleRoute(
+      {
+        rawPath: event.rawPath,
+        body: event.body,
+        pathParameters: event.pathParameters,
+        requestContext: event.requestContext,
+        isBase64Encoded: event.isBase64Encoded,
+      },
+      user,
+    );
+  }
   if (path === "/api/agency/entitlements") {
     return handleAgencyEntitlementsRoute(event, user);
   }

@@ -3125,6 +3125,30 @@ Resources:
             ApiId: !Ref Api
             Path: /api/admin/tenants/{tenantId}/invoice/current
             Method: GET
+        AgencyCadModuleGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/agency/cad-module
+            Method: GET
+        TenantCadModuleGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{tenantId}/cad-module
+            Method: GET
+        TenantCadModulePatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{tenantId}/cad-module
+            Method: PATCH
+        TenantCadModuleUserPatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/admin/tenants/{tenantId}/cad-module/users/{userId}
+            Method: PATCH
 
   AgencyNetworkPolicySyncTopic:
     Type: AWS::SNS::Topic

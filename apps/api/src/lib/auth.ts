@@ -98,11 +98,13 @@ function mapPayload(payload: JWTPayload): UserContext | null {
   const lastName = String(payload["custom:lastName"] ?? "").trim();
   const displayName = [firstName, lastName].filter(Boolean).join(" ").trim();
   const agencyVertical = String(payload["custom:agencyVertical"] ?? payload["custom:vertical"] ?? "").trim();
+  const cognitoUsername = String(payload["cognito:username"] ?? "").trim();
   return {
     userId: String(sub),
     agencyId,
     role,
     email: String(payload.email ?? payload["cognito:username"] ?? ""),
+    ...(cognitoUsername ? { cognitoUsername } : {}),
     ...(accountStatus ? { accountStatus } : {}),
     ...(planId ? { planId } : {}),
     ...(passwordLastRaw ? { passwordLastChangedAt: passwordLastRaw } : {}),

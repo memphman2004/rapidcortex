@@ -102,6 +102,11 @@ export interface UserContext {
   /** Cognito `custom:vertical` — campus, venue, hospital, transit product routing.
    *  Also populated from `custom:agencyVertical` (911|campus|venue) for Field routing. */
   vertical?: string;
+  /**
+   * Cognito `cognito:username`. Matches licensed-module seats stored on the agency record.
+   * Module lists themselves stay off the token.
+   */
+  cognitoUsername?: string;
 }
 
 export interface Incident {

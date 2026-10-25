@@ -2312,6 +2312,62 @@ export async function postDispatcherDeclineTransfer(body: CallIdBody): Promise<{
   });
 }
 
+export type CadModuleView = {
+  agencyId: string;
+  agencyName: string;
+  feature: {
+    enabled: boolean;
+    enabledAt?: string;
+    enabledBy?: string;
+    disabledAt?: string;
+    disabledBy?: string;
+    maxCadSeats: number;
+  } | null;
+  seatCount: number;
+  seatsRemaining: number;
+  visible: boolean;
+  grant: { username: string; modules: string[]; cadScope?: "FULL" | "READ_ONLY" | "ADMIN" | null } | null;
+  grants?: Record<
+    string,
+    { username: string; email?: string; modules: string[]; cadScope?: "FULL" | "READ_ONLY" | "ADMIN" | null }
+  >;
+};
+
+export async function fetchAgencyCadModule(): Promise<CadModuleView> {
+  const res = await request<{ data: CadModuleView }>("/api/agency/cad-module");
+  return res.data;
+}
+
+export async function fetchAdminCadModule(tenantId: string): Promise<CadModuleView> {
+  const res = await request<{ data: CadModuleView }>(
+    `/api/admin/tenants/${encodeURIComponent(tenantId)}/cad-module`,
+  );
+  return res.data;
+}
+
+export async function patchAdminCadModule(
+  tenantId: string,
+  body: { enabled?: boolean; maxCadSeats?: number; confirmAgencyName?: string },
+): Promise<CadModuleView> {
+  const res = await request<{ data: CadModuleView }>(
+    `/api/admin/tenants/${encodeURIComponent(tenantId)}/cad-module`,
+    { method: "PATCH", body: JSON.stringify(body) },
+  );
+  return res.data;
+}
+
+export async function patchUserCadAccess(
+  tenantId: string,
+  username: string,
+  body: { enabled: boolean; cadScope?: "FULL" | "READ_ONLY" | "ADMIN"; email?: string },
+): Promise<CadModuleView> {
+  const res = await request<{ data: CadModuleView }>(
+    `/api/admin/tenants/${encodeURIComponent(tenantId)}/cad-module/users/${encodeURIComponent(username)}`,
+    { method: "PATCH", body: JSON.stringify(body) },
+  );
+  return res.data;
+}
+
 export async function fetchAgencyEntitlements(): Promise<{
   entitlements: TenantEntitlements;
   catalog: AddonDefinition[];

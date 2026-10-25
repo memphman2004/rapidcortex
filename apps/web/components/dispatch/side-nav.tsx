@@ -8,6 +8,8 @@ import { SidebarSignOutFooter } from "@/components/ui/sidebar-sign-out-footer";
 import { RoleNavSections } from "@/components/navigation/role-nav-sidebar";
 import { buildNavContext } from "@/lib/navigation/nav-context";
 import { filterRoleNavByFeatures } from "@/lib/navigation/filter-role-nav";
+import { withCadModuleNav } from "@/lib/navigation/cad-module-nav";
+import { useCadModuleAccess } from "@/lib/hooks/use-cad-module";
 import { getRoleNav } from "@/lib/navigation/role-nav";
 import { useNavBadgeCounts } from "@/lib/navigation/use-nav-badge-counts";
 import { useOptionalJurisdictionSlug } from "@/lib/jurisdiction-context";
@@ -21,12 +23,17 @@ export function SideNav({ compactRail = false }: { compactRail?: boolean }) {
   const auth = isAuthConfigured();
   const jurisdictionSlug = useOptionalJurisdictionSlug() ?? defaultJurisdictionSlug();
   const counts = useNavBadgeCounts(user?.role);
+  const cadAccess = useCadModuleAccess(Boolean(user));
 
   const nav = useMemo(() => {
     if (!user) return null;
     const ctx = buildNavContext(user, jurisdictionSlug);
-    return filterRoleNavByFeatures(getRoleNav(user.role, ctx));
-  }, [user, jurisdictionSlug]);
+    return withCadModuleNav(
+      filterRoleNavByFeatures(getRoleNav(user.role, ctx)),
+      jurisdictionSlug,
+      cadAccess.data?.visible === true,
+    );
+  }, [user, jurisdictionSlug, cadAccess.data?.visible]);
 
   const palette =
     nav?.accent === "violet"

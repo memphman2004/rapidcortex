@@ -10,6 +10,8 @@ import { hardNavigateTo } from "@/lib/auth/postAuthRedirect";
 import { useIqVisionNavAlert } from "@/hooks/use-iq-vision-nav-alert";
 import { requiresHardCrossShellNav } from "@/lib/navigation/cross-shell-nav";
 import { buildNavContext } from "@/lib/navigation/nav-context";
+import { withCadModuleNav } from "@/lib/navigation/cad-module-nav";
+import { useCadModuleAccess } from "@/lib/hooks/use-cad-module";
 import { filterRoleNavByFeatures } from "@/lib/navigation/filter-role-nav";
 import { navIconByName } from "@/lib/navigation/nav-icons";
 import { getRoleNav, type NavBadge, type NavItem, type RoleNav } from "@/lib/navigation/role-nav";
@@ -460,10 +462,15 @@ export function RoleNavSidebar({
   const jurisdictionSlug = useOptionalJurisdictionSlug() ?? defaultJurisdictionSlug();
   const counts = useNavBadgeCounts(user.role);
   const bizCardsOn = useBusinessCardTenantEnabled(user.agencyId);
+  const cadAccess = useCadModuleAccess(true);
   const nav = useMemo(() => {
     const ctx = buildNavContext(user, jurisdictionSlug);
-    return omitBusinessCardsUntilEnabled(filterRoleNavByFeatures(getRoleNav(user.role, ctx)), bizCardsOn);
-  }, [user, jurisdictionSlug, bizCardsOn]);
+    return withCadModuleNav(
+      omitBusinessCardsUntilEnabled(filterRoleNavByFeatures(getRoleNav(user.role, ctx)), bizCardsOn),
+      jurisdictionSlug,
+      cadAccess.data?.visible === true,
+    );
+  }, [user, jurisdictionSlug, bizCardsOn, cadAccess.data?.visible]);
 
   const palette = ACCENT_STYLES[nav.accent];
   const shellVars = {

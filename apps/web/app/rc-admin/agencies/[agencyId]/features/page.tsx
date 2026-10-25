@@ -5,6 +5,7 @@ import { defaultPermissionForRole, isRcSuperAdmin } from "rapid-cortex-security"
 import { marketingLoginPath } from "@/lib/marketing-links";
 import { fetchAgency } from "@/lib/api";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
+import { CadModuleCard } from "@/components/rc-admin/cad-module-card";
 import { AgencyFeaturesClient } from "./agency-features-client";
 import { EscalationSettingsPanel } from "../escalation-settings";
 import { deriveVerticalFromAgencyId, normalizeVertical } from "@/lib/vertical";
@@ -75,6 +76,7 @@ export default async function RcAdminAgencyFeaturesPage({ params }: Props) {
           QR Codes →
         </Link>
       </div>
+      <CadModuleCard agencyId={agencyId} agencyName={agencyName} canEdit={canEdit} />
       <AgencyFeaturesClient
         tenantId={agencyId}
         agencyName={agencyName}

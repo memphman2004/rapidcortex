@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { useCadModuleAccess } from "@/lib/hooks/use-cad-module";
 import {
   Activity,
   ArrowRight,
@@ -523,6 +524,7 @@ function PsapConsoleHomeInner({
   const isDispatcher =
     (userRole ?? "").trim().toLowerCase() === "dispatcher";
   const apiLive = isApiConfigured();
+  const cadAccess = useCadModuleAccess(isDispatcher);
 
   const nav = useMemo(() => {
     const ctx = buildNavContext({ agencyId }, jurisdiction);
@@ -1809,6 +1811,7 @@ function PsapConsoleHomeInner({
                         Open the call-taking console for live transcription, CAD, and your active
                         incident queue.
                       </p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                       <Link
                         href={liveWorkspaceHref}
                         style={{
@@ -1829,6 +1832,28 @@ function PsapConsoleHomeInner({
                         Enter Live Workspace
                         <ArrowRight size={14} strokeWidth={1.8} />
                       </Link>
+                      {cadAccess.data?.visible ? (
+                        <Link
+                          href={`/${jurisdiction}/cad`}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 8,
+                            padding: "10px 14px",
+                            borderRadius: 8,
+                            background: "color-mix(in srgb, var(--rc-blue) 18%, var(--rc-surface))",
+                            border: "1px solid color-mix(in srgb, var(--rc-blue) 40%, var(--rc-border))",
+                            color: "var(--rc-text-primary)",
+                            fontSize: 13,
+                            fontWeight: 700,
+                            textDecoration: "none",
+                          }}
+                        >
+                          Enter CAD
+                          <ArrowRight size={14} strokeWidth={1.8} />
+                        </Link>
+                      ) : null}
+                      </div>
                     </div>
                   ) : (
                     <>

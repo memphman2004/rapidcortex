@@ -98,6 +98,9 @@ describe("resolveUpstreamApiBase", () => {
 describe("isCommsPlatformApiPath", () => {
   it("matches billing prefix (stack 4)", () => {
     expect(isSam4ApiPath("/api/billing/plans")).toBe(true);
+    expect(isSam4ApiPath("/api/agency/cad-module")).toBe(true);
+    expect(isSam4ApiPath("/api/admin/tenants/metro/cad-module")).toBe(true);
+    expect(isSam4ApiPath("/api/admin/tenants/metro/cad-module/users/ada%40psap.gov")).toBe(true);
     expect(isSam4ApiPath("/api/cameras/providers/wyze/register")).toBe(true);
     expect(isSam4ApiPath("/api/cameras/providers/wyze/available-cameras")).toBe(true);
     expect(isStack2ApiPath("/api/billing/plans")).toBe(false);

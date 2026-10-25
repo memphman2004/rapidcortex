@@ -7,11 +7,13 @@ import {
   type AdminUserRow,
   isApiConfigured,
   patchAdminUser,
+  patchUserCadAccess,
   postAdminCreateUser,
   postAdminDeactivateUser,
 } from "@/lib/api";
+import { CadAccessControls } from "@/components/dispatch/cad-access-controls";
 import { loadAdminUsers } from "@/lib/queries";
-import type { UserRole } from "rapid-cortex-shared";
+import { defaultCadScope, type CadScope, type UserRole } from "rapid-cortex-shared";
 import { isCallAssistProductRole, roleDisplayLabel } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { isRcInternalOperator } from "rapid-cortex-shared/tenancy/principal";
 import { provisionableRolesForActor } from "@/lib/auth/provisionable-roles";
@@ -44,6 +46,8 @@ export function AdminUsersPanel() {
   const [temporaryPassword, setTemporaryPassword] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [createdFlash, setCreatedFlash] = useState<string | null>(null);
+  const [cadEnabled, setCadEnabled] = useState(false);
+  const [cadScope, setCadScope] = useState<CadScope>(defaultCadScope("dispatcher"));
 
   useEffect(() => {
     if (!sessionUser?.agencyId) return;
@@ -58,21 +62,33 @@ export function AdminUsersPanel() {
   }, [sessionUser?.role]);
 
   const createMut = useMutation({
-    mutationFn: () =>
-      postAdminCreateUser({
+    mutationFn: async () => {
+      const row = await postAdminCreateUser({
         email: email.trim(),
         agencyId: agencyId.trim(),
         role,
         temporaryPassword,
-      }),
+      });
+      if (cadEnabled) {
+        await patchUserCadAccess(agencyId.trim(), row.username, {
+          enabled: true,
+          cadScope,
+          email: row.email,
+        });
+      }
+      return row;
+    },
     onSuccess: async (row) => {
       setFormError(null);
       setCreatedFlash(row.email);
       setEmail("");
       setAgencyId(sessionUser && !isRcInternalOperator(sessionUser.role) && sessionUser.agencyId ? sessionUser.agencyId : "");
       setRole(isCallAssistProductRole(sessionUser?.role) ? "call_assist_operator" : "dispatcher");
+      setCadEnabled(false);
+      setCadScope(defaultCadScope(isCallAssistProductRole(sessionUser?.role) ? "call_assist_operator" : "dispatcher"));
       setTemporaryPassword("");
       await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      await queryClient.invalidateQueries({ queryKey: ["cad-module"] });
     },
     onError: (e: Error) => setFormError(e.message),
   });
@@ -145,7 +161,11 @@ export function AdminUsersPanel() {
             <span className="text-slate-400">Role</span>
             <select
               value={role}
-              onChange={(e) => setRole(e.target.value as UserRole)}
+              onChange={(e) => {
+                const next = e.target.value as UserRole;
+                setRole(next);
+                if (cadEnabled) setCadScope(defaultCadScope(next));
+              }}
               className="rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100"
             >
               {roleOptions.map((r) => (
@@ -175,6 +195,19 @@ export function AdminUsersPanel() {
               </button>
             </div>
           </label>
+          {agencyId.trim() ? (
+            <div className="sm:col-span-2">
+              <CadAccessControls
+                agencyId={agencyId.trim()}
+                role={role}
+                persist={false}
+                onChange={(value) => {
+                  setCadEnabled(value.enabled);
+                  setCadScope(value.cadScope);
+                }}
+              />
+            </div>
+          ) : null}
           {formError ? <p className="text-xs text-rose-400 sm:col-span-2">{formError}</p> : null}
           {createdFlash ? (
             <p className="text-xs text-emerald-400 sm:col-span-2">
@@ -388,6 +421,13 @@ function UserRow({
             </button>
           ) : null}
           {rowError ? <p className="w-full text-[11px] text-rose-400">{rowError}</p> : null}
+          <CadAccessControls
+            agencyId={user.agencyId}
+            username={user.username}
+            email={user.email}
+            role={role}
+            persist
+          />
         </div>
       </td>
     </tr>

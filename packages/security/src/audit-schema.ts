@@ -578,6 +578,14 @@ export const AUDIT_EVENT_TYPES = {
   AI_GATE_DISABLED: "ai_gate.disabled",
   AI_GATE_FEATURE_CHANGED: "ai_gate.feature_changed",
 
+  /** Platform admin turned the licensed CAD module on for an agency. */
+  AGENCY_CAD_ENABLED: "agency.cad.enabled",
+  /** Platform admin turned the licensed CAD module off. User seat rows stay on the agency. */
+  AGENCY_CAD_DISABLED: "agency.cad.disabled",
+  AGENCY_CAD_SEATS_UPDATED: "agency.cad.seats_updated",
+  CAD_SEAT_ASSIGNED: "agency.cad.seat_assigned",
+  CAD_SEAT_REVOKED: "agency.cad.seat_revoked",
+
   ...WYZE_AUDIT_EVENT_TYPES,
   ...NEST_AUDIT_EVENT_TYPES,
   ...MILESTONE_AUDIT_EVENT_TYPES,
