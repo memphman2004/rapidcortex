@@ -1,4 +1,5 @@
 import type { AgencyFeatures, CadUserGrant } from "../cad-module/access.js";
+import type { AgencyEntitlements } from "../entitlements/products.js";
 import type { AgencyConfig, AgencyIntegrationMode } from "./agency-config.js";
 import type { AgencyNetworkPolicy } from "../network/access-policy-types.js";
 
@@ -150,6 +151,12 @@ export interface AgencyTenant {
    * Not copied onto the Cognito token. Disabling the agency license leaves these rows in place.
    */
   cadUserGrants?: Record<string, CadUserGrant>;
+  /**
+   * Product licenses (Core, CAD, RMS, Responder). Optional.
+   * Absent means the agency keeps the Core shell. Distinct from billing add-on entitlements.
+   * Not copied onto the Cognito token.
+   */
+  productLicenses?: AgencyEntitlements;
 }
 
 export function resolveAgencyVerticalFromTenant(

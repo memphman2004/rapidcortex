@@ -68,6 +68,7 @@ export * from "./desktop-releases.js";
 export * from "./seo-intelligence.js";
 export * from "./cad.js";
 export * from "./cad-module/access.js";
+export * from "./entitlements/index.js";
 export * from "./cad-nature-mapping.js";
 export * from "./cad-connector/index.js";
 export * from "./cad-bridge/index.js";

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useSession } from "@/components/auth/session-context";
+import { CadEntryWorkspace } from "@/components/dispatch/cad-entry-workspace";
+import { isApiConfigured } from "@/lib/api";
 import { useCadModuleAccess } from "@/lib/hooks/use-cad-module";
 import { useOptionalJurisdictionSlug } from "@/lib/jurisdiction-context";
 import { defaultJurisdictionSlug } from "@/lib/marketing-links";
@@ -12,14 +14,20 @@ const SCOPE_LABEL: Record<string, string> = {
   ADMIN: "Admin — manage CAD configuration",
 };
 
-export function CadConsoleGate() {
+export function CadConsoleGate({ incidentId }: { incidentId: string | null }) {
   const { user, isLoading } = useSession();
   const jurisdiction = useOptionalJurisdictionSlug() ?? defaultJurisdictionSlug();
   const access = useCadModuleAccess(Boolean(user));
   const cadAppUrl = process.env.NEXT_PUBLIC_CAD_APP_URL?.trim();
 
-  if (isLoading || access.isLoading) {
+  if (isLoading || (isApiConfigured() && access.isLoading)) {
     return <p className="p-6 text-sm text-slate-400">Checking CAD access…</p>;
+  }
+
+  const lookupFailed = access.isError && access.error instanceof Error ? access.error.message : "";
+  const licenseApiMissing = !isApiConfigured() || /404|not found|not configured/i.test(lookupFailed);
+  if (licenseApiMissing) {
+    return <CadEntryWorkspace incidentId={incidentId} />;
   }
 
   if (!access.data?.visible) {
@@ -36,27 +44,20 @@ export function CadConsoleGate() {
 
   const scope = access.data.grant?.cadScope;
   return (
-    <div className="mx-auto max-w-xl p-6">
-      <h1 className="text-lg font-semibold text-white">CAD</h1>
-      <p className="mt-2 text-sm text-slate-300">
-        CAD is on for your account
-        {scope ? ` — ${SCOPE_LABEL[scope] ?? scope}` : ""}.
+    <div>
+      <p className="px-4 pt-3 text-xs text-slate-500">
+        CAD seat: {scope ? (SCOPE_LABEL[scope] ?? scope) : "assigned"}
+        {cadAppUrl ? (
+          <>
+            {" "}
+            ·{" "}
+            <a href={cadAppUrl} className="text-sky-400 hover:text-sky-300">
+              Open CAD application
+            </a>
+          </>
+        ) : null}
       </p>
-      <p className="mt-2 text-sm text-slate-400">
-        This is the licensed dispatch console. Call-taking in NexCort iQ stays on the Dispatcher workspace.
-      </p>
-      {cadAppUrl ? (
-        <a
-          href={cadAppUrl}
-          className="mt-4 inline-flex rounded-md bg-sky-700 px-3 py-2 text-sm font-medium text-white hover:bg-sky-600"
-        >
-          Open CAD
-        </a>
-      ) : (
-        <p className="mt-4 text-sm text-slate-500">
-          The CAD application opens here once that connection is configured for this environment.
-        </p>
-      )}
+      <CadEntryWorkspace incidentId={incidentId} />
     </div>
   );
 }

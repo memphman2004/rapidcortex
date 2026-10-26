@@ -133,6 +133,9 @@ Resources:
               - ses:SendRawEmail
             Resource:
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/${FromEmail}
+              - !Sub
+                - arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/${SenderDomain}
+                - SenderDomain: !Select [1, !Split ["@", !Ref FromEmail]]
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:configuration-set/rapid-cortex-transactional-${DeploymentStage}
 
