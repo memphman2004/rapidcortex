@@ -437,13 +437,13 @@ const RC_SUPERADMIN_HELP: HelpIndex = [
   },
 ];
 
-// ── Call Assist (non-emergency) ────────────────────────────────────────────
+// ── Nexiq (non-emergency) ────────────────────────────────────────────
 
 const CALL_ASSIST_OPERATOR_HELP: HelpIndex = [
   {
     section: "Getting Started",
     articles: [
-      { topic: "index", title: "Call Assist Operator Overview", description: "Non-emergency AI intake — not a 911 dispatch console." },
+      { topic: "index", title: "Nexiq Operator Overview", description: "Non-emergency AI intake — not a 911 dispatch console." },
     ],
   },
   {
@@ -460,14 +460,14 @@ const CALL_ASSIST_SUPERVISOR_HELP: HelpIndex = [
   {
     section: "Getting Started",
     articles: [
-      { topic: "index", title: "Call Assist Supervisor Overview", description: "Live oversight and QA for non-emergency Call Assist." },
+      { topic: "index", title: "Nexiq Supervisor Overview", description: "Live oversight and QA for non-emergency Nexiq." },
     ],
   },
   {
     section: "Floor & QA",
     articles: [
       { topic: "live-oversight", title: "Live Oversight", description: "Spot long loops, low confidence, and emergency flags." },
-      { topic: "qa", title: "Call Assist QA", description: "Score transcripts, call-class, and emergency recognition." },
+      { topic: "qa", title: "Nexiq QA", description: "Score transcripts, call-class, and emergency recognition." },
     ],
   },
 ];
@@ -476,16 +476,16 @@ const CALL_ASSIST_ADMIN_HELP: HelpIndex = [
   {
     section: "Getting Started",
     articles: [
-      { topic: "index", title: "Call Assist Admin Overview", description: "Bots, knowledge, users, records, and demo runner." },
+      { topic: "index", title: "Nexiq Admin Overview", description: "Bots, knowledge, users, records, and demo runner." },
     ],
   },
   {
     section: "Administration",
     articles: [
-      { topic: "configuration", title: "Call Assist Configuration", description: "Greeting, disclosure, KB, thresholds, transfer destination." },
-      { topic: "users", title: "Call Assist Users", description: "Invite admin, supervisor, and operator seats only." },
+      { topic: "configuration", title: "Nexiq Configuration", description: "Greeting, disclosure, KB, thresholds, transfer destination." },
+      { topic: "users", title: "Nexiq Users", description: "Invite admin, supervisor, and operator seats only." },
       { topic: "demo-runner", title: "Demo Runner", description: "Seeded evaluation scenarios for stakeholders." },
-      { topic: "records", title: "Call Assist Records", description: "Session records for QA and records requests." },
+      { topic: "records", title: "Nexiq Records", description: "Session records for QA and records requests." },
     ],
   },
 ];

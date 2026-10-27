@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildDefaultTenantConfig } from "./config-service.js";
 
-describe("Call Assist default tenant config", () => {
+describe("Nexiq default tenant config", () => {
   it("does not copy Kansas City seed onto a second agency when the kcpd profile is on", () => {
     const fulton = buildDefaultTenantConfig("fulton-county", "kcpd", "kcpd");
     expect(fulton.callAssistGreeting?.cityName).toBe("");

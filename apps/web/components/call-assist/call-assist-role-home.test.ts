@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { dashboardRouteFromRole } from "rapid-cortex-shared";
 
-describe("Call Assist product homes", () => {
+describe("Nexiq product homes", () => {
   it("routes operator and supervisor to distinct dashboards, never the 911 console", () => {
     expect(dashboardRouteFromRole("call_assist_operator", "kcpd")).toBe("/app/call-assist/operator");
     expect(dashboardRouteFromRole("call_assist_supervisor", "kcpd")).toBe("/app/call-assist/supervisor");

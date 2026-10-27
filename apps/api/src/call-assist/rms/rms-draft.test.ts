@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { evaluateRmsDraftGate } from "./rms-draft.js";
 
-describe("Call Assist RMS draft gate", () => {
+describe("Nexiq RMS draft gate", () => {
   it("blocks live filing when the fail-closed flag is off", () => {
     expect(
       evaluateRmsDraftGate({ rmsDraftEnabled: false, humanReviewApproved: true, demo: false }),

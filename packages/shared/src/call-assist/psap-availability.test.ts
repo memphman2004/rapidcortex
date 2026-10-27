@@ -11,7 +11,7 @@ describe("PSAP availability notice", () => {
     expect(venue.body.toLowerCase()).toMatch(/not a 911/);
   });
 
-  it("marks PSAP Call Assist after hours", () => {
+  it("marks PSAP Nexiq after hours", () => {
     const n = buildPsapAvailabilityNotice({
       product: "psap",
       callAssistOnboarded: true,

@@ -294,19 +294,19 @@ export const ROLE_DASHBOARD_PALETTE_BY_ROLE: Record<UserRole, RoleDashboardIdent
   ),
   call_assist_admin: verticalRolePalette(
     "call_assist_admin",
-    "Call Assist Admin",
+    "Nexiq Admin",
     "Non-emergency config",
     "#0D9488",
   ),
   call_assist_supervisor: verticalRolePalette(
     "call_assist_supervisor",
-    "Call Assist Supervisor",
+    "Nexiq Supervisor",
     "QA & live sessions",
     "#0D9488",
   ),
   call_assist_operator: verticalRolePalette(
     "call_assist_operator",
-    "Call Assist Operator",
+    "Nexiq Operator",
     "Non-emergency monitor",
     "#0D9488",
   ),

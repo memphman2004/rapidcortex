@@ -12,7 +12,7 @@ export function shouldBlockDemoExternalDispatch(
 }
 
 /**
- * No dedicated E911 adapter exists in this repo (Call Assist CAD create is the closest path).
+ * No dedicated E911 adapter exists in this repo (Nexiq CAD create is the closest path).
  * Call this if any 911-adjacent dispatch is reached with a demo record — always a bug.
  */
 export function throwIfDemoIncidentReachesE911(incident: {

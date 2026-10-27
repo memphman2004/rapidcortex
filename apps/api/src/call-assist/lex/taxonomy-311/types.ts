@@ -1,5 +1,5 @@
 /**
- * Call Assist — 311 Non-Emergency Call Handling
+ * Nexiq — 311 Non-Emergency Call Handling
  * Lex V2 Intent Schema — Type Definitions
  *
  * Architectural pattern: Category-level intents with SubIssueType slot

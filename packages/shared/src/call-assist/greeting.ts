@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { NEXIQ_PRODUCT_NAME, withNexiqOpening } from "./nexiq-identity.js";
 import { evaluateSafety, isImmutableEmergency } from "./safety.js";
 
 export const GREETING_MODES = ["hang_up", "stay_on_line", "custom"] as const;
@@ -30,14 +31,14 @@ export type CallAssistGreetingConfigPatch = z.infer<typeof callAssistGreetingCon
 
 export const GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
   hang_up: [
-    "You've reached the {lineDescription} for {cityName}.",
+    "This is the {lineDescription} for {cityName}.",
     "If you are experiencing an emergency or there is an immediate threat to life or safety,",
     "please hang up and dial 9-1-1.",
     "Otherwise, stay on the line and I can assist you with your non-emergency request.",
   ].join(" "),
 
   stay_on_line: [
-    "You've reached the {lineDescription} for {cityName}.",
+    "This is the {lineDescription} for {cityName}.",
     "If this is a life-threatening emergency, hang up and dial 9-1-1.",
     "For all other requests, stay on the line.",
   ].join(" "),
@@ -45,14 +46,14 @@ export const GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string>
 
 export const DEFAULT_ES_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
   hang_up: [
-    "Ha llamado a la línea de servicio no urgente de {cityName}.",
+    "Ha llamado a Nexiq, la línea de servicio no urgente de {cityName}.",
     "Si está experimentando una emergencia o existe una amenaza inmediata a la vida o la seguridad,",
     "por favor cuelgue y llame al 9-1-1.",
     "De lo contrario, permanezca en la línea y puedo ayudarle con su solicitud no urgente.",
   ].join(" "),
 
   stay_on_line: [
-    "Ha llamado a la línea de servicio no urgente de {cityName}.",
+    "Ha llamado a Nexiq, la línea de servicio no urgente de {cityName}.",
     "Si esto es una emergencia que amenaza la vida, cuelgue y llame al 9-1-1.",
     "Para cualquier otra solicitud, permanezca en la línea.",
   ].join(" "),
@@ -92,13 +93,13 @@ export const DEFAULT_ES_ESCALATION_ANNOUNCEMENTS: Record<EscalationMode, string>
 
 const DEFAULT_ZH_CN_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
   hang_up: [
-    "这里是{cityName}的非紧急服务热线。",
+    "这里是 Nexiq，{cityName}的非紧急服务热线。",
     "如果您正在经历紧急情况，或生命安全受到直接威胁，",
     "请挂断并拨打9-1-1。",
     "否则请不要挂断，我可以协助处理您的非紧急请求。",
   ].join(" "),
   stay_on_line: [
-    "这里是{cityName}的非紧急服务热线。",
+    "这里是 Nexiq，{cityName}的非紧急服务热线。",
     "如果这是危及生命的紧急情况，请挂断并拨打9-1-1。",
     "其他请求请不要挂断。",
   ].join(" "),
@@ -106,13 +107,13 @@ const DEFAULT_ZH_CN_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, 
 
 const DEFAULT_ZH_HK_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
   hang_up: [
-    "呢度係{cityName}嘅非緊急服務熱線。",
+    "呢度係 Nexiq，{cityName}嘅非緊急服務熱線。",
     "如果你正經歷緊急情況，或者生命安全受到即時威脅，",
     "請掛線並打9-1-1。",
     "否則請唔好掛線，我可以幫你處理非緊急請求。",
   ].join(" "),
   stay_on_line: [
-    "呢度係{cityName}嘅非緊急服務熱線。",
+    "呢度係 Nexiq，{cityName}嘅非緊急服務熱線。",
     "如果呢個係危及生命嘅緊急情況，請掛線並打9-1-1。",
     "其他請求請唔好掛線。",
   ].join(" "),
@@ -120,13 +121,13 @@ const DEFAULT_ZH_HK_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, 
 
 const DEFAULT_TL_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
   hang_up: [
-    "Nakatawag kayo sa non-emergency na linya ng {cityName}.",
+    "Nakatawag kayo sa Nexiq, ang non-emergency na linya ng {cityName}.",
     "Kung emergency o may agarang banta sa buhay o kaligtasan,",
     "mangyaring ibaba at tumawag sa 9-1-1.",
     "Kung hindi, manatili sa linya at matutulungan ko kayo sa non-emergency na request.",
   ].join(" "),
   stay_on_line: [
-    "Nakatawag kayo sa non-emergency na linya ng {cityName}.",
+    "Nakatawag kayo sa Nexiq, ang non-emergency na linya ng {cityName}.",
     "Kung life-threatening emergency ito, ibaba at tumawag sa 9-1-1.",
     "Para sa lahat ng ibang request, manatili po sa linya.",
   ].join(" "),
@@ -134,13 +135,13 @@ const DEFAULT_TL_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, str
 
 const DEFAULT_VI_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
   hang_up: [
-    "Bạn đã gọi đến đường dây không khẩn cấp của {cityName}.",
+    "Bạn đã gọi đến Nexiq, đường dây không khẩn cấp của {cityName}.",
     "Nếu đây là trường hợp khẩn cấp hoặc có đe dọa tức thời đến tính mạng,",
     "hãy cúp máy và gọi 9-1-1.",
     "Nếu không, hãy giữ máy, tôi có thể hỗ trợ yêu cầu không khẩn cấp.",
   ].join(" "),
   stay_on_line: [
-    "Bạn đã gọi đến đường dây không khẩn cấp của {cityName}.",
+    "Bạn đã gọi đến Nexiq, đường dây không khẩn cấp của {cityName}.",
     "Nếu đây là trường hợp khẩn cấp đe dọa tính mạng, hãy cúp máy và gọi 9-1-1.",
     "Các yêu cầu khác xin giữ máy.",
   ].join(" "),
@@ -148,13 +149,13 @@ const DEFAULT_VI_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, str
 
 const DEFAULT_AR_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
   hang_up: [
-    "لقد اتصلت بخط الخدمة غير الطارئة لـ {cityName}.",
+    "لقد اتصلت بـ Nexiq، خط الخدمة غير الطارئة لـ {cityName}.",
     "إذا كنتم تواجهون حالة طارئة أو تهديداً فورياً للحياة أو السلامة،",
     "يرجى إنهاء المكالمة والاتصال بالرقم 9-1-1.",
     "وإلا فابقوا على الخط ويمكنني مساعدتكم في الطلب غير الطارئ.",
   ].join(" "),
   stay_on_line: [
-    "لقد اتصلت بخط الخدمة غير الطارئة لـ {cityName}.",
+    "لقد اتصلت بـ Nexiq، خط الخدمة غير الطارئة لـ {cityName}.",
     "إذا كانت هذه حالة طارئة تهدد الحياة، أنهوا المكالمة واتصلوا بالرقم 9-1-1.",
     "لجميع الطلبات الأخرى، ابقوا على الخط.",
   ].join(" "),
@@ -199,25 +200,25 @@ const DEFAULT_AR_ESCALATION = {
 };
 
 export const FALLBACK_GREETING =
-  "You've reached a non-emergency service line. If this is an emergency, please dial 9-1-1. Otherwise, stay on the line and I can assist you.";
+  `You've reached ${NEXIQ_PRODUCT_NAME}, a non-emergency service line. If this is an emergency, please dial 9-1-1. Otherwise, stay on the line and I can assist you.`;
 
 export const FALLBACK_GREETING_ES =
-  "Ha llamado a una línea de servicio no urgente. Si esto es una emergencia, por favor llame al 9-1-1. De lo contrario, permanezca en la línea y puedo ayudarle.";
+  "Ha llamado a Nexiq, una línea de servicio no urgente. Si esto es una emergencia, por favor llame al 9-1-1. De lo contrario, permanezca en la línea y puedo ayudarle.";
 
 export const FALLBACK_GREETING_ZH_CN =
-  "这里是非紧急服务热线。如果这是紧急情况，请拨打9-1-1。否则请不要挂断，我可以协助您。";
+  "这里是 Nexiq 非紧急服务热线。如果这是紧急情况，请拨打9-1-1。否则请不要挂断，我可以协助您。";
 
 export const FALLBACK_GREETING_ZH_HK =
-  "呢度係非緊急服務熱線。如果呢個係緊急情況，請打9-1-1。否則請唔好掛線，我可以幫你。";
+  "呢度係 Nexiq 非緊急服務熱線。如果呢個係緊急情況，請打9-1-1。否則請唔好掛線，我可以幫你。";
 
 export const FALLBACK_GREETING_TL =
-  "Nakatawag kayo sa non-emergency service line. Kung emergency po ito, tumawag sa 9-1-1. Kung hindi, manatili po sa linya at matutulungan kita.";
+  "Nakatawag kayo sa Nexiq, ang non-emergency service line. Kung emergency po ito, tumawag sa 9-1-1. Kung hindi, manatili po sa linya at matutulungan kita.";
 
 export const FALLBACK_GREETING_VI =
-  "Bạn đã gọi đến đường dây dịch vụ không khẩn cấp. Nếu đây là trường hợp khẩn cấp, hãy gọi 9-1-1. Nếu không, vui lòng giữ máy, tôi có thể hỗ trợ bạn.";
+  "Bạn đã gọi đến Nexiq, đường dây dịch vụ không khẩn cấp. Nếu đây là trường hợp khẩn cấp, hãy gọi 9-1-1. Nếu không, vui lòng giữ máy, tôi có thể hỗ trợ bạn.";
 
 export const FALLBACK_GREETING_AR =
-  "لقد اتصلتم بخط الخدمة غير الطارئة. إذا كانت هذه حالة طارئة، يرجى الاتصال بالرقم 9-1-1. وإلا فابقوا على الخط ويمكنني مساعدتكم.";
+  "لقد اتصلتم بـ Nexiq، خط الخدمة غير الطارئة. إذا كانت هذه حالة طارئة، يرجى الاتصال بالرقم 9-1-1. وإلا فابقوا على الخط ويمكنني مساعدتكم.";
 
 export const INTAKE_PROMPT_EN = "How can I help you today?";
 /** Spoken after the greeting when Connect starts Lex. Never “Go ahead.” */
@@ -331,10 +332,10 @@ function localizedOverride(config: CallAssistGreetingConfig, locale: string): st
 export function buildGreeting(config: CallAssistGreetingConfig, locale = "en-US"): string {
   const normalized = normalizeGreetingLocale(locale);
   const override = localizedOverride(config, locale);
-  if (override) return interpolateGreeting(override, config);
+  if (override) return withNexiqOpening(interpolateGreeting(override, config));
 
   if (config.mode === "custom" && config.customGreetingText?.trim()) {
-    return interpolateGreeting(config.customGreetingText, config);
+    return withNexiqOpening(interpolateGreeting(config.customGreetingText, config));
   }
 
   const templateMode: Exclude<GreetingMode, "custom"> =
@@ -350,9 +351,9 @@ export function buildGreeting(config: CallAssistGreetingConfig, locale = "en-US"
   };
   const localized = templates[normalized];
   if (localized) {
-    return interpolateGreeting(localized[templateMode], config);
+    return withNexiqOpening(interpolateGreeting(localized[templateMode], config));
   }
-  return interpolateGreeting(GREETING_TEMPLATES[templateMode], config);
+  return withNexiqOpening(interpolateGreeting(GREETING_TEMPLATES[templateMode], config));
 }
 
 /** Format +13198358230 → (319) 835-8230 for spoken/welcome copy. */
@@ -434,19 +435,19 @@ export function intakePromptForLocale(locale = "en-US"): string {
 export function fallbackGreetingForLocale(locale = "en-US"): string {
   switch (normalizeGreetingLocale(locale)) {
     case "es-US":
-      return FALLBACK_GREETING_ES;
+      return withNexiqOpening(FALLBACK_GREETING_ES);
     case "zh-CN":
-      return FALLBACK_GREETING_ZH_CN;
+      return withNexiqOpening(FALLBACK_GREETING_ZH_CN);
     case "zh-HK":
-      return FALLBACK_GREETING_ZH_HK;
+      return withNexiqOpening(FALLBACK_GREETING_ZH_HK);
     case "tl-PH":
-      return FALLBACK_GREETING_TL;
+      return withNexiqOpening(FALLBACK_GREETING_TL);
     case "vi-VN":
-      return FALLBACK_GREETING_VI;
+      return withNexiqOpening(FALLBACK_GREETING_VI);
     case "ar-AE":
-      return FALLBACK_GREETING_AR;
+      return withNexiqOpening(FALLBACK_GREETING_AR);
     default:
-      return FALLBACK_GREETING;
+      return withNexiqOpening(FALLBACK_GREETING);
   }
 }
 
@@ -482,10 +483,10 @@ export function isCallAssistGreetingReady(config: CallAssistGreetingConfig): boo
 
 export function greetingActivationBlockedReason(config: CallAssistGreetingConfig): string | null {
   if (!config.cityName.trim()) {
-    return "City name is required before Call Assist can go live. A greeting without a city sounds like a scam call.";
+    return "City name is required before Nexiq can go live. A greeting without a city sounds like a scam call.";
   }
   if (!config.agencyName.trim()) {
-    return "Agency name is required before Call Assist can go live.";
+    return "Agency name is required before Nexiq can go live.";
   }
   if (config.mode === "custom" && !config.customGreetingText?.trim()) {
     return "Custom greeting text is required when greeting mode is Custom.";

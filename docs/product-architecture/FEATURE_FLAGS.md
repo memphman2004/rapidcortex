@@ -42,7 +42,7 @@ Split by **who sets** and **visibility** to avoid treating marketing toggles as 
 | F3 triage | `ENABLE_NON_EMERGENCY_TRIAGE`, `TRIAGE_DETECT_EVERY_N_SEGMENTS`, `TRIAGE_MOCK` | SAM Globals; agency `config.triage` |
 | F5 wellness | `ENABLE_DISPATCHER_WELLNESS`, `TRAUMA_FLAGS_TABLE` | SAM Globals; agency `config.wellness` |
 | Vertical MNS | `ENABLE_VERTICAL_ALERTS`, `VERTICAL_ALERTS_TABLE`, `ALERT_SHORT_CODE_SSM_PREFIX` | Nested `stack-app-sam-vertical-alerts.yaml` (stack 2). SMS skipped with `NO_SHORT_CODE` until a dedicated short code exists. Never use 10DLC. |
-| Call Assist Lex | `CALL_ASSIST_LEX_MOCK` (default mock), `CALL_ASSIST_LEX_BOT_COUNT` / `CALL_ASSIST_LEX_BOT_LIMIT` for quota tests | Nested `stack-app-sam-call-assist.yaml`. Live CreateBot is not called in CI. Quota code `L-C38B0AF9`; request 1,000+ before ~90 agencies. |
+| Nexiq Lex | `CALL_ASSIST_LEX_MOCK` (default mock), `CALL_ASSIST_LEX_BOT_COUNT` / `CALL_ASSIST_LEX_BOT_LIMIT` for quota tests | Nested `stack-app-sam-call-assist.yaml`. Live CreateBot is not called in CI. Quota code `L-C38B0AF9`; request 1,000+ before ~90 agencies. |
 | Physical security ingest | `ENABLE_PHYSICAL_SECURITY_INGEST` (default on), `PHYSICAL_SECURITY_TABLE`, `PHYSICAL_SECURITY_WEBHOOK_SECRET` | Nested `stack-app-sam-physical-security.yaml` (stack 5). Commands: `PHYSICAL_SECURITY_COMMANDS_ENABLED` **default off**; command routes return 501. |
 
 **Agency admin visibility:** summarized via **`GET /api/integration/status`** (strict mode on/off, issue count, primary tier labels) — not per-secret values.

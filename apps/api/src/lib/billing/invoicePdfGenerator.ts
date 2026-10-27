@@ -75,6 +75,11 @@ function resolveLogo(fileName: string): string | null {
   return logoCandidates(fileName).find((p) => existsSync(p)) ?? null;
 }
 
+/** Printed invoice numbers use the NiQ prefix. Older rows still stored as RC- display as NiQ-. */
+export function displayInvoiceNumber(invoiceNumber: string): string {
+  return invoiceNumber.replace(/^RC-/, "NiQ-");
+}
+
 function detectRcLiteInvoice(invoice: InvoicePdfInvoice, items: InvoicePdfLineItem[]): boolean {
   const source = `${invoice.invoiceNumber} ${items
     .map((i) => `${i.serviceName} ${i.description ?? ""}`)
@@ -134,11 +139,11 @@ export async function generateInvoicePdfBuffer(
 
     const cur = invoice.currency ?? "USD";
     const isRcLite = detectRcLiteInvoice(invoice, items);
+    const printedNumber = displayInvoiceNumber(invoice.invoiceNumber);
     const logoPath = isRcLite
       ? resolveLogo("RC_Lite1.png")
-      : (resolveLogo("rapid-cortex-logo-transparent.png") ??
-        resolveLogo("rapid-cortex-logo-2 copy.png") ??
-        resolveLogo("rapid-cortex-logo-2.png"));
+      : (resolveLogo("nexcort-iq-logo-alpha.png") ??
+        resolveLogo("nexcort-iq-logo-transparent.png"));
     const watermarkLogo = isRcLite ? resolveLogo("RC_Lite1.png") : resolveLogo("nowordslogo.png");
 
     function startPage(): void {
@@ -166,12 +171,12 @@ export async function generateInvoicePdfBuffer(
         .font("Helvetica-Bold")
         .fontSize(14)
         .fillColor(NAVY2)
-        .text("RAPID", LBOX_X + 6, LBOX_Y + 24, { width: LBOX_W - 12, align: "center" });
+        .text("NEXCORT", LBOX_X + 6, LBOX_Y + 24, { width: LBOX_W - 12, align: "center" });
       doc
         .font("Helvetica-Bold")
         .fontSize(14)
         .fillColor(RED)
-        .text("CORTEX", LBOX_X + 6, LBOX_Y + 44, { width: LBOX_W - 12, align: "center" });
+        .text("iQ", LBOX_X + 6, LBOX_Y + 44, { width: LBOX_W - 12, align: "center" });
     }
 
     doc
@@ -183,7 +188,7 @@ export async function generateInvoicePdfBuffer(
       .font("Helvetica-Bold")
       .fontSize(11)
       .fillColor(HDRSKY)
-      .text(`No.  ${invoice.invoiceNumber}`, 240, 70, { width: MR - 240, align: "right" });
+      .text(`No.  ${printedNumber}`, 240, 70, { width: MR - 240, align: "right" });
     doc
       .font("Helvetica")
       .fontSize(8.5)
@@ -217,12 +222,8 @@ export async function generateInvoicePdfBuffer(
     doc
       .font("Helvetica")
       .fontSize(9)
-      .fillColor(T2)
-      .text("d/b/a NexCort iQ", ML, fromY, { width: C2X - ML - 10 });
-    fromY += 13;
-    doc.text("Columbus, GA 31901", ML, fromY, { width: C2X - ML - 10 });
-    fromY += 13;
-    doc.fillColor(BLUE).text("billing@nexcortiq.us", ML, fromY, { width: C2X - ML - 10 });
+      .fillColor(BLUE)
+      .text("billing@nexcortiq.us", ML, fromY, { width: C2X - ML - 10 });
     fromY += 13;
 
     let billY = INFO_TOP;
@@ -478,7 +479,7 @@ export async function generateInvoicePdfBuffer(
       .text(
         `Payment Terms: ${invoice.paymentTerms ?? "NET 30"} — payment due within ` +
           `${invoice.dueDays ?? 30} days of invoice date. Late payments may incur interest ` +
-          `charges per applicable law. Please reference invoice number ${invoice.invoiceNumber} ` +
+          `charges per applicable law. Please reference invoice number ${printedNumber} ` +
           `on all payments and remittances.`,
         ML,
         ry,
@@ -496,7 +497,7 @@ export async function generateInvoicePdfBuffer(
       .fontSize(8)
       .fillColor(HDRSKY)
       .text(
-        "Apps on Demand LLC  d/b/a NexCort iQ  ·  Columbus, GA 31901  ·  billing@nexcortiq.us  ·  rapidcortex.us",
+        "Apps on Demand LLC  ·  billing@nexcortiq.us  ·  nexcortiq.us",
         0,
         FOOT_Y + 8,
         { width: PW, align: "center" },

@@ -9,7 +9,7 @@ NexCort iQ is a production public safety intelligence platform for:
 - Emergency communications centers
 - Law enforcement, fire, EMS
 - Emergency management agencies
-- Product verticals: Campus Safety, Venue Operations, Hospital Routing, Transit Operations, Call Assist (non-emergency)
+- Product verticals: Campus Safety, Venue Operations, Hospital Routing, Transit Operations, Nexiq (non-emergency)
 
 It enhances operations but does NOT replace CAD, telephony, dispatchers, or medical direction.
 
@@ -83,7 +83,7 @@ Roles are stored as `custom:role` in Cognito JWT tokens. Always use the canonica
 - Canonical JWT values are snake_case (`transit_admin`, …); Cognito groups are `TRANSIT_*`.
 - Ops console: `/app/transit/{admin|supervisor|security|operator}` and `/transit/{code}`.
 
-**Call Assist (non-emergency only — not a 911 dispatcher console):** `CALL_ASSIST_ADMIN` | `CALL_ASSIST_SUPERVISOR` | `CALL_ASSIST_OPERATOR`
+**Nexiq (non-emergency only — not a 911 dispatcher console):** `CALL_ASSIST_ADMIN` | `CALL_ASSIST_SUPERVISOR` | `CALL_ASSIST_OPERATOR`
 - Canonical JWT values are snake_case (`call_assist_admin`, …); Cognito groups are `CALL_ASSIST_*`.
 - Ops console: `/app/call-assist/{admin|supervisor|operator}`. Never land on `/{jurisdiction}/dashboard`.
 

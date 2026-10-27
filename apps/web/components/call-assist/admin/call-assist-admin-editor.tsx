@@ -123,7 +123,7 @@ export function CallAssistAdminEditor() {
 
   if (!user) return null;
   if (!allowed) {
-    return <p className="p-6 text-sm text-rose-300">Call Assist admin is limited to agency administrators.</p>;
+    return <p className="p-6 text-sm text-rose-300">Nexiq admin is limited to agency administrators.</p>;
   }
 
   const config = (configQuery.data?.config ?? runtime?.config ?? {}) as Record<string, unknown>;
@@ -185,13 +185,13 @@ export function CallAssistAdminEditor() {
 
   return (
     <div key={agencyId ?? "none"} className="space-y-4 p-4 md:p-6">
-      <CallAssistChrome title="Call Assist admin" />
+      <CallAssistChrome title="Nexiq admin" />
       <p className="max-w-2xl text-sm text-slate-400">
         Tenant configuration only. Safety Engine emergency transfer cannot be disabled. CAD write-back stays off.
       </p>
       <div className="flex flex-wrap gap-3 text-[12px]">
         <Link className="text-sky-400 hover:underline" href={to("/call-assist/setup?reconfigure=1")}>
-          Reconfigure Call Assist
+          Reconfigure Nexiq
         </Link>
       </div>
       <div className="flex gap-2 text-[12px]">

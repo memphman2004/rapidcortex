@@ -234,7 +234,7 @@ export function isNg911AssistEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_NG911_ASSIST");
 }
 
-/** Call Assist — non-emergency AI call management (ENABLE_CALL_ASSIST). */
+/** Nexiq — non-emergency AI call management (ENABLE_CALL_ASSIST). */
 export function isCallAssistEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CALL_ASSIST");
 }

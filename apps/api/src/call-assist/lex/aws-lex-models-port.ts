@@ -13,10 +13,16 @@ import {
   ListBotLocalesCommand,
   ListIntentsCommand,
   UpdateBotAliasCommand,
+  UpdateBotLocaleCommand,
   UpdateIntentCommand,
   type SampleUtterance,
 } from "@aws-sdk/client-lex-models-v2";
-import { BOT_TEMPLATE_SLOT_TYPES, type CallAssistLocale } from "rapid-cortex-shared";
+import {
+  BOT_TEMPLATE_SLOT_TYPES,
+  novaSonicFoundationModelArn,
+  novaSonicLexVoiceId,
+  type CallAssistLocale,
+} from "rapid-cortex-shared";
 import { env } from "../../lib/env.js";
 import type { LexModelsPort } from "./lex-bot-provisioner.js";
 import { LEX_SPEC_INTENT_ORDER, LEX_SPEC_SLOTS } from "./lex-spec-slots.js";
@@ -135,7 +141,7 @@ async function upsertIntent(
         localeId: locale,
         intentId: existingId,
         intentName,
-        description: `Call Assist ${intentName}`,
+        description: `Nexiq ${intentName}`,
         sampleUtterances: sampleUtterances.length ? sampleUtterances : undefined,
       }),
     );
@@ -148,7 +154,7 @@ async function upsertIntent(
         botVersion: DRAFT,
         localeId: locale,
         intentName,
-        description: `Call Assist ${intentName}`,
+        description: `Nexiq ${intentName}`,
         sampleUtterances: sampleUtterances.length ? sampleUtterances : undefined,
       }),
     );
@@ -221,7 +227,7 @@ export function awsLexModelsPort(): LexModelsPort {
       const out = await lex.send(
         new CreateBotCommand({
           botName: botName.slice(0, 100),
-          description: `NexCort iQ Call Assist bot for ${agencyId}`,
+          description: `Nexiq bot for ${agencyId}`,
           roleArn: roleArn(),
           dataPrivacy: { childDirected: false },
           idleSessionTTLInSeconds: 300,
@@ -231,22 +237,35 @@ export function awsLexModelsPort(): LexModelsPort {
       return { botId: out.botId };
     },
 
-    async createLocale({ botId, locale }) {
-      try {
-        await lex.send(
-          new CreateBotLocaleCommand({
-            botId,
-            botVersion: DRAFT,
-            localeId: locale,
-            nluIntentConfidenceThreshold: 0.4,
-            voiceSettings: {
-              voiceId: locale === "es_US" ? "Lupe" : "Ruth",
-              engine: "neural",
+    async createLocale({ botId, locale, speechToSpeech }) {
+      const novaVoice = speechToSpeech === true ? novaSonicLexVoiceId(locale) : null;
+      const region = env.region || process.env.AWS_REGION || "us-east-1";
+      const voiceSettings = {
+        voiceId: novaVoice === "lupe" ? "Lupe" : novaVoice === "matthew" ? "Matthew" : locale === "es_US" ? "Lupe" : "Ruth",
+        engine: novaVoice ? "generative" : "neural",
+      } as const;
+      const unifiedSpeechSettings = novaVoice
+        ? {
+            speechFoundationModel: {
+              modelArn: novaSonicFoundationModelArn(region),
+              voiceId: novaVoice,
             },
-          }),
-        );
+          }
+        : undefined;
+      const localeInput = {
+        botId,
+        botVersion: DRAFT,
+        localeId: locale,
+        nluIntentConfidenceThreshold: 0.4,
+        voiceSettings,
+        unifiedSpeechSettings,
+      };
+      try {
+        await lex.send(new CreateBotLocaleCommand(localeInput));
       } catch (err) {
         if (!isConflict(err)) throw err;
+        if (!novaVoice) return;
+        await lex.send(new UpdateBotLocaleCommand(localeInput));
       }
     },
 
@@ -288,7 +307,7 @@ export function awsLexModelsPort(): LexModelsPort {
       const out = await lex.send(
         new CreateBotVersionCommand({
           botId,
-          description: `Call Assist publish ${new Date().toISOString()}`,
+          description: `Nexiq publish ${new Date().toISOString()}`,
           botVersionLocaleSpecification,
         }),
       );
@@ -306,7 +325,7 @@ export function awsLexModelsPort(): LexModelsPort {
             botAliasId: existing.botAliasId,
             botAliasName: aliasName,
             botVersion: version,
-            description: `Call Assist live alias for ${agencyId}/${stage}`,
+            description: `Nexiq live alias for ${agencyId}/${stage}`,
           }),
         );
         return { botAliasId: existing.botAliasId };
@@ -316,7 +335,7 @@ export function awsLexModelsPort(): LexModelsPort {
           botId,
           botAliasName: aliasName,
           botVersion: version,
-          description: `Call Assist live alias for ${agencyId}/${stage}`,
+          description: `Nexiq live alias for ${agencyId}/${stage}`,
         }),
       );
       if (!created.botAliasId) throw new Error(`CreateBotAlias returned no id for ${aliasName}`);

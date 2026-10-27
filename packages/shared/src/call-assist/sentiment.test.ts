@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { combineSentiment, mockSentimentFromText, sentimentFromLex } from "./sentiment.js";
 
-describe("Call Assist sentiment", () => {
+describe("Nexiq sentiment", () => {
   it("maps Lex sentiment and prefers the more negative combined score", () => {
     const lex = sentimentFromLex({
       sentiment: "NEUTRAL",

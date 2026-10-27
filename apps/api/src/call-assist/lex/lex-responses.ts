@@ -109,8 +109,16 @@ export function reasonForIntent(intentName: string): TransferReason {
   return "LOW_CONFIDENCE";
 }
 
+/** Nova 2 Sonic speaks plain text. Polly still uses SSML so the name is pronounced Nex-ic. */
+export function speakForEngine(text: string, voiceEngine?: string | null): LexMessage {
+  if (voiceEngine === "NOVA_SONIC") return plain(text);
+  return ssml(text);
+}
+
 export function ssml(text: string): LexMessage {
-  return { contentType: "SSML", content: `<speak>${text}</speak>` };
+  // Same IPA as packages/shared/src/call-assist/product-name.ts — Nex-ic, stress on the first syllable.
+  const spoken = text.replace(/\bNexiq\b/g, `<phoneme alphabet="ipa" ph="ˈnɛksɪk">Nexiq</phoneme>`);
+  return { contentType: "SSML", content: `<speak>${spoken}</speak>` };
 }
 
 const LEX_INTERNAL_NAME =

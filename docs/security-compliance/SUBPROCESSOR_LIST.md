@@ -6,7 +6,7 @@
 
 NexCort iQ is primarily deployed on **Amazon Web Services (us-east-1** by default unless contract specifies otherwise). Customer data is scoped by **`agencyId`** tenant isolation.
 
-This inventory is the AI / communications subprocessor documentation for Call Assist, mapping, STT, and analysis. It is **not** a CJIS certification.
+This inventory is the AI / communications subprocessor documentation for Nexiq, mapping, STT, and analysis. It is **not** a CJIS certification.
 
 ---
 
@@ -22,13 +22,13 @@ This inventory is the AI / communications subprocessor documentation for Call As
 
 | Subprocessor | Purpose | Data categories | Region / notes |
 |--------------|---------|-----------------|----------------|
-| **Amazon Bedrock** | Incident analysis, Call Assist intent fallback, triage, summarization | Transcript excerpts, incident metadata (minimized via `sanitizeForProvider`) | AWS region of Bedrock endpoint |
-| **Amazon Lex V2** | Call Assist NLU / slot filling on Amazon Connect | Caller utterances, session attributes (agencyId, callId) | AWS |
+| **Amazon Bedrock** | Incident analysis, Nexiq intent fallback, triage, summarization | Transcript excerpts, incident metadata (minimized via `sanitizeForProvider`) | AWS region of Bedrock endpoint |
+| **Amazon Lex V2** | Nexiq NLU / slot filling on Amazon Connect | Caller utterances, session attributes (agencyId, callId) | AWS |
 | **Amazon Connect** | Live telephony (ANI, optional ALI attributes, media, queue transfer) | Call audio, ANI, contact attributes | AWS; RC does not operate a 911 SIP switch |
 | **Amazon Transcribe** | Speech-to-text | Audio / stream metadata | AWS |
 | **Amazon Translate** | Text translation | Transcript text | AWS |
 | **Amazon Comprehend** | Language detection / NLP tiers | Transcript text | AWS |
-| **Amazon Polly** | Call Assist / Connect TTS | Prompt text (no CAD payload) | AWS |
+| **Amazon Polly** | Nexiq / Connect TTS | Prompt text (no CAD payload) | AWS |
 
 Optional (only if secret ARNs configured — **off** in CJIS-sensitive posture):
 
@@ -41,7 +41,7 @@ Optional (only if secret ARNs configured — **off** in CJIS-sensitive posture):
 
 Disable external keys by leaving ARNs unset — see [DEPLOYMENT_MULTILINGUAL_AWS.md](../deployment-infrastructure/DEPLOYMENT_MULTILINGUAL_AWS.md) and [CJIS_ALIGNMENT_NOTES.md](./CJIS_ALIGNMENT_NOTES.md). CJIS-sensitive tenants must stay on AWS-only AI (Bedrock / Lex / Transcribe / Translate) with provider allowlists.
 
-Call Assist knowledge answers are grounded on the **agency knowledge base in DynamoDB** (`KB#` items). The model must not invent hours, fines, or medical advice without a knowledge hit (`assertGroundedReply` / `groundedKnowledgeReply`).
+Nexiq knowledge answers are grounded on the **agency knowledge base in DynamoDB** (`KB#` items). The model must not invent hours, fines, or medical advice without a knowledge hit (`assertGroundedReply` / `groundedKnowledgeReply`).
 
 ---
 
@@ -111,7 +111,7 @@ Agencies remain responsible for:
 | Version | Date | Change |
 |---------|------|--------|
 | 0.3 | 2026-09-19 | Pre-window review: Twilio, Wyze, Nest SDM, NexiQ GTM vendors; 36 live secret *names* checked |
-| 0.2 | 2026-09-08 | Current AI/comms inventory: Connect, Lex, Polly, Location Service, Bedrock minimization, Call Assist KB grounding |
+| 0.2 | 2026-09-08 | Current AI/comms inventory: Connect, Lex, Polly, Location Service, Bedrock minimization, Nexiq KB grounding |
 | 0.1 | 2026-07-09 | Initial draft from `infra/template.yaml` and provider docs |
 
 **Contact:** security review requests — use agency contract channel or `privacy@nexcortiq.us` for privacy-specific questions.

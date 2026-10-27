@@ -244,7 +244,7 @@ Return a JSON object matching this schema (no markdown, no explanation):
   "incumbentVendor": { "value": string|null, "source": "..." },
   "technologyMentioned": { "value": string[]|null, "source": "..." },
   "competitorsMentioned": { "value": string[]|null, "source": "..." },
-  "relevantNxqCapabilities": { "value": string[]|null, "source": "...", "comment": "NexCortiQ capabilities: Call Assist (AI 911 call handling), iQ Vision (AI scene intelligence), RC Translate (real-time translation), RC Guest Assist (QR/NFC citizen reporting), CAD-to-CAD Hub (interoperability)" },
+  "relevantNxqCapabilities": { "value": string[]|null, "source": "...", "comment": "NexCortiQ capabilities: Nexiq (non-emergency city-service calls), iQ Vision (AI scene intelligence), RC Translate (real-time translation), RC Guest Assist (QR/NFC citizen reporting), CAD-to-CAD Hub (interoperability)" },
   "geographicLocation": { "value": string|null, "source": "..." },
   "state": { "value": "two-letter state code"|null, "source": "..." }
 }`;

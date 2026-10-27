@@ -1,4 +1,4 @@
-# Call Assist — Production Readiness
+# Nexiq — Production Readiness
 
 Non-emergency AI call management (Lex V2 ↔ Amazon Connect). Does **not** replace 911/PSAP CAD or live emergency dispatch.
 
@@ -9,9 +9,9 @@ Non-emergency AI call management (Lex V2 ↔ Amazon Connect). Does **not** repla
 | Item | How |
 |------|-----|
 | Connect instance | `CONNECT_INSTANCE_ID` (env + CFN `ConnectInstanceId`) |
-| Contact flow | `CALL_ASSIST_CONTACT_FLOW_ID` — flow named `Call Assist` from `scripts/configure-call-assist-connect.sh` |
+| Contact flow | `CALL_ASSIST_CONTACT_FLOW_ID` — flow named `Nexiq` from `scripts/configure-call-assist-connect.sh` |
 | Primary queue | `CALL_ASSIST_PRIMARY_QUEUE_ARN` (Demo Dispatcher) |
-| Emergency queue | `CALL_ASSIST_EMERGENCY_QUEUE_ARN` (Call Assist Emergency) |
+| Emergency queue | `CALL_ASSIST_EMERGENCY_QUEUE_ARN` (Nexiq Emergency) |
 | Outbound DID | `CALL_ASSIST_OUTBOUND_CALLER_ID` (claimed Connect number, E.164) |
 | Webhook secret | `CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN` |
 | Lex bot role + fulfillment | `CALL_ASSIST_LEX_BOT_ROLE_ARN`, `CALL_ASSIST_FULFILLMENT_LAMBDA_ARN` from Lex stack |
@@ -52,7 +52,7 @@ bash scripts/deploy.sh dev
 
 ### Smoke test (live DID)
 
-1. Dial the claimed Call Assist DID (not a 911 number).
+1. Dial the claimed Nexiq DID (not a 911 number).
 2. Greeting + disclosure delivered; Lex slots collect intake.
 3. Barge-in mid-prompt resumes next slot; audit shows `call_assist.barge_in`.
 4. Operator **Take over** / **Force 911 queue** on live session → Connect transfer OK (not advisory).
@@ -62,5 +62,5 @@ bash scripts/deploy.sh dev
 ### Explicit non-goals
 
 - Not a 911 PSAP console; no live CAD write-back without signed addendum.
-- Hospital/venue/campus roles are excluded from Call Assist product routes.
+- Hospital/venue/campus roles are excluded from Nexiq product routes.
 - RapidSOS is optional and not required for KCPD RFP line items marked N/A.

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { addressConfidenceFromGeocode, assignCallAssistZone, jurisdictionHint } from "./gis.js";
 
-describe("Call Assist GIS", () => {
+describe("Nexiq GIS", () => {
   const downtown: Array<[number, number]> = [
     [-94.6, 39.08],
     [-94.55, 39.08],

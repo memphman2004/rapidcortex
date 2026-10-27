@@ -99,7 +99,7 @@ describe("311 SMS message formatter", () => {
     expect(splitIntoSegments(welcome)).toEqual([welcome]);
   });
 
-  it("extracts Call Assist confirmation numbers", () => {
+  it("extracts Nexiq confirmation numbers", () => {
     expect(extractConfirmationFromText("Your report number is KC-1001-7M4R.")).toBe("KC-1001-7M4R");
   });
 

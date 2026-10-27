@@ -16,7 +16,7 @@ export const VERTICAL_CONFIG: Record<
   venue: { label: "Venue", color: "#F97316", bg: "rgba(249,115,22,0.15)" },
   hospital: { label: "RC Hospital", color: "#14B8A6", bg: "rgba(20,184,166,0.15)" },
   transit: { label: "RC Transit", color: "#818CF8", bg: "rgba(129,140,248,0.15)" },
-  call_assist: { label: "Call Assist", color: "#14B8A6", bg: "rgba(20,184,166,0.15)" },
+  call_assist: { label: "Nexiq", color: "#14B8A6", bg: "rgba(20,184,166,0.15)" },
 };
 
 /** `data-vertical` attribute values that remap shell accents in `globals.css`. */

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CALL_ASSIST_CAD_CREATE_PATH, cadVendorBody } from "./vendor-live-submit.js";
 
-describe("Call Assist CAD vendor live submit", () => {
+describe("Nexiq CAD vendor live submit", () => {
   it("uses the same create paths as the integrations CAD adapters", () => {
     expect(CALL_ASSIST_CAD_CREATE_PATH["motorola-premierone"]).toBe("/api/v1/incidents");
     expect(CALL_ASSIST_CAD_CREATE_PATH["tyler-new-world"]).toBe("/api/cad/incidents");

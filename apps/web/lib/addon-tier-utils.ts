@@ -70,8 +70,11 @@ export function activeTierKeyInFamily(
   plan: string,
   isIncluded: (def: AddonDefinition, plan: string) => boolean,
 ): AddonKey | "" {
-  for (const def of variants) {
-    if (addons[def.key]?.enabled) return def.key;
+  const explicitlyEnabled = variants.filter((def) => addons[def.key]?.enabled);
+  if (explicitlyEnabled.length > 0) {
+    const paid = explicitlyEnabled.filter((def) => !isIncluded(def, plan));
+    const pool = paid.length > 0 ? paid : explicitlyEnabled;
+    return pool[pool.length - 1]!.key;
   }
   for (const def of variants) {
     const state = addons[def.key];

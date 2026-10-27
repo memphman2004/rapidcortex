@@ -50,7 +50,7 @@ const CALL_ASSIST_ASSIGNABLE_ROLE_SCHEMA = z.enum(
 
 /**
  * Roles accepted by admin create/update user APIs.
- * Includes PSAP assignable roles, campus/transit/Call Assist Cognito group tokens, and canonical JWT roles.
+ * Includes PSAP assignable roles, campus/transit/Nexiq Cognito group tokens, and canonical JWT roles.
  */
 export const ADMIN_PROVISION_ROLE_SCHEMA = z.union([
   AGENCY_ROLE_SCHEMA,

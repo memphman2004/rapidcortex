@@ -141,6 +141,18 @@ export type CallAssistTenantConfig = {
   transcribeVocabularyStatus?: string;
   aiDisclosureRequired?: boolean;
   onboardingStatus?: string;
+  /**
+   * Surge mode keeps non-urgent reports on Nexiq instead of the human queue.
+   * Emergencies and callers who ask for a person still transfer.
+   */
+  surgeMode?: boolean;
+  /** Off until an admin turns Nova 2.5 Sonic on. Unset stays on Lex/Polly. */
+  novaSonicEnabled?: boolean;
+  novaSonicVoiceId?: string;
+  /** Always true. Lex remains available when Nova cannot take the audio. */
+  novaSonicFallbackToLex?: true;
+  /** Appended under the Nexiq identity block. Cannot rename the assistant. */
+  systemPromptAppend?: string;
   callAssistGreeting?: CallAssistGreetingConfig;
   onboardingSteps?: Array<{
     step: string;

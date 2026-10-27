@@ -24,7 +24,7 @@ function loadMergedSpec(): CanonicalBotSpec {
   return mergeLexLocaleCopy(spec, copy);
 }
 
-describe("Call Assist universal bot template", () => {
+describe("Nexiq universal bot template", () => {
   it("maps all 20 canonical intents and contains no agency copy", () => {
     const spec = loadMergedSpec();
     const intents = intentsFromCanonicalSpec(spec);

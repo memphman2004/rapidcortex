@@ -39,6 +39,17 @@ describe("GetAgencyConfigForNumber Connect start", () => {
     expect(result.ani).toBe("+18165550100");
     expect(result.language).not.toBe("es");
     expect(result.language).not.toBe("en");
+    expect(result.greetingText.startsWith("Thank you for calling the city's non-emergency line. I'm Nexiq")).toBe(true);
+    expect(result.voiceEngine).toBe("LEX_POLLY");
+    const nova = buildConnectStartResult({
+      agencyId: "springfield",
+      locale: "en-US",
+      config: { ...config, novaSonicEnabled: true },
+      identity: { ani: "+18165550100", aliAddress: "4200 Main", apartmentSuite: "4B" },
+      agencyShortName: "Springfield PD",
+    });
+    expect(nova.voiceEngine).toBe("NOVA_SONIC");
+    expect(nova.novaSonicModelId).toBe("amazon.nova-2-5-sonic");
   });
 
   it("prefers an event locale over the tenant default", () => {

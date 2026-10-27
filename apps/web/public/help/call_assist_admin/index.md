@@ -1,6 +1,6 @@
-# Call Assist Admin Overview
+# Nexiq Admin Overview
 
-Admin configures **bots, knowledge, users, records, and demo runners** for non-emergency Call Assist. CAD write-back stays fail-closed.
+Admin configures **bots, knowledge, users, records, and demo runners** for non-emergency Nexiq. CAD write-back stays fail-closed.
 
 ## Admin home
 

@@ -7,7 +7,7 @@ This plan translates the CJIS gap audit into implementation workstreams. It is a
 - **Implemented:** fail-closed unauthenticated API bypass (`ALLOW_UNAUTHENTICATED_API` throws outside local/dev).
 - **Implemented:** backend active-status enforcement for authenticated API users (`custom:status=active` required by handlers; inactive/missing returns `403` with `User account is not active.`).
 - **Implemented:** CloudTrail multi-region trail with S3 Object Lock COMPLIANCE, log-file validation, and Deny-delete bucket policy (`infra/nested/stack-app-sam.yaml`).
-- **Implemented:** retention executor for incident/transcript/analysis/media plus Call Assist session purge; legal-hold ConditionExpression on deletes.
+- **Implemented:** retention executor for incident/transcript/analysis/media plus Nexiq session purge; legal-hold ConditionExpression on deletes.
 - **Implemented:** AI/comms subprocessor inventory (Connect, Lex, Bedrock, Transcribe) in `docs/security-compliance/SUBPROCESSOR_LIST.md`.
 - **Implemented:** backend active-status enforcement for authenticated API users (`custom:status=active` required by handlers; inactive/missing returns `403` with `User account is not active.`).
 - **Implemented:** strict web security headers in Next.js (`CSP`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `COOP`, production `HSTS`).

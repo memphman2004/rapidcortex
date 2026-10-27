@@ -66,7 +66,8 @@ export async function sendConfirmationSms(opts: {
   const message =
     `Your ${opts.agencyDisplayName} non-emergency report has been received.\n` +
     `Confirmation: ${opts.confirmationNumber}\n` +
-    `Reference this number if you call back with updates.`;
+    `Reference this number if you call back with updates.\n` +
+    `How did this go? Reply 1 to 5.`;
   const smsEnv = await buildSmsFactoryEnvForAgency(opts.agencyId);
   await sendIncidentMediaLinkSms(smsEnv, {
     toPhoneE164: phone,
@@ -222,7 +223,7 @@ export async function finalizeCallAssistIntake(opts: {
     await deliverNotifySms(
       opts.agencyId,
       route.destination.notifyPhones,
-      `Call Assist ${confirmationNumber} → ${route.departmentId}: ${incidentType ?? "intake"}`,
+      `Nexiq ${confirmationNumber} → ${route.departmentId}: ${incidentType ?? "intake"}`,
       session.sessionId,
     );
   }

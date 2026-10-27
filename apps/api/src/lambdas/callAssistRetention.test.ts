@@ -36,7 +36,7 @@ vi.mock("../lib/env.js", async (importOriginal) => {
 
 import { processCallAssistRetentionPass } from "./callAssistRetention.js";
 
-describe("Call Assist retention executor", () => {
+describe("Nexiq retention executor", () => {
   beforeEach(() => {
     listTenantConfigs.mockReset();
     listSessions.mockReset();

@@ -96,7 +96,7 @@ describe("allowedRoutePrefixesForRole", () => {
     expect(allowedRoutePrefixesForRole("transit_admin")).toEqual(["/app/transit", "/transit"]);
   });
 
-  it("scopes Call Assist roles to the product shell", () => {
+  it("scopes Nexiq roles to the product shell", () => {
     expect(allowedRoutePrefixesForRole("call_assist_operator")).toEqual(["/app/call-assist"]);
   });
 

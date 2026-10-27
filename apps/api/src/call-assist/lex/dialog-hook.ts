@@ -9,10 +9,13 @@ import {
   extractIntakeFields,
   formatTtySms,
   groundedKnowledgeReply,
+  isLocationSlot,
   lexLocaleToCallLanguage,
+  locationReadback,
   mergeIntakeFromLexSlots,
   resolveAgencyTaxonomy,
   shouldTryBedrockFallback,
+  surgeCompletesInsteadOfTransfer,
   spokenCorrectionAck,
   topKnowledgeHit,
   vehicleDescriptionSatisfied,
@@ -51,7 +54,7 @@ import {
   delegateResponse,
   elicitSlotResponse,
   plain,
-  ssml,
+  speakForEngine,
 } from "./lex-responses.js";
 import { agencyShortName, transferPrompt } from "./prompts.js";
 import { handleFulfillment } from "./fulfillment-hook.js";
@@ -129,7 +132,7 @@ export async function handleDialog(
   const now = new Date().toISOString();
 
   const config = agencyId ? await deps.getConfig(agencyId).catch(() => null) : null;
-  const shortName = config ? agencyShortName(config) : "Call Assist";
+  const shortName = config ? agencyShortName(config) : "Nexiq";
   const thresholds = config?.confidenceThresholds;
 
   let greetingPrefix: string | null = null;
@@ -251,7 +254,7 @@ export async function handleDialog(
         REQUEST_HUMAN_INTENT,
         utterance || "caller requested a person",
         { ...sessionAttrs, agencyId, callId, classification: REQUEST_HUMAN_INTENT, transcript },
-        [smsChannel ? plain(humanSpoken) : ssml(humanSpoken)],
+        [smsChannel ? plain(humanSpoken) : speakForEngine(humanSpoken, sessionAttrs.voiceEngine)],
         "HUMAN_REQUEST",
       );
     }
@@ -324,10 +327,14 @@ export async function handleDialog(
 
   // SMS 311 intake: never abandon mid-report for low Lex confidence — keep eliciting.
   const is311Intent = Boolean(LEX_311_INTENT_MAP[activeIntent]);
+  const surgeKeepsReport = surgeCompletesInsteadOfTransfer({
+    surgeMode: tenant.surgeMode === true,
+    reason: "LOW_CONFIDENCE",
+  });
   const escalateForConfidence =
-    decision.action === "escalate_human" && !(smsChannel && is311Intent);
+    decision.action === "escalate_human" && !(smsChannel && is311Intent) && !surgeKeepsReport;
 
-  if (escalateForConfidence || activeIntent === FALLBACK_INTENT) {
+  if ((escalateForConfidence || activeIntent === FALLBACK_INTENT) && !surgeKeepsReport) {
     await persistTurn(deps, agencyId, callId, {
       decision,
       utterance,
@@ -350,7 +357,7 @@ export async function handleDialog(
         confidenceAction: decision.action,
         confidenceSource,
       },
-      [smsChannel ? plain(fallbackSpoken) : ssml(fallbackSpoken)],
+      [smsChannel ? plain(fallbackSpoken) : speakForEngine(fallbackSpoken, sessionAttrs.voiceEngine)],
       "LOW_CONFIDENCE",
     );
   }
@@ -420,7 +427,13 @@ export async function handleDialog(
         knowledgeHit: false,
         qaLowConfidence: true,
       });
-      return closeTransferResponse(FALLBACK_INTENT, utterance, updatedAttrs, [ssml(kb.spoken)], "LOW_CONFIDENCE");
+      return closeTransferResponse(
+        FALLBACK_INTENT,
+        utterance,
+        updatedAttrs,
+        [speakForEngine(kb.spoken, sessionAttrs.voiceEngine)],
+        "LOW_CONFIDENCE",
+      );
     }
     if (kb.kind === "answer") {
       updatedAttrs.knowledgeHit = "true";
@@ -452,8 +465,11 @@ export async function handleDialog(
         question: humanQuestionForSlot(activeIntent, missingSlotId),
       } as const);
     const spokenBase = tty.ttyMode ? formatTtySms(next.question) : next.question;
-    const spoken =
-      correctionAck && !tty.ttyMode ? `${correctionAck} ${spokenBase}` : spokenBase;
+    const readback =
+      !tty.ttyMode && isLocationSlot(prompted)
+        ? locationReadback(slotInterpretedValue(currentSlots[prompted ?? ""]))
+        : null;
+    const spoken = [!tty.ttyMode ? correctionAck : "", readback, spokenBase].filter(Boolean).join(" ");
     if (tty.smsFallbackRecommended) updatedAttrs.ttySmsScript = formatTtySms(next.question);
     updatedAttrs.promptSlot = next.slotToElicit;
     const slotMessage = tty.ttyMode ? plain(spoken) : plain(spoken);

@@ -1,4 +1,4 @@
-# NexCort iQ Call Assist — Architecture Overview  
+# Nexiq — Architecture Overview  
 ## Kansas City Missouri Police Department  
 ### RFP 2026-0010 Addendum 4 — Attachment
 
@@ -12,7 +12,7 @@ Use the diagrams below in the proposal (export to PNG/PDF). Narrative text may b
 
 ## 1. One-paragraph summary
 
-Citizens dial KCPD’s **designated non-emergency** number. KCPD telephony (SIP/PSTN) delivers the call into **Amazon Connect**, which runs a Call Assist contact flow (language menu, AI disclosure, Lex bot). **Amazon Lex** plus NexCort iQ safety/intake services perform conversational triage. Outcomes are: **contain** (self-service / FAQ), **warm-transfer** to city services (311 / Parks / Water), or **immediate transfer** to a live call taker when emergency, distress, or low confidence is detected. Supervisors use the NexCort iQ web console for QA and analytics. **Motorola PremierOne** remains the CAD system of record; incident packets are human-reviewed and **fail-closed** until KCPD authorizes write-back.
+Citizens dial KCPD’s **designated non-emergency** number. KCPD telephony (SIP/PSTN) delivers the call into **Amazon Connect**, which runs a Nexiq contact flow (language menu, AI disclosure, Lex bot). **Amazon Lex** plus NexCort iQ safety/intake services perform conversational triage. Outcomes are: **contain** (self-service / FAQ), **warm-transfer** to city services (311 / Parks / Water), or **immediate transfer** to a live call taker when emergency, distress, or low confidence is detected. Supervisors use the NexCort iQ web console for QA and analytics. **Motorola PremierOne** remains the CAD system of record; incident packets are human-reviewed and **fail-closed** until KCPD authorizes write-back.
 
 ---
 
@@ -33,7 +33,7 @@ flowchart LR
   subgraph AWS["NexCort iQ — AWS us-east-1 Multi-AZ"]
     Connect[Amazon Connect]
     Lex[Amazon Lex V2]
-    API[Call Assist API / Lambdas]
+    API[Nexiq API / Lambdas]
     Web[Web console<br/>ops · QA · admin]
     Data[(DynamoDB + S3<br/>sessions · audit · media)]
   end
@@ -76,7 +76,7 @@ sequenceDiagram
   participant Tel as KCPD non-emergency telephony
   participant Connect as Amazon Connect
   participant Lex as Lex + Safety Engine
-  participant API as Call Assist services
+  participant API as Nexiq services
   participant KB as Knowledge / intake
   participant Human as Live call taker
   participant CAD as PremierOne (review packet)
@@ -112,7 +112,7 @@ flowchart TB
     TTS[Amazon Polly Neural<br/>EN Ruth · ES Lupe]
   end
 
-  subgraph Brain["Call Assist intelligence"]
+  subgraph Brain["Nexiq intelligence"]
     LexBot[Lex V2 bot<br/>EmergencyEscalation · RequestHuman immutable]
     Safety[Safety Engine<br/>weapons / mid-call emergency hard stop]
     Triage[Triage + taxonomy<br/>13 RFP classes]
@@ -122,7 +122,7 @@ flowchart TB
   end
 
   subgraph Ops["Operator surfaces"]
-    Board[Call Assist live board]
+    Board[Nexiq live board]
     Session[Session detail · transcript · CAD card]
     QA[Supervisor QA]
     Analytics[Analytics]
@@ -130,7 +130,7 @@ flowchart TB
   end
 
   subgraph Integration["Integrations — gated"]
-    CadGate{Dual fail-closed<br/>CAD_WRITEBACK + Call Assist push}
+    CadGate{Dual fail-closed<br/>CAD_WRITEBACK + Nexiq push}
     CadAdapters[CAD adapters<br/>PremierOne first · multi-CAD ready]
     RmsGate[RMS draft fail-closed]
     Gis[GIS enrichment<br/>when KCPD endpoints provided]
@@ -197,7 +197,7 @@ stateDiagram-v2
 2. Keep §4–§6 as an appendix if page count allows.  
 3. Caption suggestion:
 
-> **Figure A.** NexCort iQ Call Assist attaches to KCPD’s non-emergency telephony via Amazon Connect. AI triage runs in AWS; emergencies transfer to live call takers; CAD remains system of record with fail-closed write-back.
+> **Figure A.** Nexiq attaches to KCPD’s non-emergency telephony via Amazon Connect. AI triage runs in AWS; emergencies transfer to live call takers; CAD remains system of record with fail-closed write-back.
 
 **Render tip (from repo root):**
 

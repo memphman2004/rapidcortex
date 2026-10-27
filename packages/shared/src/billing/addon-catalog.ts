@@ -1247,8 +1247,8 @@ export const ADDON_CATALOG: AddonDefinition[] = [
 
   withLegacyIncludedInPlans({
     key: "call_assist.module",
-    name: "Call Assist — Non-Emergency AI Call Management",
-    category: "Call Assist",
+    name: "Nexiq — Non-Emergency AI Call Management",
+    category: "Nexiq",
     description:
       "AI-assisted non-emergency answering, intake, triage, warm transfer, and supervisor monitor. Emergency 911 handling is never in scope — Safety Engine transfers immediately.",
     billingType: "monthly",
@@ -1259,8 +1259,8 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "call_assist.cad_integration",
-    name: "Call Assist CAD Push Integration",
-    category: "Call Assist",
+    name: "Nexiq CAD Push Integration",
+    category: "Nexiq",
     description:
       "Human-reviewed CAD push via CADProvider (Motorola PremierOne first). Dual fail-closed with platform CAD write-back.",
     billingType: "monthly",
@@ -1271,8 +1271,8 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "call_assist.rms_integration",
-    name: "Call Assist RMS Draft Integration",
-    category: "Call Assist",
+    name: "Nexiq RMS Draft Integration",
+    category: "Nexiq",
     description: "Human-reviewed RMS report drafts. Live Records filing stays fail-closed until validated.",
     billingType: "monthly",
     monthlyPrice: 1500,
@@ -1282,8 +1282,8 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "call_assist.tty_accommodation",
-    name: "Call Assist TTY/TDD Routing",
-    category: "Call Assist",
+    name: "Nexiq TTY/TDD Routing",
+    category: "Nexiq",
     description: "TTY/TDD detection from telephony attributes with SMS fallback routing.",
     billingType: "monthly",
     monthlyPrice: 500,
@@ -1293,8 +1293,8 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "call_assist.external_routing",
-    name: "Call Assist External Agency Transfer Routing",
-    category: "Call Assist",
+    name: "Nexiq External Agency Transfer Routing",
+    category: "Nexiq",
     description: "Warm-transfer to 311, parks, water, and other external agencies with a spoken summary.",
     billingType: "monthly",
     monthlyPrice: 750,
@@ -1304,8 +1304,8 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "call_assist.demo_runner",
-    name: "Call Assist Evaluation Demo Runner",
-    category: "Call Assist",
+    name: "Nexiq Evaluation Demo Runner",
+    category: "Nexiq",
     description: "Seeded scenario library executed against the live Safety/Triage/Intake pipeline.",
     billingType: "monthly",
     monthlyPrice: 0,
@@ -1508,7 +1508,7 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     name: "Command Intelligence",
     category: "Communications Intelligence",
     description:
-      "Communications operations intelligence for supervisors and command staff — call volume, Call Assist containment, translation breakdown, repeat locations, and drill-down. Distinct from Incident Command Dashboard.",
+      "Communications operations intelligence for supervisors and command staff — call volume, Nexiq containment, translation breakdown, repeat locations, and drill-down. Distinct from Incident Command Dashboard.",
     billingType: "monthly",
     monthlyPrice: 1500,
     oneTimePrice: 0,

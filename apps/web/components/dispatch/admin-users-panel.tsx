@@ -117,7 +117,7 @@ export function AdminUsersPanel() {
         </p>
         <p className="mt-2 text-xs leading-relaxed text-slate-500">
           {isCallAssistProductRole(sessionUser?.role)
-            ? "Call Assist administrators can invite Call Assist Admin, Supervisor, and Operator accounts for this tenant only. These roles never land on the 911 dispatcher console."
+            ? "Nexiq administrators can invite Nexiq Admin, Supervisor, and Operator accounts for this tenant only. These roles never land on the 911 dispatcher console."
             : "Agency administrators can assign Dispatcher, Supervisor, Agency Admin, or Agency IT roles only within their own agency. Only NexCort iQ Super Admin may assign NexCort Admin roles when editing users in the directory below. Invite/create above is agency-role only. Auditor and Analyst accounts are provisioned by NexCort iQ support."}{" "}
           <span className="font-medium text-slate-400">Re-enabling</span> a deactivated account is not
           in this UI — contact NexCort iQ support.

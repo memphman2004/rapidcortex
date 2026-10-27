@@ -170,7 +170,7 @@ export class AnalysisService {
         input.systemPrompt = pack.body;
         if (pack.versionLabel) cfg = { ...cfg, promptVersion: pack.versionLabel };
       } catch {
-        // Call Assist CMS is optional on analysis Lambdas without CALL_ASSIST_TABLE.
+        // Nexiq CMS is optional on analysis Lambdas without CALL_ASSIST_TABLE.
       }
     }
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computeCallAssistAnalytics, isContained, peakConcurrent } from "./analytics-suite.js";
 
-describe("Call Assist analytics", () => {
+describe("Nexiq analytics", () => {
   it("computes AHT, containment, abandonment, CSAT, and diversion", () => {
     const dash = computeCallAssistAnalytics({
       nowMs: Date.parse("2026-01-08T00:00:00.000Z"),

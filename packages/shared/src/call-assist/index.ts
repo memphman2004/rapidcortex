@@ -43,3 +43,8 @@ export * from "./voice-emotion.js";
 export * from "./sentiment.js";
 export * from "./transfer-ledger.js";
 export * from "./speaker-diarization.js";
+export * from "./nexiq-identity.js";
+export * from "./nova-sonic.js";
+export * from "./location-readback.js";
+export * from "./surge-mode.js";
+export * from "./caller-survey.js";

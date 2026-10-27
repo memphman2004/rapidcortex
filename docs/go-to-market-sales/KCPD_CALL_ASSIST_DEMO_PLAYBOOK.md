@@ -1,8 +1,8 @@
-# KCPD live demo playbook — Call Assist
+# KCPD live demo playbook — Nexiq
 
 **RFP:** 2026-0010 Addendum 4 — AI-Assisted Non-Emergency Call Management (Kansas City Missouri Police Department PSAP)  
 **Audience:** staff, commanders, and possibly the Chief — in the room **or over video** (see §2b)  
-**Product:** NexCort iQ **Call Assist** (non-emergency line). Not 911 CPE. Not CAD. Not RapidSOS.  
+**Product:** NexCort iQ **Nexiq** (non-emergency line). Not 911 CPE. Not CAD. Not RapidSOS.  
 **KCPD told vendors to show:** system overview · multiple mock calls · language translation · non-emergency → emergency recognition and transfer · transcript accuracy · call-class accuracy · incident-type accuracy  
 
 They score: **accuracy, escalation decisions, CAD integration, caller experience, supervisor oversight.**
@@ -13,7 +13,7 @@ Replace `{jurisdiction}` with the live KCPD tenant slug in the URL after login (
 
 ## 0. What you are selling in one sentence
 
-> Call Assist sits on the **non-emergency line**. It answers routine calls with conversational AI, gathers intake, classifies the call, and either **contains** it, **routes it to 311 / Parks / Water**, or **immediately hands it to a live call taker** — including when a “non-emergency” caller discloses an emergency mid-call. **Telecommunicators stay in command. CAD stays the system of record.**
+> Nexiq sits on the **non-emergency line**. It answers routine calls with conversational AI, gathers intake, classifies the call, and either **contains** it, **routes it to 311 / Parks / Water**, or **immediately hands it to a live call taker** — including when a “non-emergency” caller discloses an emergency mid-call. **Telecommunicators stay in command. CAD stays the system of record.**
 
 Do **not** say we replace 911, PremierOne, or RapidSOS. Bid line 12 (RapidSOS) was **removed** — RapidSOS is 911 only.
 
@@ -24,7 +24,7 @@ Do **not** say we replace 911, PremierOne, or RapidSOS. Bid line 12 (RapidSOS) w
 | Check | Why |
 |---|---|
 | Two browsers or two users: **dispatcher** and **supervisor** (plus **agencyadmin** if you will run the demo runner) | Demo runner is admin-only; QA/analytics are supervisor+ |
-| `{jurisdiction}/call-assist` loads with open sessions, not a 404 | Call Assist routes must be live |
+| `{jurisdiction}/call-assist` loads with open sessions, not a 404 | Nexiq routes must be live |
 | API demo mode on if you will use **Run scenario** (`ENABLE_CALL_ASSIST_DEMO_MODE`) | Demo emergency transfers go to the **tenant test destination**, never live 911 |
 | CAD write-back **off** unless the addendum is signed | Show **CAD push ready — review before sending**. Do not auto-write PremierOne |
 | Knowledge articles + 311 / Parks / Water routes enabled on the KCPD tenant | Out-of-agency transfer is an explicit RFP requirement |
@@ -87,7 +87,7 @@ The product story does **not** change. The **method** does. Live Connect/Lex is 
 
 | Min | Block | On screen (share this window) |
 |---:|---|---|
-| 0–3 | Frame (camera on) | Call Assist **board** already visible behind you |
+| 0–3 | Frame (camera on) | Nexiq **board** already visible behind you |
 | 3–8 | Call 1 parking | Demo runner → Run → switch share to **board** → open session |
 | 8–13 | Call 2 Spanish | Same pattern. Zoom the language chip + transcript |
 | 13–20 | Call 3 gun | Same. Full-screen the **escalation** state. Pause 3 seconds. |
@@ -135,15 +135,15 @@ All paths are under the **dispatcher / supervisor** left nav unless noted.
 
 | Screen | Nav | URL |
 |---|---|---|
-| Call Assist live board | OPERATIONS → **Call Assist** | `/{jurisdiction}/call-assist` |
+| Nexiq live board | OPERATIONS → **Nexiq** | `/{jurisdiction}/call-assist` |
 | One call | Click a session row | `/{jurisdiction}/call-assist/sessions/{sessionId}` |
-| Scripted mock calls | Sign in as **agencyadmin** → Call Assist → demo (or paste URL) | `/{jurisdiction}/call-assist/demo` |
+| Scripted mock calls | Sign in as **agencyadmin** → Nexiq → demo (or paste URL) | `/{jurisdiction}/call-assist/demo` |
 | Live 911 workspace (contrast only) | OPERATIONS → **Dispatcher** | `/{jurisdiction}/dispatcher` |
 | Translate | OPERATIONS → **Translate** | `/{jurisdiction}/translate` |
 | CAD review queue | Supervisor → **CAD Queue** (only if write-back UI is on) | `/{jurisdiction}/review` |
-| Call Assist QA | SUPERVISOR → **Call Assist QA** | `/{jurisdiction}/call-assist/qa` |
-| Analytics | SUPERVISOR → **Call Assist Analytics** | `/{jurisdiction}/call-assist/analytics` |
-| Admin / prompts / FAQ / routing | Agency admin → Call Assist (or `…/call-assist/admin`) | `/{jurisdiction}/call-assist/admin` |
+| Nexiq QA | SUPERVISOR → **Nexiq QA** | `/{jurisdiction}/call-assist/qa` |
+| Analytics | SUPERVISOR → **Nexiq Analytics** | `/{jurisdiction}/call-assist/analytics` |
+| Admin / prompts / FAQ / routing | Agency admin → Nexiq (or `…/call-assist/admin`) | `/{jurisdiction}/call-assist/admin` |
 | Sunshine / public records | `…/call-assist/records` | `/{jurisdiction}/call-assist/records` |
 
 **Two ways to run mock calls**
@@ -160,7 +160,7 @@ Do not run 911 cardiac / fire scenarios from Scenario Center. Wrong product.
 **Say this, then stop talking:**
 
 1. KCPD handles on the order of **450,000 non-emergency calls a year** (~1,200/day). This product is for **that** queue, not 911.
-2. Call Assist **augments** call takers. It does not sit in the 911 chair.
+2. Nexiq **augments** call takers. It does not sit in the 911 chair.
 3. Three outcomes only: **AI contains** · **warm-transfer to city services** · **immediate human** (low confidence, distress, or emergency language).
 4. CAD: we **recommend** PremierOne nature and priority. A person **reviews** before anything is sent. Same adapter pattern if you leave Motorola later.
 5. RapidSOS is out of this bid. We will not demo it.
@@ -186,7 +186,7 @@ Use the seeded KCPD scenarios. IDs in the product: `kcpd-01` … `kcpd-10`.
 **Why first:** Easy win. Shows intake, classification, CAD nature `PARK`, no drama.
 
 **Run:** Demo runner → **Parking complaint** → Run scenario.  
-**Then:** Call Assist board → new session → open it.
+**Then:** Nexiq board → new session → open it.
 
 **Caller lines (if live):** “Someone is blocking my driveway” → “742 Elm Street” → “It’s a silver sedan” → “I don’t have the plate.”
 
@@ -246,7 +246,7 @@ Use the seeded KCPD scenarios. IDs in the product: `kcpd-01` … `kcpd-10`.
 **Say:** *“Police non-emergency should not eat city-service demand. Routing is a directory you own, not a hardcoded NexCort iQ phone book.”*
 
 **They will ask:** Who picks 311 vs Parks?  
-**Answer:** Triage class maps to the enabled external agency. Admins edit that under Call Assist Admin. Noise can route Parks; parking/code/info can route 311; public works can route Water.
+**Answer:** Triage class maps to the enabled external agency. Admins edit that under Nexiq Admin. Noise can route Parks; parking/code/info can route 311; public works can route Water.
 
 ---
 
@@ -341,15 +341,15 @@ Answer short. Then offer the screen if you have it.
 | **Never fabricate** | Grounded in intake + knowledge. Low confidence → human. We do not let the model invent addresses or plates. |
 | **Interrupted / two speakers** | Barge-in count is on the session; we treat overlapping speech as a reason to slow down or escalate, not to guess. |
 | **Motorola PremierOne** | Nature mapping is on this tenant. Write-back is fail-closed until addendum. |
-| **Works if we leave Motorola** | Yes — adapter pattern. New CAD is a scoped integration, not a rewrite of Call Assist. |
+| **Works if we leave Motorola** | Yes — adapter pattern. New CAD is a scoped integration, not a rewrite of Nexiq. |
 | **RapidSOS** | Out of this RFP. 911 stack. We will not pretend. |
-| **SIP / existing 911 phone system** | Call Assist attaches to the **non-emergency** voice path (Connect / SIP as implemented). We do not rip out 911 CPE. Queue/overflow is telephony + our routing rules together. |
+| **SIP / existing 911 phone system** | Nexiq attaches to the **non-emergency** voice path (Connect / SIP as implemented). We do not rip out 911 CPE. Queue/overflow is telephony + our routing rules together. |
 | **GIS** | Address text + geocoding/jurisdiction when GIS is connected. Demo streets are KCPD-flavored examples. |
 | **CJIS** | **CJIS-aligned** controls: MFA (Cognito), TLS in transit, encryption at rest, RBAC, audit logs. **Do not say CJIS certified.** Pen-test / vuln scanning are operational commitments, not a slide claim unless you have the report. |
 | **99.99% / 500 ms / 95% ASR** | Do not quote those numbers as guarantees in the room. Offer SLA discussion in the proposal, AWS architecture, and pilot measurement. |
 | **Continuous learning** | QA scores and prompt proposals. No silent training on production audio without legal sign-off. |
-| **Video / SMS** | NexCort iQ has SMS and video-assist in the platform. This bid’s core demo is **voice Call Assist**. Offer a 60-second pointer to silent text / media if asked; do not derail. |
-| **Callbacks** | Callback queue on the Call Assist monitor. Automated status callbacks are configured, not magic. |
+| **Video / SMS** | NexCort iQ has SMS and video-assist in the platform. This bid’s core demo is **voice Nexiq**. Offer a 60-second pointer to silent text / media if asked; do not derail. |
+| **Callbacks** | Callback queue on the Nexiq monitor. Automated status callbacks are configured, not magic. |
 | **CarFax** | KCPD label for **online vehicle reporting**, not Carfax Inc. Eligible when historical vehicle crime, vehicle ID, location, no injury. SMS link to `kcpd.org/online-reporting`. In-progress or injury → human. |
 | **Five years / 500k population references** | Do not bluff. Offer current US PSAP/campus references you actually have. |
 | **Implementation** | Named PM, parallel ops, UAT, cutover, rollback — from the RFP pack (`docs/rfp/implementation-and-transition.md`). This demo is capability, not a signed schedule. |
@@ -383,7 +383,7 @@ Answer short. Then offer the screen if you have it.
 |---|---|
 | Demo runner 403 | You are on dispatcher — switch to **agencyadmin** |
 | Demo runner “demo mode” error | Skip to a **pre-seeded session** on the board; narrate engines |
-| Call Assist 404 | Do not debug in front of the Chief. Switch to QA screenshots / second tenant you tested |
+| Nexiq 404 | Do not debug in front of the Chief. Switch to QA screenshots / second tenant you tested |
 | Empty analytics | Stay on **one session’s transcript + class** — that is what they score |
 | Someone asks RapidSOS | “Removed from the bid. Happy to discuss 911 separately.” |
 

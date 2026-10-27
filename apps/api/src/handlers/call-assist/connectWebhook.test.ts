@@ -99,7 +99,7 @@ function makeWebhookEvent(opts: {
   };
 }
 
-describe("Call Assist Connect webhook", () => {
+describe("Nexiq Connect webhook", () => {
   beforeEach(() => {
     initiateSession.mockReset();
     processUtterance.mockReset();

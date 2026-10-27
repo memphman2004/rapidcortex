@@ -21,7 +21,7 @@ const defaultClock: LexProvisionerClock = {
 
 export type LexModelsPort = {
   createBot(input: { botName: string; agencyId: string }): Promise<{ botId: string }>;
-  createLocale(input: { botId: string; locale: CallAssistLocale }): Promise<void>;
+  createLocale(input: { botId: string; locale: CallAssistLocale; speechToSpeech?: boolean }): Promise<void>;
   createIntentsAndSlots(input: { botId: string; locale: CallAssistLocale }): Promise<void>;
   updateIntents(input: { botId: string; locale: CallAssistLocale }): Promise<void>;
   buildLocale(input: { botId: string; locale: CallAssistLocale }): Promise<void>;
@@ -85,7 +85,11 @@ export class LexBotProvisioner {
     const started = new Date(this.clock.now()).toISOString();
 
     for (const locale of locales) {
-      await this.models.createLocale({ botId: bot.botId, locale });
+      await this.models.createLocale({
+        botId: bot.botId,
+        locale,
+        speechToSpeech: config.novaSonicEnabled === true && (locale === "en_US" || locale === "es_US"),
+      });
       await this.models.createIntentsAndSlots({ botId: bot.botId, locale });
       await this.models.buildLocale({ botId: bot.botId, locale });
       await this.waitUntilBuilt(bot.botId, locale);

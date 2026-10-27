@@ -57,7 +57,7 @@ export function CallAssistAnalyticsPage({ embedded = false }: { embedded?: boole
 
   if (!user) return null;
   if (!allowed) {
-    return <p className="p-6 text-sm text-rose-300">Call Assist analytics is limited to supervisors, analysts, and administrators.</p>;
+    return <p className="p-6 text-sm text-rose-300">Nexiq analytics is limited to supervisors, analysts, and administrators.</p>;
   }
 
   const d = dash.data?.dashboard;
@@ -67,7 +67,7 @@ export function CallAssistAnalyticsPage({ embedded = false }: { embedded?: boole
       {embedded ? (
         <h2 className="text-[15px] font-semibold text-slate-100">Analytics</h2>
       ) : (
-        <CallAssistChrome title="Call Assist analytics" />
+        <CallAssistChrome title="Nexiq analytics" />
       )}
       <p className="max-w-2xl text-[12px] text-slate-500">
         AHT, containment, abandonment, queue depth, CSAT, heat maps, false-transfer, human takeover, online-reporting

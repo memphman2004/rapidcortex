@@ -33,7 +33,7 @@ type CallAssistConfigContextValue = {
 const CallAssistConfigContext = createContext<CallAssistConfigContextValue | null>(null);
 
 /**
- * Tenant Call Assist config. All dashboard surfaces read labels from `config`
+ * Tenant Nexiq config. All dashboard surfaces read labels from `config`
  * (never hardcoded agency names or statutes). Re-fetches when `agencyId` changes.
  */
 export function CallAssistConfigProvider({ children }: { children: React.ReactNode }) {

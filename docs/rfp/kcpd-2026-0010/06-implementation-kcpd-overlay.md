@@ -1,8 +1,8 @@
-# Implementation, training & maintenance — KCPD Call Assist overlay  
+# Implementation, training & maintenance — KCPD Nexiq overlay  
 ## Bid Lines 23–25
 
 Base plan: [../implementation-and-transition.md](../implementation-and-transition.md) (12-week first-agency template).  
-This overlay specializes that plan for **Call Assist on the non-emergency line** at ~450k NE calls/year.
+This overlay specializes that plan for **Nexiq on the non-emergency line** at ~450k NE calls/year.
 
 Fill **Owner / Date** columns in the agency workbook before contract signature. Do not submit blank dates as if they were committed.
 
@@ -12,7 +12,7 @@ Fill **Owner / Date** columns in the agency workbook before contract signature. 
 
 | Workstream | Day-1 | Later |
 |------------|-------|-------|
-| Call Assist SaaS (Lex, sessions, QA, analytics, knowledge, admin) | Yes | Tuning |
+| Nexiq SaaS (Lex, sessions, QA, analytics, knowledge, admin) | Yes | Tuning |
 | Amazon Connect contact flows + DID on **non-emergency** path | Yes (with telephony partner) | Soak / scale |
 | External directory (311, Parks, Water, …) | Seed + agency confirm | Ongoing admin |
 | Online report / CARFAX URLs | Seed KCPD URLs | Policy updates |
@@ -23,7 +23,7 @@ Fill **Owner / Date** columns in the agency workbook before contract signature. 
 
 ---
 
-## 2. Suggested schedule (Call Assist)
+## 2. Suggested schedule (Nexiq)
 
 Compress only if Connect DID and Cognito are already decided.
 
@@ -31,7 +31,7 @@ Compress only if Connect DID and Cognito are already decided.
 |------|-------|---------------|
 | 1 | Kickoff, SOW, named PM + KCPD sponsor / ITSU / floor lead | Assistive SOW signed; CAD write-back remains off |
 | 2 | Retention (Sunshine mapping), disclosure language, knowledge seed review | Policy checkpoints dated |
-| 3 | Tenant + Call Assist roles (`CALL_ASSIST_*`); MFA | Admins sign in |
+| 3 | Tenant + Nexiq roles (`CALL_ASSIST_*`); MFA | Admins sign in |
 | 4 | Connect test DID + Lex un-mock in staging; ANI/ALI attrs | Test call reaches session UI |
 | 5 | External transfers + self-service URLs confirmed by KCPD | Warm-transfer test pass |
 | 6 | PremierOne connector credentials (sandbox); review-packet only | Packet renders; send gated |
@@ -65,9 +65,9 @@ Refresher cadence: per SOW (recommend 90-day post go-live).
 
 **Cutover pattern:** Parallel operations. Non-emergency AI path goes live for a cohort; 911 CPE and CAD unchanged.
 
-**Abort go-live:** Disable Call Assist DID routing / set users inactive → floor returns to existing non-emergency handling. Stacks retained.
+**Abort go-live:** Disable Nexiq DID routing / set users inactive → floor returns to existing non-emergency handling. Stacks retained.
 
-**Bad deploy:** Redeploy prior API/web release; keep `CAD_WRITEBACK_ENABLED=false` and Call Assist CAD push off unless Phase 2 is active.
+**Bad deploy:** Redeploy prior API/web release; keep `CAD_WRITEBACK_ENABLED=false` and Nexiq CAD push off unless Phase 2 is active.
 
 Details: base pack §2–3.
 
@@ -98,4 +98,4 @@ Operator guide: [KCPD_CALL_ASSIST_DEMO_PLAYBOOK.md](../../go-to-market-sales/KCP
 
 | Date | Notes |
 |------|-------|
-| 2026-09-27 | KCPD Call Assist overlay for 2026-0010 |
+| 2026-09-27 | KCPD Nexiq overlay for 2026-0010 |

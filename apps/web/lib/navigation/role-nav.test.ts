@@ -130,11 +130,11 @@ describe("getRoleNav", () => {
     }
   });
 
-  it("puts Call Assist and bot fleet management on all RC internal navs", () => {
+  it("puts Nexiq and bot fleet management on all RC internal navs", () => {
     for (const role of ["rcsuperadmin", "rcadmin", "rcitadmin"] as const) {
       const items = getRoleNav(role, {}).sections.flatMap((s) => s.items);
       expect(items.find((i) => i.id === "call-assist")?.href).toBe("/rc-admin/call-assist");
-      expect(items.find((i) => i.id === "call-assist")?.label).toBe("Call Assist");
+      expect(items.find((i) => i.id === "call-assist")?.label).toBe("Nexiq");
       expect(items.find((i) => i.id === "call-assist")?.exact).toBe(true);
       expect(items.find((i) => i.id === "call-assist-bots")?.href).toBe("/rc-admin/call-assist/bots");
     }
@@ -221,7 +221,7 @@ describe("getRoleNav", () => {
     expect(facultyItem?.badge).toBeUndefined();
   });
 
-  it("exposes Call Assist QA to supervisors and analytics on the Call Assist page", () => {
+  it("exposes Nexiq QA to supervisors and analytics on the Nexiq page", () => {
     const supervisor = getRoleNav("supervisor", { jurisdiction: "test-psap" });
     const hrefs = Object.fromEntries(supervisor.sections.flatMap((s) => s.items).map((i) => [i.id, i.href]));
     expect(hrefs["call-assist"]).toBe("/test-psap/call-assist");
@@ -242,7 +242,7 @@ describe("getRoleNav", () => {
     expect(supervisor.sections.flatMap((s) => s.items).find((i) => i.id === "c2c-hub")).toBeUndefined();
   });
 
-  it("Call Assist–only nav never includes the 911 dispatcher dashboard", () => {
+  it("Nexiq–only nav never includes the 911 dispatcher dashboard", () => {
     const operator = getRoleNav("call_assist_operator", {});
     const hrefs = operator.sections.flatMap((s) => s.items).map((i) => i.href);
     expect(operator.accent).toBe("teal");

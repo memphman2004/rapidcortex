@@ -1,4 +1,4 @@
-/** Phone-friendly confirmation numbers for Call Assist (not the internal `cas_` session id). */
+/** Phone-friendly confirmation numbers for Nexiq (not the internal `cas_` session id). */
 
 const CONFIRMATION_CHARSET = "ACDEFGHJKMNPQRTUVWXYZ234679";
 const NATO: Record<string, string> = {

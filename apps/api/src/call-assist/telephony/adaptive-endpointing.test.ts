@@ -4,7 +4,7 @@ import {
   resolveEndpointingProfile,
 } from "./adaptive-endpointing.js";
 
-describe("Call Assist Phase 2 — adaptive endpointing", () => {
+describe("Nexiq Phase 2 — adaptive endpointing", () => {
   it("uses a longer end-timeout for mid-correction", () => {
     const result = applyAdaptiveEndpointing({
       utterance: "It's a Toyota — wait, Honda",

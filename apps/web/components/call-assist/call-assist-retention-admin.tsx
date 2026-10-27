@@ -87,7 +87,7 @@ export function CallAssistRetentionAdmin() {
     <div className="space-y-4 p-4 md:p-6">
       <h1 className="text-lg font-semibold text-white">Retention controls</h1>
       <p className="max-w-2xl text-sm text-slate-400">
-        Per-data-type retention for Call Assist. Auto-purge is enforced by a scheduled job: audio and transcripts are
+        Per-data-type retention for Nexiq. Auto-purge is enforced by a scheduled job: audio and transcripts are
         redacted first; intake deletes the session; analytics deletes CSAT surveys. Legal hold on a session skips purge.
       </p>
       <label className="block text-[12px] text-slate-400">

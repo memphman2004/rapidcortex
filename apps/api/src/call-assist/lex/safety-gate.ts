@@ -33,7 +33,7 @@ export function buildTransferSummary(
   const type = slots.incidentType ?? "emergency";
   const clipped = utterance.slice(0, 120);
   return (
-    `${agencyShortName} Call Assist. ` +
+    `${agencyShortName} Nexiq. ` +
     `Emergency escalation from non-emergency line. ` +
     `Caller at ${location} reported: ${type}. ` +
     `Last utterance: "${clipped}". ` +

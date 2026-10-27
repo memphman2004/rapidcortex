@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { canAdminCallAssist, canRunCallAssistDemo, canSeeAgencySwitcher, canSetCallAssistVertical, canViewCallAssist } from "./access";
 
-describe("Call Assist web access", () => {
-  it("lets Call Assist–only operators view sessions without admin", () => {
+describe("Nexiq web access", () => {
+  it("lets Nexiq–only operators view sessions without admin", () => {
     expect(canViewCallAssist("call_assist_operator")).toBe(true);
     expect(canAdminCallAssist("call_assist_operator")).toBe(false);
     expect(canAdminCallAssist("call_assist_admin")).toBe(true);

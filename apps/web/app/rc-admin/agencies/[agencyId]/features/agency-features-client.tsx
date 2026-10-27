@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ADDON_CATALOG,
@@ -163,6 +163,7 @@ export function AgencyFeaturesClient({
   const [auditLimit, setAuditLimit] = useState(20);
   const { data: auditData } = useAddonEntitlementsAudit(tenantId, auditLimit);
   const [overrideDrafts, setOverrideDrafts] = useState<Record<string, string>>({});
+  const [pendingTierByFamily, setPendingTierByFamily] = useState<Record<string, AddonKey>>({});
 
   const visibleCatalog = useMemo(() => {
     const catalog = data?.catalog ?? ADDON_CATALOG;
@@ -193,6 +194,34 @@ export function AgencyFeaturesClient({
   }, [data, filter, visibleCatalog, isLoading]);
 
   const grouped = useMemo(() => rowsByCategory(gridRows), [gridRows]);
+
+  useEffect(() => {
+    if (!data) return;
+    setPendingTierByFamily((prev) => {
+      const families = Object.keys(prev);
+      if (families.length === 0) return prev;
+      const next = { ...prev };
+      let changed = false;
+      for (const family of families) {
+        const row = buildAddonGridRows(visibleCatalog).find(
+          (item) => item.kind === "tiered" && item.family === family,
+        );
+        if (!row || row.kind !== "tiered") continue;
+        const active = activeTierKeyInFamily(
+          family,
+          row.variants,
+          data.entitlements.addons,
+          data.entitlements.plan,
+          isAddonIncludedInPlan,
+        );
+        if (active === prev[family]) {
+          delete next[family];
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [data, visibleCatalog]);
 
   if (isLoading) return <p className="text-sm text-slate-400">Loading feature add-ons…</p>;
   if (error || !data) {
@@ -325,7 +354,7 @@ export function AgencyFeaturesClient({
     body: Parameters<typeof mutation.mutateAsync>[0],
     addonLabel: string,
     monthly: boolean,
-  ) {
+  ): Promise<boolean> {
     try {
       const result = await mutation.mutateAsync(body);
       const delta = result.invoiceDelta as unknown as InvoiceLineItemDelta;
@@ -336,10 +365,12 @@ export function AgencyFeaturesClient({
         addonLabel,
         monthly,
       });
+      return true;
     } catch (err) {
       setBanner(null);
       const detail = err instanceof Error ? err.message : "Unknown error";
       window.alert(`Update failed: ${detail}`);
+      return false;
     }
   }
 
@@ -370,35 +401,44 @@ export function AgencyFeaturesClient({
 
   async function onTierChange(variants: AddonDefinition[], newKey: AddonKey) {
     if (!canEdit) return;
+    const family = addonTierFamily(newKey);
     const current = activeTierKeyInFamily(
-      addonTierFamily(newKey),
+      family,
       variants,
       entitlements.addons,
       entitlements.plan,
       isAddonIncludedInPlan,
     );
+    if ((pendingTierByFamily[family] ?? current) === newKey) return;
     const def = getAddonByKey(newKey);
-    if (current === newKey) return;
+    setPendingTierByFamily((prev) => ({ ...prev, [family]: newKey }));
 
-    const newIsIncluded = isAddonIncludedInPlan(def, entitlements.plan);
+    if (!entitlements.addons[newKey]?.enabled) {
+      const saved = await applyPatch(
+        { addonKey: newKey, enabled: true },
+        def.name,
+        def.billingType === "monthly",
+      );
+      if (!saved) {
+        setPendingTierByFamily((prev) => {
+          const next = { ...prev };
+          delete next[family];
+          return next;
+        });
+        return;
+      }
+    }
 
-    // Disable any enabled paid variant in the family (never PATCH a plan-included SKU).
     for (const v of variants) {
-      const enabled = Boolean(entitlements.addons[v.key]?.enabled);
-      if (!enabled) continue;
-      if (isAddonIncludedInPlan(v, entitlements.plan)) continue;
       if (v.key === newKey) continue;
-      await applyPatch(
+      if (!entitlements.addons[v.key]?.enabled) continue;
+      const saved = await applyPatch(
         { addonKey: v.key, enabled: false, forceImmediateDisable: true },
         v.name,
         v.billingType === "monthly",
       );
+      if (!saved) return;
     }
-
-    // Selecting the plan-included base just clears paid upgrades — no enable PATCH.
-    if (newIsIncluded) return;
-
-    await applyPatch({ addonKey: newKey, enabled: true }, def.name, def.billingType === "monthly");
   }
 
   async function onOverrideBlur(def: AddonDefinition, raw: string) {
@@ -501,7 +541,7 @@ export function AgencyFeaturesClient({
               Level
               <select
                 className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
-                value={activeKey || row.variants[0]!.key}
+                value={pendingTierByFamily[row.family] ?? (activeKey || row.variants[0]!.key)}
                 disabled={!canEdit || mutation.isPending}
                 title={
                   !canEdit

@@ -22,25 +22,25 @@ export function CallAssistRouteGate({ children }: { children: React.ReactNode })
   const canSetup = canSetupCallAssist(user?.role);
 
   if (enabled && isLoading) {
-    return <p className="p-6 text-sm text-slate-400">Loading Call Assist…</p>;
+    return <p className="p-6 text-sm text-slate-400">Loading Nexiq…</p>;
   }
 
   // RC Admin stays under /rc-admin/call-assist — never bounce to /{agencyId}/call-assist/setup.
   if (enabled && config && canSetup && !complete && !isSetup) {
     router.replace(isRcAdminSurface ? "/rc-admin/call-assist/setup" : to("/call-assist/setup"));
-    return <p className="p-6 text-sm text-slate-400">Opening Call Assist setup…</p>;
+    return <p className="p-6 text-sm text-slate-400">Opening Nexiq setup…</p>;
   }
   if (enabled && config && isSetup && complete && !reconfigure) {
     router.replace(isRcAdminSurface ? "/rc-admin/call-assist" : to("/call-assist"));
-    return <p className="p-6 text-sm text-slate-400">Call Assist is already configured.</p>;
+    return <p className="p-6 text-sm text-slate-400">Nexiq is already configured.</p>;
   }
 
   if (enabled && config && !complete && !canSetup && !isSetup) {
     return (
       <div className="space-y-3 p-6">
-        <h1 className="text-lg font-semibold text-white">Call Assist</h1>
+        <h1 className="text-lg font-semibold text-white">Nexiq</h1>
         <p className="max-w-xl text-sm text-slate-400">
-          Call Assist is not activated for this agency yet. An administrator needs to finish setup.
+          Nexiq is not activated for this agency yet. An administrator needs to finish setup.
         </p>
       </div>
     );

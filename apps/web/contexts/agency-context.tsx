@@ -92,7 +92,7 @@ export function useAgencyContext(): AgencyContextValue {
   return ctx;
 }
 
-/** Query enablement + agency id for Call Assist (and other tenant-scoped dashboards). */
+/** Query enablement + agency id for Nexiq (and other tenant-scoped dashboards). */
 export function useCallAssistAgencyScope() {
   const { activeAgencyId, isRcAdmin, hydrated } = useAgencyContext();
   const ready = hydrated && (!isRcAdmin || Boolean(activeAgencyId));

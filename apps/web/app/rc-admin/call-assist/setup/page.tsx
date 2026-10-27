@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 export const metadata = {
-  title: "Call Assist setup",
+  title: "Nexiq setup",
   robots: { index: false, follow: false },
 };
 
@@ -18,7 +18,7 @@ export default async function RcAdminCallAssistSetupPage() {
   return (
     <CallAssistProductBaseProvider base="/rc-admin/call-assist">
       <div className="flex h-[calc(100vh-9rem)] min-h-[28rem]">
-        <Suspense fallback={<p className="p-6 text-sm text-slate-400">Loading Call Assist setup…</p>}>
+        <Suspense fallback={<p className="p-6 text-sm text-slate-400">Loading Nexiq setup…</p>}>
           <CallAssistWorkspace>
             <CallAssistSetupWizard />
           </CallAssistWorkspace>

@@ -30,7 +30,7 @@ export default function CallAssistDemoPage() {
     return <p className="p-6 text-sm text-rose-300">Demo runner is limited to administrators.</p>;
   }
   if (!isCallAssistEnabled()) {
-    return <p className="p-6 text-sm text-slate-400">Call Assist is not enabled.</p>;
+    return <p className="p-6 text-sm text-slate-400">Nexiq is not enabled.</p>;
   }
 
   const items = (scenariosQuery.data?.items ?? []) as Array<{
@@ -52,7 +52,7 @@ export default function CallAssistDemoPage() {
 
   return (
     <div className="space-y-4 p-4 md:p-6">
-      <CallAssistChrome title="Call Assist demo runner" />
+      <CallAssistChrome title="Nexiq demo runner" />
       <p className="max-w-2xl text-sm text-slate-400">
         Runs evaluation scenarios through Safety, Triage, and Intake. Demo emergency transfers use this
         agency&apos;s test destination, never live emergency services.
@@ -86,7 +86,7 @@ export default function CallAssistDemoPage() {
       </div>
       {runMut.isError ? (
         <p className="text-sm text-rose-300">
-          {(runMut.error as Error).message}. Try again, or confirm Call Assist demo is available for this agency.
+          {(runMut.error as Error).message}. Try again, or confirm Nexiq demo is available for this agency.
         </p>
       ) : null}
       {result ? (

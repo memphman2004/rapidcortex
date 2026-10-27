@@ -14,7 +14,7 @@ describe("provisionableRolesForActor", () => {
     );
   });
 
-  it("lets Call Assist admin assign Call Assist roles only", () => {
+  it("lets Nexiq admin assign Nexiq roles only", () => {
     expect(provisionableRolesForActor("CALL_ASSIST_ADMIN")).toEqual([
       "CALL_ASSIST_ADMIN",
       "CALL_ASSIST_SUPERVISOR",

@@ -9,7 +9,7 @@ import {
   rollbackPrompt,
 } from "./prompt-cms.js";
 
-describe("Call Assist prompt CMS", () => {
+describe("Nexiq prompt CMS", () => {
   it("versions upserts and can roll back", () => {
     const v1 = applyPromptUpsert(null, {
       agencyId: "a1",

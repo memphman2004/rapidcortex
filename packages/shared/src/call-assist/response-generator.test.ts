@@ -62,6 +62,8 @@ describe("ResponseGenerator", () => {
 describe("conversational system prompt v2", () => {
   it("interpolates agency voice name and keeps absolute speech rules", () => {
     const body = formatCallAssistConversationalSystemPrompt("Kansas City non-emergency");
+    expect(body).toContain("You are Nexiq");
+    expect(body).toContain("Nex-ic");
     expect(body).toContain("Kansas City non-emergency");
     expect(body).not.toContain("{{agency.voice.name}}");
     expect(body).toContain("ABSOLUTE SPEECH RULES");

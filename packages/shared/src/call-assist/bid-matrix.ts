@@ -12,7 +12,7 @@ export type CallAssistBidLine = {
  *
  * Honesty gate: paste into Scope of Services only as-is. Do not upgrade PARTIAL → FULL
  * for CAD write, telephony CPE, RMS, GIS, SLAs, or vendor quals without live UAT evidence.
- * Last redlined against Call Assist adapters + demo playbook (2026-09-28).
+ * Last redlined against Nexiq adapters + demo playbook (2026-09-28).
  */
 export const CALL_ASSIST_BID_LINE_MATRIX: readonly CallAssistBidLine[] = [
   {

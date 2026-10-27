@@ -11,7 +11,7 @@ import {
 } from "@/lib/agency/switcher-agency";
 
 /**
- * Left-panel agency switcher for RC platform admins on Call Assist.
+ * Left-panel agency switcher for RC platform admins on Nexiq.
  *
  * Visible to: rcsuperadmin, rcadmin, rcitadmin only.
  * All | 911 | Campus | Venue is an internal navigation aid — these labels

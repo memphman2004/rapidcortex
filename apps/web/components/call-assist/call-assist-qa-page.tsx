@@ -100,7 +100,7 @@ export function CallAssistQaPage() {
 
   if (!user) return null;
   if (!allowed) {
-    return <p className="p-6 text-sm text-rose-300">Call Assist QA is limited to supervisors, analysts, and auditors.</p>;
+    return <p className="p-6 text-sm text-rose-300">Nexiq QA is limited to supervisors, analysts, and auditors.</p>;
   }
 
   const d = dash.data?.dashboard;
@@ -109,10 +109,10 @@ export function CallAssistQaPage() {
 
   return (
     <div className="space-y-4 p-4 md:p-6">
-      <CallAssistChrome title="Call Assist QA" />
+      <CallAssistChrome title="Nexiq QA" />
       <p className="max-w-2xl text-[12px] text-slate-500">
         AI transcript scoring, keyword search, utterance playback, false-transfer flags, and AI vs human comparison.
-        Audio playback is unavailable while Call Assist recording stays off. QA findings never auto-publish; propose a
+        Audio playback is unavailable while Nexiq recording stays off. QA findings never auto-publish; propose a
         prompt change for agency-admin approval.
       </p>
       <div className="grid gap-2 sm:grid-cols-4">

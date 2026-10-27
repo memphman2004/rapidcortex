@@ -382,7 +382,7 @@ export const env = {
   ng911AssistTable: process.env.NG911_ASSIST_TABLE?.trim() ?? "",
   ng911DiversionMockSms: process.env.NG911_DIVERSION_MOCK_SMS === "true",
   /**
-   * Call Assist — non-emergency AI call management. Operational default on when unset.
+   * Nexiq — non-emergency AI call management. Operational default on when unset.
    * CAD push / RMS draft / demo mode / recording remain fail-closed.
    */
   enableCallAssist: featureEnabled("ENABLE_CALL_ASSIST"),

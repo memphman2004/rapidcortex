@@ -44,7 +44,7 @@ export function CallAssistBotFleetClient() {
   const busy = rebuildOne.isPending || rebuildAll.isPending;
 
   if (fleetQuery.isLoading) {
-    return <p className="text-sm text-slate-400">Loading Call Assist bot fleet…</p>;
+    return <p className="text-sm text-slate-400">Loading Nexiq bot fleet…</p>;
   }
   if (fleetQuery.error) {
     return (
@@ -57,7 +57,7 @@ export function CallAssistBotFleetClient() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div className="border-b border-slate-800 pb-6">
-        <h1 className="text-xl font-semibold text-white">Call Assist — bot fleet management</h1>
+        <h1 className="text-xl font-semibold text-white">Nexiq — bot fleet management</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
           The Lex template is universal. Agency names and officer labels come from voice config at
           Lambda time. Template bumps rebuild one bot at a time (~5 minutes each); live aliases keep
@@ -141,7 +141,7 @@ export function CallAssistBotFleetClient() {
             {(data?.bots ?? []).length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-6 text-slate-500">
-                  No Call Assist tenants yet. Fill voice config, then POST /api/call-assist/onboarding.
+                  No Nexiq tenants yet. Fill voice config, then POST /api/call-assist/onboarding.
                 </td>
               </tr>
             ) : (

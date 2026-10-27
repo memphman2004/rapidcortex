@@ -5,7 +5,7 @@ import { evaluateSafety } from "./safety.js";
 import { cloneAgencyTaxonomy, validateTaxonomyEmergencyLocks } from "./taxonomy.js";
 import { PRESET_911, PRESET_CAMPUS, PRESET_VENUE, resolveAgencyTaxonomy } from "./taxonomy-presets.js";
 
-describe("Call Assist taxonomy presets", () => {
+describe("Nexiq taxonomy presets", () => {
   it("preset_911 contains exactly the 13 existing types (regression check)", () => {
     expect(PRESET_911.callTypes).toHaveLength(13);
     expect(PRESET_911.callTypes.map((t) => t.id)).toEqual([...CALL_TRIAGE_CLASSIFICATIONS]);
@@ -31,7 +31,7 @@ describe("Call Assist taxonomy presets", () => {
   });
 });
 
-describe("Call Assist taxonomy triage", () => {
+describe("Nexiq taxonomy triage", () => {
   it("resolves taxonomy from agency config, not a hardcoded 911-only array", () => {
     const campus = classifyCallTriage("Can you do a wellness check on my roommate in Myers Hall?", {
       taxonomy: PRESET_CAMPUS,

@@ -10,7 +10,7 @@ export default function CallAssistSessionPage() {
   const params = useParams<{ sessionId: string }>();
   if (!user) return null;
   if (!canViewCallAssist(user.role)) {
-    return <p className="p-6 text-sm text-rose-300">You do not have permission to view Call Assist.</p>;
+    return <p className="p-6 text-sm text-rose-300">You do not have permission to view Nexiq.</p>;
   }
   return <CallAssistSessionDetail sessionId={params.sessionId} />;
 }

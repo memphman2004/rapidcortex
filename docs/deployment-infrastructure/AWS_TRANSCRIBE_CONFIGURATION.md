@@ -112,7 +112,7 @@ JSON lines with `"type":"voice.metric"`:
 
 ---
 
-## 9. Agency custom vocabulary (Call Assist)
+## 9. Agency custom vocabulary (Nexiq)
 
 At onboarding, generate a county street-name CSV (TIGER/Line + OSM) and merge the public-safety baseline:
 

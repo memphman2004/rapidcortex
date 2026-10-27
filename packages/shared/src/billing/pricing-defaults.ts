@@ -166,7 +166,7 @@ export const PRICING_DEFAULTS = {
 
   /** Response Continuity System module add-on ($/agency/month). */
   "rcs.module": 3500,
-  /** Call Assist — non-emergency AI call management ($/agency/month). */
+  /** Nexiq — non-emergency AI call management ($/agency/month). */
   "call_assist.module": 4500,
   "call_assist.module.hi": 9000,
   "call_assist.cad_integration": 1500,

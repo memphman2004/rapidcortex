@@ -61,7 +61,7 @@ function scenarioFromTemplate(
 }
 
 /**
- * Base evaluation library shipped with Call Assist.
+ * Base evaluation library shipped with Nexiq.
  * Streets, callbacks, and landmarks stay generic; agencies overlay local names.
  */
 export const CALL_ASSIST_DEMO_SCENARIO_TEMPLATES: readonly DemoScenarioTemplate[] = [

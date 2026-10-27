@@ -533,9 +533,9 @@ export function transferDirectoryPreset(vertical: CallAssistTaxonomyVertical): C
 
 export const DEFAULT_DISCLOSURE_BY_VERTICAL: Record<CallAssistTaxonomyVertical, string> = {
   "911":
-    "You are speaking with an AI assistant for {{agencyShortName}}. If this is an emergency, say emergency or hang up and dial {{emergencyLine}}.",
-  campus: "You are speaking with an AI assistant for {{agencyShortName}} Campus Safety.",
-  venue: "You are speaking with an AI assistant for {{agencyShortName}}.",
+    "You are speaking with Nexiq for {{agencyShortName}}. If this is an emergency, say emergency or hang up and dial {{emergencyLine}}.",
+  campus: "You are speaking with Nexiq for {{agencyShortName}} Campus Safety.",
+  venue: "You are speaking with Nexiq for {{agencyShortName}}.",
 };
 
 export function defaultRetentionForVertical(vertical: CallAssistTaxonomyVertical): {

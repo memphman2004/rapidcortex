@@ -2,7 +2,7 @@
 ## KCPD RFP 2026-0010 — Bid Lines 16–17
 
 **To:** Kansas City Missouri Police Department — Information Technology Support Unit  
-**Re:** NexCort iQ Call Assist — CJIS-aligned controls and cybersecurity posture  
+**Re:** Nexiq — CJIS-aligned controls and cybersecurity posture  
 **ITSU contact (solicitation):** (816) 234-5286  
 
 ---
@@ -25,7 +25,7 @@ Safe language follows [../README.md](../README.md) (forbidden-language list).
 | Encrypt in transit | TLS 1.2+ (API Gateway / CloudFront / AWS service calls) |
 | Encrypt at rest | DynamoDB / S3 encryption; KMS upgrade path per agency policy |
 | Role-based permissions | Canonical roles + `AuthorizationService` + `agencyId` tenancy |
-| Detailed audit logging | Audit repository + Call Assist audit event types |
+| Detailed audit logging | Audit repository + Nexiq audit event types |
 | Annual penetration testing | Available as separate assessment SOW; process in cybersecurity pack §8 |
 | Vulnerability scanning | CI / dependency / infra scanning process (see pack); Checkov evidence under `docs/evidence/vuln-scans/` is engineering evidence, not a substitute for a third-party pen-test report |
 | Cybersecurity engagement | Offeror will coordinate with ITSU; named contacts in SOW |
@@ -45,11 +45,11 @@ Optional if ITSU requests: network access path diagram for this tenant; current 
 
 ---
 
-## CAD / AI data handling (Call Assist specific)
+## CAD / AI data handling (Nexiq specific)
 
 - CAD write-back remains **fail-closed** until a signed addendum and UAT.  
 - Prefer AWS-native AI/STT/Translate for CJIS-sensitive tenants (external provider ARNs unset).  
-- Call Assist session retention supports legal hold and Missouri Sunshine–oriented seed defaults; Department policy controls final retention.
+- Nexiq session retention supports legal hold and Missouri Sunshine–oriented seed defaults; Department policy controls final retention.
 
 ---
 

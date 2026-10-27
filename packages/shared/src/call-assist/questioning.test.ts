@@ -6,7 +6,7 @@ import {
   spokenIntakePrompt,
 } from "./questioning.js";
 
-describe("Call Assist dynamic questioning", () => {
+describe("Nexiq dynamic questioning", () => {
   it("never asks after emergency", () => {
     expect(nextIntakeQuestion("EMERGENCY", {})).toBeNull();
   });

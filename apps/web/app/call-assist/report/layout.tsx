@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Online report",
   robots: { index: false, follow: false },
-  description: "Non-emergency self-service reporting link from Call Assist.",
+  description: "Non-emergency self-service reporting link from Nexiq.",
 };
 
 export default function CallAssistPublicReportLayout({ children }: { children: React.ReactNode }) {

@@ -6,7 +6,7 @@ import { CallAssistConfigProvider } from "@/contexts/call-assist-config-context"
 import { useCallAssistAgencyScope } from "@/contexts/agency-context";
 
 /**
- * Agency switcher + tenant Call Assist surface. Used under
+ * Agency switcher + tenant Nexiq surface. Used under
  * `/{jurisdiction}/call-assist`, `/rc-admin/call-assist`, and `/app/call-assist`.
  */
 export function CallAssistWorkspace({ children }: { children: React.ReactNode }) {
@@ -34,7 +34,7 @@ export function CallAssistWorkspace({ children }: { children: React.ReactNode })
 function SelectAgencyEmpty() {
   return (
     <div className="space-y-2 p-6">
-      <h1 className="text-lg font-semibold text-white">Call Assist</h1>
+      <h1 className="text-lg font-semibold text-white">Nexiq</h1>
       <p className="max-w-xl text-sm text-slate-400">
         Select an agency in the list to scope sessions, stats, and configuration. This switcher is
         only available to NexCort iQ operators.

@@ -13,7 +13,7 @@ export default async function RcAdminDocumentLibraryPage() {
     <DocumentLibraryClient
       role={user.role}
       title="Document Library"
-      subtitle="Browse every product vertical library — Platform, PSAP, Campus, Venue, Transit, Hospital, Call Assist, and Sales."
+      subtitle="Browse every product vertical library — Platform, PSAP, Campus, Venue, Transit, Hospital, Nexiq, and Sales."
     />
   );
 }

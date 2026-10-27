@@ -6,7 +6,7 @@ import {
   type AgencyTenant,
 } from "rapid-cortex-shared";
 
-/** Internal RC filter tabs — never shown in customer-facing Call Assist chrome. */
+/** Internal RC filter tabs — never shown in customer-facing Nexiq chrome. */
 export type SwitcherVerticalFilter = "all" | "911" | "campus" | "venue";
 
 /** Agency row for the RC-ops switcher panel. */

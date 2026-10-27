@@ -36,8 +36,8 @@ export type FlowDef = {
 export const FEATURE_ARCHITECTURE_FLOWS: FlowDef[] = [
   {
     id: "ca_confirm",
-    title: "Call Assist — post-intake confirmation",
-    vertical: "Call Assist",
+    title: "Nexiq — post-intake confirmation",
+    vertical: "Nexiq",
     summary:
       "Matches the operator diagram: intake complete → PREFIX-MMDD-XXXX confirmation → parallel speak (NATO) / SMS / RoutingRule engine → notify channels or default supervisor queue.",
     source: "packages/shared/src/call-assist/case-number.ts · routing.ts · session-pipeline.ts",
@@ -61,8 +61,8 @@ export const FEATURE_ARCHITECTURE_FLOWS: FlowDef[] = [
   },
   {
     id: "ca_full",
-    title: "Call Assist — live call path",
-    vertical: "Call Assist",
+    title: "Nexiq — live call path",
+    vertical: "Nexiq",
     summary:
       "Amazon Connect → Lex dialog → triage/safety → emergency 911 transfer, human queue, external agency, self-service, or complete session with CAD/RMS draft hooks.",
     source: "session-pipeline.ts · lex/fulfillment-hook.ts · recommendRoute()",

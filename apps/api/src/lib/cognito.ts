@@ -72,7 +72,7 @@ async function ensureAgencyVerticalAttribute(poolId: string): Promise<void> {
 
 /**
  * Writes `custom:agencyVertical` on every Cognito user in the agency.
- * Used after RC ops sets the Call Assist operational profile. Failures on
+ * Used after RC ops sets the Nexiq operational profile. Failures on
  * individual users are logged and skipped so config PATCH still succeeds.
  */
 export async function syncAgencyVerticalClaims(agencyId: string, vertical: string): Promise<number> {

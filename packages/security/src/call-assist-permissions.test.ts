@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { defaultPermissionForRole } from "./permissions.js";
 
-describe("Call Assist RBAC", () => {
+describe("Nexiq RBAC", () => {
   it("grants session view to dispatcher and not hospital staff", () => {
     expect(defaultPermissionForRole("dispatcher", "call_assist.session.view")).toBe(true);
     expect(defaultPermissionForRole("hospitalstaff", "call_assist.session.view")).toBe(false);
@@ -19,7 +19,7 @@ describe("Call Assist RBAC", () => {
     expect(defaultPermissionForRole("rcitadmin", "call_assist.admin.config")).toBe(true);
   });
 
-  it("isolates Call Assist–only roles from the 911 dispatcher workspace", () => {
+  it("isolates Nexiq–only roles from the 911 dispatcher workspace", () => {
     expect(defaultPermissionForRole("call_assist_operator", "call_assist.session.view")).toBe(true);
     expect(defaultPermissionForRole("call_assist_operator", "workspace.live_call")).toBe(false);
     expect(defaultPermissionForRole("call_assist_operator", "incidents.view")).toBe(false);
@@ -43,7 +43,7 @@ describe("Call Assist RBAC", () => {
     );
   });
 
-  it("denies hospital staff from Call Assist transfer and admin", () => {
+  it("denies hospital staff from Nexiq transfer and admin", () => {
     expect(defaultPermissionForRole("hospitalstaff", "call_assist.transfer.force")).toBe(false);
     expect(defaultPermissionForRole("hospitalstaff", "call_assist.admin.config")).toBe(false);
     expect(defaultPermissionForRole("hospitalstaff", "call_assist.session.view")).toBe(false);

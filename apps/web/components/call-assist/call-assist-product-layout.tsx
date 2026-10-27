@@ -17,7 +17,7 @@ import {
 import { CallAssistProductBaseProvider } from "@/lib/jurisdiction-context";
 import { ThemeProvider, useThemeRoot } from "@/lib/theme/theme-context";
 
-const DISCLAIMER = "NON-EMERGENCY CALL ASSIST — NOT A 911 DISPATCH CONSOLE";
+const DISCLAIMER = "NEXIQ — NON-EMERGENCY — NOT A 911 DISPATCH CONSOLE";
 
 export function CallAssistProductLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -41,7 +41,7 @@ function CallAssistProductLayoutInner({ children }: { children: React.ReactNode 
   const shellVars = roleDashboardShellVars(identity) as CSSProperties;
 
   if (isLoading) {
-    return <p className="p-6 text-sm text-slate-400">Loading Call Assist…</p>;
+    return <p className="p-6 text-sm text-slate-400">Loading Nexiq…</p>;
   }
   if (!user) return null;
 
@@ -89,7 +89,7 @@ function CallAssistProductLayoutInner({ children }: { children: React.ReactNode 
                 </div>
               </div>
               <span className="hidden rounded border border-teal-500/40 bg-teal-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-teal-300 sm:inline">
-                Call Assist
+                Nexiq
               </span>
               <div className="ml-auto">
                 <CampusDashboardHeaderUtilities

@@ -7,7 +7,7 @@ async function proxySelfService(request: NextRequest, token: string) {
   const base = resolveUpstreamApiBase(upstreamPath);
   if (!base) {
     return NextResponse.json(
-      { error: "API_UPSTREAM_BASE_2 is not configured for Call Assist public routes" },
+      { error: "API_UPSTREAM_BASE_2 is not configured for Nexiq public routes" },
       { status: 503 },
     );
   }

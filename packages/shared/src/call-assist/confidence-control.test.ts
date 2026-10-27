@@ -6,7 +6,7 @@ import {
   shouldTryBedrockFallback,
 } from "./confidence-control.js";
 
-describe("Call Assist confidence control plane", () => {
+describe("Nexiq confidence control plane", () => {
   it("escalates below the agency escalate threshold", () => {
     const d = evaluateConfidenceDecision({
       score: 0.4,

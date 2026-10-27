@@ -33,7 +33,7 @@ async function callAssistRequest<T>(path: string, init?: RequestInit): Promise<T
   }
   if (!res.ok) {
     const err = body as { error?: string };
-    throw new CallAssistApiError(err.error ?? `Call Assist request failed (${res.status})`, res.status);
+    throw new CallAssistApiError(err.error ?? `Nexiq request failed (${res.status})`, res.status);
   }
   return body as T;
 }

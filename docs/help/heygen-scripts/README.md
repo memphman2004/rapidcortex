@@ -6,8 +6,8 @@ Spoken scripts for avatar videos. Paste the **Narration** block into HeyGen. Use
 
 | # | File | Audience | Target |
 |---|---|---|---|
-| 01 | [01-call-assist-operator-live-takeover.md](./01-call-assist-operator-live-takeover.md) | Call Assist | 6:00 |
-| 02 | [02-call-assist-emergency-transfer.md](./02-call-assist-emergency-transfer.md) | Call Assist | 5:00 |
+| 01 | [01-call-assist-operator-live-takeover.md](./01-call-assist-operator-live-takeover.md) | Nexiq | 6:00 |
+| 02 | [02-call-assist-emergency-transfer.md](./02-call-assist-emergency-transfer.md) | Nexiq | 5:00 |
 | 03 | [03-dispatcher-workspace-tour.md](./03-dispatcher-workspace-tour.md) | PSAP | 5:00 |
 | 04 | [04-dispatcher-first-incident-cad.md](./04-dispatcher-first-incident-cad.md) | PSAP | 7:00 |
 | 05 | [05-dispatcher-silent-text.md](./05-dispatcher-silent-text.md) | PSAP | 4:00 |

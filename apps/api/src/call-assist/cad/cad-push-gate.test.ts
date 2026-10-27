@@ -3,7 +3,7 @@ import { evaluateCadPushGate } from "./provider.js";
 import { emergencyTransferAction } from "../telephony/provider.js";
 import { evaluateRmsDraftGate } from "../rms/rms-draft.js";
 
-describe("Call Assist CAD push gate", () => {
+describe("Nexiq CAD push gate", () => {
   it("blocks when platform CAD write-back is off", () => {
     const r = evaluateCadPushGate({
       cadWritebackEnabled: false,
@@ -16,7 +16,7 @@ describe("Call Assist CAD push gate", () => {
     expect(r?.reason).toBe("cad_writeback_disabled");
   });
 
-  it("blocks when Call Assist CAD push flag is off", () => {
+  it("blocks when Nexiq CAD push flag is off", () => {
     const r = evaluateCadPushGate({
       cadWritebackEnabled: true,
       callAssistCadPushEnabled: false,
@@ -60,7 +60,7 @@ describe("Call Assist CAD push gate", () => {
   });
 });
 
-describe("Call Assist RMS draft gate", () => {
+describe("Nexiq RMS draft gate", () => {
   it("is fail-closed when the RMS flag is unset", () => {
     const r = evaluateRmsDraftGate({
       rmsDraftEnabled: false,

@@ -4,7 +4,7 @@ import { isCallAssistEnabled } from "@/lib/runtime-flags";
 import { notFound } from "next/navigation";
 
 export const metadata = {
-  title: "Call Assist",
+  title: "Nexiq",
   robots: { index: false, follow: false },
 };
 

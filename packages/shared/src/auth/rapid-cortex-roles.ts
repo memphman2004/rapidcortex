@@ -263,7 +263,7 @@ export function isTransitAssignableRole(role: string): boolean {
   return (TRANSIT_ASSIGNABLE_ROLES as readonly string[]).includes(upper);
 }
 
-/** Call Assist–only tenant roles (no 911 dispatcher workspace). */
+/** Nexiq–only tenant roles (no 911 dispatcher workspace). */
 export const CALL_ASSIST_ASSIGNABLE_ROLES = [
   "CALL_ASSIST_ADMIN",
   "CALL_ASSIST_SUPERVISOR",
@@ -327,9 +327,9 @@ export const ROLE_LABELS: Record<string, string> = {
   transit_supervisor: "Transit Supervisor",
   transit_security: "Transit Security",
   transit_operator: "Transit Operator",
-  call_assist_admin: "Call Assist Admin",
-  call_assist_supervisor: "Call Assist Supervisor",
-  call_assist_operator: "Call Assist Operator",
+  call_assist_admin: "Nexiq Admin",
+  call_assist_supervisor: "Nexiq Supervisor",
+  call_assist_operator: "Nexiq Operator",
   platform_superadmin: "Platform Owner",
   rc_admin: "NexCort Operations",
   admin: "Agency Admin",
@@ -425,11 +425,11 @@ export const ROLE_DESCRIPTIONS: Record<string, string> = {
   transit_operator:
     "Transit operator. Read-only vehicle status and active incidents on their route.",
   call_assist_admin:
-    "Call Assist administrator. Non-emergency AI config, greeting, knowledge, records, and demo — no 911 dispatcher workspace.",
+    "Nexiq administrator. Non-emergency AI config, greeting, knowledge, records, and demo — no 911 dispatcher workspace.",
   call_assist_supervisor:
-    "Call Assist supervisor. Live non-emergency sessions, QA, analytics, and human takeover — no CAD queue or dispatcher dashboard.",
+    "Nexiq supervisor. Live non-emergency sessions, QA, analytics, and human takeover — no CAD queue or dispatcher dashboard.",
   call_assist_operator:
-    "Call Assist operator. Live non-emergency monitor, session intake, and transfer — not a 911 telecommunicator console.",
+    "Nexiq operator. Live non-emergency monitor, session intake, and transfer — not a 911 telecommunicator console.",
 };
 
 export const ROLE_DISPLAY_LABELS: Record<RapidCortexRole, string> = {
@@ -531,7 +531,7 @@ export function resolveHospitalPortalDashboardHref(role: string | undefined | nu
   return null;
 }
 
-/** Product vertical roles (venue, campus, hospital portal, transit, Call Assist) — not PSAP dispatcher RBAC. */
+/** Product vertical roles (venue, campus, hospital portal, transit, Nexiq) — not PSAP dispatcher RBAC. */
 export function isProductVerticalRoleToken(raw: string | undefined | null): boolean {
   const token = (raw ?? "").trim();
   if (!token) return false;
@@ -701,7 +701,7 @@ export function isRapidCortexRole(value: string): value is RapidCortexRole {
   return (RAPID_CORTEX_ROLES as readonly string[]).includes(e);
 }
 
-/** Call Assist–only product console (not PSAP dispatcher / supervisor). */
+/** Nexiq–only product console (not PSAP dispatcher / supervisor). */
 export function isCallAssistProductRole(role: string | undefined | null): boolean {
   const e = (migrateLegacyRapidCortexRoleTokenValue(role ?? "") ?? role ?? "").trim().toLowerCase();
   return e === "call_assist_admin" || e === "call_assist_supervisor" || e === "call_assist_operator";

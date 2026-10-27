@@ -1,6 +1,6 @@
 import type { SNSEvent } from "aws-lambda";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
-import { isCallAssistConfirmationNumber } from "rapid-cortex-shared";
+import { isCallAssistConfirmationNumber, parseCallerSurveyScore } from "rapid-cortex-shared";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { makeId } from "../../lib/ids.js";
 import { getAgencyIdByDid, getLexTenantConfig, normalizeCallAssistDid } from "../lex/runtime-store.js";
@@ -33,6 +33,7 @@ import {
   touchSession,
 } from "./session-store.js";
 import { sendSmsSegments } from "./sms-sender.js";
+import { callAssistStore } from "../store.js";
 import {
   buildMediaAcknowledgment,
   inferCategoryFromSceneLabels,
@@ -206,6 +207,30 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
     await replyCitizen(agencyId, phone, COMPLIANCE_MESSAGES.HELP, sessionId, language);
     await touchSession(agencyId, phone, undefined, { language });
     return;
+  }
+
+  const surveyScore = parseCallerSurveyScore(body);
+  if (surveyScore && agencyId !== "unknown") {
+    const recent = (await callAssistStore.listCallRecordsByCaller(phone, 5)).find(
+      (row) => row.agencyId === agencyId,
+    );
+    const created = recent?.createdAt ? Date.parse(recent.createdAt) : Number.NaN;
+    const withinADay = Number.isFinite(created) && Date.now() - created < 24 * 60 * 60 * 1000;
+    if (recent?.sessionId && withinADay) {
+      try {
+        await callAssistStore.putSurvey({
+          agencyId,
+          sessionId: recent.sessionId,
+          score: surveyScore,
+          channel: "SMS",
+          createdAt: new Date().toISOString(),
+        });
+      } catch {
+        /* a missed score must not block the text line */
+      }
+      await replyCitizen(agencyId, phone, "Thanks. We recorded that.", sessionId, language);
+      return;
+    }
   }
 
   const isNew = await isNewCaller(agencyId, phone);

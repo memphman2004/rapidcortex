@@ -1,5 +1,5 @@
 /**
- * Call Assist — Custom Slot Type Registry
+ * Nexiq — Custom Slot Type Registry
  *
  * Each category intent has one SubIssueType slot using a category-specific
  * custom slot type. Common slots (address, urgency, etc.) are shared across all intents.

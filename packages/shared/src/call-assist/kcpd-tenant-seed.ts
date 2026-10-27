@@ -15,14 +15,14 @@ import {
  * Do not import this from Safety / Triage / Intake engines.
  */
 export const KCPD_DISCLOSURE_TEXT =
-  "You've reached the Kansas City Police Department non-emergency line. " +
-  "This call may be handled initially by an automated assistant to gather " +
+  "You've reached Nexiq, the Kansas City Police Department non-emergency line. " +
+  "This call may be handled initially by Nexiq to gather " +
   "information and route your call. If this is an emergency, say 'emergency' " +
   "or hang up and dial 9-1-1.";
 
 /** Spoken on the first-tenant Lex/Connect test DID. Stored on that tenant only. */
 export const KCPD_LEX_DISCLOSURE_TEXT =
-  "You are speaking with an AI assistant for the Kansas City Missouri Police Department. " +
+  "You are speaking with Nexiq for the Kansas City Missouri Police Department. " +
   "This is a non-emergency line. This call is recorded.";
 
 export const GENERIC_DISCLOSURE_TEXT = GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE;
@@ -217,7 +217,7 @@ export const KCPD_VOICE_CONFIG: CallAssistAgencyVoiceConfig = {
   supportedLocales: ["en_US", "es_US", "zh_CN", "zh_HK", "tl_PH", "vi_VN", "ar_AE"],
   disclosureText: KCPD_LEX_DISCLOSURE_TEXT,
   openingGreeting:
-    "Thank you for calling the Kansas City Police non-emergency line. I'm an automated assistant. This call may be recorded. If this is a life-threatening emergency, hang up and dial 9-1-1. For all other requests, stay on the line.",
+    "Thank you for calling the city's non-emergency line. I'm Nexiq, your AI assistant. How can I help you today? If this is a life-threatening emergency, hang up and dial 9-1-1.",
 };
 
 /** First-tenant city-services directory. Other agencies seed their own 311/parks/water entries. */

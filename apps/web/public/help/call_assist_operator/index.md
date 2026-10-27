@@ -1,6 +1,6 @@
-# Call Assist Operator Overview
+# Nexiq Operator Overview
 
-Call Assist is **non-emergency AI intake only**. It is **not** a 911 dispatch console, not CAD, and not a replacement for telecommunicators.
+Nexiq is **non-emergency AI intake only**. It is **not** a 911 dispatch console, not CAD, and not a replacement for telecommunicators.
 
 ## Your job
 
@@ -11,7 +11,7 @@ Call Assist is **non-emergency AI intake only**. It is **not** a 911 dispatch co
 
 ## Banner reminder
 
-Every Call Assist page shows that this is not a 911 emergency dispatch system. Believe the banner.
+Every Nexiq page shows that this is not a 911 emergency dispatch system. Believe the banner.
 
 ## Shift start
 

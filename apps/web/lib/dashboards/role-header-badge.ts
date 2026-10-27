@@ -83,13 +83,13 @@ export function getRoleHeaderBadgeLabel(role: string | undefined | null): string
       return "TRANSIT OPERATOR";
     case "call_assist_admin":
     case "CALL_ASSIST_ADMIN":
-      return "CALL ASSIST ADMIN";
+      return "NEXIQ ADMIN";
     case "call_assist_supervisor":
     case "CALL_ASSIST_SUPERVISOR":
-      return "CALL ASSIST SUPERVISOR";
+      return "NEXIQ SUPERVISOR";
     case "call_assist_operator":
     case "CALL_ASSIST_OPERATOR":
-      return "CALL ASSIST";
+      return "NEXIQ";
     default:
       return null;
   }

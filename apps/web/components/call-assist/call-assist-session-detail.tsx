@@ -223,14 +223,14 @@ export function CallAssistSessionDetail({ sessionId }: { sessionId: string }) {
   }, [session?.createdAt, sessionQuery.dataUpdatedAt]);
 
   if (!isCallAssistEnabled()) {
-    return <p className="p-6 text-sm text-slate-400">Call Assist is not enabled.</p>;
+    return <p className="p-6 text-sm text-slate-400">Nexiq is not enabled.</p>;
   }
 
   return (
     <div className="p-4 md:p-6">
       <CallAssistChrome title={`Session #${shortCallAssistSessionId(sessionId)}`} />
       <Link href={to("/call-assist")} className="mb-3 inline-flex text-[12px] text-sky-400 hover:text-slate-100">
-        ← Call Assist
+        ← Nexiq
       </Link>
       {!session || !profile ? (
         <p className="mt-4 text-sm text-slate-500">{sessionQuery.isLoading ? "Loading session…" : "Session not found."}</p>

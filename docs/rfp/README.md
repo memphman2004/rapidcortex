@@ -82,7 +82,7 @@ Add per-agency: filled implementation workbook, network diagram for **this** ten
 |--------------|------|----------|
 | KCPD 2026-0010 Addendum 4 (AI-assisted non-emergency call management) | [kcpd-2026-0010/CHECKLIST.md](./kcpd-2026-0010/CHECKLIST.md) | 2026-09-30 15:30 CT |
 
-KCPD pack includes Scope of Services, portal supplier notes, pricing outline (fill $), references worksheet, CJIS cover, and Call Assist implementation overlay. Product honesty map: `packages/shared/src/call-assist/bid-matrix.ts`.
+KCPD pack includes Scope of Services, portal supplier notes, pricing outline (fill $), references worksheet, CJIS cover, and Nexiq implementation overlay. Product honesty map: `packages/shared/src/call-assist/bid-matrix.ts`.
 
 ---
 

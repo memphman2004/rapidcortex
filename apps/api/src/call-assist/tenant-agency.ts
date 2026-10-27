@@ -20,7 +20,7 @@ export function requestedCallAssistAgencyId(event: APIGatewayProxyEventV2): stri
 }
 
 /**
- * Tenant for Call Assist reads/writes.
+ * Tenant for Nexiq reads/writes.
  *
  * RC operators may pass `?agencyId=` to re-scope the dashboard.
  * Customer roles may not request a different tenant — that is 403, not silent ignore.

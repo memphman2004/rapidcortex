@@ -15,7 +15,7 @@ import {
 } from "./ui-profile.js";
 import { MISSOURI_SUNSHINE_RETENTION_POLICY } from "./retention.js";
 
-describe("Call Assist UI profile", () => {
+describe("Nexiq UI profile", () => {
   it("maps agency type to vertical without naming a tenant", () => {
     expect(callAssistUiVerticalFromAgency({ type: "city" })).toBe("911");
     expect(callAssistUiVerticalFromAgency({ type: "campus" })).toBe("campus");

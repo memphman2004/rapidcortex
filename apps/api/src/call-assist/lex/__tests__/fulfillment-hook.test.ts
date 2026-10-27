@@ -58,4 +58,10 @@ describe("Fulfillment intercept", () => {
       reason: "EXTERNAL_311",
     });
   });
+
+  it("PublicWorks during a surge stays with Nexiq and gets a report", () => {
+    expect(resolveFulfillmentAction(fulfillmentEvent("PublicWorksIssue", {}), { surgeMode: true })).toEqual({
+      type: "complete",
+    });
+  });
 });

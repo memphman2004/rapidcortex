@@ -48,7 +48,7 @@ export default function CallAssistRecordsPage() {
     return <p className="p-6 text-sm text-rose-300">You do not have permission to manage public records requests.</p>;
   }
   if (!isCallAssistEnabled()) {
-    return <p className="p-6 text-sm text-slate-400">Call Assist is not enabled.</p>;
+    return <p className="p-6 text-sm text-slate-400">Nexiq is not enabled.</p>;
   }
 
   const items = (listQuery.data?.items ?? []) as Array<{
@@ -73,7 +73,7 @@ export default function CallAssistRecordsPage() {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
-      <CallAssistChrome title="Call Assist public records" />
+      <CallAssistChrome title="Nexiq public records" />
       <p className="max-w-2xl text-sm text-slate-400">
         Retention and legal hold follow {retentionLabel}
         {typeof retention.audioRetentionDays === "number" ? ` · audio ${retention.audioRetentionDays} days` : ""}

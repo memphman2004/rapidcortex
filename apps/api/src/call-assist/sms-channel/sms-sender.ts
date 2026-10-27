@@ -18,7 +18,7 @@ export async function sendSmsSegments(opts: {
   messageType?: "call_assist_confirmation";
 }): Promise<void> {
   const smsEnv = await buildSmsFactoryEnvForAgency(opts.agencyId, { extraMock: extraMock() });
-  // Call Assist DID is the inbound/outbound number; use it when the agency has no
+  // Nexiq DID is the inbound/outbound number; use it when the agency has no
   // SMS routing row so replies come from the same 10DLC citizens texted.
   const callAssistOrigination = process.env.CALL_ASSIST_SMS_ORIGINATION_NUMBER?.trim();
   if (!smsEnv.agencySenderE164 && callAssistOrigination) {

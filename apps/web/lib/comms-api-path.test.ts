@@ -201,7 +201,7 @@ describe("isCommsPlatformApiPath", () => {
     );
   });
 
-  it("routes Call Assist to stack 2 only", () => {
+  it("routes Nexiq to stack 2 only", () => {
     process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
     process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
     expect(isStack2ApiPath("/api/call-assist/sessions")).toBe(true);

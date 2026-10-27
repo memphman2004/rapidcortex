@@ -110,7 +110,7 @@ function requirePerm(user: { role: string; agencyId: string; userId: string }, p
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     if (!env.enableCallAssist || !env.callAssistTable) {
-      return withCorrelationHeaders(event, serviceUnavailable("Call Assist is not enabled for this deployment"));
+      return withCorrelationHeaders(event, serviceUnavailable("Nexiq is not enabled for this deployment"));
     }
 
     const user = await getUserContext(event);
@@ -421,7 +421,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           ok({
             aiDisabled: true,
             result: null,
-            message: "Call Assist AI disabled — transfer / human paths remain available",
+            message: "Nexiq AI disabled — transfer / human paths remain available",
           }),
         );
       }
@@ -454,7 +454,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           ok({
             aiDisabled: true,
             result: null,
-            message: "Call Assist AI disabled for this agency",
+            message: "Nexiq AI disabled for this agency",
           }),
         );
       }
@@ -1058,7 +1058,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (message === "PROPOSAL_NOT_FOUND") return withCorrelationHeaders(event, notFound("Proposal not found"));
     if (message === "PROPOSAL_NOT_ACTIONABLE") return withCorrelationHeaders(event, badRequest("Proposal cannot be decided in its current status"));
     if (message === "DEMO_MODE_DISABLED") {
-      return withCorrelationHeaders(event, serviceUnavailable("Call Assist demo mode is not enabled"));
+      return withCorrelationHeaders(event, serviceUnavailable("Nexiq demo mode is not enabled"));
     }
     if (message === "SCENARIO_NOT_FOUND") return withCorrelationHeaders(event, notFound("Scenario not found"));
     console.error("[call-assist.http]", error);

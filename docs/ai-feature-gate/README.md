@@ -18,7 +18,7 @@
 | WS broadcast | `apps/api/src/lib/ws-broadcast.ts` → `AI_MODE_CHANGE` |
 | React | `apps/web/lib/ai-gate/` + dispatch layout provider |
 | Admin UI | `/{jurisdiction}/admin/settings/ai-mode` |
-| Lambda gate helper | `assertAIGateFeature()` — Call Assist + Translate wired |
+| Lambda gate helper | `assertAIGateFeature()` — Nexiq + Translate wired |
 | Smoke | `npx tsx scripts/smoke-ai-gate.ts` |
 
 ## Invariants
@@ -39,7 +39,7 @@
 
 ## Site marking status
 
-Wired examples: `IncidentCameraPanel` (`cameraAnalysis`), `VenueReportsPanel` (`summaries`), Call Assist session/utterance (`callHandling`), Translate session create + summary (`translation` / `summaries`), Vision transcript start (`transcription`), `analyzeIncident` (`incidentSuggestions`), Vision AI Writer + scene classify/describe (`cameraAnalysis`), SOP pattern analyzer (`patternDetection`).
+Wired examples: `IncidentCameraPanel` (`cameraAnalysis`), `VenueReportsPanel` (`summaries`), Nexiq session/utterance (`callHandling`), Translate session create + summary (`translation` / `summaries`), Vision transcript start (`transcription`), `analyzeIncident` (`incidentSuggestions`), Vision AI Writer + scene classify/describe (`cameraAnalysis`), SOP pattern analyzer (`patternDetection`).
 
 Remaining: Bedrock priority/scoring paths, notifications UI, operations dashboard widgets — call `useAIFeature` / `assertAIGateFeature` the same way; do not rely on UI alone.
 

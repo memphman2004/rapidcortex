@@ -184,7 +184,7 @@ export function CallAssistSetupWizard() {
 
   if (!user) return null;
   if (!allowed) {
-    return <p className="p-6 text-sm text-rose-300">Only agency or platform administrators can configure Call Assist.</p>;
+    return <p className="p-6 text-sm text-rose-300">Only agency or platform administrators can configure Nexiq.</p>;
   }
 
   const cad =
@@ -273,7 +273,7 @@ export function CallAssistSetupWizard() {
 
   return (
     <div className="p-4 md:p-6">
-      <CallAssistChrome title="Call Assist setup" />
+      <CallAssistChrome title="Nexiq setup" />
       <p className="mb-4 max-w-2xl text-[12px] text-slate-500">
         Configure this agency only. Emergency transfer cannot be disabled. CAD write-back stays off.
       </p>
@@ -506,7 +506,7 @@ export function CallAssistSetupWizard() {
               disabled={save.isPending}
               onClick={() => void persistStep(step === 9 ? 9 : step + 1)}
             >
-              {step === 9 ? "Activate Call Assist" : "Next"}
+              {step === 9 ? "Activate Nexiq" : "Next"}
             </button>
           </div>
         </div>

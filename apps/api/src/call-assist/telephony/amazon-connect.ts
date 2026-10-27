@@ -37,7 +37,7 @@ export type ConnectTransferResult = {
 };
 
 /**
- * Amazon Connect is the live TelephonyProvider for Call Assist.
+ * Amazon Connect is the live TelephonyProvider for Nexiq.
  *
  * Lex↔Connect barge-in: Lex prompts use allowInterrupt=true; Connect delivers the
  * new utterance with existing slots (see barge-in.ts).

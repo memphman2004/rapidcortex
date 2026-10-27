@@ -1,6 +1,6 @@
-# Call Assist Supervisor Overview
+# Nexiq Supervisor Overview
 
-Supervisors oversee **live non-emergency sessions, QA, and floor relief** for Call Assist. You still are not on a 911 CAD console.
+Supervisors oversee **live non-emergency sessions, QA, and floor relief** for Nexiq. You still are not on a 911 CAD console.
 
 ## Focus areas
 

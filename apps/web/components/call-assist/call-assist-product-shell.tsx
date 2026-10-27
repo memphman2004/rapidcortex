@@ -18,7 +18,7 @@ export function CallAssistProductShell({
       <HelpChrome role={user?.role ?? "call_assist_operator"}>
         <div data-vertical="call-assist" className="flex min-h-screen flex-col bg-[#0f1117] text-slate-100">
           <p className="border-b border-teal-900/80 bg-teal-950/40 px-4 py-1.5 text-center text-[11px] font-semibold tracking-wide text-teal-200">
-            NON-EMERGENCY CALL ASSIST — NOT A 911 DISPATCH CONSOLE
+            NEXIQ — NON-EMERGENCY — NOT A 911 DISPATCH CONSOLE
           </p>
           <div className="flex min-h-0 min-w-0 flex-1">
             <SideNav />

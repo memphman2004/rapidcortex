@@ -27,7 +27,7 @@ function campaign(over: Partial<CallAssistCallbackCampaign> = {}): CallAssistCal
   };
 }
 
-describe("Call Assist callback campaign", () => {
+describe("Nexiq callback campaign", () => {
   it("offers after hours, overflow, or an explicit callback request", () => {
     expect(
       shouldOfferCallback({

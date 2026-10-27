@@ -20,7 +20,7 @@ export const COGNITO_VERTICAL_GROUP_DESCRIPTIONS: Record<CognitoVerticalGroup, s
   vertical_venue: "Venue security — venue admins, operators, supervisors",
   vertical_transit: "Transit security — transit safety personnel",
   vertical_hospital: "Hospital — hospital coordinators and staff",
-  vertical_call_assist: "Call Assist — non-emergency AI intake (no 911 dispatcher console)",
+  vertical_call_assist: "Nexiq — non-emergency AI intake (no 911 dispatcher console)",
 };
 
 /**

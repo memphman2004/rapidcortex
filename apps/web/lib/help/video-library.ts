@@ -182,7 +182,7 @@ const HOSPITAL_VIDEOS: TrainingVideo[] = [
 const CALL_ASSIST_VIDEOS: TrainingVideo[] = [
   {
     id: "ca-operator-live",
-    title: "Call Assist operator: live session & takeover",
+    title: "Nexiq operator: live session & takeover",
     description: "Non-emergency only banner, confidence loops, human takeover.",
     duration: "6:00",
     status: "scripted",

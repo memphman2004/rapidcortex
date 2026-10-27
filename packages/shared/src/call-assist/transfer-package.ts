@@ -63,7 +63,7 @@ export function buildTransferPackage(input: {
   const spokenReceiverSummary =
     input.routing.spokenReceiverSummary ??
     [
-      "NexCort iQ Call Assist transfer.",
+      "Nexiq transfer.",
       `Classification: ${input.triage.primaryClassification}.`,
       input.intake.locationText ? `Location: ${input.intake.locationText}.` : "",
       input.intake.apartmentSuite ? `Apt/suite: ${input.intake.apartmentSuite}.` : "",

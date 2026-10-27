@@ -58,7 +58,7 @@ const session = {
   updatedAt: "2026-09-01T00:00:00.000Z",
 };
 
-describe("Call Assist SMS self-service token", () => {
+describe("Nexiq SMS self-service token", () => {
   beforeEach(() => {
     getSelfServiceToken.mockReset();
     getSession.mockReset();

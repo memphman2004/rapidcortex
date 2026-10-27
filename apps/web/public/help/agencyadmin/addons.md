@@ -1,6 +1,6 @@
 # Feature Add-Ons
 
-Optional modules (Pinpoint, Video Assist, Call Assist, etc.) can be enabled per contract and feature flags.
+Optional modules (Pinpoint, Video Assist, Nexiq, etc.) can be enabled per contract and feature flags.
 
 1. Open **Add-Ons** / feature modules.
 2. Enable only what your agency has purchased and trained.

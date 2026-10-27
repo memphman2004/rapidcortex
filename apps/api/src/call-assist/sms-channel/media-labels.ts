@@ -1,4 +1,4 @@
-/** Map Rekognition scene labels to a Call Assist / 311 issue hint. */
+/** Map Rekognition scene labels to a Nexiq / 311 issue hint. */
 
 export function inferCategoryFromSceneLabels(sceneLabels: string[]): string | null {
   const labels = new Set(sceneLabels.map((l) => l.toLowerCase()));

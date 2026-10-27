@@ -7,7 +7,7 @@ import {
   isCallAssistConfirmationNumber,
 } from "./case-number.js";
 
-describe("Call Assist confirmation numbers", () => {
+describe("Nexiq confirmation numbers", () => {
   it("uses KC prefix for KCPD and PREFIX-MMDD-XXXX shape", () => {
     expect(callAssistConfirmationPrefix("kcpd")).toBe("KC");
     const id = formatCallAssistCaseNumber({

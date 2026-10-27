@@ -91,9 +91,9 @@ export const DOCUMENT_LIBRARY_VERTICALS: DocumentLibraryVertical[] = [
   },
   {
     id: "call-assist",
-    label: "Call Assist",
-    shortLabel: "Call Assist",
-    description: "Non-emergency Call Assist intake, confirmation, and routing.",
+    label: "Nexiq",
+    shortLabel: "Nexiq",
+    description: "Non-emergency Nexiq intake, confirmation, and routing.",
     href: "/rc-admin/document-library/call-assist",
     icon: "PhoneIncoming",
     helpRole: "call_assist_admin",

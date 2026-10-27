@@ -25,7 +25,7 @@ export function canSetupCallAssist(role: string | undefined): boolean {
   return canAdminCallAssist(role);
 }
 
-/** Current-shift label on Call Assist chrome — same gate as admin config. */
+/** Current-shift label on Nexiq chrome — same gate as admin config. */
 export function canSetCallAssistShift(role: string | undefined): boolean {
   return canAdminCallAssist(role);
 }

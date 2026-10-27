@@ -81,11 +81,11 @@
         },
         "parameters": {
           "QueueId": {
-            "displayName": "Call Assist Emergency"
+            "displayName": "Nexiq Emergency"
           }
         },
         "queue": {
-          "text": "Call Assist Emergency"
+          "text": "Nexiq Emergency"
         }
       },
       "play-fallback": {
@@ -311,6 +311,59 @@
           "x": 1280,
           "y": 680
         }
+      },
+      "check-nova-en": {
+        "position": {
+          "x": 900,
+          "y": 20
+        }
+      },
+      "set-voice-nova-en": {
+        "position": {
+          "x": 1040,
+          "y": -80
+        },
+        "overrideConsoleVoice": true,
+        "overrideLanguageAttribute": true,
+        "fragments": {
+          "SetContactData": "set-lang-en"
+        }
+      },
+      "check-nova-es": {
+        "position": {
+          "x": 900,
+          "y": 160
+        }
+      },
+      "set-voice-nova-es": {
+        "position": {
+          "x": 1040,
+          "y": 80
+        },
+        "overrideConsoleVoice": true,
+        "overrideLanguageAttribute": true,
+        "fragments": {
+          "SetContactData": "set-lang-es"
+        }
+      },
+      "check-nova-speak-en": {
+        "position": {
+          "x": 1680,
+          "y": 20
+        }
+      },
+      "check-nova-speak-es": {
+        "position": {
+          "x": 1680,
+          "y": 160
+        }
+      },
+      "lex-intake-nova": {
+        "position": {
+          "x": 1900,
+          "y": 80
+        },
+        "useDynamic": true
       }
     }
   },
@@ -411,7 +464,7 @@
         "NextAction": "check-language",
         "Conditions": [
           {
-            "NextAction": "set-voice-en",
+            "NextAction": "check-nova-en",
             "Condition": {
               "Operator": "Equals",
               "Operands": [
@@ -420,7 +473,7 @@
             }
           },
           {
-            "NextAction": "set-voice-es",
+            "NextAction": "check-nova-es",
             "Condition": {
               "Operator": "Equals",
               "Operands": [
@@ -497,10 +550,10 @@
         "ComparisonValue": "$.External.language"
       },
       "Transitions": {
-        "NextAction": "set-voice-en",
+        "NextAction": "check-nova-en",
         "Conditions": [
           {
-            "NextAction": "set-voice-en",
+            "NextAction": "check-nova-en",
             "Condition": {
               "Operator": "Equals",
               "Operands": [
@@ -509,7 +562,7 @@
             }
           },
           {
-            "NextAction": "set-voice-en",
+            "NextAction": "check-nova-en",
             "Condition": {
               "Operator": "Equals",
               "Operands": [
@@ -518,7 +571,7 @@
             }
           },
           {
-            "NextAction": "set-voice-en",
+            "NextAction": "check-nova-en",
             "Condition": {
               "Operator": "Equals",
               "Operands": [
@@ -527,7 +580,7 @@
             }
           },
           {
-            "NextAction": "set-voice-es",
+            "NextAction": "check-nova-es",
             "Condition": {
               "Operator": "Equals",
               "Operands": [
@@ -536,7 +589,7 @@
             }
           },
           {
-            "NextAction": "set-voice-es",
+            "NextAction": "check-nova-es",
             "Condition": {
               "Operator": "Equals",
               "Operands": [
@@ -545,7 +598,7 @@
             }
           },
           {
-            "NextAction": "set-voice-es",
+            "NextAction": "check-nova-es",
             "Condition": {
               "Operator": "Equals",
               "Operands": [
@@ -718,10 +771,102 @@
         ],
         "Errors": [
           {
+            "NextAction": "check-nova-en",
+            "ErrorType": "NoMatchingCondition"
+          }
+        ]
+      }
+    },
+    {
+      "Identifier": "check-nova-en",
+      "Type": "Compare",
+      "Parameters": {
+        "ComparisonValue": "$.External.voiceEngine"
+      },
+      "Transitions": {
+        "NextAction": "set-voice-en",
+        "Conditions": [
+          {
+            "NextAction": "set-voice-nova-en",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "NOVA_SONIC"
+              ]
+            }
+          }
+        ],
+        "Errors": [
+          {
             "NextAction": "set-voice-en",
             "ErrorType": "NoMatchingCondition"
           }
         ]
+      }
+    },
+    {
+      "Identifier": "set-voice-nova-en",
+      "Type": "UpdateContactTextToSpeechVoice",
+      "Parameters": {
+        "TextToSpeechVoice": "Matthew",
+        "TextToSpeechEngine": "Generative",
+        "TextToSpeechStyle": "None"
+      },
+      "Transitions": {
+        "NextAction": "set-lang-en",
+        "Errors": [
+          {
+            "NextAction": "set-voice-en",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "check-nova-es",
+      "Type": "Compare",
+      "Parameters": {
+        "ComparisonValue": "$.External.voiceEngine"
+      },
+      "Transitions": {
+        "NextAction": "set-voice-es",
+        "Conditions": [
+          {
+            "NextAction": "set-voice-nova-es",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "NOVA_SONIC"
+              ]
+            }
+          }
+        ],
+        "Errors": [
+          {
+            "NextAction": "set-voice-es",
+            "ErrorType": "NoMatchingCondition"
+          }
+        ]
+      }
+    },
+    {
+      "Identifier": "set-voice-nova-es",
+      "Type": "UpdateContactTextToSpeechVoice",
+      "Parameters": {
+        "TextToSpeechVoice": "Lupe",
+        "TextToSpeechEngine": "Generative",
+        "TextToSpeechStyle": "None"
+      },
+      "Transitions": {
+        "NextAction": "set-lang-es",
+        "Errors": [
+          {
+            "NextAction": "set-voice-es",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
       }
     },
     {
@@ -773,10 +918,10 @@
         }
       },
       "Transitions": {
-        "NextAction": "play-disclosure",
+        "NextAction": "check-nova-speak-en",
         "Errors": [
           {
-            "NextAction": "play-disclosure",
+            "NextAction": "check-nova-speak-en",
             "ErrorType": "NoMatchingError"
           }
         ],
@@ -832,10 +977,10 @@
         }
       },
       "Transitions": {
-        "NextAction": "play-disclosure",
+        "NextAction": "check-nova-speak-es",
         "Errors": [
           {
-            "NextAction": "play-disclosure",
+            "NextAction": "check-nova-speak-es",
             "ErrorType": "NoMatchingError"
           }
         ],
@@ -1138,6 +1283,156 @@
       }
     },
     {
+      "Identifier": "check-nova-speak-en",
+      "Type": "Compare",
+      "Parameters": {
+        "ComparisonValue": "$.External.voiceEngine"
+      },
+      "Transitions": {
+        "NextAction": "play-disclosure",
+        "Conditions": [
+          {
+            "NextAction": "lex-intake-nova",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "NOVA_SONIC"
+              ]
+            }
+          }
+        ],
+        "Errors": [
+          {
+            "NextAction": "play-disclosure",
+            "ErrorType": "NoMatchingCondition"
+          }
+        ]
+      }
+    },
+    {
+      "Identifier": "check-nova-speak-es",
+      "Type": "Compare",
+      "Parameters": {
+        "ComparisonValue": "$.External.voiceEngine"
+      },
+      "Transitions": {
+        "NextAction": "play-disclosure",
+        "Conditions": [
+          {
+            "NextAction": "lex-intake-nova",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "NOVA_SONIC"
+              ]
+            }
+          }
+        ],
+        "Errors": [
+          {
+            "NextAction": "play-disclosure",
+            "ErrorType": "NoMatchingCondition"
+          }
+        ]
+      }
+    },
+    {
+      "Identifier": "lex-intake-nova",
+      "Type": "ConnectParticipantWithLexBot",
+      "Parameters": {
+        "LexV2Bot": {
+          "AliasArn": "{{lexBotAliasArn}}"
+        },
+        "LexSessionAttributes": {
+          "agencyId": "$.External.agencyId",
+          "callId": "$.ContactId",
+          "language": "$.Attributes.language",
+          "locale": "$.Attributes.language",
+          "bargeInEnabled": "true",
+          "ani": "$.CustomerEndpoint.Address",
+          "aliAddress": "$.External.aliAddress",
+          "ALI": "$.Attributes.ALI",
+          "RapidSOSAddress": "$.Attributes.RapidSOSAddress",
+          "apartmentSuite": "$.External.apartmentSuite",
+          "greetingDelivered": "false",
+          "greetingMode": "$.External.greetingMode",
+          "escalationMode": "$.External.escalationMode",
+          "emergencyTransferNumber": "$.External.emergencyTransferNumber",
+          "emergencyTransferQueue": "$.External.emergencyTransferQueue",
+          "enableColdClimate": "$.External.enableColdClimate",
+          "enableLiveAgentHandoff": "$.External.enableLiveAgentHandoff",
+          "voiceEngine": "$.External.voiceEngine"
+        },
+        "LexTimeoutSeconds": {
+          "Text": "300"
+        }
+      },
+      "Transitions": {
+        "NextAction": "disconnect",
+        "Conditions": [
+          {
+            "NextAction": "check-escalation-mode",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "EmergencyEscalation"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-fallback-attrs",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "FallbackIntent"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-fallback-attrs",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "RequestHuman"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-fallback-attrs",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "RepeatCallCheck"
+              ]
+            }
+          },
+          {
+            "NextAction": "set-fallback-attrs",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "PublicWorksIssue"
+              ]
+            }
+          }
+        ],
+        "Errors": [
+          {
+            "NextAction": "error-prompt",
+            "ErrorType": "InputTimeLimitExceeded"
+          },
+          {
+            "NextAction": "error-prompt",
+            "ErrorType": "NoMatchingCondition"
+          },
+          {
+            "NextAction": "error-prompt",
+            "ErrorType": "NoMatchingError"
+          }
+        ]
+      }
+    },
+    {
       "Identifier": "play-disclosure",
       "Type": "MessageParticipant",
       "Parameters": {
@@ -1179,7 +1474,8 @@
           "emergencyTransferNumber": "$.External.emergencyTransferNumber",
           "emergencyTransferQueue": "$.External.emergencyTransferQueue",
           "enableColdClimate": "$.External.enableColdClimate",
-          "enableLiveAgentHandoff": "$.External.enableLiveAgentHandoff"
+          "enableLiveAgentHandoff": "$.External.enableLiveAgentHandoff",
+          "voiceEngine": "$.External.voiceEngine"
         },
         "LexTimeoutSeconds": {
           "Text": "300"

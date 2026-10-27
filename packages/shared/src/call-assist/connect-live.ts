@@ -6,7 +6,7 @@ import {
   type CallAssistLocale,
 } from "./lex/provisioning-types.js";
 
-/** Lex locales Amazon Connect can select on a live Call Assist DID. fr_CA stays typed-only. */
+/** Lex locales Amazon Connect can select on a live Nexiq DID. fr_CA stays typed-only. */
 export const CONNECT_LIVE_LEX_LOCALES: readonly CallAssistLocale[] = [
   "en_US",
   "es_US",
@@ -82,6 +82,18 @@ export function connectVoiceForLocale(locale: string | null | undefined): {
 } {
   const meta = CALL_ASSIST_LOCALE_META[connectLiveLexLocale(locale)];
   return { voiceId: meta.voiceId, engine: "Neural" };
+}
+
+/** Nova 2 Sonic voices Connect can speak. Other locales stay on the Lex/Polly neural voice. */
+export function connectNovaSonicVoice(locale: string | null | undefined): {
+  voiceId: string;
+  engine: "Generative";
+  style: "None";
+} | null {
+  const bcp47 = CALL_ASSIST_LOCALE_META[connectLiveLexLocale(locale)].bcp47;
+  if (bcp47 === "en-US") return { voiceId: "Matthew", engine: "Generative", style: "None" };
+  if (bcp47 === "es-US") return { voiceId: "Lupe", engine: "Generative", style: "None" };
+  return null;
 }
 
 export function connectLivePrompts(locale: string | null | undefined): ConnectLivePrompts {

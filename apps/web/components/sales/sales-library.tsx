@@ -38,7 +38,7 @@ const PLATFORM_TERMS = [
   },
   {
     term: "Fail-closed",
-    def: "CAD write-back and Call Assist emergency handoff stay safe by default. Write-back needs a signed addendum; TRANSFER_911 cannot be suppressed.",
+    def: "CAD write-back and Nexiq emergency handoff stay safe by default. Write-back needs a signed addendum; TRANSFER_911 cannot be suppressed.",
   },
   {
     term: "NC Translate",
@@ -49,7 +49,7 @@ const PLATFORM_TERMS = [
     def: "AI scene intelligence from live cameras (agency + citizen share). Observations to authorized roles. Human-in-the-loop — never free.",
   },
   {
-    term: "Call Assist",
+    term: "Nexiq",
     def: "Separate non-emergency product. Users land on /app/call-assist/* — never the 911 dispatcher console. Emergency mid-call uses hardcoded TRANSFER_911.",
   },
   {

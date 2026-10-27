@@ -162,7 +162,7 @@ export function defaultAddOnSeed(now: string): Record<MonetizationAddOnId, impor
     ),
     call_assist: mk(
       "call_assist",
-      "Call Assist (Non-Emergency)",
+      "Nexiq (Non-Emergency)",
       "AI-assisted non-emergency intake, greetings, callbacks, and operator console.",
     ),
     pre_arrival: mk(

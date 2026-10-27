@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { evaluateCadPushGate } from "./provider.js";
 import { MotorolaPremierOneAdapter } from "./motorola-premierone-adapter.js";
 
-describe("Motorola PremierOne Call Assist adapter", () => {
+describe("Motorola PremierOne Nexiq adapter", () => {
   it("stays fail-closed when CAD write-back is off", async () => {
     const gated = evaluateCadPushGate({
       cadWritebackEnabled: false,

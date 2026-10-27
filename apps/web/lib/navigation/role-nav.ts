@@ -85,11 +85,11 @@ function rcTranslateNavItem(href: string, feature: string, badge?: NavBadge): Na
   };
 }
 
-/** Tenant Call Assist (greeting, sessions, config) — keep separate from Lex bot fleet. */
+/** Tenant Nexiq (greeting, sessions, config) — keep separate from Lex bot fleet. */
 function rcCallAssistNavItem(): NavItem {
   return {
     id: "call-assist",
-    label: "Call Assist",
+    label: "Nexiq",
     href: "/rc-admin/call-assist",
     icon: "PhoneIncoming",
     feature: "callAssist",
@@ -153,7 +153,7 @@ function rcDocumentLibraryNavItem(): NavItem {
       },
       {
         id: "document-library-call-assist",
-        label: "Call Assist",
+        label: "Nexiq",
         href: "/rc-admin/document-library/call-assist",
         icon: "PhoneIncoming",
       },
@@ -186,7 +186,7 @@ function appendStaffGuideNav(nav: RoleNav, href: string): RoleNav {
 function rcCallAssistBotsNavItem(): NavItem {
   return {
     id: "call-assist-bots",
-    label: "Call Assist bots",
+    label: "Nexiq bots",
     href: "/rc-admin/call-assist/bots",
     icon: "Bot",
     feature: "callAssist",
@@ -804,7 +804,7 @@ export function getDispatcherNav(jurisdiction: string): RoleNav {
           { id: "intake",        label: "Intake",          href: `${j}/dispatcher`, icon: "PhoneIncoming" },
           { id: "triage",        label: "Triage",          href: `${j}/dispatcher/non-emergency`, icon: "ScanLine",
             feature: "nonEmergencyTriage" },
-          { id: "call-assist",   label: "Call Assist",     href: `${j}/call-assist`, icon: "PhoneIncoming",
+          { id: "call-assist",   label: "Nexiq",     href: `${j}/call-assist`, icon: "PhoneIncoming",
             feature: "callAssist" },
           rcTranslateNavItem(`${j}/translate`, "rcTranslate"),
           { id: "transcription", label: "Transcription",   href: `${j}/dispatcher#cad-transcript`, icon: "FileText" },
@@ -851,7 +851,7 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
           { id: "incidents",     label: "Incidents",       href: `${j}/dispatcher`, icon: "AlertCircle" },
           { id: "non-emergency", label: "Non-Emergency",   href: `${j}/dispatcher/non-emergency`, icon: "ScanLine",
             feature: "nonEmergencyTriage" },
-          { id: "call-assist",   label: "Call Assist",     href: `${j}/call-assist`, icon: "PhoneIncoming",
+          { id: "call-assist",   label: "Nexiq",     href: `${j}/call-assist`, icon: "PhoneIncoming",
             feature: "callAssist" },
           rcTranslateNavItem(`${j}/translate`, "rcTranslate"),
           { id: "cad-queue",     label: "CAD Queue",       href: `${j}/review`,             icon: "Radio",
@@ -875,7 +875,7 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
         items: [
           { id: "qa",            label: "QA & Coaching",   href: `${j}/qa`, icon: "ClipboardCheck",
             feature: "qaScoringEnabled" },
-          { id: "call-assist-qa", label: "Call Assist QA", href: `${j}/call-assist/qa`, icon: "ClipboardCheck",
+          { id: "call-assist-qa", label: "Nexiq QA", href: `${j}/call-assist/qa`, icon: "ClipboardCheck",
             feature: "callAssist" },
           { id: "team",          label: "Team Performance",href: `${j}/supervisor/team-performance`, icon: "Users" },
           { id: "reports",       label: "Reports",         href: `${j}/supervisor/reports`, icon: "BarChart3" },
@@ -1002,7 +1002,7 @@ export function getAgencyAdminNav(jurisdiction: string): RoleNav {
             feature: "ng911Assist" },
           { id: "ng911-metrics", label: "NG9-1-1 Metrics", href: `${j}/admin/ng911/metrics`, icon: "BarChart3",
             feature: "ng911Assist" },
-          { id: "call-assist-admin", label: "Call Assist", href: `${j}/call-assist/admin`, icon: "PhoneIncoming",
+          { id: "call-assist-admin", label: "Nexiq", href: `${j}/call-assist/admin`, icon: "PhoneIncoming",
             feature: "callAssist" },
           { id: "nexiq-vault-admin", label: "NexiQ Vault", href: `${j}/admin/vault`, icon: "FolderOpen",
             feature: "nexiqVault" },
@@ -1092,7 +1092,7 @@ export function getAgencyItNav(jurisdiction: string): RoleNav {
             feature: "ng911Assist" },
           { id: "ng911-metrics", label: "NG9-1-1 Metrics", href: `${j}/admin/ng911/metrics`, icon: "BarChart3",
             feature: "ng911Assist" },
-          { id: "call-assist-admin", label: "Call Assist", href: `${j}/call-assist/admin`, icon: "PhoneIncoming",
+          { id: "call-assist-admin", label: "Nexiq", href: `${j}/call-assist/admin`, icon: "PhoneIncoming",
             feature: "callAssist" },
         ],
       },
@@ -1189,10 +1189,10 @@ export function getAnalystNav(jurisdiction: string): RoleNav {
           { id: "history",       label: "History",         href: `${j}/history`,            icon: "Clock" },
           { id: "cad-connector", label: "CAD Connector",   href: `${j}/cad/incidents`,      icon: "Radio",
             feature: "cadConnector" },
-          { id: "call-assist",   label: "Call Assist",     href: `${j}/call-assist`,        icon: "PhoneIncoming",
+          { id: "call-assist",   label: "Nexiq",     href: `${j}/call-assist`,        icon: "PhoneIncoming",
             feature: "callAssist" },
           rcTranslateNavItem(`${j}/translate`, "rcTranslate"),
-          { id: "call-assist-qa", label: "Call Assist QA", href: `${j}/call-assist/qa`, icon: "ClipboardCheck",
+          { id: "call-assist-qa", label: "Nexiq QA", href: `${j}/call-assist/qa`, icon: "ClipboardCheck",
             feature: "callAssist" },
         ],
       },
@@ -1225,10 +1225,10 @@ export function getAuditorNav(jurisdiction: string): RoleNav {
             feature: "cadWriteback" },
           { id: "cad-connector", label: "CAD Connector",   href: `${j}/cad/audit`,          icon: "Radio",
             feature: "cadConnector" },
-          { id: "call-assist-records", label: "Call Assist Records", href: `${j}/call-assist/records`, icon: "Scale",
+          { id: "call-assist-records", label: "Nexiq Records", href: `${j}/call-assist/records`, icon: "Scale",
             feature: "callAssist" },
           rcTranslateNavItem(`${j}/translate`, "rcTranslate"),
-          { id: "call-assist-qa", label: "Call Assist QA", href: `${j}/call-assist/qa`, icon: "ClipboardCheck",
+          { id: "call-assist-qa", label: "Nexiq QA", href: `${j}/call-assist/qa`, icon: "ClipboardCheck",
             feature: "callAssist" },
           { id: "access",        label: "Access Reports",  href: `${j}/reports`,            icon: "UserCheck",
             badge: { type: "label", text: "VIEW ONLY", color: "slate" } },
@@ -2064,7 +2064,7 @@ function callAssistLiveItem(home: string): NavItem {
 export function getCallAssistOperatorNav(): RoleNav {
   return {
     accent: "teal",
-    roleBadge: "CALL ASSIST",
+    roleBadge: "NEXIQ",
     sections: [
       {
         id: "ops",
@@ -2078,7 +2078,7 @@ export function getCallAssistOperatorNav(): RoleNav {
 export function getCallAssistSupervisorNav(): RoleNav {
   return {
     accent: "teal",
-    roleBadge: "CALL ASSIST · SUPERVISOR",
+    roleBadge: "NEXIQ · SUPERVISOR",
     sections: [
       {
         id: "ops",
@@ -2096,7 +2096,7 @@ export function getCallAssistSupervisorNav(): RoleNav {
 export function getCallAssistAdminNav(): RoleNav {
   return {
     accent: "teal",
-    roleBadge: "CALL ASSIST · ADMIN",
+    roleBadge: "NEXIQ · ADMIN",
     sections: [
       {
         id: "ops",

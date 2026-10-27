@@ -60,7 +60,7 @@ function secretsEqual(provided: string, expected: string): boolean {
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     if (!env.enableCallAssist || !env.callAssistTable) {
-      return withCorrelationHeaders(event, serviceUnavailable("Call Assist is not enabled"));
+      return withCorrelationHeaders(event, serviceUnavailable("Nexiq is not enabled"));
     }
 
     const method = event.requestContext.http.method.toUpperCase();

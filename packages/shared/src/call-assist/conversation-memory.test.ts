@@ -5,7 +5,7 @@ import {
 } from "./conversation-memory.js";
 import { extractIntakeFields, utteranceHasCorrectionCue } from "./intake.js";
 
-describe("Call Assist Phase 2 — conversation memory", () => {
+describe("Nexiq Phase 2 — conversation memory", () => {
   it("retains prior fields across turns and does not re-collect location", () => {
     const turn1 = applyConversationTurn({
       prior: {},

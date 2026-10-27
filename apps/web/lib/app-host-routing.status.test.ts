@@ -27,7 +27,7 @@ describe("app-host-routing — public status", () => {
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/status"))).toBeNull();
   });
 
-  it("keeps Call Assist SMS self-service on the app host", () => {
+  it("keeps Nexiq SMS self-service on the app host", () => {
     expect(isMarketingPublicPath("/call-assist/report/tok")).toBe(false);
     expect(maybeRedirectAppHostAwayFromMarketing(appRequest("/call-assist/report/tok"))).toBeNull();
   });

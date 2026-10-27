@@ -5,7 +5,7 @@ import {
   matchesCallAssistTimeWindow,
 } from "./routing-rules.js";
 
-describe("Call Assist routing rules", () => {
+describe("Nexiq routing rules", () => {
   const rules = defaultCallAssistRoutingRules("kcpd");
 
   it("routes suspicious vehicle to PATROL", () => {

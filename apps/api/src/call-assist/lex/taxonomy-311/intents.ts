@@ -1,5 +1,5 @@
 /**
- * Call Assist — 311 Non-Emergency Intent Registry
+ * Nexiq — 311 Non-Emergency Intent Registry
  *
  * 22 primary category intents + FallbackIntent.
  * Each intent uses:

@@ -51,7 +51,7 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "c",
   /** Public QR/NFC citizen intake — no auth (`/report/{qrId}`). */
   "report",
-  /** Public Call Assist SMS self-service (`/call-assist/report/{token}`). Not a jurisdiction slug. */
+  /** Public Nexiq SMS self-service (`/call-assist/report/{token}`). Not a jurisdiction slug. */
   "call-assist",
   /** QR/NFC Guest Assist (`/rc-guest-assist.html`) — not a jurisdiction slug. */
   "rc-guest-assist.html",

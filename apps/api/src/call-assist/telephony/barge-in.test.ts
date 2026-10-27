@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { applyBargeIn, bargeInSessionPatch, detectBargeIn, readBargeInState } from "./barge-in.js";
 
-describe("Call Assist barge-in resume", () => {
+describe("Nexiq barge-in resume", () => {
   it("increments barge-in count and keeps the next slot for resume", () => {
     const next = applyBargeIn({
       prior: readBargeInState({ promptSlot: "NoiseType", bargeInCount: "0" }),

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { CALL_ASSIST_LOCALES, MAX_CALL_ASSIST_LOCALES } from "./lex/provisioning-types.js";
 
 /**
- * Per-agency spoken branding for Call Assist.
+ * Per-agency spoken branding for Nexiq.
  * Lambda, Lex templates, and Connect flows resolve these at runtime or provision time.
  * Nothing in this object is platform-global — KCPD is one tenant's values, not the product.
  */
@@ -47,6 +47,8 @@ export const callAssistAgencyVoiceConfigSchema = z.object({
   transcribeVocabularyStatus: z.enum(["PENDING", "READY", "FAILED", "NOT_CREATED"]).optional(),
   disclosureEnabled: z.boolean().optional(),
   aiDisclosureRequired: z.boolean().optional(),
+  /** When true, English and Spanish use Nova 2 Sonic. Other locales stay on Lex/Polly. */
+  novaSonicEnabled: z.boolean().optional(),
   disclosureText: z.string().trim().min(1).max(2000),
   openingGreeting: z.string().trim().max(2000).optional(),
   afterHoursMessage: z.string().trim().max(2000).optional(),
@@ -81,15 +83,13 @@ export type CallAssistVoiceVars = {
 };
 
 export const GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE =
-  "You are speaking with an AI assistant for {{agencyShortName}}. " +
+  "You are speaking with Nexiq for {{agencyShortName}}. " +
   "This is a non-emergency line. This call is recorded. " +
   "If this is an emergency, say emergency or hang up and dial {{emergencyLine}}.";
 
 export const GENERIC_CALL_ASSIST_OPENING_TEMPLATE =
-  "Thank you for calling {{agencyShortName}} non-emergency. " +
-  "I'm an automated assistant that will gather your information and get you to the right place. " +
-  "This call may be recorded. If this is a life-threatening emergency, please hang up and dial {{emergencyLine}}, " +
-  "or say emergency now. How can I help you today?";
+  "Thank you for calling the city's non-emergency line. I'm Nexiq, your AI assistant. How can I help you today? " +
+  "If this is a life-threatening emergency, hang up and dial {{emergencyLine}}.";
 
 export const GENERIC_CALL_ASSIST_FALLBACK_TEMPLATE =
   "I'm sorry, I'm having trouble understanding. Let me connect you to {{agencyShortName}} who can help. Stay on the line.";

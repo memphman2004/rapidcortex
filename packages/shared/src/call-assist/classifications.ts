@@ -1,4 +1,4 @@
-/** Agency-agnostic Call Assist classifications. Incident codes live in tenant config, not here. */
+/** Agency-agnostic Nexiq classifications. Incident codes live in tenant config, not here. */
 
 export const CALL_ASSIST_MODES = [
   "NON_EMERGENCY",

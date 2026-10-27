@@ -47,7 +47,7 @@ Do **not** invent numbers in git. Sales/finance fills `$` cells.
 
 | SKU / workstream | Description | One-time ($) | Annual ($) |
 |------------------|-------------|--------------|------------|
-| Call Assist platform | SaaS for Call Assist roles, QA, analytics, knowledge, admin | | |
+| Nexiq platform | SaaS for Nexiq roles, QA, analytics, knowledge, admin | | |
 | Amazon Connect / Lex usage | Pass-through or estimated at 450k NE + admin volume | | |
 | Telephony integration services | DID, contact flows, ANI/ALI attrs, overflow rules with agency CPE | | |
 | PremierOne Phase 1 | Connector config + human-reviewed create packet (write-back **off**) | | |

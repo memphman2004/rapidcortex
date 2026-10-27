@@ -310,6 +310,7 @@ Resources:
             Action:
               - lex:CreateBot
               - lex:CreateBotLocale
+              - lex:UpdateBotLocale
               - lex:CreateBotVersion
               - lex:CreateBotAlias
               - lex:UpdateBotAlias

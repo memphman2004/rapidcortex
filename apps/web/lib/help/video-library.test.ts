@@ -6,8 +6,8 @@ import {
   TRAINING_VIDEO_LIBRARY,
 } from "./video-library";
 
-describe("normalizeHelpRole — Call Assist & superadmin", () => {
-  it("maps Call Assist roles to dedicated help keys (not dispatcher)", () => {
+describe("normalizeHelpRole — Nexiq & superadmin", () => {
+  it("maps Nexiq roles to dedicated help keys (not dispatcher)", () => {
     expect(normalizeHelpRole("CALL_ASSIST_OPERATOR")).toBe("call_assist_operator");
     expect(normalizeHelpRole("call_assist_admin")).toBe("call_assist_admin");
     expect(normalizeHelpRole("call_assist_supervisor")).toBe("call_assist_supervisor");
@@ -19,7 +19,7 @@ describe("normalizeHelpRole — Call Assist & superadmin", () => {
   });
 });
 
-describe("Call Assist help index", () => {
+describe("Nexiq help index", () => {
   it("loads operator articles including emergency transfer", () => {
     const index = getHelpIndex("CALL_ASSIST_OPERATOR");
     const topics = index.flatMap((s) => s.articles.map((a) => a.topic));
@@ -36,7 +36,7 @@ describe("training video library", () => {
     expect(TRAINING_VIDEO_LIBRARY.length).toBeGreaterThan(10);
   });
 
-  it("returns Call Assist videos for operators", () => {
+  it("returns Nexiq videos for operators", () => {
     const videos = getTrainingVideosForRole("call_assist_operator");
     expect(videos.some((v) => v.id === "ca-emergency-transfer")).toBe(true);
   });

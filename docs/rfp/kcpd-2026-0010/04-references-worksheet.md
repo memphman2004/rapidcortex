@@ -12,7 +12,7 @@ Solicitation asks for: minimum five years in public safety; existing U.S. PSAP c
 | Field | Value |
 |-------|-------|
 | Legal name | Apps on Demand LLC |
-| Product | NexCort iQ Call Assist |
+| Product | Nexiq |
 | Years in public safety / related | ____ |
 | HQ address | ____ |
 | Primary contact for references | ____ |
@@ -29,7 +29,7 @@ Solicitation asks for: minimum five years in public safety; existing U.S. PSAP c
 | Approx. population served | |
 | PSAP / LE / other | |
 | Product / services used | |
-| AI / Call Assist / related? | Yes / No — describe: |
+| AI / Nexiq / related? | Yes / No — describe: |
 | Go-live year | |
 | Contact name / title | |
 | Phone | |
@@ -45,7 +45,7 @@ Solicitation asks for: minimum five years in public safety; existing U.S. PSAP c
 | Approx. population served | |
 | PSAP / LE / other | |
 | Product / services used | |
-| AI / Call Assist / related? | Yes / No — describe: |
+| AI / Nexiq / related? | Yes / No — describe: |
 | Go-live year | |
 | Contact name / title | |
 | Phone | |
@@ -61,7 +61,7 @@ Solicitation asks for: minimum five years in public safety; existing U.S. PSAP c
 | Approx. population served | |
 | PSAP / LE / other | |
 | Product / services used | |
-| AI / Call Assist / related? | Yes / No — describe: |
+| AI / Nexiq / related? | Yes / No — describe: |
 | Go-live year | |
 | Contact name / title | |
 | Phone | |

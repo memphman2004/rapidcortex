@@ -21,7 +21,7 @@ const springfield = {
   greetingPreviewConfirmed: true,
 };
 
-describe("Call Assist greeting builders", () => {
+describe("Nexiq greeting builders", () => {
   it("formats SMS DID for the voice welcome tip", () => {
     expect(formatE164AsUsNational("+13198358230")).toBe("(319) 835-8230");
     expect(appendVoiceSmsChannelTip("Stay on the line.", "+13198358230")).toBe(
@@ -57,7 +57,8 @@ describe("Call Assist greeting builders", () => {
       },
       "en-US",
     );
-    expect(custom).toBe("This is Springfield Police Department in City of Springfield.");
+    expect(custom.startsWith("Thank you for calling the city's non-emergency line. I'm Nexiq, your AI assistant. How can I help you today?")).toBe(true);
+    expect(custom).toContain("This is Springfield Police Department in City of Springfield.");
 
     const localized = buildGreeting(
       {
@@ -66,7 +67,8 @@ describe("Call Assist greeting builders", () => {
       },
       "es-US",
     );
-    expect(localized).toBe("Línea de City of Springfield.");
+    expect(localized.startsWith("Thank you for calling the city's non-emergency line.")).toBe(true);
+    expect(localized).toContain("Línea de City of Springfield.");
   });
 
   it("blocks activation when city or agency is empty", () => {

@@ -41,7 +41,7 @@ Rationale: core controls exist, but P0 blockers remain for CJIS-sensitive usage 
 | CJI-like data map | PARTIAL | Incident/transcript/media/silent-text flows in `apps/api/src/services/*`, repositories, AI prompts in `apps/api/src/ai/prompts.ts` | Data classification labels and handling tiers not fully enforced end-to-end | Add formal data classification matrix + policy-based controls in code | P0 |
 | AI provider data exposure | FAIL | `apps/api/src/ai/prompts.ts` sends full transcript + incident/agency IDs; providers in `apps/api/src/ai/providers/{openaiAdapter,anthropicAdapter,bedrockAdapter}.ts` | Sensitive content may flow to third-party AI services without enforced minimization/redaction | Implement pre-provider de-identification and agency provider policy gates | P0 |
 | STT/translation provider risk | PARTIAL | Multi-provider orchestration in `apps/api/src/voice/*`; provider factories include AWS/Google/Azure | Fallback can spread data across multiple providers; per-agency hard controls unclear | Add provider allowlists + single-provider high-sensitivity mode | P0 |
-| Retention/disposal | PASS (code) | `retentionExecutor.ts` purges incident/transcript/analysis/media with legal-hold skip + `deleteIfNotOnLegalHold`; Call Assist `callAssistRetention.ts` purges sessions with the same ConditionExpression; deletion audit events | Silent Text / some media classes still need AWS validation of TTL | Keep legal hold on before any purge | P1 |
+| Retention/disposal | PASS (code) | `retentionExecutor.ts` purges incident/transcript/analysis/media with legal-hold skip + `deleteIfNotOnLegalHold`; Nexiq `callAssistRetention.ts` purges sessions with the same ConditionExpression; deletion audit events | Silent Text / some media classes still need AWS validation of TTL | Keep legal hold on before any purge | P1 |
 | DynamoDB TTL scope | PARTIAL | TTL for some tables (e.g., share/media paths) in `infra/template.yaml` | Core incident/transcript/analysis/audit retention controls incomplete | Expand retention policy implementation across all data stores | P0 |
 | WAF and rate limiting | PARTIAL | WAF resources + rate limit params in `infra/template.yaml`; guidance in `docs/PILOT_AWS_DEFENSE.md` | Enabled state per environment not guaranteed | Enforce WAF-on for pilot/prod in deployment policy checks | P1 |
 | Public bucket / edge config | NEEDS AWS VALIDATION | Empty-bucket and hosting state observed operationally; web hosting template exists | Runtime bucket policies/OAC/public access block posture unverifiable from repo snapshot | Validate CloudFront OAC + S3 BlockPublicAccess + access logs | NEEDS AWS VALIDATION |
@@ -62,8 +62,8 @@ The following items named as production blockers are implemented in repo. **This
 | Finding | Evidence |
 | --- | --- |
 | CloudTrail immutability | `CloudTrailLogsBucket` Object Lock COMPLIANCE 2555d, versioning, `EnableLogFileValidation`, Deny DeleteObject / insecure transport in `infra/nested/stack-app-sam.yaml` |
-| Retention on core CJI types | Daily `retentionExecutor` (incident, transcript, analysis, media) + Call Assist session retention; both skip `legalHold=true` |
-| Legal-hold-proof deletion | Dynamo `ConditionExpression` on incident and Call Assist session deletes; TTL `expiresAt` omitted while held |
+| Retention on core CJI types | Daily `retentionExecutor` (incident, transcript, analysis, media) + Nexiq session retention; both skip `legalHold=true` |
+| Legal-hold-proof deletion | Dynamo `ConditionExpression` on incident and Nexiq session deletes; TTL `expiresAt` omitted while held |
 | AI subprocessor documentation | [SUBPROCESSOR_LIST.md](./SUBPROCESSOR_LIST.md) current as of 2026-09-08 (Connect, Lex, Bedrock, Transcribe, Translate, optional non-AWS providers off unless ARNs set) |
 
 Remaining before a CJIS-sensitive agency onboard: executed CJIS Security Addendum, personnel screening, AWS account validation of the trail, and agency-signed residual-risk acceptance.

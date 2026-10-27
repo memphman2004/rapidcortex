@@ -2,8 +2,8 @@
 ## KCPD RFP 2026-0010 Addendum 4  
 ### AI-Assisted Non-Emergency Call Management Solution
 
-**Offeror:** Apps on Demand LLC — NexCort iQ Call Assist  
-**Product:** NexCort iQ Call Assist (non-emergency AI triage and intake)  
+**Offeror:** Apps on Demand LLC — Nexiq  
+**Product:** Nexiq (non-emergency AI triage and intake)  
 **Positioning:** Augments telecommunicators; does **not** replace 911 CPE, CAD, radio, or medical direction.
 
 This Scope of Services maps one-for-one to the Bid Lines in the solicitation. Positions are **FULL**, **PARTIAL**, **N/A**, or **COMPLIANT (services)**. PARTIAL lines describe what ships today and what requires agency UAT, telephony partnership, or a signed addendum.
@@ -12,7 +12,7 @@ This Scope of Services maps one-for-one to the Bid Lines in the solicitation. Po
 
 ## 1. Project objective (compliance statement)
 
-NexCort iQ Call Assist provides an AI-assisted **non-emergency** call management path that:
+Nexiq provides an AI-assisted **non-emergency** call management path that:
 
 - Answers and triages routine non-emergency interactions with natural conversational speech (Amazon Connect + Amazon Lex),  
 - Collects structured intake and recommends CAD natures / priorities for human review,  
@@ -31,7 +31,7 @@ RapidSOS integration (former Bid Line 12) is **out of scope** per public Q&A.
 
 **Included:** Conversational non-emergency answering; barge-in / interrupted speech handling on the Connect path; emergency keyword and distress escalation with **hard stop** (AI does not continue the call); intelligent follow-up questions; confidence-based human escalation; never-fabricate grounding against intake + knowledge; AI disclosure language (tenant-configurable, seeded for KCPD).
 
-**Boundaries:** Call Assist attaches to the **non-emergency** voice path. It is not a replacement for the Department’s 911 phone system. Production DID cutover requires un-mocked Connect/Lex, agency telephony engineering, and UAT. Special-population handling escalates to humans; the product does not clinically diagnose mental illness.
+**Boundaries:** Nexiq attaches to the **non-emergency** voice path. It is not a replacement for the Department’s 911 phone system. Production DID cutover requires un-mocked Connect/Lex, agency telephony engineering, and UAT. Special-population handling escalates to humans; the product does not clinically diagnose mental illness.
 
 ### Line 2 — Call Intake — **FULL**
 
@@ -59,7 +59,7 @@ English and Spanish are first-class. Additional Lex locales are tenant-configura
 
 ### Line 7 — Multichannel Communications — **PARTIAL**
 
-**Voice** (primary Call Assist path), **SMS** (self-service / status links), **Video** via existing NexCort iQ live video / iQ Vision assist when the agency enables that platform feature — not a separate Call Assist video stack.
+**Voice** (primary Nexiq path), **SMS** (self-service / status links), **Video** via existing NexCort iQ live video / iQ Vision assist when the agency enables that platform feature — not a separate Nexiq video stack.
 
 ### Line 8 — Callback Features — **PARTIAL**
 
@@ -75,7 +75,7 @@ Agency-managed articles for policies, FAQs, public information, city and police 
 
 ### Line 11 — Motorola CAD Integration — **PARTIAL**
 
-**Included:** PremierOne adapter plus CAD-agnostic provider pattern (Tyler, CentralSquare, Hexagon, Zetron, Mark43, Versaterm, and others as configured). Human-reviewed CAD create packet; dual fail-closed gates (`CAD_WRITEBACK_ENABLED` and Call Assist CAD push flag) default **off**.
+**Included:** PremierOne adapter plus CAD-agnostic provider pattern (Tyler, CentralSquare, Hexagon, Zetron, Mark43, Versaterm, and others as configured). Human-reviewed CAD create packet; dual fail-closed gates (`CAD_WRITEBACK_ENABLED` and Nexiq CAD push flag) default **off**.
 
 **Phase 1 (Day 1 posture):** Shadow / review packet; call taker or supervisor approves before send.  
 **Phase 2 (after signed addendum + UAT):** Live create / notes; then disposition, unit status, attachments, and deeper history as Motorola professional services and agency testing allow.
@@ -88,7 +88,7 @@ Deleted per addendum / public Q&A. Not bid. Not demonstrated.
 
 ### Line 13 — Telephony Integration — **PARTIAL**
 
-Amazon Connect webhooks, contact-flow actions, ANI/ALI and Caller ID as contact attributes. SIP/VoIP CPE, queue management, and overflow routing remain with the Department’s existing telephony / 911 phone system. Call Assist is the AI front-end on the non-emergency path, not a CPE replacement.
+Amazon Connect webhooks, contact-flow actions, ANI/ALI and Caller ID as contact attributes. SIP/VoIP CPE, queue management, and overflow routing remain with the Department’s existing telephony / 911 phone system. Nexiq is the AI front-end on the non-emergency path, not a CPE replacement.
 
 ### Line 14 — RMS Integration — **PARTIAL**
 
@@ -142,7 +142,7 @@ Named project manager, schedule, testing plan, UAT, parallel operations, cutover
 
 ### Line 26 — Vendor Qualifications — **PARTIAL**
 
-Offeror will provide current United States public-safety / PSAP references on the Reference Information Sheet. Multi-CAD portability and a live scenario-based demonstration (scripted Call Assist demo library aligned to KCPD scenarios) are included. Population-size and years-in-market claims will match **actual** commercial history — not inflated for scoring.
+Offeror will provide current United States public-safety / PSAP references on the Reference Information Sheet. Multi-CAD portability and a live scenario-based demonstration (scripted Nexiq demo library aligned to KCPD scenarios) are included. Population-size and years-in-market claims will match **actual** commercial history — not inflated for scoring.
 
 ---
 
@@ -163,7 +163,7 @@ Demonstration method follows the Department’s evaluation setting. A scripted d
 
 ## 4. External agency transfers
 
-Call Assist identifies and warm-transfers calls outside KCPD when configured (e.g., 311, Parks, Water, and other directory entries). Exact numbers and hours are tenant-administered.
+Nexiq identifies and warm-transfers calls outside KCPD when configured (e.g., 311, Parks, Water, and other directory entries). Exact numbers and hours are tenant-administered.
 
 ---
 

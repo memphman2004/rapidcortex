@@ -14,7 +14,7 @@ import {
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "../../../..");
 
-describe("Call Assist multi-agency voice config", () => {
+describe("Nexiq multi-agency voice config", () => {
   it("interpolates Fulton County 911 without leftover placeholders", () => {
     const spoken = interpolateCallAssistVoice(GENERIC_CALL_ASSIST_OPENING_TEMPLATE, {
       agencyShortName: "Fulton County 911",
@@ -22,8 +22,18 @@ describe("Call Assist multi-agency voice config", () => {
       emergencyLine: "911",
       agencyWebsite: "fulton911.gov",
     });
-    expect(spoken).toContain("Fulton County 911");
+    expect(spoken.startsWith("Thank you for calling the city's non-emergency line. I'm Nexiq, your AI assistant.")).toBe(true);
+    expect(spoken).toContain("911");
+    const disclosure = interpolateCallAssistVoice(GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE, {
+      agencyShortName: "Fulton County 911",
+      agencyName: "Fulton County 911",
+      emergencyLine: "911",
+      agencyWebsite: "fulton911.gov",
+    });
+    expect(disclosure).toContain("Fulton County 911");
+    expect(disclosure).toContain("Nexiq");
     expect(spoken).not.toMatch(/\{\{|\}\}|Kansas City|KCPD/i);
+    expect(disclosure).not.toMatch(/\{\{|\}\}|Kansas City|KCPD/i);
   });
 
   it("does not apply the KCPD seed overlay to a second agency", () => {

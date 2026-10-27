@@ -12,7 +12,7 @@ import {
 } from "rapid-cortex-shared";
 import type { CallAssistTenantConfig } from "../store.js";
 import type { LexMessage } from "./types.js";
-import { elicitIntentResponse, plain, ssml } from "./lex-responses.js";
+import { elicitIntentResponse, speakForEngine } from "./lex-responses.js";
 import { getLexTenantConfig } from "./runtime-store.js";
 import type { LexV2Event, LexV2Response } from "./types.js";
 import { WELCOME_INTENT } from "./dialog-intercept.js";
@@ -99,7 +99,9 @@ export function startCallAssistSession(opts: {
 }
 
 export function lexWelcomeResponse(start: CallAssistSessionStartResult): LexV2Response {
-  return elicitIntentResponse(WELCOME_INTENT, start.sessionAttributes, [plain(start.greeting)]);
+  return elicitIntentResponse(WELCOME_INTENT, start.sessionAttributes, [
+    speakForEngine(start.greeting, start.sessionAttributes.voiceEngine),
+  ]);
 }
 
 export async function handleSessionStart(event: LexV2Event): Promise<LexV2Response> {
@@ -129,7 +131,9 @@ export function escalationCloseParts(
   const greetingConfig = config ? resolveGreetingConfig(config) : null;
   if (!greetingConfig || !isCallAssistGreetingConfigEnabled()) {
     return {
-      messages: fallbackSpoken.trim() ? [ssml(fallbackSpoken)] : [],
+      messages: fallbackSpoken.trim()
+        ? [speakForEngine(fallbackSpoken, sessionAttrs.voiceEngine)]
+        : [],
       sessionAttributes: { ...sessionAttrs, escalationMode: "announce_and_transfer" },
       endSession: false,
     };
@@ -137,7 +141,9 @@ export function escalationCloseParts(
   const check = checkEscalation(utterance || "emergency", greetingConfig, locale);
   const announcement = check.announcement;
   const endSession = check.action === "announce_and_end";
-  const messages: LexMessage[] = announcement.trim() ? [ssml(announcement)] : [];
+  const messages: LexMessage[] = announcement.trim()
+    ? [speakForEngine(announcement, sessionAttrs.voiceEngine)]
+    : [];
   return {
     messages,
     sessionAttributes: {

@@ -217,7 +217,7 @@ describe("call-assist P2 RBAC", () => {
     expect(retention.statusCode).toBe(403);
   });
 
-  it("lets supervisor view Call Assist QA and analytics dashboards", async () => {
+  it("lets supervisor view Nexiq QA and analytics dashboards", async () => {
     const qa = await invokeHttpHandler(
       handler,
       makeAuthenticatedEvent({

@@ -4,7 +4,7 @@ Copy each block into the Line Item **Supplier Notes** field (or attach this shee
 
 | Line | Position | Supplier notes (paste) |
 |------|----------|------------------------|
-| 1 | PARTIAL | NexCort iQ Call Assist: non-emergency conversational AI (Connect+Lex) with emergency hard-stop transfer, barge-in, grounding, disclosure. Not a 911 CPE replacement; DID cutover after telephony UAT. |
+| 1 | PARTIAL | Nexiq: non-emergency conversational AI (Connect+Lex) with emergency hard-stop transfer, barge-in, grounding, disclosure. Not a 911 CPE replacement; DID cutover after telephony UAT. |
 | 2 | FULL | Structured intake + dynamic questioning for type, location, apt/business, cross streets, DOT, vehicle, plate, suspect, weapons, injuries, contact, callback, language. |
 | 3 | PARTIAL | CAD nature/priority recommendations; duplicate/repeat/chronic session signals. Live PremierOne nearby/hazards after Motorola UAT — not claimed live on Day 1. |
 | 4 | FULL | Thirteen triage classes including emergency override, report-only, information, online/CarFax (KCPD online vehicle reporting) eligibility. |

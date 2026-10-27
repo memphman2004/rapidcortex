@@ -10,7 +10,7 @@ export const ADDON_CATALOG: QuoteAddOn[] = [
   { id: "team-dashboards", label: "Team Performance Dashboards", monthlyLow: 2000, monthlyHigh: 7500 },
   { id: "command-dashboard", label: "Command Dashboard & War Rooms", monthlyLow: 5000, monthlyHigh: 20000 },
   { id: "premium_support", label: "Priority Support", monthlyLow: 2500, monthlyHigh: 7500 },
-  { id: "call_assist", label: "Call Assist (Non-Emergency)", monthlyLow: 4500, monthlyHigh: 9000 },
+  { id: "call_assist", label: "Nexiq (Non-Emergency)", monthlyLow: 4500, monthlyHigh: 9000 },
   {
     id: "pre_arrival",
     label: "Pre-Arrival iQ ($3,000/yr · 50k SMS included)",

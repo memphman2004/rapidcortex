@@ -48,7 +48,7 @@ export type InvoiceRecord = {
   state: InvoiceLifecycleState;
   /** Archived external invoice id from imports / finance bridges. */
   archivedExternalInvoiceId?: string;
-  /** Human-readable invoice number, e.g. RC-2026-00042 (MSA §4.4). */
+  /** Human-readable invoice number, e.g. NiQ-2026-00042 (MSA §4.4). */
   invoiceNumber?: string;
   issueDate: string;
   dueDate: string;

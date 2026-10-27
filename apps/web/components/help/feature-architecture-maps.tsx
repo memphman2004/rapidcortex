@@ -227,7 +227,7 @@ export function FeatureArchitectureMaps({
             <span className="font-semibold text-slate-400">Mapped:</span>{" "}
             {flowIds?.length
               ? `${flows.length} flow${flows.length === 1 ? "" : "s"} for this vertical library.`
-              : "21 flows — Call Assist, PSAP AI, Multilingual, QR/NFC, K-12, CAD, Media SMS, Vision, Campus events, Translate, Hospital, Clery DCL, EAP, Transit, Automation, Venue Guest Services, Venue QR, Pickup Auth, ASR, Camera registry."}
+              : "21 flows — Nexiq, PSAP AI, Multilingual, QR/NFC, K-12, CAD, Media SMS, Vision, Campus events, Translate, Hospital, Clery DCL, EAP, Transit, Automation, Venue Guest Services, Venue QR, Pickup Auth, ASR, Camera registry."}
           </p>
         </div>
       ) : null}

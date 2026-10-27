@@ -61,7 +61,7 @@ export async function scoreCallAssistSession(opts: {
         {
           templateId: "call-assist-qa",
           agencyId: opts.session.agencyId,
-          name: "Call Assist QA",
+          name: "Nexiq QA",
           version: 1,
           checklistItems: CALL_ASSIST_QA_CHECKLIST.map((c) => ({ id: c.id, label: c.label, weight: c.weight })),
           createdAt: opts.session.createdAt,

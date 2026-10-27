@@ -42,11 +42,11 @@ describe("rapid-cortex-roles", () => {
     expect(ROLE_DISPLAY_LABELS.hospitalstaff).toBe("Hospital Staff");
   });
 
-  it("labels Call Assist Cognito-group tokens for user-management dropdowns", () => {
-    expect(roleDisplayLabel("CALL_ASSIST_ADMIN")).toBe("Call Assist Admin");
-    expect(roleDisplayLabel("CALL_ASSIST_SUPERVISOR")).toBe("Call Assist Supervisor");
-    expect(roleDisplayLabel("CALL_ASSIST_OPERATOR")).toBe("Call Assist Operator");
-    expect(roleDisplayLabel("call_assist_operator")).toBe("Call Assist Operator");
+  it("labels Nexiq Cognito-group tokens for user-management dropdowns", () => {
+    expect(roleDisplayLabel("CALL_ASSIST_ADMIN")).toBe("Nexiq Admin");
+    expect(roleDisplayLabel("CALL_ASSIST_SUPERVISOR")).toBe("Nexiq Supervisor");
+    expect(roleDisplayLabel("CALL_ASSIST_OPERATOR")).toBe("Nexiq Operator");
+    expect(roleDisplayLabel("call_assist_operator")).toBe("Nexiq Operator");
   });
 
   it("allows every canonical role via USER_ROLE_SCHEMA", () => {

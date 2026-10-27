@@ -1,6 +1,6 @@
-# Call Assist Records
+# Nexiq Records
 
-Session records support QA, Sunshine / records requests, and after-action review for **non-emergency** Call Assist only.
+Session records support QA, Sunshine / records requests, and after-action review for **non-emergency** Nexiq only.
 
 ## How to pull a record
 
@@ -11,6 +11,6 @@ Session records support QA, Sunshine / records requests, and after-action review
 
 ## Guardrails
 
-- These are not 911 CAD records. Keep them in the Call Assist retention lane your counsel defines.
+- These are not 911 CAD records. Keep them in the Nexiq retention lane your counsel defines.
 - Emergency transfers should show the Safety Engine stop + Connect handoff — escalate gaps to Supervisor / IT.
 - Demo runner sessions are for evaluation; do not mix demo IDs into production legal packages without labeling them.

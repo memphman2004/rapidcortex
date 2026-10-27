@@ -7,7 +7,7 @@ import {
   summarizeCallAssistQa,
 } from "./qa-suite.js";
 
-describe("Call Assist QA suite", () => {
+describe("Nexiq QA suite", () => {
   it("searches utterances and scores a mock checklist", () => {
     const utterances = [
       { speaker: "assistant", text: "I'm an automated assistant. This call may be recorded." },

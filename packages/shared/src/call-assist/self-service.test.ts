@@ -6,7 +6,7 @@ import {
   shouldOfferOnlineReportingSms,
 } from "./self-service.js";
 
-describe("Call Assist SMS self-service", () => {
+describe("Nexiq SMS self-service", () => {
   it("offers only when eligible with a portal URL", () => {
     expect(
       shouldOfferOnlineReportingSms({

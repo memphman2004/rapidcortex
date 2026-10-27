@@ -20,7 +20,7 @@ import {
   weaponVisibleYes,
   type TransferReason,
 } from "./dialog-intercept.js";
-import { closeTransferResponse, plain, ssml } from "./lex-responses.js";
+import { closeTransferResponse, plain, speakForEngine } from "./lex-responses.js";
 import { buildTransferSummary } from "./safety-gate.js";
 import type { LexV2Event, LexV2Response } from "./types.js";
 import { escalationCloseParts, handleSessionStart } from "./session-start.js";
@@ -37,7 +37,10 @@ export type FulfillmentAction =
   | { type: "complete" };
 
 /** Intercept before Dynamo write so Lex cannot continue slot collection after a weapon/injury yes. */
-export function resolveFulfillmentAction(event: LexV2Event): FulfillmentAction {
+export function resolveFulfillmentAction(
+  event: LexV2Event,
+  opts?: { surgeMode?: boolean },
+): FulfillmentAction {
   const intent = event.sessionState.intent.name;
   const slots = event.sessionState.intent.slots ?? {};
   const smsChannel = event.sessionState.sessionAttributes?.channel === "sms";
@@ -54,10 +57,11 @@ export function resolveFulfillmentAction(event: LexV2Event): FulfillmentAction {
     return { type: "human", intentName: REPEAT_CALL_INTENT, reason: "REPEAT_CALL" };
   }
   if (intent === FALLBACK_INTENT) {
+    if (opts?.surgeMode === true) return { type: "complete" };
     return { type: "human", intentName: FALLBACK_INTENT, reason: "LOW_CONFIDENCE" };
   }
   if (intent === PUBLIC_WORKS_INTENT) {
-    if (smsChannel) return { type: "complete" };
+    if (smsChannel || opts?.surgeMode === true) return { type: "complete" };
     return { type: "human", intentName: PUBLIC_WORKS_INTENT, reason: "EXTERNAL_311" };
   }
   if (intent === "InformationRequest") {
@@ -82,7 +86,7 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
     return handleSessionStart(event);
   }
 
-  const action = resolveFulfillmentAction(event);
+  const action = resolveFulfillmentAction(event, { surgeMode: config?.surgeMode === true });
   const shortName = agencyShortName(config);
   const utterance = event.inputTranscript ?? "";
 
@@ -139,7 +143,7 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
       action.intentName,
       utterance || action.intentName,
       { ...sessionAttrs, agencyId, callId, classification: sessionAttrs.classification ?? action.intentName },
-      [ssml(spoken)],
+        [speakForEngine(spoken, sessionAttrs.voiceEngine)],
       action.reason,
     );
   }
@@ -183,7 +187,7 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
         FALLBACK_INTENT,
         utterance || "ungrounded information request",
         { ...sessionAttrs, agencyId, callId, classification: FALLBACK_INTENT, knowledgeHit: "false" },
-        [ssml(transferPrompt(config, "LOW_CONFIDENCE"))],
+        [speakForEngine(transferPrompt(config, "LOW_CONFIDENCE"), sessionAttrs.voiceEngine)],
         "LOW_CONFIDENCE",
       );
     }

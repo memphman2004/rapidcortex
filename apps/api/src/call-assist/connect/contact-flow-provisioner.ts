@@ -135,7 +135,7 @@ export class ContactFlowProvisioner {
         InstanceId: instanceId,
         Name: name,
         Type: "CONTACT_FLOW",
-        Description: `NexCort iQ Call Assist non-emergency flow for ${agencyId}`,
+        Description: `Nexiq non-emergency flow for ${agencyId}`,
         Content: content,
       }),
     );

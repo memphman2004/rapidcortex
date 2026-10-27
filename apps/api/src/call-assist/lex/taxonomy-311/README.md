@@ -1,4 +1,4 @@
-# Call Assist — 311 Non-Emergency Lex V2 Full Schema
+# Nexiq — 311 Non-Emergency Lex V2 Full Schema
 
 ## File Structure
 

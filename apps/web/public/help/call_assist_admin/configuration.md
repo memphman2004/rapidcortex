@@ -1,4 +1,4 @@
-# Call Assist Configuration
+# Nexiq Configuration
 
 1. Open **Configuration** (and bots when shown).
 2. Set greeting language and AI disclosure required by Missouri / agency policy.

@@ -48,7 +48,7 @@ See [SECURITY_MODEL.md](../SECURITY_MODEL.md). Tenant isolation is `agencyId` on
 | Other products in account `158961537080` (carve-out below) | Not NexCort iQ |
 | Engineering stack `rapid-cortex-staging` / `app-staging.rapidcortex.us` | Non-production; still change-controlled, not Type II production |
 | CAD **write-back** to vendor systems | Fail-closed (`CAD_WRITEBACK_ENABLED` default false). Enable only with signed addendum. |
-| Call Assist as a 911 console | Non-emergency / 311 only |
+| Nexiq as a 911 console | Non-emergency / 311 only |
 | External AI providers when secret ARNs are unset | Not processing production data |
 | Personal devices used only for email/Slack | Covered by CC6 acceptable-use, not the CUEC for the SaaS |
 

@@ -14,7 +14,7 @@ import { detectTtyMode, formatTtySms } from "./tty.js";
 import { assertGroundedReply } from "./grounding.js";
 import { CALL_ASSIST_BID_LINE_MATRIX } from "./bid-matrix.js";
 
-describe("Call Assist Safety Engine", () => {
+describe("Nexiq Safety Engine", () => {
   it("transfers to 911 and stops AI when the caller says emergency", () => {
     const d = evaluateSafety("this is an emergency");
     expect(d.action).toBe("TRANSFER_911");
@@ -34,7 +34,7 @@ describe("Call Assist Safety Engine", () => {
   });
 });
 
-describe("Call Assist triage", () => {
+describe("Nexiq triage", () => {
   it("cannot override a safety emergency", () => {
     const t = classifyCallTriage("loud music but this is an emergency");
     expect(t.primaryClassification).toBe("EMERGENCY");
@@ -59,7 +59,7 @@ describe("Call Assist triage", () => {
   });
 });
 
-describe("Call Assist routing", () => {
+describe("Nexiq routing", () => {
   it("routes PUBLIC_WORKS to EXTERNAL_AGENCY when the tenant directory matches", () => {
     const rec = recommendRoute({
       classification: "PUBLIC_WORKS",
@@ -284,7 +284,7 @@ describe("bid matrix", () => {
   });
 });
 
-describe("Call Assist retention by data type", () => {
+describe("Nexiq retention by data type", () => {
   it("plans transcript redaction before full session delete", () => {
     const plan = planCallAssistRetentionActions({
       createdAtIso: "2020-01-01T00:00:00.000Z",

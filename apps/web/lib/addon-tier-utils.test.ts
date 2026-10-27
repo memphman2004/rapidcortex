@@ -39,6 +39,20 @@ describe("activeTierKeyInFamily", () => {
     expect(key).toBe("transcription.enhanced.tier1");
   });
 
+  it("keeps the highest enabled tier when a lower tier is also enabled", () => {
+    const key = activeTierKeyInFamily(
+      "transcription.enhanced",
+      variants,
+      {
+        "transcription.enhanced.tier1": { enabled: true },
+        "transcription.enhanced.tier3": { enabled: true },
+      } as Record<AddonKey, { enabled?: boolean }>,
+      "Professional",
+      isAddonIncludedInPlan,
+    );
+    expect(key).toBe("transcription.enhanced.tier3");
+  });
+
   it("prefers an enabled paid upgrade over the plan-included base", () => {
     const key = activeTierKeyInFamily(
       "transcription.enhanced",

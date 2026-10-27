@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { demoDrainUtterance, isDemoTerminalState } from "./demo-runner.js";
 
-describe("Call Assist demo runner", () => {
+describe("Nexiq demo runner", () => {
   it("keeps draining intake after a non-emergency follow-up", () => {
     expect(
       demoDrainUtterance({

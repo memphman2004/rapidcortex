@@ -1,7 +1,8 @@
 /**
  * Atomic invoice number sequencing (MSA §4.4 / billing-audit H6).
  * Uses a reserved row on the invoices table — no separate meta table required.
- * Format: RC-YYYY-NNNNN (year + 5-digit global sequence).
+ * Format: NiQ-YYYY-NNNNN (year + 5-digit global sequence).
+ * Older RC- numbers still count toward the sequence.
  */
 import { GetCommand, PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { env } from "../env.js";
@@ -9,8 +10,8 @@ import { ddb } from "../../repositories/baseRepository.js";
 
 export const INVOICE_SEQUENCE_KEY = "INVOICE_SEQUENCE";
 
-const LEGACY_MONTHLY = /^RC-(\d{4})-(\d{2})-(\d{4})$/;
-const YEARLY = /^RC-(\d{4})-(\d{5})$/;
+const LEGACY_MONTHLY = /^(?:RC|NiQ)-(\d{4})-(\d{2})-(\d{4})$/;
+const YEARLY = /^(?:RC|NiQ)-(\d{4})-(\d{5})$/;
 
 function parseSeqFromNumber(invoiceNumber: string): number {
   const yearly = invoiceNumber.match(YEARLY);
@@ -107,5 +108,5 @@ export async function nextInvoiceNumber(
   if (!Number.isFinite(seq) || seq < 1) {
     throw new Error("Failed to allocate invoice sequence");
   }
-  return `RC-${year}-${String(seq).padStart(5, "0")}`;
+  return `NiQ-${year}-${String(seq).padStart(5, "0")}`;
 }

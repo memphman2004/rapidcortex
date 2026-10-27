@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { defaultTenantConfig } from "../../config-service.js";
-import { startCallAssistSession } from "../session-start.js";
+import { lexWelcomeResponse, startCallAssistSession } from "../session-start.js";
 
 describe("callAssistSessionStart", () => {
   it("sets greeting session attributes from tenant config", () => {
@@ -60,5 +60,33 @@ describe("callAssistSessionStart", () => {
       existingAttributes: { greetingDelivered: "true", agencyId: "springfield" },
     });
     expect(start.greeting).toBe("How can I help you today?");
+  });
+
+  it("lets Nova answer with the Nexiq opening in plain speech", () => {
+    const config = {
+      ...defaultTenantConfig("springfield"),
+      novaSonicEnabled: true,
+      callAssistGreeting: {
+        mode: "stay_on_line" as const,
+        cityName: "City of Springfield",
+        agencyName: "Springfield PD",
+        lineDescription: "non-emergency service line",
+        escalationMode: "announce_and_transfer" as const,
+        speakEscalationAnnouncement: true,
+        enableColdClimateIntents: false,
+        enableLiveAgentHandoff: true,
+        greetingPreviewConfirmed: true,
+      },
+    };
+    const start = startCallAssistSession({
+      agencyId: "springfield",
+      locale: "en-US",
+      config,
+      existingAttributes: { voiceEngine: "NOVA_SONIC", agencyId: "springfield" },
+    });
+    const welcome = lexWelcomeResponse(start);
+    expect(welcome.messages?.[0]?.contentType).toBe("PlainText");
+    expect(welcome.messages?.[0]?.content.startsWith("Thank you for calling the city's non-emergency line. I'm Nexiq")).toBe(true);
+    expect(welcome.messages?.[0]?.content).not.toContain("<speak>");
   });
 });

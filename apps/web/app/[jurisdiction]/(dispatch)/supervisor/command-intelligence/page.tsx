@@ -62,7 +62,7 @@ export default function CommandIntelligencePage() {
             <MetricCard label="911 calls" value={String(s.total911Calls)} />
             <MetricCard label="Non-emergency" value={String(s.totalNonEmergencyCalls)} />
             <MetricCard
-              label="Call Assist containment"
+              label="Nexiq containment"
               value={
                 s.callAssistContainmentRate == null
                   ? "—"

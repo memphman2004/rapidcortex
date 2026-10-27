@@ -185,7 +185,7 @@ async function resolveVendorHttp(
 }
 
 /**
- * Live CAD create for any Call Assist vendor adapter.
+ * Live CAD create for any Nexiq vendor adapter.
  * Dual fail-closed flags are evaluated by the adapter before this runs.
  */
 export async function submitCadVendorCreate(

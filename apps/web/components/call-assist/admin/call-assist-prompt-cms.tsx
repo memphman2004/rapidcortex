@@ -84,7 +84,7 @@ export function CallAssistPromptCms() {
     <section className="space-y-3 rounded-lg border border-slate-800 p-4">
       <h2 className="text-sm font-semibold text-white">Prompt CMS</h2>
       <p className="text-[12px] text-slate-500">
-        Change-control for spoken Call Assist prompts and the dispatch AI system prompt. QA findings never go live
+        Change-control for spoken Nexiq prompts and the dispatch AI system prompt. QA findings never go live
         until an agency administrator approves them here. Direct saves still version, diff, and support rollback.
       </p>
       {pending.length ? (

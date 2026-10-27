@@ -13,7 +13,7 @@ import {
 } from "./index.js";
 import { callAssistAdminConfigPatchSchema } from "./schemas.js";
 
-describe("Call Assist onboarding helpers", () => {
+describe("Nexiq onboarding helpers", () => {
   it("vertical selection loads the matching taxonomy preset", () => {
     expect(presetTaxonomy("campus").callTypes.some((t) => t.id === "wellness_check")).toBe(true);
     expect(presetTaxonomy("911").callTypes.some((t) => t.id === "ANIMAL_CONTROL")).toBe(true);

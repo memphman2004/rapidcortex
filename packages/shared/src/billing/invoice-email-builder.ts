@@ -75,7 +75,6 @@ export function buildInvoiceEmailHtml(invoice: AutomatedInvoice): string {
     <div>
       <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">From</div>
       <div style="font-size:14px;font-weight:700;color:#0f172a;">Apps on Demand LLC</div>
-      <div style="font-size:13px;color:#475569;">d/b/a NexCort iQ</div>
       <div style="font-size:13px;color:#475569;">${SUPPORT_EMAIL}</div>
     </div>
   </div>

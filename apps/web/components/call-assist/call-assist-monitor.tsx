@@ -64,7 +64,7 @@ function statusMeta(state: string, profile: CallAssistUiProfile) {
 
 export function CallAssistMonitor({
   canView,
-  title = "Call Assist",
+  title = "Nexiq",
   description,
   variant = "live",
 }: {
@@ -114,14 +114,14 @@ export function CallAssistMonitor({
   if (!isCallAssistEnabled()) {
     return (
       <div className="space-y-3 p-6">
-        <h1 className="text-lg font-semibold text-white">Call Assist</h1>
-        <p className="text-sm text-slate-400">Call Assist is not enabled for this deployment.</p>
+        <h1 className="text-lg font-semibold text-white">Nexiq</h1>
+        <p className="text-sm text-slate-400">Nexiq is not enabled for this deployment.</p>
       </div>
     );
   }
 
   if (!canView) {
-    return <p className="p-6 text-sm text-rose-300">You do not have permission to view Call Assist.</p>;
+    return <p className="p-6 text-sm text-rose-300">You do not have permission to view Nexiq.</p>;
   }
 
   return (
@@ -201,7 +201,7 @@ export function CallAssistMonitor({
             {!profile || items.length === 0 ? (
               <tr>
                 <td className="px-3 py-6 text-sm text-slate-500" colSpan={8}>
-                  {sessionsQuery.isLoading ? "Loading sessions…" : "No open Call Assist sessions."}
+                  {sessionsQuery.isLoading ? "Loading sessions…" : "No open Nexiq sessions."}
                 </td>
               </tr>
             ) : (

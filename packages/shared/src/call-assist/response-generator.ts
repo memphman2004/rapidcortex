@@ -44,7 +44,7 @@ export function responseVoiceFromConfig(config: {
 }
 
 /**
- * Spoken Call Assist responses — Absolute Speech Rules (short, no corporate filler).
+ * Spoken Nexiq responses — Absolute Speech Rules (short, no corporate filler).
  * Lex personalizes from CallAssistAgencyVoiceConfig; no agency name is hardcoded here.
  */
 export class ResponseGenerator {

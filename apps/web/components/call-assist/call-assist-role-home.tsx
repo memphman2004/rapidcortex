@@ -12,7 +12,7 @@ export function CallAssistOperatorHome() {
       canView={canViewCallAssist(user.role)}
       variant="operator"
       title="Live non-emergency calls"
-      description="Operator workspace: live Call Assist sessions, takeover, and transfer. This is not a 911 telecommunicator console — no CAD queue, incident table, or dispatcher tools."
+      description="Operator workspace: live Nexiq sessions, takeover, and transfer. This is not a 911 telecommunicator console — no CAD queue, incident table, or dispatcher tools."
     />
   );
 }

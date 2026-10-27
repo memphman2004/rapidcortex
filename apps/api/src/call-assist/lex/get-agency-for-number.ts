@@ -7,6 +7,7 @@ import {
   connectLivePrompts,
   connectLocaleAttrSuffix,
   interpolateCallAssistVoice,
+  decideCallAssistVoiceEngine,
   resolveConnectStartLocale,
 } from "rapid-cortex-shared";
 import type { CallAssistTenantConfig } from "../store.js";
@@ -47,6 +48,8 @@ export type ConnectStartResult = {
   ani: string;
   aliAddress: string;
   apartmentSuite: string;
+  voiceEngine: string;
+  novaSonicModelId: string;
 } & Record<string, string>;
 
 function phoneFromEvent(event: ConnectStartEvent): string {
@@ -96,6 +99,12 @@ export function buildConnectStartResult(opts: {
     opts.config?.disclosureText || GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE,
     opts.config ? callAssistVoiceVarsFromTenant(opts.config) : { agencyShortName: opts.agencyShortName },
   );
+  const voice = decideCallAssistVoiceEngine({
+    agencyId: opts.agencyId,
+    sessionId: "connect-start",
+    novaSonicEnabled: opts.config?.novaSonicEnabled === true,
+    agencyPrompt: opts.config?.systemPromptAppend,
+  });
   const result: ConnectStartResult = {
     agencyId: opts.agencyId,
     disclosureText,
@@ -118,6 +127,8 @@ export function buildConnectStartResult(opts: {
     ani: opts.identity.ani ?? "",
     aliAddress: opts.identity.aliAddress ?? "",
     apartmentSuite: opts.identity.apartmentSuite ?? "",
+    voiceEngine: voice.voiceEngine,
+    novaSonicModelId: voice.modelId ?? "",
   };
 
   for (const lex of CONNECT_LIVE_LEX_LOCALES) {

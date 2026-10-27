@@ -257,7 +257,7 @@ export function CallAssistGreetingEditor({ config, pending, onSave }: Props) {
         <p className="text-[11px] uppercase tracking-wide text-slate-500">Escalation</p>
         <p className="text-sm text-slate-100">{escalationEn || "(silent — no announcement)"}</p>
         {!ready || blocked ? (
-          <p className="text-[12px] text-amber-300">{blocked ?? "City and agency name are required before Call Assist can go live."}</p>
+          <p className="text-[12px] text-amber-300">{blocked ?? "City and agency name are required before Nexiq can go live."}</p>
         ) : (
           <p className="text-[12px] text-emerald-400">Ready. Save to apply this greeting to every call, operator, and language.</p>
         )}

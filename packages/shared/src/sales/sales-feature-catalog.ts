@@ -305,7 +305,7 @@ export const SALES_FEATURE_CATALOG: readonly SalesFeatureCatalogItem[] = [
   // ── Product surfaces often missing from older catalogs ────────────────────
   {
     id: "call_assist",
-    name: "Call Assist (non-emergency)",
+    name: "Nexiq (non-emergency)",
     explanation:
       "AI-assisted non-emergency call intake with greeting flows, callbacks, and operator console — separate from 911 dispatch.",
     detail:
@@ -313,7 +313,7 @@ export const SALES_FEATURE_CATALOG: readonly SalesFeatureCatalogItem[] = [
     buyerValue: "Takes non-emergency load off the ECC without putting AI on the 911 console.",
     compatibleVerticals: ["rc911", "campus", "venue", "transit"],
     isFree: false,
-    category: "Call Assist",
+    category: "Nexiq",
   },
   {
     id: "rapid_vision",

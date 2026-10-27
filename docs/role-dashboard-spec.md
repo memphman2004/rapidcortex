@@ -15,7 +15,7 @@ Sections are ordered by risk and frequency of change:
 4. **Hospital** — capacity/routing portal
 5. **Venue** — event/arena operations vertical
 6. **Transit** — bus / rail / ferry operations vertical
-7. **Call Assist** — non-emergency AI intake only (not 911 dispatch)
+7. **Nexiq** — non-emergency AI intake only (not 911 dispatch)
 
 ### Design decisions that matter most
 
@@ -928,9 +928,9 @@ This role is the most restricted. The UI should feel like a customer service inb
 | 20 | transit_supervisor | Transit |
 | 21 | transit_security | Transit |
 | 22 | transit_operator | Transit |
-| 23 | call_assist_admin | Call Assist |
-| 24 | call_assist_supervisor | Call Assist |
-| 25 | call_assist_operator | Call Assist |
+| 23 | call_assist_admin | Nexiq |
+| 24 | call_assist_supervisor | Nexiq |
+| 25 | call_assist_operator | Nexiq |
 
 **Campus product variants:** each of Admin / Supervisor / Security / Dispatch / Counselor / Faculty exists as `*_K12` and `*_HIGHERED`. Legacy unsuffixed `CAMPUS_*` aliases to K-12.
 
@@ -978,11 +978,11 @@ Transit is a product vertical, not a PSAP. Electric-blue ops chrome (`#3b82f6`).
 
 ---
 
-# SECTION 7 — CALL ASSIST ROLES (NON-EMERGENCY ONLY)
+# SECTION 7 — NEXIQ ROLES (NON-EMERGENCY ONLY)
 
-Call Assist–only tenants buy the non-emergency AI product. They must **never** land on the 911 dispatcher dashboard, CAD queue, or incident workspace.
+Nexiq–only tenants buy the non-emergency AI product. They must **never** land on the 911 dispatcher dashboard, CAD queue, or incident workspace.
 
-**Visual theme:** Deep navy (`#0f1117`), **teal** accent, header strip: **NON-EMERGENCY CALL ASSIST — NOT A 911 DISPATCH CONSOLE**.
+**Visual theme:** Deep navy (`#0f1117`), **teal** accent, header strip: **NEXIQ — NON-EMERGENCY — NOT A 911 DISPATCH CONSOLE**.
 
 **Dashboards:** `/app/call-assist/{admin|supervisor|operator}` plus shared `/app/call-assist/live`, `/qa`, `/analytics`, `/records`, `/demo`, `/sessions/{id}`.
 
@@ -990,7 +990,7 @@ JWT `custom:role` is snake_case (`call_assist_operator`). Cognito groups: `CALL_
 
 PSAP roles (`dispatcher`, `supervisor`, `agencyadmin`) still use `/{jurisdiction}/call-assist` as a **module** on the 911 console. These three roles are a **separate product shell**.
 
-## call_assist_operator — Call Assist Operator
+## call_assist_operator — Nexiq Operator
 
 **Home:** `/app/call-assist/operator`
 
@@ -1000,7 +1000,7 @@ PSAP roles (`dispatcher`, `supervisor`, `agencyadmin`) still use `/{jurisdiction
 
 **Cannot:** 911 dispatcher dashboard, incident table, CAD connector, supervisor QA, admin config, demo runner.
 
-## call_assist_supervisor — Call Assist Supervisor
+## call_assist_supervisor — Nexiq Supervisor
 
 **Home:** `/app/call-assist/supervisor`
 
@@ -1010,13 +1010,13 @@ PSAP roles (`dispatcher`, `supervisor`, `agencyadmin`) still use `/{jurisdiction
 
 **Cannot:** 911 dispatcher/supervisor workspaces, CAD approval queue, agency admin, greeting/knowledge CMS.
 
-## call_assist_admin — Call Assist Admin
+## call_assist_admin — Nexiq Admin
 
 **Home:** `/app/call-assist/admin`
 
 **Nav:** Configuration, live calls, QA, analytics, records, demo runner, users.
 
-**Can:** tenant Call Assist config, greeting, knowledge, prompts, retention, records requests, demo scenarios, invite Call Assist users for the same agency.
+**Can:** tenant Nexiq config, greeting, knowledge, prompts, retention, records requests, demo scenarios, invite Nexiq users for the same agency.
 
 **Cannot:** 911 dispatcher dashboard, billing revenue, Lex bot fleet (`call_assist.bots.manage` stays RC-internal).
 

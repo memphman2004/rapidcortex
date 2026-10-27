@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { evaluateCadPushGate } from "./provider.js";
 import { RestVendorCadAdapter } from "./rest-vendor-adapter.js";
 
-describe("Call Assist CAD vendor adapters", () => {
+describe("Nexiq CAD vendor adapters", () => {
   const vendors = ["tyler-new-world", "centralsquare", "hexagon-intergraph", "zetron"] as const;
 
   it.each(vendors)("%s stays fail-closed when write-back is off", async (id) => {

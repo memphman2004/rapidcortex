@@ -94,7 +94,7 @@ Radio live transcript push should mirror: **discriminated WS types + `data` wrap
 | Timeline kinds | `packages/shared/src/timeline-types.ts` — **extend** with radio kinds (e.g. `radio_transmission`, `radio_alert`, `radio_summary`) |
 | CAD ingest / duplicate-of-CAD | `apps/api/src/lib/cad/cad-ingest-intelligence.ts`, schemas `cadDuplicateOfCadNumber` |
 | CAD mesh (PSAP-to-PSAP share) | `apps/api/src/cad-mesh/*`, `packages/shared/src/cad-mesh/*` — transfer packages can later carry radio highlights |
-| Call Assist transfer package | `packages/shared/src/call-assist/transfer-package.ts` |
+| Nexiq transfer package | `packages/shared/src/call-assist/transfer-package.ts` |
 
 **Feature 2 (Duplicate Detection):** radio-derived entities/addresses should feed confidence **into** existing correlation paths — not a separate “duplicate engine” table family.
 

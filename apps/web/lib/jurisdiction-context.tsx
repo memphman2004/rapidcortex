@@ -17,13 +17,13 @@ export function JurisdictionProvider({
   );
 }
 
-/** Rewrites `/call-assist/...` links onto a Call Assist product shell (app or RC admin). */
+/** Rewrites `/call-assist/...` links onto a Nexiq product shell (app or RC admin). */
 export function CallAssistProductBaseProvider({
   children,
   base = "/app/call-assist",
 }: {
   children: React.ReactNode;
-  /** Root for Call Assist chrome links (default `/app/call-assist`). */
+  /** Root for Nexiq chrome links (default `/app/call-assist`). */
   base?: string;
 }) {
   return (
