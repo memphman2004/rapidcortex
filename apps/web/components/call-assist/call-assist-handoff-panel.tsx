@@ -13,6 +13,7 @@ type Handoff = {
   repeatCaller?: boolean;
   ttyMode?: boolean;
   language?: string;
+  alreadyCollected?: string[];
   routing?: { destinationType?: string; displayName?: string };
 };
 
@@ -47,6 +48,16 @@ export function CallAssistHandoffPanel({
       </div>
       <p className="text-xs uppercase tracking-wide text-slate-500">Classification</p>
       <p className="text-sm text-sky-200">{handoff.classification ?? "—"}</p>
+      {handoff.alreadyCollected && handoff.alreadyCollected.length > 0 ? (
+        <div>
+          <p className="text-xs uppercase tracking-wide text-slate-500">Already collected. Do not ask again.</p>
+          <ul className="mt-1 list-disc pl-5 text-sm text-slate-100">
+            {handoff.alreadyCollected.map((fact) => (
+              <li key={fact}>{fact}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       <p className="text-xs uppercase tracking-wide text-slate-500">Spoken summary for receiving party</p>
       <p className="text-sm text-slate-200">{handoff.spokenReceiverSummary ?? "—"}</p>
       <p className="text-xs uppercase tracking-wide text-slate-500">Caller script</p>

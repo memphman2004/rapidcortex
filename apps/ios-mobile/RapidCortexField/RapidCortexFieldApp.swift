@@ -116,11 +116,9 @@ struct QRNFCRootView: View {
                     .tabItem { Label("Agencies", systemImage: "building.2") }
                     .tag(QRNFCTab.agencies)
             }
-            if auth.claims?.canStartTranslate == true {
-                TranslateRootView()
-                    .tabItem { Label("Translator", systemImage: "globe") }
-                    .tag(QRNFCTab.translate)
-            }
+            TranslateRootView()
+                .tabItem { Label("Translator", systemImage: "globe") }
+                .tag(QRNFCTab.translate)
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gear") }
                 .tag(QRNFCTab.settings)
@@ -141,6 +139,8 @@ struct Dispatch911RootView: View {
                 .tabItem { Label("Home", systemImage: "house") }
             DispatcherStatusView()
                 .tabItem { Label("Staff", systemImage: "person.2") }
+            TranslateRootView()
+                .tabItem { Label("Translator", systemImage: "globe") }
             ContinuityLogView()
                 .tabItem { Label("Log", systemImage: "note.text") }
             SettingsView()
@@ -154,32 +154,13 @@ struct Dispatch911RootView: View {
 }
 
 struct NoAccessView: View {
-    @EnvironmentObject var auth: CognitoAuthManager
-
     var body: some View {
-        ZStack {
-            RCTheme.bg.ignoresSafeArea()
-            VStack(spacing: 16) {
-                Image(systemName: "lock.shield")
-                    .font(.system(size: 44))
-                    .foregroundColor(RCTheme.textMuted)
-                Text("Access not configured")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(RCTheme.textPrimary)
-                Text("Your account (\(auth.claims?.email ?? "")) isn't set up for this application. Contact your administrator or NexCort iQ support.")
-                    .font(.system(size: 13))
-                    .foregroundColor(RCTheme.textMuted)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-                Link("support@nexcortiq.us", destination: URL(string: "mailto:support@nexcortiq.us")!)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(RCTheme.accentLight)
-                Button("Sign out") { auth.signOut() }
-                    .font(.system(size: 14))
-                    .foregroundColor(RCTheme.danger)
-                    .padding(.top, 8)
-            }
-            .padding(24)
+        TabView {
+            TranslateRootView()
+                .tabItem { Label("Translator", systemImage: "globe") }
+            SettingsView()
+                .tabItem { Label("Settings", systemImage: "gear") }
         }
+        .tint(RCTheme.amber)
     }
 }

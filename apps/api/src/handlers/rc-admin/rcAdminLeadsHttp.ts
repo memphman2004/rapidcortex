@@ -9,6 +9,10 @@ import {
   addSalesLeadNoteBodySchema,
   canAccessSalesLeadsCrm,
   canDeleteSalesLead,
+  connectHubSpotBodySchema,
+  crmNotifyBodySchema,
+  crmWebhookBodySchema,
+  isLeadReply,
   leadStageForProspectOutreach,
   LeadVerticalSchema,
   patchSalesLeadBodySchema,
@@ -29,6 +33,8 @@ import {
 } from "../../lib/response.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { SalesLeadRepository } from "../../repositories/salesLeadRepository.js";
+import { storeHubSpotToken } from "../../lib/crm/hubspot-token.js";
+import { syncLeadReply } from "../../lib/crm/sync-lead-reply.js";
 import { listSignalsForVertical } from "../../signals/signal-processor.js";
 
 const repo = new SalesLeadRepository();
@@ -94,6 +100,70 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       const leads = await repo.listNormalized(500);
       const data = repo.buildAttributionSummary(leads);
       return ok({ success: true, data });
+    }
+
+    if (path.includes("/integrations")) {
+      if (m === "GET" && path.endsWith("/integrations")) {
+        const stored = await repo.getCrmIntegrationSettings();
+        return ok({
+          success: true,
+          data: { hubspot: stored.hubspot, notify: stored.notify, webhook: stored.webhook },
+        });
+      }
+      if (m === "PUT" && path.endsWith("/integrations/hubspot")) {
+        const body = parseBody(event);
+        if (body === null) return ok({ error: "Invalid JSON body" }, 400);
+        const parsed = connectHubSpotBodySchema.safeParse(body);
+        if (!parsed.success) return badRequestFromZod(parsed.error);
+        await storeHubSpotToken(parsed.data.accessToken);
+        const now = new Date().toISOString();
+        await repo.saveCrmIntegrationPatch({
+          hubspotConnected: true,
+          hubspotSecretReady: true,
+          hubspotPortalId: parsed.data.portalId,
+          hubspotConnectedAt: now,
+        });
+        try {
+          await auditRepo.create({
+            eventId: makeId("audit"),
+            agencyId: "platform",
+            actorId: user.userId,
+            type: AUDIT_EVENT_TYPES.SALES_LEAD_UPDATED,
+            details: { action: "hubspot_connected", portalId: parsed.data.portalId ?? "" },
+            createdAt: now,
+            resourceType: "crm_integration",
+            resourceId: "hubspot",
+          });
+        } catch (error) {
+          console.error("[crm] audit failed", error instanceof Error ? error.message : "error");
+        }
+        return ok({ success: true, data: { connected: true } });
+      }
+      if (m === "DELETE" && path.endsWith("/integrations/hubspot")) {
+        await repo.saveCrmIntegrationPatch({ hubspotConnected: false });
+        return ok({ success: true, data: { connected: false } });
+      }
+      if (m === "POST" && path.endsWith("/integrations/notify")) {
+        const body = parseBody(event);
+        if (body === null) return ok({ error: "Invalid JSON body" }, 400);
+        const parsed = crmNotifyBodySchema.safeParse(body);
+        if (!parsed.success) return badRequestFromZod(parsed.error);
+        await repo.saveCrmIntegrationPatch({
+          [`${parsed.data.provider}NotifyEmail`]: parsed.data.email,
+        });
+        return ok({ success: true, data: { provider: parsed.data.provider, email: parsed.data.email } });
+      }
+      if (m === "PUT" && path.endsWith("/integrations/webhook")) {
+        const body = parseBody(event);
+        if (body === null) return ok({ error: "Invalid JSON body" }, 400);
+        const parsed = crmWebhookBodySchema.safeParse(body);
+        if (!parsed.success) return badRequestFromZod(parsed.error);
+        await repo.saveCrmIntegrationPatch({
+          webhookUrl: parsed.data.url,
+          webhookEnabled: parsed.data.enabled,
+        });
+        return ok({ success: true, data: { enabled: parsed.data.enabled } });
+      }
     }
 
     if (m === "POST" && path.endsWith("/from-prospect")) {
@@ -305,7 +375,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         authorName: user.email ?? user.userId,
       });
       if (!updated) return ok({ error: "Lead not found" }, 404);
-      return ok({ success: true, data: updated, item: updated });
+      const reply = isLeadReply({
+        type: parsed.data.type,
+        description: parsed.data.description,
+        metadata: parsed.data.metadata,
+      });
+      const crmSync = reply ? await syncLeadReply(repo, updated) : undefined;
+      return ok({ success: true, data: updated, item: updated, crmSync });
     }
 
     if (m === "DELETE" && leadId && !path.includes("/notes/")) {

@@ -114,6 +114,14 @@ export const handler: APIGatewayProxyWebsocketHandlerV2 = async (event) => {
 
     if (inbound.type === "ping") {
       await sendTranslateToConnection(connectionId, { type: "pong" });
+      const live = await translateStore.getSession(conn.agencyId, conn.sessionId);
+      if (live) {
+        await sendTranslateToConnection(connectionId, {
+          type: "session_state",
+          status: live.status,
+          segmentCount: live.segmentCount,
+        });
+      }
       return { statusCode: 200, body: JSON.stringify({ ok: true }) };
     }
 

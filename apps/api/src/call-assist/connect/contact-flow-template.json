@@ -1340,6 +1340,7 @@
       "Identifier": "lex-intake-nova",
       "Type": "ConnectParticipantWithLexBot",
       "Parameters": {
+        "SSML": "<speak><break time=\"200ms\"/></speak>",
         "LexV2Bot": {
           "AliasArn": "{{lexBotAliasArn}}"
         },

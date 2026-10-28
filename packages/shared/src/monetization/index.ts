@@ -6,6 +6,7 @@ export * from "./guards.js";
 export * from "./schemas.js";
 export * from "./business-sms-consent.js";
 export * from "./leads-crm.js";
+export * from "./crm-integrations.js";
 export * from "./apollo-lead.js";
 export * from "./overage.js";
 export * from "./catalog-defaults.js";

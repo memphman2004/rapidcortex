@@ -1,6 +1,12 @@
 import type { SNSEvent } from "aws-lambda";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
-import { isCallAssistConfirmationNumber, parseCallerSurveyScore } from "rapid-cortex-shared";
+import {
+  continueConversation,
+  isCallAssistConfirmationNumber,
+  parseCallerSurveyScore,
+  replyWithoutRepeating,
+  type ConversationThread,
+} from "rapid-cortex-shared";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { makeId } from "../../lib/ids.js";
 import { getAgencyIdByDid, getLexTenantConfig, normalizeCallAssistDid } from "../lex/runtime-store.js";
@@ -337,6 +343,7 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
     return;
   }
 
+  const continued = agencyId === "unknown" ? null : await loadVoiceContinuation(agencyId, phone, lexBody);
   let lexTurn;
   try {
     lexTurn = await sendToLex({
@@ -350,6 +357,7 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
         intakeStarted: "true",
         language,
         preferredLanguage: language,
+        ...smsContinuationAttributes(continued),
       },
       requestAttributes: mediaRequestAttrs,
     });
@@ -391,7 +399,7 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
 
   let outbound: string;
 
-  if (emergency) {
+  if (emergency || continued?.thread.outcome === "TRANSFER_EMERGENCY") {
     outbound = SMS_EMERGENCY_MESSAGE;
   } else if (validConfirmation) {
     const config = await getLexTenantConfig(agencyId).catch(() => null);
@@ -405,6 +413,7 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
     });
   } else {
     outbound = formatForSms(lexTurn.messages);
+    if (continued) outbound = replyWithoutRepeating(outbound, continued.thread);
   }
 
   if (appendComplianceFooter && !emergency) {
@@ -456,6 +465,54 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
       language,
     }),
   );
+}
+
+type VoiceContinuation = {
+  sessionId: string;
+  locationText: string;
+  injuriesReported: string;
+  thread: ConversationThread;
+};
+
+function smsContinuationAttributes(continued: VoiceContinuation | null): Record<string, string> {
+  if (!continued) return {};
+  const attrs: Record<string, string> = {
+    voiceSessionId: continued.sessionId,
+    knownFacts: continued.thread.alreadyCollected.join(" | ").slice(0, 900),
+  };
+  if (continued.locationText) attrs.locationText = continued.locationText;
+  if (continued.injuriesReported) attrs.injuriesReported = continued.injuriesReported;
+  return attrs;
+}
+
+/** The text line keeps the phone call's facts for one day. */
+async function loadVoiceContinuation(
+  agencyId: string,
+  phone: string,
+  utterance: string,
+): Promise<VoiceContinuation | null> {
+  const recent = (await callAssistStore.listCallRecordsByCaller(phone, 5)).find((row) => row.agencyId === agencyId);
+  const created = recent?.createdAt ? Date.parse(recent.createdAt) : Number.NaN;
+  if (!recent?.sessionId || !Number.isFinite(created) || Date.now() - created > 24 * 60 * 60 * 1000) return null;
+  const session = await callAssistStore.getSession(agencyId, recent.sessionId);
+  if (!session || session.agencyId !== agencyId) return null;
+  const config = await getLexTenantConfig(agencyId).catch(() => null);
+  const thread = continueConversation({
+    agencyId,
+    sessionId: session.sessionId,
+    channel: "sms",
+    intake: session.intake,
+    utterance,
+    tenantCity: config?.tenantCity,
+    tenantState: config?.tenantState,
+    emergency: session.transfer?.action === "TRANSFER_911",
+  });
+  return {
+    sessionId: session.sessionId,
+    locationText: session.intake?.locationText?.trim() ?? "",
+    injuriesReported: session.intake?.injuries === true ? "true" : session.intake?.injuries === false ? "false" : "",
+    thread,
+  };
 }
 
 export const handler = async (event: SNSEvent): Promise<void> => {

@@ -17,6 +17,7 @@ import { useFieldProduct } from '@/navigation/field-product';
 import {
   fetchTranslateLanguages,
   type TranslateLanguage,
+  type TranslateVertical,
 } from '@/services/api/translate';
 import { useTheme } from '@/theme';
 import { Strings } from '@/utils/strings';
@@ -32,7 +33,11 @@ const FALLBACK_LANGUAGES: TranslateLanguage[] = [
   { code: 'ht', label: 'Haitian Creole' },
 ];
 
-function TranslateScreenContent() {
+function TranslateScreenContent({
+  forceVertical,
+}: {
+  forceVertical?: TranslateVertical;
+}) {
   const { colors, typography, spacing } = useTheme();
   const palette = colors as {
     background: string;
@@ -70,7 +75,7 @@ function TranslateScreenContent() {
     };
   }, []);
 
-  const vertical = product === 'campus' ? 'campus' : 'venue';
+  const vertical = forceVertical ?? (product === 'campus' ? 'campus' : 'venue');
   const codeLabel = useMemo(() => agencyId || product, [agencyId, product]);
   const active =
     tx.session && tx.session.status !== 'CLOSED' && tx.session.status !== 'EXPIRED';
@@ -87,11 +92,16 @@ function TranslateScreenContent() {
             vertical: 'campus' as const,
             campusContext: { campusCode: codeLabel },
           }
-        : {
-            subjectLanguage,
-            vertical: 'venue' as const,
-            venueContext: { venueCode: codeLabel },
-          };
+        : vertical === 'law_enforcement'
+          ? {
+              subjectLanguage,
+              vertical: 'law_enforcement' as const,
+            }
+          : {
+              subjectLanguage,
+              vertical: 'venue' as const,
+              venueContext: { venueCode: codeLabel },
+            };
     await tx.start(body);
   };
 
@@ -293,10 +303,14 @@ function TranslateScreenContent() {
   );
 }
 
-export default function TranslateScreen() {
+export default function TranslateScreen({
+  forceVertical,
+}: {
+  forceVertical?: TranslateVertical;
+}) {
   return (
     <ScreenErrorBoundary>
-      <TranslateScreenContent />
+      <TranslateScreenContent forceVertical={forceVertical} />
     </ScreenErrorBoundary>
   );
 }

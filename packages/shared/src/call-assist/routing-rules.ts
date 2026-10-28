@@ -1,4 +1,11 @@
 import { z } from "zod";
+import {
+  LEX_INTENT_DEPARTMENT,
+  MUNICIPAL_ISSUES,
+  SERVICE_CODE_DEPARTMENT,
+  municipalRouteOverride,
+  municipalSlaMinutes,
+} from "./municipal-services.js";
 
 export const CALL_ASSIST_DELIVERY_METHODS = [
   "dashboard",
@@ -64,6 +71,8 @@ export type CallAssistRouteCallInput = {
   zoneId?: string;
   dangerScore?: number;
   createdAt: string;
+  /** Caller words. Used when the incident type is a category, not a specific issue. */
+  utterance?: string;
   rules: CallAssistRoutingRule[];
 };
 
@@ -74,6 +83,8 @@ export type CallAssistRouteCallResult = {
   deliveryMethods: CallAssistDeliveryMethod[];
   destination: CallAssistRoutingDestination;
   fallback: boolean;
+  /** Set when the call was named as a specific city issue. */
+  issueId?: string;
 };
 
 function parseHm(hm: string): number {
@@ -147,15 +158,41 @@ export function matchesCallAssistRoutingRule(
   return true;
 }
 
+function departmentResult(
+  departmentId: string,
+  ruleId: string,
+  issueId?: string,
+): CallAssistRouteCallResult {
+  const destination: CallAssistRoutingDestination = {
+    departmentId,
+    deliveryMethods: ["dashboard"],
+    requiresAcknowledgement: true,
+    slaMinutes: municipalSlaMinutes(departmentId),
+  };
+  return {
+    routed: true,
+    departmentId,
+    ruleId,
+    deliveryMethods: ["dashboard"],
+    destination,
+    fallback: false,
+    issueId,
+  };
+}
+
 export function evaluateCallAssistRouting(
   input: CallAssistRouteCallInput,
 ): CallAssistRouteCallResult {
+  const override = municipalRouteOverride(input.incidentType, input.utterance);
+  if (override.kind === "emergency") return departmentResult("ESCALATE_911", "emergency-refer");
+
+  const attemptType = override.kind === "issue" ? override.issueId : input.incidentType;
   const sorted = [...input.rules].sort((a, b) => a.priority - b.priority);
   for (const rule of sorted) {
     if (
       matchesCallAssistRoutingRule(rule, {
         agencyId: input.agencyId,
-        incidentType: input.incidentType,
+        incidentType: attemptType,
         district: input.district,
         zoneId: input.zoneId,
         dangerScore: input.dangerScore,
@@ -169,8 +206,15 @@ export function evaluateCallAssistRouting(
         deliveryMethods: rule.destination.deliveryMethods,
         destination: rule.destination,
         fallback: false,
+        issueId: override.kind === "issue" ? override.issueId : undefined,
       };
     }
+  }
+  if (override.kind === "issue") {
+    return departmentResult(override.departmentId, `municipal-${override.issueId}`, override.issueId);
+  }
+  if (override.kind === "classification") {
+    return departmentResult(override.departmentId, `class-${(input.incidentType ?? "unknown").slice(0, 40)}`);
   }
   const fallbackDest: CallAssistRoutingDestination = {
     departmentId: "SUPERVISOR",
@@ -186,6 +230,39 @@ export function evaluateCallAssistRouting(
     destination: fallbackDest,
     fallback: true,
   };
+}
+
+function municipalRoutingRules(agencyId: string): CallAssistRoutingRule[] {
+  const byDept = new Map<string, Set<string>>();
+  const add = (departmentId: string, id: string) => {
+    if (!id || departmentId === "ESCALATE_911") return;
+    const set = byDept.get(departmentId) ?? new Set<string>();
+    set.add(id);
+    byDept.set(departmentId, set);
+  };
+  for (const item of MUNICIPAL_ISSUES) add(item.departmentId, item.id);
+  for (const [code, departmentId] of Object.entries(SERVICE_CODE_DEPARTMENT)) add(departmentId, code);
+  for (const [name, departmentId] of Object.entries(LEX_INTENT_DEPARTMENT)) add(departmentId, name);
+  const rules: CallAssistRoutingRule[] = [];
+  for (const [departmentId, ids] of byDept) {
+    const list = [...ids];
+    for (let index = 0; index < list.length; index += 40) {
+      rules.push({
+        agencyId,
+        ruleId: `municipal-${departmentId}-${index}`,
+        priority: 200,
+        enabled: true,
+        conditions: { incidentTypes: list.slice(index, index + 40) },
+        destination: {
+          departmentId,
+          deliveryMethods: ["dashboard"],
+          requiresAcknowledgement: true,
+          slaMinutes: municipalSlaMinutes(departmentId),
+        },
+      });
+    }
+  }
+  return rules;
 }
 
 /** Example KC-style seed rules (agencyId filled by seeder). */
@@ -276,5 +353,6 @@ export function defaultCallAssistRoutingRules(agencyId: string): CallAssistRouti
         slaMinutes: 20,
       },
     },
+    ...municipalRoutingRules(agencyId),
   ];
 }

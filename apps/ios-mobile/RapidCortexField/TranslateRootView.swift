@@ -18,8 +18,15 @@ struct TranslateRootView: View {
     @State private var subjectLanguage = "es"
 
     private var vertical: String {
-        let v = auth.qrCodeVertical.lowercased()
-        return v == "campus" ? "campus" : "venue"
+        let role = auth.claims?.canonicalRole ?? ""
+        if role.contains("campus") { return "campus" }
+        if role.contains("hospital") { return "hospital" }
+        if role.contains("venue") || role.contains("transit") { return "venue" }
+        let agency = (auth.claims?.agencyVertical ?? "").lowercased()
+        if agency == "campus" { return "campus" }
+        if agency == "hospital" { return "hospital" }
+        if agency == "venue" || agency == "transit" { return "venue" }
+        return "law_enforcement"
     }
 
     private var staffLabel: String { "Staff" }
@@ -176,6 +183,7 @@ struct TranslateRootView: View {
                         .cornerRadius(10)
                 }
                 .disabled(controller.listening || !controller.connected)
+                .opacity(controller.connected ? 1 : 0.45)
                 Button {
                     controller.startMic(as: "subject")
                 } label: {
@@ -188,6 +196,7 @@ struct TranslateRootView: View {
                         .cornerRadius(10)
                 }
                 .disabled(controller.listening || !controller.connected)
+                .opacity(controller.connected ? 1 : 0.45)
             }
 
             if controller.listening {

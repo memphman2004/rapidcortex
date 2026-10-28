@@ -117,6 +117,14 @@ Resources:
               - dynamodb:PutItem
             Resource:
               - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}
+          - Sid: HubSpotPrivateAppToken
+            Effect: Allow
+            Action:
+              - secretsmanager:CreateSecret
+              - secretsmanager:PutSecretValue
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+            Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/sales/hubspot-*
           - !If
             - HasLeadSignalsTable
             - Sid: LeadSignalsQuery
@@ -201,6 +209,51 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/leads/attribution-summary"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsIntegrationsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/leads/integrations"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsIntegrationsHubSpotPut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PUT /api/rc-admin/leads/integrations/hubspot"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsIntegrationsHubSpotDelete:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "DELETE /api/rc-admin/leads/integrations/hubspot"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsIntegrationsNotifyPost:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rc-admin/leads/integrations/notify"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsIntegrationsWebhookPut:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PUT /api/rc-admin/leads/integrations/webhook"
       Target: !Sub "integrations/${LeadsCrmIntegration}"
       AuthorizationType: JWT
       AuthorizerId: !Ref HttpApiJwtAuthorizerId

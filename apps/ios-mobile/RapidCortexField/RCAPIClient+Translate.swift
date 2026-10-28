@@ -62,6 +62,7 @@ struct TranslateSessionCreateBody: Encodable {
     let vertical: String
     let campusContext: CampusCtx?
     let venueContext: VenueCtx?
+    let hospitalContext: HospitalCtx?
 
     struct CampusCtx: Encodable {
         let campusCode: String
@@ -69,6 +70,10 @@ struct TranslateSessionCreateBody: Encodable {
 
     struct VenueCtx: Encodable {
         let venueCode: String
+    }
+
+    struct HospitalCtx: Encodable {
+        let hospitalId: String
     }
 }
 

@@ -14,7 +14,11 @@ final class TranslateSessionController: NSObject, ObservableObject {
 
     private var webSocket: URLSessionWebSocketTask?
     private var urlSession: URLSession?
+    private var socketEvents: SocketEvents?
     private var pingTask: Task<Void, Never>?
+    private var apiClient: RCAPIClient?
+    private var socketGeneration = 0
+    private var closingSocket = false
     private var player: AVPlayer?
 
     private var audioEngine: AVAudioEngine?
@@ -44,23 +48,43 @@ final class TranslateSessionController: NSObject, ObservableObject {
         starting = true
         errorMessage = nil
         feed = []
+        apiClient = api
         self.subjectLanguage = subjectLanguage
         defer { starting = false }
 
         let body: TranslateSessionCreateBody
-        if vertical == "campus" {
+        switch vertical {
+        case "campus":
             body = TranslateSessionCreateBody(
                 subjectLanguage: subjectLanguage,
                 vertical: "campus",
                 campusContext: .init(campusCode: agencyId),
-                venueContext: nil
+                venueContext: nil,
+                hospitalContext: nil
             )
-        } else {
+        case "hospital":
+            body = TranslateSessionCreateBody(
+                subjectLanguage: subjectLanguage,
+                vertical: "hospital",
+                campusContext: nil,
+                venueContext: nil,
+                hospitalContext: .init(hospitalId: agencyId)
+            )
+        case "law_enforcement":
+            body = TranslateSessionCreateBody(
+                subjectLanguage: subjectLanguage,
+                vertical: "law_enforcement",
+                campusContext: nil,
+                venueContext: nil,
+                hospitalContext: nil
+            )
+        default:
             body = TranslateSessionCreateBody(
                 subjectLanguage: subjectLanguage,
                 vertical: "venue",
                 campusContext: nil,
-                venueContext: .init(venueCode: agencyId)
+                venueContext: .init(venueCode: agencyId),
+                hospitalContext: nil
             )
         }
 
@@ -254,13 +278,34 @@ final class TranslateSessionController: NSObject, ObservableObject {
             errorMessage = "Invalid translate live endpoint"
             return
         }
-        let session = URLSession(configuration: .default)
+        socketGeneration += 1
+        let generation = socketGeneration
+        closingSocket = false
+        connected = false
+
+        let events = SocketEvents()
+        events.onOpen = { [weak self] in
+            guard let self, generation == self.socketGeneration else { return }
+            self.connected = true
+            self.errorMessage = nil
+            self.sendJSON(["type": "ping"])
+            Task { await self.refreshSessionStatus() }
+        }
+        events.onClose = { [weak self] in
+            guard let self, generation == self.socketGeneration, !self.closingSocket else { return }
+            self.connected = false
+            if self.errorMessage == nil {
+                self.errorMessage = "Translator connection closed"
+            }
+        }
+        socketEvents = events
+
+        let session = URLSession(configuration: .default, delegate: events, delegateQueue: nil)
         urlSession = session
         let task = session.webSocketTask(with: url)
         webSocket = task
         task.resume()
-        connected = false
-        receiveLoop()
+        receiveLoop(generation: generation)
         pingTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 25_000_000_000)
@@ -269,25 +314,42 @@ final class TranslateSessionController: NSObject, ObservableObject {
         }
     }
 
+    private func refreshSessionStatus() async {
+        guard let apiClient, let sessionId = session?.sessionId else { return }
+        guard let latest = try? await apiClient.getTranslateSession(sessionId: sessionId) else { return }
+        session = latest
+    }
+
     private func disconnectWebSocket() {
+        closingSocket = true
         pingTask?.cancel()
         pingTask = nil
         webSocket?.cancel(with: .goingAway, reason: nil)
         webSocket = nil
+        urlSession?.invalidateAndCancel()
         urlSession = nil
+        socketEvents = nil
         connected = false
     }
 
-    private func receiveLoop() {
+    private func receiveLoop(generation: Int) {
         webSocket?.receive { [weak self] result in
             guard let self else { return }
             switch result {
             case .failure:
-                Task { @MainActor in self.connected = false }
+                Task { @MainActor in
+                    guard generation == self.socketGeneration, !self.closingSocket else { return }
+                    self.connected = false
+                    if self.errorMessage == nil {
+                        self.errorMessage = "Translator connection failed"
+                    }
+                }
             case .success(let message):
                 Task { @MainActor in
+                    guard generation == self.socketGeneration else { return }
+                    self.connected = true
                     self.handleMessage(message)
-                    self.receiveLoop()
+                    self.receiveLoop(generation: generation)
                 }
             }
         }
@@ -381,5 +443,30 @@ final class TranslateSessionController: NSObject, ObservableObject {
     private func stopPlayback() {
         player?.pause()
         player = nil
+    }
+}
+
+/// URLSession has no completion for "socket open". Staff stays disabled until this fires.
+private final class SocketEvents: NSObject, URLSessionWebSocketDelegate {
+    var onOpen: (@MainActor () -> Void)?
+    var onClose: (@MainActor () -> Void)?
+
+    func urlSession(
+        _ session: URLSession,
+        webSocketTask: URLSessionWebSocketTask,
+        didOpenWithProtocol protocol: String?
+    ) {
+        let open = onOpen
+        Task { @MainActor in open?() }
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        webSocketTask: URLSessionWebSocketTask,
+        didCloseWith closeCode: URLSessionWebSocketTask.CloseCode,
+        reason: Data?
+    ) {
+        let close = onClose
+        Task { @MainActor in close?() }
     }
 }

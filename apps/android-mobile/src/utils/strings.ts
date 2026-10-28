@@ -319,6 +319,7 @@ export const Strings = {
   command: {
     home: 'Home',
     staff: 'Staff',
+    translate: 'Translator',
     account: 'Account',
     notDispatch: 'View, communicate, and coach. This is not a dispatch console — no CAD write or close actions.',
     activeCalls: 'Active calls',

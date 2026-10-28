@@ -19,7 +19,7 @@ import {
 } from "@aws-sdk/client-lex-models-v2";
 import {
   BOT_TEMPLATE_SLOT_TYPES,
-  novaSonicFoundationModelArn,
+  lexNovaSpeechModelArn,
   novaSonicLexVoiceId,
   type CallAssistLocale,
 } from "rapid-cortex-shared";
@@ -240,14 +240,16 @@ export function awsLexModelsPort(): LexModelsPort {
     async createLocale({ botId, locale, speechToSpeech }) {
       const novaVoice = speechToSpeech === true ? novaSonicLexVoiceId(locale) : null;
       const region = env.region || process.env.AWS_REGION || "us-east-1";
-      const voiceSettings = {
-        voiceId: novaVoice === "lupe" ? "Lupe" : novaVoice === "matthew" ? "Matthew" : locale === "es_US" ? "Lupe" : "Ruth",
-        engine: novaVoice ? "generative" : "neural",
-      } as const;
+      const voiceSettings = novaVoice
+        ? undefined
+        : {
+            voiceId: locale === "es_US" ? "Lupe" : "Ruth",
+            engine: "neural" as const,
+          };
       const unifiedSpeechSettings = novaVoice
         ? {
             speechFoundationModel: {
-              modelArn: novaSonicFoundationModelArn(region),
+              modelArn: lexNovaSpeechModelArn(region),
               voiceId: novaVoice,
             },
           }
@@ -257,8 +259,8 @@ export function awsLexModelsPort(): LexModelsPort {
         botVersion: DRAFT,
         localeId: locale,
         nluIntentConfidenceThreshold: 0.4,
-        voiceSettings,
-        unifiedSpeechSettings,
+        ...(voiceSettings ? { voiceSettings } : {}),
+        ...(unifiedSpeechSettings ? { unifiedSpeechSettings } : {}),
       };
       try {
         await lex.send(new CreateBotLocaleCommand(localeInput));

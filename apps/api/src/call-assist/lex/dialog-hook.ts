@@ -10,6 +10,7 @@ import {
   formatTtySms,
   groundedKnowledgeReply,
   isLocationSlot,
+  knownFactLines,
   lexLocaleToCallLanguage,
   locationReadback,
   mergeIntakeFromLexSlots,
@@ -295,7 +296,21 @@ export async function handleDialog(
   });
   const priorSession =
     agencyId && callId ? await deps.getSession(agencyId, callId).catch(() => null) : null;
-  const priorIntake = intakeFromCallerIdentity(identity, priorSession?.intake ?? {});
+  const voiceSessionId = sessionAttrs.voiceSessionId?.trim();
+  const linkedSession =
+    voiceSessionId && agencyId && voiceSessionId !== callId
+      ? await deps.getSession(agencyId, voiceSessionId).catch(() => null)
+      : null;
+  const linkedIntake = linkedSession?.agencyId === agencyId ? linkedSession.intake : undefined;
+  const priorIntake = intakeFromCallerIdentity(identity, {
+    ...(linkedIntake ?? {}),
+    ...(priorSession?.intake ?? {}),
+  });
+  if (!priorIntake.locationText && sessionAttrs.locationText?.trim()) {
+    priorIntake.locationText = sessionAttrs.locationText.trim();
+  }
+  if (priorIntake.injuries === undefined && sessionAttrs.injuriesReported === "false") priorIntake.injuries = false;
+  if (priorIntake.injuries === undefined && sessionAttrs.injuriesReported === "true") priorIntake.injuries = true;
   const memory = applyConversationTurn({
     prior: {
       ...priorIntake,
@@ -388,6 +403,7 @@ export async function handleDialog(
     transcript,
     language,
     preferredLanguage: language,
+    knownFacts: knownFactLines(intake).join(" | ").slice(0, 900),
     ttyMode: tty.ttyMode ? "1" : "0",
     smsFallbackRecommended: tty.smsFallbackRecommended ? "1" : "0",
     ...bargeInSessionPatch(barge),
@@ -712,6 +728,7 @@ export function nextMissingSlot(
     for (const slot of taxonomy311Slots) {
       if (!slot.isRequired) continue;
       if (slotFilled(currentSlots[slot.name])) continue;
+      if (intake?.locationText?.trim() && isLocationSlot(slot.name)) continue;
       return slot.name;
     }
     return null;
@@ -724,6 +741,7 @@ export function nextMissingSlot(
       if (!slot.required) continue;
       if (slotFilled(currentSlots[slot.name])) continue;
       if (intake && isVehicleDescriptionSlot(slot.name) && vehicleDescriptionSatisfied(intake)) continue;
+      if (intake?.locationText?.trim() && isLocationSlot(slot.name)) continue;
       return slot.name;
     }
     return null;
@@ -731,7 +749,9 @@ export function nextMissingSlot(
 
   const callType = findCallTypeForIntent(taxonomy, intentId);
   if (!callType) {
-    if (!slotFilled(currentSlots.location) && "location" in currentSlots) return "location";
+    if (!slotFilled(currentSlots.location) && "location" in currentSlots && !intake?.locationText?.trim()) {
+      return "location";
+    }
     return null;
   }
   const template = taxonomy.intakeTemplates.find((t) => t.id === callType.intakeTemplateId);

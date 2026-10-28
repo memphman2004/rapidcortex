@@ -4,6 +4,7 @@ import type { CallIntakeData } from "./intake.js";
 import type { RoutingRecommendation } from "./routing.js";
 import type { CallAssistPremiseHazard } from "./cad-types.js";
 import { EMERGENCY_TRANSFER_ACTION } from "./classifications.js";
+import { knownFactLines } from "./conversation-thread.js";
 
 export type TransferPackage = {
   sessionId: string;
@@ -24,6 +25,8 @@ export type TransferPackage = {
   ttyMode: boolean;
   language: string;
   videoAssistHint?: string;
+  /** Facts the caller already gave. The next person or text must not ask for these again. */
+  alreadyCollected: string[];
   createdAt: string;
 };
 
@@ -102,6 +105,7 @@ export function buildTransferPackage(input: {
     ttyMode: Boolean(input.ttyMode),
     language: input.language ?? "en",
     videoAssistHint: input.videoAssistHint,
+    alreadyCollected: knownFactLines(input.intake),
     createdAt: input.nowIso ?? new Date().toISOString(),
   };
 }

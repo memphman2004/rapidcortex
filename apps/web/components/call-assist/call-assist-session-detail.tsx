@@ -112,6 +112,7 @@ type HandoffDto = {
   repeatCaller?: boolean;
   ttyMode?: boolean;
   language?: string;
+  alreadyCollected?: string[];
 };
 
 export function CallAssistSessionDetail({ sessionId }: { sessionId: string }) {

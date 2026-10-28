@@ -156,11 +156,16 @@ export async function finalizeCallAssistIntake(opts: {
 
   const incidentType =
     opts.session.intake.incidentTypeHint || opts.session.triage?.primaryClassification || undefined;
+  const callerText = (opts.session.utterances ?? [])
+    .filter((turn) => turn.speaker === "caller" || turn.speaker === "user")
+    .map((turn) => turn.text)
+    .join(" ");
 
   const route = evaluateCallAssistRouting({
     agencyId: opts.agencyId,
     confirmationNumber,
     incidentType,
+    utterance: [opts.session.intake.summary, callerText].filter(Boolean).join(" "),
     district: opts.session.intake.zoneId || opts.session.intake.zoneName,
     zoneId: opts.session.intake.zoneId,
     dangerScore: opts.session.triage?.emergencyDetected ? 1 : 0,
@@ -175,7 +180,7 @@ export async function finalizeCallAssistIntake(opts: {
     callId: opts.session.connectContactId,
     sessionId: opts.session.sessionId,
     callbackNumber: opts.session.intake.callbackNumber,
-    incidentType,
+    incidentType: route.issueId || incidentType,
     incidentLocation: opts.session.intake.locationText,
     district: opts.session.intake.zoneName || opts.session.intake.zoneId,
     department: route.departmentId,

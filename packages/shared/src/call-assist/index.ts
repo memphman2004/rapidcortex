@@ -48,3 +48,5 @@ export * from "./nova-sonic.js";
 export * from "./location-readback.js";
 export * from "./surge-mode.js";
 export * from "./caller-survey.js";
+export * from "./conversation-thread.js";
+export * from "./municipal-services.js";

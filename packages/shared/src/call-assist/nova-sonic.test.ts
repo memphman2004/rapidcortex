@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { NEXIQ_OPENING_GREETING, systemPromptForAgency } from "./nexiq-identity.js";
 import {
   NOVA_2_SONIC_MODEL_ID,
+  lexNovaSpeechModelArn,
   novaSonicFoundationModelArn,
   novaSonicLexVoiceId,
   checkEmergencyKeywords,
@@ -82,6 +83,9 @@ describe("Nova 2 Sonic engine selection", () => {
     expect(decision.novaSonicFallbackToLex).toBe(true);
     expect(novaSonicFoundationModelArn("us-east-1")).toBe(
       "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-2-5-sonic",
+    );
+    expect(lexNovaSpeechModelArn("us-east-1")).toBe(
+      "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-2-sonic-v1:0",
     );
     expect(novaSonicLexVoiceId("en_US")).toBe("matthew");
     expect(novaSonicLexVoiceId("es-US")).toBe("lupe");

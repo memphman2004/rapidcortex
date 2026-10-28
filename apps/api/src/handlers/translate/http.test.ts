@@ -116,19 +116,19 @@ describe("RC Translate HTTP", () => {
     expect(putSession).toHaveBeenCalled();
   });
 
-  it("rejects a dispatcher starting a venue session", async () => {
+  it("lets any same-agency account start a venue session", async () => {
     const res = await invokeHttpHandler(
       handler,
       makeAuthenticatedEvent({
-        role: "dispatcher",
-        agencyId: "kcpd",
+        role: "VENUE_GUEST_SERVICES",
+        agencyId: "mbs",
         routeKey: "POST /api/translate/{proxy+}",
         rawPath: "/api/translate/sessions",
         body: JSON.stringify({ vertical: "venue", venueContext: { venueCode: "MBS" } }),
       }),
     );
-    expect(res.statusCode).toBe(403);
-    expect(putSession).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(201);
+    expect(putSession).toHaveBeenCalled();
   });
 
   it("creates a venue session for VENUE_OPERATOR", async () => {

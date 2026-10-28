@@ -1,0 +1,25 @@
+import { NextRequest, NextResponse } from "next/server";
+import { canAccessSalesLeadsCrm } from "rapid-cortex-shared";
+import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
+import { isSalesLeadsUiEnabled } from "@/lib/runtime-flags";
+import { proxyToAuthUpstream } from "@/lib/server/auth-upstream-proxy";
+
+async function gate() {
+  const user = await getDashboardSessionUser();
+  if (!user || !canAccessSalesLeadsCrm(user.role) || !isSalesLeadsUiEnabled()) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  return null;
+}
+
+export async function PUT(request: NextRequest) {
+  const denied = await gate();
+  if (denied) return denied;
+  return proxyToAuthUpstream(request, "/api/rc-admin/leads/integrations/hubspot");
+}
+
+export async function DELETE(request: NextRequest) {
+  const denied = await gate();
+  if (denied) return denied;
+  return proxyToAuthUpstream(request, "/api/rc-admin/leads/integrations/hubspot");
+}

@@ -126,6 +126,11 @@ export class LexBotProvisioner {
     if (!lexBotId) throw new Error(`No lexBotId for agency ${agencyId}`);
     const locales = config.supportedLocales?.length ? config.supportedLocales : (["en_US"] as CallAssistLocale[]);
     for (const locale of locales) {
+      await this.models.createLocale({
+        botId: lexBotId,
+        locale,
+        speechToSpeech: config.novaSonicEnabled === true && (locale === "en_US" || locale === "es_US"),
+      });
       await this.models.updateIntents({ botId: lexBotId, locale });
       await this.models.buildLocale({ botId: lexBotId, locale });
       await this.waitUntilBuilt(lexBotId, locale);

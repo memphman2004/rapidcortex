@@ -469,4 +469,8 @@ export type SalesLeadCrmRecord = {
    * opted_out can be set manually when a prospect revokes consent (e.g. STOP).
    */
   smsConsentStatus?: "pending" | "opted_in" | "opted_out";
+  /** Set after a reply is copied to HubSpot. */
+  hubspotContactId?: string;
+  hubspotDealId?: string;
+  crmSyncedAt?: string;
 };

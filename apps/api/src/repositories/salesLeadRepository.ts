@@ -14,8 +14,11 @@ import type {
 } from "rapid-cortex-shared";
 import {
   CHANNEL_CONFIG,
+  CRM_INTEGRATION_SETTINGS_ID,
   PIPELINE_STAGES,
   stageToPipelineStageAndStatus,
+  type CrmIntegrationSettings,
+  type CrmSoonProvider,
   type LeadChannel,
 } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
@@ -151,7 +154,9 @@ export class SalesLeadRepository {
         }),
       );
       for (const item of out.Items ?? []) {
-        items.push(item as AnySalesLeadRecord);
+        const row = item as AnySalesLeadRecord;
+        if (row.leadId === CRM_INTEGRATION_SETTINGS_ID) continue;
+        items.push(row);
       }
       exclusiveStartKey = out.LastEvaluatedKey as Record<string, unknown> | undefined;
     } while (exclusiveStartKey && items.length < max);
@@ -588,5 +593,79 @@ export class SalesLeadRepository {
       .slice(0, 10);
 
     return { byChannel, topReferrers, byDevice, byState };
+  }
+
+  async getCrmIntegrationSettings(): Promise<CrmIntegrationSettings & { hubspotSecretReady: boolean }> {
+    const out = await ddb.send(
+      new GetCommand({
+        TableName: table(),
+        Key: { leadId: CRM_INTEGRATION_SETTINGS_ID },
+      }),
+    );
+    const item = (out.Item ?? {}) as Record<string, unknown>;
+    const notify: Partial<Record<CrmSoonProvider, string>> = {};
+    for (const provider of ["salesforce", "pipedrive", "zapier"] as const) {
+      const email = item[`${provider}NotifyEmail`];
+      if (typeof email === "string" && email.trim()) notify[provider] = email;
+    }
+    return {
+      hubspot: {
+        connected: item.hubspotConnected === true,
+        portalId: typeof item.hubspotPortalId === "string" ? item.hubspotPortalId : undefined,
+        connectedAt: typeof item.hubspotConnectedAt === "string" ? item.hubspotConnectedAt : undefined,
+      },
+      notify,
+      webhook: {
+        enabled: item.webhookEnabled === true && typeof item.webhookUrl === "string",
+        url: typeof item.webhookUrl === "string" ? item.webhookUrl : undefined,
+      },
+      hubspotSecretReady: item.hubspotSecretReady === true,
+    };
+  }
+
+  async saveCrmIntegrationPatch(patch: Record<string, unknown>): Promise<void> {
+    const existing = await ddb.send(
+      new GetCommand({
+        TableName: table(),
+        Key: { leadId: CRM_INTEGRATION_SETTINGS_ID },
+      }),
+    );
+    const now = new Date().toISOString();
+    await ddb.send(
+      new PutCommand({
+        TableName: table(),
+        Item: {
+          ...(existing.Item ?? {}),
+          ...patch,
+          leadId: CRM_INTEGRATION_SETTINGS_ID,
+          recordType: "crm_integrations",
+          createdAt: (existing.Item?.createdAt as string | undefined) ?? now,
+          updatedAt: now,
+          email: "crm-integrations@internal",
+          status: "internal",
+          pipelineStage: "NEW",
+        },
+      }),
+    );
+  }
+
+  async markLeadCrmSync(
+    leadId: string,
+    ids: { hubspotContactId: string; hubspotDealId: string },
+  ): Promise<void> {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: table(),
+        Key: { leadId },
+        UpdateExpression:
+          "SET hubspotContactId = :c, hubspotDealId = :d, crmSyncedAt = :t, updatedAt = :t",
+        ExpressionAttributeValues: {
+          ":c": ids.hubspotContactId,
+          ":d": ids.hubspotDealId,
+          ":t": new Date().toISOString(),
+        },
+        ConditionExpression: "attribute_exists(leadId)",
+      }),
+    );
   }
 }

@@ -16,10 +16,22 @@ import { NEXIQ_OPENING_GREETING, systemPromptForAgency } from "./nexiq-identity.
 
 export const NOVA_2_SONIC_MODEL_ID = "amazon.nova-2-5-sonic";
 
-/** Bedrock foundation-model ARN Lex stores on a speech-to-speech locale. */
+/**
+ * Lex speech-to-speech rejects `amazon.nova-2-5-sonic`.
+ * The only model it accepts on a bot locale is Nova 2 Sonic.
+ */
+export const LEX_NOVA_SPEECH_MODEL_ID = "amazon.nova-2-sonic-v1:0";
+
+/** Bedrock foundation-model ARN for the direct Nova 2.5 Sonic stream. */
 export function novaSonicFoundationModelArn(region = "us-east-1"): string {
   const resolved = region.trim() || "us-east-1";
   return `arn:aws:bedrock:${resolved}::foundation-model/${NOVA_2_SONIC_MODEL_ID}`;
+}
+
+/** Bedrock foundation-model ARN Lex will store on an English or Spanish locale. */
+export function lexNovaSpeechModelArn(region = "us-east-1"): string {
+  const resolved = region.trim() || "us-east-1";
+  return `arn:aws:bedrock:${resolved}::foundation-model/${LEX_NOVA_SPEECH_MODEL_ID}`;
 }
 
 /** Nova 2 Sonic voice id for an English or Spanish Lex locale. Other locales stay on Polly. */

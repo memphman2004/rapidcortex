@@ -4,6 +4,7 @@ import { ScreenErrorBoundary } from '@/components/common/ScreenErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
 import { Colors, ThemeProvider } from '@/theme';
 import { loginHrefForProduct } from '@/utils/auth-routes';
+import { isRcTranslateEnabled } from '@/utils/feature-flags';
 import { isCommandRole } from '@/utils/roles';
 import { Strings } from '@/utils/strings';
 
@@ -12,6 +13,8 @@ function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
 }
 
 function CommandTabs() {
+  const showTranslate = isRcTranslateEnabled();
+
   return (
     <Tabs
       screenOptions={{
@@ -36,6 +39,14 @@ function CommandTabs() {
         options={{
           title: Strings.command.staff,
           tabBarIcon: ({ focused }) => <TabIcon symbol="👥" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="translate"
+        options={{
+          title: Strings.command.translate,
+          href: showTranslate ? undefined : null,
+          tabBarIcon: ({ focused }) => <TabIcon symbol="🗣️" focused={focused} />,
         }}
       />
       <Tabs.Screen

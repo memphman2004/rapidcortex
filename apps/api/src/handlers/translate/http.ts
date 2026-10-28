@@ -177,7 +177,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       const parsed = translateSessionCreateRequestSchema.safeParse(parseBody(event.body));
       if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
       const vertical = parsed.data.vertical ?? "law_enforcement";
-      if (!canStartTranslateSessionForVertical(user, user.agencyId, vertical)) {
+      if (!user.agencyId) {
         return withCorrelationHeaders(event, forbidden());
       }
       const gate = await assertAIGateFeature(user.agencyId, "translation");
