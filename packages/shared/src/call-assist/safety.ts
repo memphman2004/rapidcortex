@@ -32,12 +32,12 @@ export type SafetyDecision = {
 const TRIGGER_PATTERNS: ReadonlyArray<{ id: SafetyTriggerId; re: RegExp; phrase: string }> = [
   {
     id: "CALLER_SAYS_EMERGENCY",
-    re: /\b(emergency|nine[\s-]?one[\s-]?one|911|emergencia)\b/i,
+    re: /\b(emergency|nine[\s-]?one[\s-]?one|911|emergencia|urgence)\b|紧急|緊急|طوارئ/i,
     phrase: "emergency/911",
   },
   {
     id: "WEAPON",
-    re: /\b(gun|firearm|pistol|rifle|shotgun|he has a gun|she has a gun|they have a gun|weapon|pistola|arma de fuego)\b/i,
+    re: /\b(gun|firearm|pistol|rifle|shotgun|he has a gun|she has a gun|they have a gun|weapon|pistola|arma de fuego|baril|súng|sung|arme)\b|枪|槍|مسدس/i,
     phrase: "weapon",
   },
   {
@@ -47,12 +47,12 @@ const TRIGGER_PATTERNS: ReadonlyArray<{ id: SafetyTriggerId; re: RegExp; phrase:
   },
   {
     id: "MEDICAL_CRISIS",
-    re: /\b(not breathing|unconscious|overdose|heart attack|choking|dying|can't breathe|cannot breathe)\b/i,
+    re: /\b(not breathing|unconscious|overdose|heart attack|choking|dying|can't breathe|cannot breathe|no puedo respirar|hindi humihinga|không thở|khong tho)\b|不能呼吸|唔能夠呼吸|لا أتنفس/i,
     phrase: "medical crisis",
   },
   {
     id: "FIRE_EXPLOSION",
-    re: /\b(on fire|house fire|building fire|explosion|exploded|smoke filling)\b/i,
+    re: /\b(on fire|house fire|building fire|explosion|exploded|smoke filling|sunog|cháy nhà|chay nha|incendie)\b|着火|著火|火燭|حريق/i,
     phrase: "fire/explosion",
   },
   {
@@ -67,10 +67,16 @@ const TRIGGER_PATTERNS: ReadonlyArray<{ id: SafetyTriggerId; re: RegExp; phrase:
   },
   {
     id: "DISTRESS_KEYWORD",
-    re: /\b(help me|auxilio|ayúdame|ayudame|he's going to kill me|she's going to kill me|they're going to kill me)\b/i,
+    re: /\b(help me|auxilio|ayúdame|ayudame|au secours|tulong|cứu tôi|cuu toi|he's going to kill me|she's going to kill me|they're going to kill me)\b|救命|救我|幫我|帮我|ساعدني/i,
     phrase: "distress",
   },
 ];
+
+function deniesEmergency(text: string): boolean {
+  return /\b(not an emergency|no emergency|isn't an emergency|is not an emergency|no es una emergencia|pas une urgence|ce n'est pas une urgence)\b/i.test(
+    text,
+  );
+}
 
 function riskFromTriggers(triggers: SafetyTriggerId[]): SafetyRiskLevel {
   if (triggers.length === 0) return "NONE";
@@ -107,6 +113,7 @@ export function evaluateSafety(utterance: string): SafetyDecision {
   const triggers: SafetyTriggerId[] = [];
   const matchedPhrases: string[] = [];
   for (const row of TRIGGER_PATTERNS) {
+    if (row.id === "CALLER_SAYS_EMERGENCY" && deniesEmergency(text)) continue;
     if (row.re.test(text) && !triggers.includes(row.id)) {
       triggers.push(row.id);
       matchedPhrases.push(row.phrase);

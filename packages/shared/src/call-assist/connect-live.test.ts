@@ -41,7 +41,7 @@ describe("Nexiq Connect live locales", () => {
     expect(connectVoiceForLocale("ar-AE").voiceId).toBe("Hala");
     expect(connectVoiceForLocale("vi-VN").voiceId).toBe("Linh");
     expect(connectVoiceForLocale("tl-PH").voiceId).toBe("Ruth");
-    expect(connectNovaSonicVoice("en-US")).toEqual({ voiceId: "Matthew", engine: "Generative", style: "None" });
+    expect(connectNovaSonicVoice("en-US")).toEqual({ voiceId: "Ruth", engine: "Neural", style: "None" });
     expect(connectNovaSonicVoice("es-US")?.voiceId).toBe("Lupe");
     expect(connectNovaSonicVoice("zh-CN")).toBeNull();
     expect(CALL_ASSIST_LOCALE_META.tl_PH.limitedAsr).toBe(true);
@@ -75,7 +75,8 @@ describe("Nexiq contact flow template", () => {
     expect(blob).toContain("$.Attributes.language");
     const voices = flow.Actions.map((a) => a.Parameters?.TextToSpeechVoice).filter(Boolean);
     const langs = flow.Actions.map((a) => a.Parameters?.LanguageCode).filter(Boolean);
-    expect(voices).toEqual(expect.arrayContaining(["Ruth", "Lupe", "Zhiyu", "Hiujin", "Hala", "Linh", "Matthew"]));
+    expect(voices).toEqual(expect.arrayContaining(["Ruth", "Lupe", "Zhiyu", "Hiujin", "Hala", "Linh"]));
+    expect(voices).not.toContain("Matthew");
     expect(blob).toContain("\"TextToSpeechEngine\":\"Generative\"");
     expect(blob).toContain("check-nova-en");
     expect(blob).toContain("play-emergency");

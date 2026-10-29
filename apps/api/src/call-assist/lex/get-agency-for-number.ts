@@ -124,6 +124,9 @@ export function buildConnectStartResult(opts: {
     errorPrompt: defaultPrompts.error,
     transferFailPrompt: defaultPrompts.transferFail,
     agencyShortName: opts.agencyShortName,
+    openingLine: `Hello, thank you for calling ${
+      opts.config?.agencyName?.trim() || opts.agencyShortName.trim() || "this agency"
+    } service line.`,
     ani: opts.identity.ani ?? "",
     aliAddress: opts.identity.aliAddress ?? "",
     apartmentSuite: opts.identity.apartmentSuite ?? "",

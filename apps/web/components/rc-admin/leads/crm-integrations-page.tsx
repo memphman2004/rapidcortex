@@ -222,7 +222,7 @@ export function CrmIntegrationsPage() {
       <section className="rounded-2xl border border-white/10 bg-[#0d1b35] p-5">
         <h2 className="text-base font-semibold text-white">Hand this to an assistant</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Paste this into Claude, ChatGPT, or Cursor. It tells the assistant how the connection works and
+          Paste this into your assistant. It tells the assistant how the connection works and
           not to ask for the token.
         </p>
         <pre className="mt-4 overflow-x-auto rounded-xl bg-[#050c1a] p-4 text-xs leading-relaxed text-slate-300">

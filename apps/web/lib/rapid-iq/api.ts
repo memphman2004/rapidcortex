@@ -326,7 +326,7 @@ export async function fetchRfpOutline(
 ): Promise<RfpOutlineResult> {
   if (demo) {
     return {
-      executiveSummary: "Demo RFP outline — enable live API for Claude analysis.",
+      executiveSummary: "Demo RFP outline — enable the live API for analysis.",
       requirements: [],
       differentiators: [],
       potentialConcerns: [],
@@ -373,7 +373,7 @@ export async function fetchAgencyProfile(
       cadNotes: "Demo CAD vendor",
       agencyWebsite: null,
       psapType: "Primary PSAP / ECC",
-      notes: "Demo profile — live research requires Anthropic.",
+      notes: "Demo profile — live research requires the analysis service.",
     };
   }
   const res = await fetch(`${BASE}/agency-profile`, {

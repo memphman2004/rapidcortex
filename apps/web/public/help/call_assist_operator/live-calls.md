@@ -2,7 +2,7 @@
 
 1. Open **Live calls**.
 2. Select a session to review transcript, intent, confidence, and escalation state.
-3. Watch for emergency classification — talk must stop and Connect must transfer.
+3. Watch for emergency classification — talk must stop and the call must transfer.
 4. Take over when policy says a human should finish intake (confusion, upset caller, repeated loops).
 5. Add notes only in approved Nexiq fields.
 6. Never invent CAD write-back from this console.

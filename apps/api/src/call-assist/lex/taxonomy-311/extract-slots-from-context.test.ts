@@ -14,6 +14,17 @@ describe("extractSlotsFromContext", () => {
     expect(next.PublicWorksLocation?.value?.interpretedValue).toMatch(/Corner of main and Johnson/i);
   });
 
+  it("names the city desk from the caller's words", () => {
+    const next = extractSlotsFromContext(
+      "PublicWorksIssue",
+      "the streetlight is out at 12th and Main",
+      { PublicWorksLocation: null, PublicWorksIssueType: null },
+      {},
+    );
+    expect(next.PublicWorksIssueType?.value?.interpretedValue).toBe("streetlight");
+    expect(next.PublicWorksLocation?.value?.interpretedValue).toMatch(/12th and Main/i);
+  });
+
   it("fills ServiceAddress on ReportRoadsInfrastructure", () => {
     const next = extractSlotsFromContext(
       "ReportRoadsInfrastructure",

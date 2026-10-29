@@ -288,7 +288,7 @@ export function CampusIntakeForm({ orgCode, agencyId }: Props) {
       {
         title: "Guest Assist knowledge",
         description:
-          "Facts Claude uses for this campus’s scan-page categories (Directions, Student Services, Safety, and the rest).",
+          "Facts Guest Assist uses for this campus’s scan-page categories (Directions, Student Services, Safety, and the rest).",
         content: (
           <GuestAssistKnowledgeFields
             vertical="campus"

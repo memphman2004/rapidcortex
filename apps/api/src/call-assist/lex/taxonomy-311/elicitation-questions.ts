@@ -1,4 +1,5 @@
 import type { LexSlotValue } from "../types.js";
+import { LEX_SPEC_SLOTS } from "../lex-spec-slots.js";
 import { INTENT_MAP } from "./intents.js";
 import { conversationalSlotValue, SLOT_VALUE_LABELS } from "./slot-value-labels.js";
 import { slotNamesForIntent } from "./slot-catalog.js";
@@ -143,9 +144,14 @@ export function stripLexInternalNames(text: string): string {
 }
 
 /** Never expose camelCase Lex slot names to citizens. */
-export function humanQuestionForSlot(intentName: string, slotName: string): string {
+export function humanQuestionForSlot(intentName: string, slotName: string, language?: string): string {
   const keyed = ELICITATION_QUESTIONS[`${intentName}/${slotName}`];
   if (keyed) return keyed;
+  const spec = LEX_SPEC_SLOTS[intentName]?.find((slot) => slot.name === slotName);
+  if (spec) {
+    const prompt = language?.toLowerCase().startsWith("es") ? spec.promptEs : spec.promptEn;
+    if (prompt?.trim()) return prompt.trim();
+  }
   if (slotName === "CallerName") {
     return "Can I get your name for the report, or you can stay anonymous.";
   }
@@ -169,6 +175,7 @@ export function getNextElicitation(
   intentName: string,
   slots: Record<string, LexSlotValue | null>,
   _transcript: string,
+  language?: string,
 ): { slotToElicit: string; question: string } | null {
   const intentDef = INTENT_MAP[intentName];
   if (!intentDef?.slots?.length) {
@@ -178,7 +185,7 @@ export function getNextElicitation(
       if (allowed.size > 0 && !allowed.has(slotName) && slotName !== "location") continue;
       if (allowed.size === 0 && /^(ServiceAddress|IsOngoing|CallerName|CallbackNumber)$/.test(slotName)) continue;
       if (/^[A-Z]/.test(slotName) || slotName === "location") {
-        return { slotToElicit: slotName, question: humanQuestionForSlot(intentName, slotName) };
+        return { slotToElicit: slotName, question: humanQuestionForSlot(intentName, slotName, language) };
       }
     }
     return null;
@@ -190,7 +197,7 @@ export function getNextElicitation(
     if (slotFilled(slots[slot.name])) continue;
     return {
       slotToElicit: slot.name,
-      question: humanQuestionForSlot(intentName, slot.name),
+      question: humanQuestionForSlot(intentName, slot.name, language),
     };
   }
   return null;

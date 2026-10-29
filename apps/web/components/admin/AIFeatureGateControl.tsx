@@ -7,7 +7,7 @@ import { useAIGate } from "@/lib/ai-gate";
 import { isAiFeatureGateEnabled } from "@/lib/runtime-flags";
 
 const FEATURE_LABELS: Record<AIGateFeatureKey, string> = {
-  callHandling: "Nexiq (Connect / Lex / Bedrock)",
+  callHandling: "Nexiq call handling",
   incidentSuggestions: "Incident type / priority suggestions",
   priorityScoring: "Priority scoring",
   transcription: "Live transcription",

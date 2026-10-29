@@ -87,7 +87,7 @@ describe("Nova 2 Sonic engine selection", () => {
     expect(lexNovaSpeechModelArn("us-east-1")).toBe(
       "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-2-sonic-v1:0",
     );
-    expect(novaSonicLexVoiceId("en_US")).toBe("matthew");
+    expect(novaSonicLexVoiceId("en_US")).toBe("tiffany");
     expect(novaSonicLexVoiceId("es-US")).toBe("lupe");
     expect(novaSonicLexVoiceId("zh-CN")).toBeNull();
   });

@@ -37,37 +37,37 @@ const CONNECT_LIVE_PROMPTS: Record<string, ConnectLivePrompts> = {
   "en-US": {
     transfer: "I'm transferring you to someone who can help. Please hold.",
     error: "I'm having trouble right now. Connecting you to someone who can help.",
-    transferFail: "I'm sorry, I wasn't able to connect you. Please try again.",
+    transferFail: "I'm sorry, I wasn't able to connect you. If this is an emergency, hang up and call 911.",
   },
   "es-US": {
     transfer: "Le estoy transfiriendo con alguien que puede ayudarle. Por favor espere.",
     error: "Estoy teniendo un problema en este momento. Le conectaré con alguien que puede ayudarle.",
-    transferFail: "Lo siento, no pude conectarle. Por favor intente de nuevo.",
+    transferFail: "Lo siento, no pude conectarle. Si es una emergencia, cuelgue y llame al 911.",
   },
   "zh-CN": {
     transfer: "我正在为您转接能提供帮助的工作人员，请稍候。",
     error: "系统出现问题，正在为您转接工作人员。",
-    transferFail: "很抱歉，未能接通。请稍后再试。",
+    transferFail: "很抱歉，未能接通。如果这是紧急情况，请挂断并拨打911。",
   },
   "zh-HK": {
     transfer: "我而家幫你轉接可以幫到你嘅人，請稍等。",
     error: "而家系統有問題，我幫你轉接工作人員。",
-    transferFail: "對唔住，而家接唔通。請稍後再試。",
+    transferFail: "對唔住，而家接唔通。如果係緊急情況，請收線打911。",
   },
   "tl-PH": {
     transfer: "Inililipat kita sa taong makakatulong. Pakihintay po.",
     error: "May problema po ngayon. Ikinokonekta kita sa taong makakatulong.",
-    transferFail: "Paumanhin, hindi kita makonektá. Subukan po ulit.",
+    transferFail: "Paumanhin, hindi kita makonekta. Kung emergency po ito, ibaba ang tawag at tumawag sa 911.",
   },
   "vi-VN": {
     transfer: "Tôi đang chuyển máy cho người có thể giúp bạn. Vui lòng chờ.",
     error: "Hiện hệ thống gặp sự cố. Tôi sẽ chuyển bạn tới người có thể giúp.",
-    transferFail: "Xin lỗi, tôi không kết nối được. Vui lòng thử lại.",
+    transferFail: "Xin lỗi, tôi không kết nối được. Nếu đây là trường hợp khẩn cấp, hãy cúp máy và gọi 911.",
   },
   "ar-AE": {
     transfer: "سأحولكم الآن إلى شخص يمكنه المساعدة. يرجى الانتظار.",
     error: "نواجه مشكلة حالياً. سأصلكم بمن يمكنه المساعدة.",
-    transferFail: "عذراً، تعذر التوصيل. يرجى المحاولة مرة أخرى.",
+    transferFail: "عذراً، تعذر التوصيل. إذا كانت هذه حالة طارئة، أغلقوا الخط واتصلوا بالرقم 911.",
   },
 };
 
@@ -87,11 +87,11 @@ export function connectVoiceForLocale(locale: string | null | undefined): {
 /** Nova 2 Sonic voices Connect can speak. Other locales stay on the Lex/Polly neural voice. */
 export function connectNovaSonicVoice(locale: string | null | undefined): {
   voiceId: string;
-  engine: "Generative";
+  engine: "Generative" | "Neural";
   style: "None";
 } | null {
   const bcp47 = CALL_ASSIST_LOCALE_META[connectLiveLexLocale(locale)].bcp47;
-  if (bcp47 === "en-US") return { voiceId: "Matthew", engine: "Generative", style: "None" };
+  if (bcp47 === "en-US") return { voiceId: "Ruth", engine: "Neural", style: "None" };
   if (bcp47 === "es-US") return { voiceId: "Lupe", engine: "Generative", style: "None" };
   return null;
 }

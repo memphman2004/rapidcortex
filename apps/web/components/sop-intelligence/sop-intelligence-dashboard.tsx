@@ -75,7 +75,7 @@ export function SopIntelligenceDashboard({
       if (!message.type.startsWith("sop-intel.")) return;
       if (message.type === "sop-intel.suggestion.created") {
         const sopId = String(message.data.sopId ?? "");
-        setBanner(`Pattern threshold reached on SOP ${sopId}. Claude suggestion is ready in Pending Updates.`);
+        setBanner(`Pattern threshold reached on SOP ${sopId}. A suggested update is ready in Pending Updates.`);
         setView("pending");
       }
       refresh();

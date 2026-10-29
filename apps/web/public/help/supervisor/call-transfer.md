@@ -5,7 +5,7 @@ Use transfer / takeover when a dispatcher needs relief, language support, or a s
 ## Transfer between dispatchers
 
 1. Confirm both seats are available and authenticated.
-2. Initiate transfer per your telephony / Connect flow (NexCort iQ does not replace the CPE).
+2. Initiate transfer per your telephony procedure (NexCort iQ does not replace the phone system).
 3. Brief the receiving dispatcher on nature, location, and open actions.
 4. Confirm the incident ownership updates in the queue.
 

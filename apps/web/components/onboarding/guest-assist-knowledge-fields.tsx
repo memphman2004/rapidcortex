@@ -24,7 +24,7 @@ export function GuestAssistKnowledgeFields({ vertical, value, onChange }: Props)
   return (
     <div className="grid gap-5">
       <p className="text-sm text-slate-400">
-        These facts are injected into Guest Assist (Claude) for this {vertical} only. Write the
+        These facts are injected into Guest Assist for this {vertical} only. Write the
         answers you want guests to receive for each scan-page category. Leave a field blank if
         that category should stay generic.
       </p>

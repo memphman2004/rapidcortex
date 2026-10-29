@@ -12,5 +12,5 @@ Session records support QA, Sunshine / records requests, and after-action review
 ## Guardrails
 
 - These are not 911 CAD records. Keep them in the Nexiq retention lane your counsel defines.
-- Emergency transfers should show the Safety Engine stop + Connect handoff — escalate gaps to Supervisor / IT.
+- Emergency transfers should show the Safety Engine stop and the phone handoff — escalate gaps to Supervisor / IT.
 - Demo runner sessions are for evaluation; do not mix demo IDs into production legal packages without labeling them.

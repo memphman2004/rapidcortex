@@ -52,11 +52,26 @@ describe("Fulfillment intercept", () => {
     expect(resolveFulfillmentAction(event)).toEqual({ type: "complete" });
   });
 
-  it("PublicWorks on voice still transfers to 311", () => {
-    expect(resolveFulfillmentAction(fulfillmentEvent("PublicWorksIssue", {}))).toMatchObject({
-      type: "human",
-      reason: "EXTERNAL_311",
+  it("PublicWorks on voice completes a city-service report", () => {
+    expect(
+      resolveFulfillmentAction(
+        fulfillmentEvent("PublicWorksIssue", {
+          PublicWorksLocation: asLexSlot("12th and Main"),
+          PublicWorksIssueType: asLexSlot("pothole"),
+        }),
+      ),
+    ).toEqual({ type: "complete" });
+  });
+
+  it("PublicWorks does not file a work order for a gas smell or a downed wire", () => {
+    const event = fulfillmentEvent("PublicWorksIssue", {
+      PublicWorksIssueType: asLexSlot("downed wire"),
     });
+    event.sessionState.sessionAttributes = {
+      ...event.sessionState.sessionAttributes,
+      transcript: "Caller: there is a downed wire in the alley",
+    };
+    expect(resolveFulfillmentAction(event)).toEqual({ type: "emergency", reason: "EMERGENCY" });
   });
 
   it("PublicWorks during a surge stays with Nexiq and gets a report", () => {

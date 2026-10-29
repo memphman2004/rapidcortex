@@ -201,7 +201,7 @@ export function CallAssistGreetingEditor({ config, pending, onSave }: Props) {
                 className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-white"
                 value={draft.emergencyTransferQueue ?? ""}
                 onChange={(e) => setEmergencyTransferQueue(e.target.value)}
-                placeholder="Connect queue name or ARN"
+                placeholder="Transfer queue name"
               />
             </label>
           </>

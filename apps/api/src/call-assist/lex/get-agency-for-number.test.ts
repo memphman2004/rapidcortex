@@ -40,6 +40,9 @@ describe("GetAgencyConfigForNumber Connect start", () => {
     expect(result.language).not.toBe("es");
     expect(result.language).not.toBe("en");
     expect(result.greetingText.startsWith("Thank you for calling the city's non-emergency line. I'm Nexiq")).toBe(true);
+    expect(result.openingLine).toBe(
+      "Hello, thank you for calling Springfield Police Department service line.",
+    );
     expect(result.voiceEngine).toBe("LEX_POLLY");
     const nova = buildConnectStartResult({
       agencyId: "springfield",

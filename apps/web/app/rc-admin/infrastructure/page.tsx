@@ -64,7 +64,7 @@ export default async function RcInfrastructurePage() {
         />
         <DashboardCard
           title="Integrations"
-          description="CAD, Ring™, Nest™, Bedrock, and third-party connections per tenant."
+          description="CAD, Ring™, Nest™, and third-party connections per tenant."
           href="/rc-admin/integrations"
         />
         <DashboardCard

@@ -12,7 +12,13 @@ import {
   isLocationSlot,
   knownFactLines,
   lexLocaleToCallLanguage,
+  listedReasonReplacesIntent,
   locationReadback,
+  closingSurveyPrompt,
+  findSameDayReport,
+  parseCallerSurveyScore,
+  CONNECT_LANGUAGE_MENU_DTMF,
+  CALL_ASSIST_LOCALE_META,
   mergeIntakeFromLexSlots,
   resolveAgencyTaxonomy,
   shouldTryBedrockFallback,
@@ -40,6 +46,7 @@ import {
   weaponVisibleYes,
 } from "./dialog-intercept.js";
 import { LEX_SPEC_CONFIRMATION_INTENTS, LEX_SPEC_SLOTS } from "./lex-spec-slots.js";
+import { readCityService } from "./city-service.js";
 import { apply311Dialog } from "./taxonomy-311/apply-311-dialog.js";
 import { INTENT_MAP as LEX_311_INTENT_MAP } from "./taxonomy-311/intents.js";
 import { extractSlotsFromContext } from "./taxonomy-311/extract-slots-from-context.js";
@@ -53,14 +60,21 @@ import {
   closeTransferResponse,
   confirmIntentResponse,
   delegateResponse,
+  elicitIntentResponse,
   elicitSlotResponse,
   plain,
   speakForEngine,
 } from "./lex-responses.js";
 import { agencyShortName, transferPrompt } from "./prompts.js";
 import { handleFulfillment } from "./fulfillment-hook.js";
-import { getLexSession, getLexTenantConfig, listLexKnowledge, updateLexSession } from "./runtime-store.js";
-import { buildTransferSummary, runSafetyGate } from "./safety-gate.js";
+import {
+  ensureCallerTranscriptLine,
+  mergeDashboardUtterances,
+  spokenTextFromLexMessage,
+  utterancesFromLexTranscript,
+} from "./lex-transcript.js";
+import { getLexSession, getLexTenantConfig, listLexKnowledge, listRecentSessionsForDuplicate, updateLexSession } from "./runtime-store.js";
+import { buildTransferSummary, callerTextForSafety, runSafetyGate } from "./safety-gate.js";
 import { extractCurrentSlots, slotFilled, capturePromptedSlot, isVehicleDescriptionSlot } from "./slot-extractor.js";
 import type { LexSlotValue, LexV2Event, LexV2Response } from "./types.js";
 import {
@@ -86,6 +100,39 @@ export { EMERGENCY_INTENT, FALLBACK_INTENT };
 /** @deprecated Agency thresholds from tenant config are the control plane. */
 export const MIN_LEX_CONFIDENCE = 0.7;
 
+/** Language-menu DTMF and the silence after it are not a request. */
+function isLanguageMenuNoise(utterance: string): boolean {
+  const trimmed = utterance.trim();
+  return trimmed.length === 0 || /^[1-7]$/.test(trimmed);
+}
+
+/** After a report number: yes starts another report, no ends the call. */
+export function anythingElseChoice(utterance: string): "yes" | "no" | "reask" | "continue" {
+  const trimmed = utterance
+    .trim()
+    .toLowerCase()
+    .replace(/[.!?,]+$/g, "")
+    .replace(/\s+/g, " ");
+  if (!trimmed) return "reask";
+  if (/^(1|yes|yeah|yep|yup|sure|please|yes please|si|sí)$/.test(trimmed)) return "yes";
+  if (
+    /^(2|no|nope|nah|no thanks|no thank you|that'?s all|thats all|that'?s it|thats it|that'?s everything|nothing else|nothing|i'?m good|im good|goodbye|bye|that is all|that will be all|no that'?s it|nada|nada mas|nada más|eso es todo|adios|adiós)$/.test(
+      trimmed,
+    )
+  ) {
+    return "no";
+  }
+  return "continue";
+}
+
+const FLOW_TRANSFER_INTENTS = new Set([
+  "EmergencyEscalation",
+  "FallbackIntent",
+  "RequestHuman",
+  "RepeatCallCheck",
+  "PublicWorksIssue",
+]);
+
 const INFORMATION_REQUEST_INTENT = "InformationRequest";
 const IMPLICIT_FILLED = new Set(["incidentType", "concernType", "reportType"]);
 const bargeAuditRepo = new AuditRepository();
@@ -96,6 +143,7 @@ export type DialogHookDeps = {
   getSession: typeof getLexSession;
   updateSession: typeof updateLexSession;
   listKnowledge?: (agencyId: string) => Promise<CallAssistKnowledgeArticle[]>;
+  listRecentSessions?: typeof listRecentSessionsForDuplicate;
 };
 
 const defaultDeps: DialogHookDeps = {
@@ -104,6 +152,7 @@ const defaultDeps: DialogHookDeps = {
   getSession: getLexSession,
   updateSession: updateLexSession,
   listKnowledge: listLexKnowledge,
+  listRecentSessions: listRecentSessionsForDuplicate,
 };
 
 export const handler = async (event: LexV2Event): Promise<LexV2Response> => {
@@ -117,10 +166,59 @@ export async function handleDialog(
   event: LexV2Event,
   deps: DialogHookDeps = defaultDeps,
 ): Promise<LexV2Response> {
+  const response = await handleDialogTurn(event, deps);
+  try {
+    await syncDashboardTranscript(event, response, deps);
+  } catch {
+    /* A transcript write must not change what the caller hears. */
+  }
+  return response;
+}
+
+async function syncDashboardTranscript(
+  event: LexV2Event,
+  response: LexV2Response,
+  deps: DialogHookDeps,
+): Promise<void> {
+  const attrs = response.sessionState?.sessionAttributes ?? event.sessionState.sessionAttributes ?? {};
+  const agencyId = attrs.agencyId ?? "";
+  const callId = attrs.callId ?? event.sessionId;
+  if (!agencyId || !callId) return;
+  const transcript = ensureCallerTranscriptLine(
+    attrs.transcript ?? event.sessionState.sessionAttributes?.transcript ?? "",
+    event.inputTranscript ?? "",
+  );
+  const spoken = (response.messages ?? [])
+    .map((message) => spokenTextFromLexMessage(message.content))
+    .filter(Boolean)
+    .join(" ");
+  const at = new Date().toISOString();
+  const existingSession = await deps.getSession(agencyId, callId);
+  const existing = existingSession?.utterances ?? [];
+  if (response.sessionState && !attrs.callStartedAt) {
+    response.sessionState.sessionAttributes = {
+      ...attrs,
+      callStartedAt: existingSession?.createdAt ?? at,
+    };
+  }
+  const utterances = mergeDashboardUtterances(
+    existing,
+    utterancesFromLexTranscript(transcript, at),
+    spoken,
+    at,
+  );
+  if (utterances.length === 0) return;
+  await deps.updateSession(agencyId, callId, { utterances });
+}
+
+async function handleDialogTurn(
+  event: LexV2Event,
+  deps: DialogHookDeps = defaultDeps,
+): Promise<LexV2Response> {
   const sessionAttrs = { ...(event.sessionState.sessionAttributes ?? {}) };
   const agencyId = sessionAttrs.agencyId ?? "";
   const callId = sessionAttrs.callId ?? event.sessionId;
-  const utterance = event.inputTranscript ?? "";
+  let utterance = event.inputTranscript ?? "";
   const localeId = event.bot?.localeId ?? callLanguageToLexLocale(sessionAttrs.language);
   const preferredFromLocale = lexLocaleToCallLanguage(localeId);
   const detectedLang = detectCallAssistLanguage(utterance);
@@ -169,7 +267,7 @@ export async function handleDialog(
     .join("|");
 
   if (utterance) {
-    const safety = runSafetyGate(utterance);
+    const safety = runSafetyGate(callerTextForSafety(transcript, utterance));
     if (safety.isEmergency) {
       return emergencyClose(deps, event, config, shortName, emergencySpoken, {
         ...sessionAttrs,
@@ -197,6 +295,111 @@ export async function handleDialog(
       callId,
       transcript,
     });
+  }
+
+  if (!smsChannel && sessionAttrs.awaitingSurvey === "true") {
+    const score = parseCallerSurveyScore(utterance);
+    const bye = language.startsWith("es") ? "Gracias por llamar. Adiós." : "Thank you for calling. Goodbye.";
+    const doneIntent = FLOW_TRANSFER_INTENTS.has(sessionAttrs.classification ?? "")
+      ? "InformationRequest"
+      : sessionAttrs.classification || "InformationRequest";
+    return {
+      sessionState: {
+        sessionAttributes: {
+          ...sessionAttrs,
+          agencyId,
+          callId,
+          transcript,
+          awaitingSurvey: "false",
+          callerDone: "true",
+          ...(score ? { surveyScore: String(score) } : {}),
+        },
+        dialogAction: { type: "Close", fulfillmentState: "Fulfilled" },
+        intent: { name: doneIntent, state: "Fulfilled" },
+      },
+      messages: [speakForEngine(bye, sessionAttrs.voiceEngine)],
+    };
+  }
+
+  if (!smsChannel && sessionAttrs.awaitingLocationConfirm === "true") {
+    const choice = anythingElseChoice(utterance);
+    if (choice === "no") {
+      sessionAttrs.awaitingLocationConfirm = "false";
+      sessionAttrs.locationConfirmed = "false";
+      sessionAttrs.pendingLocation = "";
+      for (const name of Object.keys(currentSlots)) {
+        if (isLocationSlot(name)) currentSlots[name] = null;
+      }
+    } else if (choice === "yes") {
+      sessionAttrs.awaitingLocationConfirm = "false";
+      sessionAttrs.locationConfirmed = "true";
+    } else {
+      const again = locationReadback(sessionAttrs.pendingLocation ?? "", language) ?? "Is that location right?";
+      return elicitIntentResponse(FALLBACK_INTENT, { ...sessionAttrs, agencyId, callId, transcript }, [
+        speakForEngine(again, sessionAttrs.voiceEngine),
+      ]);
+    }
+  }
+
+  if (!smsChannel && sessionAttrs.awaitingAnythingElse === "true") {
+    const choice = anythingElseChoice(utterance);
+    const spanish = language.startsWith("es");
+    if (choice === "no") {
+      const doneIntent = FLOW_TRANSFER_INTENTS.has(sessionAttrs.classification ?? "")
+        ? "InformationRequest"
+        : sessionAttrs.classification || "InformationRequest";
+      return {
+        sessionState: {
+          sessionAttributes: {
+            ...sessionAttrs,
+            agencyId,
+            callId,
+            transcript,
+            awaitingAnythingElse: "false",
+            awaitingSurvey: "true",
+          },
+          dialogAction: { type: "ElicitIntent" },
+          intent: { name: doneIntent, state: "InProgress" },
+        },
+        messages: [speakForEngine(closingSurveyPrompt(language), sessionAttrs.voiceEngine)],
+      };
+    }
+    if (choice === "yes" || choice === "reask") {
+      const ask =
+        choice === "yes"
+          ? spanish
+            ? "¿En qué más le puedo ayudar?"
+            : "What can I help you with?"
+          : spanish
+            ? "¿Hay algo más en lo que le pueda ayudar?"
+            : "Is there anything else I can help you with?";
+      return elicitIntentResponse(
+        FALLBACK_INTENT,
+        {
+          ...sessionAttrs,
+          agencyId,
+          callId,
+          transcript,
+          awaitingAnythingElse: choice === "yes" ? "false" : "true",
+          openingReprompted: "true",
+          promptSlot: "",
+        },
+        [speakForEngine(ask, sessionAttrs.voiceEngine)],
+      );
+    }
+    const stripped = utterance.replace(/^(yes|yeah|yep|yup|sure|sí|si)[,.\s]+/i, "").trim();
+    if (stripped) utterance = stripped;
+    sessionAttrs.awaitingAnythingElse = "false";
+    sessionAttrs.openingReprompted = "true";
+    sessionAttrs.promptSlot = "";
+    currentSlots = {};
+    event.sessionState.intent = {
+      name: FALLBACK_INTENT,
+      slots: {},
+      state: "InProgress",
+      confirmationState: "None",
+    };
+    event.interpretations = [{ intent: event.sessionState.intent, nluConfidence: 0.4 }];
   }
 
   if (event.sessionState.intent.name === WELCOME_INTENT) {
@@ -246,6 +449,26 @@ export async function handleDialog(
     }
   }
 
+  if (!smsChannel && sessionAttrs.openingReprompted !== "true" && isLanguageMenuNoise(utterance)) {
+    const menuLocale = CONNECT_LANGUAGE_MENU_DTMF[utterance.trim()];
+    const menuName = menuLocale ? CALL_ASSIST_LOCALE_META[menuLocale].label : "";
+    const menuTranscript = menuName ? `${transcript}|Caller: chose ${menuName}` : transcript;
+    const ask = language.startsWith("es")
+      ? "Gracias. ¿En qué le puedo ayudar?"
+      : "Thanks. What can I help you with?";
+    return elicitIntentResponse(
+      WELCOME_INTENT,
+      {
+        ...sessionAttrs,
+        agencyId,
+        callId,
+        openingReprompted: "true",
+        transcript: menuTranscript,
+      },
+      [speakForEngine(ask, sessionAttrs.voiceEngine)],
+    );
+  }
+
   if (callerRequestedHuman(utterance) || activeIntent === REQUEST_HUMAN_INTENT) {
     if (sessionAttrs.enableLiveAgentHandoff !== "false") {
       const humanSpoken = smsChannel
@@ -275,6 +498,28 @@ export async function handleDialog(
       activeIntent = bedrockResult.intentName;
       confidenceSource = "bedrock";
       effectiveScore = bedrockResult.confidence;
+    }
+  }
+
+  if (!smsChannel) {
+    const heard = activeIntent === PUBLIC_WORKS_INTENT ? `${sessionAttrs.transcript ?? ""} ${utterance}` : utterance;
+    const city = readCityService(heard);
+    if (city?.emergency && (activeIntent === PUBLIC_WORKS_INTENT || activeIntent === FALLBACK_INTENT)) {
+      return emergencyClose(deps, event, config, shortName, emergencySpoken, {
+        ...sessionAttrs,
+        agencyId,
+        callId,
+        transcript,
+      });
+    }
+    const listed = city?.issueId.startsWith("NC311-") === true;
+    if (city && listed && listedReasonReplacesIntent(activeIntent, city.departmentId)) {
+      activeIntent = PUBLIC_WORKS_INTENT;
+      sessionAttrs.cityDepartment = city.departmentLabel;
+      sessionAttrs.cityIssue = city.issueLabel ?? city.issueId;
+    } else if (city && activeIntent === PUBLIC_WORKS_INTENT) {
+      sessionAttrs.cityDepartment = city.departmentLabel;
+      if (city.issueLabel) sessionAttrs.cityIssue = city.issueLabel;
     }
   }
 
@@ -346,8 +591,12 @@ export async function handleDialog(
     surgeMode: tenant.surgeMode === true,
     reason: "LOW_CONFIDENCE",
   });
+  const cityServiceKeepsReport = activeIntent === PUBLIC_WORKS_INTENT;
   const escalateForConfidence =
-    decision.action === "escalate_human" && !(smsChannel && is311Intent) && !surgeKeepsReport;
+    decision.action === "escalate_human" &&
+    !(smsChannel && is311Intent) &&
+    !surgeKeepsReport &&
+    !cityServiceKeepsReport;
 
   if ((escalateForConfidence || activeIntent === FALLBACK_INTENT) && !surgeKeepsReport) {
     await persistTurn(deps, agencyId, callId, {
@@ -475,10 +724,10 @@ export async function handleDialog(
 
   if (missingSlotId) {
     const next =
-      getNextElicitation(activeIntent, currentSlots, transcript) ??
+      getNextElicitation(activeIntent, currentSlots, transcript, language) ??
       ({
         slotToElicit: missingSlotId,
-        question: humanQuestionForSlot(activeIntent, missingSlotId),
+        question: humanQuestionForSlot(activeIntent, missingSlotId, language),
       } as const);
     const spokenBase = tty.ttyMode ? formatTtySms(next.question) : next.question;
     const readback =
@@ -493,8 +742,8 @@ export async function handleDialog(
     return elicitSlotResponse(activeIntent, next.slotToElicit, currentSlots, updatedAttrs, messages);
   }
 
-  if (activeIntent === REPEAT_CALL_INTENT || activeIntent === PUBLIC_WORKS_INTENT) {
-    const next = getNextElicitation(activeIntent, currentSlots, transcript);
+  if (activeIntent === REPEAT_CALL_INTENT) {
+    const next = getNextElicitation(activeIntent, currentSlots, transcript, language);
     if (next) {
       updatedAttrs.promptSlot = next.slotToElicit;
       return elicitSlotResponse(activeIntent, next.slotToElicit, currentSlots, updatedAttrs, [
@@ -504,7 +753,7 @@ export async function handleDialog(
     return delegateResponse(activeIntent, currentSlots, updatedAttrs, true);
   }
 
-  const nextBeforeDelegate = getNextElicitation(activeIntent, currentSlots, transcript);
+  const nextBeforeDelegate = getNextElicitation(activeIntent, currentSlots, transcript, language);
   if (nextBeforeDelegate) {
     updatedAttrs.promptSlot = nextBeforeDelegate.slotToElicit;
     return elicitSlotResponse(
@@ -516,18 +765,41 @@ export async function handleDialog(
     );
   }
 
+  const place = filledLocation(currentSlots);
+  if (!smsChannel && place && sessionAttrs.locationConfirmed !== "true") {
+    const readback = locationReadback(place, language);
+    if (readback) {
+      updatedAttrs.awaitingLocationConfirm = "true";
+      updatedAttrs.pendingLocation = place;
+      updatedAttrs.promptSlot = "LOCATION_CONFIRM";
+      return elicitIntentResponse(activeIntent, updatedAttrs, [plain(readback)]);
+    }
+  }
+
   const confirmationState = event.sessionState.intent.confirmationState ?? "None";
   const is311 = Boolean(LEX_311_INTENT_MAP[activeIntent]);
   const needsConfirm = is311 || LEX_SPEC_CONFIRMATION_INTENTS.has(activeIntent);
 
   if (needsConfirm && confirmationState !== "Confirmed" && confirmationState !== "Denied") {
-    const confirmText = humanConfirmationQuestion(activeIntent, currentSlots);
+    let confirmText = humanConfirmationQuestion(activeIntent, currentSlots);
+    if (deps.listRecentSessions && place && intake.callbackNumber) {
+      const rows = await deps.listRecentSessions(agencyId).catch(() => []);
+      const duplicate = findSameDayReport(rows, {
+        sessionId: callId,
+        now,
+        callbackNumber: intake.callbackNumber,
+        locationText: place,
+      });
+      if (duplicate) {
+        confirmText += " I already have a report for this place from this number today. Say YES only if this is a new problem.";
+      }
+    }
     updatedAttrs.promptSlot = "CONFIRM_INTENT";
     return confirmIntentResponse(activeIntent, currentSlots, updatedAttrs, [plain(confirmText)]);
   }
 
   if (confirmationState === "Denied") {
-    const restart = getNextElicitation(activeIntent, {}, transcript);
+    const restart = getNextElicitation(activeIntent, {}, transcript, language);
     if (restart) {
       return elicitSlotResponse(activeIntent, restart.slotToElicit, {}, updatedAttrs, [
         plain("No problem — let's update that. " + restart.question),
@@ -694,6 +966,15 @@ async function persistAndCloseEmergency(
   );
 }
 
+function filledLocation(slots: Record<string, LexSlotValue | null>): string {
+  for (const [name, slot] of Object.entries(slots)) {
+    if (!isLocationSlot(name)) continue;
+    const value = slotInterpretedValue(slot);
+    if (value) return value;
+  }
+  return "";
+}
+
 function slotInterpretedValue(slot: LexSlotValue | null | undefined): string {
   return slot?.value?.interpretedValue?.trim() || slot?.value?.originalValue?.trim() || "";
 }
@@ -702,6 +983,15 @@ export function humanConfirmationQuestion(
   intentName: string,
   slots: Record<string, LexSlotValue | null>,
 ): string {
+  if (intentName === PUBLIC_WORKS_INTENT) {
+    const where = slotInterpretedValue(slots.PublicWorksLocation);
+    const issue = slotInterpretedValue(slots.PublicWorksIssueType);
+    const city = readCityService(`${issue} ${where}`);
+    const department = city?.departmentLabel ?? "Public Works";
+    const issueBit = issue ? ` a ${issue}` : " this";
+    const whereBit = where ? ` at ${where}` : "";
+    return `I can log${issueBit}${whereBit} with ${department}. Reply YES to submit, or NO to change something.`;
+  }
   const intentDef = LEX_311_INTENT_MAP[intentName];
   const address = slotInterpretedValue(slots.ServiceAddress) || slotInterpretedValue(slots.location);
   const subIssueSlot = intentDef?.slots.find(

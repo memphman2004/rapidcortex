@@ -52,7 +52,7 @@ export function CallAssistCallbackQueue() {
       <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2">
         <h2 className="text-[12px] font-semibold text-slate-200">Callback campaign</h2>
         <span className="text-[11px] text-slate-500">
-          {rows.length} open · live PSTN dial is mock until Connect outbound is configured
+          {rows.length} open · live outbound calling is simulated until phone outbound is configured
         </span>
       </div>
       {rows.length === 0 ? (

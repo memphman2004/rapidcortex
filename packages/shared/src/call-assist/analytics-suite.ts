@@ -73,6 +73,21 @@ function matchesFilter(row: CallAssistAnalyticsSession, filter: CallAssistAnalyt
   return true;
 }
 
+const ACTIVE_CALL_STATES = new Set([
+  "INITIATED",
+  "DISCLOSURE",
+  "LISTENING",
+  "INTAKE",
+  "TRIAGED",
+  "ROUTING",
+  "TRANSFERRING_911",
+  "TRANSFERRING_HUMAN",
+  "TRANSFERRING_EXTERNAL",
+  "CALLBACK_OFFERED",
+  "CALLBACK_QUEUED",
+  "CALLBACK_IN_PROGRESS",
+]);
+
 function rate(num: number, den: number): number | null {
   if (den <= 0) return null;
   return num / den;
@@ -104,7 +119,9 @@ export function sessionHandleSeconds(row: CallAssistAnalyticsSession): number | 
 }
 
 export function isAbandoned(row: CallAssistAnalyticsSession): boolean {
-  return row.state === "FAILED" || (row.state !== "COMPLETED" && row.state !== "SURVEY" && !row.completedAt);
+  if (row.state === "FAILED") return true;
+  if (ACTIVE_CALL_STATES.has(row.state)) return false;
+  return row.state !== "COMPLETED" && row.state !== "SURVEY" && !row.completedAt;
 }
 
 export function isContained(row: CallAssistAnalyticsSession): boolean {
@@ -143,8 +160,13 @@ export function computeCallAssistAnalytics(opts: {
   const filter = opts.filter ?? {};
   const fromMs = filter.from ? Date.parse(filter.from) : now - 7 * 86_400_000;
   const toMs = filter.to ? Date.parse(filter.to) : now;
-  const windowed = opts.sessions.filter((s) => inWindow(s.createdAt, fromMs, toMs)).filter((s) => matchesFilter(s, filter));
   const open = opts.openSessions.filter((s) => matchesFilter(s, filter));
+  const openIds = new Set(open.map((s) => s.sessionId));
+  const windowed = opts.sessions.filter((s) => {
+    if (!matchesFilter(s, filter)) return false;
+    // Calls still on the live board stay in the totals even when they started before the window.
+    return openIds.has(s.sessionId) || inWindow(s.createdAt, fromMs, toMs);
+  });
   const handled = windowed.filter(
     (s) => s.state === "COMPLETED" || s.state === "SURVEY" || (Boolean(s.completedAt) && s.state !== "FAILED"),
   );
@@ -164,9 +186,7 @@ export function computeCallAssistAnalytics(opts: {
     ahtSeconds: mean(handles),
     containmentRate: rate(handled.filter(isContained).length, handled.length),
     abandonmentRate: rate(windowed.filter(isAbandoned).length, windowed.length),
-    queueDepthCurrent: open.filter((s) =>
-      ["INTAKE", "LISTENING", "TRIAGED", "CALLBACK_OFFERED", "CALLBACK_QUEUED", "CALLBACK_IN_PROGRESS"].includes(s.state),
-    ).length,
+    queueDepthCurrent: open.filter((s) => ACTIVE_CALL_STATES.has(s.state)).length,
     queueDepthPeak: peakConcurrent(windowed),
     csatAverage: mean(surveys),
     csatCount: surveys.length,

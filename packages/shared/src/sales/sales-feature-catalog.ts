@@ -309,7 +309,7 @@ export const SALES_FEATURE_CATALOG: readonly SalesFeatureCatalogItem[] = [
     explanation:
       "AI-assisted non-emergency call intake with greeting flows, callbacks, and operator console — separate from 911 dispatch.",
     detail:
-      "Standalone non-emergency product (Amazon Connect + Lex + Bedrock + Polly). Handles greeting, classification, callbacks, and operator console work. Emergency mid-call handoff uses a hardcoded TRANSFER_911 path that cannot be suppressed. Users land on /app/call-assist/* — never the 911 dispatcher workspace. Sell for non-emergency volume reduction alongside NC 911, not as a replacement for 911.",
+      "Standalone non-emergency product. Handles greeting, classification, callbacks, and operator console work. Emergency mid-call handoff uses a hardcoded TRANSFER_911 path that cannot be suppressed. Users land on /app/call-assist/* — never the 911 dispatcher workspace. Sell for non-emergency volume reduction alongside NC 911, not as a replacement for 911. Do not name the speech or language providers in customer-facing material.",
     buyerValue: "Takes non-emergency load off the ECC without putting AI on the 911 console.",
     compatibleVerticals: ["rc911", "campus", "venue", "transit"],
     isFree: false,

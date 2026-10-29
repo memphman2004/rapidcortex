@@ -123,7 +123,7 @@ export default function AdminQaTemplatesPage() {
       <div>
         <h1 className="text-xl font-semibold text-white">QA protocol templates</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">
-          Checklists used for structured Bedrock scoring. Dispatchers pick a template when starting a QA session on
+          Checklists used for structured QA scoring. Dispatchers pick a template when starting a QA session on
           the dashboard.
         </p>
       </div>

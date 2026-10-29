@@ -77,7 +77,7 @@ These roles operate the NexCort iQ platform itself. They never see PSAP dispatch
 5. **Active grants** — table of any time-boxed superadmin grants currently in effect **← roadmap**
 6. **Platform notices** — any notices sent to agencies in last 30 days
 7. **Revenue snapshot** — total MRR, plan distribution, pending invoices (read from billing)
-8. **Integration health** — Ring Connect, CAD adapters, Bedrock, Transcribe — green/red per service
+8. **Integration health** — cameras, CAD adapters, language, and AI — green/red per service. Do not name the speech, language, or model providers.
 
 ### Permissions
 - All permissions (every row in the Role Access Matrix)
@@ -164,7 +164,7 @@ These roles operate the NexCort iQ platform itself. They never see PSAP dispatch
 
 ### Home dashboard widgets
 1. **System health grid** — all Lambda stacks (AppSam 1–4, QR, Alarms), ECS tasks, DataLayer, Cognito
-2. **Integration status** — per integration type (CAD, Ring, Stripe, Bedrock, Transcribe) across all tenants
+2. **Integration status** — per integration type (CAD, cameras, billing, language, AI) across all tenants. Do not name the speech, language, or model providers.
 3. **Failed auth events (24h)** — suspicious login patterns across all tenants
 4. **CAD writeback audit** — pending/failed writeback attempts
 5. **Active API pollers** — per tenant, last poll time and status

@@ -127,7 +127,7 @@ export function TransitIntakeForm({ orgCode, agencyId }: Props) {
       {
         title: "Guest Assist knowledge",
         description:
-          "Facts Claude uses for this system’s scan-page categories (Trip Planning, Schedules, Fares, and the rest).",
+          "Facts Guest Assist uses for this system’s scan-page categories (Trip Planning, Schedules, Fares, and the rest).",
         content: (
           <GuestAssistKnowledgeFields
             vertical="transit"

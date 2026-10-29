@@ -105,7 +105,7 @@ export function VisionAiAdminPanel() {
               checked={settings.sceneIntelClaudeEnabled !== false}
               onChange={(e) => patchSettings.mutate({ sceneIntelClaudeEnabled: e.target.checked })}
             />
-            Claude scene descriptions
+            Scene descriptions
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input

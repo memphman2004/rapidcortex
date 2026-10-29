@@ -164,3 +164,31 @@ export async function listLexKnowledge(agencyId: string): Promise<CallAssistKnow
     (row) => row.agencyId === agencyId && row.enabled !== false,
   );
 }
+
+export async function listRecentSessionsForDuplicate(agencyId: string): Promise<
+  Array<{ sessionId: string; createdAt?: string; callbackNumber?: string; locationText?: string }>
+> {
+  if (!agencyId) return [];
+  const rows: CallAssistSessionRecord[] = [];
+  for (const state of ["OPEN", "DONE"] as const) {
+    const out = await doc.send(
+      new QueryCommand({
+        TableName: tableName(),
+        IndexName: "gsi1",
+        KeyConditionExpression: "gsi1pk = :p",
+        ExpressionAttributeValues: { ":p": `${agencyId}#${state}` },
+        ScanIndexForward: false,
+        Limit: 20,
+      }),
+    );
+    rows.push(...((out.Items as CallAssistSessionRecord[]) ?? []));
+  }
+  return rows
+    .filter((row) => row.agencyId === agencyId)
+    .map((row) => ({
+      sessionId: row.sessionId,
+      createdAt: row.createdAt,
+      callbackNumber: row.intake?.callbackNumber,
+      locationText: row.intake?.locationText,
+    }));
+}

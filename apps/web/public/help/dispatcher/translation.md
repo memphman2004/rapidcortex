@@ -19,6 +19,6 @@ When multilingual support is enabled, NexCort iQ can show translated transcript 
 
 - AI translation does **not** replace certified interpreters when your SOP requires them
 - Medical direction and legal statements follow agency policy, not machine translation
-- Emergency escalation still uses your Connect / transfer path — do not stay in a non-emergency interview if the call becomes an emergency
+- Emergency escalation still uses your live transfer path — do not stay in a non-emergency interview if the call becomes an emergency
 
 If translation controls are missing, the languages module may be off. Contact Agency Admin / IT.

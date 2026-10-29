@@ -147,11 +147,11 @@ export function CallAssistSessionDetail({ sessionId }: { sessionId: string }) {
     onSuccess: (data) => {
       const reason = data.connectTransfer?.reason;
       if (data.advisoryOnly) {
-        setActionMsg(`Takeover recorded (advisory — no live Connect contact). AI stopped.${reason ? ` [${reason}]` : ""}`);
+        setActionMsg(`Takeover recorded (advisory — no live phone contact). AI stopped.${reason ? ` [${reason}]` : ""}`);
       } else if (data.connectTransfer && !data.connectTransfer.ok) {
-        setActionMsg(`Takeover recorded but Connect transfer failed: ${reason ?? "unknown"}`);
+        setActionMsg(`Takeover recorded but the phone transfer failed: ${reason ?? "unknown"}`);
       } else {
-        setActionMsg("Takeover recorded. Live Connect transfer initiated; AI conversation stopped.");
+        setActionMsg("Takeover recorded. Live transfer started; AI conversation stopped.");
       }
       void qc.invalidateQueries({ queryKey: ["call-assist-session", sessionId] });
       void qc.invalidateQueries({ queryKey: ["call-assist-session-transfers", sessionId] });
@@ -164,9 +164,9 @@ export function CallAssistSessionDetail({ sessionId }: { sessionId: string }) {
       postCallAssistTransfer(sessionId, { reason: "Operator emergency transfer", destinationType: "EMERGENCY_911" }, requestAgencyId),
     onSuccess: (data) => {
       if (data.advisoryOnly) {
-        setActionMsg("Emergency transfer recorded (advisory — no live Connect contact).");
+        setActionMsg("Emergency transfer recorded (advisory — no live phone contact).");
       } else if (data.connectTransfer && !data.connectTransfer.ok) {
-        setActionMsg(`Emergency transfer failed on Connect: ${data.connectTransfer.reason}`);
+        setActionMsg(`Emergency transfer failed: ${data.connectTransfer.reason}`);
       } else {
         setActionMsg("Emergency queue transfer initiated.");
       }
@@ -194,11 +194,11 @@ export function CallAssistSessionDetail({ sessionId }: { sessionId: string }) {
       }, requestAgencyId),
     onSuccess: (data) => {
       if (data.advisoryOnly) {
-        setActionMsg("Transfer requested (advisory). Outbound telephony queues when a live Connect contact is present.");
+        setActionMsg("Transfer requested (advisory). Outbound calling waits until a live phone contact is present.");
       } else if (data.connectTransfer && !data.connectTransfer.ok) {
-        setActionMsg(`Transfer recorded but Connect failed: ${data.connectTransfer.reason}`);
+        setActionMsg(`Transfer recorded but the phone transfer failed: ${data.connectTransfer.reason}`);
       } else {
-        setActionMsg("Transfer initiated on Connect.");
+        setActionMsg("Transfer started.");
       }
       void qc.invalidateQueries({ queryKey: ["call-assist-session", sessionId] });
       void qc.invalidateQueries({ queryKey: ["call-assist-session-transfers", sessionId] });

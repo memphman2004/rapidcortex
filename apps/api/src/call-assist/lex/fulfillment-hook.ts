@@ -1,11 +1,13 @@
 import {
   assertGroundedReply,
   mergeIntakeFromLexSlots,
+  municipalAfterHoursNote,
   topKnowledgeHit,
   type KnowledgeArticleLike,
 } from "rapid-cortex-shared";
 import type { CallAssistSessionRecord } from "../store.js";
-import { getLexTenantConfig, listLexKnowledge, putLexSession } from "./runtime-store.js";
+import { mergeDashboardUtterances, utterancesFromLexTranscript } from "./lex-transcript.js";
+import { getLexSession, getLexTenantConfig, listLexKnowledge, putLexSession } from "./runtime-store.js";
 import { buildCadPayload } from "./cad-payload-builder.js";
 import { agencyShortName, closingPrompt, transferPrompt } from "./prompts.js";
 import { extractCurrentSlots } from "./slot-extractor.js";
@@ -20,7 +22,8 @@ import {
   weaponVisibleYes,
   type TransferReason,
 } from "./dialog-intercept.js";
-import { closeTransferResponse, plain, speakForEngine } from "./lex-responses.js";
+import { readCityService } from "./city-service.js";
+import { closeTransferResponse, elicitIntentResponse, plain, speakForEngine } from "./lex-responses.js";
 import { buildTransferSummary } from "./safety-gate.js";
 import type { LexV2Event, LexV2Response } from "./types.js";
 import { escalationCloseParts, handleSessionStart } from "./session-start.js";
@@ -43,7 +46,6 @@ export function resolveFulfillmentAction(
 ): FulfillmentAction {
   const intent = event.sessionState.intent.name;
   const slots = event.sessionState.intent.slots ?? {};
-  const smsChannel = event.sessionState.sessionAttributes?.channel === "sms";
   if (intent === EMERGENCY_INTENT || weaponVisibleYes(slots)) {
     return { type: "emergency", reason: "EMERGENCY" };
   }
@@ -61,8 +63,9 @@ export function resolveFulfillmentAction(
     return { type: "human", intentName: FALLBACK_INTENT, reason: "LOW_CONFIDENCE" };
   }
   if (intent === PUBLIC_WORKS_INTENT) {
-    if (smsChannel || opts?.surgeMode === true) return { type: "complete" };
-    return { type: "human", intentName: PUBLIC_WORKS_INTENT, reason: "EXTERNAL_311" };
+    const city = readCityService(publicWorksText(event));
+    if (city?.emergency) return { type: "emergency", reason: "EMERGENCY" };
+    return { type: "complete" };
   }
   if (intent === "InformationRequest") {
     return { type: "complete" };
@@ -71,6 +74,34 @@ export function resolveFulfillmentAction(
     return { type: "complete" };
   }
   return { type: "complete" };
+}
+
+function publicWorksText(event: LexV2Event): string {
+  const attrs = event.sessionState.sessionAttributes ?? {};
+  const slots = event.sessionState.intent.slots ?? {};
+  return [
+    attrs.transcript,
+    attrs.cityIssue,
+    event.inputTranscript,
+    slots.PublicWorksIssueType?.value?.interpretedValue,
+    slots.PublicWorksLocation?.value?.interpretedValue,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function cityServiceClosing(
+  closing: string,
+  intentName: string,
+  department: string | undefined,
+  spanish: boolean,
+): string {
+  if (intentName !== PUBLIC_WORKS_INTENT || !department?.trim()) return closing;
+  const note = spanish ? `Esto queda con ${department}.` : `This is going to ${department}.`;
+  if (closing.includes("We've got it.")) {
+    return closing.replace("We've got it.", `We've got it. ${note}`);
+  }
+  return `${note} ${closing}`;
 }
 
 export async function handleFulfillment(event: LexV2Event): Promise<LexV2Response> {
@@ -148,6 +179,8 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
     );
   }
 
+  const priorSession = agencyId && callId ? await getLexSession(agencyId, callId).catch(() => null) : null;
+  const priorUtterances = priorSession?.utterances ?? [];
   const caseNumber = generateCallAssistConfirmation({ agencyId: agencyId || "unknown", config });
   const classification = sessionAttrs.classification ?? event.sessionState.intent.name;
   const now = new Date().toISOString();
@@ -204,14 +237,16 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
     smsFallbackRecommended: sessionAttrs.smsFallbackRecommended === "1",
     connectContactId: callId,
     disclosureDelivered: true,
-    utterances: (sessionAttrs.transcript ?? "")
-      .split("|")
-      .filter(Boolean)
-      .map((text, i) => ({ sequence: i, speaker: "caller", text: text.replace(/^Caller:\s*/, ""), at: now })),
+    utterances: mergeDashboardUtterances(
+      priorUtterances,
+      utterancesFromLexTranscript(sessionAttrs.transcript ?? "", now),
+      "",
+      now,
+    ),
     intake,
     continueAiConversation: false,
     legalHold: false,
-    createdAt: sessionAttrs.callStartedAt ?? now,
+    createdAt: priorSession?.createdAt ?? sessionAttrs.callStartedAt ?? now,
     updatedAt: now,
     completedAt: now,
     cadPushStatus: "not_pushed",
@@ -225,39 +260,86 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
     bargeInCount: Number.parseInt(sessionAttrs.bargeInCount ?? "0", 10) || undefined,
   };
 
-  const finalized = await finalizeCallAssistIntake({
-    agencyId: agencyId || "unknown",
-    actorId: "system:lex-fulfillment",
-    session: sessionDraft,
-    config,
-    confirmationNumber: caseNumber,
-    skipConfirmationSms: smsChannel,
-  });
-  await putLexSession(finalized.session);
+  let confirmationNumber = caseNumber;
+  let departmentId = "";
+  let savedSession: CallAssistSessionRecord = sessionDraft;
+  try {
+    const finalized = await finalizeCallAssistIntake({
+      agencyId: agencyId || "unknown",
+      actorId: "system:lex-fulfillment",
+      session: sessionDraft,
+      config,
+      confirmationNumber: caseNumber,
+      skipConfirmationSms: smsChannel,
+    });
+    confirmationNumber = finalized.confirmationNumber;
+    departmentId = finalized.departmentId;
+    savedSession = finalized.session;
+  } catch (error) {
+    console.error(
+      JSON.stringify({
+        msg: "call_assist_finalize_failed",
+        agencyId,
+        callId,
+        error: error instanceof Error ? error.name : "unknown",
+      }),
+    );
+  }
 
-  const closingBase = closingPrompt(config, classification, finalized.confirmationNumber);
+  const closingBase = cityServiceClosing(
+    closingPrompt(config, classification, confirmationNumber),
+    event.sessionState.intent.name,
+    sessionAttrs.cityDepartment,
+    (sessionAttrs.language ?? locale).toLowerCase().startsWith("es"),
+  );
+  const afterHours =
+    event.sessionState.intent.name === "PublicWorksIssue"
+      ? municipalAfterHoursNote(new Date(), "America/Chicago", sessionAttrs.language ?? locale)
+      : null;
+  const closingWithHours = afterHours ? `${closingBase} ${afterHours}` : closingBase;
   const closing = smsChannel
-    ? smsClosingForIntent(event.sessionState.intent.name, finalized.confirmationNumber)
+    ? smsClosingForIntent(event.sessionState.intent.name, confirmationNumber)
     : spokenClosingWithConfirmation({
-        closingBase,
-        confirmationNumber: finalized.confirmationNumber,
+        closingBase: closingWithHours,
+        confirmationNumber,
       });
-  return {
-    sessionState: {
-      sessionAttributes: {
-        ...sessionAttrs,
-        caseNumber: finalized.confirmationNumber,
-        confirmationNumber: finalized.confirmationNumber,
-        departmentId: finalized.departmentId,
-        disposition: "AI_RESOLVED",
-        transferReason: "COMPLETE",
-        closingMessage: closing,
-      },
-      dialogAction: { type: "Close", fulfillmentState: "Fulfilled" },
-      intent: { name: event.sessionState.intent.name, state: "Fulfilled" },
-    },
-    messages: [{ contentType: "PlainText", content: closing }],
+  const spanish = (sessionAttrs.language ?? locale).toLowerCase().startsWith("es");
+  const followup = spanish
+    ? "¿Hay algo más en lo que le pueda ayudar?"
+    : "Is there anything else I can help you with?";
+  const spokenOnDashboard = smsChannel ? closing : `${closing} ${followup}`;
+  try {
+    await putLexSession({
+      ...savedSession,
+      utterances: mergeDashboardUtterances(savedSession.utterances ?? [], [], spokenOnDashboard, now),
+    });
+  } catch {
+    /* The caller still hears the report number if the dashboard write fails. */
+  }
+  const saved = {
+    ...sessionAttrs,
+    caseNumber: confirmationNumber,
+    confirmationNumber,
+    departmentId,
+    disposition: "AI_RESOLVED",
+    closingMessage: closing,
+    classification,
   };
+  if (smsChannel) {
+    return {
+      sessionState: {
+        sessionAttributes: { ...saved, transferReason: "COMPLETE" },
+        dialogAction: { type: "Close", fulfillmentState: "Fulfilled" },
+        intent: { name: event.sessionState.intent.name, state: "Fulfilled" },
+      },
+      messages: [{ contentType: "PlainText", content: closing }],
+    };
+  }
+  return elicitIntentResponse(
+    FALLBACK_INTENT,
+    { ...saved, awaitingAnythingElse: "true" },
+    [speakForEngine(`${closing} ${followup}`, sessionAttrs.voiceEngine)],
+  );
 }
 
 export const handler = handleFulfillment;

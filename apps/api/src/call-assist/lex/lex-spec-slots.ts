@@ -716,5 +716,5 @@ export const LEX_SPEC_LOCATION_SLOT_NAMES = ["location", "building", "section", 
 export const LEX_SPEC_CALLBACK_SLOT_NAMES = ["callbackNumber", "CallbackNumber", "TheftCallbackNumber", "WelfareCheckCallerCallback", "TowCallbackNumber", "AccidentCallbackNumber", "PriorCallbackNumber"] as const;
 
 export const LEX_SPEC_CONFIRMATION_INTENTS = new Set<string>(
-  ["NoiseComplaint", "SuspiciousPerson", "AbandonedVehicle", "VehicleBurglary", "TheftReport", "ParkingComplaint", "WelfareCheck", "AnimalComplaint", "TowComplaint", "VandalismDamage", "CodeEnforcementComplaint", "TrafficAccidentReportOnly"],
+  ["NoiseComplaint", "SuspiciousPerson", "AbandonedVehicle", "VehicleBurglary", "TheftReport", "ParkingComplaint", "WelfareCheck", "AnimalComplaint", "TowComplaint", "VandalismDamage", "CodeEnforcementComplaint", "TrafficAccidentReportOnly", "PublicWorksIssue"],
 );

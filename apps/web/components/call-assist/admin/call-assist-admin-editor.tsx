@@ -422,8 +422,7 @@ export function CallAssistAdminEditor() {
           <section className="rounded-lg border border-slate-800 p-4">
             <h2 className="text-sm font-semibold text-white">Callback campaign & SMS</h2>
             <p className="mt-1 text-[12px] text-slate-500">
-              After-hours and overflow callbacks queue for the worker. Live PSTN outbound stays mock until Connect
-              outbound is configured. SMS uses AWS End User Messaging when origination is configured; otherwise it mocks.
+              After-hours and overflow callbacks queue for the worker. Live outbound calling stays simulated until phone outbound is configured. SMS sends when an origination number is configured; otherwise it is simulated.
             </p>
             <label className="mt-2 flex items-center gap-2 text-sm text-slate-200">
               <input

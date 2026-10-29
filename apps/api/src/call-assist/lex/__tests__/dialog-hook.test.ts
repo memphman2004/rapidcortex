@@ -142,7 +142,9 @@ describe("Dialog hook — Slot elicitation", () => {
       slots: { location: slot("4200 Main St"), callbackNumber: slot("555-0142") },
     });
     const result = await handleDialog(event, testDeps());
-    expect(result.sessionState.dialogAction.type).toBe("Delegate");
+    expect(result.sessionState.dialogAction.type).toBe("ElicitIntent");
+    expect(result.messages?.[0]?.content).toMatch(/4200 Main St/);
+    expect(result.messages?.[0]?.content).toMatch(/Is that right/i);
   });
 
   it("does not re-ask vehicle color/make/model after the caller describes the car", async () => {
@@ -284,6 +286,91 @@ describe("Dialog hook — RequestHuman", () => {
 describe("Dialog hook handler export", () => {
   it("exposes a Lambda handler", () => {
     expect(handler).toEqual(expect.any(Function));
+  });
+});
+
+describe("Dialog hook — language menu noise", () => {
+  const fallbackClassify = async () => ({
+    intentName: "FallbackIntent",
+    confidence: 0.1,
+    reasoning: "noise",
+    slots: {},
+  });
+
+  it("asks again when the first turn is the language-menu digit", async () => {
+    const event = buildLexEvent({
+      utterance: "1",
+      intent: "FallbackIntent",
+      nluConfidence: 0.1,
+    });
+    const result = await handleDialog(event, testDeps({ classify: fallbackClassify }));
+    expect(result.sessionState.dialogAction.type).toBe("ElicitIntent");
+    expect(result.sessionState.sessionAttributes?.openingReprompted).toBe("true");
+    expect(result.sessionState.sessionAttributes?.transferReason).toBeUndefined();
+    expect(result.messages?.[0]?.content).toContain("What can I help you with");
+  });
+
+  it("asks again when the first turn is silence", async () => {
+    const event = buildLexEvent({
+      utterance: " ",
+      intent: "FallbackIntent",
+      nluConfidence: 0.1,
+    });
+    const result = await handleDialog(event, testDeps({ classify: fallbackClassify }));
+    expect(result.sessionState.dialogAction.type).toBe("ElicitIntent");
+    expect(result.sessionState.sessionAttributes?.transferReason).toBeUndefined();
+  });
+
+  it("still transfers when the menu digit repeats after the prompt", async () => {
+    const event = buildLexEvent({
+      utterance: "1",
+      intent: "FallbackIntent",
+      nluConfidence: 0.1,
+      sessionAttrs: { agencyId: "kcpd", callId: "test-call", openingReprompted: "true" },
+    });
+    const result = await handleDialog(event, testDeps({ classify: fallbackClassify }));
+    expect(result.sessionState.dialogAction.type).toBe("Close");
+    expect(result.sessionState.sessionAttributes?.transferReason).toBe("LOW_CONFIDENCE");
+  });
+});
+
+describe("Dialog hook — anything else", () => {
+  it("thanks the caller and hangs up when they are done", async () => {
+    const event = buildLexEvent({
+      utterance: "no",
+      intent: "FallbackIntent",
+      nluConfidence: 0.2,
+      sessionAttrs: {
+        agencyId: "kcpd",
+        callId: "test-call",
+        awaitingAnythingElse: "true",
+        classification: "NoiseComplaint",
+        confirmationNumber: "KC-1027-TEST",
+      },
+    });
+    const result = await handleDialog(event, testDeps());
+    expect(result.sessionState.dialogAction.type).toBe("ElicitIntent");
+    expect(result.sessionState.intent.name).toBe("NoiseComplaint");
+    expect(result.sessionState.sessionAttributes?.awaitingSurvey).toBe("true");
+    expect(result.messages?.[0]?.content).toMatch(/1 to 5/i);
+  });
+
+  it("asks for the next problem when they say yes", async () => {
+    const event = buildLexEvent({
+      utterance: "yes",
+      intent: "Welcome",
+      nluConfidence: 0.9,
+      sessionAttrs: {
+        agencyId: "kcpd",
+        callId: "test-call",
+        awaitingAnythingElse: "true",
+        classification: "NoiseComplaint",
+      },
+    });
+    const result = await handleDialog(event, testDeps());
+    expect(result.sessionState.dialogAction.type).toBe("ElicitIntent");
+    expect(result.messages?.[0]?.content).toContain("What can I help you with");
+    expect(result.sessionState.sessionAttributes?.awaitingAnythingElse).toBe("false");
   });
 });
 
@@ -455,7 +542,9 @@ describe("Dialog hook — structured intake follow-up", () => {
       },
     });
     const result = await handleDialog(event, testDeps());
-    expect(result.sessionState.dialogAction).toMatchObject({ type: "Delegate" });
+    expect(result.sessionState.dialogAction.type).toBe("ElicitIntent");
+    expect(result.messages?.[0]?.content).toMatch(/4200 Main/);
+    expect(result.messages?.[0]?.content).toMatch(/Is that right/i);
   });
 });
 
@@ -559,6 +648,96 @@ describe("Dialog hook — SMS PublicWorksIssue address", () => {
   });
 });
 
+describe("Dialog hook — city services", () => {
+  it("logs a pothole with Public Works instead of transferring", async () => {
+    const writes: Array<Record<string, unknown>> = [];
+    const result = await handleDialog(
+      buildLexEvent({
+        utterance: "there is a pothole at 12th and Main",
+        intent: "PublicWorksIssue",
+        slots: { PublicWorksLocation: null, PublicWorksIssueType: null },
+        sessionAttrs: { agencyId: "kcpd", callId: "city-test", intakeStarted: "true" },
+      }),
+      testDeps({
+        updateSession: async (_agencyId, _callId, patch) => {
+          writes.push(patch);
+        },
+      }),
+    );
+    expect(result.sessionState.dialogAction.type).toBe("ElicitIntent");
+    expect(result.sessionState.intent.name).toBe("PublicWorksIssue");
+    expect(result.sessionState.sessionAttributes?.cityDepartment).toMatch(/Public Works/i);
+    const spoken = (result.messages ?? []).map((message) => message.content).join(" ");
+    expect(spoken).toMatch(/12th and Main/i);
+    expect(spoken).toMatch(/Is that right/i);
+    expect(result.sessionState.sessionAttributes?.transferReason).toBeUndefined();
+    const transcript = writes.find((patch) => Array.isArray(patch.utterances));
+    const lines = (transcript?.utterances ?? []) as Array<{ speaker: string; text: string }>;
+    expect(lines.some((line) => line.speaker === "caller" && /pothole/i.test(line.text))).toBe(true);
+    expect(lines.some((line) => line.speaker === "assistant" && /12th and Main/i.test(line.text))).toBe(true);
+  });
+
+  it("keeps a listed caller reason when Lex does not know the phrase", async () => {
+    const result = await handleDialog(
+      buildLexEvent({
+        utterance: "I need sharps disposal",
+        intent: "FallbackIntent",
+        nluConfidence: 0.1,
+        sessionAttrs: { agencyId: "kcpd", callId: "reason-test", intakeStarted: "true", openingReprompted: "true" },
+      }),
+      testDeps({
+        classify: async () => ({
+          intentName: "FallbackIntent",
+          confidence: 0.1,
+          reasoning: "no intent",
+          slots: {},
+        }),
+      }),
+    );
+    expect(result.sessionState.intent.name).toBe("PublicWorksIssue");
+    expect(result.sessionState.sessionAttributes?.cityDepartment).toBe("Sanitation");
+    expect(result.sessionState.sessionAttributes?.cityIssue).toMatch(/sharps disposal/i);
+    expect(result.sessionState.sessionAttributes?.transferReason).toBeUndefined();
+    expect(result.sessionState.dialogAction.type).not.toBe("Close");
+  });
+
+  it("sends needles to sanitation even when the guess is a noise complaint", async () => {
+    const result = await handleDialog(
+      buildLexEvent({
+        utterance: "throw away needles",
+        intent: "NoiseComplaint",
+        nluConfidence: 0.95,
+        sessionAttrs: { agencyId: "kcpd", callId: "needles", intakeStarted: "true", openingReprompted: "true" },
+      }),
+      testDeps(),
+    );
+    expect(result.sessionState.intent.name).toBe("PublicWorksIssue");
+    expect(result.sessionState.sessionAttributes?.cityDepartment).toBe("Sanitation");
+  });
+
+  it("keeps a quiet city-service call on the report instead of handing it off", async () => {
+    const result = await handleDialog(
+      buildLexEvent({
+        utterance: "pothole",
+        intent: "PublicWorksIssue",
+        nluConfidence: 0.2,
+        slots: { PublicWorksLocation: null, PublicWorksIssueType: null },
+        sessionAttrs: { agencyId: "kcpd", callId: "city-quiet", intakeStarted: "true" },
+      }),
+      testDeps({
+        classify: async () => ({
+          intentName: "FallbackIntent",
+          confidence: 0.1,
+          reasoning: "test",
+          slots: {},
+        }),
+      }),
+    );
+    expect(result.sessionState.dialogAction.type).toBe("ElicitSlot");
+    expect(result.sessionState.sessionAttributes?.transferReason).toBeUndefined();
+  });
+});
+
 describe("humanConfirmationQuestion", () => {
   it("uses spoken words, not Lex slot names or enum codes", () => {
     const text = humanConfirmationQuestion("ReportTreesVegetation", {
@@ -569,5 +748,15 @@ describe("humanConfirmationQuestion", () => {
     expect(text).toMatch(/Corner of elm and manor/);
     expect(text).toMatch(/Urban Forestry/i);
     expect(text).not.toMatch(/IsOngoing|TreeSubIssue|FALLEN_TREE_ROAD|ServiceAddress/);
+  });
+
+  it("names the city desk for a streetlight", () => {
+    const text = humanConfirmationQuestion("PublicWorksIssue", {
+      PublicWorksIssueType: slot("streetlight"),
+      PublicWorksLocation: slot("12th and Main"),
+    });
+    expect(text).toMatch(/streetlight/i);
+    expect(text).toMatch(/12th and Main/);
+    expect(text).toMatch(/Street Lighting/);
   });
 });

@@ -1,3 +1,6 @@
+import { matchCitizenCallReason } from "./citizen-call-reasons.js";
+import { matchEverydayCallPhrase } from "./everyday-phrases.js";
+
 /**
  * Nationwide non-emergency and city-service catalog.
  *
@@ -62,6 +65,8 @@ export type MunicipalMatch = {
   departmentId: MunicipalDepartmentId;
   classification: string;
   emergencyRefer: boolean;
+  /** Spoken reason, when the match came from the citizen call-reason list. */
+  label?: string;
 };
 
 const SLA_MINUTES: Record<MunicipalDepartmentId, number> = {
@@ -715,21 +720,42 @@ function phraseHits(haystack: string, phrase: string): boolean {
 /** Longest matching phrase wins, so "tree on the power line" beats "tree down". */
 export function classifyMunicipalIssue(text: string): MunicipalMatch | null {
   const haystack = normalize(text);
-  if (!haystack) return null;
   let best: { issue: MunicipalIssue; length: number } | null = null;
-  for (const issue of MUNICIPAL_ISSUES) {
-    for (const phrase of issue.phrases) {
-      if (!phraseHits(haystack, phrase)) continue;
-      const length = normalize(phrase).length;
-      if (!best || length > best.length) best = { issue, length };
+  if (haystack) {
+    for (const issue of MUNICIPAL_ISSUES) {
+      for (const phrase of issue.phrases) {
+        if (!phraseHits(haystack, phrase)) continue;
+        const length = normalize(phrase).length;
+        if (!best || length > best.length) best = { issue, length };
+      }
     }
   }
-  if (!best) return null;
+  if (best) {
+    return {
+      issueId: best.issue.id,
+      departmentId: best.issue.departmentId,
+      classification: best.issue.classification,
+      emergencyRefer: best.issue.emergencyRefer === true,
+    };
+  }
+  const everyday = matchEverydayCallPhrase(text);
+  if (everyday) {
+    return {
+      issueId: everyday.serviceId,
+      departmentId: everyday.departmentId,
+      classification: "INFORMATION_REQUEST",
+      emergencyRefer: false,
+      label: everyday.label,
+    };
+  }
+  const reason = matchCitizenCallReason(text);
+  if (!reason) return null;
   return {
-    issueId: best.issue.id,
-    departmentId: best.issue.departmentId,
-    classification: best.issue.classification,
-    emergencyRefer: best.issue.emergencyRefer === true,
+    issueId: reason.serviceId,
+    departmentId: reason.departmentId,
+    classification: "INFORMATION_REQUEST",
+    emergencyRefer: reason.emergencyRefer,
+    label: reason.name,
   };
 }
 

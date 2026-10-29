@@ -287,7 +287,7 @@ export function VenueIntakeForm({ orgCode, agencyId }: Props) {
       {
         title: "Guest Assist knowledge",
         description:
-          "Facts Claude uses for this venue’s scan-page categories (Directions, Venue Info, Guest Services, and the rest).",
+          "Facts Guest Assist uses for this venue’s scan-page categories (Directions, Venue Info, Guest Services, and the rest).",
         content: (
           <GuestAssistKnowledgeFields
             vertical="venue"

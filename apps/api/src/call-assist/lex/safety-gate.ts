@@ -12,6 +12,16 @@ export type SafetyResult = {
   summary: string;
 };
 
+/** Caller lines only, so the greeting's mention of 911 does not become a transfer. */
+export function callerTextForSafety(transcript: string, utterance: string): string {
+  const prior = transcript
+    .split("|")
+    .map((part) => part.trim())
+    .filter((part) => /^caller:/i.test(part))
+    .map((part) => part.replace(/^caller:\s*/i, ""));
+  return [...prior, utterance].filter(Boolean).join(" ");
+}
+
 export function runSafetyGate(utterance: string): SafetyResult {
   const result = evaluateSafety(utterance);
   const emergency = isImmutableEmergency(result) || result.action === "TRANSFER_911";

@@ -6,9 +6,62 @@ import { cloneAgencyTaxonomy, validateTaxonomyEmergencyLocks } from "./taxonomy.
 import { PRESET_911, PRESET_CAMPUS, PRESET_VENUE, resolveAgencyTaxonomy } from "./taxonomy-presets.js";
 
 describe("Nexiq taxonomy presets", () => {
-  it("preset_911 contains exactly the 13 existing types (regression check)", () => {
-    expect(PRESET_911.callTypes).toHaveLength(13);
-    expect(PRESET_911.callTypes.map((t) => t.id)).toEqual([...CALL_TRIAGE_CLASSIFICATIONS]);
+  it("preset_911 keeps the original 13 types and adds city desks", () => {
+    const ids = PRESET_911.callTypes.map((t) => t.id);
+    expect(ids.filter((id) => (CALL_TRIAGE_CLASSIFICATIONS as readonly string[]).includes(id))).toEqual([
+      ...CALL_TRIAGE_CLASSIFICATIONS,
+    ]);
+    expect(ids).toEqual(
+      expect.arrayContaining([
+        "STREET_LIGHTING",
+        "SANITATION",
+        "WATER_SEWER",
+        "PARKS",
+        "URBAN_FORESTRY",
+        "HOUSING",
+        "ENVIRONMENTAL_HEALTH",
+        "TRANSIT",
+        "CITY_CLERK",
+        "SOCIAL_SERVICES",
+        "FIRE_MARSHAL",
+        "UTILITIES",
+        "BILLING",
+        "ELECTIONS",
+        "LIBRARY",
+        "COURTS",
+      ]),
+    );
+    expect(ids.at(-1)).toBe("UNKNOWN");
+    for (const id of [
+      "STREET_LIGHTING",
+      "SANITATION",
+      "WATER_SEWER",
+      "PARKS",
+      "URBAN_FORESTRY",
+      "HOUSING",
+      "ENVIRONMENTAL_HEALTH",
+      "TRANSIT",
+      "CITY_CLERK",
+      "SOCIAL_SERVICES",
+      "FIRE_MARSHAL",
+      "UTILITIES",
+      "BILLING",
+      "ELECTIONS",
+      "LIBRARY",
+      "COURTS",
+    ]) {
+      const row = PRESET_911.callTypes.find((t) => t.id === id);
+      expect(row?.escalationPath).toBe("external");
+      expect(row?.isEmergency).toBe(false);
+      expect(row?.enabled).toBe(true);
+    }
+  });
+
+  it("files city requests on the matching desk", () => {
+    expect(classifyCallTriage("there is a pothole on Main").primaryClassification).toBe("PUBLIC_WORKS");
+    expect(classifyCallTriage("the streetlight is out").primaryClassification).toBe("STREET_LIGHTING");
+    expect(classifyCallTriage("missed trash pickup on Oak").primaryClassification).toBe("SANITATION");
+    expect(classifyCallTriage("water main break at the corner").primaryClassification).toBe("WATER_SEWER");
   });
 
   it("preset_campus contains no CAD nature codes (all null)", () => {

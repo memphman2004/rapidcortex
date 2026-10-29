@@ -35,8 +35,8 @@ export function lexNovaSpeechModelArn(region = "us-east-1"): string {
 }
 
 /** Nova 2 Sonic voice id for an English or Spanish Lex locale. Other locales stay on Polly. */
-export function novaSonicLexVoiceId(locale: string): "matthew" | "lupe" | null {
-  if (locale === "en_US" || locale === "en-US") return "matthew";
+export function novaSonicLexVoiceId(locale: string): "tiffany" | "lupe" | null {
+  if (locale === "en_US" || locale === "en-US") return "tiffany";
   if (locale === "es_US" || locale === "es-US") return "lupe";
   return null;
 }
@@ -89,7 +89,7 @@ export function novaSonicOpeningEvents(opts: {
   voiceId?: string;
   systemPrompt: string;
 }): NovaSonicSessionEvent[] {
-  const voiceId = opts.voiceId?.trim() || "matthew";
+  const voiceId = opts.voiceId?.trim() || "tiffany";
   return [
     {
       event: {

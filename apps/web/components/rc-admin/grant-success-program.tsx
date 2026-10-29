@@ -533,7 +533,7 @@ export function GrantSuccessProgram() {
   async function generate() {
     setStatus("generating");
     setErrorMsg(null);
-    setProgressMessage("Sending to Claude — writing grant narrative…");
+    setProgressMessage("Writing the grant narrative…");
 
     try {
       const res = await fetch("/api/rc-admin/grant-writer/generate", {

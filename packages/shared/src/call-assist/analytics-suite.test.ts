@@ -47,6 +47,47 @@ describe("Nexiq analytics", () => {
     expect(dash.heatMaps.language[0]?.key).toBe("en");
   });
 
+  it("keeps open calls that started before the window", () => {
+    const dash = computeCallAssistAnalytics({
+      nowMs: Date.parse("2026-10-28T15:00:00.000Z"),
+      sessions: [
+        {
+          sessionId: "old-open",
+          state: "TRANSFERRING_HUMAN",
+          createdAt: "2026-09-16T15:20:03.000Z",
+          language: "en",
+          locationText: "70 and Woodland Avenue",
+          routingDestinationType: "CALL_QUEUE",
+        },
+        {
+          sessionId: "today",
+          state: "COMPLETED",
+          createdAt: "2026-10-28T00:42:09.000Z",
+          completedAt: "2026-10-28T00:48:09.000Z",
+          language: "en",
+          locationText: "412 Oak Street",
+        },
+      ],
+      openSessions: [
+        {
+          sessionId: "old-open",
+          state: "TRANSFERRING_HUMAN",
+          createdAt: "2026-09-16T15:20:03.000Z",
+          language: "en",
+          locationText: "70 and Woodland Avenue",
+          routingDestinationType: "CALL_QUEUE",
+        },
+      ],
+    });
+    expect(dash.window.sessionCount).toBe(2);
+    expect(dash.queueDepthCurrent).toBe(1);
+    expect(dash.abandonmentRate).toBe(0);
+    expect(dash.ahtSeconds).toBe(6 * 60);
+    expect(dash.heatMaps.location.map((row) => row.label)).toEqual(
+      expect.arrayContaining(["70 and Woodland Avenue", "412 Oak Street"]),
+    );
+  });
+
   it("treats completed non-emergency AI resolutions as contained", () => {
     expect(
       isContained({

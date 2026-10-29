@@ -1,5 +1,6 @@
 import type { LexSlotValue } from "../types.js";
 
+import { readCityService } from "../city-service.js";
 import { DISAMBIGUATION_RULES } from "./disambiguation.js";
 import { addressSlotForIntent, slotNamesForIntent } from "./slot-catalog.js";
 
@@ -87,8 +88,18 @@ export function extractSlotsFromContext(
   }
 
   if (canWrite(intentName, "PublicWorksIssueType") && !slotInterpreted(next.PublicWorksIssueType)) {
-    if (/potholes?/i.test(text)) {
-      next = setSlot(next, "PublicWorksIssueType", "pothole");
+    const city = readCityService(text);
+    if (city && !city.emergency) {
+      next = setSlot(next, "PublicWorksIssueType", city.issueLabel);
+    }
+  }
+
+  if (addressSlot === "PublicWorksLocation" && !slotInterpreted(next[addressSlot])) {
+    const intersection = text.match(
+      /\b([a-z0-9]+(?:st|nd|rd|th)?\s+and\s+[a-z0-9]+(?:st|nd|rd|th)?)\b/i,
+    );
+    if (intersection?.[1]) {
+      next = setSlot(next, addressSlot, intersection[1].trim());
     }
   }
 

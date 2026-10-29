@@ -50,3 +50,6 @@ export * from "./surge-mode.js";
 export * from "./caller-survey.js";
 export * from "./conversation-thread.js";
 export * from "./municipal-services.js";
+export * from "./everyday-phrases.js";
+export * from "./citizen-call-reasons.js";
+export * from "./service-registry/index.js";

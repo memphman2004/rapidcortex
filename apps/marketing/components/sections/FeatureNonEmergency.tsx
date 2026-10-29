@@ -162,12 +162,12 @@ const CALL_STEPS: CallStep[] = [
   },
   {
     icon: <IconCpu />,
-    label: "Connect + Lex intent classification",
+    label: "Intent classification",
     sublabel: "Request type identified, key entities extracted in real time",
   },
   {
     icon: <IconBrain />,
-    label: "Bedrock urgency scoring",
+    label: "Urgency scoring",
     sublabel: "Checks for distress language, silence patterns, medical terminology",
   },
 ];
@@ -187,7 +187,7 @@ const OUTCOMES: Outcome[] = [
   },
   {
     label: "Voice response",
-    description: "Polly delivers info and closes the call",
+    description: "A spoken answer closes the call",
     color: "#1469FF",
     icon: <IconSpeaker />,
   },
@@ -214,8 +214,6 @@ const KEY_POINTS: KeyPoint[] = [
   },
 ];
 
-const AWS_STACK = ["Amazon Connect", "Amazon Lex", "Amazon Bedrock", "Amazon Polly"];
-
 function StatusDot({ color = "#00C87A" }: { color?: string }) {
   return (
     <div
@@ -237,7 +235,7 @@ function CallFlowPanel() {
         <span className="h-2 w-2 rounded-full bg-[#E8192C]" aria-hidden="true" />
         <span className="h-2 w-2 rounded-full bg-[#F0A020]" aria-hidden="true" />
         <span className="h-2 w-2 rounded-full bg-[#00C87A]" aria-hidden="true" />
-        <span className="ml-2 font-mono text-[11px] text-[#3A4F72]">rc-ai-handler · non-emergency · live</span>
+        <span className="ml-2 font-mono text-[11px] text-[#3A4F72]">Nexiq · non-emergency · live</span>
       </div>
 
       <div className="p-4">
@@ -300,17 +298,6 @@ function CallFlowPanel() {
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-1.5 pt-3" style={{ borderTop: "1px solid #1A2940" }}>
-          {AWS_STACK.map((svc) => (
-            <span
-              key={svc}
-              className="rounded px-2 py-0.5 font-mono text-[10px] text-[#3A4F72]"
-              style={{ background: "#060910", border: "1px solid #1A2940" }}
-            >
-              {svc}
-            </span>
-          ))}
-        </div>
       </div>
     </div>
   );

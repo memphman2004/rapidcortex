@@ -40,7 +40,7 @@ function seedProfileFromOpportunity(opportunity: RapidIqOpportunity): AgencyProf
       opportunity.agencyType?.includes("county") || opportunity.vertical === "911"
         ? "Primary PSAP / ECC"
         : null,
-    notes: `Seeded from opportunity data for ${opportunity.agencyName}. Refresh to enrich via Claude.`,
+    notes: `Seeded from opportunity data for ${opportunity.agencyName}. Refresh to enrich this profile.`,
   };
 }
 

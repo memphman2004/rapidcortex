@@ -263,7 +263,7 @@ export async function POST(req: NextRequest) {
 
       try {
         send("progress", {
-          message: "Sending to Claude — writing grant narrative…",
+          message: "Writing the grant narrative…",
           step: 1,
           total: 3,
         });

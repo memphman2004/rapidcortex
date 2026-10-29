@@ -64,12 +64,12 @@ export const FEATURE_ARCHITECTURE_FLOWS: FlowDef[] = [
     title: "Nexiq — live call path",
     vertical: "Nexiq",
     summary:
-      "Amazon Connect → Lex dialog → triage/safety → emergency 911 transfer, human queue, external agency, self-service, or complete session with CAD/RMS draft hooks.",
+      "Inbound call → dialog → triage/safety → emergency 911 transfer, human queue, external agency, self-service, or complete session with CAD/RMS draft hooks.",
     source: "session-pipeline.ts · lex/fulfillment-hook.ts · recommendRoute()",
     nodes: [
-      { id: "ani", label: "Inbound call\n(ANI / Connect)", kind: "start" },
+      { id: "ani", label: "Inbound call\n(caller ID)", kind: "start" },
       { id: "session", label: "Create session\n+ case number", kind: "action" },
-      { id: "lex", label: "Lex dialog\n+ slot intake", kind: "action" },
+      { id: "lex", label: "Dialog\n+ slot intake", kind: "action" },
       { id: "triage", label: "Triage + safety\ngate", kind: "branch" },
       { id: "e911", label: "Transfer 911\n(warm / silent)", kind: "end" },
       { id: "human", label: "Live call taker\nqueue", kind: "end" },

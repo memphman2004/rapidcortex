@@ -59,6 +59,10 @@ describe("city service routing", () => {
     ["there are rats behind the restaurant", "ENVIRONMENTAL_QUALITY"],
     ["the fire hydrant is blocked by a car", "FIRE_MARSHAL_NON_EMERGENCY"],
     ["there is a power outage on my block", "UTILITIES"],
+    ["I need sharps disposal", "SANITATION"],
+    ["the ferry schedule changed", "TRANSIT_AUTHORITY"],
+    ["I need an absentee ballot", "ELECTIONS"],
+    ["hazardous household waste pickup", "SANITATION"],
   ])("%s goes to %s", (utterance, departmentId) => {
     const result = route(utterance);
     expect(result.departmentId).toBe(departmentId);
@@ -94,5 +98,10 @@ describe("city service routing", () => {
   it("names a northern snow call and a gulf debris call", () => {
     expect(classifyMunicipalIssue("please salt the road")?.issueId).toBe("SNOW_PLOW");
     expect(classifyMunicipalIssue("hurricane debris is still in the yard")?.issueId).toBe("STORM_DEBRIS");
+  });
+
+  it("keeps a known city issue ahead of the longer citizen reason list", () => {
+    expect(classifyMunicipalIssue("there is a pothole on main")?.issueId).toBe("POTHOLE");
+    expect(classifyMunicipalIssue("I have a complaint")?.issueId).toBeUndefined();
   });
 });

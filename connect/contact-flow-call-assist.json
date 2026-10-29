@@ -26,6 +26,12 @@
         },
         "overrideConsoleVoice": true
       },
+      "play-opening": {
+        "position": {
+          "x": 680,
+          "y": 20
+        }
+      },
       "language-menu": {
         "position": {
           "x": 780,
@@ -442,6 +448,23 @@
         "TextToSpeechStyle": "None"
       },
       "Transitions": {
+        "NextAction": "play-opening",
+        "Errors": [
+          {
+            "NextAction": "play-opening",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "play-opening",
+      "Type": "MessageParticipant",
+      "Parameters": {
+        "Text": "$.External.openingLine"
+      },
+      "Transitions": {
         "NextAction": "language-menu",
         "Errors": [
           {
@@ -808,8 +831,8 @@
       "Identifier": "set-voice-nova-en",
       "Type": "UpdateContactTextToSpeechVoice",
       "Parameters": {
-        "TextToSpeechVoice": "Matthew",
-        "TextToSpeechEngine": "Generative",
+        "TextToSpeechVoice": "Ruth",
+        "TextToSpeechEngine": "Neural",
         "TextToSpeechStyle": "None"
       },
       "Transitions": {
@@ -1423,7 +1446,7 @@
             "ErrorType": "InputTimeLimitExceeded"
           },
           {
-            "NextAction": "error-prompt",
+            "NextAction": "disconnect",
             "ErrorType": "NoMatchingCondition"
           },
           {
@@ -1483,7 +1506,7 @@
         }
       },
       "Transitions": {
-        "NextAction": "play-complete",
+        "NextAction": "disconnect",
         "Conditions": [
           {
             "NextAction": "play-emergency",
@@ -1537,7 +1560,7 @@
             "ErrorType": "InputTimeLimitExceeded"
           },
           {
-            "NextAction": "error-prompt",
+            "NextAction": "disconnect",
             "ErrorType": "NoMatchingCondition"
           },
           {

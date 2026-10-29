@@ -153,8 +153,9 @@ export default function PrivacyPolicyPage() {
             authorization and live video streaming, solely pursuant to user consent
           </li>
           <li>
-            <span className="text-slate-300">AI processing:</span> Anthropic PBC — natural language
-            processing and transcription analysis under a data processing agreement
+            <span className="text-slate-300">AI processing:</span> language and speech processing
+            inside our infrastructure provider, under a data processing agreement that prohibits
+            using customer data to train models
           </li>
         </ul>
         <p>

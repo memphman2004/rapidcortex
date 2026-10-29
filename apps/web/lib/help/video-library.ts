@@ -190,7 +190,7 @@ const CALL_ASSIST_VIDEOS: TrainingVideo[] = [
   },
   {
     id: "ca-emergency-transfer",
-    title: "Emergency recognition & Connect transfer",
+    title: "Emergency recognition and live transfer",
     description: "Safety Engine stops AI talk; original caller leg to live answer.",
     duration: "5:00",
     status: "scripted",
