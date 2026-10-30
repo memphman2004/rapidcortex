@@ -6,6 +6,7 @@ export const cadVendorSchema = z.enum([
   "central_square",
   "hexagon",
   "console_one",
+  "prophoenix",
   "generic_webhook",
 ]);
 

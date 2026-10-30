@@ -13,6 +13,7 @@ const adapters: Record<CadVendor, CadWriteAdapter> = {
   central_square: centralSquareWriteAdapter,
   hexagon: hexagonWriteAdapter,
   console_one: genericWriteAdapter,
+  prophoenix: genericWriteAdapter,
   generic_webhook: genericWriteAdapter,
 };
 

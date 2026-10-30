@@ -16,6 +16,7 @@ const RC_SUPERADMIN_NAV: NavTab[] = [
   { id: "leads", label: "Leads", href: "/rc-admin/leads" },
   { id: "sales-territories", label: "Sales territories", href: "/rc-admin/sales-territories" },
   { id: "grants", label: "Grants", href: "/rc-admin/grants" },
+  { id: "model-studio", label: "Model Training Studio", href: "/rc-admin/vision/model-studio" },
   { id: "infrastructure", label: "Infrastructure", href: "/rc-admin/infrastructure" },
   { id: "audit", label: "Audit log", href: "/rc-admin/audit" },
   { id: "support", label: "Platform notices", href: "/rc-admin/support" },
@@ -36,6 +37,7 @@ const RC_BUSINESS_ADMIN_NAV: NavTab[] = [
   { id: "leads", label: "Leads", href: "/rc-admin/leads" },
   { id: "sales-territories", label: "Sales territories", href: "/rc-admin/sales-territories" },
   { id: "grants", label: "Grants", href: "/rc-admin/grants" },
+  { id: "model-studio", label: "Model Training Studio", href: "/rc-admin/vision/model-studio" },
   { id: "service-catalog", label: "Service catalog", href: "/rc-admin/billing/services" },
   { id: "support", label: "Platform notices", href: "/rc-admin/support" },
   { id: "support-tickets", label: "Support tickets", href: "/rc-admin/support-tickets" },
@@ -48,6 +50,7 @@ const RC_BUSINESS_ADMIN_NAV: NavTab[] = [
 /** rcitadmin — infrastructure home; no billing surfaces (Leads inbox shared across RC roles). */
 const RC_IT_ADMIN_NAV: NavTab[] = [
   { id: "infrastructure", label: "Infrastructure overview", href: "/rc-admin/infrastructure" },
+  { id: "model-studio", label: "Model Training Studio", href: "/rc-admin/vision/model-studio" },
   { id: "system-health", label: "System health", href: "/rc-admin/system-health" },
   { id: "integrations", label: "Integrations", href: "/rc-admin/integrations" },
   { id: "leads", label: "Leads", href: "/rc-admin/leads" },

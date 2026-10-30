@@ -56,7 +56,7 @@ const DEFAULT_OPEN: Record<WorkstationPanelName, boolean> = {
   actions: false,
   location: false,
   share: false,
-  camera_ai: true,
+  camera_ai: false,
 };
 
 const DEFAULT_QUEUE = 220;

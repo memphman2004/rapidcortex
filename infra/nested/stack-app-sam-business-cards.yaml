@@ -183,6 +183,11 @@ Resources:
                 - s3:GetObject
                 - s3:DeleteObject
               Resource: !Sub "${BusinessCardPhotoBucket.Arn}/biz-cards/*"
+            - Sid: ListInternalCardStaff
+              Effect: Allow
+              Action:
+                - cognito-idp:ListUsersInGroup
+              Resource: !Sub "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${ImportedCognitoUserPoolId}"
             - !If
               - HasAgenciesTable
               - Sid: ReadAgencyName

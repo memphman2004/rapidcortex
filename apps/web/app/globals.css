@@ -2323,7 +2323,15 @@ textarea {
 }
 
 .iq-vision-nav-pulse {
-  animation: iq-vision-nav-pulse 1.1s ease-in-out infinite;
+  animation: iq-vision-nav-pulse 1.8s ease-in-out infinite;
   color: #fecaca !important;
   font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iq-vision-nav-pulse {
+    animation: none;
+    background-color: rgba(127, 29, 29, 0.55);
+    box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.9);
+  }
 }

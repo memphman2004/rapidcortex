@@ -22,6 +22,7 @@ export const CAD_VENDOR_IDS = [
   "sunridge_rims",
   "kabat_one",
   "oracle_psdc",
+  "prophoenix",
   "generic_rest",
 ] as const;
 
@@ -44,6 +45,7 @@ export const CAD_VENDOR_LABELS: Record<CadVendorId, string> = {
   sunridge_rims: "Sunridge Systems (RIMS)",
   kabat_one: "KabatOne (K-Dispatch)",
   oracle_psdc: "Oracle Public Safety Dispatch",
+  prophoenix: "ProPhoenix CAD",
   generic_rest: "Generic REST",
 };
 

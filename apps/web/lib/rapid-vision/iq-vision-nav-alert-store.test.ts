@@ -14,7 +14,7 @@ afterEach(() => {
 });
 
 describe("iq-vision-nav-alert-store", () => {
-  it("pulses after a camera observation and clears when the incident is opened", () => {
+  it("pulses for a critical alert and stops only after explicit acknowledgment", () => {
     signalIqVisionNavAlert({ incidentId: "inc_1" });
     expect(getIqVisionNavAlertSnapshot().pulsing).toBe(true);
     expect(getIqVisionNavAlertSnapshot().focusIncidentId).toBe("inc_1");
@@ -42,11 +42,10 @@ describe("iq-vision-nav-alert-store", () => {
     expect(snap.alerts.some((a) => a.eventId === "evt_1")).toBe(false);
   });
 
-  it("does not pulse for an incident this client is already viewing", () => {
+  it("keeps pulsing when the operator is only viewing the incident", () => {
     setIqVisionViewingIncident("inc_view");
     signalIqVisionNavAlert({ incidentId: "inc_view" });
-    expect(getIqVisionNavAlertSnapshot().pulsing).toBe(false);
-    signalIqVisionNavAlert({ incidentId: "inc_other" });
     expect(getIqVisionNavAlertSnapshot().pulsing).toBe(true);
+    expect(getIqVisionNavAlertSnapshot().criticalCount).toBe(1);
   });
 });

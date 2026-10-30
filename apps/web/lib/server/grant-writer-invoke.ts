@@ -5,7 +5,7 @@ import type { CognitoRefreshTokens } from "@/lib/auth/cognito-refresh";
 import { resolveBffBearerToken } from "@/lib/server/bff-auth-token";
 
 export type GrantWriterInvokeResult =
-  | { ok: true; sections: Record<string, unknown>; rotated?: CognitoRefreshTokens }
+  | { ok: true; sections: Record<string, unknown>; source: "model" | "profile"; rotated?: CognitoRefreshTokens }
   | { ok: false; status: number; error: string; rotated?: CognitoRefreshTokens };
 
 /**
@@ -67,11 +67,18 @@ export async function invokeGrantWriterLambda(
     const raw = out.Payload ? Buffer.from(out.Payload).toString("utf8") : "";
     const parsed = JSON.parse(raw) as { statusCode?: number; body?: string };
     const status = typeof parsed.statusCode === "number" ? parsed.statusCode : 200;
-    const body = parsed.body ? (JSON.parse(parsed.body) as { sections?: Record<string, unknown>; error?: string }) : {};
+    const body = parsed.body
+      ? (JSON.parse(parsed.body) as { sections?: Record<string, unknown>; source?: string; error?: string })
+      : {};
     if (status >= 400 || !body.sections) {
       return { ok: false, status, error: body.error ?? "Grant generation failed", rotated };
     }
-    return { ok: true, sections: body.sections, rotated };
+    return {
+      ok: true,
+      sections: body.sections,
+      source: body.source === "profile" ? "profile" : "model",
+      rotated,
+    };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[grant-writer-invoke] Lambda invoke failed:", msg);

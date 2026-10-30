@@ -96,15 +96,51 @@ export function AdminEditor({ profileId }: { profileId: string }) {
   return <CardEditor mode="admin" profileId={profileId} />;
 }
 
+type StaffPerson = {
+  cognitoUserId: string;
+  email: string;
+  name: string;
+  role: string;
+  profileId?: string;
+};
+
 export function CreateWizard() {
+  const pathname = usePathname() ?? "";
+  const base = pathname.replace(/\/admin\/business-cards.*/, "");
   const [step, setStep] = useState(1);
+  const [people, setPeople] = useState<StaffPerson[]>([]);
   const [cognitoUserId, setCognitoUserId] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [title, setTitle] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
 
+  useEffect(() => {
+    void bizCardFetch<{ people: StaffPerson[] }>("/api/admin/business-cards/staff")
+      .then((page) => setPeople(page.people))
+      .catch((error: Error) => setMessage(error.message));
+  }, []);
+
+  const selected = people.find((person) => person.cognitoUserId === cognitoUserId);
+
+  function choosePerson(userId: string) {
+    const person = people.find((item) => item.cognitoUserId === userId);
+    setCognitoUserId(userId);
+    setMessage("");
+    if (!person || person.profileId) return;
+    if (!displayName) setDisplayName(person.name);
+    if (!email) setEmail(person.email);
+  }
+
   async function activate() {
+    if (!cognitoUserId) {
+      setMessage("Choose a NexCort iQ person first.");
+      return;
+    }
+    if (selected?.profileId) {
+      setMessage("That person already has a card. Open it from the list above.");
+      return;
+    }
     const [firstName, ...rest] = displayName.split(" ");
     const created = await bizCardFetch<ApiProfile>("/api/admin/business-cards", {
       method: "POST",
@@ -128,9 +164,19 @@ export function CreateWizard() {
     <div className="max-w-xl space-y-4 text-sm">
       <p className="text-slate-400">Step {step} of 6. The card is not public until Activate.</p>
       {step === 1 ? (
-        <label className="block text-xs text-slate-400">Cognito user id from Users in this agency
-          <input className="mt-1 w-full rounded border border-slate-700 bg-slate-950 p-2 text-sm" value={cognitoUserId} onChange={(event) => setCognitoUserId(event.target.value)} />
+        <label className="block text-xs text-slate-400">NexCort iQ person
+          <select className="mt-1 w-full rounded border border-slate-700 bg-slate-950 p-2 text-sm" value={cognitoUserId} onChange={(event) => choosePerson(event.target.value)}>
+            <option value="">Select a person</option>
+            {people.map((person) => (
+              <option key={person.cognitoUserId} value={person.cognitoUserId}>
+                {person.name} · {person.email}{person.profileId ? " · has a card" : ""}
+              </option>
+            ))}
+          </select>
         </label>
+      ) : null}
+      {step === 1 && selected?.profileId ? (
+        <p>This person already has a card. <Link className="underline" href={`${base}/admin/business-cards/${selected.profileId}`}>Edit their card</Link></p>
       ) : null}
       {step === 2 ? (
         <>
@@ -145,7 +191,7 @@ export function CreateWizard() {
       {step === 6 ? <button type="button" className="rounded bg-sky-700 px-3 py-2" onClick={() => void activate().catch((error: Error) => setMessage(error.message))}>Activate</button> : null}
       <div className="flex gap-2">
         <button type="button" className="rounded border border-slate-600 px-3 py-2" onClick={() => setStep((value) => Math.max(1, value - 1))}>Back</button>
-        {step < 6 ? <button type="button" className="rounded border border-slate-600 px-3 py-2" onClick={() => setStep((value) => value + 1)}>Next</button> : null}
+        {step < 6 ? <button type="button" className="rounded border border-slate-600 px-3 py-2 disabled:opacity-40" disabled={step === 1 && (!cognitoUserId || Boolean(selected?.profileId))} onClick={() => setStep((value) => value + 1)}>Next</button> : null}
       </div>
       {message ? <p>{message}</p> : null}
     </div>

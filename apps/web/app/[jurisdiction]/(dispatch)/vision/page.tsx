@@ -1,12 +1,26 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "next/navigation";
-import { RapidVisionPanel } from "@/components/rapid-vision/RapidVisionPanel";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/components/auth/session-context";
+import {
+  VisionCommandCenter,
+  type VisionSection,
+} from "@/components/rapid-vision/VisionCommandCenter";
 import { loadIncidents } from "@/lib/queries";
+import { isSceneAlertWatchDesk } from "@/lib/rapid-vision/scene-alert-audience";
 import { isRapidVisionEnabled } from "@/lib/runtime-flags";
+
+const SECTIONS = new Set<VisionSection>([
+  "command",
+  "scene",
+  "cameras",
+  "alerts",
+  "incident",
+  "analytics",
+  "settings",
+]);
 
 function canVerifyRapidVision(role: string | undefined): boolean {
   const normalized = (role ?? "").toLowerCase();
@@ -20,6 +34,7 @@ function canVerifyRapidVision(role: string | undefined): boolean {
 
 function DispatcherVisionPageInner() {
   const { user } = useSession();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const rapidVisionEnabled = isRapidVisionEnabled();
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
@@ -28,32 +43,19 @@ function DispatcherVisionPageInner() {
     queryKey: ["incidents", "vision-page"],
     queryFn: loadIncidents,
   });
-
   const incidents = useMemo(() => incidentsQuery.data ?? [], [incidentsQuery.data]);
   const queryIncident =
     searchParams?.get("incident")?.trim() || searchParams?.get("incidentId")?.trim() || null;
+  const incidentId =
+    selectedIncidentId ??
+    (queryIncident && incidents.some((incident) => incident.incidentId === queryIncident) ? queryIncident : null);
 
-  useEffect(() => {
-    if (queryIncident && incidents.some((i) => i.incidentId === queryIncident)) {
-      setSelectedIncidentId(queryIncident);
-    }
-  }, [queryIncident, incidents]);
-
-  useEffect(() => {
-    if (!incidents.length) {
-      setSelectedIncidentId(null);
-      return;
-    }
-    if (selectedIncidentId && incidents.some((i) => i.incidentId === selectedIncidentId)) {
-      return;
-    }
-    setSelectedIncidentId(incidents[0]!.incidentId);
-  }, [incidents, selectedIncidentId]);
-
-  const selectedIncident = useMemo(
-    () => incidents.find((i) => i.incidentId === selectedIncidentId) ?? null,
-    [incidents, selectedIncidentId],
-  );
+  const requested = searchParams?.get("tab")?.trim() ?? "";
+  const section: VisionSection = SECTIONS.has(requested as VisionSection)
+    ? (requested as VisionSection)
+    : queryIncident
+      ? "incident"
+      : "command";
 
   if (!rapidVisionEnabled) {
     return (
@@ -66,60 +68,29 @@ function DispatcherVisionPageInner() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-4 p-4">
-      <div>
-        <h1 className="text-lg font-semibold text-white">iQ Vision</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Live camera intelligence and transcript for the selected incident.
-        </p>
-      </div>
-
-      <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
-        <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-300">
-          Incident
-          <select
-            className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-xs text-slate-100"
-            value={selectedIncidentId ?? ""}
-            onChange={(event) => setSelectedIncidentId(event.target.value || null)}
-          >
-            {incidents.length === 0 ? (
-              <option value="">No active incidents</option>
-            ) : (
-              incidents.map((incident) => (
-                <option key={incident.incidentId} value={incident.incidentId}>
-                  {incident.incidentId} · {incident.title}
-                </option>
-              ))
-            )}
-          </select>
-        </label>
-      </div>
-
-      {user && selectedIncidentId && selectedIncident ? (
-        <div className="min-h-[520px] flex-1">
-          <RapidVisionPanel
-            incidentId={selectedIncidentId}
-            incidentLat={selectedIncident.callerLocationLat ?? 0}
-            incidentLng={selectedIncident.callerLocationLng ?? 0}
-            canVerify={canVerifyRapidVision(user.role)}
-          />
-        </div>
-      ) : (
-        <div className="rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-8 text-center text-sm text-slate-400">
-          Select an active incident to open iQ Vision.
-        </div>
-      )}
+    <div className="h-full bg-[#070b14] p-4">
+      <VisionCommandCenter
+        section={section}
+        onSection={(next) => {
+          const params = new URLSearchParams(searchParams?.toString() ?? "");
+          params.set("tab", next);
+          router.replace(`?${params.toString()}`);
+        }}
+        focusAlertId={searchParams?.get("alert")?.trim() || null}
+        agencyName={user?.agencyId?.trim() || "This agency"}
+        incidents={incidents}
+        selectedIncidentId={incidentId}
+        onSelectIncident={setSelectedIncidentId}
+        canVerify={canVerifyRapidVision(user?.role)}
+        reviewQueue={isSceneAlertWatchDesk(user?.role)}
+      />
     </div>
   );
 }
 
 export default function DispatcherVisionPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="p-4 text-sm text-slate-400">Loading iQ Vision…</div>
-      }
-    >
+    <Suspense fallback={<div className="p-4 text-sm text-slate-400">Loading iQ Vision…</div>}>
       <DispatcherVisionPageInner />
     </Suspense>
   );

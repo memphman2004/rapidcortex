@@ -18,6 +18,7 @@ import type {
   VisionTranscriptStatus,
 } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
+import type { SceneIncident } from "./scene-intel/scene-incident.js";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
@@ -530,7 +531,7 @@ export const visionStore = {
       );
       return (result.Items ?? [])
         .map((item) => asSceneAlert(item as Record<string, unknown>))
-        .filter((row): row is VisionSceneAlert => row != null && row.agencyId === agencyId)
+        .filter((row): row is VisionSceneAlert => row != null && row.agencyId === agencyId && Boolean(row.eventType))
         .filter((row) => !opts?.cameraId || row.cameraId === opts.cameraId);
     }
     const result = await ddb.send(
@@ -544,7 +545,7 @@ export const visionStore = {
     );
     return (result.Items ?? [])
       .map((item) => asSceneAlert(item as Record<string, unknown>))
-      .filter((row): row is VisionSceneAlert => row != null && row.agencyId === agencyId)
+      .filter((row): row is VisionSceneAlert => row != null && row.agencyId === agencyId && Boolean(row.eventType))
       .filter((row) => !opts?.cameraId || row.cameraId === opts.cameraId);
   },
 
@@ -598,6 +599,41 @@ export const visionStore = {
     };
     await this.putCamera(next);
     return next;
+  },
+
+  async putSceneIncident(incident: SceneIncident): Promise<void> {
+    if (!eventsTable()) return;
+    const item = JSON.parse(JSON.stringify(incident)) as SceneIncident;
+    await ddb.send(
+      new PutCommand({
+        TableName: eventsTable(),
+        Item: {
+          ...item,
+          pk: `AGENCY#${incident.agencyId}`,
+          sk: `SCENEINCIDENT#${incident.createdAt}#${incident.id}`,
+          recordType: "scene_incident",
+        },
+        ConditionExpression: "attribute_not_exists(pk) OR agencyId = :a",
+        ExpressionAttributeValues: { ":a": incident.agencyId },
+      }),
+    );
+  },
+
+  async listSceneIncidents(agencyId: string, limit = 40): Promise<Array<Record<string, unknown>>> {
+    if (!eventsTable()) return [];
+    const result = await ddb.send(
+      new QueryCommand({
+        TableName: eventsTable(),
+        KeyConditionExpression: "pk = :pk AND begins_with(sk, :sk)",
+        ExpressionAttributeValues: {
+          ":pk": `AGENCY#${agencyId}`,
+          ":sk": "SCENEINCIDENT#",
+        },
+        ScanIndexForward: false,
+        Limit: limit,
+      }),
+    );
+    return (result.Items ?? []).filter((item) => item.agencyId === agencyId);
   },
 };
 

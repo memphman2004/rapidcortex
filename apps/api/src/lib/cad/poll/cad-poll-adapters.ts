@@ -378,7 +378,73 @@ export const hexagonAdapter: CadPollAdapter = {
   },
 };
 
-// ─── 5. Generic REST adapter ──────────────────────────────────────────────────
+// ─── 5. ProPhoenix CAD adapter ────────────────────────────────────────────────
+
+export const prophoenixAdapter: CadPollAdapter = {
+  vendor: "prophoenix",
+
+  async poll(config: ResolvedCadConfig, sinceIso: string): Promise<PollResult> {
+    if (isMockMode()) {
+      return { ok: true, incidents: buildMockIncidents("prophoenix"), latencyMs: 40, httpStatus: 200, nextSince: new Date().toISOString() };
+    }
+
+    const headers = buildAuthHeaders(config);
+    const url = withQuery(config.apiUrl, {
+      since: sinceIso,
+      ...(config.agencyCode ? { agencyCode: config.agencyCode } : {}),
+    });
+
+    let response: Response;
+    let latencyMs: number;
+    try {
+      ({ response, latencyMs } = await timedFetch(url, { method: "GET", headers }));
+    } catch (e) {
+      return { ok: false, errorType: "network_error", message: (e as Error).message, latencyMs: 0 };
+    }
+
+    if (!response.ok) {
+      return { ...classifyHttpError(response.status, `ProPhoenix API returned ${response.status}`), latencyMs };
+    }
+
+    let body: unknown;
+    try {
+      body = await response.json();
+    } catch {
+      return { ok: false, errorType: "parse_error", message: "Response is not valid JSON", latencyMs, httpStatus: response.status };
+    }
+
+    const items = pollItemsFromBody(body);
+    const now = new Date().toISOString();
+    const incidents: RawCadIncident[] = items.map((item) => {
+      const mapped = applyFieldMapping(item, config, (p) => ({
+        cadEventId: extractField(p, "CfsNumber") ?? extractField(p, "cfsNumber") ?? extractField(p, "CallNumber"),
+        incidentNumber: extractField(p, "CfsNumber") ?? extractField(p, "CallNumber"),
+        incidentType: extractField(p, "Nature") ?? extractField(p, "CallType"),
+        priority: extractField(p, "Priority"),
+        location: extractField(p, "Address") ?? extractField(p, "Location"),
+        latitude: parseFloat(extractField(p, "Latitude") ?? "") || undefined,
+        longitude: parseFloat(extractField(p, "Longitude") ?? "") || undefined,
+        callerName: extractField(p, "CallerName"),
+        callerPhone: extractField(p, "CallerPhone"),
+        narrative: extractField(p, "Narrative") ?? extractField(p, "Comments"),
+        units: extractField(p, "Units"),
+        status: extractField(p, "CallStatus") ?? extractField(p, "Status"),
+        agencyCode: config.agencyCode,
+      }));
+      return {
+        ...mapped,
+        cadEventId: mapped.cadEventId ?? String(item.CfsNumber ?? item.cfsNumber ?? "unknown"),
+        rcPriority: applyPriorityMapping(mapped.priority, config.priorityMapping),
+        rawPayload: item,
+        receivedAt: now,
+      } as RawCadIncident;
+    });
+
+    return { ok: true, incidents, latencyMs, httpStatus: response.status, nextSince: new Date().toISOString() };
+  },
+};
+
+// ─── 6. Generic REST adapter ──────────────────────────────────────────────────
 
 export const genericPollAdapter: CadPollAdapter = {
   vendor: "generic_webhook",
@@ -453,6 +519,7 @@ export const ADAPTER_REGISTRY = new Map<string, CadPollAdapter>([
   ["tyler_new_world",      tylerNewWorldAdapter],
   ["central_square",       centralSquareAdapter],
   ["hexagon",              hexagonAdapter],
+  ["prophoenix",           prophoenixAdapter],
   ["generic_webhook",      genericPollAdapter],
   // console_one uses webhook_inbound only — no poll adapter
 ]);

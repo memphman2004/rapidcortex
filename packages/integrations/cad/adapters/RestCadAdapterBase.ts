@@ -186,6 +186,8 @@ export abstract class RestCadAdapterBase implements CadAdapter {
         payload.caseNumber ??
         payload.dispatchId ??
         payload.IncidentId ??
+        payload.CfsNumber ??
+        payload.cfsNumber ??
         payload.call_id ??
         "",
     );

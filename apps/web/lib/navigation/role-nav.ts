@@ -217,6 +217,12 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
           icon: "Clapperboard",
           feature: "scenarioCenter",
         },
+        {
+          id: "model-studio",
+          label: "Model Training Studio",
+          href: "/rc-admin/vision/model-studio",
+          icon: "Eye",
+        },
         rcDocumentLibraryNavItem(),
       ],
     },
@@ -528,6 +534,12 @@ export const RC_ADMIN_NAV: RoleNav = {
           icon: "Clapperboard",
           feature: "scenarioCenter",
         },
+        {
+          id: "model-studio",
+          label: "Model Training Studio",
+          href: "/rc-admin/vision/model-studio",
+          icon: "Eye",
+        },
         rcDocumentLibraryNavItem(),
       ],
     },
@@ -692,6 +704,7 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
       label: "INFRASTRUCTURE",
       items: [
         { id: "health",    label: "System Health",     href: "/rc-admin/infrastructure",icon: "Activity", exact: true },
+        { id: "model-studio", label: "Model Training Studio", href: "/rc-admin/vision/model-studio", icon: "Eye" },
         { id: "integrations",label:"Integrations",     href: "/rc-admin/integrations",  icon: "Plug" },
         {
           id: "onboarding-packets",

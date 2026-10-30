@@ -14,6 +14,7 @@ import { CodyAdapter } from "./CodyAdapter.js";
 import { SunridgeRimsAdapter } from "./SunridgeRimsAdapter.js";
 import { KabatOneAdapter } from "./KabatOneAdapter.js";
 import { OraclePsdcAdapter } from "./OraclePsdcAdapter.js";
+import { ProPhoenixAdapter } from "./ProPhoenixAdapter.js";
 import { GenericRestAdapter } from "./GenericRestAdapter.js";
 
 /**
@@ -37,6 +38,7 @@ export class CadAdapterRegistry {
     ["sunridge_rims", new SunridgeRimsAdapter()],
     ["kabat_one", new KabatOneAdapter()],
     ["oracle_psdc", new OraclePsdcAdapter()],
+    ["prophoenix", new ProPhoenixAdapter()],
     ["generic_rest", new GenericRestAdapter()],
   ]);
 

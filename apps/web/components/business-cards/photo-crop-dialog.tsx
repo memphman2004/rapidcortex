@@ -92,6 +92,7 @@ export function PhotoCropDialog({ file, onCancel, onConfirm }: Props) {
               className="absolute max-w-none select-none"
               style={box ? { left: box.dx, top: box.dy, width: box.drawW, height: box.drawH } : undefined}
               onLoad={(event) => setNatural({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight })}
+              onError={() => setError("This photo could not be opened. Use a JPG, PNG, or WebP.")}
             />
           ) : null}
         </div>

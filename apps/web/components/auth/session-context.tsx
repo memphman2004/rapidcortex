@@ -66,8 +66,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 
+export function useOptionalSession(): SessionState | null {
+  return useContext(SessionContext);
+}
+
 export function useSession() {
-  const ctx = useContext(SessionContext);
+  const ctx = useOptionalSession();
   if (!ctx) {
     throw new Error("useSession must be used within SessionProvider");
   }

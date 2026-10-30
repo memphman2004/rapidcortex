@@ -43,7 +43,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   }
 
   try {
-    const sections = await generateGrantWriterSections(form);
+    const generated = await generateGrantWriterSections(form);
     try {
       await auditRepo.create({
         eventId: makeId("audit"),
@@ -52,6 +52,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         type: AUDIT_EVENT_TYPES.GRANT_PACKAGE_GENERATED,
         details: {
           kind: "grant_writer_narrative",
+          source: generated.source,
           agencyName: String(form.agencyName),
           grantName: String(form.grantName ?? ""),
         },
@@ -67,7 +68,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         }),
       );
     }
-    return ok({ sections });
+    return ok({ sections: generated.sections, source: generated.source });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[grant-writer]", message);

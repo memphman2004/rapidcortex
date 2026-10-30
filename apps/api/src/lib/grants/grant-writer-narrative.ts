@@ -1,4 +1,9 @@
 import { resolvePlainOrSecretArn } from "../runtimeSecrets.js";
+import {
+  buildProfileGrantNarrative,
+  fillEmptyGrantNarrative,
+  type GrantNarrativeSections,
+} from "./profile-narrative.js";
 
 const CLAUDE_MODEL = "claude-sonnet-4-6";
 const OPENAI_MODEL = "gpt-4o";
@@ -8,17 +13,12 @@ const OPENAI_API = "https://api.openai.com/v1/chat/completions";
 const CLAUDE_TIMEOUT_MS = 90_000;
 const OPENAI_TIMEOUT_MS = 70_000;
 
-export type GrantWriterSections = {
-  executiveSummary: string;
-  statementOfNeed: string;
-  projectDescription: string;
-  goalsAndObjectives: string[];
-  implementationTimeline: string[];
-  evaluationPlan: string;
-  organizationalCapacity: string;
-  budgetNarrative: string;
-  sustainabilityPlan: string;
-  conclusion: string;
+export type GrantWriterSections = GrantNarrativeSections;
+
+export type GrantWriterResult = {
+  sections: GrantWriterSections;
+  /** model = Claude or OpenAI. profile = written from the application because the model was unavailable. */
+  source: "model" | "profile";
 };
 
 function asStringArray(value: unknown): string[] {
@@ -65,7 +65,7 @@ APPLICANT AGENCY:
 
 PROJECT:
 - Title: ${form.projectTitle || "AI-Powered Public Safety Communications Intelligence System"}
-- Technology: NexCort iQ — next-generation AI intelligence and decision-support platform
+- Technology: NexCort iQ — public safety intelligence that assists dispatchers and does not replace them
 - Modules: ${modules || "Core platform"}
 - Existing Technology: ${form.existingTechnology || "Not specified"}
 - Staffing Challenge: ${form.staffingChallenge || "Not specified"}
@@ -80,7 +80,7 @@ ADDITIONAL CONTEXT:
 ${form.additionalContext || "None."}
 
 ABOUT NEXCORT IQ:
-NexCort iQ is a public safety AI platform that enhances — does NOT replace — CAD systems, dispatchers, or responders. It provides real-time AI transcription, supervisor dashboards, automated QA, incident command tools, multi-language translation, and post-incident analytics. CJIS-compliant, AWS-hosted, integrates with Tyler Technologies, Motorola, CentralSquare, and Hexagon.
+NexCort iQ is a public safety intelligence platform that assists — and does not replace — CAD systems, dispatchers, or responders. It provides real-time transcription, supervisor dashboards, automated QA, incident command tools, multi-language translation, and post-incident analytics. It is hosted on Amazon Web Services and can connect to Tyler Technologies, Motorola, CentralSquare, Hexagon, and ProPhoenix when that agency's interface is configured. Do not invent crime statistics, response-time savings, or awards the agency did not provide.
 
 Keep each paragraph to 2–4 sentences and each bullet to one sentence so the JSON finishes completely.
 
@@ -102,6 +102,17 @@ Respond ONLY with a valid JSON object — no markdown, no preamble:
 function isProviderTimeout(err: unknown): boolean {
   if (!(err instanceof Error)) return false;
   return err.name === "TimeoutError" || err.name === "AbortError";
+}
+
+function isRetryableProviderError(err: unknown): boolean {
+  if (isProviderTimeout(err)) return true;
+  if (!(err instanceof Error)) return false;
+  return /\b(429|500|502|503|529)\b/.test(err.message);
+}
+
+function grantWriterMockEnabled(): boolean {
+  const flag = process.env.GRANT_WRITER_MOCK?.trim().toLowerCase();
+  return flag === "1" || flag === "true";
 }
 
 function parseGrantJson(rawText: string, provider: "Claude" | "OpenAI"): GrantWriterSections {
@@ -203,26 +214,47 @@ async function generateWithOpenAi(form: Record<string, unknown>, apiKey: string)
   return parseGrantJson(rawText, "OpenAI");
 }
 
+function profileResult(form: Record<string, unknown>, reason: string): GrantWriterResult {
+  console.info(JSON.stringify({ msg: "grant_writer_profile_narrative", reason }));
+  return { sections: buildProfileGrantNarrative(form), source: "profile" };
+}
+
 export async function generateGrantWriterSections(
   form: Record<string, unknown>,
-): Promise<GrantWriterSections> {
+): Promise<GrantWriterResult> {
+  if (grantWriterMockEnabled()) {
+    return profileResult(form, "mock");
+  }
+
   const apiKey = await resolvePlainOrSecretArn(
     process.env.ANTHROPIC_API_KEY,
     process.env.ANTHROPIC_API_KEY_SECRET_ARN,
     { preferredField: "apiKey" },
   );
   if (!apiKey) {
-    throw new Error("Anthropic secret is not configured (ANTHROPIC_API_KEY_SECRET_ARN).");
+    return profileResult(form, "anthropic_unconfigured");
   }
 
-  try {
-    return await generateWithClaude(form, apiKey);
-  } catch (err) {
-    if (!isProviderTimeout(err)) throw err;
+  let claudeError: unknown;
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      const sections = fillEmptyGrantNarrative(await generateWithClaude(form, apiKey), form);
+      return { sections, source: "model" };
+    } catch (err) {
+      claudeError = err;
+      if (attempt === 1 && isRetryableProviderError(err)) {
+        console.info(JSON.stringify({ msg: "grant_writer_claude_retry" }));
+        continue;
+      }
+      break;
+    }
+  }
+
+  if (!isRetryableProviderError(claudeError) && !isProviderTimeout(claudeError)) {
     console.error(
       JSON.stringify({
-        msg: "grant_writer_claude_timeout",
-        timeoutMs: CLAUDE_TIMEOUT_MS,
+        msg: "grant_writer_claude_failed",
+        error: claudeError instanceof Error ? claudeError.message.slice(0, 180) : "unknown",
       }),
     );
   }
@@ -232,9 +264,20 @@ export async function generateGrantWriterSections(
     process.env.OPENAI_API_KEY_SECRET_ARN,
     { preferredField: "OPENAI_API_KEY" },
   );
-  if (!openAiKey) {
-    throw new Error("Claude timed out and OpenAI is not configured.");
+  if (openAiKey && (isRetryableProviderError(claudeError) || isProviderTimeout(claudeError))) {
+    try {
+      console.info(JSON.stringify({ msg: "grant_writer_openai_fallback" }));
+      const sections = fillEmptyGrantNarrative(await generateWithOpenAi(form, openAiKey), form);
+      return { sections, source: "model" };
+    } catch (err) {
+      console.error(
+        JSON.stringify({
+          msg: "grant_writer_openai_failed",
+          error: err instanceof Error ? err.message.slice(0, 180) : "unknown",
+        }),
+      );
+    }
   }
-  console.info(JSON.stringify({ msg: "grant_writer_openai_fallback" }));
-  return generateWithOpenAi(form, openAiKey);
+
+  return profileResult(form, "providers_unavailable");
 }

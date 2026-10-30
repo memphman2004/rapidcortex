@@ -1,14 +1,17 @@
 "use client";
 
 import { useCallback, useEffect } from "react";
-import { usePathname } from "next/navigation";
-import type { VisionWebSocketEvent } from "rapid-cortex-shared";
+import type { VisionSceneAlert, VisionWebSocketEvent } from "rapid-cortex-shared";
+import { useOptionalSession } from "@/components/auth/session-context";
 import { useAgencyWebSocket, type AgencyWebSocketMessage } from "@/hooks/use-agency-websocket";
 import { isRapidVisionEnabled } from "@/lib/runtime-flags";
+import { acknowledgeIqVisionEvent, clearIqVisionNavAlerts, signalIqVisionNavAlert } from "@/lib/rapid-vision/iq-vision-nav-alert-store";
+import { isSceneAlertWatchDesk } from "@/lib/rapid-vision/scene-alert-audience";
 import {
-  acknowledgeIqVisionSceneAlerts,
-  signalIqVisionNavAlert,
-} from "@/lib/rapid-vision/iq-vision-nav-alert-store";
+  isSceneAlertAcknowledged,
+  listSyntheticSceneAlerts,
+  subscribeSceneReview,
+} from "@/lib/rapid-vision/scene-review-store";
 
 function asVisionEvent(message: AgencyWebSocketMessage): VisionWebSocketEvent | null {
   if (!message.type.startsWith("rapid-vision.")) return null;
@@ -17,44 +20,69 @@ function asVisionEvent(message: AgencyWebSocketMessage): VisionWebSocketEvent | 
 
 /**
  * Agency-wide WebSocket listener: pulse iQ Vision in the left nav when a live
- * camera produces an observation or scene alert. Mount once under DispatchShell.
+ * critical Scene Intelligence alert. Mounted from the dispatch and dashboard shells.
  */
+function pulseFor(alert: Pick<VisionSceneAlert, "eventId" | "incidentId" | "severity" | "status">) {
+  if (alert.severity !== "critical" || alert.status !== "active") return;
+  if (isSceneAlertAcknowledged(alert.eventId)) {
+    acknowledgeIqVisionEvent(alert.eventId);
+    return;
+  }
+  signalIqVisionNavAlert({ incidentId: alert.incidentId, eventId: alert.eventId });
+}
+
 export function IqVisionNavAlertListener() {
-  const pathname = usePathname() ?? "";
   const enabled = isRapidVisionEnabled();
+  const session = useOptionalSession();
+  const watchDesk = isSceneAlertWatchDesk(session?.user?.role);
 
   const onWs = useCallback((message: AgencyWebSocketMessage) => {
+    if (!watchDesk) return;
     const event = asVisionEvent(message);
     if (!event) return;
+    if (event.type === "rapid-vision.scene.alert" || event.type === "rapid-vision.scene.updated") {
+      pulseFor(event.alert);
+    }
+  }, [watchDesk]);
 
-    if (event.type === "rapid-vision.observation.created") {
-      signalIqVisionNavAlert({ incidentId: event.observation.incidentId });
-      return;
-    }
-    if (event.type === "rapid-vision.observation.streaming.start") {
-      signalIqVisionNavAlert({ incidentId: event.incidentId });
-      return;
-    }
-    if (event.type === "rapid-vision.observation.streaming.complete") {
-      signalIqVisionNavAlert({ incidentId: event.incidentId });
-      return;
-    }
-    if (event.type === "rapid-vision.scene.alert") {
-      signalIqVisionNavAlert({
-        incidentId: event.alert.incidentId,
-        eventId: event.alert.eventId,
-      });
-    }
-  }, []);
+  useAgencyWebSocket(onWs, { enabled: enabled && watchDesk });
 
-  useAgencyWebSocket(onWs, { enabled });
-
-  // Viewing the iQ Vision workspace clears scene-only (no incident) pulses.
   useEffect(() => {
-    if (pathname.includes("/vision")) {
-      acknowledgeIqVisionSceneAlerts();
+    if (!enabled) return;
+    if (!watchDesk) {
+      clearIqVisionNavAlerts();
+      return;
     }
-  }, [pathname]);
+    const syncSynthetic = () => {
+      for (const alert of listSyntheticSceneAlerts()) {
+        if (alert.review === "acknowledged") acknowledgeIqVisionEvent(alert.eventId);
+        else signalIqVisionNavAlert({ eventId: alert.eventId });
+      }
+    };
+    syncSynthetic();
+    return subscribeSceneReview(syncSynthetic);
+  }, [enabled, watchDesk]);
+
+  useEffect(() => {
+    if (!enabled || !watchDesk) return;
+    let cancelled = false;
+    const reconcile = async () => {
+      try {
+        const res = await fetch("/api/vision/events?status=active&limit=50", { credentials: "include" });
+        if (!res.ok || cancelled) return;
+        const body = (await res.json()) as { data?: { alerts?: VisionSceneAlert[] } };
+        for (const alert of body.data?.alerts ?? []) pulseFor(alert);
+      } catch {
+        /* The WebSocket path still delivers alerts that are already connected. */
+      }
+    };
+    void reconcile();
+    const timer = window.setInterval(() => void reconcile(), 20_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [enabled, watchDesk]);
 
   return null;
 }

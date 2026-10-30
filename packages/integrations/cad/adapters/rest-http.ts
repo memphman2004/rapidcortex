@@ -101,7 +101,7 @@ export function extractIncidentRows(payload: unknown): Record<string, unknown>[]
   }
   if (payload && typeof payload === "object") {
     const rec = payload as Record<string, unknown>;
-    for (const key of ["incidents", "items", "data", "Events", "calls", "results"]) {
+    for (const key of ["incidents", "items", "data", "Events", "calls", "CallsForService", "callsForService", "results"]) {
       const nested = rec[key];
       if (Array.isArray(nested)) {
         return nested.filter(

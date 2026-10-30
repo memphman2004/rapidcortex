@@ -14,6 +14,7 @@ const NEW_VENDORS: CadVendorId[] = [
   "sunridge_rims",
   "kabat_one",
   "oracle_psdc",
+  "prophoenix",
 ];
 
 function configFor(vendorId: CadVendorId): CadConnectorConfig {

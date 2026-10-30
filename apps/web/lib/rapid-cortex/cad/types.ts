@@ -14,6 +14,7 @@ export type CadVendor =
   | "sunridge_rims"
   | "kabat_one"
   | "oracle_psdc"
+  | "prophoenix"
   | "generic"
   | "mock";
 

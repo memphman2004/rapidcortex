@@ -28,6 +28,7 @@ import { AuditRepository } from "../../repositories/auditRepository.js";
 import { broadcastToAgency } from "../../lib/websocket/send-message.js";
 import { visionStore } from "../../rapid-vision/store.js";
 import { persistSceneAlert } from "../../rapid-vision/scene-intel/classify-worker.js";
+import { handleSceneIncidentRoutes } from "../../rapid-vision/scene-intel/scene-incident-routes.js";
 
 const auditRepo = new AuditRepository();
 
@@ -75,6 +76,10 @@ export async function handleSceneIntelRoutes(
 ): Promise<APIGatewayProxyResultV2 | null> {
   if (!env.enableRapidVisionSceneIntel) {
     return serviceUnavailable("iQ Vision™ Scene Intelligence is disabled");
+  }
+
+  if (rest[0] === "scene-incidents") {
+    return handleSceneIncidentRoutes(event, method, rest, user);
   }
 
   if (method === "GET" && rest[0] === "events" && rest.length === 1) {

@@ -83,6 +83,7 @@ function vendorToCadSystem(v: CadVendor): NonNullable<Incident["cadSystem"]> {
     case "hexagon":
       return "hexagon";
     case "console_one":
+    case "prophoenix":
       return "generic";
     case "generic_webhook":
     default:

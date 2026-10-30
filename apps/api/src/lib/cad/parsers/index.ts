@@ -5,6 +5,7 @@ import { consoleOneCadParser } from "./consoleOne.js";
 import { genericWebhookCadParser } from "./genericWebhook.js";
 import { hexagonCadParser } from "./hexagon.js";
 import { motorolaPremierOneCadParser } from "./motorolaPremierOne.js";
+import { prophoenixCadParser } from "./prophoenix.js";
 import { tylerNewWorldCadParser } from "./tylerNewWorld.js";
 
 const parsers: Record<CadVendor, CadParser> = {
@@ -13,6 +14,7 @@ const parsers: Record<CadVendor, CadParser> = {
   central_square: centralSquareCadParser,
   hexagon: hexagonCadParser,
   console_one: consoleOneCadParser,
+  prophoenix: prophoenixCadParser,
   generic_webhook: genericWebhookCadParser,
 };
 

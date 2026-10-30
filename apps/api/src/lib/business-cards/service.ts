@@ -48,6 +48,8 @@ export type ServiceOptions = {
   globalEnabled: boolean;
   publicBaseUrl: string;
   photoBaseUrl?: string;
+  /** Used when no CloudFront domain is configured so public cards can still show photos. */
+  signPhoto?: (key: string) => Promise<string | undefined>;
   now?: () => number;
   newId?: () => string;
   resolveCompany: (tenantId: string) => Promise<{ name: string; website?: string }>;
@@ -144,9 +146,10 @@ export class BusinessCardService {
     return this.options.publicBaseUrl.replace(/\/$/, "");
   }
 
-  private photoUrl(key?: string): string | undefined {
-    if (!key || !this.options.photoBaseUrl) return undefined;
-    return `${this.options.photoBaseUrl.replace(/\/$/, "")}/${key}`;
+  private async photoUrl(key?: string): Promise<string | undefined> {
+    if (!key) return undefined;
+    if (this.options.photoBaseUrl) return `${this.options.photoBaseUrl.replace(/\/$/, "")}/${key}`;
+    return this.options.signPhoto?.(key);
   }
 
   private requirePlatformAgency(actor: Actor): void {
@@ -185,12 +188,16 @@ export class BusinessCardService {
     return profile;
   }
 
-  private project(profile: BusinessCardProfile): PublicBusinessCard {
+  private async project(profile: BusinessCardProfile): Promise<PublicBusinessCard> {
+    const [photo, cover] = await Promise.all([
+      this.photoUrl(profile.photoKey),
+      this.photoUrl(profile.coverKey),
+    ]);
     return toPublicProfile(
       profile,
-      this.photoUrl(profile.photoKey),
+      photo,
       `${this.base()}/card/${profile.slug}`,
-      this.photoUrl(profile.coverKey),
+      cover,
     );
   }
 
@@ -474,7 +481,7 @@ export class BusinessCardService {
     if (!isBusinessCardsEnabled(this.options.globalEnabled, config)) {
       throw new BizCardError(404, "not_found", "Card not found.");
     }
-    const card = this.project(profile);
+    const card = await this.project(profile);
     const { buildVCard, sanitizeVCardFileName, vcardPhotoFromBytes } = await import("./vcard.js");
     let photo = null;
     const portraitPublic = profile.visibilitySettings?.photo !== false;

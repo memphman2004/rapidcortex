@@ -15,6 +15,7 @@ import { CodyAdapter } from "../adapters/CodyAdapter.js";
 import { SunridgeRimsAdapter } from "../adapters/SunridgeRimsAdapter.js";
 import { KabatOneAdapter } from "../adapters/KabatOneAdapter.js";
 import { OraclePsdcAdapter } from "../adapters/OraclePsdcAdapter.js";
+import { ProPhoenixAdapter } from "../adapters/ProPhoenixAdapter.js";
 import { GenericRestAdapter } from "../adapters/GenericRestAdapter.js";
 import { CadAdapterRegistry } from "../adapters/CadAdapterRegistry.js";
 
@@ -34,6 +35,7 @@ const EXPECTED: Record<string, new () => unknown> = {
   sunridge_rims: SunridgeRimsAdapter,
   kabat_one: KabatOneAdapter,
   oracle_psdc: OraclePsdcAdapter,
+  prophoenix: ProPhoenixAdapter,
   generic_rest: GenericRestAdapter,
 };
 

@@ -413,7 +413,7 @@ async function handleVisionRoot(
   method: string,
   rest: string[],
 ): Promise<APIGatewayProxyResultV2> {
-  if (rest[0] === "events" || rest[0] === "cameras" || rest[0] === "scene-stats") {
+  if (rest[0] === "events" || rest[0] === "cameras" || rest[0] === "scene-stats" || rest[0] === "scene-incidents") {
     const isAdminWrite = rest[0] === "cameras" && rest[2] === "config";
     const permission = isAdminWrite ? "vision.admin" : "vision.cameras_view";
     const gated = await gate(event, permission);

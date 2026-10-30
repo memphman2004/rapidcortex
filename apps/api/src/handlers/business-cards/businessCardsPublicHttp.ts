@@ -1,4 +1,5 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { consumeRateLimit, NEXCORT_COMPANY_NAME } from "../../lib/business-cards/domain.js";
 import { DynamoBizCardRepo } from "../../lib/business-cards/dynamo-repo.js";
@@ -8,7 +9,10 @@ import { withCorrelationHeaders } from "../../lib/correlation.js";
 import { jsonStatus, ok } from "../../lib/response.js";
 import { mapBizCardError, readJson, zodFailure } from "./present.js";
 
-const s3 = new S3Client({});
+const s3 = new S3Client({
+  requestChecksumCalculation: "WHEN_REQUIRED",
+  responseChecksumValidation: "WHEN_REQUIRED",
+});
 
 function buildService(): BusinessCardService {
   const table = process.env.BIZCARD_TABLE_NAME?.trim();
@@ -19,6 +23,12 @@ function buildService(): BusinessCardService {
     globalEnabled: process.env.ENABLE_BUSINESS_CARDS === "true" || process.env.ENABLE_BUSINESS_CARDS === "1",
     publicBaseUrl: process.env.BIZCARD_PUBLIC_BASE_URL?.trim() || "https://www.nexcortiq.us",
     photoBaseUrl: domain ? `https://${domain}` : undefined,
+    signPhoto: bucket
+      ? async (key) => {
+          if (!key.startsWith("biz-cards/")) return undefined;
+          return getSignedUrl(s3, new GetObjectCommand({ Bucket: bucket, Key: key }), { expiresIn: 3600 });
+        }
+      : undefined,
     resolveCompany: async () => ({ name: NEXCORT_COMPANY_NAME, website: "https://www.nexcortiq.us" }),
     loadPhoto: async (key) => {
       if (!bucket || !key.startsWith("biz-cards/")) return null;

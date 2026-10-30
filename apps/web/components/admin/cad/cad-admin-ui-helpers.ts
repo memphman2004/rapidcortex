@@ -37,6 +37,12 @@ export const CAD_VENDOR_CARDS: {
     badge: "self-configure",
   },
   {
+    id: "prophoenix",
+    title: "ProPhoenix CAD",
+    blurb: "Licensed Calls for Service interface. Paste the agency URL.",
+    badge: "license",
+  },
+  {
     id: "generic_webhook",
     title: "Generic Webhook",
     blurb: "Any HTTP CAD, requires field mapping",
@@ -104,6 +110,8 @@ export function extractCadPreview(rawBody: string): {
         flat.call_number ??
         flat.incident_id ??
         flat.CADNumber ??
+        flat.CfsNumber ??
+        flat.cfsNumber ??
         "—",
     );
     const callType = String(
@@ -114,6 +122,7 @@ export function extractCadPreview(rawBody: string): {
         flat.call_type ??
         flat.EventType ??
         flat.nature_code ??
+        flat.Nature ??
         "—",
     );
     const priority = String(flat.Priority ?? flat.priority ?? flat.CallPriority ?? "—");
@@ -181,6 +190,13 @@ export function vendorTroubleshootingBullets(vendor: string): string[] {
   if (vendor === "hexagon") {
     return [
       "I/CAD integrations may require an additional vendor license — confirm with Hexagon.",
+    ];
+  }
+  if (vendor === "prophoenix") {
+    return [
+      "ProPhoenix licenses the interface per agency. Paste the Calls for Service URL they provide.",
+      "Default fields: CfsNumber, Nature, Priority, CallStatus, Address, Latitude, Longitude.",
+      "Write-back stays off until the CAD write-back addendum is signed.",
     ];
   }
   if (vendor === "console_one") {

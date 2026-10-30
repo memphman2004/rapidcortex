@@ -71,6 +71,25 @@ export const SPILLMAN_STATUS_MAP: Record<string, UnifiedCadStatus> = {
 };
 
 /** Shared lowercase / mixed-case status codes used by many REST CAD products. */
+/** ProPhoenix Calls for Service status words. */
+export const PROPHOENIX_STATUS_MAP: Record<string, UnifiedCadStatus> = {
+  PEND: "pending",
+  PENDING: "pending",
+  DISP: "dispatched",
+  DISPATCHED: "dispatched",
+  ENRT: "en_route",
+  ENROUTE: "en_route",
+  "EN ROUTE": "en_route",
+  ONSC: "on_scene",
+  ONSCENE: "on_scene",
+  "ON SCENE": "on_scene",
+  CLR: "cleared",
+  CLEARED: "cleared",
+  CANC: "cancelled",
+  CANCELLED: "cancelled",
+  CANCELED: "cancelled",
+};
+
 export const COMMON_REST_STATUS_MAP: Record<string, UnifiedCadStatus> = {
   pending: "pending",
   queued: "queued",
@@ -310,6 +329,22 @@ export function defaultMappingsForVendor(vendorId: CadVendorId): CadFieldMapping
         m("ReceivedTime", "callReceivedAt", { transform: { type: "date_iso", sourceFormat: "iso" } }),
         m("vendorIncidentId", "IncidentId", { direction: "outbound" }),
         m("status", "IncidentStatus", { direction: "outbound" }),
+        m("narrative", "Narrative", { direction: "outbound" }),
+      ];
+    case "prophoenix":
+      return [
+        m("CfsNumber", "vendorIncidentId", { required: true, direction: "inbound" }),
+        m("Nature", "incidentType", { required: true }),
+        m("Priority", "priority"),
+        m("CallStatus", "status", { transform: { type: "code_lookup", table: PROPHOENIX_STATUS_MAP } }),
+        m("Address", "address"),
+        m("Latitude", "latitude"),
+        m("Longitude", "longitude"),
+        m("CallerName", "callerName"),
+        m("CallerPhone", "callerPhone"),
+        m("ReceivedDateTime", "callReceivedAt", { transform: { type: "date_iso", sourceFormat: "iso" } }),
+        m("vendorIncidentId", "CfsNumber", { direction: "outbound" }),
+        m("status", "CallStatus", { direction: "outbound" }),
         m("narrative", "Narrative", { direction: "outbound" }),
       ];
     case "generic_rest":

@@ -282,13 +282,23 @@ export function CardEditor({ mode, profileId }: Props) {
 
   function acceptFile(file: File | undefined) {
     if (!file) return;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5_000_000) {
+    const type = file.type === "image/jpg" || file.type === "image/pjpeg" ? "image/jpeg" : file.type;
+    const fromName = /\.png$/i.test(file.name)
+      ? "image/png"
+      : /\.webp$/i.test(file.name)
+        ? "image/webp"
+        : /\.jpe?g$/i.test(file.name)
+          ? "image/jpeg"
+          : "";
+    const resolved = ["image/jpeg", "image/png", "image/webp"].includes(type) ? type : fromName;
+    if (!resolved || file.size > 5_000_000) {
       setMessage("Use a JPG, PNG, or WebP photo up to 5 MB.");
       setSaveState("error");
       return;
     }
-    originalPhoto.current = file;
-    setCropFile(file);
+    const photo = resolved === file.type ? file : new File([file], file.name, { type: resolved });
+    originalPhoto.current = photo;
+    setCropFile(photo);
   }
 
   async function confirmCrop(file: File) {
@@ -481,7 +491,7 @@ export function CardEditor({ mode, profileId }: Props) {
                   </button>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-slate-900 text-lg font-semibold text-white">
-                      {photoUrl ? <img alt="" src={photoUrl} className="h-full w-full object-cover" /> : initials(form.displayName)}
+                      {photoUrl ? <img alt="" src={photoUrl} className="h-full w-full object-cover" onError={() => setMessage("The photo could not be loaded. Upload it again.")} /> : initials(form.displayName)}
                     </div>
                     <button type="button" className="text-xs font-semibold text-violet-700" onClick={() => originalPhoto.current ? setCropFile(originalPhoto.current) : fileInput.current?.click()}>Edit photo</button>
                     {photoUrl ? <button type="button" className="text-xs text-slate-500" onClick={() => void removePhoto()}>Remove photo</button> : null}

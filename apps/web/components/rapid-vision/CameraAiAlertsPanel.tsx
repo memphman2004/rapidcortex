@@ -5,6 +5,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { VisionSceneAlert, VisionWebSocketEvent } from "rapid-cortex-shared";
 import { useAgencyWebSocket, type AgencyWebSocketMessage } from "@/hooks/use-agency-websocket";
 import { useOptionalJurisdictionSlug } from "@/lib/jurisdiction-context";
+import { useOptionalSession } from "@/components/auth/session-context";
+import { isPsapCallTaker } from "@/lib/rapid-vision/scene-alert-audience";
 import { isRapidVisionSceneIntelEnabled, isRapidVisionSceneWsEnabled } from "@/lib/runtime-flags";
 import { CreateIncidentSlideOver, type CreateIncidentResult } from "@/components/dispatcher/create-incident-slide-over";
 import { useClockPreference } from "@/components/providers/clock-preference-provider";
@@ -106,7 +108,9 @@ export function CameraAiAlertsPanel() {
   const [expanded, setExpanded] = useState(false);
   const seenIds = useRef(new Set<string>());
 
-  const enabled = isRapidVisionSceneIntelEnabled();
+  const session = useOptionalSession();
+  const callTaker = isPsapCallTaker(session?.user?.role);
+  const enabled = isRapidVisionSceneIntelEnabled() && !callTaker;
 
   const query = useQuery({
     queryKey: ["vision-scene-alerts", tab],
@@ -159,6 +163,14 @@ export function CameraAiAlertsPanel() {
     setDismissTarget(null);
     void queryClient.invalidateQueries({ queryKey: ["vision-scene-alerts"] });
   };
+
+  if (callTaker) {
+    return (
+      <p className="p-3 text-[12px] leading-relaxed text-slate-300">
+        Camera alerts stay with the supervisor watch desk until someone there acknowledges them. They do not pop up on this 911 call.
+      </p>
+    );
+  }
 
   if (!enabled) {
     return <p className="text-[12px] text-[var(--rc-text-muted)]">Camera AI alerts are not enabled.</p>;

@@ -672,6 +672,7 @@ export function CadDispatcherWorkspaceLayout({
           style={{ background: "var(--rc-panel-bg)", borderRight: "1px solid var(--rc-border)" }}
         >
           {popout === "queue" ? null : (
+          <>
           <div className="ws-panel-header secondary shrink-0" id={UNIT_BOARD_ELEMENT_ID}>
             Unit board
             {popout ? null : <SectionPopOutButton label="Unit board" onClick={() => popOutSection("unit_board")} />}
@@ -717,8 +718,10 @@ export function CadDispatcherWorkspaceLayout({
               })
             )}
           </div>
+          </>
           )}
           {popout === "unit_board" ? null : (
+          <>
           <div className="ws-panel-header secondary shrink-0">
             Queue
             {popout ? null : <SectionPopOutButton label="Queue" onClick={() => popOutSection("queue")} />}
@@ -765,6 +768,7 @@ export function CadDispatcherWorkspaceLayout({
               }
             />
           </div>
+          </>
           )}
         </div>
 

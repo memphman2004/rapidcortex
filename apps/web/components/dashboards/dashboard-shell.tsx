@@ -10,6 +10,7 @@ import {
   roleDashboardShellVars,
 } from "@/lib/dashboards/role-dashboard-design";
 import { RoleNavSidebar } from "@/components/navigation/role-nav-sidebar";
+import { IqVisionNavAlertListener } from "@/components/rapid-vision/iq-vision-nav-alert-listener";
 import { isRcAdminConsoleHomePath } from "@/components/rc-admin/rc-admin-shell-chrome";
 import { TopNav } from "./top-nav";
 import { RoleDashboardHeaderStrip } from "./role-dashboard-header-strip";
@@ -123,6 +124,7 @@ function DashboardShellInner({
           : null),
       }}
     >
+      <IqVisionNavAlertListener />
       {mobileNav ? (
         <button
           type="button"

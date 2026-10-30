@@ -45,6 +45,38 @@ interface GrantForm {
   additionalContext: string;
 }
 
+const DEMO_FORM: GrantForm = {
+  agencyName: "Cortex County Emergency Communications",
+  agencyType: "911 / Emergency Communications Center (ECC)",
+  agencyCity: "Kansas City",
+  agencyState: "MO",
+  agencyPopulation: "210,000",
+  contactName: "Alex Morgan",
+  contactTitle: "Communications Center Manager",
+  contactEmail: "amorgan@cortexcounty.example",
+  grantName: "COPS Technology Program",
+  fundingAgency: "U.S. Department of Justice, Office of Community Oriented Policing Services",
+  grantNumber: "O-COPS-2026-DEMO",
+  requestedAmount: "248000",
+  deadline: "March 15, 2027",
+  projectPeriod: "24 months",
+  projectTitle: "NexCort iQ communications intelligence for Cortex County",
+  projectDescription:
+    "Deploy NexCort iQ beside the center's existing CAD and phone system so call-takers and supervisors have a reviewable record of each call. Dispatchers remain responsible for the call. The platform does not replace CAD, responders, or medical direction.",
+  problemStatement:
+    "Cortex County is hiring and training new call-takers while call volume stays high. Supervisors reconstruct calls from partial notes, which slows coaching and makes it harder to show how the center handles each call.",
+  staffingChallenge: "Vacancies on the call-taking floor and a long training period for new staff",
+  existingTechnology: "Existing CAD and a hosted phone system",
+  rcModules: [
+    "AI Dispatch Transcription",
+    "Supervisor Intelligence Dashboard",
+    "QA & Coaching Automation",
+    "Multi-Language Translation",
+  ],
+  additionalContext:
+    "Demonstration profile. Replace the agency name, amount, and contact before this package is submitted to a funder.",
+};
+
 const INITIAL_FORM: GrantForm = {
   agencyName: "",
   agencyType: "",
@@ -509,6 +541,7 @@ export function GrantSuccessProgram() {
   const [status, setStatus] = useState<"idle" | "generating" | "done" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [progressMessage, setProgressMessage] = useState("");
+  const [downloadedFromProfile, setDownloadedFromProfile] = useState(false);
 
   function set(field: keyof GrantForm, value: string) {
     setForm((p) => ({ ...p, [field]: value }));
@@ -523,6 +556,14 @@ export function GrantSuccessProgram() {
     }));
   }
 
+  function loadDemonstration() {
+    setForm(DEMO_FORM);
+    setStatus("idle");
+    setErrorMsg(null);
+    setDownloadedFromProfile(false);
+    setStep(4);
+  }
+
   function canAdvance(): boolean {
     if (step === 1) return Boolean(form.agencyName && form.agencyType);
     if (step === 2) return Boolean(form.grantName);
@@ -533,6 +574,7 @@ export function GrantSuccessProgram() {
   async function generate() {
     setStatus("generating");
     setErrorMsg(null);
+    setDownloadedFromProfile(false);
     setProgressMessage("Writing the grant narrative…");
 
     try {
@@ -582,8 +624,10 @@ export function GrantSuccessProgram() {
             }
 
             if (currentEvent === "complete") {
-              const base64 = String(payload.base64);
+              const base64 = String(payload.base64 ?? "");
+              if (!base64) throw new Error("The document was empty. Please try again.");
               const filename = String(payload.filename ?? "grant-response.docx");
+              setDownloadedFromProfile(payload.source === "profile");
               const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
               const blob = new Blob([bytes], {
                 type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -614,7 +658,12 @@ export function GrantSuccessProgram() {
       }
     } catch (err) {
       setStatus("error");
-      setErrorMsg((err as Error).message || "Failed to generate grant response.");
+      const raw = (err as Error).message || "Failed to generate grant response.";
+      setErrorMsg(
+        /claude|openai|api \d|secret|lambda|invoke/i.test(raw)
+          ? "The writing service did not finish. Please try again. If it fails a second time, use Load demonstration and generate again."
+          : raw,
+      );
       setProgressMessage("");
     }
   }
@@ -629,10 +678,18 @@ export function GrantSuccessProgram() {
           <h2 className="text-sm font-semibold text-white">Grant Success Program</h2>
         </div>
         <p className="text-xs text-white/40">
-          Generate a fully customized grant application package — executive summary, problem
-          statement, itemized budget, implementation timeline, and paste-ready grant language.
-          Downloads as a Word document (.docx) ready for submission.
+          Generate a grant application package from the agency profile. The Word document includes
+          the executive summary, statement of need, project plan, timeline, evaluation, and budget
+          narrative. Review it before anyone submits it to a funder.
         </p>
+        <button
+          type="button"
+          onClick={loadDemonstration}
+          disabled={isBusy}
+          className="mt-3 rounded-lg border border-violet-400/40 px-3 py-1.5 text-xs font-medium text-violet-200 hover:bg-violet-500/10 disabled:opacity-40"
+        >
+          Load demonstration profile
+        </button>
       </div>
 
       <div className="mt-6">
@@ -921,7 +978,7 @@ export function GrantSuccessProgram() {
 
             <Section title="Project details">
               <ReviewRow label="Project title" value={form.projectTitle} />
-              <ReviewRow label="product modules" value={form.rcModules.join(", ")} />
+              <ReviewRow label="Product modules" value={form.rcModules.join(", ")} />
               <ReviewRow label="Existing technology" value={form.existingTechnology} />
               <ReviewRow label="Staffing challenge" value={form.staffingChallenge} />
             </Section>
@@ -935,8 +992,7 @@ export function GrantSuccessProgram() {
                       {progressMessage || "Generating grant response…"}
                     </p>
                     <p className="mt-0.5 text-xs text-white/30">
-                      Generating Agency grant response. This usually takes a little while — please
-                      Do not close this page.
+                      This usually takes a minute. Keep this page open until the file downloads.
                     </p>
                   </div>
                 </div>
@@ -945,10 +1001,11 @@ export function GrantSuccessProgram() {
 
             {status === "done" && (
               <div className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-5 py-4">
-                <p className="text-sm font-medium text-emerald-400">✓ Grant package downloaded</p>
+                <p className="text-sm font-medium text-emerald-400">Grant package downloaded</p>
                 <p className="mt-0.5 text-xs text-emerald-400/60">
-                  Your Word document has been saved to your Downloads folder and is ready for review
-                  and submission.
+                  {downloadedFromProfile
+                    ? "The writing service was unavailable, so this Word document was built from the application on screen. Review it before a funder sees it."
+                    : "The Word document is in Downloads. Review it before a funder sees it."}
                 </p>
               </div>
             )}

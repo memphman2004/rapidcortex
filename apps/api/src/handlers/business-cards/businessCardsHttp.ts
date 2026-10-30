@@ -1,10 +1,11 @@
+import { CognitoIdentityProviderClient, ListUsersInGroupCommand } from "@aws-sdk/client-cognito-identity-provider";
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import QRCode from "qrcode";
 import { z } from "zod";
 import { getUserContext } from "../../lib/auth.js";
-import { consumeRateLimit, isPlatformCardAgency, NEXCORT_COMPANY_NAME } from "../../lib/business-cards/domain.js";
+import { consumeRateLimit, isPlatformCardAgency, NEXCORT_COMPANY_NAME, NEXCORT_EMPLOYEE_ROLES } from "../../lib/business-cards/domain.js";
 import { DynamoBizCardRepo } from "../../lib/business-cards/dynamo-repo.js";
 import {
   AssignCardSchema,
@@ -28,6 +29,7 @@ const s3 = new S3Client({
   requestChecksumCalculation: "WHEN_REQUIRED",
   responseChecksumValidation: "WHEN_REQUIRED",
 });
+const cognito = new CognitoIdentityProviderClient({});
 
 function buildService(): BusinessCardService {
   const table = process.env.BIZCARD_TABLE_NAME?.trim();
@@ -145,6 +147,9 @@ async function route(method: string, path: string, actor: Actor, body: unknown, 
   if (method === "GET" && path.endsWith("/api/admin/business-cards/audit")) {
     return ok({ items: await svc.auditFor(actor) });
   }
+  if (method === "GET" && path.endsWith("/api/admin/business-cards/staff")) {
+    return ok(await listStaff(actor));
+  }
   if (method === "GET" && path.endsWith("/api/admin/analytics/business-cards")) {
     return ok(await svc.tenantAnalytics(actor));
   }
@@ -229,6 +234,41 @@ async function route(method: string, path: string, actor: Actor, body: unknown, 
   return jsonStatus({ error: "not_found" }, 404);
 }
 
+async function listStaff(actor: Actor) {
+  const page = await cards().listAdmin(actor);
+  const profileByUser = new Map(page.items.map((profile) => [profile.cognitoUserId, profile.profileId]));
+  const poolId = process.env.COGNITO_USER_POOL_ID?.trim();
+  if (!poolId) return { people: [] };
+  const people: Array<{ cognitoUserId: string; email: string; name: string; role: string; profileId?: string }> = [];
+  const seen = new Set<string>();
+  for (const role of NEXCORT_EMPLOYEE_ROLES) {
+    let token: string | undefined;
+    do {
+      const out = await cognito.send(
+        new ListUsersInGroupCommand({ UserPoolId: poolId, GroupName: role, NextToken: token, Limit: 60 }),
+      );
+      for (const user of out.Users ?? []) {
+        if (user.Enabled === false) continue;
+        const attrs = Object.fromEntries((user.Attributes ?? []).map((attr) => [attr.Name ?? "", attr.Value ?? ""]));
+        const cognitoUserId = attrs.sub?.trim();
+        if (!cognitoUserId || seen.has(cognitoUserId)) continue;
+        seen.add(cognitoUserId);
+        const email = attrs.email ?? "";
+        people.push({
+          cognitoUserId,
+          email,
+          name: attrs.name?.trim() || email || cognitoUserId,
+          role,
+          ...(profileByUser.get(cognitoUserId) ? { profileId: profileByUser.get(cognitoUserId) } : {}),
+        });
+      }
+      token = out.NextToken;
+    } while (token);
+  }
+  people.sort((a, b) => a.name.localeCompare(b.name));
+  return { people };
+}
+
 async function readableAsset(key?: string): Promise<string | undefined> {
   if (!key) return undefined;
   const domain = process.env.BIZCARD_CLOUDFRONT_DOMAIN?.trim();
@@ -262,7 +302,6 @@ async function presign(actor: Actor, body: unknown, asAdmin: boolean, profileId?
       Bucket: bucket,
       Key: target.key,
       ContentType: parsed.data.contentType,
-      ContentLength: parsed.data.contentLength,
     }),
     { expiresIn: 300 },
   );

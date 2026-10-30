@@ -8,6 +8,8 @@ import { usePathname } from "next/navigation";
 import type { UserContext } from "rapid-cortex-shared/types";
 import { hardNavigateTo } from "@/lib/auth/postAuthRedirect";
 import { useIqVisionNavAlert } from "@/hooks/use-iq-vision-nav-alert";
+import { useOptionalSession } from "@/components/auth/session-context";
+import { showSceneAlertPulse } from "@/lib/rapid-vision/scene-alert-audience";
 import { requiresHardCrossShellNav } from "@/lib/navigation/cross-shell-nav";
 import { buildNavContext } from "@/lib/navigation/nav-context";
 import { withCadModuleNav } from "@/lib/navigation/cad-module-nav";
@@ -16,10 +18,6 @@ import { filterRoleNavByFeatures } from "@/lib/navigation/filter-role-nav";
 import { navIconByName } from "@/lib/navigation/nav-icons";
 import { getRoleNav, type NavBadge, type NavItem, type RoleNav } from "@/lib/navigation/role-nav";
 import { useNavBadgeCounts, type NavBadgeCounts } from "@/lib/navigation/use-nav-badge-counts";
-import {
-  acknowledgeIqVisionIncident,
-  clearIqVisionNavAlerts,
-} from "@/lib/rapid-vision/iq-vision-nav-alert-store";
 import { SidebarHomeButton } from "@/components/ui/sidebar-home-button";
 import { SidebarSignOutFooter } from "@/components/ui/sidebar-sign-out-footer";
 import { SITE_SQUARE_ICON_HEIGHT, SITE_SQUARE_ICON_PATH, SITE_SQUARE_ICON_WIDTH } from "@/lib/site";
@@ -79,14 +77,22 @@ function SidebarNavLink({
   counts?: NavBadgeCounts;
 }) {
   const Icon = navIconByName(item.icon);
+  const session = useOptionalSession();
   const iqAlert = useIqVisionNavAlert();
-  const isIqVision = item.id === "rapid-vision";
-  const iqPulsing = isIqVision && iqAlert.pulsing;
+  const isIqVision = item.id === "rapid-vision" || item.id === "vision-ai";
+  const iqPulsing =
+    isIqVision &&
+    showSceneAlertPulse({
+      role: session?.user?.role,
+      pathname,
+      pulsing: iqAlert.pulsing,
+    });
 
-  const href =
-    iqPulsing && iqAlert.focusIncidentId
-      ? `${navHrefPath(item.href)}?incident=${encodeURIComponent(iqAlert.focusIncidentId)}`
-      : item.href;
+  const href = iqPulsing
+    ? `${navHrefPath(item.href)}?tab=alerts${
+        iqAlert.focusEventId ? `&alert=${encodeURIComponent(iqAlert.focusEventId)}` : ""
+      }`
+    : item.href;
 
   const linkClass =
     variant === "compact"
@@ -111,13 +117,6 @@ function SidebarNavLink({
     !item.external && requiresHardCrossShellNav(pathname, href);
 
   const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
-    if (isIqVision && iqPulsing) {
-      if (iqAlert.focusIncidentId) {
-        acknowledgeIqVisionIncident(iqAlert.focusIncidentId);
-      } else {
-        clearIqVisionNavAlerts();
-      }
-    }
     if (hardCrossShell) {
       // Soft RSC nav between /rc-admin and /sales shells corrupts the App Router stream.
       e.preventDefault();
@@ -133,7 +132,11 @@ function SidebarNavLink({
       href={href}
       prefetch={false}
       aria-current={active ? "page" : undefined}
-      aria-label={iqPulsing ? `${item.label} — camera detection alert` : undefined}
+      aria-label={
+        iqPulsing
+          ? `${item.label} — ${iqAlert.criticalCount} critical visual alert${iqAlert.criticalCount === 1 ? "" : "s"} awaiting acknowledgment`
+          : undefined
+      }
       className={linkClass}
       style={
         iqPulsing && variant === "sidebar"
@@ -176,7 +179,9 @@ function SidebarNavLink({
       ) : null}
       <span className="min-w-0 flex-1 leading-snug">{item.label}</span>
       {iqPulsing ? (
-        <span className="ml-auto h-2 w-2 shrink-0 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]" aria-hidden />
+        <span className="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-semibold text-white">
+          {iqAlert.criticalCount}
+        </span>
       ) : item.badge && counts ? (
         <NavItemBadge badge={item.badge} counts={counts} />
       ) : null}

@@ -11,6 +11,7 @@ export type CadVendorId =
   | "central_square"
   | "hexagon"
   | "console_one"
+  | "prophoenix"
   | "generic_webhook";
 
 export type CadConnectionType = "webhook_inbound" | "api_poll" | "tcp_feed";
@@ -359,6 +360,54 @@ const CONSOLE_ONE: CadVendorDefinition = {
 4. Events: Incident Created, Updated, Unit Dispatched`,
 };
 
+const PRO_PHOENIX: CadVendorDefinition = {
+  id: "prophoenix",
+  label: "ProPhoenix",
+  fullName: "ProPhoenix CAD",
+  logoText: "PP",
+  description: "Calls for Service from a licensed ProPhoenix interface. Paste the URL the agency receives from ProPhoenix.",
+  supportedConnectionTypes: ["api_poll", "webhook_inbound"],
+  recommendedConnectionType: "api_poll",
+  sourceFields: [
+    { key: "CfsNumber", label: "CFS number", example: "CFS-2026-10442", suggestedTarget: "cadEventId" },
+    { key: "Nature", label: "Nature", example: "WELFARE CHECK", suggestedTarget: "incidentType" },
+    { key: "Priority", label: "Priority", example: "3", suggestedTarget: "priority" },
+    { key: "CallStatus", label: "Call status", example: "DISPATCHED", suggestedTarget: "status" },
+    { key: "Address", label: "Address", example: "4200 Main St", suggestedTarget: "location" },
+    { key: "Latitude", label: "Latitude", example: "39.0997", suggestedTarget: "latitude" },
+    { key: "Longitude", label: "Longitude", example: "-94.5786", suggestedTarget: "longitude" },
+    { key: "CallerName", label: "Caller name", example: "Jane Caller", suggestedTarget: "callerName" },
+    { key: "CallerPhone", label: "Caller phone", example: "8165550142", suggestedTarget: "callerPhone" },
+    { key: "Narrative", label: "Narrative", example: "Check the residence", suggestedTarget: "narrative" },
+    { key: "Units", label: "Units", example: "P12", suggestedTarget: "units" },
+  ],
+  defaultFieldMappings: [
+    { sourceKey: "CfsNumber", targetId: "cadEventId" },
+    { sourceKey: "Nature", targetId: "incidentType" },
+    { sourceKey: "Priority", targetId: "priority" },
+    { sourceKey: "CallStatus", targetId: "status" },
+    { sourceKey: "Address", targetId: "location" },
+    { sourceKey: "Latitude", targetId: "latitude" },
+    { sourceKey: "Longitude", targetId: "longitude" },
+    { sourceKey: "CallerName", targetId: "callerName" },
+    { sourceKey: "CallerPhone", targetId: "callerPhone" },
+    { sourceKey: "Narrative", targetId: "narrative" },
+    { sourceKey: "Units", targetId: "units" },
+  ],
+  defaultPriorityMapping: { "1": "P1", "2": "P2", "3": "P3", "4": "P4" },
+  authHeaderName: "X-RC-Token",
+  vendorWebhookNotes: "Use the interface URL from ProPhoenix. Webhook header is X-RC-Token when Phoenix posts to NexCort iQ.",
+  suggestedPollIntervalMinutes: 2,
+  knownApiEndpointPattern: "https://{host}/api/calls-for-service",
+  setupInstructions: `ProPhoenix CAD
+──────────────
+1. Ask ProPhoenix for the licensed Calls for Service interface URL and API key for this agency.
+2. Paste that full URL. NexCort iQ does not publish a ProPhoenix endpoint.
+3. Poll sends since=<ISO time>. Default fields are CfsNumber, Nature, Priority, CallStatus, Address.
+4. If this site uses different field names, change the mapping before saving.
+5. Write-back stays off until the CAD write-back addendum is signed.`,
+};
+
 const GENERIC_WEBHOOK: CadVendorDefinition = {
   id: "generic_webhook",
   label: "Generic Webhook",
@@ -402,6 +451,7 @@ export const CAD_VENDORS: CadVendorDefinition[] = [
   CENTRAL_SQUARE,
   HEXAGON,
   CONSOLE_ONE,
+  PRO_PHOENIX,
   GENERIC_WEBHOOK,
 ];
 

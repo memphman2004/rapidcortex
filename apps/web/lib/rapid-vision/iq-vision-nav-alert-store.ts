@@ -16,12 +16,12 @@ type Snapshot = {
   alerts: IqVisionNavAlert[];
   /** Newest incident id with an active alert (for deep-link). */
   focusIncidentId: string | null;
+  focusEventId: string | null;
+  criticalCount: number;
   pulsing: boolean;
 };
 
 let alerts: IqVisionNavAlert[] = [];
-/** Incidents this client is already viewing — do not pulse for those. */
-const viewingIncidentIds = new Set<string>();
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -37,9 +37,12 @@ function dedupeKey(a: IqVisionNavAlert): string {
 function snapshot(): Snapshot {
   const focusIncidentId =
     [...alerts].reverse().find((a) => a.incidentId)?.incidentId ?? null;
+  const focusEventId = [...alerts].reverse().find((a) => a.eventId)?.eventId ?? null;
   return {
     alerts,
     focusIncidentId,
+    focusEventId,
+    criticalCount: alerts.length,
     pulsing: alerts.length > 0,
   };
 }
@@ -63,17 +66,11 @@ export function subscribeIqVisionNavAlerts(listener: () => void): () => void {
 }
 
 /**
- * Mark which incident this client is actively viewing (iQ Vision panel or
- * dispatcher selection). Suppresses nav pulse for that incident on this screen.
+ * Remember which incident this screen is showing.
+ * Viewing does not acknowledge an alert and does not stop the sidebar pulse.
  */
-export function setIqVisionViewingIncident(incidentId: string | null | undefined): void {
-  viewingIncidentIds.clear();
-  const id = incidentId?.trim();
-  if (id) {
-    viewingIncidentIds.add(id);
-    // Opening the incident also clears any outstanding pulse for it.
-    acknowledgeIqVisionIncident(id);
-  }
+export function setIqVisionViewingIncident(_incidentId: string | null | undefined): void {
+  /* Viewing an incident does not acknowledge a Scene Intelligence alert. */
 }
 
 /** Record a live-camera detection for the nav pulse. */
@@ -84,7 +81,6 @@ export function signalIqVisionNavAlert(input: {
   const incidentId = input.incidentId?.trim() || undefined;
   const eventId = input.eventId?.trim() || undefined;
   if (!incidentId && !eventId) return;
-  if (incidentId && viewingIncidentIds.has(incidentId)) return;
 
   const next: IqVisionNavAlert = {
     incidentId,
@@ -96,7 +92,16 @@ export function signalIqVisionNavAlert(input: {
   refreshCache();
 }
 
-/** Clear pulse for a specific incident (dispatcher opened / selected it). */
+/** Stop the pulse for one scene alert after an explicit acknowledgment. */
+export function acknowledgeIqVisionEvent(eventId: string | null | undefined): void {
+  const id = eventId?.trim();
+  if (!id) return;
+  const before = alerts.length;
+  alerts = alerts.filter((a) => a.eventId !== id);
+  if (alerts.length !== before) refreshCache();
+}
+
+/** Stop the pulse for alerts tied to this incident after an explicit acknowledgment. */
 export function acknowledgeIqVisionIncident(incidentId: string | null | undefined): void {
   const id = incidentId?.trim();
   if (!id) return;
@@ -105,14 +110,14 @@ export function acknowledgeIqVisionIncident(incidentId: string | null | undefine
   if (alerts.length !== before) refreshCache();
 }
 
-/** Clear scene alerts without an incident (e.g. opened iQ Vision / Camera AI). */
+/** Clear scene-only pulses after an explicit acknowledgment, not because the page opened. */
 export function acknowledgeIqVisionSceneAlerts(): void {
   const before = alerts.length;
   alerts = alerts.filter((a) => a.incidentId);
   if (alerts.length !== before) refreshCache();
 }
 
-/** Clear all nav pulses (e.g. dispatcher clicked the pulsing iQ Vision item). */
+/** Clear every nav pulse. Used by tests and an explicit acknowledge-all. */
 export function clearIqVisionNavAlerts(): void {
   if (alerts.length === 0) return;
   alerts = [];

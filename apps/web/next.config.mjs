@@ -97,6 +97,15 @@ const FORM_EMBED_FRAME_SRC = [
   "https://embed.typeform.com",
 ].join(" ");
 
+/** Presigned card photos. CSP host wildcards cannot sit in the middle of a bucket name. */
+const BIZCARD_PHOTO_ORIGINS = ["dev", "staging", "prod", "pilot"].flatMap((stage) => {
+  const bucket = `rapid-cortex-bizcard-photos-${stage}-158961537080`;
+  return [
+    `https://${bucket}.s3.us-east-1.amazonaws.com`,
+    `https://${bucket}.s3.amazonaws.com`,
+  ];
+});
+
 /** Hosts loaders may POST/GET besides existing allowlisted origins. */
 const FORM_EMBED_CONNECT_HOSTS = [
   "https://tally.so",
@@ -151,6 +160,7 @@ function buildCspHeader(extraConnectOrigins) {
     `https://maps.geo.${process.env.NEXT_PUBLIC_ALS_REGION?.trim() || "us-east-1"}.amazonaws.com`,
     `https://cognito-identity.${process.env.NEXT_PUBLIC_ALS_REGION?.trim() || "us-east-1"}.amazonaws.com`,
     `https://sts.${process.env.NEXT_PUBLIC_ALS_REGION?.trim() || "us-east-1"}.amazonaws.com`,
+    ...BIZCARD_PHOTO_ORIGINS,
   ].join(" ");
   // Next injects inline boot/RSC payloads; without per-request script nonces production CSP blocks those scripts and hydration fails (broken sign-in UX).
   // TODO: switch to nonce + `strict-dynamic` and drop `'unsafe-inline'`.
@@ -163,7 +173,7 @@ function buildCspHeader(extraConnectOrigins) {
     .filter(Boolean)
     .join(" ");
 
-  const imgSrcExtras = ` https://maps.geo.${process.env.NEXT_PUBLIC_ALS_REGION?.trim() || "us-east-1"}.amazonaws.com`;
+  const imgSrcExtras = ` https://maps.geo.${process.env.NEXT_PUBLIC_ALS_REGION?.trim() || "us-east-1"}.amazonaws.com ${BIZCARD_PHOTO_ORIGINS.join(" ")}`;
   const imgSrc =
     process.env.NODE_ENV === "production"
       ? `'self' blob: data: https://rapidcortex.us https://www.rapidcortex.us https://img.youtube.com https://i.ytimg.com${imgSrcExtras}`

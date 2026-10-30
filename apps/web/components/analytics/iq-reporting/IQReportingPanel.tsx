@@ -34,6 +34,13 @@ import {
   kpiValue,
   trendDirection,
 } from "./iq-reporting-utils";
+import {
+  buildReportIcs,
+  buildReportPdf,
+  downloadBlob,
+  renderReportPng,
+  type IQReportSnapshot,
+} from "./iq-report-export";
 
 const C = {
   surface: "#100e1a",
@@ -91,7 +98,9 @@ function IQReportingPanelInner({
   const [range, setRange] = useState<IQTimeRange>("month");
   const [publicSafe, setPublicSafe] = useState(false);
   const [compare, setCompare] = useState(false);
-  const [exportHint, setExportHint] = useState<string | null>(null);
+  const [exportNote, setExportNote] = useState<{ text: string; error: boolean } | null>(null);
+  const [exportMode, setExportMode] = useState<"email" | "schedule" | null>(null);
+  const [exportEmail, setExportEmail] = useState("");
   // Product vertical consoles stay locked; RC switcher can change tabs.
   const reportingVertical = showVerticalSwitcher ? activeVertical : initialVertical;
   const { records, prior, loading, error, refresh } = useIQReportingData(
@@ -133,6 +142,84 @@ function IQReportingPanelInner({
     () => breakdownMetrics(records, config.barBreakdownMetricPrefix),
     [records, config.barBreakdownMetricPrefix],
   );
+
+  function snapshot(): IQReportSnapshot {
+    const rangeLabel = RANGES.find((item) => item.id === range)?.label ?? range;
+    return {
+      title: `${config.badge} iQ reporting`,
+      rangeLabel,
+      generatedAt: new Date().toISOString(),
+      publicSafe,
+      kpis: kpis.map((kpi) => {
+        const value = kpiValue(records, kpi);
+        const priorValue = kpiValue(prior, kpi);
+        return {
+          label: kpi.label,
+          value: formatIQMetric(value, kpi.format),
+          trend: compare && prior.length ? formatTrendLabel(value, priorValue, kpi.format) : undefined,
+        };
+      }),
+      lineChartLabel: config.lineChartLabel,
+      hourly: hourlyData,
+      breakdownTitle: `Top breakdown (${config.barBreakdownMetricPrefix}*)`,
+      breakdown: barData,
+    };
+  }
+
+  function fileStem(): string {
+    const day = new Date().toISOString().slice(0, 10);
+    return `nexcort-iq-${reportingVertical}-${range}-${day}`;
+  }
+
+  function exportPdf() {
+    downloadBlob(buildReportPdf(snapshot()), `${fileStem()}.pdf`);
+    setExportNote({ text: "PDF downloaded.", error: false });
+    setExportMode(null);
+  }
+
+  function exportPng() {
+    const png = renderReportPng(snapshot());
+    if (!png) {
+      setExportNote({ text: "PNG export failed in this browser.", error: true });
+      return;
+    }
+    downloadBlob(png, `${fileStem()}.png`);
+    setExportNote({ text: "PNG downloaded.", error: false });
+    setExportMode(null);
+  }
+
+  function sendEmail() {
+    const address = exportEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) {
+      setExportNote({ text: "Enter a valid email address.", error: true });
+      return;
+    }
+    const report = snapshot();
+    const body = [
+      report.title,
+      `Range: ${report.rangeLabel}`,
+      ...report.kpis.map((kpi) => `${kpi.label}: ${kpi.value}${kpi.trend ? ` (${kpi.trend})` : ""}`),
+      "",
+      "Open the iQ reporting page to download the PDF or PNG.",
+    ].join("\n");
+    const link = document.createElement("a");
+    link.href = `mailto:${address}?subject=${encodeURIComponent(report.title)}&body=${encodeURIComponent(body)}`;
+    link.click();
+    setExportNote({ text: `Opening a message to ${address}.`, error: false });
+    setExportMode(null);
+  }
+
+  function scheduleReport() {
+    const address = exportEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) {
+      setExportNote({ text: "Enter a valid email address.", error: true });
+      return;
+    }
+    const ics = buildReportIcs(snapshot(), address);
+    downloadBlob(new Blob([ics], { type: "text/calendar" }), `${fileStem()}-weekly.ics`);
+    setExportNote({ text: `Weekly calendar file downloaded for ${address}. Open it in Outlook to keep the reminder.`, error: false });
+    setExportMode(null);
+  }
 
   return (
     <section style={{ marginTop: 24, fontFamily: FONT, color: C.text }}>
@@ -201,10 +288,10 @@ function IQReportingPanelInner({
             />
             Public-safe
           </label>
-          <StubButton icon={<FileText size={13} />} label="PDF" onClick={() => setExportHint("PDF export is not enabled yet.")} />
-          <StubButton icon={<ImageIcon size={13} />} label="PNG" onClick={() => setExportHint("PNG export is not enabled yet.")} />
-          <StubButton icon={<Mail size={13} />} label="Email" onClick={() => setExportHint("Email send is not enabled yet.")} />
-          <StubButton icon={<CalendarClock size={13} />} label="Schedule" onClick={() => setExportHint("Scheduled reports are not enabled yet.")} />
+          <ExportButton icon={<FileText size={13} />} label="PDF" onClick={exportPdf} />
+          <ExportButton icon={<ImageIcon size={13} />} label="PNG" onClick={exportPng} />
+          <ExportButton icon={<Mail size={13} />} label="Email" onClick={() => { setExportMode("email"); setExportNote(null); }} />
+          <ExportButton icon={<CalendarClock size={13} />} label="Schedule" onClick={() => { setExportMode("schedule"); setExportNote(null); }} />
         </div>
       </div>
 
@@ -239,8 +326,38 @@ function IQReportingPanelInner({
         </button>
       </div>
 
-      {exportHint ? (
-        <p style={{ color: C.amber, fontSize: 12, margin: "0 0 12px" }}>{exportHint}</p>
+      {exportMode ? (
+        <form
+          style={{ display: "flex", gap: 8, alignItems: "center", margin: "0 0 12px", flexWrap: "wrap" }}
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (exportMode === "email") sendEmail();
+            else scheduleReport();
+          }}
+        >
+          <input
+            type="email"
+            required
+            value={exportEmail}
+            placeholder="name@agency.gov"
+            onChange={(event) => setExportEmail(event.target.value)}
+            style={{
+              background: C.card,
+              border: `1px solid ${C.border}`,
+              color: C.text,
+              borderRadius: 6,
+              padding: "6px 10px",
+              fontSize: 12,
+              fontFamily: "inherit",
+            }}
+          />
+          <button type="submit" style={tabBtn}>
+            {exportMode === "email" ? "Open email" : "Download weekly reminder"}
+          </button>
+        </form>
+      ) : null}
+      {exportNote ? (
+        <p style={{ color: exportNote.error ? C.amber : C.green, fontSize: 12, margin: "0 0 12px" }}>{exportNote.text}</p>
       ) : null}
       {error ? (
         <p style={{ color: C.red, fontSize: 13, margin: "0 0 12px" }}>{error}</p>
@@ -378,7 +495,7 @@ function IQReportingPanelInner({
   );
 }
 
-function StubButton({
+function ExportButton({
   icon,
   label,
   onClick,

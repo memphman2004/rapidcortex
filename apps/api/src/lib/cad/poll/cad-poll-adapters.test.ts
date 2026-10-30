@@ -28,6 +28,7 @@ import {
   centralSquareAdapter,
   hexagonAdapter,
   genericPollAdapter,
+  prophoenixAdapter,
   getAdapter,
 } from "./cad-poll-adapters.js";
 import {
@@ -182,6 +183,7 @@ describe("Adapter registry", () => {
     expect(getAdapter("tyler_new_world")).toBe(tylerNewWorldAdapter);
     expect(getAdapter("central_square")).toBe(centralSquareAdapter);
     expect(getAdapter("hexagon")).toBe(hexagonAdapter);
+    expect(getAdapter("prophoenix")).toBe(prophoenixAdapter);
     expect(getAdapter("generic_webhook")).toBe(genericPollAdapter);
   });
 
