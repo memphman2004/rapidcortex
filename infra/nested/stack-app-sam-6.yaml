@@ -786,6 +786,26 @@ Resources:
             Queue: !GetAtt VisionSceneDescribeQueue.Arn
             BatchSize: 1
 
+  VisionScenePatternWeeklyFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/rapid-vision/scene-intel/pattern-weekly.handler
+      Timeout: 120
+      MemorySize: 512
+      Policies:
+        - !Ref AppManagedPolicyVision
+        - !If [HasAnthropicSecret, !Ref AppManagedPolicyVisionAnthropic, !Ref AWS::NoValue]
+      Events:
+        Weekly:
+          Type: Schedule
+          Properties:
+            Schedule: cron(5 12 ? * SUN *)
+            Enabled: true
+
   VisionTranscriptWorkerFunction:
     Type: AWS::Serverless::Function
     Metadata:

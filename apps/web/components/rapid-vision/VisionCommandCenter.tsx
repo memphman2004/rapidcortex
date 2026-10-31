@@ -331,7 +331,7 @@ export function VisionCommandCenter({
 
       {section === "settings" ? (
         <div className="space-y-4">
-          <SceneMonitoringProfiles />
+          <SceneMonitoringProfiles vertical="psap" />
           <SceneIncidentDesk />
           <div className="max-w-2xl space-y-3 rounded-lg border border-slate-800 bg-slate-900/50 p-4 text-sm text-slate-300">
             <p>Detection models are not validated for live public-safety decisions. Categories stay off until an agency enables a reviewed source.</p>

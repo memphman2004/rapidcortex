@@ -133,3 +133,50 @@ export async function createJsonResponse(opts: {
   void lastError;
   return null;
 }
+
+/** Selected stills only. store is false. Callers must already have decided the frames may leave the account. */
+export async function createVisionJsonResponse(opts: {
+  model: string;
+  instructions: string;
+  prompt: string;
+  imageUrls: string[];
+  jsonSchemaName: string;
+  jsonSchema: Record<string, unknown>;
+}): Promise<OpenAiJsonResult | null> {
+  const client = await getClient();
+  if (!client) return null;
+  const started = Date.now();
+  try {
+    const response = await client.responses.create({
+      model: opts.model,
+      instructions: opts.instructions,
+      store: false,
+      max_output_tokens: 1200,
+      text: {
+        format: {
+          type: "json_schema",
+          name: opts.jsonSchemaName,
+          schema: opts.jsonSchema,
+          strict: false,
+        },
+      },
+      input: [
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: opts.prompt },
+            ...opts.imageUrls.map((imageUrl) => ({ type: "input_image" as const, image_url: imageUrl, detail: "low" as const })),
+          ],
+        },
+      ],
+    });
+    const text = outputTextFrom(response);
+    if (!text) return null;
+    console.log(JSON.stringify({ msg: "scene_openai_review_ok", model: opts.model, frames: opts.imageUrls.length, durationMs: Date.now() - started }));
+    return { text, model: opts.model, usage: usageFrom(response) };
+  } catch (err) {
+    const status = err && typeof err === "object" && "status" in err ? Number((err as { status?: number }).status) : 0;
+    console.warn(JSON.stringify({ msg: "scene_openai_review_error", model: opts.model, status, durationMs: Date.now() - started, error: err instanceof Error ? err.message : "request_failed" }));
+    return null;
+  }
+}

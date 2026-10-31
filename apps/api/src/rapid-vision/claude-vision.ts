@@ -106,6 +106,67 @@ async function anthropicApiKey(): Promise<string> {
   });
 }
 
+/** One Claude reply. The key stays in Secrets Manager. Callers pass a model id, never a key. */
+export async function completeClaudeMessage(params: {
+  model: string;
+  system: string;
+  userText: string;
+  imageBase64?: string;
+  maxTokens?: number;
+}): Promise<string | null> {
+  if (useMockVision()) return null;
+  const apiKey = await anthropicApiKey();
+  if (!apiKey) {
+    console.error(JSON.stringify({ msg: "vision_claude_missing_api_key", model: params.model }));
+    return null;
+  }
+  const content: Array<Record<string, unknown>> = [];
+  if (params.imageBase64) {
+    content.push({
+      type: "image",
+      source: { type: "base64", media_type: "image/jpeg", data: params.imageBase64 },
+    });
+  }
+  content.push({ type: "text", text: params.userText });
+  try {
+    const res = await fetch(ANTHROPIC_MESSAGES_URL, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": ANTHROPIC_VERSION,
+      },
+      body: JSON.stringify({
+        model: params.model,
+        max_tokens: params.maxTokens ?? 500,
+        system: params.system,
+        messages: [{ role: "user", content }],
+      }),
+      signal: AbortSignal.timeout(45_000),
+    });
+    if (!res.ok) {
+      console.error(JSON.stringify({ msg: "vision_claude_http_failed", model: params.model, status: res.status }));
+      return null;
+    }
+    const body = (await res.json()) as { content?: Array<{ type?: string; text?: string }> };
+    const text = (body.content ?? [])
+      .filter((block) => block.type === "text" && block.text)
+      .map((block) => block.text)
+      .join("\n")
+      .trim();
+    return text || null;
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        msg: "vision_claude_complete_failed",
+        model: params.model,
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+    return null;
+  }
+}
+
 const MOCK_NARRATIVE =
   "Person in gray hooded sweatshirt observed at the intersection of Oak Street and 3rd Avenue, moving northbound. Pace consistent with jogging. Possible match to caller description of subject fleeing north on Oak Street.\nCATEGORY: PERSON\nCONFIDENCE: HIGH\nCORRELATION_NOTE: Consistent with caller description of a subject fleeing north.";
 

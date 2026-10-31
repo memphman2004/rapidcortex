@@ -20,7 +20,10 @@ describe("classifyRekognitionLabels", () => {
       eventType: "VISIBLE_WEAPON",
       severity: "high",
       confidence: "LOW",
+      shortLabel: "Possible weapon",
     });
+    expect(mockSceneNarrative("VISIBLE_WEAPON")).toContain("not a verified threat");
+    expect(mockSceneNarrative("VISIBLE_WEAPON")).toContain("officer's own firearm");
   });
 
   it("returns null for motion-only frames with no operational labels", () => {

@@ -6,6 +6,7 @@ import { env } from "../../lib/env.js";
 import { parseClaudeVisionResponse, streamClaudeVision } from "../claude-vision.js";
 import { broadcastToAgency } from "../../lib/websocket/send-message.js";
 import { visionStore } from "../store.js";
+import { filterSceneAlert } from "./scene-claude-roles.js";
 
 const sns = new SNSClient({});
 
@@ -25,7 +26,30 @@ export async function describeAndUpdate(message: SceneDescribeMessage): Promise<
   const alert = await visionStore.getSceneAlert(message.agencyId, message.eventId);
   if (!alert || alert.agencyId !== message.agencyId) return null;
 
-  let narrative = alert.narrative;
+  const filter = env.visionAiMock
+    ? null
+    : await filterSceneAlert({ alert, frameBase64: message.frameBase64 });
+
+  if (filter && !filter.keep) {
+    const dismissed: VisionSceneAlert = {
+      ...alert,
+      status: "dismissed",
+      dismissReason: "false_positive",
+      dismissedBy: "system:vision-haiku",
+      dismissedAt: new Date().toISOString(),
+      narrative: filter.readout,
+    };
+    await visionStore.putSceneAlert(dismissed);
+    if (env.enableVisionAiWs) {
+      await broadcastToAgency({
+        agencyId: dismissed.agencyId,
+        message: { type: "rapid-vision.scene.updated", data: { alert: dismissed } },
+      });
+    }
+    return dismissed;
+  }
+
+  let narrative = filter?.readout || alert.narrative;
   if (!narrative) {
     if (env.visionAiMock || !message.frameBase64) {
       narrative = mockSceneNarrative(alert.eventType);

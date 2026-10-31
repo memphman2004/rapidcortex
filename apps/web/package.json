@@ -16,6 +16,7 @@
     "@aws-crypto/sha256-js": "^5.2.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.699.0",
     "@aws-sdk/client-dynamodb": "^3.699.0",
+    "@aws-sdk/client-s3": "^3.699.0",
     "@aws-sdk/client-kinesis-video-webrtc-storage": "^3.699.0",
     "@aws-sdk/client-lambda": "^3.699.0",
     "@aws-sdk/credential-provider-node": "^3.699.0",

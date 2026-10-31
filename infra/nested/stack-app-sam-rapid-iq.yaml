@@ -248,6 +248,7 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/rapid-iq/rapidIqHttp.handler
       Timeout: 60
+      # Anthropic only. OpenAI GetSecretValue stays on SignalHttp, the watch worker, and the sales composer.
       Policies:
         - !Ref AppManagedPolicyNexiQDdb
         - Statement:

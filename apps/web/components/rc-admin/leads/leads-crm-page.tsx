@@ -31,11 +31,13 @@ import {
   verticalLabel,
 } from "./leads-utils";
 import { PipelineBoard } from "./pipeline-board";
+import { buildPipelineInsight } from "./pipeline-insights";
+import { PipelineInsightsView } from "./pipeline-insights-view";
 
 const PIPELINE_QUERY_KEY = ["rc-admin-leads-pipeline"] as const;
 const ATTR_QUERY_KEY = ["rc-admin-leads-attribution"] as const;
 
-type ViewMode = "board" | "list";
+type ViewMode = "board" | "list" | "insights";
 type ListSortKey = "name" | "agency" | "stage" | "vertical" | "value" | "next" | "updated";
 
 function emptyStages(): Record<PipelineStage, SalesLeadCrmRecord[]> {
@@ -390,6 +392,10 @@ export function LeadsCrmPage() {
 
   const stages = pipelineQ.data?.stages ?? emptyStages();
   const metrics = pipelineQ.data?.metrics;
+  const insight = useMemo(
+    () => buildPipelineInsight(PIPELINE_STAGES.flatMap((stage) => stages[stage] ?? [])),
+    [stages],
+  );
   const filtered = useMemo(
     () => filterStages(stages, search, sourceFilter, verticalFilter),
     [stages, search, sourceFilter, verticalFilter],
@@ -513,10 +519,22 @@ export function LeadsCrmPage() {
           icon="◎"
         />
         <Metric
-          value={formatCurrency(metrics?.totalPipelineValue ?? 0)}
+          value={formatCurrency(metrics?.totalPipelineValue ?? insight.openValue)}
           label="Pipeline Value"
           color="text-emerald-400"
           icon="$"
+        />
+        <Metric
+          value={formatCurrency(insight.weightedOpenValue)}
+          label="Weighted"
+          color="text-teal-300"
+          icon="◈"
+        />
+        <Metric
+          value={String(insight.quietCount)}
+          label="Quiet 14d"
+          color={insight.quietCount > 0 ? "text-amber-300" : "text-slate-500"}
+          icon="!"
         />
         <Metric
           value={String(metrics?.activeDeals ?? 0)}
@@ -599,17 +617,23 @@ export function LeadsCrmPage() {
           )}
         </select>
         <div className="ml-auto flex rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#080f1e] p-0.5">
-          {(["board", "list"] as const).map((v) => (
+          {(
+            [
+              ["board", "Board"],
+              ["list", "List"],
+              ["insights", "Forecast"],
+            ] as const
+          ).map(([id, label]) => (
             <button
-              key={v}
+              key={id}
               type="button"
-              onClick={() => setView(v)}
+              onClick={() => setView(id)}
               className={[
                 "rounded-md px-3 py-1.5 text-[11px] font-semibold transition",
-                view === v ? "bg-sky-500/15 text-sky-300" : "text-[#334155] hover:text-slate-400",
+                view === id ? "bg-sky-500/15 text-sky-300" : "text-[#334155] hover:text-slate-400",
               ].join(" ")}
             >
-              {v === "board" ? "⊞ Board" : "☰ List"}
+              {label}
             </button>
           ))}
         </div>
@@ -650,6 +674,8 @@ export function LeadsCrmPage() {
               automatically.
             </div>
           </div>
+        ) : view === "insights" ? (
+          <PipelineInsightsView leads={allFiltered} onSelect={setSelectedId} />
         ) : view === "board" ? (
           <PipelineBoard
             stages={filtered}

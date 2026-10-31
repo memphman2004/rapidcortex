@@ -24,6 +24,12 @@ import {
 import type { AttributionSummary } from "./leads-api";
 import { addActivity, addNote, deleteLead, updateLead } from "./leads-api";
 import {
+  fitBand,
+  pipelineFitScore,
+  suggestedNextStep,
+  weightedDealValue,
+} from "./pipeline-insights";
+import {
   formatCurrency,
   formatDateTime,
   getAvatarGradient,
@@ -66,6 +72,24 @@ function SectionHeader({ title }: { title: string }) {
     <div className="mb-3 flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest text-[#334155]">
       <span>{title}</span>
       <div className="flex-1 border-b border-[rgba(255,255,255,0.04)]" />
+    </div>
+  );
+}
+
+function DealHealth({ lead }: { lead: SalesLeadCrmRecord }) {
+  const score = pipelineFitScore(lead);
+  const band = fitBand(score);
+  const bandClass =
+    band === "hot" ? "text-red-300" : band === "warm" ? "text-amber-300" : "text-slate-400";
+  return (
+    <div className="mt-3 rounded-xl border border-white/[0.06] bg-black/20 px-3 py-2">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px]">
+        <span className={`font-bold uppercase tracking-wide ${bandClass}`}>
+          Fit {score} · {band}
+        </span>
+        <span className="tabular-nums text-teal-300">Weighted {formatCurrency(weightedDealValue(lead))}</span>
+      </div>
+      <p className="mt-1 text-[11px] leading-snug text-slate-300">{suggestedNextStep(lead)}</p>
     </div>
   );
 }
@@ -455,6 +479,7 @@ export function LeadDetailPanel({
         </div>
 
         <StageProgress stage={lead.pipelineStage} />
+        <DealHealth lead={lead} />
       </div>
 
       <div className="flex shrink-0 gap-1.5 border-b border-[rgba(255,255,255,0.06)] px-5 py-3">

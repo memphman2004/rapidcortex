@@ -1,0 +1,82 @@
+{
+  "checkedAt": "2026-10-30T14:44:07.714Z",
+  "secretRetrieval": "PASS",
+  "secretFormat": "json fields: apiKey",
+  "executionRole": "PASS",
+  "executionRoleDetail": "SignalHttpFunctionRole allows secretsmanager:GetSecretValue on rapid-cortex/ai/openai only.",
+  "authentication": "PASS",
+  "authenticationDetail": "ready",
+  "models": [
+    {
+      "id": "gpt-6.1-sol",
+      "listed": true,
+      "request": "PASS",
+      "detail": "retrieve succeeded"
+    },
+    {
+      "id": "gpt-6.1-terra",
+      "listed": true,
+      "request": "PASS",
+      "detail": "retrieve succeeded"
+    },
+    {
+      "id": "gpt-6-luna",
+      "listed": true,
+      "request": "PASS",
+      "detail": "retrieve succeeded"
+    },
+    {
+      "id": "gpt-image-2.5-flare",
+      "listed": true,
+      "request": "PASS",
+      "detail": "retrieve succeeded"
+    },
+    {
+      "id": "gpt-image-2.5-sunburst",
+      "listed": true,
+      "request": "PASS",
+      "detail": "retrieve succeeded"
+    }
+  ],
+  "visualAnalysis": "PASS",
+  "visualDetail": "Structured review returned. Not approved for training.",
+  "imageGeneration": "PASS",
+  "imageDetail": "Wrote 1965488 bytes. Not approved for training.",
+  "lastSuccessAt": "2026-10-30T14:44:26.121Z",
+  "lastError": null,
+  "usage": {
+    "inputTokens": 342,
+    "outputTokens": 155,
+    "totalTokens": 744,
+    "imageOutputTokens": 196
+  },
+  "queue": [
+    {
+      "id": "visual-glock-commons",
+      "kind": "visual-review",
+      "status": "REVIEW_REQUIRED",
+      "approved": false,
+      "modelId": "gpt-6.1-terra",
+      "source": "Wikimedia Commons File:Glock 17 MOD 45154998.jpg",
+      "createdAt": "2026-10-30T14:44:16.733Z",
+      "objects": [
+        "Handgun",
+        "White background"
+      ],
+      "uncertainty": "The handgun’s exact model is unclear; bounding-box coordinates are approximate.",
+      "annotation": "Handgun bounding box: (46, 45) to (440, 301), in pixels. Not approved for training."
+    },
+    {
+      "id": "synthetic-garage-silhouette",
+      "kind": "synthetic-image",
+      "status": "REVIEW_REQUIRED",
+      "approved": false,
+      "synthetic": true,
+      "modelId": "gpt-image-2.5-flare",
+      "prompt": "Overhead security-camera view of an empty concrete parking-garage lane in daylight. A dark handheld object with a pistol-like silhouette lies on the concrete, with no people, no faces, no text, and no logo.",
+      "category": "firearm_like",
+      "createdAt": "2026-10-30T14:44:26.121Z",
+      "file": "tmp/openai-studio-synthetic.png"
+    }
+  ]
+}

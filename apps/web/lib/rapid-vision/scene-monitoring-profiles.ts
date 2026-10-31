@@ -48,7 +48,7 @@ export const SCENE_RULES: SceneRule[] = [
   { id: "person_needs_assistance", group: "Person safety", scenario: "Person apparently needing assistance", context: "Unverified. Presence alone is not intent or a medical finding." },
   { id: "altercation", group: "Violence", scenario: "Potential altercation", context: "Apparent physical struggle. Not a finding that a crime occurred." },
   { id: "repeated_striking", group: "Violence", scenario: "Repeated striking or aggressive contact", context: "Needs more than one frame. A single motion is not enough." },
-  { id: "weapon_like", group: "Possible weapon", scenario: "Possible weapon-like object", context: "Uncertain visual match. Not a confirmed weapon and not proof of intent." },
+  { id: "weapon_like", group: "Possible weapon", scenario: "Possible weapon-like object", context: "A visible firearm-like shape. It is not a verified threat, and an officer's own firearm is not treated as a suspected crime." },
   { id: "restricted_entry", group: "Access", scenario: "Restricted-area or restricted-building entry", context: "Only inside a drawn restricted zone, during the hours that zone is closed to the public." },
   { id: "after_hours_entry", group: "Access", scenario: "After-hours entry to a secured building", context: "Uses the camera schedule. Daytime access to a public door is not this rule." },
   { id: "forced_door", group: "Access", scenario: "Door forced open, with a supporting sensor", context: "Requires the door sensor or a second camera. Video alone does not assert a break-in." },

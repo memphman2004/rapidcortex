@@ -123,6 +123,11 @@ export function LeadCard({ lead, selected, onSelect, onDragStart }: Props) {
             {grantCount} grant{grantCount === 1 ? "" : "s"}
           </span>
         )}
+        {stale === 2 && lead.pipelineStage !== "WON" && lead.pipelineStage !== "LOST" && (
+          <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-300">
+            Quiet
+          </span>
+        )}
         {hotScore > 0 && (
           <span
             className={`rounded-full border px-1.5 py-0.5 text-[9px] font-semibold ${

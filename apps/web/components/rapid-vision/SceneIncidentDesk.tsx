@@ -31,7 +31,7 @@ type SceneIncident = {
 const EXAMPLES = [
   {
     title: "Possible firearm",
-    body: "Recognize firearm-like objects across different camera angles, distances, and lighting.",
+    body: "Recognize a firearm-like shape. A visible weapon is not a verified threat, and an officer's own firearm is not a suspected crime.",
   },
   {
     title: "Possible knife",

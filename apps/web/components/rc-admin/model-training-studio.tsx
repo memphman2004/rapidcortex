@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { STUDIO_CATEGORIES, type DiscoveryCandidate } from "@/lib/rapid-vision/model-studio";
+import { STUDIO_CATEGORIES } from "@/lib/rapid-vision/model-studio";
+import { WebDiscoveryLab } from "@/components/rc-admin/web-discovery-lab";
+import { IntelligenceProviders } from "@/components/rc-admin/intelligence-providers";
+import { StudioReadiness, StudioReviewQueue } from "@/components/rc-admin/studio-review-queue";
 
 const TABS = [
   "Overview",
@@ -14,7 +17,8 @@ const TABS = [
   "Camera Deployment",
   "Feedback",
   "Audit",
-  "Web Discovery",
+  "Discovery Lab",
+  "Intelligence Providers",
 ] as const;
 
 type Tab = (typeof TABS)[number];
@@ -35,7 +39,7 @@ export function ModelTrainingStudio() {
           </button>
         ))}
       </nav>
-      {tab === "Overview" ? <Overview onOpen={() => setTab("Web Discovery")} /> : null}
+      {tab === "Overview" ? <Overview onOpen={() => setTab("Discovery Lab")} /> : null}
       {tab === "Detection Categories" ? <Categories /> : null}
       {tab === "Training Datasets" ? <Datasets /> : null}
       {tab === "Labeling" ? <Labeling /> : null}
@@ -45,7 +49,8 @@ export function ModelTrainingStudio() {
       {tab === "Camera Deployment" ? <Deployment /> : null}
       {tab === "Feedback" ? <EmptyPanel title="Feedback and improvements" body="Dispatcher review notes are not copied into a training set automatically. A new model still needs evaluation and approval." /> : null}
       {tab === "Audit" ? <EmptyPanel title="Audit history" body="Approval and deployment decisions will appear here when a model record is stored. No production activation has been recorded." /> : null}
-      {tab === "Web Discovery" ? <WebDiscovery /> : null}
+      {tab === "Discovery Lab" ? <WebDiscoveryLab /> : null}
+      {tab === "Intelligence Providers" ? <IntelligenceProviders /> : null}
     </div>
   );
 }
@@ -73,7 +78,8 @@ function Overview({ onOpen }: { onOpen: () => void }) {
         ))}
       </div>
       <p className="text-xs text-slate-500">These counts are the model records on file. Zero means none are registered, not that detection is accurate.</p>
-      <button type="button" onClick={onOpen} className="rounded bg-violet-800 px-3 py-1.5 text-sm">Open Web Discovery</button>
+      <StudioReadiness />
+      <button type="button" onClick={onOpen} className="rounded bg-violet-800 px-3 py-1.5 text-sm">Open Discovery Lab</button>
     </section>
   );
 }
@@ -102,12 +108,7 @@ function Datasets() {
 }
 
 function Labeling() {
-  return (
-    <EmptyPanel
-      title="Image and video labeling"
-      body="CVAT remains the labeling tool for boxes, tracks, and video intervals. This studio does not draw boxes on an empty canvas and call them annotations. Negative examples — phones, tools, toys, exercise, and ordinary crowds — are required before a dataset can be marked training-ready."
-    />
-  );
+  return <StudioReviewQueue />;
 }
 
 function TrainingJobs() {
@@ -150,81 +151,6 @@ function Deployment() {
   );
 }
 
-function WebDiscovery() {
-  const [category, setCategory] = useState("firearm_like");
-  const [source, setSource] = useState("openverse");
-  const [media, setMedia] = useState("image");
-  const [candidates, setCandidates] = useState<DiscoveryCandidate[]>([]);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  async function search() {
-    setBusy(true);
-    setNotice(null);
-    try {
-      const res = await fetch("/api/rc-admin/vision/discover", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ category, source, media, limit: 12 }),
-      });
-      const body = (await res.json()) as { candidates?: DiscoveryCandidate[]; notice?: string; error?: string };
-      setCandidates(body.candidates ?? []);
-      setNotice(body.error || body.notice || null);
-    } catch {
-      setNotice("Discovery did not respond. No files were downloaded.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function review(candidate: DiscoveryCandidate, decision: "approve" | "reject") {
-    const res = await fetch("/api/rc-admin/vision/studio", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "review-candidate", candidate, decision }),
-    });
-    const body = (await res.json()) as { reason?: string; error?: string };
-    setNotice(body.reason || body.error || "Review was not recorded.");
-  }
-
-  return (
-    <section className="space-y-3">
-      <p className="max-w-3xl text-sm text-slate-400">
-        Search approved sources for candidates. A ceiling-camera night scene is not the same as a studio photo, so discovered images only bootstrap a dataset. Customer cameras still need their own authorized footage before a model can be considered.
-      </p>
-      <div className="flex flex-wrap gap-2">
-        <select className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm" value={category} onChange={(event) => setCategory(event.target.value)}>
-          {STUDIO_CATEGORIES.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-        </select>
-        <select className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm" value={source} onChange={(event) => setSource(event.target.value)}>
-          <option value="openverse">Openverse</option>
-          <option value="wikimedia">Wikimedia Commons</option>
-          <option value="huggingface">Hugging Face datasets</option>
-        </select>
-        <select className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm" value={media} onChange={(event) => setMedia(event.target.value)}>
-          <option value="image">Images</option>
-          <option value="text">Public text</option>
-        </select>
-        <button type="button" disabled={busy} onClick={() => void search()} className="rounded bg-violet-800 px-3 py-1 text-sm disabled:opacity-50">Search</button>
-      </div>
-      {notice ? <p className="text-sm text-amber-100">{notice}</p> : null}
-      <ul className="grid gap-3 md:grid-cols-2">
-        {candidates.map((candidate) => (
-          <li key={candidate.id} className="rounded-lg border border-slate-800 p-3">
-            <p className="text-sm font-medium">{candidate.title}</p>
-            <p className="mt-1 text-xs text-slate-400">{candidate.source} · {candidate.license} · {candidate.trainable ? "License may allow review" : "Not eligible for training"}</p>
-            <p className="mt-1 text-xs text-slate-500">{candidate.creator}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <a className="text-xs text-violet-300 underline" href={candidate.sourceUrl} target="_blank" rel="noreferrer">View source</a>
-              <button type="button" className="text-xs text-slate-300" onClick={() => void review(candidate, "approve")}>Approve for review</button>
-              <button type="button" className="text-xs text-slate-500" onClick={() => void review(candidate, "reject")}>Reject</button>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
 
 function EmptyPanel({ title, body }: { title: string; body: string }) {
   return (

@@ -255,6 +255,9 @@ export const SCENE_SENSITIVITY_THRESHOLD: Record<"low" | "medium" | "high" | "ma
 };
 
 export function mockSceneNarrative(eventType: VisionSceneEventType): string {
+  if (eventType === "VISIBLE_WEAPON") {
+    return "Possible firearm-like shape. A visible weapon is not a verified threat, and an officer's own firearm is not a suspected crime. Dispatcher confirmation is required before any dispatch.";
+  }
   const match = demoSceneAlerts("fixture").find((a) => a.eventType === eventType);
   if (match?.narrative) return match.narrative;
   return `${SCENE_INTEL_EVENT_TYPE_LABELS[eventType]}. Dispatcher confirmation required before any dispatch.`;

@@ -403,14 +403,6 @@ Resources:
               - HasWatchIngestSecretArn
               - !Ref RapidIqWatchIngestApiKeySecretArn
               - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-watch-ingest-*
-          - Sid: ReadOpenAiSecret
-            Effect: Allow
-            Action:
-              - secretsmanager:GetSecretValue
-            Resource: !If
-              - HasOpenAiApiKeySecretArn
-              - !Ref OpenAiApiKeySecretArn
-              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-openai-*
           - Sid: SesSendNexiQAlerts
             Effect: Allow
             Action:
@@ -888,6 +880,15 @@ Resources:
           INTEL_WATCH_QUEUE_URL: !Ref IntelWatchQueue
       Policies:
         - !Ref AppManagedPolicyNexiQPipeline
+        - Statement:
+            - Sid: ReadOpenAiSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasOpenAiApiKeySecretArn
+                - !Ref OpenAiApiKeySecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-openai-*
       Events:
         SqsTrigger:
           Type: SQS
@@ -929,6 +930,15 @@ Resources:
       Timeout: 240
       Policies:
         - !Ref AppManagedPolicyNexiQPipeline
+        - Statement:
+            - Sid: ReadOpenAiSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasOpenAiApiKeySecretArn
+                - !Ref OpenAiApiKeySecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-openai-*
       Events:
         Newsletter:
           Type: Schedule
@@ -994,6 +1004,15 @@ Resources:
           INTEL_WATCH_QUEUE_URL: !If [RapidIqNestedExpansion, !Ref IntelWatchQueue, ""]
       Policies:
         - !Ref AppManagedPolicyNexiQPipeline
+        - Statement:
+            - Sid: ReadOpenAiSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !If
+                - HasOpenAiApiKeySecretArn
+                - !Ref OpenAiApiKeySecretArn
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-rapidiq-openai-*
 
   # Do not reuse SignalHttpIntegration / SignalHttpIntegrationV2.
   # 2026-10-08: nested JWN4SGUYZXYF stuck UPDATE_ROLLBACK_FAILED on ghost s3r1f5g

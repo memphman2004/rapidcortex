@@ -537,6 +537,28 @@ Resources:
                   - ssmmessages:OpenControlChannel
                   - ssmmessages:OpenDataChannel
                 Resource: "*"
+              # Model Training Studio. API DeploymentStage dev is the live data plane.
+              - Sid: StudioOpenAiSecret
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/ai/openai-*
+              - Sid: StudioReviewMetadata
+                Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:Query
+                Resource:
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-events-dev
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-vision-events-dev/index/ByAgencyStatus
+              - Sid: StudioReviewMedia
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource: !Sub arn:aws:s3:::rapid-cortex-vision-artifacts-dev-${AWS::AccountId}/studio/*
               # Same-origin ALS Maps proxy (/api/map/als-proxy) — signs tiles without browser Cognito.
               - Sid: AlsMapsV2Proxy
                 Effect: Allow

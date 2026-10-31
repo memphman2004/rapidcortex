@@ -5,8 +5,6 @@ import {
   OPERATOR_HANDLING,
   SCENE_RULES,
   SCENE_VERTICALS,
-  handlingLabel,
-  handlingPulsesWatchDesk,
   resolveHandling,
   type OperatorHandling,
   type ScenePolicyOverrides,
@@ -15,8 +13,6 @@ import {
 } from "@/lib/rapid-vision/scene-monitoring-profiles";
 
 const STORAGE_KEY = "nexcort-scene-monitoring-profile";
-
-const COMPARE_DEFAULT = "person_down_athletic";
 
 function readOverrides(): ScenePolicyOverrides {
   if (typeof sessionStorage === "undefined") return {};
@@ -30,9 +26,7 @@ function readOverrides(): ScenePolicyOverrides {
   }
 }
 
-export function SceneMonitoringProfiles() {
-  const [vertical, setVertical] = useState<SceneVertical>("campus");
-  const [compareId, setCompareId] = useState<string>(COMPARE_DEFAULT);
+export function SceneMonitoringProfiles({ vertical }: { vertical: SceneVertical }) {
   const [overrides, setOverrides] = useState<ScenePolicyOverrides>({});
 
   useEffect(() => {
@@ -64,68 +58,18 @@ export function SceneMonitoringProfiles() {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   }
 
-  const compareRule = SCENE_RULES.find((rule) => rule.id === compareId) ?? SCENE_RULES[0];
-
   return (
     <section className="space-y-4">
       <header>
-        <h2 className="text-sm font-semibold text-white">Scene monitoring profiles</h2>
+        <h2 className="text-sm font-semibold text-white">Scene monitoring · {place?.label}</h2>
         <p className="mt-1 max-w-3xl text-sm text-slate-400">
-          The same scene is not the same operational concern in every place. These policies tell the watch desk how to handle a possible event. They do not start a detector, and they do not create a CAD incident.
+          {place?.place}. These policies tell this watch desk how to handle a possible event. They do not start a detector, and they do not create a CAD incident.
         </p>
       </header>
 
-      <div className="rounded-lg border border-slate-800 bg-[#0c1220] p-3">
-        <label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-          Same event, different place
-          <select
-            className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100"
-            value={compareId}
-            onChange={(event) => setCompareId(event.target.value)}
-          >
-            {SCENE_RULES.map((rule) => (
-              <option key={rule.id} value={rule.id}>
-                {rule.scenario}
-              </option>
-            ))}
-          </select>
-        </label>
-        <p className="mt-2 text-xs text-slate-500">{compareRule?.context}</p>
-        <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          {SCENE_VERTICALS.map((item) => {
-            const handling = resolveHandling(item.id, compareRule?.id ?? "", overrides);
-            return (
-              <li key={item.id} className="rounded-md border border-slate-800 px-2 py-2">
-                <p className="text-[10px] uppercase tracking-wide text-slate-500">{item.label}</p>
-                <p className={`text-sm font-medium ${handlingPulsesWatchDesk(handling) ? "text-red-200" : "text-slate-100"}`}>
-                  {handlingLabel(handling)}
-                </p>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-
-      <div className="flex flex-wrap gap-1" role="tablist" aria-label="Scene monitoring vertical">
-        {SCENE_VERTICALS.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            role="tab"
-            aria-selected={vertical === item.id}
-            onClick={() => setVertical(item.id)}
-            className={`rounded-md px-3 py-1.5 text-sm ${
-              vertical === item.id ? "bg-cyan-900/60 text-cyan-100" : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-slate-300">
-          {place?.place}. Priority review can pulse the watch desk. Review alert and low-priority review do not. Camera health never pulses red.
+          Priority review can pulse the watch desk. Review alert and low-priority review do not. Camera health never pulses red.
         </p>
         <button type="button" onClick={resetVertical} className="rounded border border-slate-700 px-2 py-1 text-xs text-slate-300">
           Reset {place?.label} suggestions
