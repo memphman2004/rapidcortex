@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { VisionSceneAlert, VisionWebSocketEvent } from "rapid-cortex-shared";
+import { dispatcherCue, type VisionSceneAlert, type VisionWebSocketEvent } from "rapid-cortex-shared";
 import { useAgencyWebSocket, type AgencyWebSocketMessage } from "@/hooks/use-agency-websocket";
 import { useOptionalJurisdictionSlug } from "@/lib/jurisdiction-context";
 import { useOptionalSession } from "@/components/auth/session-context";
@@ -107,6 +107,7 @@ export function CameraAiAlertsPanel() {
   const [dismissReason, setDismissReason] = useState<DismissReason>("false_positive");
   const [expanded, setExpanded] = useState(false);
   const seenIds = useRef(new Set<string>());
+  const primed = useRef(false);
 
   const session = useOptionalSession();
   const callTaker = isPsapCallTaker(session?.user?.role);
@@ -124,11 +125,16 @@ export function CameraAiAlertsPanel() {
   const selected = alerts.find((a) => a.eventId === selectedId) ?? alerts[0] ?? null;
 
   useEffect(() => {
-    for (const alert of alerts) {
-      if (alert.status !== "active") continue;
-      if (seenIds.current.has(alert.eventId)) continue;
-      seenIds.current.add(alert.eventId);
-      if (seenIds.current.size > alerts.length) playAlertTone();
+    const fresh = alerts.filter(
+      (alert) => alert.status === "active" && !seenIds.current.has(alert.eventId),
+    );
+    for (const alert of fresh) seenIds.current.add(alert.eventId);
+    if (!primed.current) {
+      primed.current = true;
+      return;
+    }
+    if (fresh.some((alert) => alert.severity === "critical" || alert.severity === "high")) {
+      playAlertTone();
     }
   }, [alerts]);
 
@@ -247,11 +253,9 @@ export function CameraAiAlertsPanel() {
                   <span className="w-14 shrink-0 font-mono text-[11px]" style={{ color: V.muted }}>
                     {clock(alert.timestamp, hour12)}
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-[12px] font-medium">
+                  <span className="min-w-0 flex-1 truncate text-[12px] font-medium">{alert.shortLabel}</span>
+                  <span className="max-w-[42%] shrink-0 truncate text-[11px]" style={{ color: V.muted }}>
                     {alert.cameraName.replace(/ – .*$/, "")}
-                  </span>
-                  <span className="shrink-0 text-[11px]" style={{ color: V.muted }}>
-                    {alert.shortLabel}
                   </span>
                 </button>
               </li>
@@ -294,8 +298,8 @@ export function CameraAiAlertsPanel() {
                 Linked incident {selected.incidentId}
               </p>
             ) : null}
-            <p className="mb-3 text-[10px] uppercase tracking-wide" style={{ color: V.dim }}>
-              AI surfaces the alert. You make the decision.
+            <p className="mb-3 text-[12px] leading-relaxed" style={{ color: V.text }}>
+              {dispatcherCue(selected.eventType)}
             </p>
             <div className="flex flex-wrap gap-1.5">
               <a

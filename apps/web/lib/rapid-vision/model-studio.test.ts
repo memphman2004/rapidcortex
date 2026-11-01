@@ -142,6 +142,34 @@ describe("model studio safeguards", () => {
   it("does not start training or production without a connected backend and an approval", () => {
     expect(startTrainingJob({ datasetReady: true, backendConnected: false }).progress).toBeNull();
     expect(startTrainingJob({ datasetReady: true, backendConnected: false }).status).toBe("NOT_STARTED");
+    expect(startTrainingJob({ datasetReady: true, backendConnected: true, phase: 1 }).reason).toMatch(/DetectLabels/);
+    expect(startTrainingJob({
+      datasetReady: true,
+      backendConnected: true,
+      phase: 2,
+      source: { kind: "agency-dua", agreementId: "dua-1", lineageRecorded: true, restrictedBucket: false, facesBlurredBeforeExport: true },
+    }).reason).toMatch(/restricted store/);
+    expect(startTrainingJob({
+      datasetReady: true,
+      backendConnected: true,
+      phase: 3,
+      source: { kind: "stock-ai-license", vendor: "getty", contractSigned: false, trainingRights: false },
+    }).reason).toMatch(/training rights/);
+    expect(startTrainingJob({
+      datasetReady: true,
+      backendConnected: false,
+      phase: 2,
+      source: { kind: "owned-synthetic", labeledAtGeneration: true, partition: "synthetic" },
+    }).reason).toMatch(/Custom Labels is not connected/);
+    const ready = startTrainingJob({
+      datasetReady: true,
+      backendConnected: true,
+      phase: 2,
+      source: { kind: "owned-synthetic", labeledAtGeneration: true, partition: "synthetic" },
+    });
+    expect(ready.status).toBe("READY");
+    expect(ready.classes.map((item) => item.label)).toContain("nexcort-altercation");
+    expect(ready.reason).toMatch(/No job id was issued/);
     expect(canEnterProduction({ phase: "TRAINING", evaluationAccepted: false, artifactUri: null }).ok).toBe(false);
     expect(canEnterProduction({ phase: "APPROVED", evaluationAccepted: true, artifactUri: "s3://models/v1" }).reason).toMatch(/closed/);
   });
@@ -183,7 +211,7 @@ describe("model studio safeguards", () => {
     expect(archive?.sourceUrl).toBe("https://archive.org/details/garage-film");
     expect(candidateFromInternetArchive({ identifier: "../secret", title: "no" })).toBeNull();
     expect(discoverySourceRefusal("pexels")).toMatch(/not used/);
-    expect(discoverySourceRefusal("youtube")).toMatch(/disabled/i);
+    expect(discoverySourceRefusal("youtube")).toMatch(/does not allow downloading/i);
   });
 
   it("notes a clip interval without writing a file and reports missing video examples", () => {

@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { classifyRekognitionLabels, demoSceneAlerts, mockSceneNarrative, summarizeSceneAlerts } from "./scene-intel.js";
+import {
+  classifyRekognitionLabels,
+  demoSceneAlerts,
+  dispatcherCue,
+  mockSceneNarrative,
+  sceneAlertSuppressedByCooldown,
+  summarizeSceneAlerts,
+} from "./scene-intel.js";
 
 describe("classifyRekognitionLabels", () => {
   it("maps fight labels to a critical altercation alert", () => {
@@ -28,6 +35,72 @@ describe("classifyRekognitionLabels", () => {
 
   it("returns null for motion-only frames with no operational labels", () => {
     expect(classifyRekognitionLabels([{ name: "Tree", confidence: 99, instances: 1 }])).toBeNull();
+  });
+
+  it("reads a weapon from the parent of a Rekognition handgun label", () => {
+    const result = classifyRekognitionLabels([
+      { name: "Pistol", confidence: 81, instances: 1, parents: ["Weapon"] },
+    ]);
+    expect(result?.eventType).toBe("VISIBLE_WEAPON");
+  });
+
+  it("maps a moderation violence label to an altercation", () => {
+    const result = classifyRekognitionLabels([{ name: "Physical Violence", confidence: 88, instances: 1 }]);
+    expect(result).toMatchObject({ eventType: "FIGHT_OR_ALTERCATION", severity: "critical" });
+  });
+
+  it("ignores a weak violence score", () => {
+    expect(classifyRekognitionLabels([{ name: "Violence", confidence: 61, instances: 1 }])).toBeNull();
+  });
+
+  it("maps a trained Custom Labels class onto a dispatcher alert", () => {
+    const result = classifyRekognitionLabels([{ name: "nexcort-altercation", confidence: 86, instances: 1 }]);
+    expect(result).toMatchObject({ eventType: "FIGHT_OR_ALTERCATION", shortLabel: "Physical altercation" });
+  });
+});
+
+describe("sceneAlertSuppressedByCooldown", () => {
+  const now = Date.parse("2026-10-31T20:00:00.000Z");
+  const recent = new Date(now - 30_000).toISOString();
+
+  it("lets a weapon through while a crowd alert is still cooling down", () => {
+    expect(
+      sceneAlertSuppressedByCooldown({
+        latest: {
+          status: "active",
+          timestamp: recent,
+          eventType: "CROWD_FORMATION",
+          severity: "medium",
+        },
+        nextEventType: "VISIBLE_WEAPON",
+        nextSeverity: "high",
+        cooldownSeconds: 120,
+        now,
+      }),
+    ).toBe(false);
+  });
+
+  it("keeps a repeat of the same event quiet", () => {
+    expect(
+      sceneAlertSuppressedByCooldown({
+        latest: {
+          status: "active",
+          timestamp: recent,
+          eventType: "VISIBLE_WEAPON",
+          severity: "high",
+        },
+        nextEventType: "VISIBLE_WEAPON",
+        nextSeverity: "high",
+        cooldownSeconds: 120,
+        now,
+      }),
+    ).toBe(true);
+  });
+});
+
+describe("dispatcherCue", () => {
+  it("tells the dispatcher to confirm a weapon before dispatch", () => {
+    expect(dispatcherCue("VISIBLE_WEAPON")).toContain("confirm before dispatch");
   });
 });
 

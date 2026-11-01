@@ -40,7 +40,7 @@ import {
   runAnalysis,
 } from "@/lib/queries";
 import type { SimulatedTranscriptChunk } from "@/lib/transcript-sim-stream";
-import type { TranscriptSegment } from "rapid-cortex-shared";
+import { applyIncidentPictureFacts, pictureFromIncidentFacts, type TranscriptSegment } from "rapid-cortex-shared";
 import { useJurisdictionSlug } from "@/lib/jurisdiction-context";
 import { dispatchDashboardHref } from "@/lib/dispatch-workspace-links";
 import { TRAINING_MODE_LABEL, TRAINING_MODE_API_EXPLANATION } from "@/lib/training-mode";
@@ -194,10 +194,25 @@ export function DashboardWorkspace({ popout = false }: { popout?: boolean }) {
   }, [analysisQuery.data, selectedId]);
 
   const fieldConfidenceForUi = useMemo(() => {
+    const source = {
+      title: incidentForUi?.title,
+      callerAddressLine: incidentForUi?.callerAddressLine,
+      cadLocation: incidentForUi?.cadLocation,
+      cadIntersection: incidentForUi?.cadIntersection,
+      cadNatureCode: incidentForUi?.cadNatureCode,
+      category: incidentForUi?.category,
+    };
     const row = fieldConfidenceQuery.data;
-    if (!row || !selectedId || row.incidentId !== selectedId) return null;
-    return row;
-  }, [fieldConfidenceQuery.data, selectedId]);
+    if (row && selectedId && row.incidentId === selectedId) {
+      return applyIncidentPictureFacts(row, source);
+    }
+    if (!incidentForUi || !selectedId) return null;
+    return pictureFromIncidentFacts({
+      incidentId: selectedId,
+      agencyId: incidentForUi.agencyId,
+      source,
+    });
+  }, [fieldConfidenceQuery.data, incidentForUi, selectedId]);
 
   useEffect(() => {
     setIsRefreshingAi(false);

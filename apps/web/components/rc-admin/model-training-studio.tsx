@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { SCENE_TRAINING_CLASSES } from "rapid-cortex-shared";
 import { STUDIO_CATEGORIES } from "@/lib/rapid-vision/model-studio";
+import { SCENE_MODEL_PHASES } from "@/lib/rapid-vision/training-phase";
 import { WebDiscoveryLab } from "@/components/rc-admin/web-discovery-lab";
 import { IntelligenceProviders } from "@/components/rc-admin/intelligence-providers";
 import { StudioReadiness, StudioReviewQueue } from "@/components/rc-admin/studio-review-queue";
@@ -78,6 +80,14 @@ function Overview({ onOpen }: { onOpen: () => void }) {
         ))}
       </div>
       <p className="text-xs text-slate-500">These counts are the model records on file. Zero means none are registered, not that detection is accurate.</p>
+      <ol className="space-y-2">
+        {SCENE_MODEL_PHASES.map((phase) => (
+          <li key={phase.id} className="rounded-lg border border-slate-800 px-3 py-2">
+            <p className="text-sm font-medium">Phase {phase.id} · {phase.name} · {phase.state}</p>
+            <p className="text-xs text-slate-400">{phase.detail}</p>
+          </li>
+        ))}
+      </ol>
       <StudioReadiness />
       <button type="button" onClick={onOpen} className="rounded bg-violet-800 px-3 py-1.5 text-sm">Open Discovery Lab</button>
     </section>
@@ -102,7 +112,7 @@ function Datasets() {
   return (
     <EmptyPanel
       title="Training datasets"
-      body="No dataset version is stored. Upload of agency footage stays off until a reviewed dataset bucket and malware scan are connected. Web Discovery can find licensed candidates, and those files are not copied here automatically."
+      body="No dataset version is stored. A training job stays idle until the footage is a signed agency agreement or a synthetic render you own. Stock footage stays a lead until a contract states AI training rights. Web Discovery does not copy files here."
     />
   );
 }
@@ -124,7 +134,19 @@ function TrainingJobs() {
   }
   return (
     <section className="space-y-3">
-      <p className="text-sm text-slate-400">SageMaker is the planned trainer. Lambda will not train a vision model. A job stays unstarted until the training backend returns an id.</p>
+      <p className="text-sm text-slate-400">
+        DetectLabels is the live detector. These classes are what a Custom Labels model still has to learn. A job stays unstarted until each class has labeled camera-scene examples and the footage source is a signed agency agreement or a renderer you own.
+      </p>
+      <ul className="space-y-2">
+        {SCENE_TRAINING_CLASSES.map((item) => (
+          <li key={item.id} className="rounded-lg border border-slate-800 px-3 py-2">
+            <p className="text-sm font-medium">{item.name}</p>
+            <p className="text-xs text-slate-400">
+              Trains label {item.label} · alerts as {item.shortLabel} · {item.minPositives} positive and {item.minNegatives} lookalike {item.media === "video" ? "clips" : "images"} · not trained
+            </p>
+          </li>
+        ))}
+      </ul>
       <button type="button" onClick={() => void start()} className="rounded bg-slate-800 px-3 py-1.5 text-sm">Request training job</button>
       {message ? <p className="text-sm text-amber-100">{message}</p> : null}
     </section>

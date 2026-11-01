@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import type { AIAnalysis, ConfidenceAnalysis, Incident } from "rapid-cortex-shared";
+import {
+  confidenceToDisplayPercent,
+  incidentPictureRationale,
+  type AIAnalysis,
+  type ConfidenceAnalysis,
+  type Incident,
+} from "rapid-cortex-shared";
 import { IntelligencePanelContent } from "@/components/dispatch/ai-panel";
 import { Ng911AssistPanel } from "@/components/dispatch/ng911-assist-panel";
 import { SopProtocolSurface } from "@/components/dispatch/sop-protocol-surface";
@@ -35,13 +41,22 @@ export function IntelligenceWorkstation({
   const [tab, setTab] = useState<Tab>("SUMMARY");
   const fieldOn = isFieldConfidenceEnabled();
   const showFields = fieldOn && (fieldConfidence != null || fieldConfidenceLoading);
-  const pct =
-    fieldConfidence?.aggregate.overallScore != null
-      ? Math.round(fieldConfidence.aggregate.overallScore * 100)
-      : analysis
-        ? Math.round(analysis.confidence * 100)
-        : 0;
+  const pct = fieldConfidence
+    ? confidenceToDisplayPercent(fieldConfidence.aggregate.overallScore)
+    : analysis
+      ? confidenceToDisplayPercent(analysis.confidence)
+      : 0;
   const picture = fieldConfidence?.aggregate.pictureStatus ?? "INCOMPLETE";
+  const pictureSource = {
+    title: incident?.title,
+    callerAddressLine: incident?.callerAddressLine,
+    cadLocation: incident?.cadLocation,
+    cadIntersection: incident?.cadIntersection,
+    cadNatureCode: incident?.cadNatureCode,
+    category: incident?.category,
+  };
+  const rationale = incidentPictureRationale(analysis?.rationale, pictureSource);
+  const analysisForSummary = analysis ? { ...analysis, rationale } : analysis;
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -99,7 +114,7 @@ export function IntelligenceWorkstation({
           <IntelligencePanelContent
             incidentId={incidentId}
             incident={incident}
-            analysis={analysis}
+            analysis={analysisForSummary}
             fieldConfidence={null}
             fieldConfidenceLoading={false}
             analysisError={analysisError}
@@ -118,7 +133,7 @@ export function IntelligenceWorkstation({
         ) : null}
         {tab === "RATIONALE" ? (
           <p className="whitespace-pre-wrap text-[12px] leading-snug text-[var(--rc-text)]">
-            {analysis?.rationale?.trim() || "No rationale yet."}
+            {rationale}
           </p>
         ) : null}
         {tab === "NG911 DATA" ? (

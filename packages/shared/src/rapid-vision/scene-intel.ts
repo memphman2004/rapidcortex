@@ -2,6 +2,7 @@
  * iQ Vision™ AI Scene Intelligence — Rekognition label → dispatcher event map.
  * AI surfaces the alert; the dispatcher decides. Never auto-create an incident.
  */
+import { sceneTrainingClassForLabel } from "./scene-training.js";
 import type {
   DetectionCategory,
   ObservationConfidence,
@@ -15,6 +16,8 @@ export interface RekognitionLabelInput {
   name: string;
   confidence: number;
   instances?: number;
+  /** DetectLabels parent names, such as Weapon on a Handgun hit. */
+  parents?: string[];
 }
 
 export interface SceneClassification {
@@ -27,9 +30,63 @@ export interface SceneClassification {
 
 const LABEL = (name: string) => name.trim().toLowerCase();
 
+function flattenLabels(labels: RekognitionLabelInput[]): RekognitionLabelInput[] {
+  const flat: RekognitionLabelInput[] = [];
+  for (const label of labels) {
+    flat.push(label);
+    for (const parent of label.parents ?? []) {
+      const name = parent.trim();
+      if (!name) continue;
+      flat.push({ name, confidence: label.confidence, instances: label.instances });
+    }
+  }
+  return flat;
+}
+
 function has(labels: RekognitionLabelInput[], ...names: string[]): RekognitionLabelInput | undefined {
   const want = new Set(names.map(LABEL));
   return labels.find((l) => want.has(LABEL(l.name)));
+}
+
+const CRIME_IN_ACTION = new Set<VisionSceneEventType>([
+  "VISIBLE_WEAPON",
+  "FIGHT_OR_ALTERCATION",
+  "PERSON_DOWN",
+  "FORCED_ENTRY",
+  "VEHICLE_COLLISION",
+  "MEDICAL_EMERGENCY",
+]);
+
+const SEVERITY_RANK: Record<VisionSceneSeverity, number> = {
+  low: 0,
+  medium: 1,
+  high: 2,
+  critical: 3,
+};
+
+/**
+ * Repeat of the same event stays quiet for the cooldown.
+ * A different crime in progress still alerts, so a weapon is not hidden behind a crowd.
+ */
+export function sceneAlertSuppressedByCooldown(input: {
+  latest: {
+    status: string;
+    timestamp: string;
+    eventType: VisionSceneEventType;
+    severity: VisionSceneSeverity;
+  } | null;
+  nextEventType: VisionSceneEventType;
+  nextSeverity: VisionSceneSeverity;
+  cooldownSeconds: number;
+  now?: number;
+}): boolean {
+  const latest = input.latest;
+  if (!latest || latest.status !== "active") return false;
+  const ageSec = ((input.now ?? Date.now()) - new Date(latest.timestamp).getTime()) / 1000;
+  if (!Number.isFinite(ageSec) || ageSec < 0 || ageSec >= input.cooldownSeconds) return false;
+  if (latest.eventType === input.nextEventType) return true;
+  if (CRIME_IN_ACTION.has(input.nextEventType)) return false;
+  return (SEVERITY_RANK[input.nextSeverity] ?? 0) <= (SEVERITY_RANK[latest.severity] ?? 0);
 }
 
 function personCount(labels: RekognitionLabelInput[]): number {
@@ -50,9 +107,26 @@ function confidenceBand(score: number): ObservationConfidence {
 export function classifyRekognitionLabels(
   labels: RekognitionLabelInput[],
 ): SceneClassification | null {
-  if (labels.length === 0) return null;
+  const flat = flattenLabels(labels);
+  if (flat.length === 0) return null;
 
-  const weapon = has(labels, "Weapon", "Gun", "Handgun", "Rifle", "Knife", "Firearm");
+  const trained = flat
+    .map((label) => ({ label, trained: sceneTrainingClassForLabel(label.name) }))
+    .filter((hit): hit is { label: RekognitionLabelInput; trained: NonNullable<ReturnType<typeof sceneTrainingClassForLabel>> } =>
+      hit.trained != null && (hit.label.confidence ?? 0) >= 50,
+    )
+    .sort((a, b) => (b.label.confidence ?? 0) - (a.label.confidence ?? 0))[0];
+  if (trained) {
+    return {
+      eventType: trained.trained.eventType,
+      category: trained.trained.category,
+      severity: trained.trained.severity,
+      confidence: trained.trained.confidence,
+      shortLabel: trained.trained.shortLabel,
+    };
+  }
+
+  const weapon = has(flat, "Weapon", "Weapons", "Gun", "Handgun", "Rifle", "Knife", "Firearm", "Blade", "Shotgun", "Weapon Violence");
   if (weapon && (weapon.confidence ?? 0) >= 50) {
     return {
       eventType: "VISIBLE_WEAPON",
@@ -63,8 +137,11 @@ export function classifyRekognitionLabels(
     };
   }
 
-  const fight = has(labels, "Fight", "Fighting", "Violence", "Assault", "Altercation");
-  if (fight || (personCount(labels) >= 2 && has(labels, "Crowd") && has(labels, "Fist"))) {
+  const fight = has(flat, "Fight", "Fighting", "Violence", "Physical Violence", "Assault", "Altercation");
+  if (
+    (fight && (fight.confidence ?? 0) >= 70) ||
+    (personCount(flat) >= 2 && has(flat, "Crowd") && has(flat, "Fist"))
+  ) {
     const score = fight?.confidence ?? 70;
     return {
       eventType: "FIGHT_OR_ALTERCATION",
@@ -75,7 +152,7 @@ export function classifyRekognitionLabels(
     };
   }
 
-  const down = has(labels, "Person Down", "Lying", "Collapsed", "Unconscious");
+  const down = has(flat, "Person Down", "Lying", "Collapsed", "Unconscious", "Falling");
   if (down) {
     return {
       eventType: "PERSON_DOWN",
@@ -86,8 +163,8 @@ export function classifyRekognitionLabels(
     };
   }
 
-  const medical = has(labels, "Medical", "Ambulance", "First Aid");
-  if (medical && has(labels, "Person")) {
+  const medical = has(flat, "Medical", "Ambulance", "First Aid");
+  if (medical && has(flat, "Person")) {
     return {
       eventType: "MEDICAL_EMERGENCY",
       category: "PERSON_DOWN",
@@ -97,8 +174,8 @@ export function classifyRekognitionLabels(
     };
   }
 
-  const forced = has(labels, "Forced Entry", "Break In", "Tampering");
-  if (forced || (has(labels, "Door") && has(labels, "Person") && has(labels, "Handle"))) {
+  const forced = has(flat, "Forced Entry", "Break In", "Tampering", "Burglary");
+  if (forced || (has(flat, "Door") && has(flat, "Person") && has(flat, "Handle"))) {
     return {
       eventType: "FORCED_ENTRY",
       category: "RESTRICTED_AREA_ENTRY",
@@ -108,8 +185,8 @@ export function classifyRekognitionLabels(
     };
   }
 
-  const collision = has(labels, "Accident", "Collision", "Crash", "Car Accident");
-  if (collision && has(labels, "Car", "Vehicle", "Automobile", "Truck")) {
+  const collision = has(flat, "Accident", "Collision", "Crash", "Car Accident");
+  if (collision && has(flat, "Car", "Vehicle", "Automobile", "Truck")) {
     return {
       eventType: "VEHICLE_COLLISION",
       category: "VEHICLE",
@@ -119,7 +196,7 @@ export function classifyRekognitionLabels(
     };
   }
 
-  const suspiciousVehicle = has(labels, "Suspicious Vehicle", "Parked Vehicle");
+  const suspiciousVehicle = has(flat, "Suspicious Vehicle", "Parked Vehicle");
   if (suspiciousVehicle) {
     return {
       eventType: "SUSPICIOUS_VEHICLE",
@@ -130,7 +207,7 @@ export function classifyRekognitionLabels(
     };
   }
 
-  const shoplifting = has(labels, "Shoplifting", "Theft");
+  const shoplifting = has(flat, "Shoplifting", "Theft", "Stealing");
   if (shoplifting) {
     return {
       eventType: "SHOPLIFTING",
@@ -141,8 +218,8 @@ export function classifyRekognitionLabels(
     };
   }
 
-  const running = has(labels, "Running", "Sprinting", "Fleeing");
-  if (running && has(labels, "Person")) {
+  const running = has(flat, "Running", "Sprinting", "Fleeing");
+  if (running && has(flat, "Person")) {
     return {
       eventType: "PERSON_RUNNING",
       category: "RUNNING",
@@ -152,7 +229,7 @@ export function classifyRekognitionLabels(
     };
   }
 
-  const crowd = has(labels, "Crowd", "Audience");
+  const crowd = has(flat, "Crowd", "Audience");
   if (crowd && (crowd.instances ?? 1) >= 1 && (crowd.confidence ?? 0) >= 70) {
     return {
       eventType: "CROWD_FORMATION",
@@ -232,6 +309,32 @@ export function demoSceneAlerts(agencyId: string, now = new Date()): VisionScene
         "Person on ground, non-responsive. Second individual crouching nearby appears to be assisting. No other persons in frame. Medical event likely.",
     },
   ];
+}
+
+/** One line for the dispatcher card. Confirmation stays with the person, not the model. */
+export function dispatcherCue(eventType: VisionSceneEventType): string {
+  switch (eventType) {
+    case "VISIBLE_WEAPON":
+      return "Open the live feed and confirm before dispatch. A visible weapon is not a verified threat, and an officer's firearm is not a crime.";
+    case "FIGHT_OR_ALTERCATION":
+      return "Open the live feed and confirm the altercation is still in progress before dispatch.";
+    case "PERSON_DOWN":
+      return "Open the live feed. A person on the ground is not a medical diagnosis.";
+    case "MEDICAL_EMERGENCY":
+      return "Open the live feed. This is not a medical diagnosis and does not replace medical direction.";
+    case "FORCED_ENTRY":
+      return "Open the live feed and confirm the entry before dispatch.";
+    case "VEHICLE_COLLISION":
+      return "Open the live feed and confirm the collision before dispatch.";
+    case "SHOPLIFTING":
+      return "Open the live feed. Possible theft still needs a person to confirm it.";
+    case "PERSON_RUNNING":
+      return "Open the live feed. Running alone is not a crime.";
+    case "SUSPICIOUS_VEHICLE":
+      return "Open the live feed before treating a parked or lingering vehicle as a threat.";
+    case "CROWD_FORMATION":
+      return "Open the live feed. A crowd is context, not a dispatch order.";
+  }
 }
 
 export const SCENE_INTEL_EVENT_TYPE_LABELS: Record<VisionSceneEventType, string> = {

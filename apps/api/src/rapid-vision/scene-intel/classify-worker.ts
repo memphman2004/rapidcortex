@@ -5,6 +5,7 @@ import type { RecognitionLabel, VisionCamera, VisionSceneAlert } from "rapid-cor
 import {
   classifyRekognitionLabels,
   SCENE_INTEL_COOLDOWN_SECONDS_DEFAULT,
+  sceneAlertSuppressedByCooldown,
   sceneAlertTtlEpoch,
   type RekognitionLabelInput,
 } from "rapid-cortex-shared";
@@ -82,11 +83,6 @@ export async function classifyAndPersist(message: SceneClassifyMessage): Promise
   const camera = await visionStore.getCamera(message.agencyId, message.cameraId);
   const cooldown =
     camera?.sceneCooldownSeconds ?? SCENE_INTEL_COOLDOWN_SECONDS_DEFAULT;
-  const latest = await visionStore.latestSceneAlertForCamera(message.agencyId, message.cameraId);
-  if (latest?.status === "active") {
-    const ageSec = (Date.now() - new Date(latest.timestamp).getTime()) / 1000;
-    if (ageSec < cooldown) return null;
-  }
 
   const labels =
     message.mockLabels && message.mockLabels.length > 0
@@ -94,6 +90,18 @@ export async function classifyAndPersist(message: SceneClassifyMessage): Promise
       : await detectSceneLabels(message.frameBase64);
   const classified = classifyRekognitionLabels(labels);
   if (!classified) return null;
+
+  const latest = await visionStore.latestSceneAlertForCamera(message.agencyId, message.cameraId);
+  if (
+    sceneAlertSuppressedByCooldown({
+      latest,
+      nextEventType: classified.eventType,
+      nextSeverity: classified.severity,
+      cooldownSeconds: cooldown,
+    })
+  ) {
+    return null;
+  }
 
   const min = settings.sceneIntelMinSeverity ?? "low";
   const rank: Record<string, number> = { low: 0, medium: 1, high: 2, critical: 3 };

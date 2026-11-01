@@ -15,6 +15,7 @@ import {
   type RightsRecord,
   type StudioCategoryId,
 } from "@/lib/rapid-vision/model-studio";
+import { PUBLISHED_DATASETS, PUBLISHED_DATASET_STATUS_LABEL } from "@/lib/rapid-vision/published-datasets";
 
 const LAB_TABS = ["Discover", "Images", "Videos", "Video lab", "Review queue", "Gap analysis", "Sources"] as const;
 type LabTab = (typeof LAB_TABS)[number];
@@ -176,10 +177,9 @@ export function WebDiscoveryLab() {
               {STUDIO_CATEGORIES.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
             </select>
             <select className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm" value={source} onChange={(event) => setSource(event.target.value)} aria-label="Source">
-              <option value="wikimedia">Wikimedia Commons</option>
-              <option value="internetarchive">Internet Archive</option>
-              <option value="huggingface">Hugging Face datasets</option>
-              <option value="openverse">Openverse images</option>
+              {DISCOVERY_SOURCE_POLICY.filter((item) => item.state !== "Disabled" && item.state !== "Closed").map((item) => (
+                <option key={item.id} value={item.id}>{item.name}</option>
+              ))}
             </select>
             <select className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm" value={media} onChange={(event) => setMedia(event.target.value)} aria-label="Media">
               <option value="video">Videos</option>
@@ -307,14 +307,29 @@ export function WebDiscoveryLab() {
       ) : null}
 
       {lab === "Sources" ? (
-        <ul className="space-y-2">
-          {DISCOVERY_SOURCE_POLICY.map((item) => (
-            <li key={item.id} className="rounded-lg border border-slate-800 px-3 py-2">
-              <p className="text-sm font-medium">{item.name} · {item.state}</p>
-              <p className="text-xs text-slate-400">{item.detail}</p>
-            </li>
-          ))}
-        </ul>
+        <div className="space-y-4">
+          <ul className="space-y-2">
+            {DISCOVERY_SOURCE_POLICY.map((item) => (
+              <li key={item.id} className="rounded-lg border border-slate-800 px-3 py-2">
+                <p className="text-sm font-medium">{item.name} · {item.state}</p>
+                <p className="text-xs text-slate-400">{item.detail}</p>
+              </li>
+            ))}
+          </ul>
+          <div>
+            <h3 className="text-sm font-medium text-white">Published datasets</h3>
+            <p className="mt-1 max-w-3xl text-xs text-slate-400">A peer-reviewed set is a lead. None of these files is copied into a training set from this page.</p>
+            <ul className="mt-2 space-y-2">
+              {PUBLISHED_DATASETS.map((item) => (
+                <li key={item.id} className="rounded-lg border border-slate-800 px-3 py-2">
+                  <p className="text-sm font-medium">{item.name} · {PUBLISHED_DATASET_STATUS_LABEL[item.status]}</p>
+                  <p className="text-xs text-slate-500">{item.category}</p>
+                  <p className="text-xs text-slate-400">{item.reason}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       ) : null}
     </section>
   );

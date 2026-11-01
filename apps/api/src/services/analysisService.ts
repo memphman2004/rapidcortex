@@ -7,7 +7,7 @@ import { AuditRepository } from "../repositories/auditRepository.js";
 import { makeId } from "../lib/ids.js";
 import { runAiAnalysisOrchestrator } from "../ai/aiOrchestrator.js";
 import { humanizeApprovedPhraseStrict } from "../ai/phraseHumanizer.js";
-import { buildProtocolGuidance } from "rapid-cortex-shared";
+import { buildProtocolGuidance, incidentPictureFactsBrief } from "rapid-cortex-shared";
 import type { AIAnalysis, ProtocolGuidance, UserContext } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { getAiRuntimeConfig } from "../ai/aiConfig.js";
@@ -162,6 +162,14 @@ export class AnalysisService {
       agencyId: user.agencyId,
       transcript,
       systemPrompt: undefined as string | undefined,
+      incidentBrief: incidentPictureFactsBrief({
+        title: incident.title,
+        callerAddressLine: incident.callerAddressLine,
+        cadLocation: incident.cadLocation,
+        cadIntersection: incident.cadIntersection,
+        cadNatureCode: incident.cadNatureCode,
+        category: incident.category,
+      }),
     };
     if (env.callAssistTable) {
       try {

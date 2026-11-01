@@ -1,4 +1,5 @@
 import type { AIAnalysis, ConfidenceAnalysis, TranscriptSegment, UserContext } from "rapid-cortex-shared";
+import { applyIncidentPictureFacts, incidentPictureFactsBrief } from "rapid-cortex-shared";
 import { AnalysisRepository } from "../repositories/analysisRepository.js";
 import { AgencyRepository } from "../repositories/agencyRepository.js";
 import { IncidentRepository } from "../repositories/incidentRepository.js";
@@ -76,15 +77,28 @@ export class FieldConfidenceService {
     const previous = priorFc?.fieldConfidenceAnalysis;
     const version = (previous?.version ?? 0) + 1;
 
-    const { analysis: fieldConfidenceAnalysis, groundingFlags } = await scoreConfidence(
+    const pictureSource = {
+      title: incident.title,
+      callerAddressLine: incident.callerAddressLine,
+      cadLocation: incident.cadLocation,
+      cadIntersection: incident.cadIntersection,
+      cadNatureCode: incident.cadNatureCode,
+      category: incident.category,
+    };
+    const scored = await scoreConfidence(
       incidentId,
       user.agencyId,
       transcriptToText(segments),
       segmentCount,
       version,
       previous ?? undefined,
-      { meanSttConfidence: meanSttConfidence(segments) },
+      {
+        meanSttConfidence: meanSttConfidence(segments),
+        knownFacts: incidentPictureFactsBrief(pictureSource),
+      },
     );
+    const fieldConfidenceAnalysis = applyIncidentPictureFacts(scored.analysis, pictureSource);
+    const groundingFlags = scored.groundingFlags;
 
     const now = new Date().toISOString();
     const tenant = await agencyRepo.get(user.agencyId);

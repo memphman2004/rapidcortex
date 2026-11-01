@@ -58,10 +58,11 @@ export function buildAnalysisUserMessage(
     content: lines || "(empty transcript — classify as unknown with low confidence)",
   });
 
+  const brief = input.incidentBrief?.trim();
   return {
     message: `Incident ID: [REDACTED_INCIDENT_ID]
 Agency ID: [REDACTED_AGENCY_ID]
-
+${brief ? `\nAlready stored on the incident record:\n${brief}\n` : ""}
 Transcript (chronological):
 ${sanitized.sanitizedContent}
 

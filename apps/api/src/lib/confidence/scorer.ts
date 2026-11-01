@@ -1,4 +1,4 @@
-import type { ConfidenceAnalysis } from "rapid-cortex-shared";
+import { blankPictureAnalysis, type ConfidenceAnalysis } from "rapid-cortex-shared";
 import { env } from "../env.js";
 import {
   buildFieldsFromParsed,
@@ -16,12 +16,14 @@ export type ConfidenceScoreResult = {
 /**
  * Runs the tiered (primary → secondary → tertiary) AI provider chain — see
  * confidenceOrchestrator.ts — and shapes the winning result into a ConfidenceAnalysis.
- * Throws (via NormalizedAiError) if every configured tier fails; callers fall back to
- * the previous analysis or the mock heuristic (see scoreConfidence below).
+ * Throws (via NormalizedAiError) if every configured tier fails. scoreConfidence
+ * then keeps the previous analysis, or returns an empty picture when there is none.
  */
 export type ScoreConfidenceOptions = {
   /** Mean STT confidence 0–1 from recent transcript segments. */
   meanSttConfidence?: number;
+  /** Address, nature, and title already stored on the incident. */
+  knownFacts?: string;
 };
 
 export async function scoreConfidenceWithProviderChain(
@@ -33,7 +35,9 @@ export async function scoreConfidenceWithProviderChain(
   previous?: ConfidenceAnalysis,
   options: ScoreConfidenceOptions = {},
 ): Promise<ConfidenceScoreResult> {
-  const result = await runConfidenceOrchestrator({ incidentId, agencyId, transcriptText });
+  const knownFacts = options.knownFacts?.trim();
+  const promptText = knownFacts ? `${knownFacts}\n\nTranscript:\n${transcriptText}` : transcriptText;
+  const result = await runConfidenceOrchestrator({ incidentId, agencyId, transcriptText: promptText });
   if (!result.ok) {
     throw result.error;
   }
@@ -101,7 +105,13 @@ export async function scoreConfidence(
       };
     }
     return {
-      analysis: mockScoreConfidence(incidentId, agencyId, segmentCount, version),
+      analysis: blankPictureAnalysis({
+        incidentId,
+        agencyId,
+        version,
+        segmentCount,
+        previousVersion: undefined,
+      }),
       groundingFlags: [],
     };
   }

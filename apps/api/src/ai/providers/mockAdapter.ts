@@ -1,3 +1,4 @@
+import { callHasWeaponSignal } from "rapid-cortex-shared";
 import type { AnalysisInput } from "../provider.js";
 import type { IAIProvider } from "../iaiProvider.js";
 
@@ -11,7 +12,7 @@ export class MockAdapter implements IAIProvider {
   }
 
   async analyze(input: AnalysisInput, _options?: { signal?: AbortSignal }): Promise<unknown> {
-    const text = input.transcript.map((segment) => segment.text.toLowerCase()).join(" ");
+    const text = `${input.incidentBrief ?? ""} ${input.transcript.map((segment) => segment.text).join(" ")}`.toLowerCase();
 
     if (text.includes("not breathing") || text.includes("chest pain")) {
       return Promise.resolve({
@@ -26,7 +27,7 @@ export class MockAdapter implements IAIProvider {
       });
     }
 
-    if (text.includes("fire") || text.includes("smoke")) {
+    if (/\bfire\b/.test(text) || text.includes("smoke")) {
       return Promise.resolve({
         category: "fire",
         urgency: "high",
@@ -39,15 +40,15 @@ export class MockAdapter implements IAIProvider {
       });
     }
 
-    if (text.includes("hit") || text.includes("gun") || text.includes("fight")) {
+    if (callHasWeaponSignal(text) || text.includes("hit") || text.includes("gun") || text.includes("fight")) {
       return Promise.resolve({
         category: "police",
         urgency: "high",
         confidence: 0.9,
-        nextQuestion: "Is the suspect still on scene?",
+        nextQuestion: "Is anyone injured, and is the suspect still there?",
         recommendedAction: "Escalate to law enforcement response.",
-        summary: "Possible violent or criminal incident.",
-        rationale: "Transcript contains violence indicators.",
+        summary: "Reported violent incident. Confirm injuries and whether the threat is still present.",
+        rationale: "The call or the incident record reports a weapon or a violent act.",
         escalationFlag: true,
       });
     }

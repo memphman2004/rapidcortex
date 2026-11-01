@@ -6,6 +6,8 @@ export interface AnalysisInput {
   agencyId: string;
   transcript: TranscriptSegment[];
   systemPrompt?: string;
+  /** Address, nature, and title already stored on the incident. */
+  incidentBrief?: string;
 }
 
 /** Validated triage fields before persistence metadata is attached. */

@@ -112,6 +112,9 @@ export function StudioReviewQueue() {
   }, [step]);
 
   async function act(body: Record<string, unknown>) {
+    const scrollY = window.scrollY;
+    const scroller = document.scrollingElement;
+    const scrollerTop = scroller?.scrollTop ?? scrollY;
     setNotice(null);
     const res = await fetch("/api/rc-admin/vision/intelligence", {
       method: "POST",
@@ -123,6 +126,10 @@ export function StudioReviewQueue() {
     else if (data.generated === false) setNotice({ ok: true, text: data.reason || "No image was generated from this page." });
     else setNotice({ ok: true, text: "Saved. The studio table has this change. Live detection stayed off." });
     await reload();
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scrollY);
+      if (scroller) scroller.scrollTop = scrollerTop;
+    });
   }
 
   async function showEstimate() {
@@ -143,7 +150,10 @@ export function StudioReviewQueue() {
   return (
     <div className="space-y-4">
       {notice ? (
-        <p role="status" className={`rounded-lg border px-3 py-2 text-sm ${notice.ok ? "border-emerald-800 bg-emerald-950/50 text-emerald-100" : "border-rose-800 bg-rose-950/50 text-rose-100"}`}>
+        <p
+          role="status"
+          className={`fixed bottom-4 right-4 z-50 max-w-sm rounded-lg border px-3 py-2 text-sm shadow-lg ${notice.ok ? "border-emerald-800 bg-emerald-950/95 text-emerald-100" : "border-rose-800 bg-rose-950/95 text-rose-100"}`}
+        >
           {notice.text}
         </p>
       ) : null}

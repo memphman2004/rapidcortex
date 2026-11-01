@@ -18,6 +18,8 @@ For each field you must return:
 - suggestedQuestion: the single most important follow-up question the dispatcher should ask to improve confidence on this field (null if confidence is ≥85 or field is not critical)
 - conflictingValues: array of differing values if the caller gave contradictory information (empty array otherwise)
 
+If the user message includes "Already stored on the incident record", those values are already known. Do not mark them missing. Leave sourceQuote null for them and say the value is already on the incident.
+
 Scoring guidance (be decisive — avoid clustering every score near 50):
 - 90-100: Value stated clearly and confirmed (repeated, confirmed by caller, specific and unambiguous)
 - 75-89: Value stated once, reasonably specific, no contradictions

@@ -2,6 +2,8 @@
  * Scene Intelligence model studio rules.
  * A trained file is not an approved detector. Web search results are not incidents.
  */
+import { SCENE_TRAINING_CLASSES, type SceneTrainingClass } from "rapid-cortex-shared";
+import { clearedTrainingInput, type ClearedTrainingInput } from "./training-phase";
 
 export const STUDIO_CATEGORIES = [
   { id: "firearm_like", name: "Firearm-like object", observable: "A handheld object with a firearm-like shape. A visible shape is not a verified threat, and an officer's own firearm is not labeled as a suspected crime.", annotation: "Bounding box" },
@@ -80,14 +82,56 @@ export function trainingLicenseNote(license: string | undefined): string {
 const BLOCKED_HOSTS = ["youtube.com", "youtu.be", "tiktok.com", "instagram.com", "facebook.com", "x.com", "twitter.com"];
 
 /** Official discovery APIs only. No arbitrary crawl and no audiovisual download. */
+const DISCOVERY_SOURCES = new Set([
+  "openverse",
+  "wikimedia",
+  "huggingface",
+  "internetarchive",
+  "loc",
+  "nasa",
+  "wellcome",
+  "cleveland",
+  "artic",
+  "smk",
+  "finna",
+  "zenodo",
+  "figshare",
+  "dataverse",
+]);
+
 export function discoverySourceAllowed(source: string): boolean {
-  return source === "openverse" || source === "wikimedia" || source === "huggingface" || source === "internetarchive";
+  return DISCOVERY_SOURCES.has(source);
+}
+
+const VIDEO_SOURCES = new Set(["wikimedia", "internetarchive", "loc", "nasa"]);
+const DATASET_SOURCES = new Set(["huggingface", "zenodo", "figshare", "dataverse"]);
+
+/** Tell the caller when the selected catalog does not carry that kind of media. */
+export function discoveryMediaRefusal(source: string, media: "image" | "video" | "dataset"): string | null {
+  if (media === "video" && !VIDEO_SOURCES.has(source)) {
+    return "That catalog does not supply video search. Use Wikimedia Commons, the Library of Congress, NASA, or the Internet Archive. No file was downloaded.";
+  }
+  if (media === "image" && DATASET_SOURCES.has(source)) {
+    return "That catalog lists dataset records, not individual images. Choose Datasets. No file was downloaded.";
+  }
+  if (media === "image" && source === "internetarchive") {
+    return "Internet Archive search here is for moving-image records. Choose Videos. No file was downloaded.";
+  }
+  return null;
 }
 
 export function discoverySourceRefusal(source: string): string | null {
-  if (source === "youtube") return "YouTube search is not connected. Downloading YouTube video is disabled.";
-  if (source === "pexels" || source === "pixabay") {
-    return "That source is not used for automated training collection.";
+  if (source === "youtube") {
+    return "YouTube does not allow downloading videos into a training set. A public video is not a license, and the YouTube API does not provide the file.";
+  }
+  if (source === "pexels" || source === "pixabay" || source === "shutterstock" || source === "getty" || source === "istock" || source === "pond5") {
+    return "Stock and news libraries are not used for automated training collection. A contract would be required, and none is connected.";
+  }
+  if (source === "roboflow") {
+    return "Roboflow Universe is not a bulk download. Each dataset has its own license, and a public page is not a training right.";
+  }
+  if (source === "omniverse") {
+    return "Synthetic footage is not generated here. A synthetic clip would have to be labeled synthetic and kept separate from real footage.";
   }
   if (!discoverySourceAllowed(source)) {
     return "That source is not approved. YouTube downloads and open web crawls are not available.";
@@ -119,7 +163,21 @@ export type DiscoveryCandidate = {
   id: string;
   title: string;
   mediaType: "image" | "video" | "dataset";
-  source: "openverse" | "wikimedia" | "huggingface" | "internetarchive";
+  source:
+    | "openverse"
+    | "wikimedia"
+    | "huggingface"
+    | "internetarchive"
+    | "loc"
+    | "nasa"
+    | "wellcome"
+    | "cleveland"
+    | "artic"
+    | "smk"
+    | "finna"
+    | "zenodo"
+    | "figshare"
+    | "dataverse";
   sourceUrl: string;
   previewUrl: string | null;
   playbackUrl: string | null;
@@ -432,22 +490,39 @@ export function reviewDiscoveryCandidate(candidate: DiscoveryCandidate, decision
   };
 }
 
-export function startTrainingJob(input: { datasetReady: boolean; backendConnected: boolean }): {
-  status: "NOT_STARTED";
+export function startTrainingJob(input: {
+  datasetReady: boolean;
+  backendConnected: boolean;
+  phase?: 1 | 2 | 3;
+  source?: ClearedTrainingInput;
+}): {
+  status: "NOT_STARTED" | "READY";
   progress: null;
   reason: string;
+  classes: readonly SceneTrainingClass[];
 } {
+  const classes = SCENE_TRAINING_CLASSES;
+  const gate = clearedTrainingInput({ phase: input.phase ?? 2, source: input.source ?? { kind: "none" } });
+  if (!gate.ok) {
+    return { status: "NOT_STARTED", progress: null, reason: gate.reason, classes };
+  }
   if (!input.datasetReady) {
-    return { status: "NOT_STARTED", progress: null, reason: "The dataset is not marked training-ready." };
+    return { status: "NOT_STARTED", progress: null, reason: "The dataset is not marked training-ready.", classes };
   }
   if (!input.backendConnected) {
     return {
       status: "NOT_STARTED",
       progress: null,
-      reason: "SageMaker training is not connected. No job was submitted and no cost was incurred.",
+      reason: "Rekognition Custom Labels is not connected. No job was submitted and no cost was incurred.",
+      classes,
     };
   }
-  return { status: "NOT_STARTED", progress: null, reason: "The training service did not return a job id." };
+  return {
+    status: "READY",
+    progress: null,
+    reason: `Custom Labels is ready for ${classes.length} classes. Submit starts when the labeled objects are in the training bucket. No job id was issued.`,
+    classes,
+  };
 }
 
 export function canEnterProduction(input: { phase: ModelPhase; evaluationAccepted: boolean; artifactUri: string | null }): {
@@ -787,10 +862,24 @@ export const DISCOVERY_SOURCE_POLICY = [
   { id: "huggingface", name: "Hugging Face datasets", state: "Search", detail: "Dataset cards only. A public repository is not a training right." },
   { id: "internetarchive", name: "Internet Archive", state: "Metadata", detail: "Titles and source links. Files are not downloaded." },
   { id: "openverse", name: "Openverse", state: "Images", detail: "Still images. This source does not supply the video search." },
-  { id: "youtube", name: "YouTube", state: "Disabled", detail: "No download. Search is not connected because no API key is configured." },
+  { id: "loc", name: "Library of Congress", state: "Search", detail: "Photos and films. \"No known restrictions\" is not a training license. Files are not downloaded." },
+  { id: "nasa", name: "NASA Image and Video Library", state: "Search", detail: "Image and video records. Eligible only when that record states an open license. Files are not downloaded." },
+  { id: "wellcome", name: "Wellcome Collection", state: "Images", detail: "License comes from the image record. Files are not downloaded." },
+  { id: "cleveland", name: "Cleveland Museum of Art", state: "Images", detail: "Open-access records. A CC0 status is the license, not the fact that the page is public." },
+  { id: "artic", name: "Art Institute of Chicago", state: "Images", detail: "Public-domain artworks only. Other works are not treated as trainable." },
+  { id: "smk", name: "SMK — National Gallery of Denmark", state: "Images", detail: "Public-domain works only. The museum page is the record. Files are not downloaded." },
+  { id: "finna", name: "Finna", state: "Images", detail: "Finnish libraries and museums. The image-rights field on the record is the license." },
+  { id: "zenodo", name: "Zenodo", state: "Datasets", detail: "Dataset records and the license on the record. Files are not downloaded." },
+  { id: "figshare", name: "Figshare", state: "Datasets", detail: "Dataset records and the license on the record. Files are not downloaded." },
+  { id: "dataverse", name: "Harvard Dataverse", state: "Datasets", detail: "Dataset records. A record with no license stays ineligible. Files are not downloaded." },
+  { id: "youtube", name: "YouTube", state: "Disabled", detail: "YouTube does not allow downloading videos into a training set. A public video is not a license." },
   { id: "pexels", name: "Pexels", state: "Disabled", detail: "Not used for automated training collection." },
   { id: "pixabay", name: "Pixabay", state: "Disabled", detail: "Not used for automated training collection." },
-  { id: "agency", name: "Agency-authorized footage", state: "Closed", detail: "Upload stays closed until a reviewed bucket and malware scan are connected." },
+  { id: "roboflow", name: "Roboflow Universe", state: "Disabled", detail: "Community datasets do not share one license. Bulk export is not connected." },
+  { id: "omniverse", name: "NVIDIA Omniverse", state: "Closed", detail: "Synthetic footage is not generated here. A synthetic clip would be labeled synthetic and scored apart from real footage." },
+  { id: "traffic-cameras", name: "State traffic cameras", state: "Closed", detail: "A data agreement is required. Live and archive feeds are not scraped." },
+  { id: "stock", name: "Stock and news libraries", state: "Closed", detail: "Shutterstock, Getty, Pond5, and news archives need a contract. None is connected." },
+  { id: "agency", name: "Agency-authorized footage", state: "Closed", detail: "A signed data-sharing agreement comes first. Upload stays closed. Faces are not a training label." },
 ] as const;
 
 export type ReadinessFactor = { name: string; state: "not_completed" | "insufficient" | "unknown" | "recorded"; detail: string };

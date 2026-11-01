@@ -8,6 +8,7 @@ import {
   candidateFromInternetArchive,
   candidateFromOpenverse,
   candidateFromWikimediaPage,
+  discoveryMediaRefusal,
   discoverySourceRefusal,
   exampleRoleForQuery,
   titleMatchesDiscoveryFilter,
@@ -16,6 +17,7 @@ import {
   type DiscoveryCandidate,
   type StudioCategoryId,
 } from "@/lib/rapid-vision/model-studio";
+import { searchDiscoveryCatalog } from "@/lib/rapid-vision/discovery-catalogs";
 
 export const dynamic = "force-dynamic";
 
@@ -155,23 +157,26 @@ export async function POST(request: Request) {
   const query = requested || suggested[0] || category;
   const limit = Math.min(20, Math.max(1, Number(body?.limit) || 12));
   const media = body?.media === "video" ? "video" : body?.media === "dataset" ? "dataset" : "image";
-  if (media === "video" && source === "openverse") {
-    return NextResponse.json({
-      candidates: [],
-      query,
-      suggested,
-      notice: "Openverse is a still-image source. Choose Wikimedia Commons, Internet Archive, or Hugging Face for video. No file was downloaded.",
-    });
+  const mediaRefusal = media === "dataset" ? null : discoveryMediaRefusal(source, media);
+  if (mediaRefusal) {
+    return NextResponse.json({ candidates: [], query, suggested, notice: mediaRefusal });
   }
-  const resolvedSource = media === "dataset" ? "huggingface" : source;
-  const result =
-    resolvedSource === "wikimedia"
+  const datasetSources = new Set(["huggingface", "zenodo", "figshare", "dataverse"]);
+  const resolvedSource = media === "dataset" && !datasetSources.has(source) ? "huggingface" : source;
+  const datasetNote = resolvedSource === "huggingface" && source !== "huggingface" && media === "dataset"
+    ? "Dataset search used Hugging Face because the selected catalog is not a dataset source."
+    : null;
+  const catalog = resolvedSource === "wikimedia" || resolvedSource === "huggingface" || resolvedSource === "internetarchive" || resolvedSource === "openverse"
+    ? null
+    : await searchDiscoveryCatalog(resolvedSource, query, limit, media === "video" ? "video" : "image");
+  const result = catalog
+    ?? (resolvedSource === "wikimedia"
       ? await searchWikimedia(query, limit, media === "video" ? "video" : "image")
       : resolvedSource === "huggingface"
         ? await searchHuggingFace(query, limit)
         : resolvedSource === "internetarchive"
           ? await searchInternetArchive(query, limit)
-          : await searchOpenverse(query, limit);
+          : await searchOpenverse(query, limit));
   const role = exampleRoleForQuery(category, query);
   const stamped = result.candidates.map((candidate) => ({ ...candidate, exampleRole: role }));
   const filtered = media === "video" && resolvedSource === "huggingface"
@@ -199,6 +204,7 @@ export async function POST(request: Request) {
     ? "None of the dataset cards on this page were marked as video."
     : null;
   const notice = [
+    datasetNote,
     result.warning,
     videoDrop,
     boundsNote,

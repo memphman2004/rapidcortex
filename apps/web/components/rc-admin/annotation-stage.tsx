@@ -138,6 +138,12 @@ export function AnnotationStage({
       event.preventDefault();
       setZoom((value) => clampZoom(value * (event.deltaY < 0 ? 1.12 : 0.9)));
     };
+    const keepClickInPlace = (event: PointerEvent) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      viewport.focus({ preventScroll: true });
+    };
+    viewport.addEventListener("pointerdown", keepClickInPlace, { capture: true });
     viewport.addEventListener("wheel", onWheel, { passive: false });
     let startDistance = 0;
     let startZoom = 1;
@@ -155,6 +161,7 @@ export function AnnotationStage({
     viewport.addEventListener("touchstart", onTouchStart);
     viewport.addEventListener("touchmove", onTouchMove, { passive: false });
     return () => {
+      viewport.removeEventListener("pointerdown", keepClickInPlace, { capture: true });
       viewport.removeEventListener("wheel", onWheel);
       viewport.removeEventListener("touchstart", onTouchStart);
       viewport.removeEventListener("touchmove", onTouchMove);
@@ -182,6 +189,8 @@ export function AnnotationStage({
 
   function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     if (event.button !== 0) return;
+    // A click would otherwise focus this tall canvas and scroll the studio page.
+    event.preventDefault();
     const point = normFromClient(event.clientX, event.clientY);
     if (!point) return;
     try {
@@ -243,15 +252,14 @@ export function AnnotationStage({
     const drag = dragRef.current;
     dragRef.current = null;
     if (!drag || drag.kind === "pan") return;
-    if (drag.kind === "draw") {
-      const next = latestRef.current;
-      if (!next || boxesMatch(next, drag.previous)) {
-        latestRef.current = drag.previous;
-        onBoxChange(drag.previous);
-        return;
-      }
+    const startBox = drag.kind === "draw" ? drag.previous : drag.box;
+    const next = latestRef.current;
+    if (!next || boxesMatch(next, startBox)) {
+      latestRef.current = startBox;
+      onBoxChange(startBox);
+      return;
     }
-    onCommit(latestRef.current);
+    onCommit(next);
   }
 
   const imageRect = imageRef.current?.getBoundingClientRect();
