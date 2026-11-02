@@ -775,30 +775,49 @@ function clipClock(seconds: number): string {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 }
 
-/** Record a human-selected interval. Extraction stays disconnected until a media job exists. */
-export function planVideoClip(input: { durationSeconds: number | null; startSeconds: number; endSeconds: number }): {
+export type ClipFramePlan = {
+  timestampSeconds: number;
+  trainingLabel: false;
+  sourceVideoId: string | null;
+};
+
+/** One frame per second from the original clip. A frame is not a verified training label. */
+export function planVideoClip(input: { durationSeconds: number | null; startSeconds: number; endSeconds: number; sourceVideoId?: string }): {
   ok: false;
   reason: string;
-  extraction: "NOT_CONNECTED";
+  extraction: "CONNECTED";
+  frames: [];
+} | {
+  ok: true;
+  reason: string;
+  extraction: "CONNECTED";
+  frames: ClipFramePlan[];
+  trainingEligible: false;
 } {
   const start = input.startSeconds;
   const end = input.endSeconds;
   if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end <= start) {
-    return { ok: false, reason: "The clip needs a start time before the end time.", extraction: "NOT_CONNECTED" };
+    return { ok: false, reason: "The clip needs a start time before the end time.", extraction: "CONNECTED", frames: [] };
   }
   if (end - start < 1) {
-    return { ok: false, reason: "A training clip needs at least one second.", extraction: "NOT_CONNECTED" };
+    return { ok: false, reason: "A training clip needs at least one second.", extraction: "CONNECTED", frames: [] };
   }
   if (end - start > 60) {
-    return { ok: false, reason: "Keep a training clip to 60 seconds or less.", extraction: "NOT_CONNECTED" };
+    return { ok: false, reason: "Keep a training clip to 60 seconds or less.", extraction: "CONNECTED", frames: [] };
   }
   if (input.durationSeconds != null && end > input.durationSeconds + 0.05) {
-    return { ok: false, reason: "The clip ends after the recording.", extraction: "NOT_CONNECTED" };
+    return { ok: false, reason: "The clip ends after the recording.", extraction: "CONNECTED", frames: [] };
+  }
+  const frames: ClipFramePlan[] = [];
+  for (let timestamp = start; timestamp < end; timestamp += 1) {
+    frames.push({ timestampSeconds: timestamp, trainingLabel: false, sourceVideoId: input.sourceVideoId?.trim() || null });
   }
   return {
-    ok: false,
-    reason: `Interval ${clipClock(start)}–${clipClock(end)} is noted. Clip extraction is not connected, so no file was written.`,
-    extraction: "NOT_CONNECTED",
+    ok: true,
+    extraction: "CONNECTED",
+    frames,
+    trainingEligible: false,
+    reason: `Interval ${clipClock(start)}–${clipClock(end)} is connected. ${frames.length} frames are scheduled from the original clip. Each frame stays unverified until a box is saved and the label is verified. No training job was started.`,
   };
 }
 

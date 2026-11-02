@@ -15,7 +15,7 @@ export type StudioReviewStatus = "REVIEW_REQUIRED" | "APPROVED" | "REJECTED" | "
 
 export type StudioReviewRecord = {
   id: string;
-  kind: "visual-review" | "synthetic-image" | "discovered";
+  kind: "visual-review" | "synthetic-image" | "synthetic-clip" | "discovered";
   status: StudioReviewStatus;
   /** Human accepted the candidate for the dataset builder. Still not a verified label. */
   approved: boolean;
@@ -54,6 +54,18 @@ export type StudioReviewRecord = {
   sourceType?: "synthetic" | "public" | "unknown";
   batchId?: string;
   imageUrl?: string;
+  /** Present only when this studio called the image model. Typed upload text is not a generation job. */
+  provenance?: "generation_job" | "upload" | "clip";
+  generationJobId?: string;
+  qualityStatus?: "passed" | "failed";
+  syntheticPersonAttestation?: {
+    id: string;
+    noRealLikenessIntentionallyReproduced: true;
+    attestedBy: string;
+    attestedAt: string;
+  };
+  sourceVideoId?: string;
+  sourceTimestampSeconds?: number;
 };
 
 export type StudioBox = { x: number; y: number; width: number; height: number };
@@ -99,6 +111,7 @@ export function applyReviewDecision(
       },
     };
   }
+  const written = note?.trim();
   return {
     ok: true,
     record: {
@@ -106,9 +119,9 @@ export function applyReviewDecision(
       status: "APPROVED",
       approved: true,
       trainingLabel: false,
-      reviewerNote: record.synthetic
+      reviewerNote: written || record.reviewerNote || (record.synthetic
         ? "Synthetic example accepted for review packaging. It is not an independently verified label."
-        : "Candidate accepted. OpenAI text is not the training label.",
+        : "Candidate accepted. OpenAI text is not the training label."),
     },
   };
 }
@@ -180,6 +193,22 @@ export function submitDatasetForTraining(records: StudioReviewRecord[]): { ok: f
 }
 
 export const MIN_VERIFIED_FOR_TRAINING = 50;
+export const SYNTHETIC_ONLY_BYPASS = "SYNTHETIC_ONLY_BYPASS";
+export const REQUIRED_CAMERA_ANGLES = 3;
+export const REQUIRED_LIGHTING_CONDITIONS = 3;
+
+/** Studio category to the label written in a Custom Labels manifest. */
+export const TRAINING_CLASS_LABEL: Record<string, string> = {
+  firearm_like: "handgun_visible",
+  blade_like: "knife_visible",
+  altercation: "physical_fight",
+  person_down: "person_fallen",
+  forced_entry: "nexcort-forced-entry",
+  vehicle_collision: "vehicle_collision",
+};
+
+/** Still-image classes a synthetic-only set must cover. Video classes stay out until a clip exists. */
+export const REQUIRED_SYNTHETIC_CLASSES = ["handgun_visible", "knife_visible"] as const;
 export const FIREARM_PILOT_BATCH_ID = "firearm-like-pilot-10";
 
 export function firearmPilotMix(count: number): { positive: number; negative: number; challenging: number } | null {
@@ -259,10 +288,44 @@ export function assembleDatasetVersion(
   };
 }
 
+export function trainingClassLabel(category: string): string {
+  return TRAINING_CLASS_LABEL[category] ?? category;
+}
+
+/** Distinct camera angles and lighting per class. Blank values do not count. */
+export function syntheticVarietyFailures(records: StudioReviewRecord[], assetIds: readonly string[]): string[] {
+  const chosen = new Set(assetIds);
+  const rows = records.filter((item) => chosen.has(item.id));
+  const byClass = new Map<string, { angles: Set<string>; lighting: Set<string> }>();
+  for (const label of REQUIRED_SYNTHETIC_CLASSES) byClass.set(label, { angles: new Set(), lighting: new Set() });
+  for (const row of rows) {
+    const label = trainingClassLabel(row.category);
+    const bucket = byClass.get(label) ?? { angles: new Set<string>(), lighting: new Set<string>() };
+    const angle = row.cameraAngle?.trim();
+    const lighting = row.lighting?.trim();
+    if (angle) bucket.angles.add(angle);
+    if (lighting) bucket.lighting.add(lighting);
+    byClass.set(label, bucket);
+  }
+  if (rows.length === 0) return ["The dataset has no assets. The variety check did not pass."];
+  const failures: string[] = [];
+  for (const label of REQUIRED_SYNTHETIC_CLASSES) {
+    const bucket = byClass.get(label) ?? { angles: new Set<string>(), lighting: new Set<string>() };
+    if (bucket.angles.size < REQUIRED_CAMERA_ANGLES) {
+      failures.push(`${label}: only ${bucket.angles.size} camera angle(s) — need ${REQUIRED_CAMERA_ANGLES}`);
+    }
+    if (bucket.lighting.size < REQUIRED_LIGHTING_CONDITIONS) {
+      failures.push(`${label}: only ${bucket.lighting.size} lighting condition(s) — need ${REQUIRED_LIGHTING_CONDITIONS}`);
+    }
+  }
+  return failures;
+}
+
 export function prepareSageMakerTraining(input: {
   version: DatasetVersion | null;
   costApproved: boolean;
-}): { ready: boolean; launched: false; estimatedCostUsd: null; reason: string } {
+  records?: StudioReviewRecord[];
+}): { ready: boolean; launched: false; estimatedCostUsd: null; reason: string; auditEvent?: typeof SYNTHETIC_ONLY_BYPASS } {
   if (!input.version) {
     return { ready: false, launched: false, estimatedCostUsd: null, reason: "No approved dataset version exists. Training was not started." };
   }
@@ -274,13 +337,26 @@ export function prepareSageMakerTraining(input: {
       reason: `${input.version.assetIds.length} verified examples are stored. ${MIN_VERIFIED_FOR_TRAINING} are required before a detector can be trained. No job was launched.`,
     };
   }
+  let auditEvent: typeof SYNTHETIC_ONLY_BYPASS | undefined;
   if (input.version.realIds.length === 0) {
-    return {
-      ready: false,
-      launched: false,
-      estimatedCostUsd: null,
-      reason: "The dataset has no real-world footage. Synthetic examples are not enough to train a detector. No job was launched.",
-    };
+    if (!input.records) {
+      return {
+        ready: false,
+        launched: false,
+        estimatedCostUsd: null,
+        reason: "The dataset has no real-world footage. Synthetic examples are not enough to train a detector. No job was launched.",
+      };
+    }
+    const failures = syntheticVarietyFailures(input.records, input.version.assetIds);
+    if (failures.length > 0) {
+      return {
+        ready: false,
+        launched: false,
+        estimatedCostUsd: null,
+        reason: `Synthetic-only dataset failed variety check: ${failures.join("; ")}. No job was launched.`,
+      };
+    }
+    auditEvent = SYNTHETIC_ONLY_BYPASS;
   }
   if (input.version.positiveIds.length === 0 || input.version.negativeIds.length === 0) {
     return {
@@ -288,12 +364,52 @@ export function prepareSageMakerTraining(input: {
       launched: false,
       estimatedCostUsd: null,
       reason: "The dataset needs both positive examples and harmless lookalikes. No job was launched.",
+      auditEvent,
     };
   }
   if (!input.costApproved) {
-    return { ready: true, launched: false, estimatedCostUsd: null, reason: "The dataset passed the readiness checks. Training cost is not approved, so no job was launched." };
+    return {
+      ready: true,
+      launched: false,
+      estimatedCostUsd: null,
+      reason: auditEvent
+        ? "SYNTHETIC_ONLY_BYPASS. The synthetic set has 3 camera angles and 3 lighting conditions per required class. Training cost is not approved, so no job was launched."
+        : "The dataset passed the readiness checks. Training cost is not approved, so no job was launched.",
+      auditEvent,
+    };
   }
-  return { ready: true, launched: false, estimatedCostUsd: null, reason: "SageMaker training is not connected. No job was launched." };
+  return {
+    ready: true,
+    launched: false,
+    estimatedCostUsd: null,
+    reason: auditEvent
+      ? "SYNTHETIC_ONLY_BYPASS. Rekognition Custom Labels was not called from this action. No project version ARN was issued."
+      : "Rekognition Custom Labels was not called from this action. No project version ARN was issued.",
+    auditEvent,
+  };
+}
+
+/** The training path is connected. A job stays idle until the verified still set passes, and this function does not call Rekognition. */
+export function connectTrainingJob(input: {
+  version: DatasetVersion | null;
+  records?: StudioReviewRecord[];
+  costApproved: boolean;
+}): { connected: true; launched: false; status: "WAITING_FOR_STILLS" | "READY"; reason: string } {
+  const prepared = prepareSageMakerTraining(input);
+  if (!prepared.ready) {
+    return {
+      connected: true,
+      launched: false,
+      status: "WAITING_FOR_STILLS",
+      reason: `Training is connected and waiting for the verified still set. ${prepared.reason}`,
+    };
+  }
+  return {
+    connected: true,
+    launched: false,
+    status: "READY",
+    reason: `Training is connected. The still set passed the readiness checks. ${prepared.reason}`,
+  };
 }
 
 export type GapRow = { category: string; need: string };

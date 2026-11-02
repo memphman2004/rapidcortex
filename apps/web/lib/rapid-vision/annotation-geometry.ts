@@ -83,17 +83,21 @@ export function fittedImageSize(
   return { width: Math.max(1, Math.floor(naturalWidth * scale)), height: Math.max(1, Math.floor(naturalHeight * scale)) };
 }
 
-/** Mean luminance on a raw preview. Brightness sliders must not feed this check. */
-export function inspectPreviewPixels(data: Uint8ClampedArray): "ready" | "black" {
+/** Mean luminance on a raw preview. Brightness sliders must not feed this check. A blank sample is unreadable, not a dark photo. */
+export function inspectPreviewPixels(data: Uint8ClampedArray): "ready" | "black" | "unreadable" {
   const count = data.length / 4;
-  if (count < 1) return "black";
+  if (count < 1) return "unreadable";
   let sum = 0;
   let max = 0;
+  let opaque = 0;
   for (let index = 0; index < data.length; index += 4) {
+    if (data[index + 3] < 16) continue;
+    opaque += 1;
     const luma = 0.2126 * data[index] + 0.7152 * data[index + 1] + 0.0722 * data[index + 2];
     sum += luma;
     if (luma > max) max = luma;
   }
-  if (sum / count < 14 && max < 32) return "black";
+  if (opaque === 0) return "unreadable";
+  if (sum / opaque < 14 && max < 32) return "black";
   return "ready";
 }

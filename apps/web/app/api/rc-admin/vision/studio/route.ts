@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { isRcStaff } from "rapid-cortex-security";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
-import { applyRightsDecision, assessTrainingRights, canEnterProduction, requestMediaImport, reviewDiscoveryCandidate, startTrainingJob, type DiscoveryCandidate, type RightsRecord } from "@/lib/rapid-vision/model-studio";
+import { applyRightsDecision, assessTrainingRights, canEnterProduction, requestMediaImport, reviewDiscoveryCandidate, type DiscoveryCandidate, type RightsRecord } from "@/lib/rapid-vision/model-studio";
+import { connectTrainingJob } from "@/lib/rapid-vision/studio-dataset";
+import { listDatasetVersions, listStudioReviews } from "@/lib/rapid-vision/studio-review-store";
 
 export const dynamic = "force-dynamic";
 
@@ -47,8 +49,24 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   }
   if (body?.action === "start-training") {
-    const result = startTrainingJob({ datasetReady: Boolean(body.datasetReady), backendConnected: false });
-    return NextResponse.json(result);
+    try {
+      const reviews = await listStudioReviews();
+      const versions = await listDatasetVersions();
+      const result = connectTrainingJob({
+        version: versions.at(-1) ?? null,
+        records: reviews,
+        costApproved: false,
+      });
+      return NextResponse.json({ ...result, liveDetection: "disabled" });
+    } catch {
+      return NextResponse.json({
+        connected: true,
+        launched: false,
+        status: "WAITING_FOR_STILLS",
+        liveDetection: "disabled",
+        reason: "Training is connected. The review table could not be read, so no job was submitted.",
+      });
+    }
   }
   if (body?.action === "activate-production") {
     const result = canEnterProduction({

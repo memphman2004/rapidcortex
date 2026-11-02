@@ -301,9 +301,10 @@ export function AnnotationStage({
                 onLoad={(event) => {
                   const image = event.currentTarget;
                   setNatural({ width: image.naturalWidth, height: image.naturalHeight });
-                  const next = inspectImageElement(image);
-                  setInspection(next);
-                  onInspection(next);
+                  void inspectImageElement(image).then((next) => {
+                    setInspection(next);
+                    onInspection(next);
+                  });
                 }}
                 onError={() => {
                   setInspection("failed");
@@ -409,15 +410,22 @@ function hitHandle(clientX: number, clientY: number, box: StudioBox, rect: DOMRe
   return found;
 }
 
-export function inspectImageElement(image: HTMLImageElement): PreviewInspection {
+/** Read the decoded file. The preview element’s brightness filter must not be sampled. */
+export async function inspectImageElement(image: HTMLImageElement): Promise<PreviewInspection> {
   try {
-    const canvas = document.createElement("canvas");
-    canvas.width = 32;
-    canvas.height = 32;
-    const context = canvas.getContext("2d", { willReadFrequently: true });
-    if (!context) return "unreadable";
-    context.drawImage(image, 0, 0, 32, 32);
-    return inspectPreviewPixels(context.getImageData(0, 0, 32, 32).data);
+    if (image.naturalWidth < 1 || image.naturalHeight < 1) return "unreadable";
+    const bitmap = await createImageBitmap(image);
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = 32;
+      canvas.height = 32;
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      if (!context) return "unreadable";
+      context.drawImage(bitmap, 0, 0, 32, 32);
+      return inspectPreviewPixels(context.getImageData(0, 0, 32, 32).data);
+    } finally {
+      bitmap.close();
+    }
   } catch {
     return "unreadable";
   }

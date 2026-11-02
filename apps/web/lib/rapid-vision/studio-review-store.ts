@@ -1,5 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import type { BatchProgress } from "./studio-batch";
 import { STUDIO_EVENTS_TABLE, STUDIO_PARTITION, type DatasetVersion, type StudioReviewRecord, type StudioReviewStatus } from "./studio-dataset";
 
 const document = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
@@ -27,7 +28,7 @@ export function recordFrom(item: Record<string, unknown>): StudioReviewRecord | 
   if (status !== "REVIEW_REQUIRED" && status !== "APPROVED" && status !== "REJECTED" && status !== "CORRECTION_REQUESTED") return null;
   return {
     id: item.id,
-    kind: item.kind === "synthetic-image" || item.kind === "discovered" ? item.kind : "visual-review",
+    kind: item.kind === "synthetic-image" || item.kind === "synthetic-clip" || item.kind === "discovered" ? item.kind : "visual-review",
     status: status as StudioReviewStatus,
     approved: item.approved === true,
     trainingLabel: typeof item.labelVerifiedAt === "string" && item.labelVerifiedAt.length > 0,
@@ -73,6 +74,25 @@ export function recordFrom(item: Record<string, unknown>): StudioReviewRecord | 
     sourceType: item.sourceType === "synthetic" || item.sourceType === "public" || item.sourceType === "unknown" ? item.sourceType : undefined,
     batchId: typeof item.batchId === "string" ? item.batchId : undefined,
     imageUrl: typeof item.imageUrl === "string" ? item.imageUrl : undefined,
+    provenance: item.provenance === "generation_job" || item.provenance === "upload" || item.provenance === "clip" ? item.provenance : undefined,
+    generationJobId: typeof item.generationJobId === "string" ? item.generationJobId : undefined,
+    qualityStatus: item.qualityStatus === "passed" || item.qualityStatus === "failed" ? item.qualityStatus : undefined,
+    syntheticPersonAttestation: attestationFrom(item.syntheticPersonAttestation),
+    sourceVideoId: typeof item.sourceVideoId === "string" ? item.sourceVideoId : undefined,
+    sourceTimestampSeconds: typeof item.sourceTimestampSeconds === "number" ? item.sourceTimestampSeconds : undefined,
+  };
+}
+
+function attestationFrom(value: unknown): StudioReviewRecord["syntheticPersonAttestation"] {
+  if (!value || typeof value !== "object") return undefined;
+  const row = value as Record<string, unknown>;
+  if (typeof row.id !== "string" || row.noRealLikenessIntentionallyReproduced !== true) return undefined;
+  if (typeof row.attestedBy !== "string" || typeof row.attestedAt !== "string") return undefined;
+  return {
+    id: row.id,
+    noRealLikenessIntentionallyReproduced: true,
+    attestedBy: row.attestedBy,
+    attestedAt: row.attestedAt,
   };
 }
 
@@ -160,7 +180,176 @@ export async function hasActiveBatchJob(): Promise<boolean> {
       ExpressionAttributeValues: { ":pk": STUDIO_PARTITION, ":sk": "JOB#" },
     }),
   );
-  return (result.Items ?? []).some((item) => item.status === "QUEUED" || item.status === "RUNNING");
+  const now = Date.now();
+  return (result.Items ?? []).some((item) => {
+    if (item.status !== "QUEUED" && item.status !== "RUNNING") return false;
+    const expires = typeof item.expiresAt === "string" ? Date.parse(item.expiresAt) : Number.NaN;
+    return !Number.isFinite(expires) || expires > now;
+  });
+}
+
+/** Same reviewer can continue a batch. A different reviewer waits until the lock expires. Progress counters stay on the parent job. */
+export async function claimStudioBatch(batchId: string, reviewer: string, now: string): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const expiresAt = new Date(Date.parse(now) + 3 * 60 * 1000).toISOString();
+  try {
+    await document.send(
+      new UpdateCommand({
+        TableName: tableName(),
+        Key: { pk: STUDIO_PARTITION, sk: `JOB#BATCH#${batchId}` },
+        UpdateExpression: "SET recordType = :type, #status = :running, reviewer = :reviewer, batchId = :batchId, expiresAt = :expires",
+        ConditionExpression: "attribute_not_exists(pk) OR reviewer = :reviewer OR expiresAt < :now OR attribute_not_exists(expiresAt)",
+        ExpressionAttributeNames: { "#status": "status" },
+        ExpressionAttributeValues: {
+          ":type": "studio_batch_job",
+          ":running": "RUNNING",
+          ":reviewer": reviewer,
+          ":batchId": batchId,
+          ":expires": expiresAt,
+          ":now": now,
+        },
+      }),
+    );
+    return { ok: true };
+  } catch (error) {
+    const name = error instanceof Error ? error.name : "";
+    if (name === "ConditionalCheckFailedException") {
+      return { ok: false, reason: "A batch for this category is already running. Wait for it to finish before requesting another." };
+    }
+    throw error;
+  }
+}
+
+export async function releaseStudioBatch(batchId: string): Promise<void> {
+  await document.send(
+    new UpdateCommand({
+      TableName: tableName(),
+      Key: { pk: STUDIO_PARTITION, sk: `JOB#BATCH#${batchId}` },
+      UpdateExpression: "SET #status = :complete, expiresAt = :now",
+      ExpressionAttributeNames: { "#status": "status" },
+      ExpressionAttributeValues: { ":complete": "COMPLETE", ":now": new Date().toISOString() },
+    }),
+  );
+}
+
+/** One in-flight provider call per scene. A second submission waits until this lock expires. */
+export async function claimScene(sceneId: string, reviewer: string, now: string): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const expiresAt = new Date(Date.parse(now) + 3 * 60 * 1000).toISOString();
+  try {
+    await document.send(
+      new PutCommand({
+        TableName: tableName(),
+        Item: {
+          pk: STUDIO_PARTITION,
+          sk: `JOB#SCENE#${sceneId}`,
+          recordType: "studio_scene_job",
+          status: "RUNNING",
+          reviewer,
+          sceneId,
+          expiresAt,
+        },
+        ConditionExpression: "attribute_not_exists(pk) OR expiresAt < :now",
+        ExpressionAttributeValues: { ":now": now },
+      }),
+    );
+    return { ok: true };
+  } catch (error) {
+    const name = error instanceof Error ? error.name : "";
+    if (name === "ConditionalCheckFailedException") {
+      return { ok: false, reason: "That image is already being generated. No second request was sent." };
+    }
+    throw error;
+  }
+}
+
+export async function releaseScene(sceneId: string): Promise<void> {
+  await document.send(
+    new UpdateCommand({
+      TableName: tableName(),
+      Key: { pk: STUDIO_PARTITION, sk: `JOB#SCENE#${sceneId}` },
+      UpdateExpression: "SET #status = :complete, expiresAt = :now",
+      ExpressionAttributeNames: { "#status": "status" },
+      ExpressionAttributeValues: { ":complete": "COMPLETE", ":now": new Date().toISOString() },
+    }),
+  );
+}
+
+export async function skipScene(batchId: string, sceneId: string, reason: "failed" | "quality_rejected"): Promise<void> {
+  await document.send(
+    new PutCommand({
+      TableName: tableName(),
+      Item: {
+        pk: STUDIO_PARTITION,
+        sk: `JOB#SKIP#${sceneId}`,
+        recordType: "studio_batch_skip",
+        batchId,
+        sceneId,
+        reason,
+      },
+    }),
+  );
+}
+
+export async function listSkippedSceneIds(): Promise<string[]> {
+  const result = await document.send(
+    new QueryCommand({
+      TableName: tableName(),
+      KeyConditionExpression: "pk = :pk AND begins_with(sk, :sk)",
+      ExpressionAttributeValues: { ":pk": STUDIO_PARTITION, ":sk": "JOB#SKIP#" },
+    }),
+  );
+  return (result.Items ?? []).map((item) => String(item.sceneId ?? "")).filter((id) => id.length > 0);
+}
+
+export async function recordBatchOutcome(input: {
+  batchId: string;
+  requested: number;
+  outcome: "generated" | "failed" | "quality_rejected";
+}): Promise<BatchProgress> {
+  const generated = input.outcome === "generated" ? 1 : 0;
+  const failed = input.outcome === "failed" ? 1 : 0;
+  const qualityRejected = input.outcome === "quality_rejected" ? 1 : 0;
+  const result = await document.send(
+    new UpdateCommand({
+      TableName: tableName(),
+      Key: { pk: STUDIO_PARTITION, sk: `JOB#BATCH#${input.batchId}` },
+      UpdateExpression: "SET requested = :requested, accepted = if_not_exists(accepted, :zero) + :accepted, generated = if_not_exists(generated, :zero) + :generated, failed = if_not_exists(failed, :zero) + :failed, qualityRejected = if_not_exists(qualityRejected, :zero) + :qualityRejected, queued = if_not_exists(queued, :zero) + :queued",
+      ExpressionAttributeValues: {
+        ":requested": input.requested,
+        ":zero": 0,
+        ":accepted": generated,
+        ":generated": generated,
+        ":failed": failed,
+        ":qualityRejected": qualityRejected,
+        ":queued": generated,
+      },
+      ReturnValues: "UPDATED_NEW",
+    }),
+  );
+  return progressFrom(result.Attributes ?? {}, input.requested);
+}
+
+export async function readBatchProgress(batchId: string, requested: number): Promise<BatchProgress> {
+  const result = await document.send(
+    new QueryCommand({
+      TableName: tableName(),
+      KeyConditionExpression: "pk = :pk AND sk = :sk",
+      ExpressionAttributeValues: { ":pk": STUDIO_PARTITION, ":sk": `JOB#BATCH#${batchId}` },
+    }),
+  );
+  return progressFrom(result.Items?.[0] ?? {}, requested);
+}
+
+function progressFrom(item: Record<string, unknown>, requested: number): BatchProgress {
+  const generated = Number(item.generated ?? 0);
+  const accepted = Number(item.accepted ?? generated);
+  return {
+    requested: Number(item.requested ?? requested),
+    accepted,
+    generated,
+    failed: Number(item.failed ?? 0),
+    qualityRejected: Number(item.qualityRejected ?? 0),
+    queued: Number(item.queued ?? accepted),
+  };
 }
 
 export async function saveStudioReview(record: StudioReviewRecord): Promise<void> {
@@ -172,4 +361,22 @@ export async function saveStudioReview(record: StudioReviewRecord): Promise<void
       ExpressionAttributeValues: { ":type": "studio_review" },
     }),
   );
+}
+
+/** A generation job cannot overwrite a review that is already stored. */
+export async function saveNewStudioReview(record: StudioReviewRecord): Promise<boolean> {
+  try {
+    await document.send(
+      new PutCommand({
+        TableName: tableName(),
+        Item: itemFrom(record),
+        ConditionExpression: "attribute_not_exists(pk)",
+      }),
+    );
+    return true;
+  } catch (error) {
+    const name = error instanceof Error ? error.name : "";
+    if (name === "ConditionalCheckFailedException") return false;
+    throw error;
+  }
 }

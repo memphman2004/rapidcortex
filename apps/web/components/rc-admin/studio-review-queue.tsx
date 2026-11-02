@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnnotationStage, inspectImageElement, type PreviewInspection } from "@/components/rc-admin/annotation-stage";
 import { boxesMatch, roundStudioBox } from "@/lib/rapid-vision/annotation-geometry";
 import type { StudioBox, StudioReviewRecord, StudioReviewStatus } from "@/lib/rapid-vision/studio-dataset";
+import { BATCH_CATEGORY_CHOICES, BATCH_SIZE_CHOICES, DEFAULT_BATCH_SIZE, batchEstimateUsd, firearmMix, progressSummary, type BatchProgress } from "@/lib/rapid-vision/studio-batch";
 import { validStudioBox } from "@/lib/rapid-vision/studio-review-gates";
 
 type Readiness = {
@@ -64,12 +65,31 @@ export function StudioReadiness() {
   );
 }
 
+function FirearmMixNote({ size }: { size: number }) {
+  const mix = firearmMix(size);
+  return (
+    <p className="mt-2 text-xs text-slate-500">
+      Firearm-like batch: {mix.handguns} synthetic people with a visible handgun, {mix.phones} phones, {mix.flashlights} flashlights, {mix.umbrellas} umbrellas, {mix.drills} power drills, and {mix.bottles} bottles. Lighting, distance, background, clothing, posture, and camera angle change across the batch.
+    </p>
+  );
+}
+
 export function StudioReviewQueue() {
   const { payload, error, reload } = useStudioQueue();
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["id"]>("ALL");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
-  const [estimate, setEstimate] = useState<string | null>(null);
+  const [batchCategory, setBatchCategory] = useState("firearm_like");
+  const [batchSize, setBatchSize] = useState<(typeof BATCH_SIZE_CHOICES)[number]>(DEFAULT_BATCH_SIZE);
+  const [batchProgress, setBatchProgress] = useState<BatchProgress | null>(null);
+  const [addingBatch, setAddingBatch] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadPrompt, setUploadPrompt] = useState("");
+  const [uploadModel, setUploadModel] = useState("chatgpt");
+  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
+  const [uploadInputKey, setUploadInputKey] = useState(0);
+  const [syntheticPeople, setSyntheticPeople] = useState(false);
+  const [cleanFrame, setCleanFrame] = useState(false);
   const [brightness, setBrightness] = useState(1);
   const [contrast, setContrast] = useState(1);
   const [magnifier, setMagnifier] = useState(false);
@@ -132,15 +152,96 @@ export function StudioReviewQueue() {
     });
   }
 
-  async function showEstimate() {
-    const res = await fetch("/api/rc-admin/vision/intelligence", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "plan-batch", category: "firearm_like", count: 10 }),
-    });
-    const data = (await res.json()) as { estimatedUsd?: number; reason?: string; positive?: number; negative?: number; challenging?: number };
-    const mix = data.positive != null ? ` Mix ${data.positive} positive, ${data.negative} lookalikes, ${data.challenging} challenging.` : "";
-    setEstimate(`Estimated planner cost $${(data.estimatedUsd ?? 0).toFixed(2)} for 10 images.${mix} ${data.reason ?? ""} This page does not start generation.`);
+  async function addBatch() {
+    setAddingBatch(true);
+    setNotice(null);
+    let remaining: number = batchSize;
+    let guard = batchSize;
+    try {
+      while (remaining > 0 && guard > 0) {
+        guard -= 1;
+        const res = await fetch("/api/rc-admin/vision/intelligence", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ action: "generate-batch", category: batchCategory, batchSize, confirmed: true }),
+        });
+        const data = (await res.json()) as {
+          ok?: boolean;
+          reason?: string;
+          error?: string;
+          remaining?: number;
+          createdId?: string | null;
+          skipped?: boolean;
+          progress?: BatchProgress;
+        };
+        if (!res.ok || data.ok === false) {
+          setNotice({ ok: false, text: data.reason || data.error || "The batch was not stored." });
+          break;
+        }
+        if (data.progress) setBatchProgress(data.progress);
+        remaining = data.remaining ?? 0;
+        setNotice({
+          ok: true,
+          text: data.reason || (data.createdId ? `Stored ${data.createdId}.` : "The batch was stored. None of the images were approved."),
+        });
+        if (remaining === 0) break;
+        if (!data.createdId && !data.skipped) break;
+      }
+    } finally {
+      setAddingBatch(false);
+      await reload();
+    }
+  }
+
+  async function uploadSynthetic() {
+    if (uploadFiles.length === 0) {
+      setNotice({ ok: false, text: "Choose one or more pictures or videos. Nothing was stored." });
+      return;
+    }
+    setUploading(true);
+    setNotice(null);
+    const stored: string[] = [];
+    const refused: string[] = [];
+    try {
+      for (const file of uploadFiles) {
+        const imageBase64 = await file.arrayBuffer().then((buffer) => {
+          const bytes = new Uint8Array(buffer);
+          let binary = "";
+          for (let index = 0; index < bytes.length; index += 1) binary += String.fromCharCode(bytes[index] ?? 0);
+          return btoa(binary);
+        });
+        const res = await fetch("/api/rc-admin/vision/intelligence", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            action: "upload-synthetic",
+            category: batchCategory,
+            prompt: uploadPrompt,
+            modelId: uploadModel,
+            contentType: file.type,
+            imageBase64,
+            syntheticPeople,
+            cleanFrame,
+          }),
+        });
+        const data = (await res.json()) as { ok?: boolean; reason?: string; error?: string };
+        if (res.ok && data.ok !== false) stored.push(file.name);
+        else refused.push(`${file.name}: ${data.reason || data.error || "The file was not stored."}`);
+      }
+      setNotice({
+        ok: refused.length === 0,
+        text: [`Stored ${stored.length}.`, ...refused].join(" "),
+      });
+      if (refused.length === 0) {
+        setUploadFiles([]);
+        setUploadInputKey((key) => key + 1);
+        setSyntheticPeople(false);
+        setCleanFrame(false);
+      }
+    } finally {
+      setUploading(false);
+      await reload();
+    }
   }
 
   if (error) return <p className="text-sm text-amber-100">{error}</p>;
@@ -253,16 +354,74 @@ export function StudioReviewQueue() {
         </button>
       </section>
       <section className="rounded-xl border border-slate-800 p-4 text-sm">
-        <h2 className="font-semibold">10-image firearm-like batch</h2>
-        <p className="mt-1 text-slate-400">Four firearm-like shapes, four harmless lookalikes, two low-light or partly blocked examples. Nothing is approved automatically.</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button type="button" className="rounded bg-slate-800 px-3 py-1.5 text-xs" onClick={() => void showEstimate()}>Show cost estimate</button>
-          <button type="button" className="rounded bg-slate-800 px-3 py-1.5 text-xs" onClick={() => void act({ action: "confirm-batch", category: "firearm_like", count: 10, confirmed: true })}>
-            Confirm estimate
+        <h2 className="font-semibold">Add another batch</h2>
+        <p className="mt-1 text-slate-400">The studio requests one 1024×1024 image at a time and keeps a generation job, prompt, model id, and synthetic-person attestation on each frame. Nothing is approved, and nothing is a training example until the quality check, a saved box, and label verification are done.</p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <label className="text-xs text-slate-400">
+            Category
+            <select
+              value={batchCategory}
+              onChange={(event) => setBatchCategory(event.target.value)}
+              disabled={addingBatch}
+              className="ml-2 rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-xs text-slate-100"
+            >
+              {BATCH_CATEGORY_CHOICES.map((choice) => (
+                <option key={choice.id} value={choice.id}>
+                  {choice.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-slate-400">
+            Batch size
+            <select
+              value={batchSize}
+              onChange={(event) => setBatchSize(Number(event.target.value) as (typeof BATCH_SIZE_CHOICES)[number])}
+              disabled={addingBatch}
+              aria-label="Batch size"
+              className="ml-2 rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-xs text-slate-100"
+            >
+              {BATCH_SIZE_CHOICES.map((size) => (
+                <option key={size} value={size}>
+                  {size.toLocaleString()} images
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="button" disabled={addingBatch} className="rounded bg-violet-800 px-3 py-1.5 text-xs font-medium disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500" onClick={() => void addBatch()}>
+            {addingBatch ? "Adding batch…" : "Add another batch"}
           </button>
         </div>
-        {estimate ? <p className="mt-2 text-xs text-amber-100">{estimate}</p> : null}
-        <p className="mt-2 text-xs text-slate-500">Batch generation on this server is {payload.batchEnabled ? "enabled" : "closed"}. Confirming does not call the image model from the browser.</p>
+        <p className="mt-2 text-xs text-slate-500">
+          {batchSize.toLocaleString()} images. {batchSize / 2} positive and {batchSize / 2} negative. Up to ${batchEstimateUsd(batchSize).toFixed(2)} at $0.04 per image. A batch that would pass the studio spend cap is not started. Leaving this page and clicking again continues the same batch without regenerating stored images.
+          {batchProgress ? ` ${progressSummary(batchProgress)}` : ""}
+        </p>
+        {batchCategory === "firearm_like" ? <FirearmMixNote size={batchSize} /> : null}
+      </section>
+      <section className="rounded-xl border border-slate-800 p-4 text-sm">
+        <h2 className="font-semibold">Upload synthetic pictures and videos</h2>
+        <p className="mt-1 text-slate-400">Uses the category selected above. Add as many files as you need. There is no count limit. A synthetic face, a group, a weapon, a fight, or a crash can be stored. Logos, timestamps, and other burned-in text are refused. A typed prompt does not make the file a training example. A video is kept as the original clip, and no frame is extracted from it here.</p>
+        <div className="mt-3 space-y-2">
+          <input key={uploadInputKey} type="file" multiple accept="image/png,image/jpeg,image/webp,video/mp4,video/quicktime" aria-label="Synthetic pictures or videos" onChange={(event) => setUploadFiles(Array.from(event.target.files ?? []))} className="block text-xs text-slate-300" />
+          {uploadFiles.length > 0 ? <p className="text-xs text-slate-400">{uploadFiles.length} selected.</p> : null}
+          <label className="block text-xs text-slate-400">Prompt
+            <textarea value={uploadPrompt} onChange={(event) => setUploadPrompt(event.target.value)} aria-label="Generation prompt" className="mt-1 block w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100" rows={3} />
+          </label>
+          <label className="block text-xs text-slate-400">Model
+            <input value={uploadModel} onChange={(event) => setUploadModel(event.target.value)} aria-label="Generation model" className="mt-1 block w-full max-w-md rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100" />
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-300">
+            <input type="checkbox" checked={syntheticPeople} onChange={(event) => setSyntheticPeople(event.target.checked)} />
+            Every person in this image is synthetic and is not a real individual.
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-300">
+            <input type="checkbox" checked={cleanFrame} onChange={(event) => setCleanFrame(event.target.checked)} />
+            This file has no burned-in text, logo, or timestamp.
+          </label>
+          <button type="button" disabled={uploading} onClick={() => void uploadSynthetic()} className="rounded bg-violet-800 px-3 py-1.5 text-xs font-medium disabled:opacity-50">
+            {uploading ? "Uploading…" : "Upload files"}
+          </button>
+        </div>
       </section>
     </div>
   );
@@ -287,11 +446,16 @@ function CandidateEditor({
   const [license, setLicense] = useState(item.license ?? "");
   const [privacy, setPrivacy] = useState(item.privacy ?? "");
   const [commercialUse, setCommercialUse] = useState(item.commercialUse ?? "unverified");
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState(item.reviewerNote ?? "");
   const [cannotIdentify, setCannotIdentify] = useState(false);
   const [inspection, setInspection] = useState<PreviewInspection>("loading");
 
+  useEffect(() => {
+    setComment(item.reviewerNote ?? "");
+  }, [item.id, item.reviewerNote]);
+
   const boxSaved = boxesMatch(draft, item.box ?? null);
+  const lookalike = item.role === "negative";
   const verifyReason = verificationBlock({ item, draft, boxSaved, cannotIdentify, inspection, category });
   const area = draft ? draft.width * draft.height : 0;
 
@@ -384,8 +548,8 @@ function CandidateEditor({
             Category
             <input value={category} onChange={(event) => setCategory(event.target.value)} className="mt-1 w-full rounded border border-slate-800 bg-transparent px-2 py-1 text-xs" />
           </label>
-          <textarea value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Reviewer comment" rows={2} className="w-full rounded border border-slate-800 bg-transparent px-2 py-1 text-xs" />
-          <button type="button" className="w-full rounded bg-emerald-800 px-2 py-1.5 text-xs font-medium" onClick={() => void onAct({ action: "review-decision", id: item.id, decision: "approve" })}>Accept candidate</button>
+          <textarea value={comment} onChange={(event) => setComment(event.target.value)} placeholder={lookalike ? "What is this object, if it is not a firearm?" : "Reviewer comment"} rows={2} className="w-full rounded border border-slate-800 bg-transparent px-2 py-1 text-xs" />
+          <button type="button" className="w-full rounded bg-emerald-800 px-2 py-1.5 text-xs font-medium" onClick={() => void onAct({ action: "review-decision", id: item.id, decision: "approve", note: comment })}>{lookalike ? "Accept lookalike" : "Accept candidate"}</button>
           <button type="button" className="w-full rounded bg-rose-900 px-2 py-1.5 text-xs font-medium" onClick={() => void onAct({ action: "review-decision", id: item.id, decision: "reject", note: comment })}>Reject</button>
           <button type="button" className="w-full rounded bg-amber-800 px-2 py-1.5 text-xs font-medium" onClick={() => void onAct({ action: "review-decision", id: item.id, decision: "correct-label", note: category })}>Correct label</button>
           <button type="button" className="w-full rounded bg-sky-900 px-2 py-1.5 text-xs font-medium" onClick={() => void onAct({ action: "review-decision", id: item.id, decision: "request-review", note: comment })}>Request review</button>
@@ -395,9 +559,13 @@ function CandidateEditor({
             className="w-full rounded bg-violet-800 px-2 py-1.5 text-xs font-medium disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500"
             onClick={() => void onAct({ action: "verify-label", id: item.id, note: comment, identifiable: cannotIdentify ? false : true })}
           >
-            Verify label
+            {lookalike ? "Verify lookalike" : "Verify label"}
           </button>
-          <p className="text-[11px] text-slate-400">{verifyReason ?? "Verify only after rights are recorded, the candidate is accepted, and the box matches the object."}</p>
+          <p className="text-[11px] text-slate-400">
+            {verifyReason ?? (lookalike
+              ? "Verify lookalike confirms the boxed object is not a firearm. The category stays firearm-like so the model learns the lookalike."
+              : "Verify only after rights are recorded, the candidate is accepted, and the box matches the object.")}
+          </p>
           <button type="button" className="rounded bg-slate-800 px-2 py-1 text-xs" onClick={() => void onAct({ action: "comment", id: item.id, note: comment })}>Save comment</button>
         </section>
         <section className="border-t border-slate-800 pt-3">
@@ -433,7 +601,7 @@ function verificationBlock(input: {
   if (!input.item.rightsVerifiedAt || input.item.rightsStatus === "REVIEW_REQUIRED" || input.item.rightsStatus === "UNKNOWN" || input.item.rightsStatus === "RESTRICTED") {
     return "Record rights before verifying the label. Rights approval and label verification stay separate.";
   }
-  if (!input.item.approved || input.item.status !== "APPROVED") return "Accept the candidate before verifying its label.";
+  if (input.item.role !== "negative" && (!input.item.approved || input.item.status !== "APPROVED")) return "Accept the candidate before verifying its label.";
   return null;
 }
 
@@ -457,8 +625,9 @@ function GalleryThumb({ item, selected, index, onSelect }: { item: StudioReviewR
           className="h-full w-full object-cover"
           onError={() => setState("failed")}
           onLoad={(event) => {
-            const inspection = inspectImageElement(event.currentTarget);
-            if (inspection === "black") setState("black");
+            void inspectImageElement(event.currentTarget).then((inspection) => {
+              if (inspection === "black") setState("black");
+            });
           }}
         />
       )}

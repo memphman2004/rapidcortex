@@ -127,7 +127,7 @@ function TrainingJobs() {
     const res = await fetch("/api/rc-admin/vision/studio", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "start-training", datasetReady: false }),
+      body: JSON.stringify({ action: "start-training" }),
     });
     const body = (await res.json()) as { reason?: string; error?: string; progress?: null };
     setMessage(body.reason || body.error || "The training service did not start a job.");
@@ -135,7 +135,7 @@ function TrainingJobs() {
   return (
     <section className="space-y-3">
       <p className="text-sm text-slate-400">
-        DetectLabels is the live detector. These classes are what a Custom Labels model still has to learn. A job stays unstarted until each class has labeled camera-scene examples and the footage source is a signed agency agreement or a renderer you own.
+        DetectLabels is the live detector. Training is connected and stays idle until the verified still set is complete. Clip frames stay unverified until a box is saved and the label is verified. A job is not submitted from this button.
       </p>
       <ul className="space-y-2">
         {SCENE_TRAINING_CLASSES.map((item) => (

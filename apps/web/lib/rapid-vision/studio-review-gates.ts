@@ -1,4 +1,5 @@
 import type { ReviewAuditEntry, StudioBox, StudioReviewRecord } from "./studio-dataset";
+import { syntheticTrainingBlock } from "./synthetic-generation";
 
 export type RightsInput = {
   sourceUrl?: string;
@@ -41,7 +42,7 @@ export function verifyMediaRights(
         rightsStatus: "synthetic_internal",
         rightsReviewer: who,
         rightsVerifiedAt: now,
-        privacy: input.privacy?.trim() || "Synthetic image. No agency footage and no person.",
+        privacy: input.privacy?.trim() || "Synthetic frame. No real person's likeness was intentionally reproduced.",
         commercialUse: "permitted",
         sourceType: "synthetic",
         trainingLabel: false,
@@ -119,7 +120,8 @@ export function verifyTrainingLabel(
   if (options?.identifiable === false) {
     return { ok: false, reason: "The object cannot be identified. The label was not verified. Reject the candidate or request another review." };
   }
-  if (!record.approved || record.status !== "APPROVED") {
+  const lookalike = record.role === "negative";
+  if (!lookalike && (!record.approved || record.status !== "APPROVED")) {
     return { ok: false, reason: "Accept the candidate before verifying its label." };
   }
   if (!record.rightsVerifiedAt || record.rightsStatus === "REVIEW_REQUIRED" || record.rightsStatus === "UNKNOWN" || record.rightsStatus === "RESTRICTED") {
@@ -129,17 +131,27 @@ export function verifyTrainingLabel(
   if (!validStudioBox(record.box)) {
     return { ok: false, reason: "Draw a box around the object before verifying the label." };
   }
+  const blocked = syntheticTrainingBlock(record);
+  if (blocked) return { ok: false, reason: blocked };
+  const written = note?.trim();
   return {
     ok: true,
     record: audit(
       {
         ...record,
+        status: "APPROVED",
+        approved: true,
         trainingLabel: true,
         labelReviewer: who,
         labelVerifiedAt: now,
-        reviewerNote: note?.trim() || record.reviewerNote,
+        reviewerNote: written || record.reviewerNote,
       },
-      { at: now, reviewer: who, action: "verify-label", note: note?.trim() || record.category },
+      {
+        at: now,
+        reviewer: who,
+        action: "verify-label",
+        note: written || (lookalike ? `${record.category} lookalike` : record.category),
+      },
     ),
   };
 }

@@ -18,6 +18,7 @@ import {
 import { addReviewComment, adjustStudioBox, clearStudioBox, parseStudioBox, verifyMediaRights, verifyTrainingLabel, appendAudit, type RightsInput } from "@/lib/rapid-vision/studio-review-gates";
 import { hasActiveBatchJob, listDatasetVersions, listStudioReviews, saveDatasetVersion, saveStudioReview } from "@/lib/rapid-vision/studio-review-store";
 import { loadStudioPreview } from "@/lib/rapid-vision/studio-preview";
+import { generateNextStill, storeUploadedSynthetic } from "@/lib/rapid-vision/studio-batch-generate";
 
 export const dynamic = "force-dynamic";
 
@@ -98,11 +99,18 @@ type PostBody = {
   note?: string;
   category?: string;
   count?: number;
+  batchSize?: number;
   confirmed?: boolean;
   rights?: RightsInput;
   box?: StudioBox | null;
   identifiable?: boolean;
   costApproved?: boolean;
+  prompt?: string;
+  modelId?: string;
+  imageBase64?: string;
+  contentType?: string;
+  syntheticPeople?: boolean;
+  cleanFrame?: boolean;
 };
 
 export async function POST(request: Request) {
@@ -111,6 +119,41 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as PostBody | null;
   const reviewer = reviewerName(user);
   const now = new Date().toISOString();
+
+  if (body?.action === "upload-synthetic") {
+    try {
+      const result = await storeUploadedSynthetic({
+        category: body.category,
+        prompt: body.prompt,
+        modelId: body.modelId,
+        syntheticPeople: body.syntheticPeople,
+        cleanFrame: body.cleanFrame,
+        contentType: body.contentType,
+        imageBase64: body.imageBase64,
+        now,
+      });
+      return NextResponse.json({ ...result, liveDetection: "disabled" }, { status: result.ok ? 200 : 400 });
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "The image was not stored.";
+      return NextResponse.json({ ok: false, reason, liveDetection: "disabled" }, { status: 502 });
+    }
+  }
+
+  if (body?.action === "generate-batch") {
+    try {
+      const requestedSize = Number(body.batchSize ?? body.count);
+      const result = await generateNextStill({
+        category: body.category || "firearm_like",
+        confirmed: body.confirmed === true,
+        reviewer,
+        batchSize: Number.isFinite(requestedSize) && requestedSize > 0 ? requestedSize : undefined,
+      });
+      return NextResponse.json(result);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "The image was not stored.";
+      return NextResponse.json({ ok: false, generated: false, reason, liveDetection: "disabled" }, { status: 502 });
+    }
+  }
 
   if (body?.action === "plan-batch" || body?.action === "confirm-batch") {
     let activeJob = false;
@@ -162,7 +205,14 @@ export async function POST(request: Request) {
       const reviews = await listStudioReviews();
       const versions = await listDatasetVersions();
       const refusal = submitDatasetForTraining(reviews);
-      const prepared = prepareSageMakerTraining({ version: versions.at(-1) ?? null, costApproved: body.costApproved === true });
+      const prepared = prepareSageMakerTraining({
+        version: versions.at(-1) ?? null,
+        costApproved: body.costApproved === true,
+        records: reviews,
+      });
+      if (prepared.auditEvent === "SYNTHETIC_ONLY_BYPASS") {
+        console.info(JSON.stringify({ event: "SYNTHETIC_ONLY_BYPASS", datasetVersion: versions.at(-1)?.id ?? null, reviewer }));
+      }
       return NextResponse.json({ ...refusal, ...prepared, launched: false, liveDetection: "disabled" });
     } catch {
       return NextResponse.json({ ok: false, launched: false, reason: "The review table could not be read. Training was not started." });

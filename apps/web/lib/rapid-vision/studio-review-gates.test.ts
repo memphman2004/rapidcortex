@@ -56,6 +56,29 @@ describe("studio review gates", () => {
     expect(result.ok).toBe(false);
   });
 
+  it("verifies a negative lookalike without treating it as the object", () => {
+    const drill: StudioReviewRecord = {
+      ...commons,
+      id: "firearm-pilot-10-05",
+      synthetic: true,
+      role: "negative",
+      rightsStatus: "synthetic_internal",
+      rightsVerifiedAt: "2026-10-30T16:00:00.000Z",
+      box: { x: 0.33, y: 0.59, width: 0.2, height: 0.16 },
+      status: "REVIEW_REQUIRED",
+      approved: false,
+    };
+    const result = verifyTrainingLabel(drill, "ada@nexcortiq.us", "2026-10-30T16:10:00.000Z", "This is a drill, not a firearm.");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.record.trainingLabel).toBe(true);
+      expect(result.record.approved).toBe(true);
+      expect(result.record.role).toBe("negative");
+      expect(result.record.category).toBe("firearm_like");
+      expect(result.record.reviewerNote).toBe("This is a drill, not a firearm.");
+    }
+  });
+
   it("rejects a box that leaves the image", () => {
     const result = adjustStudioBox(commons, { x: 0.8, y: 0.8, width: 0.4, height: 0.4 }, "ada@nexcortiq.us", "2026-10-30T16:00:00.000Z");
     expect(result.ok).toBe(false);

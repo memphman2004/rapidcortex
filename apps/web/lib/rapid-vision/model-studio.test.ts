@@ -215,7 +215,14 @@ describe("model studio safeguards", () => {
   });
 
   it("notes a clip interval without writing a file and reports missing video examples", () => {
-    expect(planVideoClip({ durationSeconds: 45, startSeconds: 12, endSeconds: 22 }).reason).toMatch(/not connected/);
+    const clip = planVideoClip({ durationSeconds: 45, startSeconds: 12, endSeconds: 22, sourceVideoId: "clip-1" });
+    expect(clip.ok).toBe(true);
+    if (clip.ok) {
+      expect(clip.extraction).toBe("CONNECTED");
+      expect(clip.frames).toHaveLength(10);
+      expect(clip.frames.every((frame) => frame.trainingLabel === false && frame.sourceVideoId === "clip-1")).toBe(true);
+      expect(clip.trainingEligible).toBe(false);
+    }
     expect(planVideoClip({ durationSeconds: 45, startSeconds: 40, endSeconds: 50 }).reason).toMatch(/after the recording/);
     expect(buildDatasetVersion({ approvedForTraining: 0 }).ok).toBe(false);
     const gaps = datasetGapAnalysis([{

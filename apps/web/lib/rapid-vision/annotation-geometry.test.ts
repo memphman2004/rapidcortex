@@ -32,7 +32,9 @@ describe("annotation geometry", () => {
   });
 
   it("flags a nearly black preview and accepts a visible one", () => {
-    const black = new Uint8ClampedArray(16);
+    const blank = new Uint8ClampedArray(16);
+    expect(inspectPreviewPixels(blank)).toBe("unreadable");
+    const black = new Uint8ClampedArray([0, 0, 0, 255, 0, 0, 0, 255]);
     expect(inspectPreviewPixels(black)).toBe("black");
     const visible = new Uint8ClampedArray([180, 40, 40, 255, 20, 20, 20, 255]);
     expect(inspectPreviewPixels(visible)).toBe("ready");
