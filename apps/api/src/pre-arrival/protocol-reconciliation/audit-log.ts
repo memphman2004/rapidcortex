@@ -37,10 +37,10 @@ export class ReconciliationAuditLog {
         new PutCommand({
           TableName: table,
           Item: {
+            ...record,
             pk: `INCIDENT#${record.incidentId}`,
             sk,
             agencyId: record.agencyId,
-            ...record,
             ttl,
           },
           ConditionExpression: "attribute_not_exists(sk)",
@@ -64,8 +64,11 @@ export class ReconciliationAuditLog {
         Limit: 50,
       }),
     );
-    return ((r.Items ?? []) as Array<ReconciliationAuditRecord & { agencyId?: string }>)
+    return ((r.Items ?? []) as Array<ReconciliationAuditRecord & { agencyId?: string; pk?: string; sk?: string; ttl?: number }>)
       .filter((i) => i.agencyId === agencyId)
-      .map(({ pk: _p, sk: _s, ttl: _t, ...rest }) => rest as unknown as ReconciliationAuditRecord);
+      .map((item) => {
+        const { pk: _p, sk: _s, ttl: _t, ...rest } = item;
+        return rest as ReconciliationAuditRecord;
+      });
   }
 }

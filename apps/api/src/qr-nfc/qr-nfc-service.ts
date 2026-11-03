@@ -14,7 +14,7 @@ import {
   isMarketingSiteQrRecord,
   migrateLegacyRapidCortexRoleTokenValue,
   resolveCampusInfoTab,
-  resolveCampusInstitutionType,
+  resolveCampusInstitutionTypeFromConfig,
   safetyPointGisImportCommitSchema,
   safetyPointGisImportPreviewSchema,
   toPublicCampusInfoTab,
@@ -508,7 +508,7 @@ export class QrNfcService {
     const campusCfg = (agency as { config?: { campus?: CampusAgencyConfig } } | null)?.config?.campus;
     const institutionType =
       record.vertical === "campus"
-        ? resolveCampusInstitutionType({
+        ? resolveCampusInstitutionTypeFromConfig({
             institutionType: (agency as { institutionType?: unknown } | null)?.institutionType
               ?? campusCfg?.institutionType,
             campusType: campusCfg?.campusType,

@@ -1,0 +1,213 @@
+Loaded 176 signal payloads from signals_only.json
+
+Total payloads to post: 202
+======================================================================
+⚡ [DUP   ] the agency - Evaluation of Public Safety Answering Point (PSAP) Consol
+⚡ [DUP   ] the agency - Dual-Lift 911 Dispatch Consoles - RFP #27-02 (2026)
+⚡ [DUP   ] the agency - Mass Notification System Procurement - 2026
+⚡ [DUP   ] the agency - 911 - Solacom CHE Support (10/1/2026 - 9/30/2027) - SS 18
+⚡ [DUP   ] the agency Satellite Communications Services SS 18294-27
+⚡ [DUP   ] the agency - Public Safety Vehicle Equipment and Upfitting Services - 
+⚡ [DUP   ] the agency RFP 2026-15-122 Outdoor Emergency Warning Siren System Acqu
+⚡ [DUP   ] the agency - Maintenance & Repair – Two-Way Radio Equipment / Emergenc
+⚡ [DUP   ] the agency Request for Proposals - Information Technology Services 202
+⚡ [DUP   ] the agency, MD - Countywide Multi-Hazard Environmental Monitoring and 
+⚡ [DUP   ] the agency - Construction of Security Vestibules and Improvements for 
+⚡ [DUP   ] the agency - Security Cameras LEE/Churchill/Madison (Package A) RFP 11
+⚡ [DUP   ] University of California, the agency - Gayley Center Real Time Safety 
+⚡ [DUP   ] the agency - Remote Security Solutions - RFI 013-27, 2026
+⚡ [DUP   ] the agency School Safety & Campus Management Software RFP27-005 (2026)
+⚡ [DUP   ] Mehlville School District - School-Home Communication System RFP - 202
+⚡ [DUP   ] the agency - Security Services 2026-2027
+⚡ [DUP   ] the agency Schools E-Rate Category 2 and Security Cabling Infrastructu
+⚡ [DUP   ] the agency - 27TH09 Milestone Care+ XProtect 3-Year Support for Securi
+⚡ [DUP   ] the agency School District - Verkada Camera System Installation at the
+⚡ [DUP   ] the agency NC - Building Communication System Replacement - CCS-2026-A
+⚡ [DUP   ] the agency - Ocean Center Event Staffing and Event Security Services -
+⚡ [DUP   ] the agency - IFB 2027-029 TSA Exit Lane Terminal Expansion
+⚡ [DUP   ] the agency - Security Light Upgrades - Bid Reference No. 27-027 (2026)
+⚡ [DUP   ] the agency - 2027 Security Services at Recreation Centers, Pools, and 
+⚡ [DUP   ] the agency Annual Contract for Security Guard Services - RFB 25-26-40 
+⚡ [DUP   ] Transit security services budget expansion
+⚡ [DUP   ] Transit security enhancements funding
+⚡ [DUP   ] Transit security center grant buildout
+⚡ [DUP   ] Transit Security Operations Center grants
+⚡ [DUP   ] PSAP consolidation and 911 system grant
+⚡ [DUP   ] NG911 PSAP grant upgrade package
+⚡ [DUP   ] Transit security services contract
+⚡ [DUP   ] Richland County Board - 2026/09/24
+⚡ [DUP   ] NG911 transition planning roadmap
+⚡ [DUP   ] 911 grant-funded CAD and GIS upgrades
+⚡ [DUP   ] Campus safety infrastructure program
+⚡ [DUP   ] Regular Board of Ed Meeting 10/13/26- the agency Middle School
+⚡ [DUP   ] COPS SVPP school security grant
+⚡ [DUP   ] PSAP grant funds CAD software
+⚡ [DUP   ] Steering Committee - September 8, 2026
+⚡ [DUP   ] NG911 vendor selection pending
+⚡ [DUP   ] Security cameras and access control finalized
+⚡ [DUP   ] City Council (Special Meeting) - 2PM 2/13/2024
+⚡ [DUP   ] September 18, 2026  Special Called City Council Meeting
+⚡ [DUP   ] Community Advisory Committee Meeting - September 9th, 2026
+⚡ [DUP   ] Rolling Hills Board of Education Meeting August 20th, 2026
+⚡ [DUP   ] 7/16/26 Parks Commission
+⚡ [DUP   ] Bus surveillance security equipment
+⚡ [DUP   ] Bus surveillance equipment purchase
+⚡ [DUP   ] Light rail security initiatives planning
+⚡ [DUP   ] Transit security access upgrade
+⚡ [DUP   ] Transit Security mobile notification app
+⚡ [DUP   ] NG911 PSAP grant participation
+⚡ [DUP   ] Dispatch center remodel and NG911 grant
+⚡ [DUP   ] NG911 Vesta911 governance demo
+⚡ [DUP   ] FY 2027 NG911 PSAP grant participation
+⚡ [DUP   ] Vesta911 CAD GIS governance demo
+⚡ [DUP   ] 2027 PSAP hardware purchases
+⚡ [DUP   ] NG911 equipment replacement funding
+⚡ [DUP   ] NG911 grant update
+⚡ [DUP   ] 911 dispatch technology plan
+⚡ [DUP   ] 911 and emergency management funding
+⚡ [DUP   ] Grant County PSAP consolidation support
+⚡ [DUP   ] West Central dispatch services contract
+⚡ [DUP   ] NG911 grant agreement approved
+⚡ [DUP   ] NG911 equipment reimbursement
+⚡ [DUP   ] School security cameras and access control
+⚡ [DUP   ] School security camera upgrades
+⚡ [DUP   ] Security cameras and access control
+⚡ [DUP   ] Security cameras access control award
+⚡ [DUP   ] October 6, 2026 – the agency County Commissioners' Meeting
+⚡ [DUP   ] Districtwide security cameras and doors
+⚡ [DUP   ] Security cameras and access control funding
+⚡ [DUP   ] GEMS security cameras and doorbells
+⚡ [DUP   ] Security cameras and access control installation
+⚡ [DUP   ] PST Task Force Teams Link 20261022 114216 Meeting Recording
+⚡ [DUP   ] BASD School Board Special Board Meeting and Combine Committee Meetings
+⚡ [DUP   ] Council Meeting Meeting - October 15th, 2026
+⚡ [DUP   ] School security system using developer fees
+⚡ [DUP   ] City Hall security cameras and access control
+⚡ [DUP   ] City of the agency, Ohio - Council Meeting: Oct. 13,. 2026
+⚡ [DUP   ] 2026-10-26 the agency City Council Meeting - Committee of the Whole
+⚡ [DUP   ] Security cameras IP refresh
+⚡ [DUP   ] Corporation Yard access control upgrade
+⚡ [DUP   ] the agency State event security RFP competition
+⚡ [DUP   ] Council Briefing 8/10/26
+⚡ [DUP   ] Crowd management equipment donation
+⚡ [DUP   ] Crowd management services agreement
+⚡ [DUP   ] City Council Meeting | October 28th 2026
+⚡ [DUP   ] September 22, 2026 Board Meeting
+⚡ [DUP   ] Measure J Commission | September 17, 2026
+⚡ [DUP   ] Summersville City Council 9.28.26
+⚡ [DUP   ] Finance Committee - Budget Hearing - Part 3
+⚡ [DUP   ] the agency School District 2-2 Live Stream - Board of Education Regula
+⚡ [DUP   ] 8/13/2026 Gerlach/Empire CAB Meeting
+⚡ [DUP   ] Transportation bus surveillance policy
+⚡ [DUP   ] School bus surveillance policy update
+⚡ [DUP   ] Port security transit security grants
+⚡ [DUP   ] PSAP grant funds 911 operations
+⚡ [DUP   ] Measure U Community Advisory Committee 1/22/2024
+⚡ [DUP   ] Board of Commissioners Special Meeting - Sept. 16
+⚡ [DUP   ] E-911 grant revenue allocation
+⚡ [DUP   ] County dispatch service funding
+⚡ [DUP   ] PSAP E-911 grant allocation
+⚡ [DUP   ] Dispatch 911 outsourcing consideration
+⚡ [DUP   ] Committee of the Whole - Oct 12 2026
+⚡ [DUP   ] Currituck PSAP CAD replacement request
+⚡ [DUP   ] Security cameras and card access
+⚡ [DUP   ] CPS Regular Board Meeting September 16, 2026
+⚡ [DUP   ] the agency Municipal Schools Board Meeting - February 2026
+⚡ [DUP   ] Select Board 09/17/2026
+⚡ [DUP   ] Public school security grant budget
+⚡ [DUP   ] City of the agency Council Meeting 10-26-2026
+⚡ [DUP   ] Marion County Commissioners Meeting - October 14, 2026
+⚡ [DUP   ] School security cameras policy
+⚡ [DUP   ] 8/13/2026 Information Technology Committee
+⚡ [DUP   ] Security cameras grant for campus safety
+⚡ [DUP   ] Board of Trustees Meeting - October 26, 2026
+⚡ [DUP   ] School security grant completed submission
+⚡ [DUP   ] Public school security grant rollout
+⚡ [DUP   ] School security cameras policy vote
+⚡ [DUP   ] School security cameras policy update
+⚡ [DUP   ] EGSC July Board Meeting 10/13/2026
+⚡ [DUP   ] SCS Board Worksession 09-1-2026 Part 1
+⚡ [DUP   ] School security operating budget
+⚡ [DUP   ] Town and school security upgrades
+⚡ [DUP   ] Station 24 security cameras
+⚡ [DUP   ] Security cameras and equipment
+⚡ [DUP   ] School security cameras and equipment funding
+⚡ [DUP   ] the agency City Council, September 16, 2026
+⚡ [DUP   ] Convention center rental rates
+⚡ [DUP   ] September 15,  2026 HCHSA Board of Directors Meeting
+⚡ [DUP   ] Special City Council Meeting / Budget Work Session #1 - August 5, 2026
+⚡ [DUP   ] Convention center security rate increase
+⚡ [DUP   ] Convention center antenna system
+⚡ [DUP   ] Convention center capital replacement
+⚡ [DUP   ] Paratransit coordinators office contract
+⚡ [DUP   ] Fleet management evaluation
+⚡ [DUP   ] VUSD School Board Meeting September 8th, 2026
+⚡ [DUP   ] Finance Committee Meeting, September 15, 2026
+⚡ [DUP   ] Fleet management program evaluation
+⚡ [DUP   ] EMS dispatch radio interoperability
+⚡ [DUP   ] PSAP dispatch budget review
+⚡ [DUP   ] Active Call Management queue setup
+⚡ [DUP   ] the agency Commission meeting Oct 6, 2026
+⚡ [DUP   ] BOEC-to-ambulance CAD integration
+⚡ [DUP   ] Emergency communications tax increase
+⚡ [DUP   ] Huron 911 radio interoperability project
+⚡ [DUP   ] Citizen Oversight Board Meeting – September 11, 2026
+⚡ [DUP   ] PSAP radio dispatch transmission consolidation
+⚡ [DUP   ] Hampton County Council Meeting September 14, 2026
+⚡ [DUP   ] Emergency communications consolidation plan
+⚡ [DUP   ] PSAP 911 upgrade grant funds
+⚡ [DUP   ] PSAP grant for consolidated dispatch
+⚡ [DUP   ] Dispatch consolidation PSAP grant application
+⚡ [DUP   ] PSAP grant for dispatch consolidation
+⚡ [DUP   ] PSAP grant-funded dispatch equipment
+⚡ [DUP   ] 911 Board October 2026
+⚡ [DUP   ] 911 PSAP modernization reimbursement
+⚡ [DUP   ] FY27 E-911 grant funding
+⚡ [DUP   ] Replacement 911 CAD system purchase
+⚡ [DUP   ] Dispatch and CAD grants tabled
+⚡ [DUP   ] Convention center concession services
+⚡ [DUP   ] Grand Forks paratransit van package
+⚡ [DUP   ] Fleet management reappropriation
+⚡ [DUP   ] COF Work Session 9-3-2026
+⚡ [DUP   ] Steuben County Government 9/2/26 Council Budget Session 1
+⚡ [DUP   ] Vehicle fleet management services
+⚡ [DUP   ] City Council - 5PM 11/19/2024
+⚡ [DUP   ] Special Called City Council Meeting | September 1, 2026
+⚡ [DUP   ] City of the agency | Planning Commission Meeting August 19, 2026
+⚡ [DUP   ] 08/13/2026 - 7:00PM - City of Brooskshire City Council Budget Workshop
+⚡ [DUP   ] FY2027 Budget Public Meeting - August 24, 2026 | City of the agency
+⚡ [DUP   ] City Council Meeting 9/23/26
+⚡ [DUP   ] October 21, 2026 CRTPO Board Meeting
+⚡ [DUP   ] Ti Town Board 8 13 2026
+⚡ [DUP   ] City Council Work Session - Aug 3 2026
+⚡ [DUP   ] Convention center operator consultant
+✓ [MEDIUM] City Commission Meeting 9.23.2026
+✓ [MEDIUM] Convention center operator consulting
+✓ [MEDIUM] Convention center labor rules
+✓ [MEDIUM] Board Meeting 9/18/2026
+✓ [MEDIUM] Paratransit coordinator office services agreement
+✓ [MEDIUM] Paratransit office services agreement
+✓ [MEDIUM] Paratransit coordinator services agreement
+✓ [LOW   ] 09/14/2026: the agency City Council Work Session & Meeting
+✓ [LOW   ] Finance Committee - 08.26.2026
+✓ [LOW   ] 10/26/2026: the agency City Council Work Session & Meeting
+✓ [LOW   ] Convention Center budget presentation
+✓ [LOW   ] CIB Main Meeting - 10/28/26
+✓ [LOW   ] the agency City Council Workshop September 1, 2026
+✓ [LOW   ] October 7, 2026 - Community Issues Committee
+✓ [LOW   ] Jackson County BOCC - Public Hearing & Regular Meeting - September 22,
+✓ [LOW   ] Sheraton convention center upgrades
+✓ [LOW   ] September 17, 2026 TheRide Board of Directors Meeting
+✓ [LOW   ] the agency Common Council Committee of the Whole of September 22, 2026
+✓ [LOW   ] Finance Committee: Meeting of October 13, 2026
+✓ [LOW   ] the agency Common Council Committee of the Whole of September 22, 2026
+✓ [LOW   ] the agency Common Council Workshop: 2027 Operating Budget - 10/15/26
+✓ [LOW   ] the agency City Council Special Budget Meeting 9/9/26 at 6:00 p.m.
+✓ [LOW   ] the agency Security Services Contract RFP# 2026.10.29 (2026)
+
+======================================================================
+POSTED:  23 (0 high / 7 medium / 16 low)
+SKIPPED: 179 (duplicate)
+ERRORS:  0
+
+RFP_SUMMARY:23:0:7:16:179:0

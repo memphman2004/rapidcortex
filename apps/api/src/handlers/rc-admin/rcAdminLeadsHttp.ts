@@ -131,7 +131,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             type: AUDIT_EVENT_TYPES.SALES_LEAD_UPDATED,
             details: { action: "hubspot_connected", portalId: parsed.data.portalId ?? "" },
             createdAt: now,
-            resourceType: "crm_integration",
+            resourceType: "integration",
             resourceId: "hubspot",
           });
         } catch (error) {

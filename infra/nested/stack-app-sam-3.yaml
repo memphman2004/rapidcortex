@@ -1839,6 +1839,62 @@ Resources:
             Path: /api/rc-admin/grant-writer/generate
             Method: POST
 
+  SalesAnalyzeTranscriptFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/sales/analyzeTranscript.handler
+      Timeout: 60
+      MemorySize: 512
+      Environment:
+        Variables:
+          ENABLE_SALES_TOOLS: "true"
+          # Non-prod: set BEDROCK_MOCK=true via stage overrides until E2E Bedrock smoke passes.
+          BEDROCK_MOCK: "false"
+          SALES_CALL_COACH_BEDROCK_MODEL_ID: !Sub "us.${AiBedrockFoundationModelId}"
+          QA_BEDROCK_MODEL_ID: !Ref QaBedrockModelId
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyBedrockAiAndQaFoundationModels
+      Events:
+        SalesAnalyzeTranscriptRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sales/analyze-transcript
+            Method: POST
+
+  SalesPolishEmailFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/sales/polishEmail.handler
+      Timeout: 60
+      MemorySize: 512
+      Environment:
+        Variables:
+          ENABLE_SALES_TOOLS: "true"
+          BEDROCK_MOCK: "false"
+          SALES_EMAIL_POLISH_BEDROCK_MODEL_ID: !Sub "us.${AiBedrockFoundationModelId}"
+          SALES_CALL_COACH_BEDROCK_MODEL_ID: !Sub "us.${AiBedrockFoundationModelId}"
+          QA_BEDROCK_MODEL_ID: !Ref QaBedrockModelId
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyBedrockAiAndQaFoundationModels
+      Events:
+        SalesPolishEmailRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sales/polish-email
+            Method: POST
+
   GetDesktopReleasesOverviewFunction:
     Type: AWS::Serverless::Function
     Metadata:

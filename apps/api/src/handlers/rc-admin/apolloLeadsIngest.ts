@@ -1,5 +1,5 @@
 import type { Handler } from "aws-lambda";
-import { apolloLeadDraftFromEvent } from "../../../../../packages/shared/src/monetization/apollo-lead.js";
+import { apolloLeadDraftFromEvent } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { makeId } from "../../lib/ids.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";

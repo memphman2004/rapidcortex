@@ -23,6 +23,8 @@ import { AccountClaims } from "@/components/sales/account-claims";
 import { ColdLeadAlerts } from "@/components/sales/cold-lead-alerts";
 import { SafetySourceLookupLink } from "@/components/psap/safety-source-lookup-link";
 import { GrantSuccessProgram } from "@/components/rc-admin/grant-success-program";
+import { SalesTools } from "@/components/sales/SalesTools";
+import { isSalesToolsUiEnabled } from "@/lib/runtime-flags";
 
 export type SalesPortalTab =
   | "pipeline"
@@ -36,6 +38,7 @@ export type SalesPortalTab =
   | "roi"
   | "pre-call"
   | "templates"
+  | "sales-tools"
   | "rfp"
   | "activity"
   | "accounts"
@@ -52,6 +55,7 @@ const TABS: TabDef[] = [
   { id: "roi", label: "ROI Calc", group: "Tools" },
   { id: "pre-call", label: "Pre-Call", group: "Tools" },
   { id: "templates", label: "Templates", group: "Tools" },
+  { id: "sales-tools", label: "Sales Tools", group: "Tools" },
   { id: "grants", label: "Grant Writer", group: "Tools" },
   { id: "news", label: "News", group: "Intel" },
   { id: "regions", label: "Team Regions", group: "Intel" },
@@ -77,15 +81,18 @@ export function SalesPortalShell({
 }: Props) {
   const [tab, setTab] = useState<SalesPortalTab>("pipeline");
 
+  const salesToolsEnabled = isSalesToolsUiEnabled();
+
   const groups = useMemo(() => {
     const map = new Map<string, TabDef[]>();
     for (const t of TABS) {
+      if (t.id === "sales-tools" && !salesToolsEnabled) continue;
       const list = map.get(t.group) ?? [];
       list.push(t);
       map.set(t.group, list);
     }
     return [...map.entries()];
-  }, []);
+  }, [salesToolsEnabled]);
 
   return (
     <ProtectedPage showDemoToggle>
@@ -151,6 +158,7 @@ export function SalesPortalShell({
           {tab === "roi" && <RoiGenerator />}
           {tab === "pre-call" && <PreCallPlanner />}
           {tab === "templates" && <OutreachTemplatesPanel />}
+          {tab === "sales-tools" && salesToolsEnabled && <SalesTools />}
           {tab === "rfp" && <RfpTracker defaultAssignee={contractorEmail} />}
           {tab === "activity" && (
             <ActivityLog

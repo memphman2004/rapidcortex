@@ -642,6 +642,8 @@ export const env = {
   enableNexiQPipeline: featureEnabled("ENABLE_RAPID_IQ_PIPELINE"),
   /** NexiQ sales automation (campaign drafts + Outlook send after approval). Default on when unset. */
   enableSalesAutomation: featureEnabled("ENABLE_SALES_AUTOMATION"),
+  /** Sales Portal Tools (email composer + call coach). Default on when unset. */
+  enableSalesTools: featureEnabled("ENABLE_SALES_TOOLS"),
   /** RC Admin conference catalog + weekly website refresh. Default on when unset. */
   enableConferences: featureEnabled("ENABLE_CONFERENCES"),
   conferencesTable: process.env.CONFERENCES_TABLE?.trim() ?? "",

@@ -457,6 +457,8 @@ export type AuditResourceType =
   | "staffing_forecast"
   | "channel_config"
   | "sales_lead"
+  | "sales_call_coach"
+  | "sales_email_polish"
   | "support_ticket"
   | "psap_prospect"
   | "rapid_iq_opportunity"

@@ -22,7 +22,7 @@ type ModerationHit = {
 export async function detectSceneLabels(frameBase64: string | undefined): Promise<RekognitionLabelInput[]> {
   if (!frameBase64 || env.visionAiMock) return [];
   try {
-    const rekognition = (await import("@aws-sdk/client-rekognition")) as {
+    const rekognition = (await import("@aws-sdk/client-rekognition")) as unknown as {
       RekognitionClient: new (cfg: object) => {
         send: (cmd: unknown) => Promise<{ Labels?: LabelHit[]; ModerationLabels?: ModerationHit[] }>;
       };

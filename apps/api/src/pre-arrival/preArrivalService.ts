@@ -10,9 +10,9 @@ import {
   type ActiveStep,
   type CreatePreArrivalSessionBody,
   type PreArrivalSession,
+  type UserContext,
 } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES, TenantAccessGuard } from "rapid-cortex-security";
-import type { UserContext } from "../lib/auth.js";
 import { env } from "../lib/env.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import { IncidentRepository } from "../repositories/incidentRepository.js";

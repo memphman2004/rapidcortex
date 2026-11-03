@@ -85,6 +85,8 @@ export const AUDIT_EVENT_TYPES = {
   SALES_LEAD_VIEWED: "sales_lead.viewed",
   SALES_LEAD_STAGE_CHANGED: "sales_lead.stage_changed",
   SALES_LEAD_NOTE_ADDED: "sales_lead.note_added",
+  SALES_CALL_COACH_ANALYZED: "sales.call_coach_analyzed",
+  SALES_EMAIL_POLISHED: "sales.email_polished",
   CONTACT_COMPANY_CREATED: "contact_company.created",
   CONTACT_COMPANY_UPDATED: "contact_company.updated",
   CONTACT_COMPANY_DELETED: "contact_company.deleted",

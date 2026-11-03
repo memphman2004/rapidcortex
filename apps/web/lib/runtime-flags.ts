@@ -102,6 +102,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_NEXIQ_SIGNALS: process.env.NEXT_PUBLIC_ENABLE_NEXIQ_SIGNALS,
   NEXT_PUBLIC_ENABLE_NEXIQ_INTEL: process.env.NEXT_PUBLIC_ENABLE_NEXIQ_INTEL,
   NEXT_PUBLIC_ENABLE_SALES_AUTOMATION: process.env.NEXT_PUBLIC_ENABLE_SALES_AUTOMATION,
+  NEXT_PUBLIC_ENABLE_SALES_TOOLS: process.env.NEXT_PUBLIC_ENABLE_SALES_TOOLS,
   NEXT_PUBLIC_ENABLE_CONFERENCES: process.env.NEXT_PUBLIC_ENABLE_CONFERENCES,
   NEXT_PUBLIC_ENABLE_ESCALATION: process.env.NEXT_PUBLIC_ENABLE_ESCALATION,
   NEXT_PUBLIC_ENABLE_RMS: process.env.NEXT_PUBLIC_ENABLE_RMS,
@@ -816,6 +817,11 @@ export function isNexiqIntelUiEnabled(): boolean {
 /** NexCort Admin NexiQ sales automation (campaign drafts + Outlook send after approval). Default on when unset. */
 export function isSalesAutomationUiEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_SALES_AUTOMATION");
+}
+
+/** Sales Portal Tools (email composer + call coach). Default on when unset. */
+export function isSalesToolsUiEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_SALES_TOOLS");
 }
 
 /** NexCort Admin conference tracker (weekly website refresh). Default on when unset. */
