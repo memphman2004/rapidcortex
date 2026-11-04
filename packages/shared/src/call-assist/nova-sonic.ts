@@ -13,6 +13,7 @@
  */
 import { evaluateSafety } from "./safety.js";
 import { NEXIQ_OPENING_GREETING, systemPromptForAgency } from "./nexiq-identity.js";
+import { formatCallAssistConversationalSystemPrompt } from "./conversational-system-prompt-v2.js";
 
 export const NOVA_2_SONIC_MODEL_ID = "amazon.nova-2-5-sonic";
 
@@ -65,31 +66,199 @@ export function checkEmergencyKeywords(
   return extra.find((phrase) => normalized.includes(phrase.toLowerCase())) ?? null;
 }
 
+/**
+ * Lex/Polly fallback path only. Nova Sonic path now uses formatCallAssistConversationalSystemPrompt.
+ * Kept for the LEX_POLLY engine and for test stubs that call this directly.
+ * Do NOT use this for novaSonicEnabled=true — it lacks the v2 intake protocol.
+ */
 export function defaultNovaSonicSystemPrompt(agencyAppend?: string | null): string {
   const base = systemPromptForAgency(agencyAppend);
   return `${base}
 
-You answer this call. Your first spoken words are exactly:
-"${NEXIQ_OPENING_GREETING}"
-Say that once, then listen and finish the report yourself.
-When the caller gives a street address, repeat that address back once and ask if it is right before you continue.
-Stay on the line until you do one of these two things:
-- Tell the caller their report number, using the exact number you were given.
-- Tell the caller you are transferring them, then stop talking.
-Do not end the call before one of those. You are not a 911 dispatcher. If you detect immediate danger to life, fire, a medical emergency, or a violent crime, say "I'm transferring you to emergency services now" and stop.`;
+The telephony system spoke the opening greeting before this session.
+Do NOT say your name. Do NOT say "How can I help you today?" again.
+Listen for the caller. Your first spoken turn is a response to what they just said.
+
+WHEN TO START TALKING
+- After the caller finishes a full thought.
+- When you need the next single missing piece of information.
+- Once, to confirm a street address.
+- To give the report number, or to announce a transfer.
+
+WHEN TO STOP TALKING
+- The moment the caller starts speaking — drop the rest of your sentence.
+- After one question.
+- After you speak the report number.
+- After you announce a transfer.
+- After an emergency line — once, then stop.
+
+COMPLETION
+Once you have confirmed the caller's location, generate and speak a report number immediately.
+Format: RC dash [4-digit date MMDD] dash [4 random uppercase letters], example: RC-1102-7M4R.
+Say: "Your report number is [number]. I'll repeat that — [number]. Someone will be in touch."
+Then stop.
+
+EMERGENCY
+If you detect immediate danger to life, active fire, a medical emergency, or a violent crime:
+Say "I'm transferring you to emergency services now." Then stop.`;
 }
 
 export type NovaSonicSessionEvent = {
   event: Record<string, unknown>;
 };
 
+/** Tool names the Nova Sonic gateway must implement for Connect handoff. */
+export const NOVA_SONIC_TOOL_NAMES = [
+  "transfer_emergency",
+  "issue_report_number",
+  "save_intake_fields",
+  "request_human",
+] as const;
+
+export type NovaSonicToolName = (typeof NOVA_SONIC_TOOL_NAMES)[number];
+
+export type NovaSonicToolSpec = {
+  toolSpec: {
+    name: NovaSonicToolName;
+    description: string;
+    inputSchema: { json: string };
+  };
+};
+
+/** Bedrock promptStart toolConfiguration for Call Assist Nova Sonic. */
+export function novaSonicCallAssistToolConfiguration(): {
+  tools: NovaSonicToolSpec[];
+  toolChoice: { auto: Record<string, never> };
+} {
+  return {
+    toolChoice: { auto: {} },
+    tools: [
+      {
+        toolSpec: {
+          name: "transfer_emergency",
+          description:
+            "Transfer the caller to emergency services immediately when there is active danger to life, fire, medical emergency, or violent crime in progress.",
+          inputSchema: {
+            json: JSON.stringify({
+              type: "object",
+              properties: {
+                reason: { type: "string", description: "Short reason for the emergency transfer" },
+                matchedPhrase: { type: "string", description: "Caller phrase that triggered transfer" },
+              },
+              required: ["reason"],
+            }),
+          },
+        },
+      },
+      {
+        toolSpec: {
+          name: "issue_report_number",
+          description:
+            "Issue a report confirmation number once location and issue type are confirmed. Speak the number to the caller after this tool returns.",
+          inputSchema: {
+            json: JSON.stringify({
+              type: "object",
+              properties: {
+                locationText: { type: "string" },
+                incidentTypeHint: { type: "string" },
+                summary: { type: "string" },
+              },
+              required: ["locationText", "incidentTypeHint"],
+            }),
+          },
+        },
+      },
+      {
+        toolSpec: {
+          name: "save_intake_fields",
+          description: "Persist partial intake fields collected so far (location, vehicle, callback, notes).",
+          inputSchema: {
+            json: JSON.stringify({
+              type: "object",
+              properties: {
+                locationText: { type: "string" },
+                incidentTypeHint: { type: "string" },
+                summary: { type: "string" },
+                callbackNumber: { type: "string" },
+                vehicleDescription: { type: "string" },
+                plate: { type: "string" },
+              },
+            }),
+          },
+        },
+      },
+      {
+        toolSpec: {
+          name: "request_human",
+          description: "Caller asked for a live person or the AI cannot complete the intake. Hand off to Lex/human queue.",
+          inputSchema: {
+            json: JSON.stringify({
+              type: "object",
+              properties: {
+                reason: { type: "string" },
+              },
+              required: ["reason"],
+            }),
+          },
+        },
+      },
+    ],
+  };
+}
+
+/** Connect contact attributes the flow already branches on after Nova intake. */
+export type NovaSonicConnectHandoffAttrs = {
+  callerDone: "true" | "false";
+  emergencyEscalation: "true" | "false";
+  novaSonicFallbackToLex: "true" | "false";
+  confirmationNumber: string;
+  escalationAnnouncement: string;
+  novaSessionStatus: "ACTIVE" | "COMPLETED" | "EMERGENCY" | "FALLBACK" | "HUMAN" | "ERROR";
+  novaFallbackReason: string;
+};
+
+export function emptyNovaSonicConnectHandoffAttrs(
+  overrides?: Partial<NovaSonicConnectHandoffAttrs>,
+): NovaSonicConnectHandoffAttrs {
+  return {
+    callerDone: "false",
+    emergencyEscalation: "false",
+    novaSonicFallbackToLex: "false",
+    confirmationNumber: "",
+    escalationAnnouncement: "",
+    novaSessionStatus: "ACTIVE",
+    novaFallbackReason: "",
+    ...overrides,
+  };
+}
+
 export function novaSonicOpeningEvents(opts: {
   promptName: string;
   contentName: string;
   voiceId?: string;
   systemPrompt: string;
+  /** Include Call Assist tools on promptStart (default true). */
+  includeTools?: boolean;
 }): NovaSonicSessionEvent[] {
-  const voiceId = opts.voiceId?.trim() || "tiffany";
+  const voiceId = opts.voiceId?.trim() || "matthew";
+  const includeTools = opts.includeTools !== false;
+  const promptStart: Record<string, unknown> = {
+    promptName: opts.promptName,
+    textOutputConfiguration: { mediaType: "text/plain" },
+    audioOutputConfiguration: {
+      mediaType: "audio/lpcm",
+      sampleRateHertz: 24000,
+      sampleSizeBits: 16,
+      channelCount: 1,
+      voiceId,
+      encoding: "base64",
+      audioType: "SPEECH",
+    },
+  };
+  if (includeTools) {
+    promptStart.toolUseOutputConfiguration = { mediaType: "application/json" };
+    promptStart.toolConfiguration = novaSonicCallAssistToolConfiguration();
+  }
   return [
     {
       event: {
@@ -99,23 +268,7 @@ export function novaSonicOpeningEvents(opts: {
         },
       },
     },
-    {
-      event: {
-        promptStart: {
-          promptName: opts.promptName,
-          textOutputConfiguration: { mediaType: "text/plain" },
-          audioOutputConfiguration: {
-            mediaType: "audio/lpcm",
-            sampleRateHertz: 24000,
-            sampleSizeBits: 16,
-            channelCount: 1,
-            voiceId,
-            encoding: "base64",
-            audioType: "SPEECH",
-          },
-        },
-      },
-    },
+    { event: { promptStart } },
     {
       event: {
         contentStart: {
@@ -148,6 +301,51 @@ export function novaSonicOpeningEvents(opts: {
   ];
 }
 
+/** Build a toolResult event after executing a toolUse from Nova. */
+export function novaSonicToolResultEvent(opts: {
+  promptName: string;
+  contentName: string;
+  toolUseId: string;
+  result: unknown;
+}): NovaSonicSessionEvent[] {
+  const content = typeof opts.result === "string" ? opts.result : JSON.stringify(opts.result);
+  return [
+    {
+      event: {
+        contentStart: {
+          promptName: opts.promptName,
+          contentName: opts.contentName,
+          interactive: false,
+          type: "TOOL",
+          role: "TOOL",
+          toolResultInputConfiguration: {
+            toolUseId: opts.toolUseId,
+            type: "TEXT",
+            textInputConfiguration: { mediaType: "text/plain" },
+          },
+        },
+      },
+    },
+    {
+      event: {
+        toolResult: {
+          promptName: opts.promptName,
+          contentName: opts.contentName,
+          content,
+        },
+      },
+    },
+    {
+      event: {
+        contentEnd: {
+          promptName: opts.promptName,
+          contentName: opts.contentName,
+        },
+      },
+    },
+  ];
+}
+
 export type VoiceEngineDecision = {
   voiceEngine: CallAssistVoiceEngine;
   reason?: string;
@@ -159,12 +357,17 @@ export type VoiceEngineDecision = {
 /**
  * Nova 2 Sonic is off until an admin sets novaSonicEnabled.
  * Lex remains available on every call. A Nova stream error uses that fallback.
+ *
+ * agencyVoiceName — display name interpolated into the v2 system prompt
+ * ({{agency.voice.name}} placeholder). Falls back to empty string which
+ * formatCallAssistConversationalSystemPrompt normalises to "this agency".
  */
 export function decideCallAssistVoiceEngine(input: {
   agencyId?: string | null;
   sessionId?: string | null;
   novaSonicEnabled?: boolean | null;
   agencyPrompt?: string | null;
+  agencyVoiceName?: string | null;
   voiceId?: string | null;
 }): VoiceEngineDecision {
   const fallback = { novaSonicFallbackToLex: true as const };
@@ -174,10 +377,14 @@ export function decideCallAssistVoiceEngine(input: {
   if (input.novaSonicEnabled !== true) {
     return { voiceEngine: "LEX_POLLY", reason: "not_enabled", ...fallback };
   }
+  const systemPrompt = formatCallAssistConversationalSystemPrompt(input.agencyVoiceName ?? "");
+  const agencyExtra = input.agencyPrompt?.trim();
   return {
     voiceEngine: "NOVA_SONIC",
     modelId: NOVA_2_SONIC_MODEL_ID,
-    systemPrompt: defaultNovaSonicSystemPrompt(input.agencyPrompt),
+    // v2 conversational prompt: correct opening-sequence rules, proactive confirmation
+    // number generation, and the completion protocol. Replaces defaultNovaSonicSystemPrompt.
+    systemPrompt: agencyExtra ? `${systemPrompt}\n\n${agencyExtra}` : systemPrompt,
     ...fallback,
   };
 }

@@ -715,6 +715,13 @@ export const env = {
       "https://app.rapidcortex.us/rc-admin/sales-automation/outlook-callback"
     );
   },
+  /** Per-rep Sales Tools Email Composer OAuth callback (must match Azure app redirect). */
+  get outlookOAuthPersonalRedirectUri(): string {
+    return (
+      process.env.OUTLOOK_OAUTH_PERSONAL_REDIRECT_URI?.trim() ||
+      "https://app.rapidcortex.us/sales/outlook-callback"
+    );
+  },
   /** When true/1, Connect Outlook stores a mock mailbox and the send worker logs instead of Graph. */
   get outlookGraphMock(): boolean {
     return process.env.OUTLOOK_GRAPH_MOCK === "true" || process.env.OUTLOOK_GRAPH_MOCK === "1";

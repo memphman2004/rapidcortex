@@ -317,6 +317,12 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       items: [
         { id: "qr",        label: "QR & NFC",          href: "/rc-admin/qr-nfc", icon: "QrCode" },
         { id: "qr-legacy", label: "Location QR (RCLI)", href: "/rc-admin/location-qr-codes", icon: "MapPin" },
+        {
+          id: "venue-campus-apps",
+          label: "Venue & Campus Apps",
+          href: "/rc-admin/venue-campus-apps",
+          icon: "Smartphone",
+        },
       ],
     },
     {
@@ -635,6 +641,12 @@ export const RC_ADMIN_NAV: RoleNav = {
       items: [
         { id: "qr",        label: "QR & NFC",          href: "/rc-admin/qr-nfc", icon: "QrCode" },
         { id: "qr-legacy", label: "Location QR (RCLI)", href: "/rc-admin/location-qr-codes", icon: "MapPin" },
+        {
+          id: "venue-campus-apps",
+          label: "Venue & Campus Apps",
+          href: "/rc-admin/venue-campus-apps",
+          icon: "Smartphone",
+        },
       ],
     },
     {
@@ -783,6 +795,12 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
       items: [
         { id: "qr",        label: "QR & NFC",          href: "/rc-admin/qr-nfc", icon: "QrCode" },
         { id: "qr-legacy", label: "Location QR (RCLI)", href: "/rc-admin/location-qr-codes", icon: "MapPin" },
+        {
+          id: "venue-campus-apps",
+          label: "Venue & Campus Apps",
+          href: "/rc-admin/venue-campus-apps",
+          icon: "Smartphone",
+        },
       ],
     },
     {

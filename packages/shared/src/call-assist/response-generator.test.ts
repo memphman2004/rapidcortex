@@ -60,14 +60,17 @@ describe("ResponseGenerator", () => {
 });
 
 describe("conversational system prompt v2", () => {
-  it("interpolates agency voice name and keeps absolute speech rules", () => {
-    const body = formatCallAssistConversationalSystemPrompt("Kansas City non-emergency");
+  it("interpolates agency voice name and keeps example-based persona rules", () => {
+    const body = formatCallAssistConversationalSystemPrompt("Kansas City Police");
     expect(body).toContain("You are Nexiq");
-    expect(body).toContain("Nex-ic");
-    expect(body).toContain("Kansas City non-emergency");
+    expect(body).toContain("NEX-ik");
+    expect(body).toContain("Kansas City Police");
+    expect(body).toContain("Kansas City Police will follow up.");
     expect(body).not.toContain("{{agency.voice.name}}");
-    expect(body).toContain("ABSOLUTE SPEECH RULES");
-    expect(body).toContain("ONE QUESTION PER TURN");
+    expect(body).toContain("PERSONA");
+    expect(body).toContain("One question per turn");
+    expect(body).toContain("REPORT NUMBER — SPEAK IT IMMEDIATELY");
+    expect(body).toContain("HOW THE CONVERSATION SOUNDS");
     expect(CALL_ASSIST_CONVERSATIONAL_SYSTEM_PROMPT_V2).toContain("{{agency.voice.name}}");
   });
 });

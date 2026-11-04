@@ -36,9 +36,33 @@ import { SalesLeadRepository } from "../../repositories/salesLeadRepository.js";
 import { storeHubSpotToken } from "../../lib/crm/hubspot-token.js";
 import { syncLeadReply } from "../../lib/crm/sync-lead-reply.js";
 import { listSignalsForVertical } from "../../signals/signal-processor.js";
+import {
+  buildProspectCarryoverNotes,
+  leadAlreadyHasNoteText,
+  prospectHandoffMessage,
+  trimProspectNotes,
+} from "../../features/leads/prospect-notes-carryover.js";
 
 const repo = new SalesLeadRepository();
 const auditRepo = new AuditRepository();
+
+/** Append Prospects free-text notes onto an existing Sales lead when missing. */
+async function carryProspectNotesOntoLead(input: {
+  leadId: string;
+  notesText: string | undefined;
+  authorId: string;
+  authorName: string;
+}): Promise<void> {
+  const text = trimProspectNotes(input.notesText);
+  if (!text) return;
+  const existing = await repo.getNormalized(input.leadId);
+  if (!existing || leadAlreadyHasNoteText(existing.notes, text)) return;
+  await repo.addNote(input.leadId, {
+    text,
+    authorId: input.authorId,
+    authorName: input.authorName,
+  });
+}
 
 function method(event: Parameters<APIGatewayProxyHandlerV2>[0]): string {
   return (event.requestContext as { http?: { method?: string } }).http?.method ?? "GET";
@@ -173,9 +197,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const input = parsed.data;
 
+      const authorName = user.email ?? user.userId;
+      const prospectNotesText = trimProspectNotes(input.notes);
+
       if (input.existingLeadId) {
         const existing = await repo.getNormalized(input.existingLeadId);
         if (existing) {
+          await carryProspectNotesOntoLead({
+            leadId: existing.leadId,
+            notesText: prospectNotesText,
+            authorId: user.userId,
+            authorName,
+          });
           return ok({ success: true, data: { leadId: existing.leadId, created: false } });
         }
       }
@@ -183,6 +216,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       const recent = await repo.listRecent(500);
       const already = recent.find((row) => row.prospectId === input.prospectId);
       if (already) {
+        await carryProspectNotesOntoLead({
+          leadId: already.leadId,
+          notesText: prospectNotesText,
+          authorId: user.userId,
+          authorName,
+        });
         return ok({ success: true, data: { leadId: already.leadId, created: false } });
       }
 
@@ -209,12 +248,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           : vertical === "venue"
             ? "venue"
             : "agency";
-      const note = [
-        `Sent from Prospects (${input.prospectId}). Outreach status left unchanged (${input.outreachStatus}).`,
-        input.notes?.trim() ? input.notes.trim() : "",
-      ]
-        .filter(Boolean)
-        .join(" ");
+      const handoff = prospectHandoffMessage(input.prospectId, input.outreachStatus);
+      const carry = buildProspectCarryoverNotes({
+        notesText: prospectNotesText,
+        authorId: user.userId,
+        authorName,
+        createdAt: now,
+        noteId: makeId("note"),
+        activityId: makeId("act"),
+      });
 
       await repo.putLead({
         leadId,
@@ -230,7 +272,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         title: input.contactTitle?.trim() || undefined,
         customerType,
         interestedIn: ["pilot_program"],
-        message: note,
+        message: [handoff, prospectNotesText].filter(Boolean).join(" "),
         source: "psap-prospect",
         status: stage === "QUALIFIED" ? "qualified" : "contacted",
         pipelineStage: stage,
@@ -243,6 +285,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         assignee: user.email ?? user.userId,
         updatedAt: now,
         updatedBy: user.userId,
+        notes: carry.notes,
+        activities: [
+          {
+            activityId: makeId("act"),
+            type: "created",
+            description: `Lead created · Source: psap-prospect`,
+            createdAt: now,
+          },
+          ...carry.activities,
+        ],
       });
 
       await auditRepo.create({
@@ -250,7 +302,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         agencyId: "platform",
         actorId: user.userId,
         type: AUDIT_EVENT_TYPES.SALES_LEAD_UPDATED,
-        details: { leadId, prospectId: input.prospectId, action: "created_from_prospect", stage },
+        details: {
+          leadId,
+          prospectId: input.prospectId,
+          action: "created_from_prospect",
+          stage,
+          notesCarried: carry.notes.length > 0,
+        },
         createdAt: now,
         resourceType: "sales_lead",
         resourceId: leadId,

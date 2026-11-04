@@ -1,98 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import {
-  DM_Sans,
-  Geist,
-  Geist_Mono,
-  IBM_Plex_Sans,
-  Inter,
-  Manrope,
-  Open_Sans,
-  Poppins,
-  Roboto,
-  Source_Sans_3,
-} from "next/font/google";
 import Script from "next/script";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_PUBLIC_ICON_PATHS } from "@/lib/site";
 import { absoluteUrl, getSiteUrl, SEO_IMAGE_PATH } from "@/lib/seo";
 import { getWorkspaceBuildProbe } from "@/lib/phase1-workspace";
+import { DASHBOARD_GOOGLE_FONTS_HREF } from "@/lib/dashboard-font-vars";
 import { Providers } from "@/app/providers";
 import { ClockPreferenceProvider } from "@/components/providers/clock-preference-provider";
 import { FontPreferenceProvider } from "@/components/providers/font-preference-provider";
 import { TypographyPreferenceProvider } from "@/components/providers/typography-preference-provider";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-  preload: false,
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-/** Dashboard picker label: "Modern" */
-const modern = DM_Sans({
-  subsets: ["latin"],
-  variable: "--font-modern",
-  display: "swap",
-  preload: false,
-});
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
-  display: "swap",
-  preload: false,
-});
-
-const roboto = Roboto({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-roboto",
-  display: "swap",
-  preload: false,
-});
-
-const ibmPlexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-ibm-plex-sans",
-  display: "swap",
-  preload: false,
-});
-
-const openSans = Open_Sans({
-  subsets: ["latin"],
-  variable: "--font-open-sans",
-  display: "swap",
-  preload: false,
-});
-
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-manrope",
-  display: "swap",
-  preload: false,
-});
-
-/** Source Sans Pro successor on Google Fonts */
-const sourceSans = Source_Sans_3({
-  subsets: ["latin"],
-  variable: "--font-source-sans",
-  display: "swap",
-  preload: false,
-});
 
 const siteUrl = getSiteUrl();
 const defaultOgImage = absoluteUrl(SEO_IMAGE_PATH);
@@ -187,11 +103,11 @@ export default function RootLayout({
 }>) {
   void getWorkspaceBuildProbe();
   return (
-    <html
-      lang="en"
-      className={`dark ${geistSans.variable} ${geistMono.variable} ${inter.variable} ${modern.variable} ${poppins.variable} ${roboto.variable} ${ibmPlexSans.variable} ${openSans.variable} ${manrope.variable} ${sourceSans.variable} h-full antialiased`}
-    >
+    <html lang="en" className="dark h-full antialiased">
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href={DASHBOARD_GOOGLE_FONTS_HREF} rel="stylesheet" />
         {gaEnabled ? (
           <>
             <Script

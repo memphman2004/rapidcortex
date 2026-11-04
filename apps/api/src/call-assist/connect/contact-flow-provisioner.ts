@@ -17,6 +17,8 @@ export type ContactFlowParams = {
   emergencyQueueArn: string;
   fulfillmentLambdaArn: string;
   lexBotAliasArn?: string;
+  novaSessionStartLambdaArn?: string;
+  novaSessionAwaitLambdaArn?: string;
   stage: string;
 };
 
@@ -29,6 +31,8 @@ export function parameterizeContactFlowTemplate(template: string, params: Contac
     .replaceAll("{{emergencyQueueArn}}", params.emergencyQueueArn)
     .replaceAll("{{fulfillmentLambdaArn}}", params.fulfillmentLambdaArn)
     .replaceAll("{{lexBotAliasArn}}", params.lexBotAliasArn ?? "")
+    .replaceAll("{{novaSessionStartLambdaArn}}", params.novaSessionStartLambdaArn ?? "")
+    .replaceAll("{{novaSessionAwaitLambdaArn}}", params.novaSessionAwaitLambdaArn ?? "")
     .replaceAll("{{stage}}", params.stage)
     .replaceAll("__DEMO_QUEUE_ARN__", params.primaryQueueArn)
     .replaceAll("__EMERGENCY_QUEUE_ARN__", params.emergencyQueueArn);
@@ -74,6 +78,8 @@ async function resolveFlowParams(
     primaryQueueArn: process.env.CALL_ASSIST_PRIMARY_QUEUE_ARN?.trim() ?? "",
     emergencyQueueArn: process.env.CALL_ASSIST_EMERGENCY_QUEUE_ARN?.trim() ?? "",
     fulfillmentLambdaArn: process.env.CALL_ASSIST_FULFILLMENT_LAMBDA_ARN?.trim() ?? "",
+    novaSessionStartLambdaArn: process.env.NOVA_SESSION_START_LAMBDA_ARN?.trim() ?? "",
+    novaSessionAwaitLambdaArn: process.env.NOVA_SESSION_AWAIT_LAMBDA_ARN?.trim() ?? "",
     stage,
   };
 }

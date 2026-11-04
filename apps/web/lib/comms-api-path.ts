@@ -123,6 +123,8 @@ const STACK3_PATH_TESTS: RegExp[] = [
   /^\/api\/contact-sales(\/|$)/,
   /^\/api\/sales\/analyze-transcript(\/|$)/,
   /^\/api\/sales\/polish-email(\/|$)/,
+  /^\/api\/sales\/outlook(\/|$)/,
+  /^\/api\/sales\/send-email(\/|$)/,
   /^\/api\/marketing\/lead(\/|$)/,
   /^\/api\/marketing\/unsubscribe(\/|$)/,
   /^\/api\/agency-admin\//,

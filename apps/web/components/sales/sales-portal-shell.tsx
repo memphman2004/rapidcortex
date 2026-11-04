@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   CopyrightBanner,
   LegalAccessModal,
@@ -73,13 +74,23 @@ type Props = {
   canManageCampaigns?: boolean;
 };
 
+const TAB_IDS = new Set<SalesPortalTab>(TABS.map((t) => t.id));
+
+function initialTabFromSearch(raw: string | null): SalesPortalTab {
+  if (raw && TAB_IDS.has(raw as SalesPortalTab)) return raw as SalesPortalTab;
+  return "pipeline";
+}
+
 export function SalesPortalShell({
   contractorEmail,
   contractorName,
   assigneeFilter,
   canManageCampaigns = false,
 }: Props) {
-  const [tab, setTab] = useState<SalesPortalTab>("pipeline");
+  const search = useSearchParams();
+  const [tab, setTab] = useState<SalesPortalTab>(() =>
+    initialTabFromSearch(search.get("tab")),
+  );
 
   const salesToolsEnabled = isSalesToolsUiEnabled();
 
@@ -95,7 +106,7 @@ export function SalesPortalShell({
   }, [salesToolsEnabled]);
 
   return (
-    <ProtectedPage showDemoToggle>
+    <ProtectedPage showDemoToggle showWatermark={false}>
       <LegalAccessModal />
       <div className="flex min-h-[calc(100vh-4rem)] flex-col overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#050c1a]">
         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[rgba(255,255,255,0.06)] bg-[#0a1628] px-5 py-4">

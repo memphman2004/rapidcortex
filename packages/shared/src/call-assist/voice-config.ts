@@ -88,8 +88,8 @@ export const GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE =
   "If this is an emergency, say emergency or hang up and dial {{emergencyLine}}.";
 
 export const GENERIC_CALL_ASSIST_OPENING_TEMPLATE =
-  "Thank you for calling the city's non-emergency line. I'm Nexiq, your AI assistant. How can I help you today? " +
-  "If this is a life-threatening emergency, hang up and dial {{emergencyLine}}.";
+  "Thank you for calling. I'm Nexiq, your AI assistant. " +
+  "If this is a life-threatening emergency, hang up and dial {{emergencyLine}}. How can I help you today?";
 
 export const GENERIC_CALL_ASSIST_FALLBACK_TEMPLATE =
   "I'm sorry, I'm having trouble understanding. Let me connect you to {{agencyShortName}} who can help. Stay on the line.";

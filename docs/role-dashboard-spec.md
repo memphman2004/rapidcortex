@@ -67,6 +67,7 @@ These roles operate the NexCort iQ platform itself. They never see PSAP dispatch
 - Feature Flags (system-wide toggles)
 - Developer Portal (API clients, NC Lite keys)
 - **Location QR Codes** (create, edit, bulk-import, download — all venues and campuses cross-tenant)
+- **Venue & Campus Apps** (Google Play + App Store listing links for field QR/NFC apps)
 - Settings (immutable platform config)
 
 ### Home dashboard widgets
@@ -110,6 +111,7 @@ These roles operate the NexCort iQ platform itself. They never see PSAP dispatch
 - Developer Portal (API clients)
 - Agreements (Adobe Sign management)
 - **Location QR Codes** (create, edit, bulk-import, download — scoped to venue/campus tenants)
+- **Venue & Campus Apps** (Google Play + App Store listing links for field QR/NFC apps)
 - Reports
 
 ### Home dashboard widgets
@@ -161,6 +163,7 @@ These roles operate the NexCort iQ platform itself. They never see PSAP dispatch
 - CAD Administration (manage CAD adapters, webhooks, pollers)
 - Security (MFA policy, CORS, WAF)
 - **Location QR Codes** (create, edit, bulk-import, download — scoped to venue/campus tenants; supports setup and troubleshooting during agency onboarding)
+- **Venue & Campus Apps** (Google Play + App Store listing links for field QR/NFC apps)
 
 ### Home dashboard widgets
 1. **System health grid** — all Lambda stacks (AppSam 1–4, QR, Alarms), ECS tasks, DataLayer, Cognito

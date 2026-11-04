@@ -12,6 +12,8 @@ type Props = {
   children: ReactNode;
   /** Show demo-mode control in the banner row. */
   showDemoToggle?: boolean;
+  /** Diagonal confidential watermark overlay (default on). */
+  showWatermark?: boolean;
 };
 
 /**
@@ -19,7 +21,11 @@ type Props = {
  * Do **not** wrap live dispatch consoles — operators must copy incident notes/phone numbers.
  * Intended for sales portal / enablement surfaces.
  */
-export function ProtectedPage({ children, showDemoToggle = true }: Props) {
+export function ProtectedPage({
+  children,
+  showDemoToggle = true,
+  showWatermark = true,
+}: Props) {
   const { user } = useSession();
   const enabled = isContentProtectionEnabled();
   const email = user?.email?.trim() || user?.userId || "unknown";
@@ -76,20 +82,22 @@ export function ProtectedPage({ children, showDemoToggle = true }: Props) {
         </div>
       ) : null}
 
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-[9990] flex flex-wrap items-center justify-center gap-x-[90px] gap-y-[70px] overflow-hidden font-mono text-[13px] tracking-wide"
-        style={{
-          opacity,
-          transform: `rotate(${angle}deg)`,
-          color: isDemoActive ? "#fbbf24" : "white",
-          fontSize: isDemoActive ? 15 : 13,
-        }}
-      >
-        {Array.from({ length: 40 }, (_, i) => (
-          <span key={i}>{label}</span>
-        ))}
-      </div>
+      {showWatermark ? (
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 z-[9990] flex flex-wrap items-center justify-center gap-x-[90px] gap-y-[70px] overflow-hidden font-mono text-[13px] tracking-wide"
+          style={{
+            opacity,
+            transform: `rotate(${angle}deg)`,
+            color: isDemoActive ? "#fbbf24" : "white",
+            fontSize: isDemoActive ? 15 : 13,
+          }}
+        >
+          {Array.from({ length: 40 }, (_, i) => (
+            <span key={i}>{label}</span>
+          ))}
+        </div>
+      ) : null}
 
       {shouldObscure ? (
         <div className="fixed inset-0 z-[10000] flex flex-col items-center justify-center gap-5 bg-black/90 backdrop-blur-3xl">

@@ -59,7 +59,8 @@ describe("callAssistSessionStart", () => {
       config,
       existingAttributes: { greetingDelivered: "true", agencyId: "springfield" },
     });
-    expect(start.greeting).toBe("How can I help you today?");
+    expect(start.greeting).toBe("");
+    expect(lexWelcomeResponse(start).messages ?? []).toHaveLength(0);
   });
 
   it("lets Nova answer with the Nexiq opening in plain speech", () => {
@@ -86,7 +87,8 @@ describe("callAssistSessionStart", () => {
     });
     const welcome = lexWelcomeResponse(start);
     expect(welcome.messages?.[0]?.contentType).toBe("PlainText");
-    expect(welcome.messages?.[0]?.content.startsWith("Thank you for calling the city's non-emergency line. I'm Nexiq")).toBe(true);
+    expect(welcome.messages?.[0]?.content.startsWith("Thank you for calling. I'm Nexiq, your AI assistant.")).toBe(true);
+    expect(welcome.messages?.[0]?.content).toContain("How can I help you today?");
     expect(welcome.messages?.[0]?.content).not.toContain("<speak>");
   });
 });

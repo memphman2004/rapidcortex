@@ -123,27 +123,41 @@ export function isCallAssistConfirmationNumber(value: string): boolean {
   return false;
 }
 
+function speakConfirmationChar(ch: string): string {
+  if (/^\d$/.test(ch)) {
+    const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+    return words[Number(ch)] ?? ch;
+  }
+  return NATO[ch] ?? ch;
+}
+
 /**
- * Spoken form for Polly: "KC, one zero zero one, seven Mike four Romeo"
+ * Spoken form for Polly / Nova: "K, C, one zero zero one, seven Mike four Romeo"
  */
 export function formatConfirmationForSpeech(confirmationNumber: string): string {
   const parts = confirmationNumber.trim().toUpperCase().split("-");
   if (parts.length < 3) return confirmationNumber;
   const [prefix, datePart, suffix] = parts;
-  const speakChar = (ch: string): string => {
-    if (/^\d$/.test(ch)) {
-      const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
-      return words[Number(ch)] ?? ch;
-    }
-    return NATO[ch] ?? ch;
-  };
   const prefixSpoken = (prefix ?? "").split("").join(", ");
-  const dateSpoken = (datePart ?? "").split("").map(speakChar).join(" ");
-  const suffixSpoken = (suffix ?? "")
-    .split("")
-    .map((ch) => speakChar(ch))
-    .join(" ");
-  return `${prefixSpoken}, ${dateSpoken}, ${suffixSpoken}`;
+  const dateSpoken = (datePart ?? "").split("").map(speakConfirmationChar).join(", ");
+  const suffixSpoken = (suffix ?? "").split("").map(speakConfirmationChar).join(", ");
+  // Periods force a longer pause between groups so callers can write the number down.
+  return `${prefixSpoken}. ${dateSpoken}. ${suffixSpoken}`;
+}
+
+/**
+ * SSML fragment (no outer &lt;speak&gt;) with pauses between each character for Polly.
+ */
+export function formatConfirmationForSsml(confirmationNumber: string): string {
+  const parts = confirmationNumber.trim().toUpperCase().split("-");
+  if (parts.length < 3) return formatConfirmationForSpeech(confirmationNumber);
+  const [prefix, datePart, suffix] = parts;
+  const piece = (chars: string, gapMs: number): string =>
+    chars
+      .split("")
+      .map((ch) => `${speakConfirmationChar(ch)}<break time="${gapMs}ms"/>`)
+      .join(" ");
+  return `${piece(prefix ?? "", 400)} <break time="600ms"/> ${piece(datePart ?? "", 350)} <break time="600ms"/> ${piece(suffix ?? "", 400)}`;
 }
 
 /** @deprecated Prefer formatCallAssistCaseNumber without serial. */

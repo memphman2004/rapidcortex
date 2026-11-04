@@ -87,11 +87,11 @@
         },
         "parameters": {
           "QueueId": {
-            "displayName": "Call Assist Emergency"
+            "displayName": "Nexiq Emergency"
           }
         },
         "queue": {
-          "text": "Call Assist Emergency"
+          "text": "Nexiq Emergency"
         }
       },
       "play-fallback": {
@@ -370,6 +370,18 @@
           "y": 80
         },
         "useDynamic": true
+      },
+      "check-caller-done": {
+        "position": {
+          "x": 1940,
+          "y": 20
+        }
+      },
+      "route-lex-intent": {
+        "position": {
+          "x": 2060,
+          "y": 140
+        }
       }
     }
   },
@@ -462,7 +474,7 @@
       "Identifier": "play-opening",
       "Type": "MessageParticipant",
       "Parameters": {
-        "Text": "$.External.openingLine"
+        "SSML": "<speak>Hello. Thank you for calling.<break time=\"500ms\"/></speak>"
       },
       "Transitions": {
         "NextAction": "language-menu",
@@ -1392,65 +1404,19 @@
         }
       },
       "Transitions": {
-        "NextAction": "disconnect",
-        "Conditions": [
-          {
-            "NextAction": "check-escalation-mode",
-            "Condition": {
-              "Operator": "Equals",
-              "Operands": [
-                "EmergencyEscalation"
-              ]
-            }
-          },
-          {
-            "NextAction": "set-fallback-attrs",
-            "Condition": {
-              "Operator": "Equals",
-              "Operands": [
-                "FallbackIntent"
-              ]
-            }
-          },
-          {
-            "NextAction": "set-fallback-attrs",
-            "Condition": {
-              "Operator": "Equals",
-              "Operands": [
-                "RequestHuman"
-              ]
-            }
-          },
-          {
-            "NextAction": "set-fallback-attrs",
-            "Condition": {
-              "Operator": "Equals",
-              "Operands": [
-                "RepeatCallCheck"
-              ]
-            }
-          },
-          {
-            "NextAction": "set-fallback-attrs",
-            "Condition": {
-              "Operator": "Equals",
-              "Operands": [
-                "PublicWorksIssue"
-              ]
-            }
-          }
-        ],
+        "NextAction": "check-caller-done",
+        "Conditions": [],
         "Errors": [
           {
-            "NextAction": "error-prompt",
+            "NextAction": "check-caller-done",
             "ErrorType": "InputTimeLimitExceeded"
           },
           {
-            "NextAction": "disconnect",
+            "NextAction": "check-caller-done",
             "ErrorType": "NoMatchingCondition"
           },
           {
-            "NextAction": "error-prompt",
+            "NextAction": "check-caller-done",
             "ErrorType": "NoMatchingError"
           }
         ]
@@ -1477,7 +1443,7 @@
       "Identifier": "lex-intake",
       "Type": "ConnectParticipantWithLexBot",
       "Parameters": {
-        "Text": "Please tell me how I can assist you today, remember to speak clearly and not to repeat yourself.",
+        "SSML": "<speak><break time=\"250ms\"/></speak>",
         "LexV2Bot": {
           "AliasArn": "{{lexBotAliasArn}}"
         },
@@ -1493,6 +1459,7 @@
           "RapidSOSAddress": "$.Attributes.RapidSOSAddress",
           "apartmentSuite": "$.External.apartmentSuite",
           "greetingDelivered": "true",
+          "intakeStarted": "true",
           "greetingMode": "$.External.greetingMode",
           "escalationMode": "$.External.escalationMode",
           "emergencyTransferNumber": "$.External.emergencyTransferNumber",
@@ -1506,65 +1473,19 @@
         }
       },
       "Transitions": {
-        "NextAction": "disconnect",
-        "Conditions": [
-          {
-            "NextAction": "play-emergency",
-            "Condition": {
-              "Operator": "Equals",
-              "Operands": [
-                "EmergencyEscalation"
-              ]
-            }
-          },
-          {
-            "NextAction": "play-fallback",
-            "Condition": {
-              "Operator": "Equals",
-              "Operands": [
-                "FallbackIntent"
-              ]
-            }
-          },
-          {
-            "NextAction": "play-fallback",
-            "Condition": {
-              "Operator": "Equals",
-              "Operands": [
-                "RequestHuman"
-              ]
-            }
-          },
-          {
-            "NextAction": "play-fallback",
-            "Condition": {
-              "Operator": "Equals",
-              "Operands": [
-                "RepeatCallCheck"
-              ]
-            }
-          },
-          {
-            "NextAction": "play-fallback",
-            "Condition": {
-              "Operator": "Equals",
-              "Operands": [
-                "PublicWorksIssue"
-              ]
-            }
-          }
-        ],
+        "NextAction": "check-caller-done",
+        "Conditions": [],
         "Errors": [
           {
-            "NextAction": "error-prompt",
+            "NextAction": "check-caller-done",
             "ErrorType": "InputTimeLimitExceeded"
           },
           {
-            "NextAction": "disconnect",
+            "NextAction": "check-caller-done",
             "ErrorType": "NoMatchingCondition"
           },
           {
-            "NextAction": "error-prompt",
+            "NextAction": "check-caller-done",
             "ErrorType": "NoMatchingError"
           }
         ]
@@ -1754,10 +1675,10 @@
         "Text": "$.Attributes.errorPrompt"
       },
       "Transitions": {
-        "NextAction": "set-demo-queue",
+        "NextAction": "check-caller-done",
         "Errors": [
           {
-            "NextAction": "set-demo-queue",
+            "NextAction": "disconnect",
             "ErrorType": "NoMatchingError"
           }
         ],
@@ -1779,6 +1700,123 @@
           }
         ],
         "Conditions": []
+      }
+    },
+    {
+      "Identifier": "check-caller-done",
+      "Type": "Compare",
+      "Parameters": {
+        "ComparisonValue": "$.Lex.SessionAttributes.callerDone"
+      },
+      "Transitions": {
+        "NextAction": "route-lex-intent",
+        "Conditions": [
+          {
+            "NextAction": "disconnect",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "true"
+              ]
+            }
+          }
+        ],
+        "Errors": [
+          {
+            "NextAction": "route-lex-intent",
+            "ErrorType": "NoMatchingCondition"
+          }
+        ]
+      }
+    },
+    {
+      "Identifier": "route-lex-intent",
+      "Type": "Compare",
+      "Parameters": {
+        "ComparisonValue": "$.Lex.IntentName"
+      },
+      "Transitions": {
+        "NextAction": "disconnect",
+        "Conditions": [
+          {
+            "NextAction": "play-emergency",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "EmergencyEscalation"
+              ]
+            }
+          },
+          {
+            "NextAction": "play-fallback",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "FallbackIntent"
+              ]
+            }
+          },
+          {
+            "NextAction": "play-fallback",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "RequestHuman"
+              ]
+            }
+          },
+          {
+            "NextAction": "play-fallback",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "RepeatCallCheck"
+              ]
+            }
+          },
+          {
+            "NextAction": "play-fallback",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "PublicWorksIssue"
+              ]
+            }
+          },
+          {
+            "NextAction": "disconnect",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "InformationRequest"
+              ]
+            }
+          },
+          {
+            "NextAction": "disconnect",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "Welcome"
+              ]
+            }
+          },
+          {
+            "NextAction": "disconnect",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "AbandonedVehicle"
+              ]
+            }
+          }
+        ],
+        "Errors": [
+          {
+            "NextAction": "disconnect",
+            "ErrorType": "NoMatchingCondition"
+          }
+        ]
       }
     }
   ]

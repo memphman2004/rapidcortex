@@ -30,6 +30,8 @@ HTTP_API_URL_5="$(get_output HttpApi5Url)"
 ANALYTICS_DAILY_TABLE="$(get_output AnalyticsDailyTable)"
 GRANT_GENERATE_FUNCTION_NAME="$(get_output GenerateGrantPackageFunctionName)"
 GRANT_GENERATE_FUNCTION_ARN="$(get_output GenerateGrantPackageFunctionArn)"
+GRANT_WRITER_FUNCTION_NAME="$(get_output GrantWriterFunctionName)"
+GRANT_WRITER_FUNCTION_ARN="$(get_output GrantWriterFunctionArn)"
 API_CUSTOM_DOMAIN_URL="$(get_output ApiCustomDomainUrl)"
 USER_POOL_ID="$(get_output UserPoolId)"
 USER_POOL_CLIENT_ID="$(get_output UserPoolClientId)"
@@ -162,8 +164,16 @@ if [[ -n "${HTTP_API_URL_5:-}" && "$HTTP_API_URL_5" != "None" ]]; then
 fi
 if [[ -n "${GRANT_GENERATE_FUNCTION_NAME:-}" && "$GRANT_GENERATE_FUNCTION_NAME" != "None" ]]; then
   echo ""
-  echo "# --- Grant PDF (BFF→Lambda Invoke; bypasses API Gateway 30s cap) ---"
+  echo "# --- Legacy school-safety Grant PDF (BFF→Lambda Invoke) ---"
   echo "GRANT_GENERATE_FUNCTION_NAME=${GRANT_GENERATE_FUNCTION_NAME}"
+fi
+if [[ -n "${GRANT_WRITER_FUNCTION_NAME:-}" && "$GRANT_WRITER_FUNCTION_NAME" != "None" ]]; then
+  echo ""
+  echo "# --- Grant Writer / Success Program (BFF→Lambda Invoke; bypasses API Gateway 30s cap) ---"
+  echo "GRANT_WRITER_FUNCTION_NAME=${GRANT_WRITER_FUNCTION_NAME}"
+  if [[ -n "${GRANT_WRITER_FUNCTION_ARN:-}" && "$GRANT_WRITER_FUNCTION_ARN" != "None" ]]; then
+    echo "GRANT_WRITER_FUNCTION_ARN=${GRANT_WRITER_FUNCTION_ARN}"
+  fi
 fi
 echo ""
 echo "# --- Amazon Location Service (MapLibre tiles; Cognito Identity Pool) ---"

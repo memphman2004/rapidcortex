@@ -16,8 +16,35 @@ export function elicitIntentResponse(
     messages,
   };
 }
+
 function slotsForLex(intentName: string, slots: Record<string, LexSlotValue | null>) {
-  return sanitizeSlotsForIntent(intentName, slots);
+  const cleaned = sanitizeSlotsForIntent(intentName, slots);
+  // Lex rejects IntentResponse when any slot value is JSON null. Only send filled slots.
+  const filled: Record<string, LexSlotValue> = {};
+  for (const [name, value] of Object.entries(cleaned)) {
+    if (value != null) filled[name] = value;
+  }
+  return filled;
+}
+
+/**
+ * Ask a yes/no (or free-text) mid-intake question without marking the intent Fulfilled.
+ * `elicitIntentResponse` closes the intent — that drops AbandonedVehicle / Parking mid-call.
+ */
+export function holdIntentPromptResponse(
+  name: string,
+  slots: Record<string, LexSlotValue | null>,
+  sessionAttributes: Record<string, string>,
+  messages: LexMessage[],
+): LexV2Response {
+  return {
+    sessionState: {
+      sessionAttributes,
+      dialogAction: { type: "ElicitIntent" },
+      intent: { name, slots: slotsForLex(name, slots), state: "InProgress" },
+    },
+    messages,
+  };
 }
 
 export function elicitSlotResponse(

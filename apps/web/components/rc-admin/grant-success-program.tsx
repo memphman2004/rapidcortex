@@ -12,12 +12,17 @@ import {
   useEffect,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
   type RefObject,
 } from "react";
 import { createPortal } from "react-dom";
+import {
+  normalizeLegacyGrantProgramName,
+  suggestGrantPrograms,
+} from "@/lib/grants/grant-program-suggestions";
 
 interface GrantForm {
   agencyName: string;
@@ -54,11 +59,11 @@ const DEMO_FORM: GrantForm = {
   contactName: "Alex Morgan",
   contactTitle: "Communications Center Manager",
   contactEmail: "amorgan@cortexcounty.example",
-  grantName: "COPS Technology Program",
+  grantName: "COPS Technology and Equipment Program (TEP)",
   fundingAgency: "U.S. Department of Justice, Office of Community Oriented Policing Services",
   grantNumber: "O-COPS-2026-DEMO",
   requestedAmount: "248000",
-  deadline: "March 15, 2027",
+  deadline: "2027-03-15",
   projectPeriod: "24 months",
   projectTitle: "NexCort iQ communications intelligence for Cortex County",
   projectDescription:
@@ -123,17 +128,6 @@ const AGENCY_TYPES = [
   "Hospital / Health System",
 ];
 
-const GRANT_PROGRAMS = [
-  "COPS Technology Program",
-  "PSAP NG911 Grant Program",
-  "Edward Byrne Memorial JAG",
-  "FEMA Homeland Security Grant Program",
-  "ARPA / SLFRF",
-  "State Criminal Justice Grant",
-  "Congressionally Directed Spending (CDS)",
-  "Other / Custom",
-];
-
 const RC_MODULES = [
   "AI Dispatch Transcription",
   "Supervisor Intelligence Dashboard",
@@ -159,6 +153,21 @@ function formatUsdAmount(raw: string): string {
     maximumFractionDigits: 0,
     minimumFractionDigits: 0,
   }).format(n);
+}
+
+/** Display `YYYY-MM-DD` deadlines as a readable date; pass through other values. */
+function formatDeadlineDisplay(raw: string): string {
+  const trimmed = raw.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+  const [y, m, d] = trimmed.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  if (Number.isNaN(date.getTime())) return trimmed;
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
 }
 
 const input =
@@ -557,12 +566,24 @@ export function GrantSuccessProgram() {
   }
 
   function loadDemonstration() {
-    setForm(DEMO_FORM);
+    setForm({
+      ...DEMO_FORM,
+      grantName: normalizeLegacyGrantProgramName(DEMO_FORM.grantName),
+    });
     setStatus("idle");
     setErrorMsg(null);
     setDownloadedFromProfile(false);
     setStep(4);
   }
+
+  const grantProgramOptions = useMemo(
+    () =>
+      suggestGrantPrograms({
+        agencyType: form.agencyType,
+        agencyState: form.agencyState,
+      }),
+    [form.agencyType, form.agencyState],
+  );
 
   function canAdvance(): boolean {
     if (step === 1) return Boolean(form.agencyName && form.agencyType);
@@ -785,8 +806,8 @@ export function GrantSuccessProgram() {
                 <GrantProgramCombobox
                   value={form.grantName}
                   onChange={(v) => set("grantName", v)}
-                  options={GRANT_PROGRAMS}
-                  placeholder="e.g. COPS Technology Program"
+                  options={grantProgramOptions}
+                  placeholder="e.g. COPS Technology and Equipment Program (TEP)"
                 />
               </F>
               <F l="Funding agency">
@@ -972,7 +993,7 @@ export function GrantSuccessProgram() {
               <ReviewRow label="Funding agency" value={form.fundingAgency} />
               <ReviewRow label="Solicitation number" value={form.grantNumber} />
               <ReviewRow label="Amount requested" value={formatUsdAmount(form.requestedAmount)} />
-              <ReviewRow label="Deadline" value={form.deadline} />
+              <ReviewRow label="Deadline" value={formatDeadlineDisplay(form.deadline)} />
               <ReviewRow label="Project period" value={form.projectPeriod} />
             </Section>
 

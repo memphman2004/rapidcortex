@@ -3,9 +3,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import {
+  SALES_TERRITORY_STATE_CODES,
   SALES_TERRITORY_ZONES,
   emptySalesTerritoryAssignments,
   normalizeSalesTerritoryAssignments,
+  parseSalesTerritoryStates,
   type SalesTerritoryAssignee,
   type SalesTerritoryAssignmentsConfig,
   type SalesTerritoryZoneId,
@@ -58,6 +60,13 @@ function toAssignee(u: AdminUserRow): SalesTerritoryAssignee {
   };
 }
 
+function zoneRow(
+  draft: SalesTerritoryAssignmentsConfig,
+  zoneId: SalesTerritoryZoneId,
+) {
+  return draft.zones.find((z) => z.zoneId === zoneId);
+}
+
 export function SalesTerritoriesSettings() {
   const qc = useQueryClient();
   const assignQ = useQuery({ queryKey: ASSIGN_QK, queryFn: fetchAssignments });
@@ -70,13 +79,22 @@ export function SalesTerritoriesSettings() {
   const [draft, setDraft] = useState<SalesTerritoryAssignmentsConfig>(
     emptySalesTerritoryAssignments(),
   );
+  const [statesDraft, setStatesDraft] = useState<Partial<Record<SalesTerritoryZoneId, string>>>(
+    {},
+  );
   const [pickByZone, setPickByZone] = useState<Partial<Record<SalesTerritoryZoneId, string>>>(
     {},
   );
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    if (assignQ.data) setDraft(assignQ.data);
+    if (!assignQ.data) return;
+    setDraft(assignQ.data);
+    const next: Partial<Record<SalesTerritoryZoneId, string>> = {};
+    for (const z of assignQ.data.zones) {
+      next[z.zoneId] = (z.states ?? []).join(", ");
+    }
+    setStatesDraft(next);
   }, [assignQ.data]);
 
   const contractors = useMemo(() => {
@@ -91,6 +109,11 @@ export function SalesTerritoriesSettings() {
     mutationFn: saveAssignments,
     onSuccess: (savedCfg) => {
       setDraft(savedCfg);
+      const next: Partial<Record<SalesTerritoryZoneId, string>> = {};
+      for (const z of savedCfg.zones) {
+        next[z.zoneId] = (z.states ?? []).join(", ");
+      }
+      setStatesDraft(next);
       void qc.invalidateQueries({ queryKey: ASSIGN_QK });
       void qc.invalidateQueries({ queryKey: ["sales-territories"] });
       setSaved(true);
@@ -98,17 +121,28 @@ export function SalesTerritoriesSettings() {
     },
   });
 
+  function patchZone(
+    zoneId: SalesTerritoryZoneId,
+    patch: Partial<{
+      primaryRepresentative: string;
+      primaryFocus: string;
+      states: string[];
+      assignees: SalesTerritoryAssignee[];
+    }>,
+  ) {
+    // Do not normalize on every keystroke — empty primary/focus would snap back to defaults.
+    setDraft((prev) => ({
+      ...prev,
+      zones: prev.zones.map((z) => (z.zoneId === zoneId ? { ...z, ...patch } : z)),
+    }));
+  }
+
   function assigneesFor(zoneId: SalesTerritoryZoneId): SalesTerritoryAssignee[] {
-    return draft.zones.find((z) => z.zoneId === zoneId)?.assignees ?? [];
+    return zoneRow(draft, zoneId)?.assignees ?? [];
   }
 
   function setAssignees(zoneId: SalesTerritoryZoneId, assignees: SalesTerritoryAssignee[]) {
-    setDraft((prev) =>
-      normalizeSalesTerritoryAssignments({
-        ...prev,
-        zones: prev.zones.map((z) => (z.zoneId === zoneId ? { ...z, assignees } : z)),
-      }),
-    );
+    patchZone(zoneId, { assignees });
   }
 
   function addSelected(zoneId: SalesTerritoryZoneId) {
@@ -130,13 +164,57 @@ export function SalesTerritoriesSettings() {
     );
   }
 
+  /** Apply states for one zone and pull those codes out of every other zone. */
+  function commitStates(zoneId: SalesTerritoryZoneId, raw: string) {
+    const states = parseSalesTerritoryStates(raw);
+    const moved = new Set(states);
+    setDraft((prev) => {
+      const zones = prev.zones.map((z) => {
+        if (z.zoneId === zoneId) return { ...z, states };
+        return { ...z, states: (z.states ?? []).filter((s) => !moved.has(s)) };
+      });
+      return { ...prev, zones };
+    });
+    setStatesDraft((p) => {
+      const next = { ...p, [zoneId]: states.join(", ") };
+      for (const z of SALES_TERRITORY_ZONES) {
+        if (z.id === zoneId) continue;
+        const current = parseSalesTerritoryStates(next[z.id] ?? "");
+        next[z.id] = current.filter((s) => !moved.has(s)).join(", ");
+      }
+      return next;
+    });
+  }
+
+  function handleSave() {
+    // Flush any un-blurred state textareas before save (last zone wins on conflicts).
+    let nextZones = draft.zones.map((z) => ({ ...z, states: [...(z.states ?? [])] }));
+    for (const z of SALES_TERRITORY_ZONES) {
+      const raw = statesDraft[z.id];
+      if (raw === undefined) continue;
+      const states = parseSalesTerritoryStates(raw);
+      const moved = new Set(states);
+      nextZones = nextZones.map((row) => {
+        if (row.zoneId === z.id) return { ...row, states };
+        return { ...row, states: (row.states ?? []).filter((s) => !moved.has(s)) };
+      });
+    }
+    saveM.mutate(
+      normalizeSalesTerritoryAssignments({
+        ...draft,
+        zones: nextZones,
+      }),
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="max-w-3xl">
         <h2 className="text-lg font-semibold text-white">Sales territories</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Assign one or more sales contractors to each hiring-doc zone. Changes appear on the Sales
-          Portal Team Regions tab within a few seconds.
+          Edit primary representative, focus, and state coverage per zone, and assign sales
+          contractors. Zone name and desk email stay fixed. Changes appear on the Sales Portal Team
+          Regions tab within a few seconds. Moving a state into a zone removes it from other zones.
         </p>
       </div>
 
@@ -150,7 +228,8 @@ export function SalesTerritoriesSettings() {
 
       <div className="space-y-4">
         {SALES_TERRITORY_ZONES.map((zone) => {
-          const assignees = assigneesFor(zone.id);
+          const row = zoneRow(draft, zone.id);
+          const assignees = row?.assignees ?? [];
           const assignedEmails = new Set(assignees.map((a) => a.email.toLowerCase()));
           const available = contractors.filter(
             (u) => !assignedEmails.has((u.email || u.username).toLowerCase()),
@@ -163,11 +242,62 @@ export function SalesTerritoriesSettings() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold text-white">{zone.name}</h3>
-                  <p className="mt-1 text-xs text-slate-400">{zone.primaryFocus}</p>
-                  <p className="mt-1 text-[11px] text-slate-500">{zone.states.join(", ")}</p>
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    Desk email (read-only): {zone.deskEmail}
+                  </p>
                 </div>
-                <div className="text-right text-[11px] text-slate-500">{zone.deskEmail}</div>
               </div>
+
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <label className="block space-y-1.5">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    Primary representative
+                  </span>
+                  <input
+                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
+                    value={row?.primaryRepresentative ?? zone.primaryRepresentative}
+                    onChange={(e) =>
+                      patchZone(zone.id, { primaryRepresentative: e.target.value })
+                    }
+                    maxLength={200}
+                    placeholder="e.g. Eric"
+                  />
+                </label>
+                <label className="block space-y-1.5">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    Focus
+                  </span>
+                  <input
+                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
+                    value={row?.primaryFocus ?? zone.primaryFocus}
+                    onChange={(e) => patchZone(zone.id, { primaryFocus: e.target.value })}
+                    maxLength={300}
+                    placeholder="e.g. PSAP/911 + Transit"
+                  />
+                </label>
+              </div>
+
+              <label className="mt-3 block space-y-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                  States
+                </span>
+                <textarea
+                  className="min-h-[72px] w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 font-mono text-xs text-slate-100"
+                  value={statesDraft[zone.id] ?? (row?.states ?? []).join(", ")}
+                  onChange={(e) =>
+                    setStatesDraft((p) => ({ ...p, [zone.id]: e.target.value }))
+                  }
+                  onBlur={(e) => commitStates(zone.id, e.target.value)}
+                  placeholder="TX, GA, NC…"
+                  spellCheck={false}
+                />
+                <span className="block text-[11px] text-slate-600">
+                  Comma-separated US state codes
+                  {zone.states.length === 0 ? " (leave blank for none)" : ""}. Valid:{" "}
+                  {SALES_TERRITORY_STATE_CODES.length} codes including DC. Invalid codes are dropped
+                  on blur/save.
+                </span>
+              </label>
 
               <div className="mt-4">
                 <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
@@ -243,11 +373,15 @@ export function SalesTerritoriesSettings() {
           type="button"
           className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
           disabled={saveM.isPending || assignQ.isLoading}
-          onClick={() => saveM.mutate(draft)}
+          onClick={handleSave}
         >
-          {saveM.isPending ? "Saving…" : "Save assignments"}
+          {saveM.isPending ? "Saving…" : "Save territories"}
         </button>
-        {saved && <span className="text-sm text-emerald-400">Saved — Sales Portal will refresh shortly.</span>}
+        {saved && (
+          <span className="text-sm text-emerald-400">
+            Saved — Sales Portal will refresh shortly.
+          </span>
+        )}
         {saveM.isError && (
           <span className="text-sm text-rose-400">
             {saveM.error instanceof Error ? saveM.error.message : "Save failed"}

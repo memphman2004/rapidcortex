@@ -16,7 +16,13 @@ export type NovaSonicSessionInitEvent = {
 
 export function novaSonicSessionInitDecision(
   event: NovaSonicSessionInitEvent,
-  agency?: { novaSonicEnabled?: boolean | null; systemPromptAppend?: string | null; novaSonicVoiceId?: string | null } | null,
+  agency?: {
+    novaSonicEnabled?: boolean | null;
+    systemPromptAppend?: string | null;
+    novaSonicVoiceId?: string | null;
+    agencyDisplayName?: string | null;
+    agencyName?: string | null;
+  } | null,
 ): VoiceEngineDecision {
   const agencyId = event.Details?.Parameters?.AgencyId;
   const sessionId = event.Details?.ContactData?.ContactId ?? event.Details?.ContactId;
@@ -25,6 +31,7 @@ export function novaSonicSessionInitDecision(
     sessionId,
     novaSonicEnabled: agency?.novaSonicEnabled === true,
     agencyPrompt: agency?.systemPromptAppend,
+    agencyVoiceName: agency?.agencyDisplayName?.trim() || agency?.agencyName?.trim() || "",
     voiceId: agency?.novaSonicVoiceId,
   });
 }

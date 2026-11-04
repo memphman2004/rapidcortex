@@ -2,7 +2,8 @@
  * Sales automation persistence on RAPID_IQ_PIPELINE_SIGNALS_TABLE.
  * SEQ#{id}/META sequences, DRAFT#{id}/META content, SALES_CAMPAIGN#{id}/META schedule controls,
  * SENT#{email}/{iso} contact window, UNSUB#{email}/META local suppression,
- * OUTLOOK#PLATFORM/META Graph mailbox tokens.
+ * OUTLOOK#PLATFORM/META Graph mailbox tokens,
+ * OUTLOOK#USER#{userId}/META per-rep Sales Tools mailbox tokens.
  */
 
 import { DeleteCommand, GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
@@ -343,5 +344,68 @@ export async function getOutlookConnection(): Promise<SalesOutlookConnection | n
 export async function deleteOutlookConnection(): Promise<void> {
   await pipelineDdb.send(
     new DeleteCommand({ TableName: table(), Key: { pk: OUTLOOK_PK, sk: OUTLOOK_SK } }),
+  );
+}
+
+function userOutlookPk(userId: string): string {
+  return `OUTLOOK#USER#${userId.trim()}`;
+}
+
+export async function putUserOutlookConnection(
+  userId: string,
+  conn: SalesOutlookConnection,
+): Promise<void> {
+  const uid = userId.trim();
+  if (!uid) throw new Error("USER_ID_REQUIRED");
+  await pipelineDdb.send(
+    new PutCommand({
+      TableName: table(),
+      Item: {
+        ...conn,
+        pk: userOutlookPk(uid),
+        sk: OUTLOOK_SK,
+        entityType: "sales_outlook_user",
+        agencyId: "platform",
+        userId: uid,
+      },
+    }),
+  );
+}
+
+export async function getUserOutlookConnection(
+  userId: string,
+): Promise<SalesOutlookConnection | null> {
+  const uid = userId.trim();
+  if (!uid) return null;
+  const res = await pipelineDdb.send(
+    new GetCommand({ TableName: table(), Key: { pk: userOutlookPk(uid), sk: OUTLOOK_SK } }),
+  );
+  if (!res.Item) return null;
+  const item = res.Item as Record<string, unknown>;
+  const mailbox = typeof item.mailbox === "string" ? item.mailbox : "";
+  if (!mailbox) return null;
+  return {
+    agencyId: "platform",
+    userId: uid,
+    mailbox,
+    mock: item.mock === true,
+    refreshTokenEnc: typeof item.refreshTokenEnc === "string" ? item.refreshTokenEnc : undefined,
+    accessTokenEnc: typeof item.accessTokenEnc === "string" ? item.accessTokenEnc : undefined,
+    accessTokenExpiresAt:
+      typeof item.accessTokenExpiresAt === "string" ? item.accessTokenExpiresAt : undefined,
+    connectedBy: typeof item.connectedBy === "string" ? item.connectedBy : "unknown",
+    connectedAt: typeof item.connectedAt === "string" ? item.connectedAt : new Date().toISOString(),
+    updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : new Date().toISOString(),
+  };
+}
+
+export async function deleteUserOutlookConnection(userId: string): Promise<void> {
+  const uid = userId.trim();
+  if (!uid) return;
+  await pipelineDdb.send(
+    new DeleteCommand({
+      TableName: table(),
+      Key: { pk: userOutlookPk(uid), sk: OUTLOOK_SK },
+    }),
   );
 }

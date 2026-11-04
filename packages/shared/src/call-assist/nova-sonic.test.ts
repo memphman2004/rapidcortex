@@ -10,18 +10,21 @@ import {
   decideCallAssistVoiceEngine,
   defaultNovaSonicSystemPrompt,
   novaSonicAudioInputEvent,
+  novaSonicCallAssistToolConfiguration,
   novaSonicOpeningEvents,
+  novaSonicToolResultEvent,
+  emptyNovaSonicConnectHandoffAttrs,
 } from "./nova-sonic.js";
 import { formatCallAssistConversationalSystemPrompt } from "./conversational-system-prompt-v2.js";
 
 describe("Nexiq identity on every voice engine", () => {
-  it("opens Nova 2 Sonic with the identity block and the verbatim greeting", () => {
+  it("Lex/Polly fallback prompt never re-greets and closes with a report number", () => {
     const prompt = defaultNovaSonicSystemPrompt("Answer questions about trash pickup for this city.");
     expect(prompt.startsWith("ASSISTANT IDENTITY")).toBe(true);
     expect(prompt).toContain(NEXIQ_OPENING_GREETING);
-    expect(prompt).toContain("NEX-ik");
-    expect(prompt).toContain("Soy Nexiq");
-    expect(prompt).toContain("Sou o Nexiq");
+    expect(prompt).toContain("Do NOT say your name");
+    expect(prompt).toContain("Your report number is");
+    expect(prompt).not.toMatch(/Your first spoken words are exactly/);
     expect(prompt.indexOf("ASSISTANT IDENTITY")).toBeLessThan(prompt.indexOf("trash pickup"));
     expect(NOVA_2_SONIC_MODEL_ID).toBe("amazon.nova-2-5-sonic");
   });
@@ -37,7 +40,8 @@ describe("Nexiq identity on every voice engine", () => {
   it("puts the same identity first on the Lex system prompt", () => {
     const lex = formatCallAssistConversationalSystemPrompt("Springfield");
     expect(lex.startsWith("ASSISTANT IDENTITY")).toBe(true);
-    expect(lex).toContain(NEXIQ_OPENING_GREETING);
+    expect(lex).toContain("CRITICAL — DO NOT GREET THE CALLER");
+    expect(lex).toContain("Thank you for calling. I'm Nexiq.");
     expect(lex).toContain("Springfield");
     expect(lex).not.toContain("{{agency.voice.name}}");
   });
@@ -54,6 +58,34 @@ describe("Nexiq identity on every voice engine", () => {
     expect(String((text?.event.textInput as { content: string }).content).startsWith("ASSISTANT IDENTITY")).toBe(true);
     expect(events[0]?.event).toHaveProperty("sessionStart");
     expect(events.some((row) => "promptStart" in row.event)).toBe(true);
+  });
+
+  it("includes Call Assist tools on promptStart by default", () => {
+    const events = novaSonicOpeningEvents({
+      promptName: "nexcortiq-agency",
+      contentName: "identity",
+      systemPrompt: "ASSISTANT IDENTITY",
+    });
+    const promptStart = events.find((row) => "promptStart" in row.event)?.event.promptStart as {
+      toolConfiguration?: { tools: unknown[] };
+      audioOutputConfiguration?: { voiceId?: string };
+    };
+    expect(promptStart?.toolConfiguration?.tools?.length).toBe(4);
+    expect(novaSonicCallAssistToolConfiguration().tools.map((t) => t.toolSpec.name)).toEqual([
+      "transfer_emergency",
+      "issue_report_number",
+      "save_intake_fields",
+      "request_human",
+    ]);
+    expect(promptStart?.audioOutputConfiguration?.voiceId).toBe("matthew");
+    const toolResult = novaSonicToolResultEvent({
+      promptName: "nexcortiq-agency",
+      contentName: "tool-1",
+      toolUseId: "tu-1",
+      result: { ok: true },
+    });
+    expect(toolResult).toHaveLength(3);
+    expect(emptyNovaSonicConnectHandoffAttrs().novaSonicFallbackToLex).toBe("false");
   });
 });
 
@@ -75,11 +107,18 @@ describe("Nova 2 Sonic engine selection", () => {
       sessionId: "contact-1",
       novaSonicEnabled: true,
       agencyPrompt: "Trash day is Tuesday.",
+      agencyVoiceName: "Springfield",
     });
     expect(decision.voiceEngine).toBe("NOVA_SONIC");
     expect(decision.modelId).toBe(NOVA_2_SONIC_MODEL_ID);
     expect(decision.systemPrompt?.startsWith("ASSISTANT IDENTITY")).toBe(true);
+    expect(decision.systemPrompt).toContain("CRITICAL — DO NOT GREET THE CALLER");
+    expect(decision.systemPrompt).toContain("REPORT NUMBER — SPEAK IT IMMEDIATELY");
+    expect(decision.systemPrompt).toContain("PERSONA");
+    expect(decision.systemPrompt).toContain("Springfield");
+    expect(decision.systemPrompt).toContain("Springfield will follow up.");
     expect(decision.systemPrompt).toContain("Trash day is Tuesday.");
+    expect(decision.systemPrompt).not.toMatch(/Your first spoken words are exactly/);
     expect(decision.novaSonicFallbackToLex).toBe(true);
     expect(novaSonicFoundationModelArn("us-east-1")).toBe(
       "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-2-5-sonic",
@@ -109,7 +148,8 @@ describe("Nova 2 Sonic call", () => {
     });
     const spoken = String((opening.find((row) => "textInput" in row.event)?.event.textInput as { content: string }).content);
     expect(spoken.startsWith("ASSISTANT IDENTITY")).toBe(true);
-    expect(spoken).toContain("I'm Nexiq, your AI assistant.");
+    expect(spoken).toContain("CRITICAL — DO NOT GREET THE CALLER");
+    expect(spoken).toContain("I'm Nexiq, your AI assistant for city services.");
 
     const audio = novaSonicAudioInputEvent({
       promptName: "nexcortiq-springfield",

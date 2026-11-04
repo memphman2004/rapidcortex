@@ -23,7 +23,7 @@ import {
   type TransferReason,
 } from "./dialog-intercept.js";
 import { readCityService } from "./city-service.js";
-import { closeTransferResponse, elicitIntentResponse, plain, speakForEngine } from "./lex-responses.js";
+import { closeTransferResponse, holdIntentPromptResponse, plain, speakForEngine } from "./lex-responses.js";
 import { buildTransferSummary } from "./safety-gate.js";
 import type { LexV2Event, LexV2Response } from "./types.js";
 import { escalationCloseParts, handleSessionStart } from "./session-start.js";
@@ -32,6 +32,7 @@ import {
   finalizeCallAssistIntake,
   generateCallAssistConfirmation,
   spokenClosingWithConfirmation,
+  spokenClosingWithConfirmationAndRepeatAsk,
 } from "../finalize-intake.js";
 
 export type FulfillmentAction =
@@ -286,28 +287,30 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
     );
   }
 
+  const spanish = (sessionAttrs.language ?? locale).toLowerCase().startsWith("es");
   const closingBase = cityServiceClosing(
     closingPrompt(config, classification, confirmationNumber),
     event.sessionState.intent.name,
     sessionAttrs.cityDepartment,
-    (sessionAttrs.language ?? locale).toLowerCase().startsWith("es"),
+    spanish,
   );
   const afterHours =
     event.sessionState.intent.name === "PublicWorksIssue"
       ? municipalAfterHoursNote(new Date(), "America/Chicago", sessionAttrs.language ?? locale)
       : null;
   const closingWithHours = afterHours ? `${closingBase} ${afterHours}` : closingBase;
-  const closing = smsChannel
+  const closingPlain = smsChannel
     ? smsClosingForIntent(event.sessionState.intent.name, confirmationNumber)
     : spokenClosingWithConfirmation({
         closingBase: closingWithHours,
         confirmationNumber,
       });
-  const spanish = (sessionAttrs.language ?? locale).toLowerCase().startsWith("es");
-  const followup = spanish
-    ? "¿Hay algo más en lo que le pueda ayudar?"
-    : "Is there anything else I can help you with?";
-  const spokenOnDashboard = smsChannel ? closing : `${closing} ${followup}`;
+  const closingVoice = spokenClosingWithConfirmationAndRepeatAsk({
+    closingBase: closingWithHours,
+    confirmationNumber,
+    spanish,
+  });
+  const spokenOnDashboard = smsChannel ? closingPlain : closingVoice.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   try {
     await putLexSession({
       ...savedSession,
@@ -322,7 +325,7 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
     confirmationNumber,
     departmentId,
     disposition: "AI_RESOLVED",
-    closingMessage: closing,
+    closingMessage: closingPlain,
     classification,
   };
   if (smsChannel) {
@@ -332,13 +335,22 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
         dialogAction: { type: "Close", fulfillmentState: "Fulfilled" },
         intent: { name: event.sessionState.intent.name, state: "Fulfilled" },
       },
-      messages: [{ contentType: "PlainText", content: closing }],
+      messages: [{ contentType: "PlainText", content: closingPlain }],
     };
   }
-  return elicitIntentResponse(
-    FALLBACK_INTENT,
-    { ...saved, awaitingAnythingElse: "true" },
-    [speakForEngine(`${closing} ${followup}`, sessionAttrs.voiceEngine)],
+  // Keep Lex open so the caller can ask for a repeat before Connect disconnects.
+  // ElicitIntent (InProgress) avoids "slot to elicit is invalid" across intent shapes.
+  return holdIntentPromptResponse(
+    event.sessionState.intent.name,
+    event.sessionState.intent.slots ?? {},
+    {
+      ...saved,
+      awaitingConfirmationRepeat: "true",
+      awaitingAnythingElse: "false",
+      transferReason: "COMPLETE",
+      promptSlot: "CONFIRMATION_REPEAT",
+    },
+    [speakForEngine(closingVoice, sessionAttrs.voiceEngine)],
   );
 }
 

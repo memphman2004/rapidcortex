@@ -90,6 +90,26 @@ Parameters:
   ExternalApiEncryptionKeyArn:
     Type: String
     Default: ""
+  RapidIqPipelineSignalsTable:
+    Type: String
+    Default: rapid-cortex-rapid-iq-pipeline-signals-dev
+    Description: Pipeline table hosting OUTLOOK#USER#* personal Sales Tools Outlook tokens.
+  OutlookOAuthClientId:
+    Type: String
+    Default: "6110ccac-58b6-4976-86c9-46339151aa9f"
+  OutlookOAuthClientSecretArn:
+    Type: String
+    Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/outlook-oauth-3klLxF"
+  OutlookOAuthPersonalRedirectUri:
+    Type: String
+    Default: "https://app.rapidcortex.us/sales/outlook-callback"
+  OutlookOAuthTenant:
+    Type: String
+    Default: "0a85f08a-54a8-43de-bdc1-4ad4e52d3af8"
+  OutlookGraphMock:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
   MultilingualSecretProvisioning:
     Type: String
     Default: external
@@ -1849,6 +1869,9 @@ Resources:
       Handler: dist/handlers/sales/analyzeTranscript.handler
       Timeout: 60
       MemorySize: 512
+      # Lean SAM builds omit per-function node_modules — same shared deps as CRM Lambdas.
+      Layers:
+        - !Ref NodeDepsLayer
       Environment:
         Variables:
           ENABLE_SALES_TOOLS: "true"
@@ -1877,6 +1900,9 @@ Resources:
       Handler: dist/handlers/sales/polishEmail.handler
       Timeout: 60
       MemorySize: 512
+      # Lean SAM builds omit per-function node_modules — same shared deps as CRM Lambdas.
+      Layers:
+        - !Ref NodeDepsLayer
       Environment:
         Variables:
           ENABLE_SALES_TOOLS: "true"
@@ -1893,6 +1919,90 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/sales/polish-email
+            Method: POST
+
+  # Per-rep Outlook OAuth + send for Sales Tools Email Composer (@nexcortiq.us only).
+  SalesOutlookHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/sales/salesOutlookHttp.handler
+      Timeout: 60
+      MemorySize: 512
+      Layers:
+        - !Ref NodeDepsLayer
+      Environment:
+        Variables:
+          ENABLE_SALES_TOOLS: "true"
+          RAPID_IQ_PIPELINE_SIGNALS_TABLE: !Ref RapidIqPipelineSignalsTable
+          AUDIT_TABLE: !Ref AuditTable
+          EXTERNAL_API_ENCRYPTION_KEY_ARN: !Ref ExternalApiEncryptionKeyArn
+          OUTLOOK_OAUTH_CLIENT_ID: !Ref OutlookOAuthClientId
+          OUTLOOK_OAUTH_CLIENT_SECRET_ARN: !Ref OutlookOAuthClientSecretArn
+          OUTLOOK_OAUTH_PERSONAL_REDIRECT_URI: !Ref OutlookOAuthPersonalRedirectUri
+          OUTLOOK_OAUTH_TENANT: !Ref OutlookOAuthTenant
+          OUTLOOK_GRAPH_MOCK: !Ref OutlookGraphMock
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - Statement:
+            - Sid: SalesOutlookPipelineTable
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:DeleteItem
+                - dynamodb:UpdateItem
+                - dynamodb:Query
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RapidIqPipelineSignalsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RapidIqPipelineSignalsTable}/index/*
+            - Sid: SalesOutlookOAuthSecret
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Ref OutlookOAuthClientSecretArn
+            - !If
+              - HasExternalApiEncryptionKeyArn
+              - Sid: SalesOutlookEncryptionKey
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref ExternalApiEncryptionKeyArn
+              - !Ref AWS::NoValue
+      Events:
+        SalesOutlookStatus:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sales/outlook/status
+            Method: GET
+        SalesOutlookConnect:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sales/outlook/connect
+            Method: GET
+        SalesOutlookCallback:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sales/outlook/callback
+            Method: POST
+        SalesOutlookDisconnect:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sales/outlook/disconnect
+            Method: POST
+        SalesSendEmail:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/sales/send-email
             Method: POST
 
   GetDesktopReleasesOverviewFunction:

@@ -60,6 +60,19 @@ describe("one conversation across voice, text, and a person", () => {
     expect(trapped.outcome).toBe("TRANSFER_EMERGENCY");
   });
 
+  it("closes a non-roadway call once location is known", () => {
+    const closed = continueConversation({
+      agencyId: "springfield",
+      sessionId: "call-3",
+      channel: "voice",
+      utterance: "There's an abandoned car on Oak",
+      tenantCity: "Springfield",
+      intake: { locationText: "100 Oak Street", jurisdictionMatch: true, incidentTypeHint: "abandoned vehicle" },
+    });
+    expect(closed.outcome).toBe("CLOSE_AND_CONFIRM");
+    expect(closed.nextQuestion).toBeNull();
+  });
+
   it("sends an out-of-city roadway to a person and keeps the location", () => {
     const outside = continueConversation({
       agencyId: "springfield",

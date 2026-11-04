@@ -11,8 +11,12 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
+type Props = {
+  searchParams: Promise<{ tab?: string }>;
+};
+
 /** Access grants: rcsuperadmin/rcadmin. Grant Success Program: those roles + sales contractors. */
-export default async function RcAdminGrantsPage() {
+export default async function RcAdminGrantsPage({ searchParams }: Props) {
   const user = await getDashboardSessionUser();
   if (!user || !canAccessGrantSuccessProgram(user.role)) {
     redirect(`${marketingLoginPath()}?from=/rc-admin/grants`);
@@ -20,6 +24,8 @@ export default async function RcAdminGrantsPage() {
 
   const canManageAccessGrants = isRcSuperAdmin(user.role) || isRcAdmin(user.role);
   const salesOnly = isSalesContractorRole(user.role);
+  const { tab: tabValue } = await searchParams;
+  const initialTab = tabValue === "access" || tabValue === "generator" ? tabValue : undefined;
 
   return (
     <div className="space-y-4">
@@ -28,13 +34,14 @@ export default async function RcAdminGrantsPage() {
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
           {salesOnly
             ? "Generate NexCort iQ procurement grant packages for prospects."
-            : "Issue access overrides, review active grants, and generate NexCort iQ procurement grant packages."}
+            : "Generate NexCort iQ procurement grant packages, and manage time-boxed access overrides."}
         </p>
       </div>
       <RcAdminGrantsTabsClient
         initialUser={user}
         showGrantSuccessProgram={isGrantSuccessProgramUiEnabled()}
         hideAccessGrants={!canManageAccessGrants}
+        initialTab={initialTab}
       />
     </div>
   );

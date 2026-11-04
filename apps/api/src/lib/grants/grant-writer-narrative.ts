@@ -9,9 +9,25 @@ const CLAUDE_MODEL = "claude-sonnet-4-6";
 const OPENAI_MODEL = "gpt-4o";
 const ANTHROPIC_API = "https://api.anthropic.com/v1/messages";
 const OPENAI_API = "https://api.openai.com/v1/chat/completions";
-/** Leave the rest of the 180s Lambda budget for an OpenAI completion. */
-const CLAUDE_TIMEOUT_MS = 90_000;
-const OPENAI_TIMEOUT_MS = 70_000;
+/**
+ * Keep Claude under the Lambda timeout so OpenAI can still run.
+ * Default Lambda timeout is 180s; leave ~55s for OpenAI + overhead.
+ */
+const CLAUDE_TIMEOUT_MS = Math.max(
+  30_000,
+  Number.parseInt(process.env.GRANT_WRITER_CLAUDE_TIMEOUT_MS ?? "90000", 10) || 90_000,
+);
+const OPENAI_TIMEOUT_MS = 55_000;
+/** Detailed multi-section narrative without blowing the Lambda wall clock. */
+const MAX_OUTPUT_TOKENS = Math.max(
+  4096,
+  Math.min(
+    16_384,
+    Number.parseInt(process.env.GRANT_WRITER_MAX_TOKENS ?? "12288", 10) || 12_288,
+  ),
+);
+/** gpt-4o completion cap; keep OpenAI fallback valid if GRANT_WRITER_MAX_TOKENS is higher. */
+const OPENAI_MAX_OUTPUT_TOKENS = Math.min(MAX_OUTPUT_TOKENS, 16_384);
 
 export type GrantWriterSections = GrantNarrativeSections;
 
@@ -41,12 +57,90 @@ export function normalizeGrantWriterSections(raw: Record<string, unknown>): Gran
   };
 }
 
+const STRING_SECTION_KEYS = [
+  "executiveSummary",
+  "statementOfNeed",
+  "projectDescription",
+  "evaluationPlan",
+  "organizationalCapacity",
+  "budgetNarrative",
+  "sustainabilityPlan",
+  "conclusion",
+] as const;
+
+const ARRAY_SECTION_KEYS = ["goalsAndObjectives", "implementationTimeline"] as const;
+
+/** Extract known fields from truncated or messy model JSON when JSON.parse fails. */
+export function salvageGrantWriterSections(rawText: string): GrantWriterSections | null {
+  const cleaned = rawText.replace(/```json\n?|```\n?/g, "").trim();
+  const withPrefill = cleaned.startsWith("{") ? cleaned : `{${cleaned}`;
+  const found: Record<string, unknown> = {};
+  let hit = 0;
+
+  for (const key of STRING_SECTION_KEYS) {
+    const re = new RegExp(`"${key}"\\s*:\\s*"((?:\\\\.|[^"\\\\])*)"`);
+    const match = withPrefill.match(re);
+    if (!match) continue;
+    try {
+      found[key] = JSON.parse(`"${match[1]}"`) as string;
+      hit += 1;
+    } catch {
+      found[key] = match[1].replace(/\\n/g, "\n").replace(/\\"/g, '"');
+      hit += 1;
+    }
+  }
+
+  for (const key of ARRAY_SECTION_KEYS) {
+    const re = new RegExp(`"${key}"\\s*:\\s*\\[([\\s\\S]*?)(?:\\]|$)`);
+    const match = withPrefill.match(re);
+    if (!match) continue;
+    const items: string[] = [];
+    const itemRe = /"((?:\\.|[^"\\])*)"/g;
+    let itemMatch: RegExpExecArray | null;
+    while ((itemMatch = itemRe.exec(match[1])) !== null) {
+      try {
+        items.push(JSON.parse(`"${itemMatch[1]}"`) as string);
+      } catch {
+        items.push(itemMatch[1].replace(/\\n/g, "\n").replace(/\\"/g, '"'));
+      }
+    }
+    if (items.length > 0) {
+      found[key] = items;
+      hit += 1;
+    }
+  }
+
+  if (hit < 3) return null;
+  return normalizeGrantWriterSections(found);
+}
+
 export function buildGrantWriterPrompt(form: Record<string, unknown>): string {
   const modules = Array.isArray(form.rcModules) ? form.rcModules.join(", ") : "";
+  const moduleList = Array.isArray(form.rcModules)
+    ? form.rcModules.filter((m): m is string => typeof m === "string" && m.trim().length > 0)
+    : [];
+  const moduleGuidance =
+    moduleList.length > 0
+      ? moduleList.map((m) => `- Expand how "${m}" will be used in day-to-day operations at this agency.`).join("\n")
+      : "- Expand how the NexCort iQ core platform will be used in day-to-day operations.";
 
-  return `You are an expert grant writer specializing in public safety technology grants for 911 centers, dispatch agencies, law enforcement, fire rescue, and EMS agencies. Write professional, compelling, federally-compliant grant narratives.
+  return `You are an expert grant writer specializing in public safety technology grants for 911 centers, dispatch agencies, law enforcement, fire rescue, and EMS agencies. Write professional, compelling, federally-compliant grant narratives suitable for DOJ, COPS, FEMA, Byrne JAG, HSGP, ARPA/SLFRF, and state criminal justice reviewers.
 
-Write a complete grant response for the following application. Use specific, quantified language. Write in a professional tone appropriate for government grant reviewers.
+Write a COMPLETE, DETAILED grant response for the following application. Reviewers expect substance: specific operational language, implementation steps, measurable objectives, evaluation methods, budget justification, and sustainability — without inventing statistics the agency did not provide.
+
+LENGTH AND DEPTH REQUIREMENTS (do not underwrite):
+- executiveSummary: 4–5 substantial paragraphs (who/what/why/how/safeguards).
+- statementOfNeed: 5–6 paragraphs covering operational problem, staffing, existing technology gaps, community impact, and why this funder/program fits. Incorporate additional context when provided.
+- projectDescription: 6–8 paragraphs covering approach, each selected module's operational use, role isolation, training/change management, AWS hosting/tenant isolation, and immutable 911 transfer.
+- goalsAndObjectives: 6–8 SMART-style objectives (one sentence each, numbered Goal/Objective with a measurable or verifiable outcome). Do not invent crime or response-time numbers.
+- implementationTimeline: 6–8 phased bullets spanning the full project period (kickoff, configure, train/pilot, operate, report, closeout).
+- evaluationPlan: 4–5 paragraphs with indicators, data sources, reporting cadence, and who owns evaluation.
+- organizationalCapacity: 4–5 paragraphs (ops capacity, technical capacity, key personnel, fiscal/grant admin).
+- budgetNarrative: 4–5 paragraphs tying the requested amount to subscription, implementation, training, and what is NOT covered (CAD/radio).
+- sustainabilityPlan: 3–4 paragraphs (funding after award, knowledge retention, technical ownership, continued metrics).
+- conclusion: 2–3 paragraphs restating ask, need, and the assist-not-replace posture.
+
+Use specific, quantified language ONLY when the applicant supplied the figure. Write in a professional tone appropriate for government grant reviewers. Separate paragraphs with \\n\\n inside JSON strings.
 
 GRANT OPPORTUNITY:
 - Grant Program: ${form.grantName || "Not specified"}
@@ -61,7 +155,7 @@ APPLICANT AGENCY:
 - Agency Type: ${form.agencyType || "Public Safety Agency"}
 - Location: ${[form.agencyCity, form.agencyState].filter(Boolean).join(", ") || "Not specified"}
 - Service Population: ${form.agencyPopulation || "Not specified"}
-- Contact: ${form.contactName || ""} ${form.contactTitle ? `(${form.contactTitle})` : ""}
+- Contact: ${form.contactName || ""} ${form.contactTitle ? `(${form.contactTitle})` : ""} ${form.contactEmail ? `<${form.contactEmail}>` : ""}
 
 PROJECT:
 - Title: ${form.projectTitle || "AI-Powered Public Safety Communications Intelligence System"}
@@ -69,6 +163,9 @@ PROJECT:
 - Modules: ${modules || "Core platform"}
 - Existing Technology: ${form.existingTechnology || "Not specified"}
 - Staffing Challenge: ${form.staffingChallenge || "Not specified"}
+
+MODULE DETAIL TO INCLUDE:
+${moduleGuidance}
 
 PROBLEM STATEMENT:
 ${form.problemStatement || "Agency faces operational challenges including staffing shortages, outdated technology, and increasing call volumes."}
@@ -79,23 +176,23 @@ ${form.projectDescription}
 ADDITIONAL CONTEXT:
 ${form.additionalContext || "None."}
 
-ABOUT NEXCORT IQ:
-NexCort iQ is a public safety intelligence platform that assists — and does not replace — CAD systems, dispatchers, or responders. It provides real-time transcription, supervisor dashboards, automated QA, incident command tools, multi-language translation, and post-incident analytics. It is hosted on Amazon Web Services and can connect to Tyler Technologies, Motorola, CentralSquare, Hexagon, and ProPhoenix when that agency's interface is configured. Do not invent crime statistics, response-time savings, or awards the agency did not provide.
+ABOUT NEXCORT IQ (facts you may use — do not invent others):
+NexCort iQ is a public safety intelligence platform that assists — and does not replace — CAD systems, dispatchers, or responders. It provides real-time transcription, supervisor dashboards, automated QA, incident command tools, multi-language translation, silent text/caller media where configured, and post-incident analytics. It is hosted on Amazon Web Services with per-agency data isolation and administrative audit trails. It can connect to Tyler Technologies, Motorola, CentralSquare, Hexagon, and ProPhoenix when that agency's interface is configured. CAD write-back is fail-closed and never assumed. Emergency transfer to 911 is immutable and cannot be suppressed by configuration. Do not invent crime statistics, response-time savings, awards, or certifications the agency did not provide.
 
-Keep each paragraph to 2–4 sentences and each bullet to one sentence so the JSON finishes completely.
+Finish the entire JSON object. Prefer complete, valid JSON over an unfinished longer draft. If space is tight, shorten later sections slightly rather than omitting keys.
 
 Respond ONLY with a valid JSON object — no markdown, no preamble:
 {
-  "executiveSummary": "2-3 paragraphs...",
-  "statementOfNeed": "3-4 paragraphs with specific challenges...",
-  "projectDescription": "4-5 paragraphs with implementation approach...",
-  "goalsAndObjectives": ["Goal 1: ...", "Goal 2: ...", "Goal 3: ...", "Goal 4: ..."],
-  "implementationTimeline": ["Month 1-3: ...", "Month 4-6: ...", "Month 7-12: ..."],
-  "evaluationPlan": "2-3 paragraphs with metrics...",
-  "organizationalCapacity": "2-3 paragraphs...",
-  "budgetNarrative": "2-3 paragraphs justifying the requested amount...",
-  "sustainabilityPlan": "2 paragraphs...",
-  "conclusion": "1-2 paragraphs..."
+  "executiveSummary": "4-5 paragraphs separated by \\\\n\\\\n...",
+  "statementOfNeed": "5-6 paragraphs...",
+  "projectDescription": "6-8 paragraphs...",
+  "goalsAndObjectives": ["Objective 1: ...", "Objective 2: ...", "Objective 3: ...", "Objective 4: ...", "Objective 5: ...", "Objective 6: ..."],
+  "implementationTimeline": ["Month 1: ...", "Months 1-2: ...", "Months 2-3: ...", "Months 3-6: ...", "Months 6-12: ...", "Closeout: ..."],
+  "evaluationPlan": "4-5 paragraphs...",
+  "organizationalCapacity": "4-5 paragraphs...",
+  "budgetNarrative": "4-5 paragraphs justifying the requested amount...",
+  "sustainabilityPlan": "3-4 paragraphs...",
+  "conclusion": "2-3 paragraphs..."
 }`;
 }
 
@@ -124,6 +221,17 @@ function parseGrantJson(rawText: string, provider: "Claude" | "OpenAI"): GrantWr
   try {
     return normalizeGrantWriterSections(JSON.parse(jsonText) as Record<string, unknown>);
   } catch {
+    const salvaged = salvageGrantWriterSections(rawText);
+    if (salvaged) {
+      console.info(
+        JSON.stringify({
+          msg: "grant_writer_json_salvaged",
+          provider,
+          chars: rawText.length,
+        }),
+      );
+      return salvaged;
+    }
     console.error(
       JSON.stringify({
         msg: "grant_writer_json_parse_failed",
@@ -146,11 +254,9 @@ async function generateWithClaude(form: Record<string, unknown>, apiKey: string)
     },
     body: JSON.stringify({
       model: process.env.GRANT_WRITER_MODEL?.trim() || CLAUDE_MODEL,
-      max_tokens: 8192,
-      messages: [
-        { role: "user", content: buildGrantWriterPrompt(form) },
-        { role: "assistant", content: "{" },
-      ],
+      max_tokens: MAX_OUTPUT_TOKENS,
+      // claude-sonnet-4-6 (and newer) reject assistant prefill — end on a user turn.
+      messages: [{ role: "user", content: buildGrantWriterPrompt(form) }],
     }),
     signal: AbortSignal.timeout(CLAUDE_TIMEOUT_MS),
   });
@@ -164,13 +270,26 @@ async function generateWithClaude(form: Record<string, unknown>, apiKey: string)
     stop_reason?: string;
     content?: { type: string; text?: string }[];
   };
-  if (payload.stop_reason === "max_tokens") {
-    throw new Error("Claude cut the narrative off before it finished. Please try again.");
-  }
   const rawText = (payload.content ?? [])
     .filter((b) => b.type === "text" && b.text)
     .map((b) => b.text)
     .join("");
+
+  if (payload.stop_reason === "max_tokens") {
+    const salvaged = (() => {
+      try {
+        return parseGrantJson(rawText, "Claude");
+      } catch {
+        return null;
+      }
+    })();
+    if (salvaged) {
+      console.info(JSON.stringify({ msg: "grant_writer_claude_truncated_salvaged", chars: rawText.length }));
+      return salvaged;
+    }
+    throw new Error("Claude cut the narrative off before it finished. Please try again.");
+  }
+
   return parseGrantJson(rawText, "Claude");
 }
 
@@ -184,12 +303,13 @@ async function generateWithOpenAi(form: Record<string, unknown>, apiKey: string)
     body: JSON.stringify({
       model: process.env.GRANT_WRITER_OPENAI_MODEL?.trim() || OPENAI_MODEL,
       temperature: 0.2,
-      max_tokens: 8192,
+      max_tokens: OPENAI_MAX_OUTPUT_TOKENS,
       response_format: { type: "json_object" },
       messages: [
         {
           role: "system",
-          content: "You are a senior grant writer. Return ONLY valid JSON matching the requested schema — no markdown.",
+          content:
+            "You are a senior public-safety grant writer. Return ONLY valid JSON matching the requested schema — no markdown. Write detailed, funder-ready narrative sections.",
         },
         { role: "user", content: buildGrantWriterPrompt(form) },
       ],
@@ -208,7 +328,7 @@ async function generateWithOpenAi(form: Record<string, unknown>, apiKey: string)
   }
 
   const payload = (await res.json()) as {
-    choices?: { message?: { content?: string } }[];
+    choices?: { message?: { content?: string }; finish_reason?: string }[];
   };
   const rawText = payload.choices?.[0]?.message?.content ?? "";
   return parseGrantJson(rawText, "OpenAI");
@@ -242,7 +362,8 @@ export async function generateGrantWriterSections(
       return { sections, source: "model" };
     } catch (err) {
       claudeError = err;
-      if (attempt === 1 && isRetryableProviderError(err)) {
+      // Timeouts burn most of the Lambda budget — skip a second Claude attempt and use OpenAI.
+      if (attempt === 1 && isRetryableProviderError(err) && !isProviderTimeout(err)) {
         console.info(JSON.stringify({ msg: "grant_writer_claude_retry" }));
         continue;
       }
@@ -264,7 +385,8 @@ export async function generateGrantWriterSections(
     process.env.OPENAI_API_KEY_SECRET_ARN,
     { preferredField: "OPENAI_API_KEY" },
   );
-  if (openAiKey && (isRetryableProviderError(claudeError) || isProviderTimeout(claudeError))) {
+  // Any Claude failure (not only timeouts/429s) — keep demos off the profile fallback when OpenAI works.
+  if (openAiKey) {
     try {
       console.info(JSON.stringify({ msg: "grant_writer_openai_fallback" }));
       const sections = fillEmptyGrantNarrative(await generateWithOpenAi(form, openAiKey), form);

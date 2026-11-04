@@ -62,11 +62,16 @@ import {
   delegateResponse,
   elicitIntentResponse,
   elicitSlotResponse,
+  holdIntentPromptResponse,
   plain,
   speakForEngine,
 } from "./lex-responses.js";
 import { agencyShortName, transferPrompt } from "./prompts.js";
 import { handleFulfillment } from "./fulfillment-hook.js";
+import {
+  spokenConfirmationGoodbye,
+  spokenConfirmationRepeatOnly,
+} from "../finalize-intake.js";
 import {
   ensureCallerTranscriptLine,
   mergeDashboardUtterances,
@@ -106,6 +111,15 @@ function isLanguageMenuNoise(utterance: string): boolean {
   return trimmed.length === 0 || /^[1-7]$/.test(trimmed);
 }
 
+/** Lex V2 uses `{ score }`; fixtures may pass a bare number. */
+export function nluConfidenceScore(raw: number | { score?: number } | undefined): number {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : 0;
+  if (raw && typeof raw === "object" && typeof raw.score === "number" && Number.isFinite(raw.score)) {
+    return raw.score;
+  }
+  return 0;
+}
+
 /** After a report number: yes starts another report, no ends the call. */
 export function anythingElseChoice(utterance: string): "yes" | "no" | "reask" | "continue" {
   const trimmed = utterance
@@ -114,12 +128,41 @@ export function anythingElseChoice(utterance: string): "yes" | "no" | "reask" | 
     .replace(/[.!?,]+$/g, "")
     .replace(/\s+/g, " ");
   if (!trimmed) return "reask";
-  if (/^(1|yes|yeah|yep|yup|sure|please|yes please|si|sí)$/.test(trimmed)) return "yes";
+  // Affirmatives — short forms and confirm-phrase variants ("correct", "that's right").
   if (
-    /^(2|no|nope|nah|no thanks|no thank you|that'?s all|thats all|that'?s it|thats it|that'?s everything|nothing else|nothing|i'?m good|im good|goodbye|bye|that is all|that will be all|no that'?s it|nada|nada mas|nada más|eso es todo|adios|adiós)$/.test(
+    /^(1|yes|yeah|yep|yup|ya|yea|sure|please|yes please|ok|okay|okey|affirmative|absolutely|definitely|of course|correct|right|exact|exactly|perfect|good|sounds good|that works|please do|go ahead|uh huh|uh-huh|mmhmm|mm hmm|mhm|si|sí)$/.test(
       trimmed,
     )
   ) {
+    return "yes";
+  }
+  if (
+    /^(that'?s|that is|its|it'?s)\s+(correct|right|good|fine|accurate|it)$/.test(trimmed) ||
+    /^(you got it|you'?ve got it|sounds right|looks right|spot on)$/.test(trimmed)
+  ) {
+    return "yes";
+  }
+  // Location confirm often comes back as "yes that is correct" / "yes that's right".
+  if (/^(yes|yeah|yep|yup|sure|ok|okay|si|sí)\b/.test(trimmed) && /\b(correct|right|yes|yeah|good|fine)\b/.test(trimmed)) {
+    return "yes";
+  }
+  if (/^(yes|yeah|yep|yup|si|sí)[,.\s]+(that|the|it)\b/.test(trimmed)) return "yes";
+  // Negatives — short forms and decline-phrase variants ("nope", "incorrect").
+  if (
+    /^(2|no|nope|nah|naw|negative|incorrect|wrong|no thanks|no thank you|no thankyou|that'?s all|thats all|that'?s it|thats it|that'?s everything|nothing else|nothing|i'?m good|im good|i'?m fine|im fine|all set|goodbye|bye|that is all|that will be all|no that'?s it|do not|don'?t|nada|nada mas|nada más|eso es todo|adios|adiós)$/.test(
+      trimmed,
+    )
+  ) {
+    return "no";
+  }
+  if (
+    /^(that'?s|that is|its|it'?s)\s+(wrong|incorrect|not right|not correct|no)$/.test(trimmed) ||
+    /^(not right|not correct|no way|no need|no i'?m good|no im good)$/.test(trimmed)
+  ) {
+    return "no";
+  }
+  // "no that's wrong" / "nope wrong address" during location confirm
+  if (/^(no|nope|nah|naw|negative)\b/.test(trimmed) && /\b(wrong|incorrect|not right|not correct|thanks|thank you)\b/.test(trimmed)) {
     return "no";
   }
   return "continue";
@@ -246,12 +289,17 @@ async function handleDialogTurn(
     });
     Object.assign(sessionAttrs, welcomeStart.sessionAttributes);
     // Voice greeting is for phone only — SMS has its own welcome / keyword path.
+    // Never re-speak identity or "how can I help" after telephony already delivered it.
     if (
       !smsChannel &&
       sessionAttrs.intakeStarted !== "true" &&
-      event.sessionState.intent.name !== WELCOME_INTENT
+      sessionAttrs.greetingDelivered !== "true" &&
+      event.sessionState.intent.name !== WELCOME_INTENT &&
+      welcomeStart.greeting.trim()
     ) {
       greetingPrefix = welcomeStart.greeting;
+      sessionAttrs.intakeStarted = "true";
+    } else if (!smsChannel && sessionAttrs.intakeStarted !== "true" && sessionAttrs.greetingDelivered === "true") {
       sessionAttrs.intakeStarted = "true";
     } else if (smsChannel && sessionAttrs.intakeStarted !== "true") {
       sessionAttrs.intakeStarted = "true";
@@ -321,23 +369,118 @@ async function handleDialogTurn(
     };
   }
 
+  if (!smsChannel && sessionAttrs.awaitingConfirmationRepeat === "true") {
+    const choice = anythingElseChoice(utterance);
+    const spanish = language.startsWith("es");
+    const confirmationNumber = sessionAttrs.confirmationNumber?.trim() || sessionAttrs.caseNumber?.trim() || "";
+    const holdIntent =
+      (sessionAttrs.classification && !FLOW_TRANSFER_INTENTS.has(sessionAttrs.classification)
+        ? sessionAttrs.classification
+        : event.sessionState.intent.name) || FALLBACK_INTENT;
+    if (event.sessionState.intent) event.sessionState.intent.confirmationState = "None";
+    const repeatAttrs = {
+      ...sessionAttrs,
+      agencyId,
+      callId,
+      transcript,
+      awaitingConfirmationRepeat: "true",
+      promptSlot: "CONFIRMATION_REPEAT",
+    };
+    if (choice === "yes" && confirmationNumber) {
+      return holdIntentPromptResponse(
+        holdIntent,
+        currentSlots,
+        repeatAttrs,
+        [
+          speakForEngine(
+            spokenConfirmationRepeatOnly({ confirmationNumber, spanish }),
+            sessionAttrs.voiceEngine,
+          ),
+        ],
+      );
+    }
+    if (choice !== "no") {
+      const ask = spanish
+        ? "¿Quiere que le repita el número de confirmación? Diga sí o no."
+        : "Would you like me to repeat that confirmation number? Please say yes or no.";
+      return holdIntentPromptResponse(holdIntent, currentSlots, repeatAttrs, [
+        speakForEngine(ask, sessionAttrs.voiceEngine),
+      ]);
+    }
+    // InformationRequest is a clean hang-up intent for Connect (never routes to transfer).
+    // callerDone=true makes the contact flow disconnect even if Lex NLU labeled this turn FallbackIntent.
+    return {
+      sessionState: {
+        sessionAttributes: {
+          ...sessionAttrs,
+          agencyId,
+          callId,
+          transcript,
+          awaitingConfirmationRepeat: "false",
+          promptSlot: "",
+          callerDone: "true",
+          transferReason: "COMPLETE",
+          emergency: "false",
+          endSession: "true",
+          fallbackTransfer: "false",
+        },
+        dialogAction: { type: "Close", fulfillmentState: "Fulfilled" },
+        intent: { name: INFORMATION_REQUEST_INTENT, state: "Fulfilled" },
+      },
+      messages: [speakForEngine(spokenConfirmationGoodbye(spanish), sessionAttrs.voiceEngine)],
+    };
+  }
+
   if (!smsChannel && sessionAttrs.awaitingLocationConfirm === "true") {
     const choice = anythingElseChoice(utterance);
+    const resumeIntent =
+      (sessionAttrs.classification && !FLOW_TRANSFER_INTENTS.has(sessionAttrs.classification)
+        ? sessionAttrs.classification
+        : event.sessionState.intent.name) || FALLBACK_INTENT;
     if (choice === "no") {
       sessionAttrs.awaitingLocationConfirm = "false";
       sessionAttrs.locationConfirmed = "false";
       sessionAttrs.pendingLocation = "";
+      sessionAttrs.promptSlot = "";
       for (const name of Object.keys(currentSlots)) {
         if (isLocationSlot(name)) currentSlots[name] = null;
       }
+      // Caller was answering the address check, not intent confirmation.
+      if (event.sessionState.intent) event.sessionState.intent.confirmationState = "None";
     } else if (choice === "yes") {
       sessionAttrs.awaitingLocationConfirm = "false";
       sessionAttrs.locationConfirmed = "true";
+      sessionAttrs.promptSlot = "";
+      // Lex often marks confirmationState=Confirmed because the utterance was "yes".
+      if (event.sessionState.intent) event.sessionState.intent.confirmationState = "None";
+      // Complete now — do not run confidence / Bedrock on a bare "yes", which Lex often
+      // scores as { score } objects or near-zero and falsely escalates before fulfill.
+      event.sessionState.sessionAttributes = {
+        ...sessionAttrs,
+        agencyId,
+        callId,
+        transcript,
+        classification: resumeIntent,
+      };
+      event.sessionState.intent = {
+        name: resumeIntent,
+        slots: currentSlots,
+        state: "ReadyForFulfillment",
+        confirmationState: "Confirmed",
+      };
+      return handleFulfillment(event);
     } else {
       const again = locationReadback(sessionAttrs.pendingLocation ?? "", language) ?? "Is that location right?";
-      return elicitIntentResponse(FALLBACK_INTENT, { ...sessionAttrs, agencyId, callId, transcript }, [
-        speakForEngine(again, sessionAttrs.voiceEngine),
-      ]);
+      const locationSlot =
+        Object.keys(currentSlots).find((name) => isLocationSlot(name) && slotFilled(currentSlots[name])) ??
+        "VehicleLocation";
+      return elicitSlotResponse(
+        resumeIntent,
+        locationSlot,
+        currentSlots,
+        { ...sessionAttrs, agencyId, callId, transcript, promptSlot: "LOCATION_CONFIRM" },
+        [speakForEngine(again, sessionAttrs.voiceEngine)],
+      );
     }
   }
 
@@ -418,7 +561,7 @@ async function handleDialogTurn(
   const taxonomy = resolveAgencyTaxonomy(tenant);
 
   const topInterpretation = event.interpretations?.[0];
-  const lexConfidence = topInterpretation?.nluConfidence ?? 0;
+  const lexConfidence = nluConfidenceScore(topInterpretation?.nluConfidence);
   const lexSentiment = topInterpretation?.sentimentResponse;
   if (lexSentiment?.sentiment) {
     sessionAttrs.sentiment = lexSentiment.sentiment;
@@ -427,6 +570,25 @@ async function handleDialogTurn(
   let activeIntent = event.sessionState.intent.name;
   let confidenceSource: "lex" | "bedrock" = "lex";
   let effectiveScore = lexConfidence;
+
+  // Recover mid-intake after a location-confirm turn. Older hooks Fulfilled-closed the
+  // intent on that prompt; classification + awaitingLocationConfirm keep the report alive.
+  const priorClassification = sessionAttrs.classification?.trim() || "";
+  if (
+    priorClassification &&
+    !FLOW_TRANSFER_INTENTS.has(priorClassification) &&
+    priorClassification !== WELCOME_INTENT &&
+    (!activeIntent || activeIntent === FALLBACK_INTENT) &&
+    (sessionAttrs.awaitingLocationConfirm === "true" || sessionAttrs.promptSlot === "LOCATION_CONFIRM")
+  ) {
+    activeIntent = priorClassification;
+    event.sessionState.intent = {
+      ...event.sessionState.intent,
+      name: priorClassification,
+      state: "InProgress",
+      slots: event.sessionState.intent.slots ?? {},
+    };
+  }
 
   if (activeIntent === "RedirectToEmergencyServices") {
     return emergencyClose(deps, event, config, shortName, emergencySpoken, {
@@ -630,7 +792,19 @@ async function handleDialogTurn(
   const interrupted = detectBargeIn(sessionAttrs, utterance, {
     promptedSlotFilled: Boolean(prompted && slotFilled(currentSlots[prompted])),
   });
-  capturePromptedSlot(currentSlots, prompted, utterance);
+  // Pseudo prompts are not Lex slots — never materialize LOCATION_CONFIRM / CONFIRM_INTENT / CONFIRMATION_REPEAT.
+  if (
+    prompted &&
+    prompted !== "LOCATION_CONFIRM" &&
+    prompted !== "CONFIRM_INTENT" &&
+    prompted !== "CONFIRMATION_REPEAT"
+  ) {
+    capturePromptedSlot(currentSlots, prompted, utterance);
+  }
+  // Drop any pseudo slot Lex may already have from a prior bad response.
+  delete currentSlots.LOCATION_CONFIRM;
+  delete currentSlots.CONFIRM_INTENT;
+  delete currentSlots.CONFIRMATION_REPEAT;
   intake = mergeIntakeFromLexSlots(extractCurrentSlots(event), intake);
   let missingSlotId = nextMissingSlot(activeIntent, currentSlots, taxonomy, intake);
   if (!missingSlotId) missingSlotId = nextResponderSlot(activeIntent, currentSlots, intake);
@@ -723,18 +897,21 @@ async function handleDialogTurn(
   }
 
   if (missingSlotId) {
+    // Prefer intake-aware missingSlotId. getNextElicitation walks raw empty slots and
+    // would re-ask location even when prior session intake already has locationText.
+    const elicited = getNextElicitation(activeIntent, currentSlots, transcript, language);
     const next =
-      getNextElicitation(activeIntent, currentSlots, transcript, language) ??
-      ({
-        slotToElicit: missingSlotId,
-        question: humanQuestionForSlot(activeIntent, missingSlotId, language),
-      } as const);
+      elicited && elicited.slotToElicit === missingSlotId
+        ? elicited
+        : ({
+            slotToElicit: missingSlotId,
+            question: humanQuestionForSlot(activeIntent, missingSlotId, language),
+          } as const);
+    // Do not prepend location readback here. "Is that right?" mid-slot makes "yes"
+    // fill the next slot (e.g. VehicleDescription="Yes that is correct") and then the
+    // end-of-intake confirm path used to Fulfilled-close the intent. Confirm once at the end.
     const spokenBase = tty.ttyMode ? formatTtySms(next.question) : next.question;
-    const readback =
-      !tty.ttyMode && isLocationSlot(prompted)
-        ? locationReadback(slotInterpretedValue(currentSlots[prompted ?? ""]))
-        : null;
-    const spoken = [!tty.ttyMode ? correctionAck : "", readback, spokenBase].filter(Boolean).join(" ");
+    const spoken = [!tty.ttyMode ? correctionAck : "", spokenBase].filter(Boolean).join(" ");
     if (tty.smsFallbackRecommended) updatedAttrs.ttySmsScript = formatTtySms(next.question);
     updatedAttrs.promptSlot = next.slotToElicit;
     const slotMessage = tty.ttyMode ? plain(spoken) : plain(spoken);
@@ -772,7 +949,13 @@ async function handleDialogTurn(
       updatedAttrs.awaitingLocationConfirm = "true";
       updatedAttrs.pendingLocation = place;
       updatedAttrs.promptSlot = "LOCATION_CONFIRM";
-      return elicitIntentResponse(activeIntent, updatedAttrs, [plain(readback)]);
+      updatedAttrs.classification = activeIntent;
+      // ElicitIntent drops the active intent in Lex Runtime. Re-elicit the location slot
+      // (already filled) so AbandonedVehicle stays InProgress through the yes/no confirm.
+      const locationSlot =
+        Object.keys(currentSlots).find((name) => isLocationSlot(name) && slotFilled(currentSlots[name])) ??
+        "VehicleLocation";
+      return elicitSlotResponse(activeIntent, locationSlot, currentSlots, updatedAttrs, [plain(readback)]);
     }
   }
 

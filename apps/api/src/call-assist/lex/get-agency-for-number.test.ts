@@ -31,7 +31,7 @@ describe("GetAgencyConfigForNumber Connect start", () => {
       agencyShortName: "Springfield PD",
     });
     expect(result.language).toBe("es-US");
-    expect(result.greetingText).toMatch(/permanezca en la línea/i);
+    expect(result.greetingText).toMatch(/¿En qué puedo ayudarle hoy\?/i);
     expect(result["greeting_zh_CN"]).toContain("非紧急");
     expect(result["greeting_ar_AE"]).toContain("غير الطارئة");
     expect(result["transferPrompt_tl_PH"]).toMatch(/Pakihintay/i);
@@ -39,10 +39,8 @@ describe("GetAgencyConfigForNumber Connect start", () => {
     expect(result.ani).toBe("+18165550100");
     expect(result.language).not.toBe("es");
     expect(result.language).not.toBe("en");
-    expect(result.greetingText.startsWith("Thank you for calling the city's non-emergency line. I'm Nexiq")).toBe(true);
-    expect(result.openingLine).toBe(
-      "Hello, thank you for calling Springfield Police Department service line.",
-    );
+    expect(result.greetingText.startsWith("Thank you for calling. I'm Nexiq, your AI assistant.")).toBe(true);
+    expect(result.openingLine).toBe("");
     expect(result.voiceEngine).toBe("LEX_POLLY");
     const nova = buildConnectStartResult({
       agencyId: "springfield",

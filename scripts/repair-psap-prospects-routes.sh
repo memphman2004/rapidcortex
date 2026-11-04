@@ -7,12 +7,31 @@ REGION="${AWS_REGION:-us-east-1}"
 API_ID="${PSAP_HTTP_API_ID:-tbr4zvjlk5}"
 AUTHZ_ID="${PSAP_HTTP_API_JWT_AUTHORIZER_ID:-k8rjdh}"
 FN_NAME="${PSAP_PROSPECTS_FUNCTION_NAME:-}"
+NESTED_STACK="${PSAP_CRM_STACK_NAME:-rapid-cortex-dev-AppSamPsapCrmStack}"
 
 if [[ -z "$FN_NAME" ]]; then
   FN_NAME="$(
-    aws lambda list-functions --region "$REGION" \
-      --query "Functions[?contains(FunctionName, 'PsapProspectsHttpFunctio')].FunctionName | [0]" \
-      --output text
+    aws cloudformation describe-stack-resource \
+      --stack-name "$NESTED_STACK" \
+      --logical-resource-id PsapProspectsHttpFunction \
+      --region "$REGION" \
+      --query 'StackResourceDetail.PhysicalResourceId' \
+      --output text 2>/dev/null || true
+  )"
+fi
+if [[ -z "$FN_NAME" || "$FN_NAME" == "None" ]]; then
+  # Prefer the newest matching function if CFN lookup fails (orphans may exist).
+  FN_NAME="$(
+    aws lambda list-functions --region "$REGION" --output json \
+      | python3 -c "
+import json, sys
+fns = [
+  f for f in json.load(sys.stdin).get('Functions', [])
+  if 'PsapProspectsHttpFunctio' in f.get('FunctionName', '')
+]
+fns.sort(key=lambda f: f.get('LastModified', ''), reverse=True)
+print(fns[0]['FunctionName'] if fns else '')
+"
   )"
 fi
 if [[ -z "$FN_NAME" || "$FN_NAME" == "None" ]]; then
@@ -44,6 +63,10 @@ aws lambda add-permission \
   --source-arn "arn:aws:execute-api:${REGION}:${ACCOUNT_ID}:${API_ID}/*" \
   --region "$REGION" >/dev/null
 
+# JMESPath RouteKey=='…/{psapId}' is unreliable; match in Python instead.
+EXISTING_JSON="$(aws apigatewayv2 get-routes --api-id "$API_ID" --region "$REGION" --output json)"
+export EXISTING_JSON
+
 ROUTES=(
   "GET /api/rc-admin/psap-prospects"
   "GET /api/rc-admin/psap-prospects/stats"
@@ -57,12 +80,16 @@ ROUTES=(
 )
 
 for key in "${ROUTES[@]}"; do
-  # Skip if route already exists
   existing="$(
-    aws apigatewayv2 get-routes --api-id "$API_ID" --region "$REGION" \
-      --query "Items[?RouteKey=='${key}'].RouteId | [0]" --output text 2>/dev/null || true
+    KEY="$key" python3 -c "
+import json, os
+key = os.environ['KEY']
+items = json.loads(os.environ['EXISTING_JSON']).get('Items', [])
+match = next((i for i in items if i.get('RouteKey') == key), None)
+print(match['RouteId'] if match else '')
+"
   )"
-  if [[ -n "$existing" && "$existing" != "None" ]]; then
+  if [[ -n "$existing" ]]; then
     echo "exists  $key ($existing)"
     continue
   fi

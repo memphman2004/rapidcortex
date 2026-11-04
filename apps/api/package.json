@@ -43,6 +43,7 @@
     "@aws-sdk/client-wafv2": "^3.699.0",
     "@aws-sdk/lib-dynamodb": "^3.699.0",
     "@aws-sdk/s3-request-presigner": "^3.699.0",
+    "@smithy/node-http-handler": "^4.7.2",
     "bcryptjs": "^3.0.3",
     "cheerio": "^1.0.0",
     "fast-xml-parser": "^5.7.0",

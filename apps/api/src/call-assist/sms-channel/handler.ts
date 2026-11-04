@@ -2,6 +2,7 @@ import type { SNSEvent } from "aws-lambda";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import {
   continueConversation,
+  formatCallAssistCaseNumber,
   isCallAssistConfirmationNumber,
   parseCallerSurveyScore,
   replyWithoutRepeating,
@@ -389,6 +390,7 @@ export async function handleInboundSmsEvent(event: SNSEvent): Promise<void> {
   const rawText = lexTurn.messages.map((m) => m.content).join(" ");
   const confirmation =
     (lexTurn.sessionAttributes.confirmationNumber || lexTurn.sessionAttributes.caseNumber || "").trim() ||
+    continued?.confirmationNumber?.trim() ||
     extractConfirmationFromText(rawText);
   const validConfirmation =
     confirmation && isCallAssistConfirmationNumber(confirmation) ? confirmation : undefined;
@@ -472,6 +474,7 @@ type VoiceContinuation = {
   locationText: string;
   injuriesReported: string;
   thread: ConversationThread;
+  confirmationNumber?: string;
 };
 
 function smsContinuationAttributes(continued: VoiceContinuation | null): Record<string, string> {
@@ -482,6 +485,10 @@ function smsContinuationAttributes(continued: VoiceContinuation | null): Record<
   };
   if (continued.locationText) attrs.locationText = continued.locationText;
   if (continued.injuriesReported) attrs.injuriesReported = continued.injuriesReported;
+  if (continued.confirmationNumber) {
+    attrs.confirmationNumber = continued.confirmationNumber;
+    attrs.caseNumber = continued.confirmationNumber;
+  }
   return attrs;
 }
 
@@ -507,11 +514,21 @@ async function loadVoiceContinuation(
     tenantState: config?.tenantState,
     emergency: session.transfer?.action === "TRANSFER_911",
   });
+  const needsConfirm =
+    thread.outcome === "CLOSE_AND_CONFIRM" || thread.outcome === "CREATE_PUBLIC_WORKS";
+  const confirmationNumber = needsConfirm
+    ? formatCallAssistCaseNumber({
+        agencyId,
+        confirmationPrefix: config?.confirmationPrefix,
+        timeZone: config?.operatingHours?.timezone,
+      })
+    : undefined;
   return {
     sessionId: session.sessionId,
     locationText: session.intake?.locationText?.trim() ?? "",
     injuriesReported: session.intake?.injuries === true ? "true" : session.intake?.injuries === false ? "false" : "",
     thread,
+    confirmationNumber,
   };
 }
 

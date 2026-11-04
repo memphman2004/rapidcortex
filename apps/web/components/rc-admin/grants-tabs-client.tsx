@@ -7,17 +7,33 @@ import { GrantSuccessProgram } from "@/components/rc-admin/grant-success-program
 
 type Tab = "access" | "generator";
 
+function resolveInitialTab(
+  hideAccessGrants: boolean,
+  showGrantSuccessProgram: boolean,
+  preferredTab?: Tab,
+): Tab {
+  if (hideAccessGrants || !showGrantSuccessProgram) return "generator";
+  if (preferredTab === "access" || preferredTab === "generator") return preferredTab;
+  // Customer demos land on Grant Writer — Access grants is secondary.
+  return "generator";
+}
+
 export function RcAdminGrantsTabsClient({
   initialUser,
   showGrantSuccessProgram,
   hideAccessGrants = false,
+  initialTab,
 }: {
   initialUser: UserContext;
   showGrantSuccessProgram: boolean;
   /** Sales contractors see Grant Success Program only — no Access Overrides. */
   hideAccessGrants?: boolean;
+  /** Optional deep-link: `?tab=generator` or `?tab=access`. */
+  initialTab?: Tab;
 }) {
-  const [tab, setTab] = useState<Tab>(hideAccessGrants ? "generator" : "access");
+  const [tab, setTab] = useState<Tab>(() =>
+    resolveInitialTab(hideAccessGrants, showGrantSuccessProgram, initialTab),
+  );
 
   const showTabBar = !hideAccessGrants && showGrantSuccessProgram;
 
@@ -25,20 +41,20 @@ export function RcAdminGrantsTabsClient({
     <div>
       {showTabBar ? (
         <div className="mb-6 flex gap-1 border-b border-slate-800">
-          <TabButton active={tab === "access"} onClick={() => setTab("access")}>
-            Access grants
-          </TabButton>
           <TabButton active={tab === "generator"} onClick={() => setTab("generator")}>
             Grant Writer
+          </TabButton>
+          <TabButton active={tab === "access"} onClick={() => setTab("access")}>
+            Access grants
           </TabButton>
         </div>
       ) : null}
 
-      {!hideAccessGrants && tab === "access" ? (
-        <AccessOverridesManager initialUser={initialUser} />
-      ) : null}
       {(tab === "generator" || hideAccessGrants) && showGrantSuccessProgram ? (
         <GrantSuccessProgram />
+      ) : null}
+      {!hideAccessGrants && tab === "access" ? (
+        <AccessOverridesManager initialUser={initialUser} />
       ) : null}
       {!showGrantSuccessProgram && hideAccessGrants ? (
         <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">

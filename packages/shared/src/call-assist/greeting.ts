@@ -29,33 +29,34 @@ export type CallAssistGreetingConfig = z.infer<typeof callAssistGreetingConfigSc
 export const callAssistGreetingConfigPatchSchema = callAssistGreetingConfigSchema.partial();
 export type CallAssistGreetingConfigPatch = z.infer<typeof callAssistGreetingConfigPatchSchema>;
 
+/** Continues after NEXIQ_OPENING_GREETING — city, 911 rule, then the intake invite. */
 export const GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
   hang_up: [
     "This is the {lineDescription} for {cityName}.",
     "If you are experiencing an emergency or there is an immediate threat to life or safety,",
     "please hang up and dial 9-1-1.",
-    "Otherwise, stay on the line and I can assist you with your non-emergency request.",
+    "Otherwise, how can I help with your non-emergency request?",
   ].join(" "),
 
   stay_on_line: [
     "This is the {lineDescription} for {cityName}.",
     "If this is a life-threatening emergency, hang up and dial 9-1-1.",
-    "For all other requests, stay on the line.",
+    "How can I help you today?",
   ].join(" "),
 };
 
 export const DEFAULT_ES_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
   hang_up: [
-    "Ha llamado a Nexiq, la línea de servicio no urgente de {cityName}.",
+    "Esta es la {lineDescription} de {cityName}.",
     "Si está experimentando una emergencia o existe una amenaza inmediata a la vida o la seguridad,",
     "por favor cuelgue y llame al 9-1-1.",
-    "De lo contrario, permanezca en la línea y puedo ayudarle con su solicitud no urgente.",
+    "De lo contrario, ¿en qué puedo ayudarle con su solicitud no urgente?",
   ].join(" "),
 
   stay_on_line: [
-    "Ha llamado a Nexiq, la línea de servicio no urgente de {cityName}.",
+    "Esta es la {lineDescription} de {cityName}.",
     "Si esto es una emergencia que amenaza la vida, cuelgue y llame al 9-1-1.",
-    "Para cualquier otra solicitud, permanezca en la línea.",
+    "¿En qué puedo ayudarle hoy?",
   ].join(" "),
 };
 
@@ -93,71 +94,66 @@ export const DEFAULT_ES_ESCALATION_ANNOUNCEMENTS: Record<EscalationMode, string>
 
 const DEFAULT_ZH_CN_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
   hang_up: [
-    "这里是 Nexiq，{cityName}的非紧急服务热线。",
-    "如果您正在经历紧急情况，或生命安全受到直接威胁，",
-    "请挂断并拨打9-1-1。",
-    "否则请不要挂断，我可以协助处理您的非紧急请求。",
-  ].join(" "),
+    "这里是{cityName}的非紧急服务热线。",
+    "如果您正在经历紧急情况，或生命安全受到直接威胁，请挂断并拨打9-1-1。",
+    "否则请问有什么可以帮您？",
+  ].join(""),
   stay_on_line: [
-    "这里是 Nexiq，{cityName}的非紧急服务热线。",
+    "这里是{cityName}的非紧急服务热线。",
     "如果这是危及生命的紧急情况，请挂断并拨打9-1-1。",
-    "其他请求请不要挂断。",
-  ].join(" "),
+    "请问有什么可以帮您？",
+  ].join(""),
 };
 
 const DEFAULT_ZH_HK_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
   hang_up: [
-    "呢度係 Nexiq，{cityName}嘅非緊急服務熱線。",
-    "如果你正經歷緊急情況，或者生命安全受到即時威脅，",
-    "請掛線並打9-1-1。",
-    "否則請唔好掛線，我可以幫你處理非緊急請求。",
-  ].join(" "),
+    "呢度係{cityName}嘅非緊急服務熱線。",
+    "如果你正經歷緊急情況，或者生命安全受到即時威脅，請掛線並打9-1-1。",
+    "否則有咩可以幫到你？",
+  ].join(""),
   stay_on_line: [
-    "呢度係 Nexiq，{cityName}嘅非緊急服務熱線。",
+    "呢度係{cityName}嘅非緊急服務熱線。",
     "如果呢個係危及生命嘅緊急情況，請掛線並打9-1-1。",
-    "其他請求請唔好掛線。",
-  ].join(" "),
+    "有咩可以幫到你？",
+  ].join(""),
 };
 
 const DEFAULT_TL_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
   hang_up: [
-    "Nakatawag kayo sa Nexiq, ang non-emergency na linya ng {cityName}.",
-    "Kung emergency o may agarang banta sa buhay o kaligtasan,",
-    "mangyaring ibaba at tumawag sa 9-1-1.",
-    "Kung hindi, manatili sa linya at matutulungan ko kayo sa non-emergency na request.",
+    "Ito ang non-emergency na linya ng {cityName}.",
+    "Kung emergency o may agarang banta sa buhay o kaligtasan, mangyaring ibaba at tumawag sa 9-1-1.",
+    "Kung hindi, paano po kita matutulungan?",
   ].join(" "),
   stay_on_line: [
-    "Nakatawag kayo sa Nexiq, ang non-emergency na linya ng {cityName}.",
+    "Ito ang non-emergency na linya ng {cityName}.",
     "Kung life-threatening emergency ito, ibaba at tumawag sa 9-1-1.",
-    "Para sa lahat ng ibang request, manatili po sa linya.",
+    "Paano po kita matutulungan ngayon?",
   ].join(" "),
 };
 
 const DEFAULT_VI_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
   hang_up: [
-    "Bạn đã gọi đến Nexiq, đường dây không khẩn cấp của {cityName}.",
-    "Nếu đây là trường hợp khẩn cấp hoặc có đe dọa tức thời đến tính mạng,",
-    "hãy cúp máy và gọi 9-1-1.",
-    "Nếu không, hãy giữ máy, tôi có thể hỗ trợ yêu cầu không khẩn cấp.",
+    "Đây là đường dây không khẩn cấp của {cityName}.",
+    "Nếu đây là trường hợp khẩn cấp hoặc có đe dọa tức thời đến tính mạng, hãy cúp máy và gọi 9-1-1.",
+    "Nếu không, tôi có thể giúp gì cho bạn?",
   ].join(" "),
   stay_on_line: [
-    "Bạn đã gọi đến Nexiq, đường dây không khẩn cấp của {cityName}.",
+    "Đây là đường dây không khẩn cấp của {cityName}.",
     "Nếu đây là trường hợp khẩn cấp đe dọa tính mạng, hãy cúp máy và gọi 9-1-1.",
-    "Các yêu cầu khác xin giữ máy.",
+    "Hôm nay tôi có thể giúp gì cho bạn?",
   ].join(" "),
 };
 
 const DEFAULT_AR_GREETING_TEMPLATES: Record<Exclude<GreetingMode, "custom">, string> = {
   hang_up: [
-    "لقد اتصلت بـ Nexiq، خط الخدمة غير الطارئة لـ {cityName}.",
-    "إذا كنتم تواجهون حالة طارئة أو تهديداً فورياً للحياة أو السلامة،",
-    "يرجى إنهاء المكالمة والاتصال بالرقم 9-1-1.",
-    "وإلا فابقوا على الخط ويمكنني مساعدتكم في الطلب غير الطارئ.",
+    "هذا هو خط الخدمة غير الطارئة لـ {cityName}.",
+    "إذا كنتم تواجهون حالة طارئة أو تهديداً فورياً للحياة أو السلامة، يرجى إنهاء المكالمة والاتصال بالرقم 9-1-1.",
+    "وإلا فكيف يمكنني مساعدتكم؟",
   ].join(" "),
   stay_on_line: [
-    "لقد اتصلت بـ Nexiq، خط الخدمة غير الطارئة لـ {cityName}.",
+    "هذا هو خط الخدمة غير الطارئة لـ {cityName}.",
     "إذا كانت هذه حالة طارئة تهدد الحياة، أنهوا المكالمة واتصلوا بالرقم 9-1-1.",
-    "لجميع الطلبات الأخرى، ابقوا على الخط.",
+    "كيف يمكنني مساعدتكم اليوم؟",
   ].join(" "),
 };
 
@@ -255,14 +251,30 @@ export const DEFAULT_GREETING_CONFIG: CallAssistGreetingConfig = {
  */
 export const CALL_ASSIST_OPENING_SEQUENCE_PROMPT = `OPENING SEQUENCE
 
-At the start of every session, before asking any questions:
-1. The greeting has already been delivered by the telephony layer.
-   Do NOT repeat the greeting or the 911 disclaimer.
-2. Your first message should be a brief, warm prompt to begin intake.
-   Example: "How can I help you today?"
-   or: "What can I assist you with?"
-   Keep it to one sentence. Do not add explanation.
-3. Begin intake with open-ended prompting. Do not ask multiple questions at once.
+At the start of every session:
+1. The telephony layer already spoke the full greeting (identity, city,
+   911 rule, and "How can I help you today?").
+   Do NOT repeat the greeting, the 911 disclaimer, or "How can I help?"
+2. After that greeting: stop talking and listen.
+   Your first spoken turn is a response to the caller, or one short
+   follow-up if they only gave a fragment. Do not fill silence with
+   another welcome.
+3. One question per turn. Do not ask multiple questions at once.
+
+WHEN TO START AND STOP TALKING
+
+Start talking only when:
+- The caller finished a full thought, or
+- You need the next single missing field, or
+- You must confirm an address once, or
+- You are giving a report number or announcing a transfer.
+
+Stop talking immediately when:
+- The caller starts speaking (barge-in) — drop the rest of your sentence,
+- You finished one question,
+- You said the report number,
+- You said you are transferring,
+- Emergency handoff is triggered — speak the escalation line once, then stop.
 
 EMERGENCY MONITORING
 
@@ -293,6 +305,29 @@ Respond in the same language the caller is using.
 If the caller switches languages mid-session, switch with them.
 If the caller's language is not supported by the current Lex locale,
   classify as RequestHuman with subtype LanguageNotHandled and trigger human handoff.`;
+
+/**
+ * Hard terminal after intake. Without this, Nova Sonic has no next state after an
+ * address readback and falls back to re-greeting.
+ */
+export const INTAKE_COMPLETION_PROTOCOL = `INTAKE COMPLETION PROTOCOL — CRITICAL
+
+After you confirm the street address (caller says yes / that's right / correct):
+1. Do NOT greet. Do NOT ask how you can help. Do NOT re-introduce yourself.
+2. If any required field is still missing, ask only that one field.
+3. When intake is complete, you must do exactly one terminal action:
+
+   REPORT NUMBER (preferred when the system gave you a reference number):
+   Say: "Okay. We've got it. Your report number is [exact number]. Use that if you call back."
+   Then stop talking. End the turn. Do not ask another question.
+
+   TRANSFER (when session context says transfer, or you cannot finish the report):
+   Say the transfer line once. Then stop talking.
+
+4. Never loop back to the opening greeting after address confirmation.
+5. Never invent a report number. Use only the exact number from session context.
+   If no number was provided and transfer is not required, ask one short missing-field
+   question — still do not re-greet.`;
 
 export function interpolateGreeting(template: string, config: CallAssistGreetingConfig): string {
   return template

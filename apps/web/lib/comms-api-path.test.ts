@@ -331,6 +331,9 @@ describe("isCommsPlatformApiPath", () => {
     expect(resolveUpstreamApiBase("/api/sales/analyze-transcript")).toBe("https://stack3.example.com");
     expect(isSam3ApiPath("/api/sales/polish-email")).toBe(true);
     expect(resolveUpstreamApiBase("/api/sales/polish-email")).toBe("https://stack3.example.com");
+    expect(isSam3ApiPath("/api/sales/outlook/status")).toBe(true);
+    expect(isSam3ApiPath("/api/sales/send-email")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/sales/send-email")).toBe("https://stack3.example.com");
     expect(resolveUpstreamApiBase("/api/signals/summary")).toBe(
       "https://stack3.example.com",
     );

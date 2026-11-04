@@ -4,6 +4,7 @@ import {
   callAssistConfirmationPrefix,
   formatCallAssistCaseNumber,
   formatConfirmationForSpeech,
+  formatConfirmationForSsml,
   isCallAssistConfirmationNumber,
 } from "./case-number.js";
 
@@ -45,10 +46,17 @@ describe("Nexiq confirmation numbers", () => {
     expect(suffix).not.toMatch(/[01ILOSB58]/);
   });
 
-  it("formats NATO speech for Polly", () => {
+  it("formats NATO speech for Polly with pauses between groups", () => {
     expect(formatConfirmationForSpeech("KC-1001-7M4R")).toBe(
-      "K, C, one zero zero one, seven Mike four Romeo",
+      "K, C. one, zero, zero, one. seven, Mike, four, Romeo",
     );
+  });
+
+  it("formats SSML with breaks between characters", () => {
+    const ssml = formatConfirmationForSsml("KC-1001-7M4R");
+    expect(ssml).toContain("K<break time=\"400ms\"/>");
+    expect(ssml).toContain("one<break time=\"350ms\"/>");
+    expect(ssml).toContain("<break time=\"600ms\"/>");
   });
 
   it("accepts legacy case number shapes for dual-read", () => {

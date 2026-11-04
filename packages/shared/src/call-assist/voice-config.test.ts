@@ -22,7 +22,7 @@ describe("Nexiq multi-agency voice config", () => {
       emergencyLine: "911",
       agencyWebsite: "fulton911.gov",
     });
-    expect(spoken.startsWith("Thank you for calling the city's non-emergency line. I'm Nexiq, your AI assistant.")).toBe(true);
+    expect(spoken.startsWith("Thank you for calling. I'm Nexiq, your AI assistant.")).toBe(true);
     expect(spoken).toContain("911");
     const disclosure = interpolateCallAssistVoice(GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE, {
       agencyShortName: "Fulton County 911",

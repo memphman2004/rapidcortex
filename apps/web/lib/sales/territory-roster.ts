@@ -13,28 +13,31 @@ export type TerritoryOwner = {
   zoneId: SalesTerritoryZoneId;
   email: string;
   name: string;
-  /** US state codes (uppercase) */
+  /** Primary representative label (editable by RC superadmin) */
+  primaryRepresentative: string;
+  /** US state codes (uppercase); editable by RC superadmin */
   states: string[];
   verticals: RoiVertical[];
+  /** Focus label (editable by RC superadmin) */
   primaryFocus: string;
-  /** Contractors currently assigned (from superadmin) */
+  /** Contractors currently assigned (from RC Admin) */
   assignees: SalesTerritoryAssignee[];
   phone?: string;
 };
 
 /**
- * Hiring-doc Zone 1–6 coverage — static geography / focus.
- * Assignee names come from platform assignments (superadmin).
+ * Static zone shell — name / desk email / verticals.
+ * Primary, focus, states, and assignees come from persisted assignments.
  */
-export const TERRITORY_ROSTER: readonly Omit<TerritoryOwner, "assignees">[] =
-  SALES_TERRITORY_ZONES.map((z) => ({
-    zoneId: z.id,
-    email: z.deskEmail,
-    name: z.name,
-    states: [...z.states],
-    verticals: [...z.verticals],
-    primaryFocus: z.primaryFocus,
-  }));
+export const TERRITORY_ROSTER: readonly Omit<
+  TerritoryOwner,
+  "assignees" | "primaryRepresentative" | "primaryFocus" | "states"
+>[] = SALES_TERRITORY_ZONES.map((z) => ({
+  zoneId: z.id,
+  email: z.deskEmail,
+  name: z.name,
+  verticals: [...z.verticals],
+}));
 
 export function mergeTerritoryRoster(
   assignments?: SalesTerritoryAssignmentsConfig | null,
@@ -42,11 +45,18 @@ export function mergeTerritoryRoster(
   const normalized = normalizeSalesTerritoryAssignments(
     assignments ?? emptySalesTerritoryAssignments(),
   );
-  const byZone = new Map(normalized.zones.map((z) => [z.zoneId, z.assignees]));
-  return TERRITORY_ROSTER.map((zone) => ({
-    ...zone,
-    assignees: byZone.get(zone.zoneId) ?? [],
-  }));
+  const byZone = new Map(normalized.zones.map((z) => [z.zoneId, z]));
+  return TERRITORY_ROSTER.map((zone) => {
+    const row = byZone.get(zone.zoneId);
+    const def = SALES_TERRITORY_ZONES.find((z) => z.id === zone.zoneId)!;
+    return {
+      ...zone,
+      primaryRepresentative: row?.primaryRepresentative ?? def.primaryRepresentative,
+      primaryFocus: row?.primaryFocus ?? def.primaryFocus,
+      states: row?.states ? [...row.states] : [...def.states],
+      assignees: row?.assignees ?? [],
+    };
+  });
 }
 
 export function ownersForState(

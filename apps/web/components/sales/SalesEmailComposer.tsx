@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   SALES_EMAIL_POLISH_MIN_BODY,
   type SalesEmailPolishResult,
@@ -8,6 +8,14 @@ import {
 
 type TemplateId = "intro" | "follow-up" | "proposal" | "blank";
 type PolishTone = "professional" | "warm" | "concise";
+
+type OutlookStatus = {
+  configured: boolean;
+  mock: boolean;
+  connected: boolean;
+  mailbox?: string;
+  requiredDomain?: string;
+};
 
 const TEMPLATES: Record<
   TemplateId,
@@ -66,8 +74,6 @@ function wordCount(text: string): number {
   return t.split(/\s+/).length;
 }
 
-type GrammarlyStatus = "active" | "unavailable" | "loading";
-
 export function SalesEmailComposer() {
   const [to, setTo] = useState("");
   const [cc, setCc] = useState("");
@@ -75,48 +81,53 @@ export function SalesEmailComposer() {
   const [body, setBody] = useState(TEMPLATES.intro.body);
   const [template, setTemplate] = useState<TemplateId>("intro");
   const [copied, setCopied] = useState(false);
-  const [grammarly, setGrammarly] = useState<GrammarlyStatus>("loading");
   const [tone, setTone] = useState<PolishTone>("professional");
   const [polishing, setPolishing] = useState(false);
   const [polishError, setPolishError] = useState<string | null>(null);
   const [polishNotes, setPolishNotes] = useState<string[]>([]);
   const [polishMock, setPolishMock] = useState(false);
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const [outlook, setOutlook] = useState<OutlookStatus | null>(null);
+  const [outlookBusy, setOutlookBusy] = useState(false);
+  const [outlookError, setOutlookError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [sendOk, setSendOk] = useState<string | null>(null);
 
-  const clientId = (process.env.NEXT_PUBLIC_GRAMMARLY_CLIENT_ID ?? "").trim();
   const canCopy = Boolean(to.trim() && subject.trim() && body.trim());
   const canPolish = body.trim().length >= SALES_EMAIL_POLISH_MIN_BODY;
-
-  useEffect(() => {
-    let cancelled = false;
-    async function attachGrammarly() {
-      if (!clientId || !bodyRef.current) {
-        if (!cancelled) setGrammarly("unavailable");
-        return;
-      }
-      try {
-        const { init } = await import("@grammarly/editor-sdk");
-        const editor = await init(clientId);
-        if (bodyRef.current && typeof editor?.addPlugin === "function") {
-          editor.addPlugin(bodyRef.current);
-        }
-        if (!cancelled) setGrammarly("active");
-      } catch {
-        if (!cancelled) setGrammarly("unavailable");
-      }
-    }
-    void attachGrammarly();
-    return () => {
-      cancelled = true;
-    };
-  }, [clientId]);
+  const canSend = Boolean(
+    outlook?.connected && to.trim() && subject.trim() && body.trim() && !sending,
+  );
 
   const words = useMemo(() => wordCount(body), [body]);
+
+  async function refreshOutlook() {
+    try {
+      const res = await fetch("/api/sales/outlook/status");
+      const json: unknown = await res.json().catch(() => ({}));
+      if (!res.ok) return;
+      const payload =
+        typeof json === "object" && json && "data" in json
+          ? (json as { data: { outlook?: OutlookStatus } }).data
+          : (json as { outlook?: OutlookStatus });
+      if (payload.outlook) setOutlook(payload.outlook);
+    } catch {
+      /* ignore status fetch errors */
+    }
+  }
+
+  useEffect(() => {
+    void refreshOutlook();
+  }, []);
 
   function applyTemplate(id: TemplateId) {
     setTemplate(id);
     setSubject(TEMPLATES[id].subject);
     setBody(TEMPLATES[id].body);
+    setPolishError(null);
+    setPolishNotes([]);
+    setSendError(null);
+    setSendOk(null);
   }
 
   async function copyEmail() {
@@ -133,6 +144,68 @@ export function SalesEmailComposer() {
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
+  }
+
+  async function connectOutlook() {
+    setOutlookBusy(true);
+    setOutlookError(null);
+    try {
+      const res = await fetch("/api/sales/outlook/connect");
+      const json: unknown = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg =
+          typeof json === "object" &&
+          json &&
+          "error" in json &&
+          typeof (json as { error: unknown }).error === "string"
+            ? (json as { error: string }).error
+            : `Connect failed (${res.status})`;
+        throw new Error(msg);
+      }
+      const payload =
+        typeof json === "object" && json && "data" in json
+          ? (json as { data: { authorizeUrl?: string; connected?: boolean; outlook?: OutlookStatus } })
+              .data
+          : (json as { authorizeUrl?: string; connected?: boolean; outlook?: OutlookStatus });
+      if (payload.authorizeUrl) {
+        window.location.href = payload.authorizeUrl;
+        return;
+      }
+      if (payload.outlook) setOutlook(payload.outlook);
+      else await refreshOutlook();
+    } catch (err) {
+      setOutlookError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setOutlookBusy(false);
+    }
+  }
+
+  async function disconnectOutlook() {
+    setOutlookBusy(true);
+    setOutlookError(null);
+    try {
+      const res = await fetch("/api/sales/outlook/disconnect", { method: "POST" });
+      const json: unknown = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg =
+          typeof json === "object" &&
+          json &&
+          "error" in json &&
+          typeof (json as { error: unknown }).error === "string"
+            ? (json as { error: string }).error
+            : `Disconnect failed (${res.status})`;
+        throw new Error(msg);
+      }
+      const payload =
+        typeof json === "object" && json && "data" in json
+          ? (json as { data: { outlook?: OutlookStatus } }).data
+          : (json as { outlook?: OutlookStatus });
+      setOutlook(payload.outlook ?? { configured: true, mock: false, connected: false });
+    } catch (err) {
+      setOutlookError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setOutlookBusy(false);
+    }
   }
 
   async function polishEmail() {
@@ -171,34 +244,91 @@ export function SalesEmailComposer() {
     }
   }
 
+  async function sendEmail() {
+    if (!canSend) return;
+    setSending(true);
+    setSendError(null);
+    setSendOk(null);
+    try {
+      const res = await fetch("/api/sales/send-email", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ to, cc, subject, body }),
+      });
+      const json: unknown = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg =
+          typeof json === "object" &&
+          json &&
+          "error" in json &&
+          typeof (json as { error: unknown }).error === "string"
+            ? (json as { error: string }).error
+            : `Send failed (${res.status})`;
+        throw new Error(msg);
+      }
+      const payload =
+        typeof json === "object" && json && "data" in json
+          ? (json as { data: { mailbox?: string; mock?: boolean } }).data
+          : (json as { mailbox?: string; mock?: boolean });
+      setSendOk(
+        payload.mock
+          ? `Logged (mock) from ${payload.mailbox ?? "Outlook"}`
+          : `Sent from ${payload.mailbox ?? "Outlook"}`,
+      );
+    } catch (err) {
+      setSendError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-sm font-semibold text-white">Email Composer</h2>
           <p className="mt-0.5 text-xs text-slate-400">
-            Draft outbound emails — polish with Bedrock for grammar and tone
+            Draft, polish with Claude, then send from your @nexcortiq.us Outlook — or copy to paste.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-sky-300">
-            Bedrock Polish
-          </span>
-          <span
-            className={[
-              "rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide",
-              grammarly === "active"
-                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
-                : grammarly === "loading"
-                  ? "border-slate-500/40 bg-slate-500/10 text-slate-400"
-                  : "border-white/10 bg-white/5 text-slate-500",
-            ].join(" ")}
-          >
-            Grammarly{" "}
-            {grammarly === "active" ? "Active" : grammarly === "loading" ? "…" : "unavailable"}
-          </span>
-        </div>
+        <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-sky-300">
+          Claude Polish
+        </span>
       </div>
+
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-white/5 bg-[#0a1628] px-4 py-3">
+        {outlook?.connected ? (
+          <>
+            <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300">
+              Outlook {outlook.mailbox}
+              {outlook.mock ? " (mock)" : ""}
+            </span>
+            <button
+              type="button"
+              disabled={outlookBusy}
+              onClick={() => void disconnectOutlook()}
+              className="rounded-full border border-white/10 px-3 py-1 text-[10px] font-semibold text-slate-400 hover:text-slate-200 disabled:opacity-50"
+            >
+              Disconnect
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="text-[11px] text-slate-500">
+              Connect your @nexcortiq.us Outlook to send from this composer
+            </span>
+            <button
+              type="button"
+              disabled={outlookBusy}
+              onClick={() => void connectOutlook()}
+              className="rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-[10px] font-bold text-sky-300 hover:bg-sky-500/20 disabled:opacity-50"
+            >
+              {outlookBusy ? "Connecting…" : "Connect Outlook"}
+            </button>
+          </>
+        )}
+      </div>
+      {outlookError && <p className="text-xs text-rose-400">{outlookError}</p>}
 
       <div className="flex flex-wrap gap-1.5">
         {(Object.keys(TEMPLATES) as TemplateId[]).map((id) => (
@@ -248,11 +378,15 @@ export function SalesEmailComposer() {
         <label className="block text-xs text-slate-400 md:col-span-2">
           Body
           <textarea
-            ref={bodyRef}
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={12}
             className="mt-1 w-full resize-y rounded-lg border border-white/10 bg-[#050c1a] px-3 py-2 text-sm leading-relaxed text-slate-200 outline-none focus:border-sky-500/50"
+            placeholder={
+              template === "blank"
+                ? "Write your email here — Polish and Send work once you have a short draft."
+                : undefined
+            }
           />
         </label>
       </div>
@@ -276,6 +410,13 @@ export function SalesEmailComposer() {
       </div>
 
       {polishError && <p className="text-xs text-rose-400">{polishError}</p>}
+      {sendError && <p className="text-xs text-rose-400">{sendError}</p>}
+      {sendOk && <p className="text-xs text-emerald-400">{sendOk}</p>}
+      {!canPolish && body.trim().length > 0 && (
+        <p className="text-xs text-slate-500">
+          Add a bit more body text to enable Polish (min {SALES_EMAIL_POLISH_MIN_BODY} characters).
+        </p>
+      )}
       {polishNotes.length > 0 && (
         <div className="rounded-xl border border-white/5 bg-[#0a1628] px-4 py-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -311,6 +452,19 @@ export function SalesEmailComposer() {
             ].join(" ")}
           >
             {polishing ? "Polishing…" : "Polish email"}
+          </button>
+          <button
+            type="button"
+            disabled={!canSend}
+            onClick={() => void sendEmail()}
+            className={[
+              "rounded-full px-4 py-2 text-[11px] font-bold transition",
+              canSend
+                ? "border border-emerald-500/40 bg-emerald-600/20 text-emerald-200 hover:bg-emerald-600/30"
+                : "cursor-not-allowed bg-white/5 text-slate-600",
+            ].join(" ")}
+          >
+            {sending ? "Sending…" : "Send email"}
           </button>
           <button
             type="button"

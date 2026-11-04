@@ -57,7 +57,7 @@ const TRIGGER_PATTERNS: ReadonlyArray<{ id: SafetyTriggerId; re: RegExp; phrase:
   },
   {
     id: "IN_PROGRESS_CRIME",
-    re: /\b(breaking in (right )?now|he's inside|she's inside|still here with (a |the )?weapon|kidnapping|abduction)\b/i,
+    re: /\b(breaking in(to)?( (my |the |our )?(house|home|apartment|car))?( right)? now|he's inside|she's inside|still here with (a |the )?weapon|kidnapping|abduction|break[- ]?in (in )?progress)\b/i,
     phrase: "crime in progress",
   },
   {

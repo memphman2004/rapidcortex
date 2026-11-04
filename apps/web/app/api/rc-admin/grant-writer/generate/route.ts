@@ -15,7 +15,7 @@ import {
   TextRun,
 } from "docx";
 import { canAccessGrantSuccessProgram } from "rapid-cortex-shared";
-import { buildProfileGrantNarrative } from "@/lib/grants/profile-narrative";
+import { buildProfileGrantNarrative, fillEmptyGrantNarrative } from "@/lib/grants/profile-narrative";
 import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session";
 import { isGrantSuccessProgramUiEnabled } from "@/lib/runtime-flags";
 import type { CognitoRefreshTokens } from "@/lib/auth/cognito-refresh";
@@ -96,6 +96,43 @@ function bullet(text: string): Paragraph {
   });
 }
 
+function factRow(label: string, value: string): Paragraph {
+  return new Paragraph({
+    children: [
+      new TextRun({ text: `${label}: `, bold: true, size: 20 }),
+      new TextRun({ text: value || "—", size: 20 }),
+    ],
+    spacing: { before: 80, after: 80 },
+  });
+}
+
+function formText(form: Record<string, unknown>, key: string): string {
+  const value = form[key];
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function formModules(form: Record<string, unknown>): string {
+  if (!Array.isArray(form.rcModules)) return "";
+  return form.rcModules
+    .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    .join("; ");
+}
+
+/** Prefer a readable deadline in the Word profile (ISO dates from the wizard). */
+function formatDeadlineForDoc(raw: string): string {
+  const trimmed = raw.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+  const [y, m, d] = trimmed.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  if (Number.isNaN(date.getTime())) return trimmed;
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
 function buildDocx(
   form: Record<string, unknown>,
   sections: GrantSections,
@@ -111,6 +148,131 @@ function buildDocx(
     month: "long",
     day: "numeric",
   });
+  const location = [formText(form, "agencyCity"), formText(form, "agencyState")]
+    .filter(Boolean)
+    .join(", ");
+  const contactBits = [
+    formText(form, "contactName"),
+    formText(form, "contactTitle") ? `(${formText(form, "contactTitle")})` : "",
+    formText(form, "contactEmail"),
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const hasBudget = Boolean(formText(form, "requestedAmount"));
+  const sectionChildren = [
+    new Paragraph({
+      children: [new TextRun({ text: agencyName, bold: true, size: 36, color: "1A3A6B" })],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 1440, after: 200 },
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: projectTitle, bold: true, size: 28 })],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 200, after: 400 },
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: `Grant Program: ${grantName}`, size: 22, color: "444444" })],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 80, after: 80 },
+    }),
+    ...(hasBudget
+      ? [
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Amount Requested: ${formText(form, "requestedAmount")}`,
+                size: 22,
+                color: "444444",
+              }),
+            ],
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 80, after: 80 },
+          }),
+        ]
+      : []),
+    new Paragraph({
+      children: [
+        new TextRun({ text: `Prepared: ${today}`, size: 18, color: "888888", italics: true }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 200, after: 2880 },
+    }),
+    new Paragraph({ children: [new PageBreak()] }),
+
+    h1("Application Profile"),
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: "Facts entered in the Grant Success Program wizard. Verify every field before submission.",
+          italics: true,
+          size: 18,
+          color: "666666",
+        }),
+      ],
+      spacing: { after: 200 },
+    }),
+    factRow("Agency", agencyName),
+    factRow("Agency type", formText(form, "agencyType")),
+    factRow("Location", location),
+    factRow("Service population", formText(form, "agencyPopulation")),
+    factRow("Primary contact", contactBits),
+    factRow("Grant program", grantName),
+    factRow("Funding agency", formText(form, "fundingAgency")),
+    factRow("Solicitation / opportunity number", formText(form, "grantNumber")),
+    factRow("Amount requested", formText(form, "requestedAmount")),
+    factRow("Project period", formText(form, "projectPeriod")),
+    factRow("Deadline", formatDeadlineForDoc(formText(form, "deadline"))),
+    factRow("Project title", projectTitle),
+    factRow("Existing technology", formText(form, "existingTechnology")),
+    factRow("Staffing challenge", formText(form, "staffingChallenge")),
+    factRow("NexCort iQ modules", formModules(form)),
+    ...(formText(form, "problemStatement")
+      ? [h1("Problem statement (from application)"), ...body(formText(form, "problemStatement"))]
+      : []),
+    ...(formText(form, "projectDescription")
+      ? [h1("Project description (from application)"), ...body(formText(form, "projectDescription"))]
+      : []),
+    ...(formText(form, "additionalContext")
+      ? [h1("Additional context (from application)"), ...body(formText(form, "additionalContext"))]
+      : []),
+
+    new Paragraph({ children: [new PageBreak()] }),
+
+    h1("I. Executive Summary"),
+    ...body(sections.executiveSummary),
+    h1("II. Statement of Need"),
+    ...body(sections.statementOfNeed),
+    h1("III. Project Description"),
+    ...body(sections.projectDescription),
+    h1("IV. Goals and Objectives"),
+    ...sections.goalsAndObjectives.map((g) => bullet(g)),
+    h1("V. Implementation Timeline"),
+    ...sections.implementationTimeline.map((t) => bullet(t)),
+    h1("VI. Evaluation Plan"),
+    ...body(sections.evaluationPlan),
+    h1("VII. Organizational Capacity"),
+    ...body(sections.organizationalCapacity),
+    ...(hasBudget ? [h1("VIII. Budget Narrative"), ...body(sections.budgetNarrative)] : []),
+    h1(hasBudget ? "IX. Sustainability Plan" : "VIII. Sustainability Plan"),
+    ...body(sections.sustainabilityPlan),
+    h1(hasBudget ? "X. Conclusion" : "IX. Conclusion"),
+    ...body(sections.conclusion),
+
+    new Paragraph({
+      children: [
+        new TextRun({
+          text:
+            source === "profile"
+              ? "\n\n---\nThis package was assembled from the application profile because the writing service was unavailable. Review every section and replace any general language before submission. NexCort iQ Grant Success Program."
+              : "\n\n---\nReview all content for accuracy before submission. This narrative was generated by the NexCort iQ Grant Success Program.",
+          size: 16,
+          color: "999999",
+          italics: true,
+        }),
+      ],
+      spacing: { before: 600 },
+    }),
+  ];
 
   return new Document({
     title: `${grantName} — ${agencyName}`,
@@ -142,85 +304,7 @@ function buildDocx(
             margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
           },
         },
-        children: [
-          new Paragraph({
-            children: [new TextRun({ text: agencyName, bold: true, size: 36, color: "1A3A6B" })],
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 1440, after: 200 },
-          }),
-          new Paragraph({
-            children: [new TextRun({ text: projectTitle, bold: true, size: 28 })],
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 200, after: 400 },
-          }),
-          new Paragraph({
-            children: [
-              new TextRun({ text: `Grant Program: ${grantName}`, size: 22, color: "444444" }),
-            ],
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 80, after: 80 },
-          }),
-          ...(form.requestedAmount
-            ? [
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: `Amount Requested: ${form.requestedAmount}`,
-                      size: 22,
-                      color: "444444",
-                    }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                  spacing: { before: 80, after: 80 },
-                }),
-              ]
-            : []),
-          new Paragraph({
-            children: [
-              new TextRun({ text: `Prepared: ${today}`, size: 18, color: "888888", italics: true }),
-            ],
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 200, after: 2880 },
-          }),
-          new Paragraph({ children: [new PageBreak()] }),
-
-          h1("I. Executive Summary"),
-          ...body(sections.executiveSummary),
-          h1("II. Statement of Need"),
-          ...body(sections.statementOfNeed),
-          h1("III. Project Description"),
-          ...body(sections.projectDescription),
-          h1("IV. Goals and Objectives"),
-          ...sections.goalsAndObjectives.map((g) => bullet(g)),
-          h1("V. Implementation Timeline"),
-          ...sections.implementationTimeline.map((t) => bullet(t)),
-          h1("VI. Evaluation Plan"),
-          ...body(sections.evaluationPlan),
-          h1("VII. Organizational Capacity"),
-          ...body(sections.organizationalCapacity),
-          ...(form.requestedAmount
-            ? [h1("VIII. Budget Narrative"), ...body(sections.budgetNarrative)]
-            : []),
-          h1("IX. Sustainability Plan"),
-          ...body(sections.sustainabilityPlan),
-          h1("X. Conclusion"),
-          ...body(sections.conclusion),
-
-          new Paragraph({
-            children: [
-              new TextRun({
-                text:
-                  source === "profile"
-                    ? "\n\n---\nThis package was assembled from the application profile because the writing service was unavailable. Review every section and replace any general language before submission. NexCort iQ Grant Success Program."
-                    : "\n\n---\nReview all content for accuracy before submission. This narrative was generated by the NexCort iQ Grant Success Program.",
-                size: 16,
-                color: "999999",
-                italics: true,
-              }),
-            ],
-            spacing: { before: 600 },
-          }),
-        ],
+        children: sectionChildren,
       },
     ],
   });
@@ -275,7 +359,7 @@ export async function POST(req: NextRequest) {
           const invoked = await invokeGrantWriterLambda(req, JSON.stringify(form));
           rotated = invoked.rotated;
           if (invoked.ok) {
-            sections = normalizeSections(invoked.sections);
+            sections = fillEmptyGrantNarrative(normalizeSections(invoked.sections), form);
             source = invoked.source;
           } else {
             console.error("[grant-writer] using profile narrative:", invoked.error);

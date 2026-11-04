@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { canManageSalesAutomation } from "rapid-cortex-shared";
 import { SalesPortalShell } from "@/components/sales/sales-portal-shell";
@@ -25,12 +26,14 @@ export default async function SalesPortalPage() {
 
   return (
     <div className="mx-auto max-w-[1600px] px-3 py-4 md:px-6">
-      <SalesPortalShell
-        contractorEmail={email}
-        contractorName={name}
-        assigneeFilter={assigneeFilter}
-        canManageCampaigns={canManageCampaigns}
-      />
+      <Suspense fallback={<p className="text-sm text-slate-400">Loading Sales Portal…</p>}>
+        <SalesPortalShell
+          contractorEmail={email}
+          contractorName={name}
+          assigneeFilter={assigneeFilter}
+          canManageCampaigns={canManageCampaigns}
+        />
+      </Suspense>
     </div>
   );
 }

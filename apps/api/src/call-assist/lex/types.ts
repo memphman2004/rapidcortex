@@ -23,7 +23,8 @@ export interface LexV2Event {
 
 export interface LexInterpretation {
   intent: LexIntent;
-  nluConfidence?: number;
+  /** Lex V2 sends `{ score }`; some tests/fixtures use a bare number. */
+  nluConfidence?: number | { score?: number };
   sentimentResponse?: {
     sentiment: "POSITIVE" | "NEGATIVE" | "NEUTRAL" | "MIXED";
     sentimentScore: { positive: number; negative: number; neutral: number; mixed: number };

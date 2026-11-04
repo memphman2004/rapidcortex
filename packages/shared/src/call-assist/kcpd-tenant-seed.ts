@@ -217,7 +217,7 @@ export const KCPD_VOICE_CONFIG: CallAssistAgencyVoiceConfig = {
   supportedLocales: ["en_US", "es_US", "zh_CN", "zh_HK", "tl_PH", "vi_VN", "ar_AE"],
   disclosureText: KCPD_LEX_DISCLOSURE_TEXT,
   openingGreeting:
-    "Thank you for calling the city's non-emergency line. I'm Nexiq, your AI assistant. How can I help you today? If this is a life-threatening emergency, hang up and dial 9-1-1.",
+    "Thank you for calling. I'm Nexiq, your AI assistant. This is the non-emergency service line for Kansas City. If this is a life-threatening emergency, hang up and dial 9-1-1. How can I help you today?",
 };
 
 /** First-tenant city-services directory. Other agencies seed their own 311/parks/water entries. */

@@ -109,6 +109,8 @@ const config = applyKcpd
       routingRules: defaultCallAssistRoutingRules(AGENCY_ID),
       demoScenarios: KCPD_LEX_DEMO_SCENARIOS,
       testDID: e164,
+      // Fail-closed in decideCallAssistVoiceEngine; seed ON for the reference demo tenant.
+      novaSonicEnabled: process.env.CALL_ASSIST_NOVA_SONIC_ENABLED?.trim().toLowerCase() !== "false",
       lexBotId: process.env.LEX_BOT_ID?.trim() || undefined,
       lexBotAliasId: process.env.LEX_BOT_ALIAS_ID?.trim() || undefined,
       lexBotName: process.env.LEX_BOT_NAME?.trim() || "RCCallAssistBot-dev",
@@ -161,6 +163,7 @@ const config = applyKcpd
       smsConfirmationEnabled: true,
       routingRules: defaultCallAssistRoutingRules(AGENCY_ID),
       testDID: e164,
+      novaSonicEnabled: process.env.CALL_ASSIST_NOVA_SONIC_ENABLED?.trim().toLowerCase() === "true",
       lexBotId: process.env.LEX_BOT_ID?.trim() || undefined,
       lexBotAliasId: process.env.LEX_BOT_ALIAS_ID?.trim() || undefined,
       lexBotName: process.env.LEX_BOT_NAME?.trim() || callAssistLexBotName(AGENCY_ID, STAGE),

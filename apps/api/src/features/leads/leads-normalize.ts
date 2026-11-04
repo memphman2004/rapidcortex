@@ -12,6 +12,7 @@ import {
   type PipelineStage,
   type SalesLeadCrmRecord,
 } from "rapid-cortex-shared";
+import { promoteProspectMessageToNotes } from "./prospect-notes-carryover.js";
 
 function asRecord(item: unknown): Record<string, unknown> {
   return item && typeof item === "object" ? (item as Record<string, unknown>) : {};
@@ -70,6 +71,12 @@ export function normalizeLead(item: Record<string, unknown> | SalesLeadCrmRecord
   } else {
     notes = [];
   }
+  notes = promoteProspectMessageToNotes({
+    source,
+    message: typeof raw.message === "string" ? raw.message : undefined,
+    notes,
+    createdAt,
+  });
 
   let activities: LeadActivity[];
   if (Array.isArray(raw.activities) && raw.activities.length > 0) {

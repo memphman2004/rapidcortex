@@ -31,6 +31,7 @@ export function TerritoryRosterPanel() {
     return items.filter(
       (o) =>
         o.name.toLowerCase().includes(needle) ||
+        o.primaryRepresentative.toLowerCase().includes(needle) ||
         o.email.toLowerCase().includes(needle) ||
         o.primaryFocus.toLowerCase().includes(needle) ||
         o.states.some((s) => s.toLowerCase().includes(needle)) ||
@@ -62,9 +63,9 @@ export function TerritoryRosterPanel() {
           <thead>
             <tr className="border-b border-white/5 bg-[#0a1628] text-[11px] uppercase tracking-wide text-slate-500">
               <th className="px-4 py-3">Zone</th>
-              <th className="px-4 py-3">Currently assigned</th>
+              <th className="px-4 py-3">Primary representative</th>
               <th className="px-4 py-3">States</th>
-              <th className="px-4 py-3">Primary focus</th>
+              <th className="px-4 py-3">Focus</th>
               <th className="px-4 py-3">Contact</th>
             </tr>
           </thead>
@@ -75,28 +76,31 @@ export function TerritoryRosterPanel() {
                 <tr key={o.zoneId} className="border-b border-white/[0.03]">
                   <td className="px-4 py-3">
                     <div className="font-medium text-white">{o.name}</div>
-                    <div className="text-xs text-slate-500">{o.email}</div>
                   </td>
                   <td className="px-4 py-3">
-                    {o.assignees.length === 0 ? (
-                      <span className="text-xs text-slate-500">Unassigned</span>
-                    ) : (
-                      <ul className="space-y-1">
+                    <div className="text-sm font-medium text-slate-100">
+                      {o.primaryRepresentative}
+                    </div>
+                    {o.assignees.length > 0 ? (
+                      <ul className="mt-1 space-y-0.5">
                         {o.assignees.map((a) => (
-                          <li key={a.email}>
-                            <div className="text-sm font-medium text-slate-100">{a.name}</div>
-                            <div className="text-xs text-slate-500">{a.email}</div>
+                          <li key={a.email} className="text-xs text-slate-500">
+                            {a.name}
                           </li>
                         ))}
                       </ul>
-                    )}
+                    ) : null}
                   </td>
-                  <td className="px-4 py-3 text-xs text-slate-300">{o.states.join(", ")}</td>
+                  <td className="px-4 py-3 text-xs text-slate-300">
+                    {o.states.length > 0 ? o.states.join(", ") : "No states assigned"}
+                  </td>
                   <td className="px-4 py-3 text-xs text-slate-400">
                     <div>{o.primaryFocus}</div>
-                    <div className="mt-1 text-[11px] text-slate-600">
-                      {o.verticals.map((v) => verticalLabelForSales(v)).join(", ")}
-                    </div>
+                    {o.verticals.length > 0 ? (
+                      <div className="mt-1 text-[11px] text-slate-600">
+                        {o.verticals.map((v) => verticalLabelForSales(v)).join(", ")}
+                      </div>
+                    ) : null}
                   </td>
                   <td className="px-4 py-3">
                     <a

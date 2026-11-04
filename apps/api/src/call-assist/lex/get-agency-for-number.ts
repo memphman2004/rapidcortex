@@ -50,6 +50,7 @@ export type ConnectStartResult = {
   apartmentSuite: string;
   voiceEngine: string;
   novaSonicModelId: string;
+  agencyVoiceName: string;
 } & Record<string, string>;
 
 function phoneFromEvent(event: ConnectStartEvent): string {
@@ -104,6 +105,10 @@ export function buildConnectStartResult(opts: {
     sessionId: "connect-start",
     novaSonicEnabled: opts.config?.novaSonicEnabled === true,
     agencyPrompt: opts.config?.systemPromptAppend,
+    agencyVoiceName:
+      opts.config?.agencyDisplayName?.trim() ||
+      opts.config?.agencyName?.trim() ||
+      opts.agencyShortName,
   });
   const result: ConnectStartResult = {
     agencyId: opts.agencyId,
@@ -124,14 +129,18 @@ export function buildConnectStartResult(opts: {
     errorPrompt: defaultPrompts.error,
     transferFailPrompt: defaultPrompts.transferFail,
     agencyShortName: opts.agencyShortName,
-    openingLine: `Hello, thank you for calling ${
-      opts.config?.agencyName?.trim() || opts.agencyShortName.trim() || "this agency"
-    } service line.`,
+    // Language menu comes next; the full greeting plays after locale selection.
+    // Keep this empty so Nexiq does not introduce itself twice before intake.
+    openingLine: "",
     ani: opts.identity.ani ?? "",
     aliAddress: opts.identity.aliAddress ?? "",
     apartmentSuite: opts.identity.apartmentSuite ?? "",
     voiceEngine: voice.voiceEngine,
     novaSonicModelId: voice.modelId ?? "",
+    agencyVoiceName:
+      opts.config?.agencyDisplayName?.trim() ||
+      opts.config?.agencyName?.trim() ||
+      opts.agencyShortName,
   };
 
   for (const lex of CONNECT_LIVE_LEX_LOCALES) {

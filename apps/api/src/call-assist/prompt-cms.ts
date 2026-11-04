@@ -133,7 +133,12 @@ export async function resolveDispatchTriagePrompt(agencyId: string): Promise<{ b
   }
   const cfg = await callAssistStore.getConfig(agencyId).catch(() => null);
   const voiceName =
-    cfg?.agencyName?.trim() || cfg?.agencyShortName?.trim() || cfg?.shortName?.trim() || agencyId || "this agency";
+    cfg?.agencyDisplayName?.trim() ||
+    cfg?.agencyName?.trim() ||
+    cfg?.agencyShortName?.trim() ||
+    cfg?.shortName?.trim() ||
+    agencyId ||
+    "this agency";
   return {
     body: defaultBody("dispatchTriage", voiceName),
     versionLabel: "conversational-v2",

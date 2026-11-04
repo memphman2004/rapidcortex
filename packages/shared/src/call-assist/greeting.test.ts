@@ -33,14 +33,18 @@ describe("Nexiq greeting builders", () => {
     const en = buildGreeting(springfield, "en-US");
     expect(en).toContain("City of Springfield");
     expect(en).toContain("dial 9-1-1");
-    expect(en).toContain("stay on the line");
+    expect(en).toMatch(/How can I help you today\?/);
+    expect(en.match(/How can I help you today\?/g)?.length).toBe(1);
+    expect(en).toMatch(
+      /^Thank you for calling\. I'm Nexiq, your AI assistant\. This is the .+ for City of Springfield\./,
+    );
     expect(en).not.toMatch(/I'll help determine|If you're unsure/i);
     expect(en).not.toMatch(/Kansas City|KCPD/i);
 
     const es = buildGreeting(springfield, "es_US");
     expect(es).toContain("City of Springfield");
     expect(es).toContain("9-1-1");
-    expect(es.toLowerCase()).toContain("permanezca en la línea");
+    expect(es).toMatch(/¿En qué puedo ayudarle hoy\?/);
   });
 
   it("uses hang_up phrasing when the agency requires it", () => {
@@ -57,7 +61,7 @@ describe("Nexiq greeting builders", () => {
       },
       "en-US",
     );
-    expect(custom.startsWith("Thank you for calling the city's non-emergency line. I'm Nexiq, your AI assistant. How can I help you today?")).toBe(true);
+    expect(custom.startsWith("Thank you for calling. I'm Nexiq, your AI assistant.")).toBe(true);
     expect(custom).toContain("This is Springfield Police Department in City of Springfield.");
 
     const localized = buildGreeting(
@@ -67,7 +71,7 @@ describe("Nexiq greeting builders", () => {
       },
       "es-US",
     );
-    expect(localized.startsWith("Thank you for calling the city's non-emergency line.")).toBe(true);
+    expect(localized.startsWith("Thank you for calling. I'm Nexiq, your AI assistant.")).toBe(true);
     expect(localized).toContain("Línea de City of Springfield.");
   });
 

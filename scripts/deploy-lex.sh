@@ -59,27 +59,29 @@ fi
 echo "→ Validating ${TEMPLATE}…"
 sam validate --lint --template "${TEMPLATE}" --region "${REGION}"
 
+echo "→ Ensuring rapid-cortex-shared dist is current…"
+npm run -w rapid-cortex-shared build
+
 echo "→ Bundling Lex Lambda handlers (TypeScript → infra/lex-lambda)…"
+# Resolve rapid-cortex-shared via package exports (dist/), not a single-file alias —
+# dialog-hook pulls rapid-cortex-security which imports shared subpaths.
+ESBUILD_COMMON=(
+  --bundle --platform=node --target=node20 --format=cjs
+  --external:aws-sdk
+  --packages=bundle
+)
 npx esbuild "${ROOT}/apps/api/src/call-assist/lex/dialog-hook.ts" \
-  --bundle --platform=node --target=node20 --format=cjs \
-  --outfile="${ROOT}/infra/lex-lambda/dialog-hook.js" \
-  --alias:rapid-cortex-shared="${ROOT}/packages/shared/src/index.ts" \
-  --external:aws-sdk
+  "${ESBUILD_COMMON[@]}" \
+  --outfile="${ROOT}/infra/lex-lambda/dialog-hook.js"
 npx esbuild "${ROOT}/apps/api/src/call-assist/lex/fulfillment-hook.ts" \
-  --bundle --platform=node --target=node20 --format=cjs \
-  --outfile="${ROOT}/infra/lex-lambda/fulfillment-hook.js" \
-  --alias:rapid-cortex-shared="${ROOT}/packages/shared/src/index.ts" \
-  --external:aws-sdk
+  "${ESBUILD_COMMON[@]}" \
+  --outfile="${ROOT}/infra/lex-lambda/fulfillment-hook.js"
 npx esbuild "${ROOT}/apps/api/src/call-assist/lex/get-agency-for-number.ts" \
-  --bundle --platform=node --target=node20 --format=cjs \
-  --outfile="${ROOT}/infra/lex-lambda/get-agency-for-number.js" \
-  --alias:rapid-cortex-shared="${ROOT}/packages/shared/src/index.ts" \
-  --external:aws-sdk
+  "${ESBUILD_COMMON[@]}" \
+  --outfile="${ROOT}/infra/lex-lambda/get-agency-for-number.js"
 npx esbuild "${ROOT}/apps/api/src/call-assist/lex/session-start.ts" \
-  --bundle --platform=node --target=node20 --format=cjs \
-  --outfile="${ROOT}/infra/lex-lambda/session-start.js" \
-  --alias:rapid-cortex-shared="${ROOT}/packages/shared/src/index.ts" \
-  --external:aws-sdk
+  "${ESBUILD_COMMON[@]}" \
+  --outfile="${ROOT}/infra/lex-lambda/session-start.js"
 
 if [[ "${LEX_LAMBDA_ONLY:-}" == "1" ]]; then
   echo "→ LEX_LAMBDA_ONLY=1 — updating hook function code only (DRAFT bot / live-dev alias unchanged)."

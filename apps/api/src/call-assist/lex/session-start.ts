@@ -1,10 +1,10 @@
 import {
   appendVoiceSmsChannelTip,
+  buildEscalationAnnouncement,
   buildGreeting,
   checkEscalation,
   fallbackGreetingForLocale,
   greetingSessionAttributes,
-  intakePromptForLocale,
   isCallAssistGreetingReady,
   normalizeGreetingLocale,
   resolveGreetingConfig,
@@ -50,8 +50,10 @@ export function startCallAssistSession(opts: {
   const smsDid = resolveAgencySmsDid(opts.config);
 
   if (!opts.config) {
-    const base = alreadyDelivered ? intakePromptForLocale(locale) : fallbackGreetingForLocale(locale);
-    const greeting = alreadyDelivered ? base : appendVoiceSmsChannelTip(base, smsDid, locale);
+    // Telephony already asked how it can help — stay silent so the caller can speak.
+    const greeting = alreadyDelivered
+      ? ""
+      : appendVoiceSmsChannelTip(fallbackGreetingForLocale(locale), smsDid, locale);
     return {
       greeting,
       sessionAttributes: {
@@ -78,11 +80,11 @@ export function startCallAssistSession(opts: {
 
   const greetingConfig = resolveGreetingConfig(opts.config);
   const spoken = alreadyDelivered
-    ? intakePromptForLocale(locale)
+    ? ""
     : isCallAssistGreetingReady(greetingConfig)
       ? buildGreeting(greetingConfig, locale)
       : fallbackGreetingForLocale(locale);
-  const greeting = alreadyDelivered ? spoken : appendVoiceSmsChannelTip(spoken, smsDid, locale);
+  const greeting = alreadyDelivered ? "" : appendVoiceSmsChannelTip(spoken, smsDid, locale);
   return {
     greeting,
     sessionAttributes: {
@@ -99,9 +101,12 @@ export function startCallAssistSession(opts: {
 }
 
 export function lexWelcomeResponse(start: CallAssistSessionStartResult): LexV2Response {
-  return elicitIntentResponse(WELCOME_INTENT, start.sessionAttributes, [
-    speakForEngine(start.greeting, start.sessionAttributes.voiceEngine),
-  ]);
+  const content = start.greeting.trim();
+  return elicitIntentResponse(
+    WELCOME_INTENT,
+    start.sessionAttributes,
+    content ? [speakForEngine(content, start.sessionAttributes.voiceEngine)] : [],
+  );
 }
 
 export async function handleSessionStart(event: LexV2Event): Promise<LexV2Response> {
@@ -139,9 +144,13 @@ export function escalationCloseParts(
     };
   }
   const check = checkEscalation(utterance || "emergency", greetingConfig, locale);
-  const announcement = check.announcement;
+  // Lex may already route to EmergencyIntent before phrase re-check; still announce.
+  const announcement =
+    check.announcement.trim() ||
+    buildEscalationAnnouncement(greetingConfig, locale) ||
+    fallbackSpoken.trim();
   const endSession = check.action === "announce_and_end";
-  const messages: LexMessage[] = announcement.trim()
+  const messages: LexMessage[] = announcement
     ? [speakForEngine(announcement, sessionAttrs.voiceEngine)]
     : [];
   return {

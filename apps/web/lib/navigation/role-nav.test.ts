@@ -191,6 +191,14 @@ describe("getRoleNav", () => {
     ]);
     expect(it.sections.every((s) => Boolean(s.label))).toBe(true);
     expect(it.sections.find((s) => s.id === "audit-settings")?.label).toBe("AUDIT & SETTINGS");
+
+    for (const role of ["rcsuperadmin", "rcadmin", "rcitadmin"] as const) {
+      const locationIds =
+        getRoleNav(role, { agencyId: "__platform__" }).sections.find((s) => s.id === "locations")?.items.map(
+          (i) => i.id,
+        ) ?? [];
+      expect(locationIds).toContain("venue-campus-apps");
+    }
   });
 
   it("dispatcher Intake/Transcription/Incidents land on live dispatcher workspace", () => {

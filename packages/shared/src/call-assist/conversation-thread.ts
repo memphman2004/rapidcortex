@@ -8,6 +8,7 @@ export type ConversationChannel = "voice" | "sms" | "handoff";
 export type ConversationOutcome =
   | "NEED_LOCATION"
   | "NEED_FOLLOW_UP"
+  | "CLOSE_AND_CONFIRM"    // location + issue known — generate confirmation number now
   | "CREATE_PUBLIC_WORKS"
   | "TRANSFER_HUMAN"
   | "TRANSFER_EMERGENCY";
@@ -125,7 +126,10 @@ export function continueConversation(opts: {
   if (isRoadway(utterance, intake)) {
     return { ...base, outcome: "CREATE_PUBLIC_WORKS", nextQuestion: null };
   }
-  return { ...base, outcome: "NEED_FOLLOW_UP", nextQuestion: null };
+  // Location is present, issue is understood, no follow-up needed → close and confirm.
+  // Any handler that receives CLOSE_AND_CONFIRM must generate a confirmation number
+  // and pass it to Nova Sonic via session context before the next turn.
+  return { ...base, outcome: "CLOSE_AND_CONFIRM", nextQuestion: null };
 }
 
 /** Drop a question that asks for a fact this conversation already has. */
@@ -149,6 +153,7 @@ export function measurePilotCall(opts: {
 }): PilotCallMeasurement {
   const completed =
     opts.outcome === "CREATE_PUBLIC_WORKS" ||
+    opts.outcome === "CLOSE_AND_CONFIRM" ||
     opts.outcome === "TRANSFER_HUMAN" ||
     opts.outcome === "TRANSFER_EMERGENCY";
   return {

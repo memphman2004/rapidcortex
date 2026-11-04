@@ -94,6 +94,26 @@ Parameters:
   ManagedPolicyNamePrefix:
     Type: String
     Default: rapid-cortex
+  NovaSonicGatewayImageUri:
+    Type: String
+    Default: ""
+    Description: ECR image URI for Nova Sonic Gateway ECS task. Empty skips ECS service (Await Lambda runs inline/mock).
+  NovaSonicGatewayVpcId:
+    Type: String
+    Default: ""
+  NovaSonicGatewaySubnetIds:
+    Type: String
+    Default: ""
+    Description: Comma-separated subnet IDs for Nova Sonic Gateway Fargate tasks.
+  NovaSonicBedrockMock:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false", "1", "0"]
+    Description: When true, NovaSessionAwait uses scripted mock audio (no Bedrock call).
+  NovaSonicGatewayUrl:
+    Type: String
+    Default: ""
+    Description: Optional HTTP base URL for Nova Sonic Gateway (e.g. http://10.0.1.5:8080). Empty = Await Lambda runs inline.
 
 Conditions:
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
@@ -106,6 +126,10 @@ Conditions:
   HasLexBotIds: !And
     - !Not [!Equals [!Ref CallAssistLexBotId, ""]]
     - !Not [!Equals [!Ref CallAssistLexBotAliasId, ""]]
+  CreateNovaSonicGateway: !And
+    - !Not [!Equals [!Ref NovaSonicGatewayImageUri, ""]]
+    - !Not [!Equals [!Ref NovaSonicGatewayVpcId, ""]]
+    - !Not [!Equals [!Ref NovaSonicGatewaySubnetIds, ""]]
 
 Globals:
   Function:
@@ -415,6 +439,25 @@ Resources:
                   StringEquals:
                     iam:PassedToService: lexv2.amazonaws.com
               - !Ref AWS::NoValue
+          - Sid: CallAssistNovaSonicBedrock
+            Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+              - bedrock:InvokeModelWithBidirectionalStream
+            Resource:
+              - !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/amazon.nova-2-5-sonic"
+              - !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/amazon.nova-2-sonic-v1:0"
+          - Sid: CallAssistNovaSonicKvs
+            Effect: Allow
+            Action:
+              - kinesisvideo:GetDataEndpoint
+              - kinesisvideo:GetMedia
+              - kinesisvideo:DescribeStream
+              - kinesisvideo:ListFragments
+              - kinesisvideo:GetClip
+            Resource:
+              - !Sub "arn:aws:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*"
 
   CallAssistHttpFunction:
     Type: AWS::Serverless::Function
@@ -425,6 +468,10 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/call-assist/http.handler
       Timeout: 60
+      Environment:
+        Variables:
+          NOVA_SESSION_START_LAMBDA_ARN: !GetAtt NovaSessionStartFunction.Arn
+          NOVA_SESSION_AWAIT_LAMBDA_ARN: !GetAtt NovaSessionAwaitFunction.Arn
       Policies:
         - !Ref AppManagedPolicyCallAssistDynamo
 
@@ -594,6 +641,206 @@ Resources:
           Properties:
             Topic: !Ref InboundCallAssistSmsTopic
 
+  NovaSessionStartFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      FunctionName: !Sub "${ManagedPolicyNamePrefix}-nova-session-start-${DeploymentStage}"
+      CodeUri: ../../apps/api/
+      Handler: dist/call-assist/nova-sonic/session-start-handler.handler
+      Timeout: 10
+      MemorySize: 512
+      Environment:
+        Variables:
+          NOVA_SONIC_GATEWAY_URL: !Ref NovaSonicGatewayUrl
+      Policies:
+        - !Ref AppManagedPolicyCallAssistDynamo
+
+  NovaSessionAwaitFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      FunctionName: !Sub "${ManagedPolicyNamePrefix}-nova-session-await-${DeploymentStage}"
+      CodeUri: ../../apps/api/
+      Handler: dist/call-assist/nova-sonic/session-await-handler.handler
+      Timeout: 300
+      MemorySize: 1024
+      Environment:
+        Variables:
+          NOVA_SONIC_GATEWAY_URL: !Ref NovaSonicGatewayUrl
+          NOVA_SONIC_BEDROCK_MOCK: !Ref NovaSonicBedrockMock
+      Policies:
+        - !Ref AppManagedPolicyCallAssistDynamo
+
+  ConnectNovaSessionStartPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref NovaSessionStartFunction
+      Action: lambda:InvokeFunction
+      Principal: connect.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+
+  ConnectNovaSessionAwaitPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref NovaSessionAwaitFunction
+      Action: lambda:InvokeFunction
+      Principal: connect.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+
+  NovaSonicGatewayCluster:
+    Type: AWS::ECS::Cluster
+    Condition: CreateNovaSonicGateway
+    Properties:
+      ClusterName: !Sub "rapid-cortex-nova-sonic-${DeploymentStage}"
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+
+  NovaSonicGatewayLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: CreateNovaSonicGateway
+    Properties:
+      LogGroupName: !Sub "/ecs/rapid-cortex/nova-sonic-gateway/${DeploymentStage}"
+      RetentionInDays: 30
+
+  NovaSonicGatewaySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: CreateNovaSonicGateway
+    Properties:
+      GroupDescription: !Sub Nova Sonic Gateway ${DeploymentStage}
+      VpcId: !Ref NovaSonicGatewayVpcId
+      SecurityGroupIngress:
+        - Description: Gateway HTTP health and session start
+          IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 10.0.0.0/8
+
+  NovaSonicGatewayTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Condition: CreateNovaSonicGateway
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  NovaSonicGatewayTaskRole:
+    Type: AWS::IAM::Role
+    Condition: CreateNovaSonicGateway
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: NovaSonicGatewayAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: CallAssistTable
+                Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:Query
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-call-assist-${DeploymentStage}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-call-assist-${DeploymentStage}/index/*"
+              - Sid: NovaBidirectional
+                Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                  - bedrock:InvokeModelWithBidirectionalStream
+                Resource:
+                  - !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/amazon.nova-2-5-sonic"
+                  - !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/amazon.nova-2-sonic-v1:0"
+              - Sid: KvsMedia
+                Effect: Allow
+                Action:
+                  - kinesisvideo:GetDataEndpoint
+                  - kinesisvideo:GetMedia
+                  - kinesisvideo:DescribeStream
+                Resource:
+                  - !Sub "arn:aws:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*"
+              - !If
+                  - HasConnectInstanceId
+                  - Sid: ConnectAttrs
+                    Effect: Allow
+                    Action:
+                      - connect:UpdateContactAttributes
+                    Resource:
+                      - !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/${ConnectInstanceId}/contact/*"
+                  - !Ref AWS::NoValue
+
+  # Note: ConnectAttrs statement uses statement-level !If (never NoValue inside Resource lists).
+
+  NovaSonicGatewayTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Condition: CreateNovaSonicGateway
+    Properties:
+      Family: !Sub "rapid-cortex-nova-sonic-${DeploymentStage}"
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      Cpu: "512"
+      Memory: "1024"
+      ExecutionRoleArn: !GetAtt NovaSonicGatewayTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt NovaSonicGatewayTaskRole.Arn
+      ContainerDefinitions:
+        - Name: nova-sonic-gateway
+          Image: !Ref NovaSonicGatewayImageUri
+          PortMappings:
+            - ContainerPort: 8080
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref NovaSonicGatewayLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: nova
+          Environment:
+            - Name: PORT
+              Value: "8080"
+            - Name: CALL_ASSIST_TABLE
+              Value: !Sub "rapid-cortex-call-assist-${DeploymentStage}"
+            - Name: CONNECT_INSTANCE_ID
+              Value: !Ref ConnectInstanceId
+            - Name: NOVA_SONIC_BEDROCK_MOCK
+              Value: !Ref NovaSonicBedrockMock
+            - Name: AWS_REGION
+              Value: !Ref AWS::Region
+
+  NovaSonicGatewayService:
+    Type: AWS::ECS::Service
+    Condition: CreateNovaSonicGateway
+    Properties:
+      ServiceName: !Sub "rapid-cortex-nova-sonic-${DeploymentStage}"
+      Cluster: !Ref NovaSonicGatewayCluster
+      TaskDefinition: !Ref NovaSonicGatewayTaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Split [",", !Ref NovaSonicGatewaySubnetIds]
+          SecurityGroups:
+            - !Ref NovaSonicGatewaySecurityGroup
+
   CallAssistHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
@@ -688,3 +935,15 @@ Outputs:
   AgencyKeywordTableName:
     Description: Per-agency SMS keyword command table (TRASH, PARKS, WATER, …)
     Value: !Sub "rapid-cortex-agency-keywords-${DeploymentStage}"
+  NovaSessionStartFunctionArn:
+    Description: Connect InvokeLambda ARN for Nova Sonic session start
+    Value: !GetAtt NovaSessionStartFunction.Arn
+  NovaSessionAwaitFunctionArn:
+    Description: Connect InvokeLambda ARN for Nova Sonic session await / stream
+    Value: !GetAtt NovaSessionAwaitFunction.Arn
+  NovaSonicGatewayClusterName:
+    Condition: CreateNovaSonicGateway
+    Value: !Ref NovaSonicGatewayCluster
+  NovaSonicGatewayServiceName:
+    Condition: CreateNovaSonicGateway
+    Value: !GetAtt NovaSonicGatewayService.Name

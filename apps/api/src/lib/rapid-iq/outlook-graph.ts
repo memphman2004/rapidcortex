@@ -13,9 +13,11 @@ import {
   encryptWebhookSigningSecret,
 } from "../webhookSecretEncryption.js";
 
-/** Platform Outlook mailbox for campaign send. Tokens are encrypted at rest. */
+/** Platform or per-rep Outlook mailbox. Tokens are encrypted at rest. */
 export type SalesOutlookConnection = {
   agencyId: "platform";
+  /** Set for per-rep Sales Tools connections (pk OUTLOOK#USER#{userId}). */
+  userId?: string;
   mailbox: string;
   mock: boolean;
   refreshTokenEnc?: string;
@@ -29,6 +31,7 @@ export type SalesOutlookConnection = {
 const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
 const SCOPES = "openid profile email offline_access User.Read Mail.Send";
 export const DEFAULT_SALES_OUTLOOK_MAILBOX = "jeff@nexcortiq.us";
+export const PERSONAL_SALES_OUTLOOK_DOMAIN = "@nexcortiq.us";
 
 export function salesOutlookMailbox(): string {
   return (env.outlookSalesMailbox || DEFAULT_SALES_OUTLOOK_MAILBOX).trim().toLowerCase();
@@ -36,6 +39,15 @@ export function salesOutlookMailbox(): string {
 
 export function isAllowedSalesMailbox(mailbox: string): boolean {
   return mailbox.trim().toLowerCase() === salesOutlookMailbox();
+}
+
+/** Personal Sales Tools connect — any mailbox at @nexcortiq.us. */
+export function isPersonalSalesMailbox(mailbox: string): boolean {
+  return mailbox.trim().toLowerCase().endsWith(PERSONAL_SALES_OUTLOOK_DOMAIN);
+}
+
+export function personalOutlookRedirectUri(): string {
+  return env.outlookOAuthPersonalRedirectUri;
 }
 
 export function isOutlookGraphMock(): boolean {
@@ -104,6 +116,24 @@ export function buildOutlookAuthorizeUrl(state: string): string {
   return `${authorizeBase()}/authorize?${params.toString()}`;
 }
 
+/** Per-rep connect — no platform mailbox login_hint; uses personal redirect URI. */
+export function buildPersonalOutlookAuthorizeUrl(state: string, loginHint?: string): string {
+  const params = new URLSearchParams({
+    client_id: env.outlookOAuthClientId,
+    response_type: "code",
+    redirect_uri: personalOutlookRedirectUri(),
+    response_mode: "query",
+    scope: SCOPES,
+    state,
+    prompt: "select_account",
+  });
+  const hint = (loginHint || "").trim().toLowerCase();
+  if (hint && isPersonalSalesMailbox(hint)) {
+    params.set("login_hint", hint);
+  }
+  return `${authorizeBase()}/authorize?${params.toString()}`;
+}
+
 type TokenResponse = {
   access_token?: string;
   refresh_token?: string;
@@ -161,6 +191,40 @@ export async function exchangeOutlookAuthCode(code: string): Promise<{
   if (!isAllowedSalesMailbox(mailbox)) {
     throw new Error(
       `Connect Outlook as ${salesOutlookMailbox()}. Microsoft signed in as ${mailbox}.`,
+    );
+  }
+  return {
+    accessToken: json.access_token!,
+    refreshToken: json.refresh_token,
+    mailbox,
+    expiresIn: json.expires_in ?? 3600,
+  };
+}
+
+export async function exchangePersonalOutlookAuthCode(code: string): Promise<{
+  accessToken: string;
+  refreshToken: string;
+  mailbox: string;
+  expiresIn: number;
+}> {
+  const secret = await resolveOutlookClientSecret();
+  if (!secret) throw new Error("OUTLOOK_OAUTH_CLIENT_SECRET_NOT_CONFIGURED");
+  const redirectUri = personalOutlookRedirectUri();
+  const json = await tokenRequest(
+    new URLSearchParams({
+      client_id: env.outlookOAuthClientId,
+      client_secret: secret,
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: redirectUri,
+      scope: SCOPES,
+    }),
+  );
+  if (!json.refresh_token) throw new Error("Outlook did not return a refresh token");
+  const mailbox = await graphMeMailbox(json.access_token!);
+  if (!isPersonalSalesMailbox(mailbox)) {
+    throw new Error(
+      `Connect Outlook with a @nexcortiq.us mailbox. Microsoft signed in as ${mailbox}.`,
     );
   }
   return {
@@ -233,8 +297,17 @@ export async function sendOutlookMail(input: {
   subject: string;
   text: string;
   html?: string;
+  /** Defaults to platform campaign mailbox. Personal send must pass the connected mailbox. */
+  fromMailbox?: string;
+  fromName?: string;
+  cc?: string[];
 }): Promise<void> {
-  const from = salesOutlookMailbox();
+  const from = (input.fromMailbox || salesOutlookMailbox()).trim().toLowerCase();
+  const fromName = (input.fromName || "NexCort iQ").trim() || "NexCort iQ";
+  const ccRecipients = (input.cc ?? [])
+    .map((a) => a.trim())
+    .filter(Boolean)
+    .map((address) => ({ emailAddress: { address } }));
   const payload = JSON.stringify({
     message: {
       subject: input.subject,
@@ -243,8 +316,9 @@ export async function sendOutlookMail(input: {
         content: input.html || input.text,
       },
       toRecipients: [{ emailAddress: { address: input.to } }],
-      from: { emailAddress: { address: from, name: "NexCort iQ" } },
-      replyTo: [{ emailAddress: { address: from, name: "NexCort iQ" } }],
+      ...(ccRecipients.length ? { ccRecipients } : {}),
+      from: { emailAddress: { address: from, name: fromName } },
+      replyTo: [{ emailAddress: { address: from, name: fromName } }],
     },
     saveToSentItems: true,
   });

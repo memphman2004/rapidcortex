@@ -3,6 +3,7 @@ import {
   evaluateCallAssistRouting,
   formatCallAssistCaseNumber,
   formatConfirmationForSpeech,
+  formatConfirmationForSsml,
   type CallAssistCallRecord,
   type CallAssistRoutingRule,
 } from "rapid-cortex-shared";
@@ -46,6 +47,43 @@ export function spokenClosingWithConfirmation(opts: {
     return opts.closingBase.replaceAll(opts.confirmationNumber, spoken);
   }
   return `${opts.closingBase} Your report number is ${spoken}.`;
+}
+
+/** Voice closing: slow SSML for the number, then ask whether to repeat it. */
+export function spokenClosingWithConfirmationAndRepeatAsk(opts: {
+  closingBase: string;
+  confirmationNumber: string;
+  spanish?: boolean;
+}): string {
+  const spoken = formatConfirmationForSpeech(opts.confirmationNumber);
+  const ssmlNumber = `<prosody rate="85%">${formatConfirmationForSsml(opts.confirmationNumber)}</prosody>`;
+  let lead = opts.closingBase.includes(opts.confirmationNumber)
+    ? opts.closingBase.replaceAll(opts.confirmationNumber, "REPORT_NUMBER_PLACEHOLDER")
+    : `${opts.closingBase} Your report number is REPORT_NUMBER_PLACEHOLDER.`;
+  // Strip a trailing raw number if the template already ended with it as spoken words later.
+  lead = lead.replace("REPORT_NUMBER_PLACEHOLDER", ssmlNumber);
+  if (!lead.includes(ssmlNumber) && lead.includes(spoken)) {
+    lead = lead.replaceAll(spoken, ssmlNumber);
+  }
+  const ask = opts.spanish
+    ? "¿Quiere que le repita ese número de confirmación?"
+    : "Would you like me to repeat that confirmation number?";
+  return `${lead} ${ask}`;
+}
+
+export function spokenConfirmationRepeatOnly(opts: {
+  confirmationNumber: string;
+  spanish?: boolean;
+}): string {
+  const ssmlNumber = `<prosody rate="85%">${formatConfirmationForSsml(opts.confirmationNumber)}</prosody>`;
+  const again = opts.spanish
+    ? `Su número de confirmación es ${ssmlNumber}. ¿Quiere que se lo repita otra vez?`
+    : `Your confirmation number is ${ssmlNumber}. Would you like me to repeat that again?`;
+  return again;
+}
+
+export function spokenConfirmationGoodbye(spanish?: boolean): string {
+  return spanish ? "Gracias por llamar. Adiós." : "Thank you for calling. Goodbye.";
 }
 
 export async function sendConfirmationSms(opts: {

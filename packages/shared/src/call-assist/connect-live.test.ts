@@ -69,6 +69,7 @@ describe("Nexiq contact flow template", () => {
     };
     const blob = JSON.stringify(flow);
     expect(blob).toContain(CONNECT_LANGUAGE_MENU_PROMPT);
+    expect(blob).toContain("Hello. Thank you for calling.");
     expect(blob).toContain("GetParticipantInput");
     expect(blob).toContain("__EMERGENCY_QUEUE_ARN__");
     expect(blob).toContain("$.Attributes.spokenGreeting");
@@ -94,6 +95,8 @@ describe("Nexiq contact flow template", () => {
     expect(nova?.Transitions?.Conditions?.some((c) => c.NextAction === "set-fallback-attrs")).toBe(true);
     const polly = flow.Actions.find((a) => a.Identifier === "lex-intake");
     expect(polly?.Parameters?.LexSessionAttributes?.greetingDelivered).toBe("true");
-    expect(String(polly?.Parameters?.Text ?? "")).toContain("Please tell me");
+    expect(polly?.Parameters?.LexSessionAttributes?.intakeStarted).toBe("true");
+    expect(polly?.Parameters?.Text).toBeUndefined();
+    expect(String(polly?.Parameters?.SSML ?? "")).toContain("break");
   });
 });

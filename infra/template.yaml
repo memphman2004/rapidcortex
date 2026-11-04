@@ -107,6 +107,10 @@ Parameters:
     Type: String
     Default: "https://app.rapidcortex.us/rc-admin/sales-automation/outlook-callback"
     Description: Microsoft redirect URI. Must match the Azure app registration exactly.
+  OutlookOAuthPersonalRedirectUri:
+    Type: String
+    Default: "https://app.rapidcortex.us/sales/outlook-callback"
+    Description: Per-rep Sales Tools Outlook OAuth redirect. Must be added to the Azure app registration.
   OutlookOAuthTenant:
     Type: String
     Default: "0a85f08a-54a8-43de-bdc1-4ad4e52d3af8"
@@ -2196,6 +2200,16 @@ Resources:
         EnableHiringInAppSam3: "false"
         ExternalApiEncryptionKeyArn: !Ref ExternalApiEncryptionKeyArn
         ExternalApiJwtSecretArn: !Ref ExternalApiJwtSecretArn
+        RapidIqPipelineSignalsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RapidIqPipelineSignalsTable
+            - !Sub "${DynamoTableNamePrefix}-rapid-iq-pipeline-signals-${DeploymentStage}"
+        OutlookOAuthClientId: !Ref OutlookOAuthClientId
+        OutlookOAuthClientSecretArn: !Ref OutlookOAuthClientSecretArn
+        OutlookOAuthPersonalRedirectUri: !Ref OutlookOAuthPersonalRedirectUri
+        OutlookOAuthTenant: !Ref OutlookOAuthTenant
+        OutlookGraphMock: !Ref OutlookGraphMock
         ExternalApiRateLimitsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -4215,6 +4229,11 @@ Resources:
         CallAssistSmsDefaultAgencyId: !Ref CallAssistSmsDefaultAgencyId
         AwsSmsConfigurationSetName: !Ref AwsSmsConfigurationSetName
         ManagedPolicyNamePrefix: !Ref AWS::StackName
+        NovaSonicGatewayImageUri: ""
+        NovaSonicGatewayVpcId: ""
+        NovaSonicGatewaySubnetIds: ""
+        NovaSonicGatewayUrl: ""
+        NovaSonicBedrockMock: "false"
 
   AppSamTranslateStack2:
     Type: AWS::CloudFormation::Stack
