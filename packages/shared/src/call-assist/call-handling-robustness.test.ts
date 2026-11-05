@@ -17,8 +17,30 @@ describe("caller reasons in every Nexiq language", () => {
     ["où jeter les seringues", "SANITATION"],
     ["冇水", "WATER_SEWER_AUTHORITY"],
     ["se fue el agua", "WATER_SEWER_AUTHORITY"],
+    ["my cat is stuck in a tree", "ANIMAL_CONTROL"],
+    ["gato atrapado en un árbol", "ANIMAL_CONTROL"],
+    ["猫卡在树上", "ANIMAL_CONTROL"],
+    ["chat coincé dans un arbre", "ANIMAL_CONTROL"],
+    ["dog stuck in a storm drain", "ANIMAL_CONTROL"],
+    ["raccoon in the attic", "ANIMAL_CONTROL"],
+    ["injured cat", "ANIMAL_CONTROL"],
+    ["perro herido", "ANIMAL_CONTROL"],
+    ["狗一直叫", "ANIMAL_CONTROL"],
+    ["animal mort sur la route", "ANIMAL_CONTROL"],
   ])("%s goes to %s", (utterance, departmentId) => {
     expect(classifyMunicipalIssue(utterance)?.departmentId).toBe(departmentId);
+  });
+
+  it("keeps a cat in a tree on animal control, not urban forestry", () => {
+    const hit = classifyMunicipalIssue("my cat is stuck in a tree");
+    expect(hit?.departmentId).toBe("ANIMAL_CONTROL");
+    expect(hit?.issueId).toBe("TRAPPED_ANIMAL");
+  });
+
+  it("routes other stuck-animal and wildlife attic calls to animal control", () => {
+    expect(classifyMunicipalIssue("cat in the chimney")?.issueId).toBe("TRAPPED_ANIMAL");
+    expect(classifyMunicipalIssue("dog stuck in a storm drain")?.issueId).toBe("TRAPPED_ANIMAL");
+    expect(classifyMunicipalIssue("raccoon in the attic")?.departmentId).toBe("ANIMAL_CONTROL");
   });
 
   it("lets a sanitation reason replace a noise guess and keeps a police reason on the police desk", () => {

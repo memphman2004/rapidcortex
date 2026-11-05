@@ -54,7 +54,8 @@ describe("Nexiq confirmation numbers", () => {
 
   it("formats SSML with breaks between characters", () => {
     const ssml = formatConfirmationForSsml("KC-1001-7M4R");
-    expect(ssml).toContain("K<break time=\"400ms\"/>");
+    // Letters use NATO words for clearer TTS; digits stay spoken words.
+    expect(ssml).toContain("Kilo<break time=\"400ms\"/>");
     expect(ssml).toContain("one<break time=\"350ms\"/>");
     expect(ssml).toContain("<break time=\"600ms\"/>");
   });

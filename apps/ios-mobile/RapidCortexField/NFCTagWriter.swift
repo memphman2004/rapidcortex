@@ -11,7 +11,7 @@ enum NFCHardware {
 /// Programs NDEF URI records onto NTAG Type 2 stickers (and ISO15693 tags).
 ///
 /// Uses `NFCTagReaderSession` (not `NFCNDEFReaderSession`) so factory-blank
-/// NTAG213 tags are detected. All Core NFC I/O stays on the session queue;
+/// NTAG213 / NTAG215 / NTAG216 (Type 2) stickers are supported. All Core NFC I/O stays on the session queue;
 /// hopping to the main actor mid-write is a common cause of a hung “Ready to Scan” sheet.
 final class NFCTagWriter: NSObject, ObservableObject, @unchecked Sendable {
     @Published private(set) var state: WriteState = .idle
@@ -204,7 +204,7 @@ extension NFCTagWriter: NFCTagReaderSessionDelegate {
             }
 
             guard let ndef = self.ndefTag(from: tag) else {
-                session.invalidate(errorMessage: "Tag type not supported. Use NTAG213 / NTAG215 stickers.")
+                session.invalidate(errorMessage: "Tag type not supported. Use NTAG213, NTAG215, or NTAG216 stickers.")
                 return
             }
 

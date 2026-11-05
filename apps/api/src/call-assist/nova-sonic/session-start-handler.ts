@@ -163,6 +163,7 @@ export async function buildNovaSessionStartResult(
 
   const handoffAttrs = emptyNovaSonicConnectHandoffAttrs({ novaSessionStatus: "ACTIVE" });
   return {
+    agencyId,
     novaSessionId: row.sessionId,
     novaSessionStatus: "PENDING",
     novaSonicFallbackToLex: handoffAttrs.novaSonicFallbackToLex,

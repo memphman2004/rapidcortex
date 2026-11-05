@@ -364,12 +364,65 @@
           "y": 160
         }
       },
-      "lex-intake-nova": {
+      "set-voice-matthew-nova": {
+        "position": {
+          "x": 1780,
+          "y": 80
+        }
+      },
+      "start-nova-media-stream": {
         "position": {
           "x": 1900,
           "y": 80
-        },
-        "useDynamic": true
+        }
+      },
+      "invoke-nova-session-start": {
+        "position": {
+          "x": 2020,
+          "y": 80
+        }
+      },
+      "invoke-nova-session-await": {
+        "position": {
+          "x": 2140,
+          "y": 80
+        }
+      },
+      "check-nova-emergency": {
+        "position": {
+          "x": 2260,
+          "y": 20
+        }
+      },
+      "play-emergency-nova": {
+        "position": {
+          "x": 2380,
+          "y": 20
+        }
+      },
+      "check-nova-fallback": {
+        "position": {
+          "x": 2260,
+          "y": 140
+        }
+      },
+      "check-nova-done": {
+        "position": {
+          "x": 2380,
+          "y": 200
+        }
+      },
+      "stop-nova-media-stream": {
+        "position": {
+          "x": 2200,
+          "y": 80
+        }
+      },
+      "stop-nova-media-stream-fallback": {
+        "position": {
+          "x": 2200,
+          "y": 200
+        }
       },
       "check-caller-done": {
         "position": {
@@ -843,8 +896,8 @@
       "Identifier": "set-voice-nova-en",
       "Type": "UpdateContactTextToSpeechVoice",
       "Parameters": {
-        "TextToSpeechVoice": "Ruth",
-        "TextToSpeechEngine": "Neural",
+        "TextToSpeechVoice": "Matthew",
+        "TextToSpeechEngine": "Generative",
         "TextToSpeechStyle": "None"
       },
       "Transitions": {
@@ -1327,7 +1380,7 @@
         "NextAction": "play-disclosure",
         "Conditions": [
           {
-            "NextAction": "lex-intake-nova",
+            "NextAction": "set-voice-matthew-nova",
             "Condition": {
               "Operator": "Equals",
               "Operands": [
@@ -1354,7 +1407,7 @@
         "NextAction": "play-disclosure",
         "Conditions": [
           {
-            "NextAction": "lex-intake-nova",
+            "NextAction": "set-voice-matthew-nova",
             "Condition": {
               "Operator": "Equals",
               "Operands": [
@@ -1372,54 +1425,273 @@
       }
     },
     {
-      "Identifier": "lex-intake-nova",
-      "Type": "ConnectParticipantWithLexBot",
+      "Identifier": "set-voice-matthew-nova",
+      "Type": "UpdateContactTextToSpeechVoice",
       "Parameters": {
-        "SSML": "<speak><break time=\"200ms\"/></speak>",
-        "LexV2Bot": {
-          "AliasArn": "{{lexBotAliasArn}}"
-        },
-        "LexSessionAttributes": {
+        "TextToSpeechVoice": "Matthew",
+        "TextToSpeechEngine": "Generative",
+        "TextToSpeechStyle": "None"
+      },
+      "Transitions": {
+        "NextAction": "start-nova-media-stream",
+        "Errors": [
+          {
+            "NextAction": "start-nova-media-stream",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "start-nova-media-stream",
+      "Type": "UpdateContactMediaStreamingBehavior",
+      "Parameters": {
+        "MediaStreamingState": "Enabled",
+        "MediaStreamType": "Audio",
+        "Participants": [
+          {
+            "ParticipantType": "Customer",
+            "MediaDirections": [
+              "From",
+              "To"
+            ]
+          }
+        ]
+      },
+      "Transitions": {
+        "NextAction": "invoke-nova-session-start",
+        "Errors": [
+          {
+            "NextAction": "invoke-nova-session-start",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "invoke-nova-session-start",
+      "Type": "InvokeLambdaFunction",
+      "Parameters": {
+        "LambdaFunctionARN": "{{novaSessionStartLambdaArn}}",
+        "InvocationTimeLimitSeconds": "8",
+        "LambdaInvocationAttributes": {
           "agencyId": "$.External.agencyId",
-          "callId": "$.ContactId",
-          "language": "$.Attributes.language",
-          "locale": "$.Attributes.language",
-          "bargeInEnabled": "true",
+          "contactId": "$.ContactId",
           "ani": "$.CustomerEndpoint.Address",
-          "aliAddress": "$.External.aliAddress",
-          "ALI": "$.Attributes.ALI",
-          "RapidSOSAddress": "$.Attributes.RapidSOSAddress",
-          "apartmentSuite": "$.External.apartmentSuite",
-          "greetingDelivered": "false",
-          "greetingMode": "$.External.greetingMode",
-          "escalationMode": "$.External.escalationMode",
-          "emergencyTransferNumber": "$.External.emergencyTransferNumber",
-          "emergencyTransferQueue": "$.External.emergencyTransferQueue",
-          "enableColdClimate": "$.External.enableColdClimate",
-          "enableLiveAgentHandoff": "$.External.enableLiveAgentHandoff",
-          "voiceEngine": "$.External.voiceEngine"
+          "language": "$.Attributes.language",
+          "agencyVoiceName": "$.External.agencyVoiceName"
         },
-        "LexTimeoutSeconds": {
-          "Text": "300"
+        "ResponseValidation": {
+          "ResponseType": "STRING_MAP"
         }
       },
       "Transitions": {
-        "NextAction": "check-caller-done",
-        "Conditions": [],
+        "NextAction": "invoke-nova-session-await",
         "Errors": [
           {
-            "NextAction": "check-caller-done",
-            "ErrorType": "InputTimeLimitExceeded"
-          },
-          {
-            "NextAction": "check-caller-done",
-            "ErrorType": "NoMatchingCondition"
-          },
-          {
-            "NextAction": "check-caller-done",
+            "NextAction": "stop-nova-media-stream-fallback",
             "ErrorType": "NoMatchingError"
           }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "invoke-nova-session-await",
+      "Type": "InvokeLambdaFunction",
+      "Parameters": {
+        "LambdaFunctionARN": "{{novaSessionAwaitLambdaArn}}",
+        "InvocationTimeLimitSeconds": "8",
+        "LambdaInvocationAttributes": {
+          "agencyId": "$.External.agencyId",
+          "contactId": "$.ContactId",
+          "novaSessionId": "$.External.novaSessionId",
+          "language": "$.Attributes.language"
+        },
+        "ResponseValidation": {
+          "ResponseType": "STRING_MAP"
+        }
+      },
+      "Transitions": {
+        "NextAction": "stop-nova-media-stream",
+        "Errors": [
+          {
+            "NextAction": "stop-nova-media-stream-fallback",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "stop-nova-media-stream",
+      "Type": "UpdateContactMediaStreamingBehavior",
+      "Parameters": {
+        "MediaStreamingState": "Disabled",
+        "MediaStreamType": "Audio",
+        "Participants": [
+          {
+            "ParticipantType": "Customer",
+            "MediaDirections": [
+              "From",
+              "To"
+            ]
+          }
         ]
+      },
+      "Transitions": {
+        "NextAction": "check-nova-emergency",
+        "Errors": [
+          {
+            "NextAction": "check-nova-emergency",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "stop-nova-media-stream-fallback",
+      "Type": "UpdateContactMediaStreamingBehavior",
+      "Parameters": {
+        "MediaStreamingState": "Disabled",
+        "MediaStreamType": "Audio",
+        "Participants": [
+          {
+            "ParticipantType": "Customer",
+            "MediaDirections": [
+              "From",
+              "To"
+            ]
+          }
+        ]
+      },
+      "Transitions": {
+        "NextAction": "play-disclosure",
+        "Errors": [
+          {
+            "NextAction": "play-disclosure",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "check-nova-emergency",
+      "Type": "Compare",
+      "Parameters": {
+        "ComparisonValue": "$.External.emergencyEscalation"
+      },
+      "Transitions": {
+        "NextAction": "check-nova-fallback",
+        "Conditions": [
+          {
+            "NextAction": "play-emergency-nova",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "true"
+              ]
+            }
+          }
+        ],
+        "Errors": [
+          {
+            "NextAction": "check-nova-fallback",
+            "ErrorType": "NoMatchingCondition"
+          }
+        ]
+      }
+    },
+    {
+      "Identifier": "play-emergency-nova",
+      "Type": "MessageParticipant",
+      "Parameters": {
+        "Text": "$.External.escalationAnnouncement"
+      },
+      "Transitions": {
+        "NextAction": "check-escalation-mode",
+        "Errors": [
+          {
+            "NextAction": "check-escalation-mode",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "check-nova-fallback",
+      "Type": "Compare",
+      "Parameters": {
+        "ComparisonValue": "$.External.novaSonicFallbackToLex"
+      },
+      "Transitions": {
+        "NextAction": "check-nova-done",
+        "Conditions": [
+          {
+            "NextAction": "play-disclosure",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "true"
+              ]
+            }
+          }
+        ],
+        "Errors": [
+          {
+            "NextAction": "check-nova-done",
+            "ErrorType": "NoMatchingCondition"
+          }
+        ]
+      }
+    },
+    {
+      "Identifier": "check-nova-done",
+      "Type": "Compare",
+      "Parameters": {
+        "ComparisonValue": "$.External.callerDone"
+      },
+      "Transitions": {
+        "NextAction": "disconnect",
+        "Conditions": [
+          {
+            "NextAction": "play-nova-confirmation",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "true"
+              ]
+            }
+          }
+        ],
+        "Errors": [
+          {
+            "NextAction": "disconnect",
+            "ErrorType": "NoMatchingCondition"
+          }
+        ]
+      }
+    },
+    {
+      "Identifier": "play-nova-confirmation",
+      "Type": "MessageParticipant",
+      "Parameters": {
+        "Text": "Your report number is $.External.confirmationNumber. I'll repeat that — $.External.confirmationNumber. Someone will be in touch."
+      },
+      "Transitions": {
+        "NextAction": "disconnect",
+        "Errors": [
+          {
+            "NextAction": "disconnect",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
       }
     },
     {

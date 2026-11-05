@@ -6,14 +6,14 @@
 
 /** Cognito seed / legacy aliases → canonical snake_case. */
 const ROLE_ALIASES: Record<string, string> = {
-  campusadmin: 'campus_admin',
-  campussecurity: 'campus_security',
-  campussupervisor: 'campus_supervisor',
-  campusdispatch: 'campus_security',
-  'campus-admin': 'campus_admin',
-  'campus-security': 'campus_security',
-  'campus-supervisor': 'campus_supervisor',
-  'campus-dispatch': 'campus_security',
+  campusadmin: 'campus_admin_k12',
+  campussecurity: 'campus_security_k12',
+  campussupervisor: 'campus_supervisor_k12',
+  campusdispatch: 'campus_dispatch_k12',
+  'campus-admin': 'campus_admin_k12',
+  'campus-security': 'campus_security_k12',
+  'campus-supervisor': 'campus_supervisor_k12',
+  'campus-dispatch': 'campus_dispatch_k12',
   venueadmin: 'venue_admin',
   venuesecurity: 'venue_security',
   venuesupervisor: 'venue_supervisor',
@@ -43,10 +43,26 @@ const ROLE_ALIASES: Record<string, string> = {
 };
 
 const SCREAMING_TO_SNAKE: Record<string, string> = {
-  CAMPUS_ADMIN: 'campus_admin',
-  CAMPUS_SUPERVISOR: 'campus_supervisor',
-  CAMPUS_SECURITY: 'campus_security',
-  CAMPUS_DISPATCH: 'campus_security',
+  // Campus product-suffixed Cognito groups (align with packages/shared).
+  CAMPUS_ADMIN_K12: 'campus_admin_k12',
+  CAMPUS_ADMIN_HIGHERED: 'campus_admin_highered',
+  CAMPUS_SUPERVISOR_K12: 'campus_supervisor_k12',
+  CAMPUS_SUPERVISOR_HIGHERED: 'campus_supervisor_highered',
+  CAMPUS_SECURITY_K12: 'campus_security_k12',
+  CAMPUS_SECURITY_HIGHERED: 'campus_security_highered',
+  CAMPUS_DISPATCH_K12: 'campus_dispatch_k12',
+  CAMPUS_DISPATCH_HIGHERED: 'campus_dispatch_highered',
+  CAMPUS_COUNSELOR_K12: 'campus_counselor_k12',
+  CAMPUS_COUNSELOR_HIGHERED: 'campus_counselor_highered',
+  CAMPUS_FACULTY_K12: 'campus_faculty_k12',
+  CAMPUS_FACULTY_HIGHERED: 'campus_faculty_highered',
+  // Legacy unsuffixed campus → K-12.
+  CAMPUS_ADMIN: 'campus_admin_k12',
+  CAMPUS_SUPERVISOR: 'campus_supervisor_k12',
+  CAMPUS_SECURITY: 'campus_security_k12',
+  CAMPUS_DISPATCH: 'campus_dispatch_k12',
+  CAMPUS_COUNSELOR: 'campus_counselor_k12',
+  CAMPUS_FACULTY: 'campus_faculty_k12',
   VENUE_ADMIN: 'venue_admin',
   VENUE_SUPERVISOR: 'venue_supervisor',
   VENUE_SECURITY: 'venue_security',
@@ -62,6 +78,14 @@ const SCREAMING_TO_SNAKE: Record<string, string> = {
   RCITADMIN: 'rcitadmin',
 };
 
+/** Strip `_k12` / `_highered` for product-agnostic capability checks. */
+export function routingMobileRole(role: string | undefined | null): string {
+  const c = canonicalizeMobileRole(role);
+  if (c.endsWith('_highered')) return c.slice(0, -'_highered'.length);
+  if (c.endsWith('_k12')) return c.slice(0, -'_k12'.length);
+  return c;
+}
+
 /** Canonicalize JWT / Cognito role tokens for mobile gates. */
 export function canonicalizeMobileRole(role: string | undefined | null): string {
   const raw = (role ?? '').trim();
@@ -75,7 +99,25 @@ export function canonicalizeMobileRole(role: string | undefined | null): string 
 
   // Already snake_case product roles
   const lower = raw.toLowerCase().replace(/-/g, '_');
-  if (lower.startsWith('venue_') || lower.startsWith('campus_') || lower.startsWith('transit_')) return lower;
+  if (lower.startsWith('venue_') || lower.startsWith('campus_') || lower.startsWith('transit_')) {
+    // Legacy unsuffixed campus snake_case → K-12 (matches shared migrate).
+    switch (lower) {
+      case 'campus_admin':
+        return 'campus_admin_k12';
+      case 'campus_supervisor':
+        return 'campus_supervisor_k12';
+      case 'campus_security':
+        return 'campus_security_k12';
+      case 'campus_dispatch':
+        return 'campus_dispatch_k12';
+      case 'campus_counselor':
+        return 'campus_counselor_k12';
+      case 'campus_faculty':
+        return 'campus_faculty_k12';
+      default:
+        return lower;
+    }
+  }
   if (lower === 'rcsuperadmin' || lower === 'rcadmin' || lower === 'rcitadmin') return lower;
 
   return lower;

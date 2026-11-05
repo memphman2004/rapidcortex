@@ -114,7 +114,7 @@ This demo account does not require an authenticator code. Enter the password and
 After Sign in you are already on the Codes tab (large title: QR & NFC Codes). There is no home screen or main menu to tap first.
 
 NFC / DESIGNATED HARDWARE
-Designated hardware is a blank NTAG213 (or similar Type 2) NFC sticker — not a Bluetooth accessory. There is no pairing PIN. The app writes an NDEF URI so a visitor can tap the sign. This cannot be demonstrated in Simulator or on iPad.
+Designated hardware is a blank NTAG213, NTAG215, or NTAG216 (Type 2) NFC sticker — all acceptable; not a Bluetooth accessory. There is no pairing PIN. The app writes an NDEF URI so a visitor can tap the sign. This cannot be demonstrated in Simulator or on iPad.
 
 DEMO VIDEO (physical iPhone + NFC sticker)
 https://REPLACE_WITH_UNLISTED_VIDEO_URL
@@ -137,7 +137,7 @@ Film on a **physical iPhone** (not Simulator, not iPad). One take, 30–90 secon
 1. Phone lock screen or home screen so it is clearly a physical iPhone, then open NexCort iQ Mobile.
 2. Sign in as `appreviewer@rapidcortex.us` (password only; no authenticator prompt).
 3. Codes list → tap **Program NFC Tag**.
-4. Hold the **top edge** of the iPhone to a blank NTAG213 until the write succeeds.
+4. Hold the **top edge** of the iPhone to a blank NTAG213, NTAG215, or NTAG216 until the write succeeds.
 5. Optional: NFC Tools / a second phone reading the tag URL is helpful but not required.
 
 Upload unlisted to YouTube or a direct HTTPS MP4. Paste the URL into App Review Information **and** reply to the review message.
@@ -148,7 +148,7 @@ Upload unlisted to YouTube or a direct HTTPS MP4. Paste the URL into App Review 
 Thank you for the review.
 
 Guideline 2.1 — NFC demo
-NexCort iQ Mobile writes an NDEF web URL onto NTAG213 (Type 2) NFC stickers used on campus and venue safety signs. This is not Bluetooth pairing and there is no accessory PIN. Core NFC tag writing is iPhone-only; it is not available on iPad or the Simulator.
+NexCort iQ Mobile writes an NDEF web URL onto NTAG213, NTAG215, or NTAG216 (Type 2) NFC stickers used on campus and venue safety signs. This is not Bluetooth pairing and there is no accessory PIN. Core NFC tag writing is iPhone-only; it is not available on iPad or the Simulator.
 
 Demo video of the current app on a physical iPhone programming an NFC sticker:
 https://REPLACE_WITH_UNLISTED_VIDEO_URL

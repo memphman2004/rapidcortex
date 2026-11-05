@@ -143,12 +143,15 @@ struct RCUserClaims {
 
     var canonicalRole: String { RoleNormalization.canonicalize(role) }
 
+    /// Product suffix stripped (`campus_admin_highered` → `campus_admin`) for routing / capability gates.
+    var routingRole: String { RoleNormalization.routingRole(canonicalRole) }
+
     /// Value sent to the codes API — not a user-facing label.
     var qrCodeVertical: String {
         let v = (agencyVertical ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if v == "campus" || v == "venue" || v == "transit" { return v }
-        if canonicalRole.contains("campus") { return "campus" }
-        if canonicalRole.contains("transit") { return "transit" }
+        if canonicalRole.hasPrefix("campus_") { return "campus" }
+        if canonicalRole.hasPrefix("transit_") { return "transit" }
         return "venue"
     }
 
@@ -167,7 +170,7 @@ struct RCUserClaims {
             "venue_operator",
             "transit_admin",
             "transit_supervisor"
-        ].contains(canonicalRole)
+        ].contains(routingRole)
     }
 
     var canManageCodes: Bool { isPlatformAdmin || isAgencyAdmin }
@@ -197,18 +200,38 @@ struct RCUserClaims {
 }
 
 enum RoleNormalization {
+    /// Align with `packages/shared` migrateLegacyRapidCortexRoleTokenValue for campus product suffixes.
     static func canonicalize(_ role: String) -> String {
         let raw = role.trimmingCharacters(in: .whitespacesAndNewlines)
         if raw.isEmpty { return "" }
+        let upper = raw.uppercased()
         let screaming: [String: String] = [
-            "CAMPUS_ADMIN": "campus_admin",
-            "CAMPUS_SUPERVISOR": "campus_supervisor",
-            "CAMPUS_SECURITY": "campus_security",
-            "CAMPUS_DISPATCH": "campus_security",
+            // Campus product-suffixed Cognito groups (K-12 vs Higher-ed).
+            "CAMPUS_ADMIN_K12": "campus_admin_k12",
+            "CAMPUS_ADMIN_HIGHERED": "campus_admin_highered",
+            "CAMPUS_SUPERVISOR_K12": "campus_supervisor_k12",
+            "CAMPUS_SUPERVISOR_HIGHERED": "campus_supervisor_highered",
+            "CAMPUS_SECURITY_K12": "campus_security_k12",
+            "CAMPUS_SECURITY_HIGHERED": "campus_security_highered",
+            "CAMPUS_DISPATCH_K12": "campus_dispatch_k12",
+            "CAMPUS_DISPATCH_HIGHERED": "campus_dispatch_highered",
+            "CAMPUS_COUNSELOR_K12": "campus_counselor_k12",
+            "CAMPUS_COUNSELOR_HIGHERED": "campus_counselor_highered",
+            "CAMPUS_FACULTY_K12": "campus_faculty_k12",
+            "CAMPUS_FACULTY_HIGHERED": "campus_faculty_highered",
+            // Legacy unsuffixed campus → K-12 (web default); mobile routing strips suffix.
+            "CAMPUS_ADMIN": "campus_admin_k12",
+            "CAMPUS_SUPERVISOR": "campus_supervisor_k12",
+            "CAMPUS_SECURITY": "campus_security_k12",
+            "CAMPUS_DISPATCH": "campus_dispatch_k12",
+            "CAMPUS_COUNSELOR": "campus_counselor_k12",
+            "CAMPUS_FACULTY": "campus_faculty_k12",
             "VENUE_ADMIN": "venue_admin",
             "VENUE_SUPERVISOR": "venue_supervisor",
             "VENUE_SECURITY": "venue_security",
             "VENUE_OPERATOR": "venue_operator",
+            "VENUE_GUEST": "venue_guest_services",
+            "VENUE_GUEST_SERVICES": "venue_guest_services",
             "TRANSIT_ADMIN": "transit_admin",
             "TRANSIT_SUPERVISOR": "transit_supervisor",
             "TRANSIT_SECURITY": "transit_security",
@@ -217,8 +240,36 @@ enum RoleNormalization {
         let normalized = raw.lowercased().replacingOccurrences(of: "-", with: "_")
         // Legacy Cognito value — not a product role. Always treat as supervisor.
         if normalized == "commsupervisor" { return "supervisor" }
-        if let mapped = screaming[raw.uppercased()] { return mapped }
-        return normalized
+        if let mapped = screaming[upper] { return mapped }
+        // Compact aliases used in older seeds.
+        let aliases: [String: String] = [
+            "campusadmin": "campus_admin_k12",
+            "campussupervisor": "campus_supervisor_k12",
+            "campussecurity": "campus_security_k12",
+            "campusdispatch": "campus_dispatch_k12"
+        ]
+        if let aliased = aliases[normalized] { return aliased }
+        // Legacy snake_case without product suffix → K-12.
+        switch normalized {
+        case "campus_admin": return "campus_admin_k12"
+        case "campus_supervisor": return "campus_supervisor_k12"
+        case "campus_security": return "campus_security_k12"
+        case "campus_dispatch": return "campus_dispatch_k12"
+        case "campus_counselor": return "campus_counselor_k12"
+        case "campus_faculty": return "campus_faculty_k12"
+        default: return normalized
+        }
+    }
+
+    /// Strip `_k12` / `_highered` so routers and capability lists stay product-agnostic.
+    static func routingRole(_ canonical: String) -> String {
+        if canonical.hasSuffix("_highered") {
+            return String(canonical.dropLast("_highered".count))
+        }
+        if canonical.hasSuffix("_k12") {
+            return String(canonical.dropLast("_k12".count))
+        }
+        return canonical
     }
 }
 

@@ -38,7 +38,7 @@ export async function writeNfcUrl(url: string): Promise<void> {
       throw new Error("The write was cancelled. Hold the tag to the phone and try again.");
     }
     if (name === "NotSupportedError" || name === "NotReadableError") {
-      throw new Error("This tag cannot store a URL. Use a blank NTAG213 sticker.");
+      throw new Error("This tag cannot store a URL. Use a blank NTAG213, NTAG215, or NTAG216 sticker.");
     }
     throw error instanceof Error ? error : new Error("The tag was not written.");
   }

@@ -643,30 +643,26 @@ Resources:
 
   NovaSessionStartFunction:
     Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
     Properties:
       FunctionName: !Sub "${ManagedPolicyNamePrefix}-nova-session-start-${DeploymentStage}"
-      CodeUri: ../../apps/api/
-      Handler: dist/call-assist/nova-sonic/session-start-handler.handler
+      CodeUri: ../nova-lambda/
+      Handler: session-start-handler.handler
       Timeout: 10
       MemorySize: 512
       Environment:
         Variables:
           NOVA_SONIC_GATEWAY_URL: !Ref NovaSonicGatewayUrl
+          # Inline mock until live BidirectionalStream E2E is verified on DID
+          NOVA_SONIC_BEDROCK_MOCK: !Ref NovaSonicBedrockMock
       Policies:
         - !Ref AppManagedPolicyCallAssistDynamo
 
   NovaSessionAwaitFunction:
     Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: makefile
-      BuildTarget: build-function
     Properties:
       FunctionName: !Sub "${ManagedPolicyNamePrefix}-nova-session-await-${DeploymentStage}"
-      CodeUri: ../../apps/api/
-      Handler: dist/call-assist/nova-sonic/session-await-handler.handler
+      CodeUri: ../nova-lambda/
+      Handler: session-await-handler.handler
       Timeout: 300
       MemorySize: 1024
       Environment:

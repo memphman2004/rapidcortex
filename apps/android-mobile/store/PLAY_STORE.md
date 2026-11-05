@@ -15,7 +15,7 @@ QR and NFC safety codes for campus and venue staff. Program signs in the field.
 
 **Full description:**
 
-NexCort iQ is a field tool for licensed campus and venue staff. Create location QR codes, print or share the sign package, and program NTAG213 NFC tags so visitors can report a safety concern at that spot.
+NexCort iQ is a field tool for licensed campus and venue staff. Create location QR codes, print or share the sign package, and program NTAG213, NTAG215, or NTAG216 NFC stickers so visitors can report a safety concern at that spot.
 
 This app is not a 911 dispatch console, CAD system, or public reporting app. Sign-in is for agency-provisioned accounts only. There is no in-app signup.
 

@@ -905,7 +905,7 @@ List background: `.scrollContentBackground(.hidden)` + ZStack with `RCTheme.bg`
 - **NFC hardware unavailable:** Check `NFCNDEFReaderSession.readingAvailable`
   before showing Write NFC button. Show disabled state with
   "NFC requires iPhone 7 or later" if unavailable.
-- **NTAG215/216:** These write fine — only NTAG213 is recommended
+- **NTAG213 / NTAG215 / NTAG216:** All acceptable Type 2 stickers for customer signs
   in installation docs, but the writer handles any NDEF-writable tag
 - **URL too long for tag:** Check payload bytes against `capacity`
   parameter from `queryNDEFStatus` before writing

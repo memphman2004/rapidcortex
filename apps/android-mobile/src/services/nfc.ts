@@ -70,7 +70,7 @@ export async function writeURLToTag(url: string): Promise<NFCWriteResult> {
   try {
     await NfcManager.start();
     await NfcManager.requestTechnology(NfcTech.Ndef, {
-      alertMessage: 'Hold an NTAG213 tag to the back of your phone',
+      alertMessage: 'Hold an NTAG213, NTAG215, or NTAG216 sticker to the back of your phone',
     });
 
     const bytes = Ndef.encodeMessage([Ndef.uriRecord(url)]);
@@ -107,7 +107,7 @@ export function nfcErrorMessage(error: NFCWriteError): string {
     case 'TIMEOUT':
       return 'No NFC tag detected. Hold the tag closer and try again.';
     case 'TAG_INCOMPATIBLE':
-      return 'This tag is not NDEF writable. Use an NTAG213 tag.';
+      return 'This tag is not NDEF writable. Use an NTAG213, NTAG215, or NTAG216 sticker.';
     case 'CANCELLED':
       return 'NFC write cancelled.';
     case 'WRITE_FAILED':

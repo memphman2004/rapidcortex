@@ -29,17 +29,17 @@ export function NFCInstructions({ url }: Props) {
       <ol className="mt-3 list-decimal space-y-2 pl-5">
         {businessCard ? (
           <>
-            <li>Use a blank NTAG213 sticker.</li>
+            <li>Use a blank NTAG213, NTAG215, or NTAG216 sticker (all acceptable).</li>
             <li>On an Android phone, open this page in Chrome and tap Write to tag.</li>
             <li>Hold the sticker to the back of the phone until the write succeeds.</li>
             <li>Tap the sticker with another phone. It should open this contact card.</li>
           </>
         ) : (
           <>
-            <li>Order NTAG213 NFC stickers (about $15–20 per 100 tags).</li>
+            <li>Order NTAG213, NTAG215, or NTAG216 NFC stickers (all acceptable; about $15–20 per 100 for NTAG213).</li>
             <li>Open the NexCort iQ mobile app (Campus or Venue).</li>
             <li>Open this location code, then tap Program NFC Tag.</li>
-            <li>Hold an NTAG213 to the back of your mobile device until the write succeeds.</li>
+            <li>Hold an NTAG213/215/216 sticker to the back of your mobile device until the write succeeds.</li>
             <li>Stick the programmed tag to the back of your sign.</li>
           </>
         )}

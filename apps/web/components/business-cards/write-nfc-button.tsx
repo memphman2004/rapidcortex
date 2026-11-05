@@ -38,7 +38,7 @@ export function WriteNfcButton({ url, onWritten }: Props) {
           {busy ? "Hold the tag to the phone…" : "Write to tag"}
         </button>
       ) : (
-        <p className="text-xs text-slate-500">Chrome on Android can write this address onto an NTAG213. This browser can copy it, and an iPhone can open it after the tag is written.</p>
+        <p className="text-xs text-slate-500">Chrome on Android can write this address onto an NTAG213, NTAG215, or NTAG216 sticker. This browser can copy it, and an iPhone can open it after the tag is written.</p>
       )}
       {detail ? <p className="text-xs">{detail}</p> : null}
     </div>

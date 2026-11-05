@@ -1447,12 +1447,17 @@
       "Identifier": "start-nova-media-stream",
       "Type": "UpdateContactMediaStreamingBehavior",
       "Parameters": {
-        "MediaStreamBehavior": {
-          "Enabled": "True",
-          "Participants": [
-            "Customer"
-          ]
-        }
+        "MediaStreamingState": "Enabled",
+        "MediaStreamType": "Audio",
+        "Participants": [
+          {
+            "ParticipantType": "Customer",
+            "MediaDirections": [
+              "From",
+              "To"
+            ]
+          }
+        ]
       },
       "Transitions": {
         "NextAction": "invoke-nova-session-start",
@@ -1498,7 +1503,7 @@
       "Type": "InvokeLambdaFunction",
       "Parameters": {
         "LambdaFunctionARN": "{{novaSessionAwaitLambdaArn}}",
-        "InvocationTimeLimitSeconds": "300",
+        "InvocationTimeLimitSeconds": "8",
         "LambdaInvocationAttributes": {
           "agencyId": "$.External.agencyId",
           "contactId": "$.ContactId",
@@ -1524,12 +1529,17 @@
       "Identifier": "stop-nova-media-stream",
       "Type": "UpdateContactMediaStreamingBehavior",
       "Parameters": {
-        "MediaStreamBehavior": {
-          "Enabled": "False",
-          "Participants": [
-            "Customer"
-          ]
-        }
+        "MediaStreamingState": "Disabled",
+        "MediaStreamType": "Audio",
+        "Participants": [
+          {
+            "ParticipantType": "Customer",
+            "MediaDirections": [
+              "From",
+              "To"
+            ]
+          }
+        ]
       },
       "Transitions": {
         "NextAction": "check-nova-emergency",
@@ -1546,12 +1556,17 @@
       "Identifier": "stop-nova-media-stream-fallback",
       "Type": "UpdateContactMediaStreamingBehavior",
       "Parameters": {
-        "MediaStreamBehavior": {
-          "Enabled": "False",
-          "Participants": [
-            "Customer"
-          ]
-        }
+        "MediaStreamingState": "Disabled",
+        "MediaStreamType": "Audio",
+        "Participants": [
+          {
+            "ParticipantType": "Customer",
+            "MediaDirections": [
+              "From",
+              "To"
+            ]
+          }
+        ]
       },
       "Transitions": {
         "NextAction": "play-disclosure",
@@ -1645,7 +1660,7 @@
         "NextAction": "disconnect",
         "Conditions": [
           {
-            "NextAction": "disconnect",
+            "NextAction": "play-nova-confirmation",
             "Condition": {
               "Operator": "Equals",
               "Operands": [
@@ -1660,6 +1675,23 @@
             "ErrorType": "NoMatchingCondition"
           }
         ]
+      }
+    },
+    {
+      "Identifier": "play-nova-confirmation",
+      "Type": "MessageParticipant",
+      "Parameters": {
+        "Text": "Your report number is $.External.confirmationNumber. I'll repeat that — $.External.confirmationNumber. Someone will be in touch."
+      },
+      "Transitions": {
+        "NextAction": "disconnect",
+        "Errors": [
+          {
+            "NextAction": "disconnect",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
       }
     },
     {

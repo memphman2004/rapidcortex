@@ -701,7 +701,7 @@ export function QRNFCManager({
         </h3>
         <p className="mt-1 text-xs text-slate-500">
           {mediumView === "nfc"
-            ? "Open each location code in the NexCort iQ mobile app, tap Program NFC Tag, hold an NTAG213 to your phone, then stick the tag behind the sign. Browser for QR PNGs; RC app for NFC write and QR verify — no other apps."
+            ? "Open each location code in the NexCort iQ mobile app, tap Program NFC Tag, hold an NTAG213, NTAG215, or NTAG216 sticker to your phone, then stick the tag behind the sign. Browser for QR PNGs; RC app for NFC write and QR verify — no other apps."
             : "Signs only need the QR code and NFC tag. When someone scans, they can tap to call or submit a report."}
         </p>
         {mediumView !== "nfc" ? (

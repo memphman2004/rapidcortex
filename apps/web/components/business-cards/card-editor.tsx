@@ -683,7 +683,7 @@ function NfcPanel({ profileUrl, nfcUrl, owner, published, card }: { profileUrl: 
       {tagQr ? <img alt="QR code for the NFC address" className="h-40 w-40 rounded-2xl border border-slate-200 bg-white p-2" src={tagQr} /> : null}
       <ol className="list-decimal space-y-1 pl-5">
         <li>Publish the card so the address shows the current contact details.</li>
-        <li>An administrator writes the URL above to an NTAG213 from NFC Card Management.</li>
+        <li>An administrator writes the URL above to an NTAG213, NTAG215, or NTAG216 sticker from NFC Card Management.</li>
         <li>Tap the tag with a phone. It should open this same profile.</li>
       </ol>
     </div>

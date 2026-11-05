@@ -301,7 +301,7 @@ export function NfcAdmin() {
 
   return (
     <div className="space-y-3 text-sm">
-      <p>Assign the tag, then write its address onto an NTAG213. Chrome on Android writes the sticker from this page. A later edit to the contact page does not require another write.</p>
+      <p>Assign the tag, then write its address onto an NTAG213, NTAG215, or NTAG216 sticker (all acceptable). Chrome on Android writes the sticker from this page. A later edit to the contact page does not require another write.</p>
       {message ? <p className="text-amber-200">{message}</p> : null}
       <button type="button" className="rounded border border-slate-600 px-3 py-2" onClick={() => void bizCardFetch("/api/admin/nfc-cards", { method: "POST", body: JSON.stringify({ tagType: "NTAG213" }) }).then(reload).catch((error: Error) => setMessage(error.message))}>Add NTAG213</button>
       <div className="overflow-x-auto">

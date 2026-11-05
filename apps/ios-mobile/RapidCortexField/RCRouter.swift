@@ -15,7 +15,8 @@ enum RCRouter {
     ) -> RCDestination {
         guard let claims else { return .noAccess }
 
-        switch claims.canonicalRole {
+        // Use product-agnostic family (`campus_admin_highered` → `campus_admin`).
+        switch claims.routingRole {
         case "campus_admin",
              "campus_supervisor",
              "campus_security",
@@ -25,6 +26,7 @@ enum RCRouter {
              "venue_operator",
              "venue_security",
              "venue_guest_services",
+             "venue_guest",
              "transit_admin",
              "transit_supervisor",
              "transit_security",

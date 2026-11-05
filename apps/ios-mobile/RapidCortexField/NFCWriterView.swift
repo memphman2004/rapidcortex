@@ -143,7 +143,7 @@ struct NFCWriterView: View {
                 .font(.system(size: 20, weight: .bold))
                 .foregroundColor(RCTheme.textPrimary)
 
-            Text("\(bytes) bytes · NTAG213 programmed.")
+            Text("\(bytes) bytes · NFC sticker programmed.")
                 .font(.system(size: 13))
                 .foregroundColor(RCTheme.textMuted)
 
