@@ -29,7 +29,11 @@ const CLASS_PATTERNS: ReadonlyArray<{ cls: CallTriageClassification; re: RegExp;
   { cls: "NOISE_COMPLAINT", re: /\b(noise|loud music|party|barking|música alta|musica alta|ruido)\b/i, weight: 0.86 },
   { cls: "PARKING", re: /\b(parking|blocked driveway|hydrant|handicap spot)\b/i, weight: 0.84 },
   { cls: "TOW_COMPLAINT", re: /\b(tow|towed|impound)\b/i, weight: 0.82 },
-  { cls: "ANIMAL_CONTROL", re: /\b(stray dog|animal control|loose dog|aggressive dog|raccoon)\b/i, weight: 0.83 },
+  {
+    cls: "ANIMAL_CONTROL",
+    re: /\b(stray dog|animal control|loose dog|aggressive dog|raccoon|cat( is)? stuck|stuck (in|up) (a |the )?tree|pet (stuck|trapped)|animal (stuck|trapped)|can't get down|cant get down)\b/i,
+    weight: 0.83,
+  },
   { cls: "CODE_ENFORCEMENT", re: /\b(code enforcement|trash pile|overgrown|illegal dumping|junk (cars?|vehicles?))\b/i, weight: 0.8 },
   { cls: "PUBLIC_WORKS", re: /\b(pothole|pot hole|sidewalk|manhole|sinkhole)\b/i, weight: 0.88 },
   { cls: "STREET_LIGHTING", re: /\b(street ?light|traffic light|traffic signal|light pole)\b/i, weight: 0.9 },

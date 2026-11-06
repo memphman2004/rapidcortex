@@ -264,7 +264,8 @@ export function novaSonicOpeningEvents(opts: {
       event: {
         sessionStart: {
           inferenceConfiguration: { maxTokens: 1024, topP: 0.9, temperature: 0.7 },
-          turnDetectionConfiguration: { endpointingSensitivity: "HIGH" },
+          // MEDIUM: allow natural pauses so Nexiq does not cut the caller mid-thought.
+          turnDetectionConfiguration: { endpointingSensitivity: "MEDIUM" },
         },
       },
     },

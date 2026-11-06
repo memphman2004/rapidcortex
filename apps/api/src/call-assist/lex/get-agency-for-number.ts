@@ -3,6 +3,8 @@ import {
   CONNECT_LANGUAGE_MENU_PROMPT,
   CONNECT_LIVE_LEX_LOCALES,
   GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE,
+  NEXCORTIQ_CONVERSATIONAL_QA_TAG,
+  assignConversationalCohort,
   callAssistVoiceVarsFromTenant,
   connectLivePrompts,
   connectLocaleAttrSuffix,
@@ -19,6 +21,7 @@ export type ConnectStartEvent = {
   Details?: {
     Parameters?: Record<string, string>;
     ContactData?: {
+      ContactId?: string;
       SystemEndpoint?: { Address?: string };
       CustomerEndpoint?: { Address?: string };
       Attributes?: Record<string, string>;
@@ -51,6 +54,10 @@ export type ConnectStartResult = {
   voiceEngine: string;
   novaSonicModelId: string;
   agencyVoiceName: string;
+  /** Recording / CTR filter key — always NexCortIQ-Conversational-v2 for this flow generation. */
+  qaTag: string;
+  /** staging = 5% conversational canary; production = remainder. */
+  conversationalCohort: string;
 } & Record<string, string>;
 
 function phoneFromEvent(event: ConnectStartEvent): string {
@@ -88,6 +95,8 @@ export function buildConnectStartResult(opts: {
   config: CallAssistTenantConfig | null;
   identity: { ani?: string; aliAddress?: string; apartmentSuite?: string };
   agencyShortName: string;
+  /** Connect ContactId — drives stable 5% staging cohort assignment. */
+  contactId?: string;
 }): ConnectStartResult {
   const locale = resolveConnectStartLocale({ eventLocale: opts.locale, tenantDefault: opts.locale });
   const start = startCallAssistSession({
@@ -110,6 +119,8 @@ export function buildConnectStartResult(opts: {
       opts.config?.agencyName?.trim() ||
       opts.agencyShortName,
   });
+  const cohortSeed = opts.contactId?.trim() || opts.identity.ani?.trim() || opts.agencyId;
+  const conversationalCohort = assignConversationalCohort(cohortSeed);
   const result: ConnectStartResult = {
     agencyId: opts.agencyId,
     disclosureText,
@@ -141,6 +152,8 @@ export function buildConnectStartResult(opts: {
       opts.config?.agencyDisplayName?.trim() ||
       opts.config?.agencyName?.trim() ||
       opts.agencyShortName,
+    qaTag: NEXCORTIQ_CONVERSATIONAL_QA_TAG,
+    conversationalCohort,
   };
 
   for (const lex of CONNECT_LIVE_LEX_LOCALES) {
@@ -171,6 +184,8 @@ export async function handler(event: ConnectStartEvent): Promise<ConnectStartRes
   const agencyId = phoneNumber ? await getAgencyIdByDid(phoneNumber) : null;
   const hinted = eventLocaleHint(event);
 
+  const contactId = event.Details?.ContactData?.ContactId?.trim() || "";
+
   if (!agencyId) {
     return buildConnectStartResult({
       agencyId: "default",
@@ -178,6 +193,7 @@ export async function handler(event: ConnectStartEvent): Promise<ConnectStartRes
       config: null,
       identity,
       agencyShortName: "this agency",
+      contactId,
     });
   }
 
@@ -193,6 +209,7 @@ export async function handler(event: ConnectStartEvent): Promise<ConnectStartRes
     config: isCallAssistGreetingConfigEnabled() ? config : null,
     identity,
     agencyShortName,
+    contactId,
   });
   if (!isCallAssistGreetingConfigEnabled()) {
     result.agencyId = agencyId;

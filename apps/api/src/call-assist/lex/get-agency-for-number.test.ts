@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveConnectStartLocale } from "rapid-cortex-shared";
+import { NEXCORTIQ_CONVERSATIONAL_QA_TAG, resolveConnectStartLocale } from "rapid-cortex-shared";
 import { defaultTenantConfig } from "../config-service.js";
 import { buildConnectStartResult, eventLocaleHint } from "./get-agency-for-number.js";
 
@@ -39,7 +39,7 @@ describe("GetAgencyConfigForNumber Connect start", () => {
     expect(result.ani).toBe("+18165550100");
     expect(result.language).not.toBe("es");
     expect(result.language).not.toBe("en");
-    expect(result.greetingText.startsWith("Thank you for calling. I'm Nexiq, your AI assistant.")).toBe(true);
+    expect(result.greetingText.startsWith("Thank you for calling. I'm Nexiq, an AI assistant.")).toBe(true);
     expect(result.openingLine).toBe("");
     expect(result.voiceEngine).toBe("LEX_POLLY");
     const nova = buildConnectStartResult({
@@ -51,6 +51,27 @@ describe("GetAgencyConfigForNumber Connect start", () => {
     });
     expect(nova.voiceEngine).toBe("NOVA_SONIC");
     expect(nova.novaSonicModelId).toBe("amazon.nova-2-5-sonic");
+    expect(result.qaTag).toBe(NEXCORTIQ_CONVERSATIONAL_QA_TAG);
+    expect(["staging", "production"]).toContain(result.conversationalCohort);
+    const staged = buildConnectStartResult({
+      agencyId: "springfield",
+      locale: "en-US",
+      config,
+      identity: { ani: "+18165550100" },
+      agencyShortName: "Springfield PD",
+      contactId: "force-staging-check",
+    });
+    expect(staged.qaTag).toBe(NEXCORTIQ_CONVERSATIONAL_QA_TAG);
+    expect(staged.conversationalCohort).toBe(
+      buildConnectStartResult({
+        agencyId: "springfield",
+        locale: "en-US",
+        config,
+        identity: { ani: "+18165550100" },
+        agencyShortName: "Springfield PD",
+        contactId: "force-staging-check",
+      }).conversationalCohort,
+    );
   });
 
   it("prefers an event locale over the tenant default", () => {

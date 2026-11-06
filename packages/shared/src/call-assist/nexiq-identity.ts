@@ -8,7 +8,7 @@ export const NEXIQ_PRODUCT_NAME = "Nexiq";
 /** Polly IPA. Two syllables, stress on the first: NEX-ik. */
 export const NEXIQ_PRONUNCIATION_IPA = "ˈnɛksɪk";
 
-export const NEXIQ_OPENING_GREETING = "Thank you for calling. I'm Nexiq, your AI assistant.";
+export const NEXIQ_OPENING_GREETING = "Thank you for calling. I'm Nexiq, an AI assistant.";
 
 export const NEXIQ_NAME_REPLY = "I'm Nexiq, your AI assistant for city services.";
 

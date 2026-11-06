@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { classifyMunicipalIssue } from "./municipal-services.js";
 import { listedReasonReplacesIntent } from "./citizen-call-reasons.js";
 import { evaluateSafety } from "./safety.js";
+import { classifyCallTriage } from "./triage.js";
 import { findSameDayReport, locationReadback, municipalAfterHoursNote } from "./location-readback.js";
 import { callerTextForSafety } from "../../../../apps/api/src/call-assist/lex/safety-gate.js";
 
@@ -37,6 +38,16 @@ describe("caller reasons in every Nexiq language", () => {
     expect(hit?.issueId).toBe("TRAPPED_ANIMAL");
   });
 
+  it("triages 'my cat is stuck in a tree' as animal control, not unknown", () => {
+    const triage = classifyCallTriage("my cat is stuck in a tree", { vertical: "911" });
+    expect(triage.primaryClassification).toBe("ANIMAL_CONTROL");
+    expect(triage.emergencyDetected).toBe(false);
+  });
+
+  it("lets animal control replace a forestry Lex guess", () => {
+    expect(listedReasonReplacesIntent("ReportTreesVegetation", "ANIMAL_CONTROL")).toBe(true);
+  });
+
   it("routes other stuck-animal and wildlife attic calls to animal control", () => {
     expect(classifyMunicipalIssue("cat in the chimney")?.issueId).toBe("TRAPPED_ANIMAL");
     expect(classifyMunicipalIssue("dog stuck in a storm drain")?.issueId).toBe("TRAPPED_ANIMAL");
@@ -66,8 +77,8 @@ describe("call safety across turns", () => {
 
 describe("location, duplicates, and office hours", () => {
   it("reads an intersection back", () => {
-    expect(locationReadback("12th and Main")).toMatch(/12th and Main/);
-    expect(locationReadback("12th and Main", "es")).toMatch(/ubicación/i);
+    expect(locationReadback("12th and Main")).toBe("12th and Main — is that right?");
+    expect(locationReadback("12th and Main", "es")).toBe("12th and Main — ¿es correcto?");
   });
 
   it("finds a report already filed today for the same number and place", () => {

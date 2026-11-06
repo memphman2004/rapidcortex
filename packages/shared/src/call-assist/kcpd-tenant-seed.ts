@@ -22,8 +22,9 @@ export const KCPD_DISCLOSURE_TEXT =
 
 /** Spoken on the first-tenant Lex/Connect test DID. Stored on that tenant only. */
 export const KCPD_LEX_DISCLOSURE_TEXT =
-  "You are speaking with Nexiq for the Kansas City Missouri Police Department. " +
-  "This is a non-emergency line. This call is recorded.";
+  "You are speaking with an AI assistant named Nexiq for the Kansas City Missouri Police Department. " +
+  "This is a non-emergency line. This call is recorded. " +
+  "If this is an emergency, say emergency or hang up and dial 9-1-1.";
 
 export const GENERIC_DISCLOSURE_TEXT = GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE;
 
@@ -216,8 +217,10 @@ export const KCPD_VOICE_CONFIG: CallAssistAgencyVoiceConfig = {
   defaultLocale: "en_US",
   supportedLocales: ["en_US", "es_US", "zh_CN", "zh_HK", "tl_PH", "vi_VN", "ar_AE"],
   disclosureText: KCPD_LEX_DISCLOSURE_TEXT,
+  /** Conversational Nova path for en/es demos — Lex/Polly remains fallback for other locales. */
+  novaSonicEnabled: true,
   openingGreeting:
-    "Thank you for calling. I'm Nexiq, your AI assistant. This is the non-emergency service line for Kansas City. If this is a life-threatening emergency, hang up and dial 9-1-1. How can I help you today?",
+    "Thank you for calling. I'm Nexiq, an AI assistant. This is the non-emergency service line for Kansas City. If this is a life-threatening emergency, hang up and dial 9-1-1. How can I help you today?",
 };
 
 /** First-tenant city-services directory. Other agencies seed their own 311/parks/water entries. */

@@ -29,6 +29,7 @@ import {
   hexagonAdapter,
   genericPollAdapter,
   prophoenixAdapter,
+  southernSoftwareAdapter,
   getAdapter,
 } from "./cad-poll-adapters.js";
 import {
@@ -184,6 +185,7 @@ describe("Adapter registry", () => {
     expect(getAdapter("central_square")).toBe(centralSquareAdapter);
     expect(getAdapter("hexagon")).toBe(hexagonAdapter);
     expect(getAdapter("prophoenix")).toBe(prophoenixAdapter);
+    expect(getAdapter("southern_software")).toBe(southernSoftwareAdapter);
     expect(getAdapter("generic_webhook")).toBe(genericPollAdapter);
   });
 
@@ -211,6 +213,8 @@ describe("Mock mode (CAD_POLLER_MOCK=1)", () => {
     tylerNewWorldAdapter,
     centralSquareAdapter,
     hexagonAdapter,
+    prophoenixAdapter,
+    southernSoftwareAdapter,
     genericPollAdapter,
   ])("$vendor returns synthetic incidents without HTTP call", async (adapter) => {
     const result = await adapter.poll(BASE_CONFIG, new Date().toISOString());

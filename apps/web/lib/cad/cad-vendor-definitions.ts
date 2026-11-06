@@ -12,6 +12,7 @@ export type CadVendorId =
   | "hexagon"
   | "console_one"
   | "prophoenix"
+  | "southern_software"
   | "generic_webhook";
 
 export type CadConnectionType = "webhook_inbound" | "api_poll" | "tcp_feed";
@@ -408,6 +409,56 @@ const PRO_PHOENIX: CadVendorDefinition = {
 5. Write-back stays off until the CAD write-back addendum is signed.`,
 };
 
+const SOUTHERN_SOFTWARE: CadVendorDefinition = {
+  id: "southern_software",
+  label: "Southern Software",
+  fullName: "Southern Software VisiCAD",
+  logoText: "SS",
+  description:
+    "Single-agency Southern Software / VisiCAD connector. Paste the agency /ssapi base URL and API key. Paths are provisional until partner docs confirm.",
+  supportedConnectionTypes: ["api_poll", "webhook_inbound"],
+  recommendedConnectionType: "api_poll",
+  sourceFields: [
+    { key: "incidentId", label: "Incident ID", example: "2026-SS-001234", suggestedTarget: "cadEventId" },
+    { key: "callType", label: "Call type", example: "MVA", suggestedTarget: "incidentType" },
+    { key: "priority", label: "Priority", example: "1", suggestedTarget: "priority" },
+    { key: "status", label: "Status", example: "DISPATCHED", suggestedTarget: "status" },
+    { key: "address", label: "Address", example: "1234 Main St", suggestedTarget: "location" },
+    { key: "latitude", label: "Latitude", example: "33.195", suggestedTarget: "latitude" },
+    { key: "longitude", label: "Longitude", example: "-80.012", suggestedTarget: "longitude" },
+    { key: "callerName", label: "Caller name", example: "Jane Caller", suggestedTarget: "callerName" },
+    { key: "callerPhone", label: "Caller phone", example: "+18435550142", suggestedTarget: "callerPhone" },
+    { key: "narrative", label: "Narrative", example: "Two-vehicle collision", suggestedTarget: "narrative" },
+    { key: "units", label: "Units", example: "M1", suggestedTarget: "units" },
+  ],
+  defaultFieldMappings: [
+    { sourceKey: "incidentId", targetId: "cadEventId" },
+    { sourceKey: "callType", targetId: "incidentType" },
+    { sourceKey: "priority", targetId: "priority" },
+    { sourceKey: "status", targetId: "status" },
+    { sourceKey: "address", targetId: "location" },
+    { sourceKey: "latitude", targetId: "latitude" },
+    { sourceKey: "longitude", targetId: "longitude" },
+    { sourceKey: "callerName", targetId: "callerName" },
+    { sourceKey: "callerPhone", targetId: "callerPhone" },
+    { sourceKey: "narrative", targetId: "narrative" },
+    { sourceKey: "units", targetId: "units" },
+  ],
+  defaultPriorityMapping: { "1": "P1", "2": "P2", "3": "P3", "4": "P4" },
+  authHeaderName: "X-RC-Token",
+  vendorWebhookNotes:
+    "API poll uses Authorization: ApiKey from Secrets Manager. Inbound webhook (if SS posts) uses X-RC-Token.",
+  suggestedPollIntervalMinutes: 1,
+  knownApiEndpointPattern: "https://{cad-host}/ssapi/v1/incidents",
+  setupInstructions: `Southern Software VisiCAD
+────────────────────────
+1. Obtain the agency CAD base URL (…/ssapi) and API key from Southern Software.
+2. Store credentials in Secrets Manager; paste the incidents URL or base + path.
+3. Poll uses since=<ISO>, optional agencyCode, status=ACTIVE,DISPATCHED.
+4. Default fields: incidentId, callType, priority, status, address, latitude, longitude.
+5. Confirm field names with partner docs before production. Write-back stays off until the addendum is signed.`,
+};
+
 const GENERIC_WEBHOOK: CadVendorDefinition = {
   id: "generic_webhook",
   label: "Generic Webhook",
@@ -452,6 +503,7 @@ export const CAD_VENDORS: CadVendorDefinition[] = [
   HEXAGON,
   CONSOLE_ONE,
   PRO_PHOENIX,
+  SOUTHERN_SOFTWARE,
   GENERIC_WEBHOOK,
 ];
 

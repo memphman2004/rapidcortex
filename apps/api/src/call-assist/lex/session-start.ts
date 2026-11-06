@@ -144,11 +144,14 @@ export function escalationCloseParts(
     };
   }
   const check = checkEscalation(utterance || "emergency", greetingConfig, locale);
-  // Lex may already route to EmergencyIntent before phrase re-check; still announce.
-  const announcement =
-    check.announcement.trim() ||
-    buildEscalationAnnouncement(greetingConfig, locale) ||
-    fallbackSpoken.trim();
+  const preferSilent =
+    greetingConfig.escalationMode === "silent_transfer" || !greetingConfig.speakEscalationAnnouncement;
+  // Silent transfer must not fall through to the generic emergency spoken line.
+  const announcement = preferSilent
+    ? ""
+    : check.announcement.trim() ||
+      buildEscalationAnnouncement(greetingConfig, locale) ||
+      fallbackSpoken.trim();
   const endSession = check.action === "announce_and_end";
   const messages: LexMessage[] = announcement
     ? [speakForEngine(announcement, sessionAttrs.voiceEngine)]

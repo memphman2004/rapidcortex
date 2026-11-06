@@ -133,3 +133,16 @@ Some intents use conditional routing where the department depends on the sub-iss
 | ReportTransitIssue | PARKING_* / TOW_* | PARKING_ENFORCEMENT |
 | ReportEnvironmentalHealth | RESTAURANT_SANITATION | CODE_ENFORCEMENT |
 
+## Conversational tone (Nova + Lex)
+
+For demos that should sound like two humans talking:
+
+1. Set tenant `novaSonicEnabled: true` so English/Spanish use Nova 2.5 Sonic + `conversational-system-prompt-v2` (not Lex/Polly canned turns).
+2. Nova session endpointing is `MEDIUM`; Lex adaptive default end-timeout is 1200ms (patient 1750ms).
+3. Smoke scenarios after deploy:
+   - Abandoned vehicle (one question per turn)
+   - Caller dumps all details → single address confirm + report number
+   - Mid-sentence correction (“Toyota — wait, Honda”)
+   - Upset caller → calm, no filler
+   - Emergency phrase → immediate `TRANSFER_911`
+

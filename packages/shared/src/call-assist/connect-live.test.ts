@@ -86,14 +86,29 @@ describe("Nexiq contact flow template", () => {
       expect.arrayContaining(["en-US", "es-US", "zh-CN", "zh-HK", "tl-PH", "vi-VN", "ar-AE"]),
     );
     expect(flow.Actions.some((a) => a.Identifier === "language-menu")).toBe(true);
-    const nova = flow.Actions.find((a) => a.Identifier === "lex-intake-nova");
-    expect(nova?.Type).toBe("ConnectParticipantWithLexBot");
-    expect(nova?.Parameters?.Text).toBeUndefined();
-    expect(nova?.Parameters?.LexSessionAttributes?.greetingDelivered).toBe("false");
-    expect(nova?.Transitions?.NextAction).toBe("disconnect");
-    expect(nova?.Transitions?.Conditions?.some((c) => c.NextAction === "check-escalation-mode" && c.Condition?.Operands?.[0] === "EmergencyEscalation")).toBe(true);
-    expect(nova?.Transitions?.Conditions?.some((c) => c.NextAction === "set-fallback-attrs")).toBe(true);
+
+    // Nova Sonic uses Connect media streaming + Lambda session start/await (not a second Lex bot).
+    const novaStart = flow.Actions.find((a) => a.Identifier === "invoke-nova-session-start");
+    const novaAwait = flow.Actions.find((a) => a.Identifier === "invoke-nova-session-await");
+    expect(novaStart?.Type).toBe("InvokeLambdaFunction");
+    expect(novaAwait?.Type).toBe("InvokeLambdaFunction");
+    expect(novaAwait?.Transitions?.NextAction).toBe("stop-nova-media-stream");
+    const novaEmergency = flow.Actions.find((a) => a.Identifier === "check-nova-emergency");
+    expect(
+      novaEmergency?.Transitions?.Conditions?.some(
+        (c) => c.NextAction === "play-emergency-nova" && c.Condition?.Operands?.[0] === "true",
+      ),
+    ).toBe(true);
+    const novaEnVoice = flow.Actions.find((a) => a.Identifier === "set-voice-nova-en");
+    expect(novaEnVoice?.Parameters?.TextToSpeechVoice).toBe("Ruth");
+    expect(novaEnVoice?.Parameters?.TextToSpeechEngine).toBe("Neural");
+    const novaSpeakEn = flow.Actions.find((a) => a.Identifier === "set-voice-nova-speak-en");
+    const novaSpeakEs = flow.Actions.find((a) => a.Identifier === "set-voice-nova-speak-es");
+    expect(novaSpeakEn?.Parameters?.TextToSpeechVoice).toBe("Ruth");
+    expect(novaSpeakEs?.Parameters?.TextToSpeechVoice).toBe("Lupe");
+
     const polly = flow.Actions.find((a) => a.Identifier === "lex-intake");
+    expect(polly?.Type).toBe("ConnectParticipantWithLexBot");
     expect(polly?.Parameters?.LexSessionAttributes?.greetingDelivered).toBe("true");
     expect(polly?.Parameters?.LexSessionAttributes?.intakeStarted).toBe("true");
     expect(polly?.Parameters?.Text).toBeUndefined();

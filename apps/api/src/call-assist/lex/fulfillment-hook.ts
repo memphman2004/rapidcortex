@@ -24,7 +24,7 @@ import {
 } from "./dialog-intercept.js";
 import { readCityService } from "./city-service.js";
 import { closeTransferResponse, holdIntentPromptResponse, plain, speakForEngine } from "./lex-responses.js";
-import { buildTransferSummary } from "./safety-gate.js";
+import { buildTransferSummary, transferSummaryReasonLabel } from "./safety-gate.js";
 import type { LexV2Event, LexV2Response } from "./types.js";
 import { escalationCloseParts, handleSessionStart } from "./session-start.js";
 import { smsClosingForIntent } from "../sms-channel/sms-copy.js";
@@ -127,6 +127,11 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
       utterance || (action.reason === "EMERGENCY" ? "caller confirmed a weapon" : "caller confirmed injuries"),
       slots,
       shortName,
+      {
+        transferReason: action.reason === "EMERGENCY" ? "emergency" : "injury_priority",
+        language: sessionAttrs.language || locale,
+        transcript: sessionAttrs.transcript,
+      },
     );
     if (smsChannel) {
       return closeTransferResponse(
@@ -156,12 +161,17 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
   }
 
   if (action.type === "human") {
+    const humanSummary = buildTransferSummary(utterance || action.intentName, slots, shortName, {
+      transferReason: transferSummaryReasonLabel(action.reason),
+      language: sessionAttrs.language || locale,
+      transcript: sessionAttrs.transcript,
+    });
     if (smsChannel) {
       const spoken =
         "A team member can follow up if needed. If this is an emergency, call 911. You can also call this number to speak with someone.";
       return closeTransferResponse(
         action.intentName,
-        utterance || action.intentName,
+        humanSummary,
         { ...sessionAttrs, agencyId, callId, classification: sessionAttrs.classification ?? action.intentName },
         [plain(spoken)],
         action.reason,
@@ -173,7 +183,7 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
         : transferPrompt(config, action.reason === "HUMAN_REQUEST" ? "HUMAN_REQUEST" : "LOW_CONFIDENCE");
     return closeTransferResponse(
       action.intentName,
-      utterance || action.intentName,
+      humanSummary,
       { ...sessionAttrs, agencyId, callId, classification: sessionAttrs.classification ?? action.intentName },
         [speakForEngine(spoken, sessionAttrs.voiceEngine)],
       action.reason,
@@ -217,9 +227,19 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
       requiresKnowledge: true,
     });
     if (!grounded.allowed) {
+      const ungroundedSummary = buildTransferSummary(
+        utterance || "ungrounded information request",
+        slots,
+        shortName,
+        {
+          transferReason: transferSummaryReasonLabel("LOW_CONFIDENCE"),
+          language: sessionAttrs.language || locale,
+          transcript: sessionAttrs.transcript,
+        },
+      );
       return closeTransferResponse(
         FALLBACK_INTENT,
-        utterance || "ungrounded information request",
+        ungroundedSummary,
         { ...sessionAttrs, agencyId, callId, classification: FALLBACK_INTENT, knowledgeHit: "false" },
         [speakForEngine(transferPrompt(config, "LOW_CONFIDENCE"), sessionAttrs.voiceEngine)],
         "LOW_CONFIDENCE",

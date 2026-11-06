@@ -14,119 +14,97 @@ function slotFilled(slot: LexSlotValue | null | undefined): boolean {
   );
 }
 
-/** Human-readable questions keyed by `${intentName}/${slotName}`. */
+/**
+ * Spoken questions keyed by `${intentName}/${slotName}`.
+ * Keep these short — one human question, never a multiple-choice menu.
+ */
 export const ELICITATION_QUESTIONS: Record<string, string> = {
-  "ReportTreesVegetation/TreeSubIssue":
-    "What type of tree issue is it — a fallen tree, a dead tree needing removal, overgrown branches, or something else?",
-  "ReportTreesVegetation/ServiceAddress": "What street or intersection is the tree at?",
-  "ReportTreesVegetation/IsOngoing":
-    "Is the tree down right now and blocking access, or has it already been partially cleared?",
+  "ReportTreesVegetation/TreeSubIssue": "What's going on with the tree?",
+  "ReportTreesVegetation/ServiceAddress": "Got it. What street?",
+  "ReportTreesVegetation/IsOngoing": "Still blocking anything right now?",
 
-  "ReportRoadsInfrastructure/RoadsSubIssue":
-    "What's the road issue — a pothole, damaged sidewalk, flooding, debris in the road, or something else?",
-  "ReportRoadsInfrastructure/ServiceAddress": "What street or intersection is the problem at?",
-  "ReportRoadsInfrastructure/IsOngoing": "Is it blocking traffic right now?",
+  "ReportRoadsInfrastructure/RoadsSubIssue": "What's wrong with the road?",
+  "ReportRoadsInfrastructure/ServiceAddress": "What street?",
+  "ReportRoadsInfrastructure/IsOngoing": "Blocking traffic right now?",
 
-  "ReportNoiseComplaint/NoiseSubIssue":
-    "What kind of noise — loud music, a party, construction, a barking dog, car alarm, or something else?",
-  "ReportNoiseComplaint/ServiceAddress": "What address or cross streets is the noise coming from?",
-  "ReportNoiseComplaint/IsOngoing": "Is it happening right now?",
+  "ReportNoiseComplaint/NoiseSubIssue": "What kind of noise?",
+  "ReportNoiseComplaint/ServiceAddress": "Where's it coming from?",
+  "ReportNoiseComplaint/IsOngoing": "Still going on right now?",
 
-  "ReportSanitationWaste/SanitationSubIssue":
-    "Is this a missed pickup, illegal dumping, an overflowing trash can, or something else?",
-  "ReportSanitationWaste/ServiceAddress": "What address or street is the issue at?",
-  "ReportSanitationWaste/IsOngoing": "Is this still a problem right now?",
+  "ReportSanitationWaste/SanitationSubIssue": "What's the trash issue?",
+  "ReportSanitationWaste/ServiceAddress": "Got it. What's the address?",
+  "ReportSanitationWaste/IsOngoing": "Still a problem right now?",
 
-  "ReportVehicleIssue/VehicleSubIssue":
-    "Is the vehicle abandoned, blocking a driveway or hydrant, parked illegally, or something else?",
-  "ReportVehicleIssue/ServiceAddress": "What street or address is the vehicle at?",
-  "ReportVehicleIssue/VehicleDescription":
-    "Can you describe the vehicle — color, type, and license plate if visible?",
-  "ReportVehicleIssue/IsOngoing": "Is the vehicle still there right now?",
+  "ReportVehicleIssue/VehicleSubIssue": "What's going on with the vehicle?",
+  "ReportVehicleIssue/ServiceAddress": "What street is it on?",
+  "ReportVehicleIssue/VehicleDescription": "What's it look like?",
+  "ReportVehicleIssue/IsOngoing": "Still there right now?",
 
-  "ReportBuildingsHousing/BuildingSubIssue":
-    "What's the issue — no heat, mold, unsafe conditions, unpermitted construction, or something else?",
-  "ReportBuildingsHousing/ServiceAddress": "What's the address of the property?",
-  "ReportBuildingsHousing/IsOngoing": "Is this happening right now?",
+  "ReportBuildingsHousing/BuildingSubIssue": "What's going on at the property?",
+  "ReportBuildingsHousing/ServiceAddress": "What's the address?",
+  "ReportBuildingsHousing/IsOngoing": "Still happening right now?",
 
-  "ReportWaterSewerDrainage/WaterSubIssue":
-    "Is this a water main break, fire hydrant issue, no water service, water quality concern, sewer backup, or blocked drain?",
-  "ReportWaterSewerDrainage/ServiceAddress": "What's the street address or intersection?",
-  "ReportWaterSewerDrainage/IsOngoing": "Is water still leaking or backing up right now?",
+  "ReportWaterSewerDrainage/WaterSubIssue": "What's going on with the water?",
+  "ReportWaterSewerDrainage/ServiceAddress": "What street or intersection?",
+  "ReportWaterSewerDrainage/IsOngoing": "Still leaking or backing up?",
 
-  "ReportAnimalsPests/AnimalSubIssue":
-    "What kind of animal issue — stray dog, aggressive animal, rodents, wildlife, dead animal pickup, or something else?",
-  "ReportAnimalsPests/ServiceAddress": "What address or area is the animal at?",
-  "ReportAnimalsPests/IsOngoing": "Is the animal still there right now?",
+  "ReportAnimalsPests/AnimalSubIssue": "What kind of animal, and what's going on?",
+  "ReportAnimalsPests/ServiceAddress": "Got it. What's the address?",
+  "ReportAnimalsPests/IsOngoing": "Still there right now?",
 
-  "ReportGraffitiVandalism/GraffitiSubIssue":
-    "What was tagged or vandalized — a public building, bridge, bus shelter, park equipment, or private property?",
-  "ReportGraffitiVandalism/ServiceAddress": "What's the address or location?",
-  "ReportGraffitiVandalism/IsOngoing": "Did this just happen, or has it been there a while?",
+  "ReportGraffitiVandalism/GraffitiSubIssue": "What got tagged?",
+  "ReportGraffitiVandalism/ServiceAddress": "Where is it?",
+  "ReportGraffitiVandalism/IsOngoing": "Just happen, or been there a while?",
 
-  "ReportParksPublicSpaces/ParkSubIssue":
-    "What's the issue in the park — broken equipment, lighting, restroom, vandalism, or something else?",
-  "ReportParksPublicSpaces/ServiceAddress": "Which park, or what's the nearest address?",
-  "ReportParksPublicSpaces/IsOngoing": "Is this a problem there right now?",
+  "ReportParksPublicSpaces/ParkSubIssue": "What's going on in the park?",
+  "ReportParksPublicSpaces/ServiceAddress": "Which park, or nearest address?",
+  "ReportParksPublicSpaces/IsOngoing": "Still a problem right now?",
 
-  "ReportLawEnforcementNonEmergency/LawEnforcementSubIssue":
-    "What's the concern — chronic drug activity, speeding, a theft that already happened, extra patrol needed, or something else?",
-  "ReportLawEnforcementNonEmergency/ServiceAddress": "What street or address?",
-  "ReportLawEnforcementNonEmergency/IsOngoing": "Is this happening right now?",
+  "ReportLawEnforcementNonEmergency/LawEnforcementSubIssue": "What's going on?",
+  "ReportLawEnforcementNonEmergency/ServiceAddress": "What street?",
+  "ReportLawEnforcementNonEmergency/IsOngoing": "Happening right now?",
 
-  "ReportFireEMSNonEmergency/FireEMSSubIssue":
-    "What's the fire safety concern — a hazard, blocked hydrant or fire lane, illegal burning, or a safety question?",
+  "ReportFireEMSNonEmergency/FireEMSSubIssue": "What's the fire safety concern?",
   "ReportFireEMSNonEmergency/ServiceAddress": "What's the address?",
-  "ReportFireEMSNonEmergency/IsOngoing": "Is this a problem right now?",
+  "ReportFireEMSNonEmergency/IsOngoing": "Still a problem right now?",
 
-  "ReportHomelessSocialServices/HomelessSubIssue":
-    "Is this a report of an encampment, a welfare check on someone, needles on the ground, or a request for services?",
-  "ReportHomelessSocialServices/ServiceAddress": "Where is this located?",
-  "ReportHomelessSocialServices/IsOngoing": "Is this happening right now?",
+  "ReportHomelessSocialServices/HomelessSubIssue": "What's going on?",
+  "ReportHomelessSocialServices/ServiceAddress": "Where is this?",
+  "ReportHomelessSocialServices/IsOngoing": "Happening right now?",
 
-  "ReportEnvironmentalHealth/EnvironmentalSubIssue":
-    "What's the issue — an odor or air quality complaint, illegal burning, a spill, food safety concern, or something else?",
+  "ReportEnvironmentalHealth/EnvironmentalSubIssue": "What's the concern?",
   "ReportEnvironmentalHealth/ServiceAddress": "What address or area?",
-  "ReportEnvironmentalHealth/IsOngoing": "Is this happening right now?",
+  "ReportEnvironmentalHealth/IsOngoing": "Still happening right now?",
 
-  "ReportTransitIssue/TransitSubIssue":
-    "What's the transit issue — bus stop damage, bike lane blocked, scooter on the sidewalk, broken meter, or something else?",
+  "ReportTransitIssue/TransitSubIssue": "What's the transit issue?",
   "ReportTransitIssue/ServiceAddress": "What street or stop?",
-  "ReportTransitIssue/IsOngoing": "Is this still a problem right now?",
+  "ReportTransitIssue/IsOngoing": "Still a problem right now?",
 
-  "ReportStreetLighting/LightingSubIssue":
-    "Is this a streetlight out, a traffic signal problem, a damaged pole, or something else?",
-  "ReportStreetLighting/ServiceAddress": "What street or intersection is the light at?",
-  "ReportStreetLighting/IsOngoing": "Is it out or broken right now?",
+  "ReportStreetLighting/LightingSubIssue": "What's wrong with the light?",
+  "ReportStreetLighting/ServiceAddress": "What street or intersection?",
+  "ReportStreetLighting/IsOngoing": "Out right now?",
 
-  "ReportTrafficSignsMarkings/SignsSubIssue":
-    "What's the sign or marking issue — missing stop sign, faded lines, damaged sign, or something else?",
-  "ReportTrafficSignsMarkings/ServiceAddress": "What intersection or street?",
-  "ReportTrafficSignsMarkings/IsOngoing": "Is this a problem there right now?",
+  "ReportTrafficSignsMarkings/SignsSubIssue": "What's wrong with the sign?",
+  "ReportTrafficSignsMarkings/ServiceAddress": "What intersection?",
+  "ReportTrafficSignsMarkings/IsOngoing": "Still a problem there?",
 
-  "RequestGovernmentInformation/GovInfoSubIssue":
-    "What city information do you need — hours, a permit, a license, vital records, voting, or something else?",
-  "RequestGovernmentInformation/CallerName":
-    "Can I get your name for this request, or you can stay anonymous.",
-  "RequestGovernmentInformation/CallbackNumber":
-    "Want a callback number in case we need to send you to the right office?",
+  "RequestGovernmentInformation/GovInfoSubIssue": "What are you looking for?",
+  "RequestGovernmentInformation/CallerName": "Want to leave a name, or stay anonymous?",
+  "RequestGovernmentInformation/CallbackNumber": "Want a callback number?",
 
-  "ReportSpecialEventIssue/SpecialEventSubIssue":
-    "Is this about a street closure, event noise, a permit, a parade, or something else?",
-  "ReportSpecialEventIssue/ServiceAddress": "What street or area is the event near?",
+  "ReportSpecialEventIssue/SpecialEventSubIssue": "What's going on with the event?",
+  "ReportSpecialEventIssue/ServiceAddress": "What street or area?",
 
-  "CheckServiceRequestStatus/ServiceStatusSubIssue":
-    "Are you checking status, trying to reopen a closed request, or following up because it isn't done yet?",
-  "CheckServiceRequestStatus/ServiceRequestNumber":
-    "What's the confirmation or service request number, if you have it?",
+  "CheckServiceRequestStatus/ServiceStatusSubIssue": "Checking on a request, or following up?",
+  "CheckServiceRequestStatus/ServiceRequestNumber": "Got a confirmation number?",
 };
 
 const GENERIC_BY_SLOT: Record<string, string> = {
-  ServiceAddress: "What's the address or nearest intersection?",
-  IsOngoing: "Is this happening right now?",
-  CallerName: "Can I get your name for the report, or you can stay anonymous.",
-  CallbackNumber: "Want to leave a callback number for updates on your request?",
-  IssueDescription: "Can you describe the issue in a bit more detail?",
+  ServiceAddress: "Got it. What's the address?",
+  IsOngoing: "Still happening right now?",
+  CallerName: "Want to leave a name, or stay anonymous?",
+  CallbackNumber: "Want a callback number?",
+  IssueDescription: "Anything else I should know?",
 };
 
 function looksLikeSubIssueSlot(slotName: string): boolean {
@@ -153,18 +131,20 @@ export function humanQuestionForSlot(intentName: string, slotName: string, langu
     if (prompt?.trim()) return prompt.trim();
   }
   if (slotName === "CallerName") {
-    return "Can I get your name for the report, or you can stay anonymous.";
+    return "Want to leave a name, or stay anonymous?";
   }
   if (slotName === "CallbackNumber") {
-    return "Want to leave a callback number for updates on your request?";
+    return "Want a callback number?";
   }
   if (GENERIC_BY_SLOT[slotName]) return GENERIC_BY_SLOT[slotName];
   if (looksLikeSubIssueSlot(slotName)) {
-    return "Can you describe the issue in a bit more detail?";
+    return "What's going on?";
   }
   const fromIntent = INTENT_MAP[intentName]?.slots.find((s) => s.name === slotName)?.elicitationPrompt;
-  if (fromIntent?.trim() && !fromIntent.includes(slotName)) return fromIntent.trim();
-  return "Can you share a bit more detail so we can log this correctly?";
+  if (fromIntent?.trim() && !fromIntent.includes(slotName) && !/or something else/i.test(fromIntent)) {
+    return fromIntent.trim();
+  }
+  return "Say that again?";
 }
 
 /**

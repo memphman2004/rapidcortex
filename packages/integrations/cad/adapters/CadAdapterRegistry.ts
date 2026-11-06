@@ -15,6 +15,7 @@ import { SunridgeRimsAdapter } from "./SunridgeRimsAdapter.js";
 import { KabatOneAdapter } from "./KabatOneAdapter.js";
 import { OraclePsdcAdapter } from "./OraclePsdcAdapter.js";
 import { ProPhoenixAdapter } from "./ProPhoenixAdapter.js";
+import { SouthernSoftwareAdapter } from "./SouthernSoftwareAdapter.js";
 import { GenericRestAdapter } from "./GenericRestAdapter.js";
 
 /**
@@ -39,6 +40,7 @@ export class CadAdapterRegistry {
     ["kabat_one", new KabatOneAdapter()],
     ["oracle_psdc", new OraclePsdcAdapter()],
     ["prophoenix", new ProPhoenixAdapter()],
+    ["southern_software", new SouthernSoftwareAdapter()],
     ["generic_rest", new GenericRestAdapter()],
   ]);
 

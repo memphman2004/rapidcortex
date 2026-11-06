@@ -189,8 +189,11 @@ const COARSE_OR_DIFFERENT_DESK: Record<string, string> = {
   ReportOnly: "POLICE_NON_EMERGENCY",
   ParkingComplaint: "PARKING_ENFORCEMENT",
   AnimalComplaint: "ANIMAL_CONTROL",
+  AnimalControl: "ANIMAL_CONTROL",
   CodeEnforcement: "CODE_ENFORCEMENT",
   InformationRequest: "THREE11_OPERATIONS",
+  // Lex hears "tree" and misroutes trapped pets to forestry.
+  ReportTreesVegetation: "URBAN_FORESTRY",
 };
 
 /** A listed reason replaces a guess when that guess would send the caller to a different desk. */

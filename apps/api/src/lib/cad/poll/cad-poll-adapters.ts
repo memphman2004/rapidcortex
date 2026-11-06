@@ -444,7 +444,90 @@ export const prophoenixAdapter: CadPollAdapter = {
   },
 };
 
-// ─── 6. Generic REST adapter ──────────────────────────────────────────────────
+// ─── 6. Southern Software (VisiCAD) adapter ────────────────────────────────────
+// Assumed paths from docs/c2c/SOUTHERN_SOFTWARE_API_SPEC.md — confirm with partner.
+
+export const southernSoftwareAdapter: CadPollAdapter = {
+  vendor: "southern_software",
+
+  async poll(config: ResolvedCadConfig, sinceIso: string): Promise<PollResult> {
+    if (isMockMode()) {
+      return {
+        ok: true,
+        incidents: buildMockIncidents("southern_software"),
+        latencyMs: 42,
+        httpStatus: 200,
+        nextSince: new Date().toISOString(),
+      };
+    }
+
+    const headers = buildAuthHeaders(config);
+    const url = withQuery(config.apiUrl, {
+      since: sinceIso,
+      status: "ACTIVE,DISPATCHED",
+      ...(config.agencyCode ? { agencyCode: config.agencyCode } : {}),
+    });
+
+    let response: Response;
+    let latencyMs: number;
+    try {
+      ({ response, latencyMs } = await timedFetch(url, { method: "GET", headers }));
+    } catch (e) {
+      return { ok: false, errorType: "network_error", message: (e as Error).message, latencyMs: 0 };
+    }
+
+    if (!response.ok) {
+      return {
+        ...classifyHttpError(response.status, `Southern Software API returned ${response.status}`),
+        latencyMs,
+      };
+    }
+
+    let body: unknown;
+    try {
+      body = await response.json();
+    } catch {
+      return {
+        ok: false,
+        errorType: "parse_error",
+        message: "Response is not valid JSON",
+        latencyMs,
+        httpStatus: response.status,
+      };
+    }
+
+    const items = pollItemsFromBody(body);
+    const now = new Date().toISOString();
+    const incidents: RawCadIncident[] = items.map((item) => {
+      const mapped = applyFieldMapping(item, config, (p) => ({
+        cadEventId: extractField(p, "incidentId") ?? extractField(p, "IncidentId"),
+        incidentNumber: extractField(p, "incidentId") ?? extractField(p, "IncidentId"),
+        incidentType: extractField(p, "callType") ?? extractField(p, "CallType"),
+        priority: extractField(p, "priority") ?? extractField(p, "Priority"),
+        location: extractField(p, "address") ?? extractField(p, "Address"),
+        latitude: parseFloat(extractField(p, "latitude") ?? extractField(p, "Latitude") ?? "") || undefined,
+        longitude: parseFloat(extractField(p, "longitude") ?? extractField(p, "Longitude") ?? "") || undefined,
+        callerName: extractField(p, "callerName") ?? extractField(p, "CallerName"),
+        callerPhone: extractField(p, "callerPhone") ?? extractField(p, "CallerPhone"),
+        narrative: extractField(p, "narrative") ?? extractField(p, "Narrative"),
+        units: extractField(p, "units") ?? extractField(p, "Units"),
+        status: extractField(p, "status") ?? extractField(p, "Status"),
+        agencyCode: config.agencyCode,
+      }));
+      return {
+        ...mapped,
+        cadEventId: mapped.cadEventId ?? String(item.incidentId ?? item.IncidentId ?? "unknown"),
+        rcPriority: applyPriorityMapping(mapped.priority, config.priorityMapping),
+        rawPayload: item,
+        receivedAt: now,
+      } as RawCadIncident;
+    });
+
+    return { ok: true, incidents, latencyMs, httpStatus: response.status, nextSince: new Date().toISOString() };
+  },
+};
+
+// ─── 7. Generic REST adapter ──────────────────────────────────────────────────
 
 export const genericPollAdapter: CadPollAdapter = {
   vendor: "generic_webhook",
@@ -520,6 +603,7 @@ export const ADAPTER_REGISTRY = new Map<string, CadPollAdapter>([
   ["central_square",       centralSquareAdapter],
   ["hexagon",              hexagonAdapter],
   ["prophoenix",           prophoenixAdapter],
+  ["southern_software",    southernSoftwareAdapter],
   ["generic_webhook",      genericPollAdapter],
   // console_one uses webhook_inbound only — no poll adapter
 ]);

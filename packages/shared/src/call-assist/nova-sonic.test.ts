@@ -57,6 +57,10 @@ describe("Nexiq identity on every voice engine", () => {
     expect(text?.event.textInput).toMatchObject({ content: prompt });
     expect(String((text?.event.textInput as { content: string }).content).startsWith("ASSISTANT IDENTITY")).toBe(true);
     expect(events[0]?.event).toHaveProperty("sessionStart");
+    const sessionStart = events[0]?.event.sessionStart as {
+      turnDetectionConfiguration?: { endpointingSensitivity?: string };
+    };
+    expect(sessionStart?.turnDetectionConfiguration?.endpointingSensitivity).toBe("MEDIUM");
     expect(events.some((row) => "promptStart" in row.event)).toBe(true);
   });
 
@@ -115,6 +119,11 @@ describe("Nova 2 Sonic engine selection", () => {
     expect(decision.systemPrompt).toContain("CRITICAL — DO NOT GREET THE CALLER");
     expect(decision.systemPrompt).toContain("REPORT NUMBER — SPEAK IT IMMEDIATELY");
     expect(decision.systemPrompt).toContain("PERSONA");
+    expect(decision.systemPrompt).toContain("TWO HUMANS ON A CALL — THE WHOLE POINT");
+    expect(decision.systemPrompt).toContain("Got it. What street?");
+    expect(decision.systemPrompt).toContain("My cat is stuck in a tree");
+    expect(decision.systemPrompt).toContain("Got it. What's the address?");
+    expect(decision.systemPrompt).toContain("animal control");
     expect(decision.systemPrompt).toContain("Springfield");
     expect(decision.systemPrompt).toContain("Springfield will follow up.");
     expect(decision.systemPrompt).toContain("Trash day is Tuesday.");

@@ -79,7 +79,12 @@ import {
   utterancesFromLexTranscript,
 } from "./lex-transcript.js";
 import { getLexSession, getLexTenantConfig, listLexKnowledge, listRecentSessionsForDuplicate, updateLexSession } from "./runtime-store.js";
-import { buildTransferSummary, callerTextForSafety, runSafetyGate } from "./safety-gate.js";
+import {
+  buildTransferSummary,
+  callerTextForSafety,
+  runSafetyGate,
+  transferSummaryReasonLabel,
+} from "./safety-gate.js";
 import { extractCurrentSlots, slotFilled, capturePromptedSlot, isVehicleDescriptionSlot } from "./slot-extractor.js";
 import type { LexSlotValue, LexV2Event, LexV2Response } from "./types.js";
 import {
@@ -332,6 +337,11 @@ async function handleDialogTurn(
       utterance || (weaponVisibleYes(currentSlots) ? "caller confirmed a weapon" : "caller confirmed injuries"),
       slots,
       shortName,
+      {
+        transferReason: "emergency",
+        language: language || localeId,
+        transcript,
+      },
     );
     return persistAndCloseEmergency(deps, agencyId, callId, summary, sessionAttrs, emergencySpoken, transcript, slots, config, localeId);
   }
@@ -636,9 +646,19 @@ async function handleDialogTurn(
       const humanSpoken = smsChannel
         ? "A team member can follow up if needed. Describe your concern by text, or call this number to speak with someone. For emergencies call 911."
         : transferPrompt(tenant, "HUMAN_REQUEST");
+      const humanSummary = buildTransferSummary(
+        utterance || "caller requested a person",
+        extractCurrentSlots(event),
+        shortName,
+        {
+          transferReason: transferSummaryReasonLabel("HUMAN_REQUEST"),
+          language: language || localeId,
+          transcript,
+        },
+      );
       return closeTransferResponse(
         REQUEST_HUMAN_INTENT,
-        utterance || "caller requested a person",
+        humanSummary,
         { ...sessionAttrs, agencyId, callId, classification: REQUEST_HUMAN_INTENT, transcript },
         [smsChannel ? plain(humanSpoken) : speakForEngine(humanSpoken, sessionAttrs.voiceEngine)],
         "HUMAN_REQUEST",
@@ -664,7 +684,7 @@ async function handleDialogTurn(
   }
 
   if (!smsChannel) {
-    const heard = activeIntent === PUBLIC_WORKS_INTENT ? `${sessionAttrs.transcript ?? ""} ${utterance}` : utterance;
+    const heard = `${sessionAttrs.transcript ?? ""} ${utterance}`.trim() || utterance;
     const city = readCityService(heard);
     if (city?.emergency && (activeIntent === PUBLIC_WORKS_INTENT || activeIntent === FALLBACK_INTENT)) {
       return emergencyClose(deps, event, config, shortName, emergencySpoken, {
@@ -674,14 +694,31 @@ async function handleDialogTurn(
         transcript,
       });
     }
-    const listed = city?.issueId.startsWith("NC311-") === true;
-    if (city && listed && listedReasonReplacesIntent(activeIntent, city.departmentId)) {
-      activeIntent = PUBLIC_WORKS_INTENT;
+    // Lex often hears "tree" and picks forestry for "cat stuck in a tree" — correct to animals.
+    if (
+      city &&
+      !city.emergency &&
+      city.departmentId === "ANIMAL_CONTROL" &&
+      (activeIntent === FALLBACK_INTENT ||
+        activeIntent === WELCOME_INTENT ||
+        activeIntent === "ReportTreesVegetation" ||
+        activeIntent === PUBLIC_WORKS_INTENT ||
+        activeIntent === "AnimalControl" ||
+        activeIntent === "AnimalComplaint")
+    ) {
+      activeIntent = "ReportAnimalsPests";
       sessionAttrs.cityDepartment = city.departmentLabel;
       sessionAttrs.cityIssue = city.issueLabel ?? city.issueId;
-    } else if (city && activeIntent === PUBLIC_WORKS_INTENT) {
-      sessionAttrs.cityDepartment = city.departmentLabel;
-      if (city.issueLabel) sessionAttrs.cityIssue = city.issueLabel;
+    } else {
+      const listed = city?.issueId.startsWith("NC311-") === true;
+      if (city && listed && listedReasonReplacesIntent(activeIntent, city.departmentId)) {
+        activeIntent = PUBLIC_WORKS_INTENT;
+        sessionAttrs.cityDepartment = city.departmentLabel;
+        sessionAttrs.cityIssue = city.issueLabel ?? city.issueId;
+      } else if (city && activeIntent === PUBLIC_WORKS_INTENT) {
+        sessionAttrs.cityDepartment = city.departmentLabel;
+        if (city.issueLabel) sessionAttrs.cityIssue = city.issueLabel;
+      }
     }
   }
 
@@ -771,9 +808,14 @@ async function handleDialogTurn(
     const fallbackSpoken = smsChannel
       ? "I didn't quite catch that. Try a short description (pothole, trash, noise) or reply HELP for options. For emergencies call 911."
       : transferPrompt(tenant, "LOW_CONFIDENCE");
+    const fallbackSummary = buildTransferSummary(utterance, extractCurrentSlots(event), shortName, {
+      transferReason: transferSummaryReasonLabel("LOW_CONFIDENCE"),
+      language: language || localeId,
+      transcript,
+    });
     return closeTransferResponse(
       FALLBACK_INTENT,
-      utterance,
+      fallbackSummary,
       {
         ...sessionAttrs,
         agencyId,
@@ -866,9 +908,14 @@ async function handleDialogTurn(
         knowledgeHit: false,
         qaLowConfidence: true,
       });
+      const kbSummary = buildTransferSummary(utterance, extractCurrentSlots(event), shortName, {
+        transferReason: transferSummaryReasonLabel("LOW_CONFIDENCE"),
+        language: language || localeId,
+        transcript,
+      });
       return closeTransferResponse(
         FALLBACK_INTENT,
-        utterance,
+        kbSummary,
         updatedAttrs,
         [speakForEngine(kb.spoken, sessionAttrs.voiceEngine)],
         "LOW_CONFIDENCE",
@@ -1096,7 +1143,11 @@ async function emergencyClose(
 ): Promise<LexV2Response> {
   const utterance = event.inputTranscript ?? "";
   const slots = extractCurrentSlots(event);
-  const summary = buildTransferSummary(utterance, slots, shortName);
+  const summary = buildTransferSummary(utterance, slots, shortName, {
+    transferReason: "emergency",
+    language: sessionAttrs.language || event.bot?.localeId,
+    transcript: sessionAttrs.transcript,
+  });
   return persistAndCloseEmergency(
     deps,
     sessionAttrs.agencyId ?? "",
@@ -1171,9 +1222,9 @@ export function humanConfirmationQuestion(
     const issue = slotInterpretedValue(slots.PublicWorksIssueType);
     const city = readCityService(`${issue} ${where}`);
     const department = city?.departmentLabel ?? "Public Works";
-    const issueBit = issue ? ` a ${issue}` : " this";
+    const issueBit = issue.trim() || "this";
     const whereBit = where ? ` at ${where}` : "";
-    return `I can log${issueBit}${whereBit} with ${department}. Reply YES to submit, or NO to change something.`;
+    return `Got it — ${issueBit}${whereBit}. File with ${department}?`;
   }
   const intentDef = LEX_311_INTENT_MAP[intentName];
   const address = slotInterpretedValue(slots.ServiceAddress) || slotInterpretedValue(slots.location);
@@ -1184,10 +1235,9 @@ export function humanConfirmationQuestion(
     subIssueSlot ? slotInterpretedValue(slots[subIssueSlot.name]) : "",
   );
   const department = conversationalSlotValue(intentDef?.primaryDepartment) || "the city";
-  const article = /^[aeiou]/i.test(subIssue) ? "an" : "a";
-  const issueBit = subIssue ? ` ${article} ${subIssue}` : " this";
+  const issueBit = subIssue || "this";
   const whereBit = address ? ` at ${address}` : "";
-  return `I can log${issueBit}${whereBit} with ${department}. Reply YES to submit, or NO to change something.`;
+  return `Got it — ${issueBit}${whereBit}. File with ${department}?`;
 }
 
 export function nextMissingSlot(

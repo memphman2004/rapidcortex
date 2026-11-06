@@ -23,6 +23,7 @@ export const CAD_VENDOR_IDS = [
   "kabat_one",
   "oracle_psdc",
   "prophoenix",
+  "southern_software",
   "generic_rest",
 ] as const;
 
@@ -46,6 +47,7 @@ export const CAD_VENDOR_LABELS: Record<CadVendorId, string> = {
   kabat_one: "KabatOne (K-Dispatch)",
   oracle_psdc: "Oracle Public Safety Dispatch",
   prophoenix: "ProPhoenix CAD",
+  southern_software: "Southern Software (VisiCAD)",
   generic_rest: "Generic REST",
 };
 

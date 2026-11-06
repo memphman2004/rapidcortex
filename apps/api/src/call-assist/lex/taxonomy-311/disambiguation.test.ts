@@ -39,6 +39,16 @@ describe("311 disambiguation", () => {
     );
   });
 
+  it("recognizes a cat stuck in a tree as animal rescue, not forestry", () => {
+    expect(run("ReportAnimalsPests", "My cat is stuck in a tree")?.inferredSubIssue).toBe(
+      "CAT_STUCK_IN_TREE",
+    );
+    expect(run("ReportAnimalsPests", "Dog stuck under the porch")?.inferredSubIssue).toBe(
+      "TRAPPED_ANIMAL",
+    );
+    expect(run("ReportTreesVegetation", "My cat is stuck in a tree")).toBeNull();
+  });
+
   it("infers common SMS phrases without using slot names", () => {
     expect(run("ReportStreetLighting", "The streetlight is out")?.inferredSubIssue).toBe(
       "STREETLIGHT_OUT_SINGLE",

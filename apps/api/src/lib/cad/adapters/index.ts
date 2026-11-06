@@ -14,6 +14,7 @@ const adapters: Record<CadVendor, CadWriteAdapter> = {
   hexagon: hexagonWriteAdapter,
   console_one: genericWriteAdapter,
   prophoenix: genericWriteAdapter,
+  southern_software: genericWriteAdapter,
   generic_webhook: genericWriteAdapter,
 };
 

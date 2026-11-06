@@ -37,6 +37,7 @@ export * from "./analytics-suite.js";
 export * from "./qa-suite.js";
 export * from "./prompt-cms.js";
 export * from "./conversational-system-prompt-v2.js";
+export * from "./conversational-ops.js";
 export * from "./routing-rules.js";
 export * from "./call-record.js";
 export * from "./voice-emotion.js";

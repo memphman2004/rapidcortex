@@ -100,6 +100,25 @@ if [[ -n "${CA_STACK}" && "${CA_STACK}" != "None" && "${CA_STACK}" != "null" ]];
     --query 'Stacks[0].Parameters[*].[ParameterKey,ParameterValue]' \
     --output text | awk 'NF >= 2 && $2 != "" && $2 != "****" {printf "%s=%s ", $1, $2}')"
 
+  # Retained/orphan resources already exist outside this nested stack — skip CREATE or
+  # EarlyValidation::ResourceExistenceCheck fails the changeset.
+  STAGE="${STAGE:-dev}"
+  KEYWORD_TABLE="${EXISTING_AGENCY_KEYWORD_TABLE_NAME:-rapid-cortex-agency-keywords-${STAGE}}"
+  if aws dynamodb describe-table --table-name "$KEYWORD_TABLE" --region "$AWS_REGION" >/dev/null 2>&1; then
+    PARAMS="${PARAMS} ExistingAgencyKeywordTableName=${KEYWORD_TABLE}"
+    echo "  ExistingAgencyKeywordTableName=${KEYWORD_TABLE}"
+  fi
+  NOVA_START="${EXISTING_NOVA_SESSION_START_FUNCTION_NAME:-rapid-cortex-dev-nova-session-start-${STAGE}}"
+  NOVA_AWAIT="${EXISTING_NOVA_SESSION_AWAIT_FUNCTION_NAME:-rapid-cortex-dev-nova-session-await-${STAGE}}"
+  if aws lambda get-function --function-name "$NOVA_START" --region "$AWS_REGION" >/dev/null 2>&1; then
+    PARAMS="${PARAMS} ExistingNovaSessionStartFunctionName=${NOVA_START}"
+    echo "  ExistingNovaSessionStartFunctionName=${NOVA_START}"
+  fi
+  if aws lambda get-function --function-name "$NOVA_AWAIT" --region "$AWS_REGION" >/dev/null 2>&1; then
+    PARAMS="${PARAMS} ExistingNovaSessionAwaitFunctionName=${NOVA_AWAIT}"
+    echo "  ExistingNovaSessionAwaitFunctionName=${NOVA_AWAIT}"
+  fi
+
   echo "▶ sam deploy → $CA_STACK"
   # shellcheck disable=SC2086
   sam deploy \

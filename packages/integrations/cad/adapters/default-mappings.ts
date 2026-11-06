@@ -70,6 +70,24 @@ export const SPILLMAN_STATUS_MAP: Record<string, UnifiedCadStatus> = {
   CANC: "cancelled",
 };
 
+/** Southern Software / VisiCAD status words (C2C assumed API). */
+export const SOUTHERN_SOFTWARE_STATUS_MAP: Record<string, UnifiedCadStatus> = {
+  PENDING: "pending",
+  QUEUED: "queued",
+  ACTIVE: "dispatched",
+  DISPATCHED: "dispatched",
+  ENROUTE: "en_route",
+  EN_ROUTE: "en_route",
+  ER: "en_route",
+  ONSCENE: "on_scene",
+  ON_SCENE: "on_scene",
+  OS: "on_scene",
+  CLEARED: "cleared",
+  CLOSED: "cleared",
+  CANCELLED: "cancelled",
+  CANCELED: "cancelled",
+};
+
 /** Shared lowercase / mixed-case status codes used by many REST CAD products. */
 /** ProPhoenix Calls for Service status words. */
 export const PROPHOENIX_STATUS_MAP: Record<string, UnifiedCadStatus> = {
@@ -346,6 +364,22 @@ export function defaultMappingsForVendor(vendorId: CadVendorId): CadFieldMapping
         m("vendorIncidentId", "CfsNumber", { direction: "outbound" }),
         m("status", "CallStatus", { direction: "outbound" }),
         m("narrative", "Narrative", { direction: "outbound" }),
+      ];
+    case "southern_software":
+      return [
+        m("incidentId", "vendorIncidentId", { required: true, direction: "inbound" }),
+        m("callType", "incidentType", { required: true }),
+        m("priority", "priority"),
+        m("status", "status", { transform: { type: "code_lookup", table: SOUTHERN_SOFTWARE_STATUS_MAP } }),
+        m("address", "address"),
+        m("latitude", "latitude"),
+        m("longitude", "longitude"),
+        m("callerName", "callerName"),
+        m("callerPhone", "callerPhone"),
+        m("receivedAt", "callReceivedAt", { transform: { type: "date_iso", sourceFormat: "iso" } }),
+        m("vendorIncidentId", "incidentId", { direction: "outbound" }),
+        m("status", "status", { direction: "outbound" }),
+        m("narrative", "narrative", { direction: "outbound" }),
       ];
     case "generic_rest":
       return [];

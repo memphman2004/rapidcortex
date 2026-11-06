@@ -18,14 +18,14 @@ export function locationReadback(text: string | null | undefined, language = "en
 
 function locationConfirmPrompt(language: string, address: string): string {
   const lang = language.toLowerCase();
-  if (lang.startsWith("es")) return `Tengo la ubicación como ${address}. ¿Es correcto?`;
-  if (lang.startsWith("zh")) return `我记下的位置是${address}。对吗？`;
-  if (lang.startsWith("yue")) return `我記低嘅位置係${address}。啱唔啱？`;
-  if (lang.startsWith("tl")) return `Ang lokasyon na nakuha ko ay ${address}. Tama po ba?`;
-  if (lang.startsWith("vi")) return `Tôi ghi địa điểm là ${address}. Đúng không?`;
-  if (lang.startsWith("ar")) return `الموقع الذي سجلته هو ${address}. هل هذا صحيح؟`;
-  if (lang.startsWith("fr")) return `J'ai noté l'endroit comme ${address}. Est-ce exact?`;
-  return `I have the location as ${address}. Is that right?`;
+  if (lang.startsWith("es")) return `${address} — ¿es correcto?`;
+  if (lang.startsWith("zh")) return `${address}——对吗？`;
+  if (lang.startsWith("yue")) return `${address}——啱唔啱？`;
+  if (lang.startsWith("tl")) return `${address} — tama po ba?`;
+  if (lang.startsWith("vi")) return `${address} — đúng không?`;
+  if (lang.startsWith("ar")) return `${address} — هل هذا صحيح؟`;
+  if (lang.startsWith("fr")) return `${address} — c'est bien ça?`;
+  return `${address} — is that right?`;
 }
 
 export type SameDayReport = {

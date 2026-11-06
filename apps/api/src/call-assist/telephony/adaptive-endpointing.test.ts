@@ -20,5 +20,7 @@ describe("Nexiq Phase 2 — adaptive endpointing", () => {
     expect(resolveEndpointingProfile({ utterance: "um let me think" })).toBe("patient");
     expect(resolveEndpointingProfile({ utterance: "yes" })).toBe("snappy");
     expect(resolveEndpointingProfile({ utterance: "4200 Main Street near the park" })).toBe("default");
+    expect(applyAdaptiveEndpointing({ utterance: "4200 Main Street near the park" }).endTimeoutMs).toBe(1200);
+    expect(applyAdaptiveEndpointing({ utterance: "um let me think" }).endTimeoutMs).toBe(1750);
   });
 });

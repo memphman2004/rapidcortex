@@ -87,7 +87,7 @@ describe("callAssistSessionStart", () => {
     });
     const welcome = lexWelcomeResponse(start);
     expect(welcome.messages?.[0]?.contentType).toBe("PlainText");
-    expect(welcome.messages?.[0]?.content.startsWith("Thank you for calling. I'm Nexiq, your AI assistant.")).toBe(true);
+    expect(welcome.messages?.[0]?.content.startsWith("Thank you for calling. I'm Nexiq, an AI assistant.")).toBe(true);
     expect(welcome.messages?.[0]?.content).toContain("How can I help you today?");
     expect(welcome.messages?.[0]?.content).not.toContain("<speak>");
   });

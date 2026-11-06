@@ -364,12 +364,6 @@
           "y": 160
         }
       },
-      "set-voice-matthew-nova": {
-        "position": {
-          "x": 1780,
-          "y": 80
-        }
-      },
       "start-nova-media-stream": {
         "position": {
           "x": 1900,
@@ -435,6 +429,18 @@
           "x": 2060,
           "y": 140
         }
+      },
+      "set-voice-nova-speak-en": {
+        "position": {
+          "x": 1780,
+          "y": 80
+        }
+      },
+      "set-voice-nova-speak-es": {
+        "position": {
+          "x": 1780,
+          "y": 160
+        }
       }
     }
   },
@@ -490,7 +496,9 @@
           "spokenGreeting": "$.External.greetingText",
           "transferPrompt": "$.External.transferPrompt",
           "errorPrompt": "$.External.errorPrompt",
-          "transferFailPrompt": "$.External.transferFailPrompt"
+          "transferFailPrompt": "$.External.transferFailPrompt",
+          "qaTag": "$.External.qaTag",
+          "conversationalCohort": "$.External.conversationalCohort"
         }
       },
       "Transitions": {
@@ -896,8 +904,8 @@
       "Identifier": "set-voice-nova-en",
       "Type": "UpdateContactTextToSpeechVoice",
       "Parameters": {
-        "TextToSpeechVoice": "Matthew",
-        "TextToSpeechEngine": "Generative",
+        "TextToSpeechVoice": "Ruth",
+        "TextToSpeechEngine": "Neural",
         "TextToSpeechStyle": "None"
       },
       "Transitions": {
@@ -1380,7 +1388,7 @@
         "NextAction": "play-disclosure",
         "Conditions": [
           {
-            "NextAction": "set-voice-matthew-nova",
+            "NextAction": "set-voice-nova-speak-en",
             "Condition": {
               "Operator": "Equals",
               "Operands": [
@@ -1407,7 +1415,7 @@
         "NextAction": "play-disclosure",
         "Conditions": [
           {
-            "NextAction": "set-voice-matthew-nova",
+            "NextAction": "set-voice-nova-speak-es",
             "Condition": {
               "Operator": "Equals",
               "Operands": [
@@ -1425,10 +1433,29 @@
       }
     },
     {
-      "Identifier": "set-voice-matthew-nova",
+      "Identifier": "set-voice-nova-speak-en",
       "Type": "UpdateContactTextToSpeechVoice",
       "Parameters": {
-        "TextToSpeechVoice": "Matthew",
+        "TextToSpeechVoice": "Ruth",
+        "TextToSpeechEngine": "Neural",
+        "TextToSpeechStyle": "None"
+      },
+      "Transitions": {
+        "NextAction": "start-nova-media-stream",
+        "Errors": [
+          {
+            "NextAction": "start-nova-media-stream",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      }
+    },
+    {
+      "Identifier": "set-voice-nova-speak-es",
+      "Type": "UpdateContactTextToSpeechVoice",
+      "Parameters": {
+        "TextToSpeechVoice": "Lupe",
         "TextToSpeechEngine": "Generative",
         "TextToSpeechStyle": "None"
       },
@@ -1681,7 +1708,7 @@
       "Identifier": "play-nova-confirmation",
       "Type": "MessageParticipant",
       "Parameters": {
-        "Text": "Your report number is $.External.confirmationNumber. I'll repeat that — $.External.confirmationNumber. Someone will be in touch."
+        "Text": "Your report number is $.External.confirmationNumber. I'll repeat that \u2014 $.External.confirmationNumber. Someone will be in touch."
       },
       "Transitions": {
         "NextAction": "disconnect",
@@ -1738,7 +1765,9 @@
           "emergencyTransferQueue": "$.External.emergencyTransferQueue",
           "enableColdClimate": "$.External.enableColdClimate",
           "enableLiveAgentHandoff": "$.External.enableLiveAgentHandoff",
-          "voiceEngine": "$.External.voiceEngine"
+          "voiceEngine": "$.External.voiceEngine",
+          "qaTag": "$.Attributes.qaTag",
+          "conversationalCohort": "$.Attributes.conversationalCohort"
         },
         "LexTimeoutSeconds": {
           "Text": "300"

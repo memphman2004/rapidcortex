@@ -112,6 +112,19 @@ export const DISAMBIGUATION_RULES: DisambiguationRule[] = [
       if (/wasp|hornet|yellow jacket/i.test(transcript)) return { inferredSubIssue: "WASP_HORNET_NEST" };
       if (/dead animal/i.test(transcript)) return { inferredSubIssue: "DEAD_ANIMAL_PICKUP" };
       if (/pigeon|bird.*nuisance|nuisance.*bird/i.test(transcript)) return { inferredSubIssue: "PIGEON_NUISANCE" };
+      if (
+        /(cat|kitten).*(stuck|trapped|can't get down|cant get down|up (a |the )?tree|in (a |the )?tree)/i.test(
+          transcript,
+        ) ||
+        /stuck (in|up) (a |the )?tree/i.test(transcript) ||
+        /(dog|pet|animal|bird|raccoon|squirrel).*(stuck|trapped)/i.test(transcript) ||
+        /(stuck|trapped).*(fence|porch|chimney|drain|crawlspace|roof|garage|car)/i.test(transcript)
+      ) {
+        if (/\bcat\b.*\btree\b|\btree\b.*\bcat\b/i.test(transcript)) {
+          return { inferredSubIssue: "CAT_STUCK_IN_TREE", inferredIsOngoing: "HAPPENING_NOW" };
+        }
+        return { inferredSubIssue: "TRAPPED_ANIMAL", inferredIsOngoing: "HAPPENING_NOW" };
+      }
       return null;
     },
   },
@@ -170,6 +183,15 @@ export const DISAMBIGUATION_RULES: DisambiguationRule[] = [
     intentName: "ReportTreesVegetation",
     subIssueSlotName: "TreeSubIssue",
     check: (transcript) => {
+      // "cat stuck in a tree" is animal control — never forestry.
+      if (
+        /(cat|dog|kitten|pet|animal|bird|raccoon|squirrel).*(stuck|trapped|can't get down|cant get down)/i.test(
+          transcript,
+        ) ||
+        /stuck (in|up) (a |the )?tree/i.test(transcript)
+      ) {
+        return null;
+      }
       if (/downed tree|fallen tree|tree (is |was )?down|tree fell|tree across|tree blocking/i.test(transcript)) {
         if (/sidewalk|walkway|path|footpath/i.test(transcript)) {
           return {
@@ -298,7 +320,7 @@ export const DISAMBIGUATION_RULES: DisambiguationRule[] = [
       if (/\blight\b|\bsignal\b/i.test(transcript)) {
         return {
           clarificationQuestion:
-            "Is this a streetlight that's out, a traffic signal problem, a damaged pole, or something else?",
+            "What's wrong with the light?",
         };
       }
       return null;
@@ -367,7 +389,7 @@ export const DISAMBIGUATION_RULES: DisambiguationRule[] = [
       if (/^(trash|garbage|sanitation)$/i.test(transcript.trim())) {
         return {
           clarificationQuestion:
-            "Is this a missed pickup, illegal dumping, an overflowing can, or something else?",
+            "What's the trash issue?",
         };
       }
       return null;
@@ -399,7 +421,7 @@ export const DISAMBIGUATION_RULES: DisambiguationRule[] = [
       if (/\b(car|truck|van|vehicle)\b/i.test(transcript)) {
         return {
           clarificationQuestion:
-            "Is the vehicle abandoned, blocking a driveway or hydrant, parked illegally, or something else?",
+            "What's going on with the vehicle?",
         };
       }
       return null;
@@ -452,7 +474,7 @@ export const DISAMBIGUATION_RULES: DisambiguationRule[] = [
       if (/\bpark\b/i.test(transcript)) {
         return {
           clarificationQuestion:
-            "What's the park issue — broken equipment, lighting, restroom, or something else?",
+            "What's going on in the park?",
         };
       }
       return null;

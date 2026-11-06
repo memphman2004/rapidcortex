@@ -36,7 +36,7 @@ describe("Nexiq greeting builders", () => {
     expect(en).toMatch(/How can I help you today\?/);
     expect(en.match(/How can I help you today\?/g)?.length).toBe(1);
     expect(en).toMatch(
-      /^Thank you for calling\. I'm Nexiq, your AI assistant\. This is the .+ for City of Springfield\./,
+      /^Thank you for calling\. I'm Nexiq, an AI assistant\. This is the .+ for City of Springfield\./,
     );
     expect(en).not.toMatch(/I'll help determine|If you're unsure/i);
     expect(en).not.toMatch(/Kansas City|KCPD/i);
@@ -61,7 +61,7 @@ describe("Nexiq greeting builders", () => {
       },
       "en-US",
     );
-    expect(custom.startsWith("Thank you for calling. I'm Nexiq, your AI assistant.")).toBe(true);
+    expect(custom.startsWith("Thank you for calling. I'm Nexiq, an AI assistant.")).toBe(true);
     expect(custom).toContain("This is Springfield Police Department in City of Springfield.");
 
     const localized = buildGreeting(
@@ -71,7 +71,7 @@ describe("Nexiq greeting builders", () => {
       },
       "es-US",
     );
-    expect(localized.startsWith("Thank you for calling. I'm Nexiq, your AI assistant.")).toBe(true);
+    expect(localized.startsWith("Thank you for calling. I'm Nexiq, an AI assistant.")).toBe(true);
     expect(localized).toContain("Línea de City of Springfield.");
   });
 

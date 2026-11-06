@@ -43,6 +43,12 @@ export const CAD_VENDOR_CARDS: {
     badge: "license",
   },
   {
+    id: "southern_software",
+    title: "Southern Software VisiCAD",
+    blurb: "Single-agency /ssapi poll or webhook. Partner paths provisional.",
+    badge: "vendor-support",
+  },
+  {
     id: "generic_webhook",
     title: "Generic Webhook",
     blurb: "Any HTTP CAD, requires field mapping",
@@ -56,6 +62,7 @@ export function vendorBadgeClass(vendor: string): string {
   if (vendor === "central_square") return "border-emerald-500/50 bg-emerald-500/15 text-emerald-100";
   if (vendor === "hexagon") return "border-amber-500/50 bg-amber-500/15 text-amber-100";
   if (vendor === "console_one") return "border-indigo-500/50 bg-indigo-500/15 text-indigo-100";
+  if (vendor === "southern_software") return "border-teal-500/50 bg-teal-500/15 text-teal-100";
   return "border-slate-600 bg-slate-800 text-slate-200";
 }
 
@@ -197,6 +204,13 @@ export function vendorTroubleshootingBullets(vendor: string): string[] {
       "ProPhoenix licenses the interface per agency. Paste the Calls for Service URL they provide.",
       "Default fields: CfsNumber, Nature, Priority, CallStatus, Address, Latitude, Longitude.",
       "Write-back stays off until the CAD write-back addendum is signed.",
+    ];
+  }
+  if (vendor === "southern_software") {
+    return [
+      "Paste the Southern Software /ssapi base URL and API key (Secrets Manager).",
+      "Default fields: incidentId, callType, priority, status, address, latitude, longitude.",
+      "Confirm paths with partner docs before production. Write-back stays off until the addendum is signed.",
     ];
   }
   if (vendor === "console_one") {

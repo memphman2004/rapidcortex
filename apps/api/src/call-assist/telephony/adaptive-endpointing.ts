@@ -30,8 +30,9 @@ export type AdaptiveEndpointingResult = {
 
 const END_TIMEOUT: Record<EndpointingProfile, number> = {
   snappy: 500,
-  default: 800,
-  patient: 1400,
+  /** Everyday turns — lean patient so pauses feel like two humans talking. */
+  default: 1200,
+  patient: 1750,
   correction: 1800,
 };
 
@@ -57,10 +58,8 @@ export function resolveEndpointingProfile(input: AdaptiveEndpointingInput): Endp
     // Frequent interrupters → give slightly more room so we don't cut them.
     return "patient";
   }
+  // Snappy only for clear yes/no — other short answers still need a human pause.
   if (text.length > 0 && text.length <= 24 && SHORT_ANSWER_RE.test(text)) {
-    return "snappy";
-  }
-  if (text.length > 0 && text.length <= 40 && !text.includes(",") && !text.includes("—")) {
     return "snappy";
   }
   return "default";

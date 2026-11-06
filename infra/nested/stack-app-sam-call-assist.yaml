@@ -91,6 +91,14 @@ Parameters:
     Type: String
     Default: ""
     Description: When set, skip creating AgencyKeywordTable (table already exists).
+  ExistingNovaSessionStartFunctionName:
+    Type: String
+    Default: ""
+    Description: When set, reuse this Lambda (skip CREATE — avoids EarlyValidation AlreadyExists on orphan surgical deploys).
+  ExistingNovaSessionAwaitFunctionName:
+    Type: String
+    Default: ""
+    Description: When set, reuse this Lambda (skip CREATE — avoids EarlyValidation AlreadyExists on orphan surgical deploys).
   ManagedPolicyNamePrefix:
     Type: String
     Default: rapid-cortex
@@ -119,6 +127,8 @@ Conditions:
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
   CreateCallAssistTable: !Equals [!Ref ExistingCallAssistTableName, ""]
   CreateAgencyKeywordTable: !Equals [!Ref ExistingAgencyKeywordTableName, ""]
+  CreateNovaSessionStartFunction: !Equals [!Ref ExistingNovaSessionStartFunctionName, ""]
+  CreateNovaSessionAwaitFunction: !Equals [!Ref ExistingNovaSessionAwaitFunctionName, ""]
   HasConnectWebhookSecret: !Not [!Equals [!Ref CallAssistConnectWebhookSecretArn, ""]]
   HasRapidSosSecret: !Not [!Equals [!Ref CallAssistRapidSosSecretArn, ""]]
   HasLexBotRole: !Not [!Equals [!Ref CallAssistLexBotRoleArn, ""]]
@@ -470,8 +480,14 @@ Resources:
       Timeout: 60
       Environment:
         Variables:
-          NOVA_SESSION_START_LAMBDA_ARN: !GetAtt NovaSessionStartFunction.Arn
-          NOVA_SESSION_AWAIT_LAMBDA_ARN: !GetAtt NovaSessionAwaitFunction.Arn
+          NOVA_SESSION_START_LAMBDA_ARN: !If
+            - CreateNovaSessionStartFunction
+            - !GetAtt NovaSessionStartFunction.Arn
+            - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingNovaSessionStartFunctionName}"
+          NOVA_SESSION_AWAIT_LAMBDA_ARN: !If
+            - CreateNovaSessionAwaitFunction
+            - !GetAtt NovaSessionAwaitFunction.Arn
+            - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingNovaSessionAwaitFunctionName}"
       Policies:
         - !Ref AppManagedPolicyCallAssistDynamo
 
@@ -643,6 +659,7 @@ Resources:
 
   NovaSessionStartFunction:
     Type: AWS::Serverless::Function
+    Condition: CreateNovaSessionStartFunction
     Properties:
       FunctionName: !Sub "${ManagedPolicyNamePrefix}-nova-session-start-${DeploymentStage}"
       CodeUri: ../nova-lambda/
@@ -659,6 +676,7 @@ Resources:
 
   NovaSessionAwaitFunction:
     Type: AWS::Serverless::Function
+    Condition: CreateNovaSessionAwaitFunction
     Properties:
       FunctionName: !Sub "${ManagedPolicyNamePrefix}-nova-session-await-${DeploymentStage}"
       CodeUri: ../nova-lambda/
@@ -675,7 +693,10 @@ Resources:
   ConnectNovaSessionStartPermission:
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: !Ref NovaSessionStartFunction
+      FunctionName: !If
+        - CreateNovaSessionStartFunction
+        - !Ref NovaSessionStartFunction
+        - !Ref ExistingNovaSessionStartFunctionName
       Action: lambda:InvokeFunction
       Principal: connect.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
@@ -683,7 +704,10 @@ Resources:
   ConnectNovaSessionAwaitPermission:
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: !Ref NovaSessionAwaitFunction
+      FunctionName: !If
+        - CreateNovaSessionAwaitFunction
+        - !Ref NovaSessionAwaitFunction
+        - !Ref ExistingNovaSessionAwaitFunctionName
       Action: lambda:InvokeFunction
       Principal: connect.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
@@ -933,10 +957,16 @@ Outputs:
     Value: !Sub "rapid-cortex-agency-keywords-${DeploymentStage}"
   NovaSessionStartFunctionArn:
     Description: Connect InvokeLambda ARN for Nova Sonic session start
-    Value: !GetAtt NovaSessionStartFunction.Arn
+    Value: !If
+      - CreateNovaSessionStartFunction
+      - !GetAtt NovaSessionStartFunction.Arn
+      - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingNovaSessionStartFunctionName}"
   NovaSessionAwaitFunctionArn:
     Description: Connect InvokeLambda ARN for Nova Sonic session await / stream
-    Value: !GetAtt NovaSessionAwaitFunction.Arn
+    Value: !If
+      - CreateNovaSessionAwaitFunction
+      - !GetAtt NovaSessionAwaitFunction.Arn
+      - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingNovaSessionAwaitFunctionName}"
   NovaSonicGatewayClusterName:
     Condition: CreateNovaSonicGateway
     Value: !Ref NovaSonicGatewayCluster

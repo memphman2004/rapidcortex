@@ -13,6 +13,7 @@ import { NotConfiguredCadAdapter } from "@/lib/rapid-cortex/cad/adapters/not-con
 import { OraclePsdcCadAdapter } from "@/lib/rapid-cortex/cad/adapters/oracle-psdc-adapter";
 import { ProPhoenixCadAdapter } from "@/lib/rapid-cortex/cad/adapters/prophoenix-adapter";
 import { RapidDeployCadAdapter } from "@/lib/rapid-cortex/cad/adapters/rapiddeploy-adapter";
+import { SouthernSoftwareCadAdapter } from "@/lib/rapid-cortex/cad/adapters/southern-software-adapter";
 import { SpillmanCadAdapter } from "@/lib/rapid-cortex/cad/adapters/spillman-adapter";
 import { SunridgeRimsCadAdapter } from "@/lib/rapid-cortex/cad/adapters/sunridge-rims-adapter";
 import { TylerCadAdapter } from "@/lib/rapid-cortex/cad/adapters/tyler-adapter";
@@ -43,6 +44,7 @@ const PILOT_VENDORS = new Set<CadVendor>([
   "kabat_one",
   "oracle_psdc",
   "prophoenix",
+  "southern_software",
   "generic",
   "mock",
 ]);
@@ -58,6 +60,7 @@ function normalizeVendor(raw: string | undefined): CadVendor {
   if (vendor === "hexagon_intergraph") return "hexagon";
   if (vendor === "generic_rest") return "generic";
   if (vendor === "pro_phoenix" || vendor === "phoenix") return "prophoenix";
+  if (vendor === "southern" || vendor === "visicad" || vendor === "visi_cad") return "southern_software";
   if (PILOT_VENDORS.has(vendor as CadVendor)) {
     return vendor as CadVendor;
   }
@@ -129,6 +132,8 @@ export class CadAdapterFactory {
         return new OraclePsdcCadAdapter();
       case "prophoenix":
         return new ProPhoenixCadAdapter();
+      case "southern_software":
+        return new SouthernSoftwareCadAdapter();
       case "generic":
         return new GenericCadAdapter();
       default:

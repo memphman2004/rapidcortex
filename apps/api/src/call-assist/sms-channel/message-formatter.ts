@@ -16,7 +16,7 @@ const VOICE_FILLERS = [
   /You can also text us at[^.!?]*/gi,
   // Voice IVR greeting — strip longest phrases first so "stay on the line" alone
   // does not leave "For all other requests, ." behind.
-  /Thank you for calling the city's non-emergency line\. I'm Nexiq, your AI assistant\. How can I help you today\??/gi,
+  /Thank you for calling the city's non-emergency line\. I'm Nexiq, (?:your |an )?AI assistant\. How can I help you today\??/gi,
   /You've reached Nexiq, the [^.!?]*(?:\.|,)?/gi,
   /You've reached the non-emergency service line[^.!?]*(?:\.|,)?/gi,
   /If this is a life-threatening emergency,? hang up and dial 9-1-1[^.!?]*(?:\.|,)?/gi,

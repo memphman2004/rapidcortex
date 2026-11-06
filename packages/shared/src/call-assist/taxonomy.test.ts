@@ -62,6 +62,7 @@ describe("Nexiq taxonomy presets", () => {
     expect(classifyCallTriage("the streetlight is out").primaryClassification).toBe("STREET_LIGHTING");
     expect(classifyCallTriage("missed trash pickup on Oak").primaryClassification).toBe("SANITATION");
     expect(classifyCallTriage("water main break at the corner").primaryClassification).toBe("WATER_SEWER");
+    expect(classifyCallTriage("my cat is stuck in a tree").primaryClassification).toBe("ANIMAL_CONTROL");
   });
 
   it("preset_campus contains no CAD nature codes (all null)", () => {

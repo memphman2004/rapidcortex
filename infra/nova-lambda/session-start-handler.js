@@ -42,9 +42,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// packages/shared/dist/constants.js
+// apps/api/node_modules/rapid-cortex-shared/dist/constants.js
 var require_constants = __commonJS({
-  "packages/shared/dist/constants.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/constants.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DEFAULT_LOCALE = exports2.API_VERSION = exports2.PRODUCT_TAGLINE = exports2.PRODUCT_NAME = void 0;
@@ -55,17 +55,17 @@ var require_constants = __commonJS({
   }
 });
 
-// packages/shared/dist/sms-location/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sms-location/types.js
 var require_types = __commonJS({
-  "packages/shared/dist/sms-location/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sms-location/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// node_modules/zod/v3/helpers/util.cjs
+// apps/api/node_modules/zod/v3/helpers/util.cjs
 var require_util = __commonJS({
-  "node_modules/zod/v3/helpers/util.cjs"(exports2) {
+  "apps/api/node_modules/zod/v3/helpers/util.cjs"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getParsedType = exports2.ZodParsedType = exports2.objectUtil = exports2.util = void 0;
@@ -205,9 +205,9 @@ var require_util = __commonJS({
   }
 });
 
-// node_modules/zod/v3/ZodError.cjs
+// apps/api/node_modules/zod/v3/ZodError.cjs
 var require_ZodError = __commonJS({
-  "node_modules/zod/v3/ZodError.cjs"(exports2) {
+  "apps/api/node_modules/zod/v3/ZodError.cjs"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ZodError = exports2.quotelessJson = exports2.ZodIssueCode = void 0;
@@ -333,9 +333,9 @@ var require_ZodError = __commonJS({
   }
 });
 
-// node_modules/zod/v3/locales/en.cjs
+// apps/api/node_modules/zod/v3/locales/en.cjs
 var require_en = __commonJS({
-  "node_modules/zod/v3/locales/en.cjs"(exports2) {
+  "apps/api/node_modules/zod/v3/locales/en.cjs"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var ZodError_js_1 = require_ZodError();
@@ -444,9 +444,9 @@ var require_en = __commonJS({
   }
 });
 
-// node_modules/zod/v3/errors.cjs
+// apps/api/node_modules/zod/v3/errors.cjs
 var require_errors = __commonJS({
-  "node_modules/zod/v3/errors.cjs"(exports2) {
+  "apps/api/node_modules/zod/v3/errors.cjs"(exports2) {
     "use strict";
     var __importDefault = exports2 && exports2.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
@@ -467,9 +467,9 @@ var require_errors = __commonJS({
   }
 });
 
-// node_modules/zod/v3/helpers/parseUtil.cjs
+// apps/api/node_modules/zod/v3/helpers/parseUtil.cjs
 var require_parseUtil = __commonJS({
-  "node_modules/zod/v3/helpers/parseUtil.cjs"(exports2) {
+  "apps/api/node_modules/zod/v3/helpers/parseUtil.cjs"(exports2) {
     "use strict";
     var __importDefault = exports2 && exports2.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
@@ -598,17 +598,17 @@ var require_parseUtil = __commonJS({
   }
 });
 
-// node_modules/zod/v3/helpers/typeAliases.cjs
+// apps/api/node_modules/zod/v3/helpers/typeAliases.cjs
 var require_typeAliases = __commonJS({
-  "node_modules/zod/v3/helpers/typeAliases.cjs"(exports2) {
+  "apps/api/node_modules/zod/v3/helpers/typeAliases.cjs"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// node_modules/zod/v3/helpers/errorUtil.cjs
+// apps/api/node_modules/zod/v3/helpers/errorUtil.cjs
 var require_errorUtil = __commonJS({
-  "node_modules/zod/v3/helpers/errorUtil.cjs"(exports2) {
+  "apps/api/node_modules/zod/v3/helpers/errorUtil.cjs"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.errorUtil = void 0;
@@ -620,9 +620,9 @@ var require_errorUtil = __commonJS({
   }
 });
 
-// node_modules/zod/v3/types.cjs
+// apps/api/node_modules/zod/v3/types.cjs
 var require_types2 = __commonJS({
-  "node_modules/zod/v3/types.cjs"(exports2) {
+  "apps/api/node_modules/zod/v3/types.cjs"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.discriminatedUnion = exports2.date = exports2.boolean = exports2.bigint = exports2.array = exports2.any = exports2.coerce = exports2.ZodFirstPartyTypeKind = exports2.late = exports2.ZodSchema = exports2.Schema = exports2.ZodReadonly = exports2.ZodPipeline = exports2.ZodBranded = exports2.BRAND = exports2.ZodNaN = exports2.ZodCatch = exports2.ZodDefault = exports2.ZodNullable = exports2.ZodOptional = exports2.ZodTransformer = exports2.ZodEffects = exports2.ZodPromise = exports2.ZodNativeEnum = exports2.ZodEnum = exports2.ZodLiteral = exports2.ZodLazy = exports2.ZodFunction = exports2.ZodSet = exports2.ZodMap = exports2.ZodRecord = exports2.ZodTuple = exports2.ZodIntersection = exports2.ZodDiscriminatedUnion = exports2.ZodUnion = exports2.ZodObject = exports2.ZodArray = exports2.ZodVoid = exports2.ZodNever = exports2.ZodUnknown = exports2.ZodAny = exports2.ZodNull = exports2.ZodUndefined = exports2.ZodSymbol = exports2.ZodDate = exports2.ZodBoolean = exports2.ZodBigInt = exports2.ZodNumber = exports2.ZodString = exports2.ZodType = void 0;
@@ -4162,9 +4162,9 @@ var require_types2 = __commonJS({
   }
 });
 
-// node_modules/zod/v3/external.cjs
+// apps/api/node_modules/zod/v3/external.cjs
 var require_external = __commonJS({
-  "node_modules/zod/v3/external.cjs"(exports2) {
+  "apps/api/node_modules/zod/v3/external.cjs"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -4192,9 +4192,9 @@ var require_external = __commonJS({
   }
 });
 
-// node_modules/zod/index.cjs
+// apps/api/node_modules/zod/index.cjs
 var require_zod = __commonJS({
-  "node_modules/zod/index.cjs"(exports2) {
+  "apps/api/node_modules/zod/index.cjs"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -4235,9 +4235,9 @@ var require_zod = __commonJS({
   }
 });
 
-// packages/shared/dist/sms-location/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sms-location/schemas.js
 var require_schemas = __commonJS({
-  "packages/shared/dist/sms-location/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sms-location/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.locateSubmitBodySchema = void 0;
@@ -4253,17 +4253,17 @@ var require_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/sms-routing/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sms-routing/types.js
 var require_types3 = __commonJS({
-  "packages/shared/dist/sms-routing/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sms-routing/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// packages/shared/dist/sms-routing/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sms-routing/schemas.js
 var require_schemas2 = __commonJS({
-  "packages/shared/dist/sms-routing/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sms-routing/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.patchSmsRoutingBodySchema = exports2.createSmsRoutingBodySchema = exports2.smsRoutingVerticalSchema = void 0;
@@ -4284,9 +4284,9 @@ var require_schemas2 = __commonJS({
   }
 });
 
-// packages/shared/dist/constants/signal-colors.js
+// apps/api/node_modules/rapid-cortex-shared/dist/constants/signal-colors.js
 var require_signal_colors = __commonJS({
-  "packages/shared/dist/constants/signal-colors.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/constants/signal-colors.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ROLE_BAND_COLORS = void 0;
@@ -4336,9 +4336,9 @@ var require_signal_colors = __commonJS({
   }
 });
 
-// packages/shared/dist/language-registry/build-default-supported-languages.js
+// apps/api/node_modules/rapid-cortex-shared/dist/language-registry/build-default-supported-languages.js
 var require_build_default_supported_languages = __commonJS({
-  "packages/shared/dist/language-registry/build-default-supported-languages.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/language-registry/build-default-supported-languages.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.buildDefaultSupportedLanguages = buildDefaultSupportedLanguages;
@@ -4924,9 +4924,9 @@ var require_build_default_supported_languages = __commonJS({
   }
 });
 
-// packages/shared/dist/language-registry/language-registry.js
+// apps/api/node_modules/rapid-cortex-shared/dist/language-registry/language-registry.js
 var require_language_registry = __commonJS({
-  "packages/shared/dist/language-registry/language-registry.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/language-registry/language-registry.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DEFAULT_SUPPORTED_CALL_LANGUAGES = void 0;
@@ -5101,9 +5101,9 @@ var require_language_registry = __commonJS({
   }
 });
 
-// packages/shared/dist/call-languages.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-languages.js
 var require_call_languages = __commonJS({
-  "packages/shared/dist/call-languages.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-languages.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.isSupportedCallLanguage = exports2.parseSupportedCallLanguagesEnvDetailed = exports2.parseSupportedCallLanguagesEnv = exports2.normalizeLanguageCode = exports2.getSupportedCallLanguages = exports2.getLanguagesByCapability = exports2.getLanguageByCode = exports2.mergeProviderLanguageCapabilities = exports2.DEFAULT_SUPPORTED_CALL_LANGUAGES = exports2.SUPPORTED_CALL_LANGUAGE_CODES = void 0;
@@ -5173,9 +5173,9 @@ var require_call_languages = __commonJS({
   }
 });
 
-// packages/shared/dist/http.js
+// apps/api/node_modules/rapid-cortex-shared/dist/http.js
 var require_http = __commonJS({
-  "packages/shared/dist/http.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/http.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.apiErrorBodySchema = void 0;
@@ -5193,9 +5193,9 @@ var require_http = __commonJS({
   }
 });
 
-// packages/shared/dist/cad.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cad.js
 var require_cad = __commonJS({
-  "packages/shared/dist/cad.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cad.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.cadWritebackApprovalBodySchema = exports2.cadWritebackBodySchema = exports2.cadCapIncidentsQuerySchema = exports2.capIngestStatusSchema = exports2.cadIncidentsQuerySchema = exports2.patchCadIntegrationBodySchema = exports2.postCadIntegrationBodySchema = exports2.cadAlertSchema = exports2.cadUnitAssignmentSchema = exports2.cadAniAliSourceSchema = exports2.cadLocationSourceSchema = exports2.cadPrioritySchema = exports2.cadIncidentStatusSchema = exports2.cadConnectionTypeSchema = exports2.cadCircuitBreakerStateSchema = exports2.cadIntegrationStatusSchema = exports2.cadVendorSchema = void 0;
@@ -5293,9 +5293,9 @@ var require_cad = __commonJS({
   }
 });
 
-// packages/shared/dist/protocol/guidance-schema.js
+// apps/api/node_modules/rapid-cortex-shared/dist/protocol/guidance-schema.js
 var require_guidance_schema = __commonJS({
-  "packages/shared/dist/protocol/guidance-schema.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/protocol/guidance-schema.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.protocolGuidanceSchema = exports2.protocolCategorySchema = void 0;
@@ -5329,9 +5329,9 @@ var require_guidance_schema = __commonJS({
   }
 });
 
-// packages/shared/dist/triage/triage.js
+// apps/api/node_modules/rapid-cortex-shared/dist/triage/triage.js
 var require_triage = __commonJS({
-  "packages/shared/dist/triage/triage.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/triage/triage.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.triageAgencyConfigSchema = exports2.triageOverrideBodySchema = exports2.triageResultSchema = exports2.TRIAGE_BUCKETS = exports2.triagePrioritySchema = exports2.triageClassificationSchema = exports2.triageBucketSchema = void 0;
@@ -5385,9 +5385,9 @@ var require_triage = __commonJS({
   }
 });
 
-// packages/shared/dist/confidence/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/confidence/types.js
 var require_types4 = __commonJS({
-  "packages/shared/dist/confidence/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/confidence/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.FIELD_REGISTRY = exports2.confidenceAnalysisSchema = exports2.aggregateConfidenceSchema = exports2.fieldConfidenceSchema = exports2.fieldWeightSchema = exports2.confidenceTrendSchema = exports2.confidenceLevelSchema = void 0;
@@ -5498,9 +5498,9 @@ var require_types4 = __commonJS({
   }
 });
 
-// packages/shared/dist/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/schemas.js
 var require_schemas3 = __commonJS({
-  "packages/shared/dist/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ContractValidationError = exports2.auditEventSchema = exports2.auditResourceTypeSchema = exports2.aiAnalysisRecordSchema = exports2.analysisRecordKindSchema = exports2.aiProviderAttemptRecordSchema = exports2.analyzeIncidentSchema = exports2.postCallAudioChunkBodySchema = exports2.translateLanguageSessionBodySchema = exports2.finalizeLanguageSessionBodySchema = exports2.startLanguageSessionBodySchema = exports2.transcriptSegmentRecordSchema = exports2.transcriptSegmentSchema = exports2.transcriptChunkInputSchema = exports2.transcriptChunkMultilingualExtensionSchema = exports2.urgencyLevelSchema = exports2.incidentCategorySchema = exports2.patchIncidentDispatcherSchema = exports2.patchIncidentLegalHoldSchema = exports2.cadWebhookPayloadSchema = exports2.createIncidentSchema = exports2.createIncidentCadFieldsSchema = void 0;
@@ -5826,9 +5826,9 @@ var require_schemas3 = __commonJS({
   }
 });
 
-// packages/shared/dist/external-api/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/external-api/schemas.js
 var require_schemas4 = __commonJS({
-  "packages/shared/dist/external-api/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/external-api/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.webhookEventTypeSchema = exports2.externalCadExportBodySchema = exports2.externalTranslateBodySchema = exports2.externalPatchIncidentBodySchema = exports2.externalCreateIncidentBodySchema = exports2.oauthClientCredentialsTokenSchema = exports2.apiClientStatusSchema = exports2.externalApiClientEnvironmentSchema = exports2.externalApiScopeSchema = void 0;
@@ -5893,9 +5893,9 @@ var require_schemas4 = __commonJS({
   }
 });
 
-// packages/shared/dist/external-api/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/external-api/index.js
 var require_external_api = __commonJS({
-  "packages/shared/dist/external-api/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/external-api/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -5918,9 +5918,9 @@ var require_external_api = __commonJS({
   }
 });
 
-// packages/shared/dist/auth/rapid-cortex-roles.js
+// apps/api/node_modules/rapid-cortex-shared/dist/auth/rapid-cortex-roles.js
 var require_rapid_cortex_roles = __commonJS({
-  "packages/shared/dist/auth/rapid-cortex-roles.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/auth/rapid-cortex-roles.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.normalizeLegacyRole = exports2.VERTICAL_ROLE_TOKEN_ALIASES = exports2.ROLE_DISPLAY_LABELS = exports2.ROLE_DESCRIPTIONS = exports2.ROLE_LABELS = exports2.CALL_ASSIST_ASSIGNABLE_ROLES = exports2.TRANSIT_ASSIGNABLE_ROLES = exports2.CAMPUS_MATRIX_ROLE_FAMILIES = exports2.CAMPUS_ROLE_FAMILIES = exports2.CAMPUS_ASSIGNABLE_ROLES = exports2.HOSPITAL_ASSIGNABLE_ROLES = exports2.AGENCY_ASSIGNABLE_ROLES = exports2.ROLES = exports2.RAPID_CORTEX_ROLES = void 0;
@@ -6511,9 +6511,9 @@ var require_rapid_cortex_roles = __commonJS({
   }
 });
 
-// packages/shared/dist/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/types.js
 var require_types5 = __commonJS({
-  "packages/shared/dist/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ADMIN_PROVISION_ROLE_SCHEMA = exports2.USER_ROLE_SCHEMA = exports2.AGENCY_ROLE_SCHEMA = void 0;
@@ -6534,9 +6534,9 @@ var require_types5 = __commonJS({
   }
 });
 
-// packages/shared/dist/monetization/guards.js
+// apps/api/node_modules/rapid-cortex-shared/dist/monetization/guards.js
 var require_guards = __commonJS({
-  "packages/shared/dist/monetization/guards.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/monetization/guards.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.isMonetizationPlanId = isMonetizationPlanId;
@@ -6552,9 +6552,9 @@ var require_guards = __commonJS({
   }
 });
 
-// packages/shared/dist/monetization/entitlements.js
+// apps/api/node_modules/rapid-cortex-shared/dist/monetization/entitlements.js
 var require_entitlements = __commonJS({
-  "packages/shared/dist/monetization/entitlements.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/monetization/entitlements.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_LITE_FORBIDDEN_FEATURES = exports2.RC_LITE_API_ONLY_FEATURES = void 0;
@@ -6735,9 +6735,9 @@ var require_entitlements = __commonJS({
   }
 });
 
-// packages/shared/dist/tenancy/constants.js
+// apps/api/node_modules/rapid-cortex-shared/dist/tenancy/constants.js
 var require_constants2 = __commonJS({
-  "packages/shared/dist/tenancy/constants.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/tenancy/constants.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.PLATFORM_AGENCY_ID = void 0;
@@ -6745,9 +6745,9 @@ var require_constants2 = __commonJS({
   }
 });
 
-// packages/shared/dist/tenancy/principal.js
+// apps/api/node_modules/rapid-cortex-shared/dist/tenancy/principal.js
 var require_principal = __commonJS({
-  "packages/shared/dist/tenancy/principal.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/tenancy/principal.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.isRcAdmin = void 0;
@@ -6803,9 +6803,9 @@ var require_principal = __commonJS({
   }
 });
 
-// packages/shared/dist/auth/sales-contractor-paths.js
+// apps/api/node_modules/rapid-cortex-shared/dist/auth/sales-contractor-paths.js
 var require_sales_contractor_paths = __commonJS({
-  "packages/shared/dist/auth/sales-contractor-paths.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/auth/sales-contractor-paths.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SALES_CONTRACTOR_RC_ADMIN_PATH_PREFIXES = void 0;
@@ -6846,9 +6846,9 @@ var require_sales_contractor_paths = __commonJS({
   }
 });
 
-// packages/shared/dist/auth/sales-contractor-access.js
+// apps/api/node_modules/rapid-cortex-shared/dist/auth/sales-contractor-access.js
 var require_sales_contractor_access = __commonJS({
-  "packages/shared/dist/auth/sales-contractor-access.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/auth/sales-contractor-access.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.canAccessNexiQWorkspace = exports2.salesContractorMayAccessPath = exports2.normalizeAppPathname = exports2.SALES_CONTRACTOR_RC_ADMIN_PATH_PREFIXES = void 0;
@@ -6904,9 +6904,9 @@ var require_sales_contractor_access = __commonJS({
   }
 });
 
-// packages/shared/dist/auth/session-product.js
+// apps/api/node_modules/rapid-cortex-shared/dist/auth/session-product.js
 var require_session_product = __commonJS({
-  "packages/shared/dist/auth/session-product.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/auth/session-product.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.parseEntitlementsClaim = parseEntitlementsClaim;
@@ -7069,9 +7069,9 @@ var require_session_product = __commonJS({
   }
 });
 
-// packages/shared/dist/auth/route-gate.js
+// apps/api/node_modules/rapid-cortex-shared/dist/auth/route-gate.js
 var require_route_gate = __commonJS({
-  "packages/shared/dist/auth/route-gate.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/auth/route-gate.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.OPERATIONAL_DASHBOARD_SEGMENTS = void 0;
@@ -7115,9 +7115,9 @@ var require_route_gate = __commonJS({
   }
 });
 
-// packages/shared/dist/auth/role-display.js
+// apps/api/node_modules/rapid-cortex-shared/dist/auth/role-display.js
 var require_role_display = __commonJS({
-  "packages/shared/dist/auth/role-display.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/auth/role-display.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getUserRoleDisplayLabel = getUserRoleDisplayLabel;
@@ -7130,9 +7130,9 @@ var require_role_display = __commonJS({
   }
 });
 
-// packages/shared/dist/protocol/defaultPacks.js
+// apps/api/node_modules/rapid-cortex-shared/dist/protocol/defaultPacks.js
 var require_defaultPacks = __commonJS({
-  "packages/shared/dist/protocol/defaultPacks.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/protocol/defaultPacks.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DEFAULT_PROTOCOL_PACKS = void 0;
@@ -7420,9 +7420,9 @@ var require_defaultPacks = __commonJS({
   }
 });
 
-// packages/shared/dist/protocol/engine.js
+// apps/api/node_modules/rapid-cortex-shared/dist/protocol/engine.js
 var require_engine = __commonJS({
-  "packages/shared/dist/protocol/engine.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/protocol/engine.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.PROTOCOL_COACH_DISCLAIMER = void 0;
@@ -7526,9 +7526,9 @@ var require_engine = __commonJS({
   }
 });
 
-// packages/shared/dist/protocol/registry.js
+// apps/api/node_modules/rapid-cortex-shared/dist/protocol/registry.js
 var require_registry = __commonJS({
-  "packages/shared/dist/protocol/registry.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/protocol/registry.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.listProtocolPacks = listProtocolPacks;
@@ -7543,9 +7543,9 @@ var require_registry = __commonJS({
   }
 });
 
-// packages/shared/dist/protocol/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/protocol/index.js
 var require_protocol = __commonJS({
-  "packages/shared/dist/protocol/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/protocol/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.protocolGuidanceSchema = exports2.protocolCategorySchema = exports2.listProtocolPacks = exports2.getProtocolPackById = exports2.resolveProtocolPacks = exports2.PROTOCOL_COACH_DISCLAIMER = exports2.identifyProtocol = exports2.getSuggestedHumanPhrase = exports2.getProtocolSummary = exports2.getEscalationRules = exports2.getCurrentProtocolStep = exports2.buildProtocolGuidance = exports2.DEFAULT_PROTOCOL_PACKS = void 0;
@@ -7595,9 +7595,9 @@ var require_protocol = __commonJS({
   }
 });
 
-// packages/shared/dist/demo-scenario-catalog.js
+// apps/api/node_modules/rapid-cortex-shared/dist/demo-scenario-catalog.js
 var require_demo_scenario_catalog = __commonJS({
-  "packages/shared/dist/demo-scenario-catalog.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/demo-scenario-catalog.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DEMO_SCENARIO_CATALOG = void 0;
@@ -7652,9 +7652,9 @@ var require_demo_scenario_catalog = __commonJS({
   }
 });
 
-// packages/shared/dist/demo/scenario-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/demo/scenario-types.js
 var require_scenario_types = __commonJS({
-  "packages/shared/dist/demo/scenario-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/demo/scenario-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ScenarioError = exports2.resetDemoBodySchema = exports2.qaSuiteBodySchema = exports2.generateScenarioBodySchema = exports2.runScenarioBodySchema = exports2.scenarioVerticalSchema = exports2.scenarioIdSchema = exports2.DEMO_AGENCY_IDS = void 0;
@@ -7717,9 +7717,9 @@ var require_scenario_types = __commonJS({
   }
 });
 
-// packages/shared/dist/tenancy/agency.js
+// apps/api/node_modules/rapid-cortex-shared/dist/tenancy/agency.js
 var require_agency = __commonJS({
-  "packages/shared/dist/tenancy/agency.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/tenancy/agency.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.AGENCY_TYPE_LABELS = exports2.AGENCY_TYPE_VALUES = void 0;
@@ -7779,9 +7779,9 @@ var require_agency = __commonJS({
   }
 });
 
-// packages/shared/dist/tenancy/agency-config.js
+// apps/api/node_modules/rapid-cortex-shared/dist/tenancy/agency-config.js
 var require_agency_config = __commonJS({
-  "packages/shared/dist/tenancy/agency-config.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/tenancy/agency-config.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.PLATFORM_ONBOARDING_STEP_IDS = void 0;
@@ -7800,9 +7800,9 @@ var require_agency_config = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/district-school.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/district-school.js
 var require_district_school = __commonJS({
-  "packages/shared/dist/campus/district-school.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/district-school.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.campusDistrictSchoolSchema = exports2.campusAlertStatusSchema = exports2.campusGradeLevelSchema = exports2.CAMPUS_ALERT_STATUSES = exports2.CAMPUS_GRADE_LABELS = exports2.CAMPUS_GRADE_LEVELS = void 0;
@@ -7835,9 +7835,9 @@ var require_district_school = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/campus-sites.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/campus-sites.js
 var require_campus_sites = __commonJS({
-  "packages/shared/dist/campus/campus-sites.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/campus-sites.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.campusSitesPutSchema = exports2.campusBuildingSiteAssignmentSchema = exports2.campusSiteSchema = exports2.campusSiteKindSchema = exports2.campusSiteCodeSchema = exports2.CAMPUS_SITE_SCOPE_ALL = void 0;
@@ -7948,9 +7948,9 @@ var require_campus_sites = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/info-tab.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/info-tab.js
 var require_info_tab = __commonJS({
-  "packages/shared/dist/campus/info-tab.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/info-tab.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.campusInfoTabBySiteCodeSchema = exports2.campusInfoTabPublicSchema = exports2.campusInfoTabSchema = exports2.campusInfoTabExternalLinkSchema = exports2.campusInfoTabAlertBannerSchema = exports2.campusInfoTabSectionSchema = exports2.campusInfoTabContactSchema = void 0;
@@ -8025,9 +8025,9 @@ var require_info_tab = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/escort-iq/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/escort-iq/schemas.js
 var require_schemas5 = __commonJS({
-  "packages/shared/dist/campus/escort-iq/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/escort-iq/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.staffEscortPatchBodySchema = exports2.studentArrivalConfirmBodySchema = exports2.studentEscortCheckInBodySchema = exports2.createEscortSessionBodySchema = exports2.campusEscortIqConfigSchema = exports2.escortDestinationSchema = exports2.escortLocationSnapshotSchema = exports2.escortOversightStatusSchema = exports2.escortMethodSchema = exports2.escortStatusSchema = exports2.ESCORT_IQ_SUPPORTING = exports2.ESCORT_IQ_TAGLINE = exports2.ESCORT_IQ_PRODUCT_NAME = void 0;
@@ -8125,9 +8125,9 @@ var require_schemas5 = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/campus-alerts/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/campus-alerts/schemas.js
 var require_schemas6 = __commonJS({
-  "packages/shared/dist/campus/campus-alerts/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/campus-alerts/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.confirmEmergencyBroadcastBodySchema = exports2.previewEmergencyBroadcastBodySchema = exports2.registerCampusAlertsBodySchema = exports2.renewCampusAlertsBodySchema = exports2.confirmCampusAlertsOtpBodySchema = exports2.startCampusAlertsVerifyBodySchema = exports2.campusAlertsConfigSchema = exports2.campusAlertsBillingModeSchema = exports2.CAMPUS_ALERTS_MASS_SMS_CLASSIFICATIONS = exports2.campusAlertBroadcastClassificationSchema = exports2.campusAlertSubscriptionStatusSchema = exports2.CAMPUS_ALERTS_CONSENT_VERSION = exports2.CAMPUS_ALERTS_PRODUCT_NAME = void 0;
@@ -8244,9 +8244,9 @@ var require_schemas6 = __commonJS({
   }
 });
 
-// packages/shared/dist/tenancy/campus-config.js
+// apps/api/node_modules/rapid-cortex-shared/dist/tenancy/campus-config.js
 var require_campus_config = __commonJS({
-  "packages/shared/dist/tenancy/campus-config.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/tenancy/campus-config.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.campusAgencyConfigPatchSchema = exports2.campusAgencyConfigSchema = exports2.campusInstitutionTypeSchema = exports2.campusNotificationRecipientsSchema = exports2.campusTypeSchema = exports2.campusEscalationContactSchema = void 0;
@@ -8331,9 +8331,9 @@ var require_campus_config = __commonJS({
   }
 });
 
-// packages/shared/dist/wellness/trauma-flag.js
+// apps/api/node_modules/rapid-cortex-shared/dist/wellness/trauma-flag.js
 var require_trauma_flag = __commonJS({
-  "packages/shared/dist/wellness/trauma-flag.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/wellness/trauma-flag.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.acknowledgeTraumaFlagBodySchema = exports2.wellnessAgencyConfigSchema = exports2.traumaFlagRecordSchema = exports2.traumaFlagStatusSchema = void 0;
@@ -8364,9 +8364,9 @@ var require_trauma_flag = __commonJS({
   }
 });
 
-// packages/shared/dist/tenancy/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/tenancy/schemas.js
 var require_schemas7 = __commonJS({
-  "packages/shared/dist/tenancy/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/tenancy/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.agencyProfileResponseSchema = exports2.createInviteBodySchema = exports2.patchAgencyBodySchema = exports2.createAgencyBodySchema = exports2.AGENCY_ID_LOCALITY_STATE_REGEX = exports2.AGENCY_SLUG_REGEX = exports2.platformOnboardingPatchSchema = void 0;
@@ -8481,9 +8481,9 @@ var require_schemas7 = __commonJS({
   }
 });
 
-// packages/shared/dist/tenancy/deployments-map.js
+// apps/api/node_modules/rapid-cortex-shared/dist/tenancy/deployments-map.js
 var require_deployments_map = __commonJS({
-  "packages/shared/dist/tenancy/deployments-map.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/tenancy/deployments-map.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.agencyDeploymentsMapResponseSchema = exports2.agencyDeploymentMarkerSchema = void 0;
@@ -8510,9 +8510,9 @@ var require_deployments_map = __commonJS({
   }
 });
 
-// packages/shared/dist/tenancy/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/tenancy/index.js
 var require_tenancy = __commonJS({
-  "packages/shared/dist/tenancy/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/tenancy/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.agencyDeploymentsMapResponseSchema = exports2.agencyDeploymentMarkerSchema = exports2.agencyProfileResponseSchema = exports2.createInviteBodySchema = exports2.patchAgencyBodySchema = exports2.createAgencyBodySchema = exports2.toPublicCampusInfoTab = exports2.resolveCampusInfoTab = exports2.campusInfoTabBySiteCodeSchema = exports2.campusInfoTabPublicSchema = exports2.campusInfoTabSchema = exports2.campusEscalationContactSchema = exports2.campusAgencyConfigPatchSchema = exports2.campusAgencyConfigSchema = exports2.PLATFORM_ONBOARDING_STEP_IDS = exports2.resolveAgencyVerticalFromTenant = exports2.formatAgencyType = exports2.AGENCY_TYPE_LABELS = exports2.AGENCY_TYPE_VALUES = exports2.canAccessRcUsagePortal = exports2.canAccessRcRevenuePortal = exports2.canDeleteSalesLead = exports2.canAccessSalesLeadsCrm = exports2.canAccessRcFinancePortal = exports2.isRcInternalOperator = exports2.isPlatformAdmin = exports2.isAgencyRole = exports2.isRcAdmin = exports2.isRcsuperadmin = exports2.PLATFORM_AGENCY_ID = void 0;
@@ -8617,9 +8617,9 @@ var require_tenancy = __commonJS({
   }
 });
 
-// packages/shared/dist/auth/vertical-routing.js
+// apps/api/node_modules/rapid-cortex-shared/dist/auth/vertical-routing.js
 var require_vertical_routing = __commonJS({
-  "packages/shared/dist/auth/vertical-routing.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/auth/vertical-routing.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.normalizeRole = normalizeRole;
@@ -8881,9 +8881,9 @@ var require_vertical_routing = __commonJS({
   }
 });
 
-// packages/shared/dist/auth/cognito-vertical-group.js
+// apps/api/node_modules/rapid-cortex-shared/dist/auth/cognito-vertical-group.js
 var require_cognito_vertical_group = __commonJS({
-  "packages/shared/dist/auth/cognito-vertical-group.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/auth/cognito-vertical-group.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.COGNITO_VERTICAL_GROUP_DESCRIPTIONS = exports2.COGNITO_VERTICAL_GROUPS = void 0;
@@ -8938,9 +8938,9 @@ var require_cognito_vertical_group = __commonJS({
   }
 });
 
-// packages/shared/dist/auth/password-policy.js
+// apps/api/node_modules/rapid-cortex-shared/dist/auth/password-policy.js
 var require_password_policy = __commonJS({
-  "packages/shared/dist/auth/password-policy.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/auth/password-policy.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.PASSWORD_EXPIRY_GRACE_DAYS_DEFAULT = exports2.PASSWORD_MAX_AGE_DAYS_DEFAULT = void 0;
@@ -9027,9 +9027,9 @@ var require_password_policy = __commonJS({
   }
 });
 
-// packages/shared/dist/auth/app-review-accounts.js
+// apps/api/node_modules/rapid-cortex-shared/dist/auth/app-review-accounts.js
 var require_app_review_accounts = __commonJS({
-  "packages/shared/dist/auth/app-review-accounts.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/auth/app-review-accounts.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.APP_REVIEW_SILENT_MFA_EMAILS = void 0;
@@ -9049,9 +9049,9 @@ var require_app_review_accounts = __commonJS({
   }
 });
 
-// packages/shared/dist/qa/qa-session.js
+// apps/api/node_modules/rapid-cortex-shared/dist/qa/qa-session.js
 var require_qa_session = __commonJS({
-  "packages/shared/dist/qa/qa-session.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/qa/qa-session.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.qaStructuredScoreSchema = exports2.patchQAProtocolTemplateBodySchema = exports2.createQAProtocolTemplateBodySchema = exports2.patchQASessionBodySchema = exports2.createQASessionBodySchema = exports2.qaSessionSchema = exports2.qaSessionStatusSchema = exports2.qaProtocolTemplateSchema = exports2.qaChecklistItemSchema = void 0;
@@ -9141,9 +9141,9 @@ var require_qa_session = __commonJS({
   }
 });
 
-// packages/shared/dist/qa/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/qa/index.js
 var require_qa = __commonJS({
-  "packages/shared/dist/qa/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/qa/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -9166,9 +9166,9 @@ var require_qa = __commonJS({
   }
 });
 
-// packages/shared/dist/qa-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/qa-types.js
 var require_qa_types = __commonJS({
-  "packages/shared/dist/qa-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/qa-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getQaTrendsQuerySchema = exports2.listCoachingNotesQuerySchema = exports2.listQaScorecardsQuerySchema = exports2.patchCoachingNoteBodySchema = exports2.createCoachingNoteBodySchema = exports2.patchQaScorecardBodySchema = exports2.createQaScorecardBodySchema = exports2.QA_SCORECARD_CATEGORY_DEFS = exports2.QA_SCORECARD_CATEGORIES = void 0;
@@ -9254,9 +9254,9 @@ var require_qa_types = __commonJS({
   }
 });
 
-// packages/shared/dist/timeline-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/timeline-types.js
 var require_timeline_types = __commonJS({
-  "packages/shared/dist/timeline-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/timeline-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.postIncidentTimelineNoteBodySchema = void 0;
@@ -9267,9 +9267,9 @@ var require_timeline_types = __commonJS({
   }
 });
 
-// packages/shared/dist/sla-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sla-types.js
 var require_sla_types = __commonJS({
-  "packages/shared/dist/sla-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sla-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DEFAULT_SLA_THRESHOLDS = exports2.slaHistoryResponseSchema = exports2.slaHistoryQuerySchema = exports2.putSlaThresholdsBodySchema = exports2.slaThresholdsResponseSchema = exports2.slaStatusListResponseSchema = exports2.backlogSnapshotSchema = exports2.slaStatusSchema = exports2.slaThresholdSchema = exports2.dispatchSlaStatusSchema = exports2.slaLevelStatusSchema = exports2.slaPrioritySchema = void 0;
@@ -9329,9 +9329,9 @@ var require_sla_types = __commonJS({
   }
 });
 
-// packages/shared/dist/war-room-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/war-room-types.js
 var require_war_room_types = __commonJS({
-  "packages/shared/dist/war-room-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/war-room-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.warRoomMessagesResponseSchema = exports2.warRoomListResponseSchema = exports2.listWarRoomsQuerySchema = exports2.postWarRoomMessageBodySchema = exports2.createWarRoomBodySchema = exports2.warRoomMessageSchema = exports2.warRoomSchema = exports2.warRoomParticipantSchema = exports2.warRoomStatusSchema = void 0;
@@ -9386,9 +9386,9 @@ var require_war_room_types = __commonJS({
   }
 });
 
-// packages/shared/dist/stakeholder-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/stakeholder-types.js
 var require_stakeholder_types = __commonJS({
-  "packages/shared/dist/stakeholder-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/stakeholder-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.publicStakeholderPasswordRequiredSchema = exports2.publicStakeholderStatusViewSchema = exports2.publicStakeholderCustomSectionSchema = exports2.publicStakeholderTimelineItemSchema = exports2.listStakeholderPagesQuerySchema = exports2.patchStakeholderPageBodySchema = exports2.createStakeholderPageBodySchema = exports2.stakeholderPageInternalSchema = exports2.stakeholderPageSchema = exports2.stakeholderSectionSchema = exports2.stakeholderSectionKindSchema = exports2.stakeholderVisibilitySchema = void 0;
@@ -9480,9 +9480,9 @@ var require_stakeholder_types = __commonJS({
   }
 });
 
-// packages/shared/dist/review-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/review-types.js
 var require_review_types = __commonJS({
-  "packages/shared/dist/review-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/review-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.postIncidentReviewExportSchema = exports2.listPostIncidentReviewsQuerySchema = exports2.patchPostIncidentReviewBodySchema = exports2.createPostIncidentReviewBodySchema = exports2.postIncidentReviewSchema = exports2.reviewSectionSchema = exports2.reviewSectionTypeSchema = exports2.postIncidentReviewStatusSchema = void 0;
@@ -9553,9 +9553,9 @@ var require_review_types = __commonJS({
   }
 });
 
-// packages/shared/dist/report-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/report-types.js
 var require_report_types = __commonJS({
-  "packages/shared/dist/report-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/report-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.REPORT_TYPE_LABELS = exports2.reportExportQuerySchema = exports2.generateReportBodySchema = exports2.reportResultSchema = exports2.reportConfigSchema = exports2.reportDateRangeSchema = exports2.reportTypeSchema = void 0;
@@ -9615,9 +9615,9 @@ var require_report_types = __commonJS({
   }
 });
 
-// packages/shared/dist/reports/system-health.js
+// apps/api/node_modules/rapid-cortex-shared/dist/reports/system-health.js
 var require_system_health = __commonJS({
-  "packages/shared/dist/reports/system-health.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/reports/system-health.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DEVICE_STALE_MS = exports2.SYSTEM_HEALTH_ACTIVATION_TYPES = void 0;
@@ -9770,17 +9770,17 @@ var require_system_health = __commonJS({
   }
 });
 
-// packages/shared/dist/billing/states.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/states.js
 var require_states = __commonJS({
-  "packages/shared/dist/billing/states.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/states.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// packages/shared/dist/billing/catalog.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/catalog.js
 var require_catalog = __commonJS({
-  "packages/shared/dist/billing/catalog.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/catalog.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ONE_TIME_FEE_CATALOG = exports2.SUBSCRIPTION_PLANS = void 0;
@@ -9874,17 +9874,17 @@ var require_catalog = __commonJS({
   }
 });
 
-// packages/shared/dist/billing/entities.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/entities.js
 var require_entities = __commonJS({
-  "packages/shared/dist/billing/entities.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/entities.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// packages/shared/dist/billing/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/schemas.js
 var require_schemas8 = __commonJS({
-  "packages/shared/dist/billing/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.bulkDraftInvoicesResultSchema = exports2.bulkDraftInvoicePreviewSchema = exports2.bulkDraftInvoicesBodySchema = exports2.patchAdminMonetizationInvoiceBodySchema = exports2.adminInvoicesListQuerySchema = exports2.createPaymentRecordBodySchema = exports2.billingPaymentMethodSchema = exports2.patchBillingScheduleBodySchema = exports2.createBillingScheduleBodySchema = exports2.billingScheduleFrequencySchema = exports2.patchInvoiceItemBodySchema = exports2.addInvoiceItemBodySchema = exports2.patchBillingInvoiceBodySchema = exports2.createBillingInvoiceBodySchema = exports2.billingInvoiceLineItemSchema = exports2.billingInvoiceStatusSchema = exports2.patchBillingServiceBodySchema = exports2.createBillingServiceBodySchema = exports2.billingServiceCategorySchema = exports2.billingServiceBillingTypeSchema = exports2.patchBillingCustomerBodySchema = exports2.createBillingCustomerBodySchema = exports2.customerPaymentTermsSchema = exports2.setDefaultPaymentMethodBodySchema = exports2.addPaymentMethodBodySchema = exports2.createInvoiceBodySchema = exports2.cancelSubscriptionBodySchema = exports2.changeSubscriptionPlanBodySchema = exports2.patchAgencyBillingProfileSchema = void 0;
@@ -10131,9 +10131,9 @@ var require_schemas8 = __commonJS({
   }
 });
 
-// packages/shared/dist/billing/addon-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/addon-types.js
 var require_addon_types = __commonJS({
-  "packages/shared/dist/billing/addon-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/addon-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.patchTenantAddonBodySchema = exports2.ADDON_KEYS = void 0;
@@ -10284,9 +10284,9 @@ var require_addon_types = __commonJS({
   }
 });
 
-// packages/shared/dist/billing/addon-catalog.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/addon-catalog.js
 var require_addon_catalog = __commonJS({
-  "packages/shared/dist/billing/addon-catalog.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/addon-catalog.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ADDON_CATALOG = void 0;
@@ -11745,9 +11745,9 @@ var require_addon_catalog = __commonJS({
   }
 });
 
-// packages/shared/dist/billing/pricing-defaults.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/pricing-defaults.js
 var require_pricing_defaults = __commonJS({
-  "packages/shared/dist/billing/pricing-defaults.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/pricing-defaults.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.PRICING_KEYS = exports2.PRICING_DEFAULTS = void 0;
@@ -11925,17 +11925,17 @@ var require_pricing_defaults = __commonJS({
   }
 });
 
-// packages/shared/dist/billing/pricing-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/pricing-types.js
 var require_pricing_types = __commonJS({
-  "packages/shared/dist/billing/pricing-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/pricing-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// packages/shared/dist/billing/pricing-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/pricing-schemas.js
 var require_pricing_schemas = __commonJS({
-  "packages/shared/dist/billing/pricing-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/pricing-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.deleteTenantPricingBodySchema = exports2.putTenantPricingBodySchema = exports2.putGlobalPricingBodySchema = exports2.pricingOverridesSchema = void 0;
@@ -11957,9 +11957,9 @@ var require_pricing_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/billing/pricing-table.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/pricing-table.js
 var require_pricing_table = __commonJS({
-  "packages/shared/dist/billing/pricing-table.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/pricing-table.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.MAX_UNAPPROVED_DISCOUNT_BASIS_POINTS = exports2.DISCOUNT_BASIS_POINTS = exports2.OVERAGE_RATES = exports2.PLAN_TIERS = exports2.PRICING_TABLE_VERSION = void 0;
@@ -12160,9 +12160,9 @@ var require_pricing_table = __commonJS({
   }
 });
 
-// packages/shared/dist/billing/invoice-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/invoice-types.js
 var require_invoice_types = __commonJS({
-  "packages/shared/dist/billing/invoice-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/invoice-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.AUTOMATED_INVOICE_STATUS_TRANSITIONS = void 0;
@@ -12177,9 +12177,9 @@ var require_invoice_types = __commonJS({
   }
 });
 
-// packages/shared/dist/billing/billing-engine.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/billing-engine.js
 var require_billing_engine = __commonJS({
-  "packages/shared/dist/billing/billing-engine.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/billing-engine.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.computeInvoice = computeInvoice;
@@ -12525,9 +12525,9 @@ var require_billing_engine = __commonJS({
   }
 });
 
-// packages/shared/dist/billing/entitlement-invoice-addons.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/entitlement-invoice-addons.js
 var require_entitlement_invoice_addons = __commonJS({
-  "packages/shared/dist/billing/entitlement-invoice-addons.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/entitlement-invoice-addons.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.entitledMonthlyInvoiceAddons = entitledMonthlyInvoiceAddons;
@@ -12593,9 +12593,9 @@ var require_entitlement_invoice_addons = __commonJS({
   }
 });
 
-// packages/shared/dist/billing/invoice-email-builder.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/invoice-email-builder.js
 var require_invoice_email_builder = __commonJS({
-  "packages/shared/dist/billing/invoice-email-builder.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/invoice-email-builder.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.buildInvoiceEmailSubject = buildInvoiceEmailSubject;
@@ -12798,9 +12798,9 @@ Invoice ${invoice.invoiceId} \xB7 NexCort iQ \u2014 Intelligence at the speed of
   }
 });
 
-// packages/shared/dist/billing/automated-invoice-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/automated-invoice-schemas.js
 var require_automated_invoice_schemas = __commonJS({
-  "packages/shared/dist/billing/automated-invoice-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/automated-invoice-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.listAutomatedInvoicesQuerySchema = exports2.patchAutomatedInvoiceBodySchema = exports2.invoicePreviewBodySchema = exports2.billingPeriodSchema = void 0;
@@ -12836,9 +12836,9 @@ var require_automated_invoice_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/billing/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/billing/index.js
 var require_billing = __commonJS({
-  "packages/shared/dist/billing/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/billing/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -12875,9 +12875,9 @@ var require_billing = __commonJS({
   }
 });
 
-// packages/shared/dist/monetization/feature-keys.js
+// apps/api/node_modules/rapid-cortex-shared/dist/monetization/feature-keys.js
 var require_feature_keys = __commonJS({
-  "packages/shared/dist/monetization/feature-keys.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/monetization/feature-keys.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.MONETIZATION_FEATURE_KEYS = void 0;
@@ -12931,25 +12931,25 @@ var require_feature_keys = __commonJS({
   }
 });
 
-// packages/shared/dist/monetization/plan-ids.js
+// apps/api/node_modules/rapid-cortex-shared/dist/monetization/plan-ids.js
 var require_plan_ids = __commonJS({
-  "packages/shared/dist/monetization/plan-ids.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/monetization/plan-ids.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// packages/shared/dist/monetization/entities.js
+// apps/api/node_modules/rapid-cortex-shared/dist/monetization/entities.js
 var require_entities2 = __commonJS({
-  "packages/shared/dist/monetization/entities.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/monetization/entities.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// packages/shared/dist/monetization/business-sms-consent.js
+// apps/api/node_modules/rapid-cortex-shared/dist/monetization/business-sms-consent.js
 var require_business_sms_consent = __commonJS({
-  "packages/shared/dist/monetization/business-sms-consent.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/monetization/business-sms-consent.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.BUSINESS_SMS_OPT_IN_FORM_URL = exports2.LEAD_SMS_CONSENT_STATUS_LABELS = exports2.LEAD_SMS_CONSENT_STATUSES = exports2.BUSINESS_SMS_NO_SHARE_STATEMENT = exports2.BUSINESS_SMS_CONSENT_CHECKBOX_LABEL = exports2.BUSINESS_SMS_PROGRAM_NAME = exports2.BUSINESS_SMS_DISCLOSURE_VERSION = void 0;
@@ -12975,9 +12975,9 @@ var require_business_sms_consent = __commonJS({
   }
 });
 
-// packages/shared/dist/monetization/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/monetization/schemas.js
 var require_schemas9 = __commonJS({
-  "packages/shared/dist/monetization/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/monetization/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.publicPricingConfigSchema = exports2.patchSalesLeadBodySchema = exports2.SALES_LEAD_PACKAGE_SOLD_LABELS = exports2.salesLeadPackageSoldSchema = exports2.salesLeadStatusSchema = exports2.contactSalesLeadBodySchema = void 0;
@@ -13093,9 +13093,9 @@ var require_schemas9 = __commonJS({
   }
 });
 
-// packages/shared/dist/monetization/leads-crm.js
+// apps/api/node_modules/rapid-cortex-shared/dist/monetization/leads-crm.js
 var require_leads_crm = __commonJS({
-  "packages/shared/dist/monetization/leads-crm.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/monetization/leads-crm.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.sendProspectToLeadBodySchema = exports2.addSalesLeadActivityBodySchema = exports2.addSalesLeadNoteBodySchema = exports2.patchSalesLeadStageBodySchema = exports2.patchSalesLeadCrmBodySchema = exports2.STAGE_CONFIG = exports2.CHANNEL_CONFIG = exports2.LOST_REASONS = exports2.LeadVerticalSchema = exports2.LeadAttributionSchema = exports2.LeadChannelSchema = exports2.StageEventSchema = exports2.LeadActivitySchema = exports2.LeadActivityTypeSchema = exports2.LeadNoteSchema = exports2.STAGE_TO_LEGACY_STATUS = exports2.LEGACY_STATUS_TO_STAGE = exports2.OUTCOME_PIPELINE_STAGES = exports2.ACTIVE_PIPELINE_STAGES = exports2.PipelineStageSchema = exports2.PIPELINE_STAGES = void 0;
@@ -13432,9 +13432,9 @@ var require_leads_crm = __commonJS({
   }
 });
 
-// packages/shared/dist/monetization/crm-integrations.js
+// apps/api/node_modules/rapid-cortex-shared/dist/monetization/crm-integrations.js
 var require_crm_integrations = __commonJS({
-  "packages/shared/dist/monetization/crm-integrations.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/monetization/crm-integrations.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.crmWebhookBodySchema = exports2.crmNotifyBodySchema = exports2.connectHubSpotBodySchema = exports2.crmSoonProviderSchema = exports2.HUBSPOT_SECRET_NAME = exports2.CRM_INTEGRATION_SETTINGS_ID = void 0;
@@ -13541,9 +13541,9 @@ var require_crm_integrations = __commonJS({
   }
 });
 
-// packages/shared/dist/monetization/apollo-lead.js
+// apps/api/node_modules/rapid-cortex-shared/dist/monetization/apollo-lead.js
 var require_apollo_lead = __commonJS({
-  "packages/shared/dist/monetization/apollo-lead.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/monetization/apollo-lead.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.apolloLeadEventSchema = void 0;
@@ -13697,9 +13697,9 @@ var require_apollo_lead = __commonJS({
   }
 });
 
-// packages/shared/dist/monetization/overage.js
+// apps/api/node_modules/rapid-cortex-shared/dist/monetization/overage.js
 var require_overage = __commonJS({
-  "packages/shared/dist/monetization/overage.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/monetization/overage.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.calculateOverages = calculateOverages;
@@ -13719,9 +13719,9 @@ var require_overage = __commonJS({
   }
 });
 
-// packages/shared/dist/monetization/catalog-defaults.js
+// apps/api/node_modules/rapid-cortex-shared/dist/monetization/catalog-defaults.js
 var require_catalog_defaults = __commonJS({
-  "packages/shared/dist/monetization/catalog-defaults.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/monetization/catalog-defaults.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.defaultPlanSeed = defaultPlanSeed;
@@ -13861,9 +13861,9 @@ var require_catalog_defaults = __commonJS({
   }
 });
 
-// packages/shared/dist/monetization/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/monetization/index.js
 var require_monetization = __commonJS({
-  "packages/shared/dist/monetization/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/monetization/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -13897,9 +13897,9 @@ var require_monetization = __commonJS({
   }
 });
 
-// packages/shared/dist/sales/sales-enablement-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sales/sales-enablement-types.js
 var require_sales_enablement_types = __commonJS({
-  "packages/shared/dist/sales/sales-enablement-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sales/sales-enablement-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.freeTierRegisterBodySchema = exports2.patchRfpBodySchema = exports2.createRfpBodySchema = exports2.createAccountClaimBodySchema = exports2.createActivityReportBodySchema = exports2.createRoiSessionBodySchema = exports2.RfpStageSchema = exports2.RoiVerticalSchema = void 0;
@@ -13982,9 +13982,9 @@ var require_sales_enablement_types = __commonJS({
   }
 });
 
-// packages/shared/dist/sales/sales-feature-catalog.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sales/sales-feature-catalog.js
 var require_sales_feature_catalog = __commonJS({
-  "packages/shared/dist/sales/sales-feature-catalog.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sales/sales-feature-catalog.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SALES_FEATURE_CATALOG = void 0;
@@ -14354,9 +14354,9 @@ var require_sales_feature_catalog = __commonJS({
   }
 });
 
-// packages/shared/dist/sales/grant-signal-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sales/grant-signal-types.js
 var require_grant_signal_types = __commonJS({
-  "packages/shared/dist/sales/grant-signal-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sales/grant-signal-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SIGNAL_HOT_WEIGHT = exports2.patchGrantMatchOutcomeBodySchema = exports2.GrantMatchRecordSchema = exports2.GrantMatchOutcomeSchema = exports2.GrantRecordSchema = exports2.GRANT_CATEGORY_TO_VERTICAL = exports2.GrantCategorySchema = exports2.NcqTierMatchSchema = exports2.GrantSourceSchema = exports2.LeadSignalSchema = exports2.SignalStrengthSchema = exports2.LeadSignalTypeSchema = void 0;
@@ -14518,9 +14518,9 @@ var require_grant_signal_types = __commonJS({
   }
 });
 
-// packages/shared/dist/sales/sales-territory-zones.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sales/sales-territory-zones.js
 var require_sales_territory_zones = __commonJS({
-  "packages/shared/dist/sales/sales-territory-zones.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sales/sales-territory-zones.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SALES_TERRITORY_ASSIGNMENTS_CLAIMS_KEY = exports2.SALES_TERRITORY_ASSIGNMENTS_SETTING_KEY = exports2.SalesTerritoryAssignmentsConfigSchema = exports2.SalesTerritoryZoneAssignmentsSchema = exports2.SalesTerritoryAssigneeSchema = exports2.SALES_TERRITORY_ZONES = exports2.SALES_TERRITORY_STATE_CODES = exports2.SalesTerritoryZoneIdSchema = void 0;
@@ -14755,9 +14755,9 @@ var require_sales_territory_zones = __commonJS({
   }
 });
 
-// packages/shared/dist/sales/call-coach-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sales/call-coach-schemas.js
 var require_call_coach_schemas = __commonJS({
-  "packages/shared/dist/sales/call-coach-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sales/call-coach-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.salesCallCoachResultSchema = exports2.salesCallCoachCategorySchema = exports2.salesCallCoachAnalyzeRequestSchema = exports2.SALES_CALL_COACH_MAX_TRANSCRIPT = exports2.SALES_CALL_COACH_MIN_TRANSCRIPT = exports2.SALES_CALL_COACH_VERTICALS = void 0;
@@ -14861,9 +14861,9 @@ var require_call_coach_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/sales/email-polish-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sales/email-polish-schemas.js
 var require_email_polish_schemas = __commonJS({
-  "packages/shared/dist/sales/email-polish-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sales/email-polish-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.salesEmailPolishResultSchema = exports2.salesEmailPolishRequestSchema = exports2.SALES_EMAIL_POLISH_MAX_SUBJECT = exports2.SALES_EMAIL_POLISH_MAX_BODY = exports2.SALES_EMAIL_POLISH_MIN_BODY = void 0;
@@ -14902,9 +14902,9 @@ var require_email_polish_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/sales/sales-outlook-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sales/sales-outlook-schemas.js
 var require_sales_outlook_schemas = __commonJS({
-  "packages/shared/dist/sales/sales-outlook-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sales/sales-outlook-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.salesSendEmailRequestSchema = exports2.SALES_SEND_EMAIL_MAX_BODY = exports2.SALES_SEND_EMAIL_MAX_SUBJECT = exports2.SALES_SEND_EMAIL_MAX_TO = exports2.salesOutlookCallbackBodySchema = exports2.SALES_PERSONAL_OUTLOOK_DOMAIN = void 0;
@@ -14932,9 +14932,9 @@ var require_sales_outlook_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/sales/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sales/index.js
 var require_sales = __commonJS({
-  "packages/shared/dist/sales/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sales/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -14963,9 +14963,9 @@ var require_sales = __commonJS({
   }
 });
 
-// packages/shared/dist/psap/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/psap/types.js
 var require_types6 = __commonJS({
-  "packages/shared/dist/psap/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/psap/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.PSAP_CONTACT_SOURCES = exports2.PSAP_CONTACT_ROLE_TIERS = exports2.PSAP_OUTREACH_STATUS_CONFIG = exports2.PSAP_OUTREACH_STATUSES = void 0;
@@ -15063,9 +15063,9 @@ var require_types6 = __commonJS({
   }
 });
 
-// packages/shared/dist/psap/contact-log.js
+// apps/api/node_modules/rapid-cortex-shared/dist/psap/contact-log.js
 var require_contact_log = __commonJS({
-  "packages/shared/dist/psap/contact-log.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/psap/contact-log.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.PSAP_CONTACT_METHOD_LABELS = exports2.PSAP_CONTACT_METHODS = void 0;
@@ -15117,9 +15117,9 @@ var require_contact_log = __commonJS({
   }
 });
 
-// packages/shared/dist/psap/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/psap/schemas.js
 var require_schemas10 = __commonJS({
-  "packages/shared/dist/psap/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/psap/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.psapProspectListQuerySchema = exports2.addPsapActivityRequestSchema = exports2.patchPsapProspectBodySchema = exports2.psapMailingAddressSchema = exports2.psapOutreachStatusSchema = void 0;
@@ -15200,9 +15200,9 @@ var require_schemas10 = __commonJS({
   }
 });
 
-// packages/shared/dist/psap/geojson.js
+// apps/api/node_modules/rapid-cortex-shared/dist/psap/geojson.js
 var require_geojson = __commonJS({
-  "packages/shared/dist/psap/geojson.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/psap/geojson.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.psapPinsToGeoJSON = psapPinsToGeoJSON;
@@ -15241,9 +15241,9 @@ var require_geojson = __commonJS({
   }
 });
 
-// packages/shared/dist/psap/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/psap/index.js
 var require_psap = __commonJS({
-  "packages/shared/dist/psap/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/psap/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -15269,9 +15269,9 @@ var require_psap = __commonJS({
   }
 });
 
-// packages/shared/dist/grants/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/grants/schemas.js
 var require_schemas11 = __commonJS({
-  "packages/shared/dist/grants/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/grants/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.grantPackageSchema = exports2.generateGrantPackageRequestSchema = exports2.grantSuccessProfileSchema = exports2.GRANT_SCHOOL_TYPE_LABELS = exports2.GRANT_SCHOOL_TYPE_IDS = exports2.GRANT_PROGRAM_LABELS = exports2.GRANT_PROGRAM_IDS = void 0;
@@ -15446,9 +15446,9 @@ var require_schemas11 = __commonJS({
   }
 });
 
-// packages/shared/dist/grants/profile-narrative.js
+// apps/api/node_modules/rapid-cortex-shared/dist/grants/profile-narrative.js
 var require_profile_narrative = __commonJS({
-  "packages/shared/dist/grants/profile-narrative.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/grants/profile-narrative.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.GRANT_NARRATIVE_MIN_BULLETS = exports2.GRANT_NARRATIVE_MIN_CHARS = void 0;
@@ -15636,9 +15636,9 @@ ${additional}` : ""}`
   }
 });
 
-// packages/shared/dist/grants/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/grants/index.js
 var require_grants = __commonJS({
-  "packages/shared/dist/grants/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/grants/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -15662,9 +15662,9 @@ var require_grants = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/scopes.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/scopes.js
 var require_scopes = __commonJS({
-  "packages/shared/dist/rc-lite/scopes.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/scopes.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_LITE_API_SCOPES = void 0;
@@ -15683,17 +15683,17 @@ var require_scopes = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/programmatic-key.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/programmatic-key.js
 var require_programmatic_key = __commonJS({
-  "packages/shared/dist/rc-lite/programmatic-key.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/programmatic-key.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// packages/shared/dist/rc-lite/metering-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/metering-types.js
 var require_metering_types = __commonJS({
-  "packages/shared/dist/rc-lite/metering-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/metering-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_LITE_BILLABLE_UNIT_TYPES = void 0;
@@ -15709,9 +15709,9 @@ var require_metering_types = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/api-errors.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/api-errors.js
 var require_api_errors = __commonJS({
-  "packages/shared/dist/rc-lite/api-errors.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/api-errors.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_LITE_ERROR_CATALOG = exports2.RC_LITE_ERROR_CODES = void 0;
@@ -15791,9 +15791,9 @@ var require_api_errors = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/v1-registry.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/v1-registry.js
 var require_v1_registry = __commonJS({
-  "packages/shared/dist/rc-lite/v1-registry.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/v1-registry.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_LITE_V1_ROUTES = void 0;
@@ -15952,9 +15952,9 @@ var require_v1_registry = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/pricing-internal.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/pricing-internal.js
 var require_pricing_internal = __commonJS({
-  "packages/shared/dist/rc-lite/pricing-internal.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/pricing-internal.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_LITE_ADD_ON_LABELS = exports2.RC_LITE_INTERNAL_PRICING_TIERS = void 0;
@@ -16016,9 +16016,9 @@ var require_pricing_internal = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/webhook-events.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/webhook-events.js
 var require_webhook_events = __commonJS({
-  "packages/shared/dist/rc-lite/webhook-events.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/webhook-events.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_LITE_WEBHOOK_EVENTS = void 0;
@@ -16037,9 +16037,9 @@ var require_webhook_events = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/bundles.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/bundles.js
 var require_bundles = __commonJS({
-  "packages/shared/dist/rc-lite/bundles.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/bundles.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_LITE_PRODUCT_BUNDLES = void 0;
@@ -16084,9 +16084,9 @@ var require_bundles = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/usage-plans.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/usage-plans.js
 var require_usage_plans = __commonJS({
-  "packages/shared/dist/rc-lite/usage-plans.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/usage-plans.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_LITE_PLAN_LIMITS = exports2.RC_LITE_SERVICE_TIERS = void 0;
@@ -16161,9 +16161,9 @@ var require_usage_plans = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/vertical-market-packages.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/vertical-market-packages.js
 var require_vertical_market_packages = __commonJS({
-  "packages/shared/dist/rc-lite/vertical-market-packages.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/vertical-market-packages.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_LITE_VERTICAL_MARKETS = void 0;
@@ -16220,9 +16220,9 @@ var require_vertical_market_packages = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/simulation-scenarios.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/simulation-scenarios.js
 var require_simulation_scenarios = __commonJS({
-  "packages/shared/dist/rc-lite/simulation-scenarios.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/simulation-scenarios.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_LITE_SIMULATION_SCENARIOS = void 0;
@@ -16279,9 +16279,9 @@ var require_simulation_scenarios = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/human-review-mode.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/human-review-mode.js
 var require_human_review_mode = __commonJS({
-  "packages/shared/dist/rc-lite/human-review-mode.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/human-review-mode.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_LITE_HUMAN_REVIEW_STATUSES = void 0;
@@ -16294,9 +16294,9 @@ var require_human_review_mode = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/intelligence-envelope.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/intelligence-envelope.js
 var require_intelligence_envelope = __commonJS({
-  "packages/shared/dist/rc-lite/intelligence-envelope.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/intelligence-envelope.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RcLiteIntelligenceEnvelopeSchema = void 0;
@@ -16324,9 +16324,9 @@ var require_intelligence_envelope = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/partner-program.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/partner-program.js
 var require_partner_program = __commonJS({
-  "packages/shared/dist/rc-lite/partner-program.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/partner-program.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_LITE_CAD_PARTNER_PROGRAM = void 0;
@@ -16351,9 +16351,9 @@ var require_partner_program = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/trust-center-metadata.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/trust-center-metadata.js
 var require_trust_center_metadata = __commonJS({
-  "packages/shared/dist/rc-lite/trust-center-metadata.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/trust-center-metadata.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_LITE_TRUST_CENTER_SECTIONS = void 0;
@@ -16417,9 +16417,9 @@ var require_trust_center_metadata = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/data-controls-metadata.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/data-controls-metadata.js
 var require_data_controls_metadata = __commonJS({
-  "packages/shared/dist/rc-lite/data-controls-metadata.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/data-controls-metadata.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_LITE_DATA_CONTROLS_LABELS = void 0;
@@ -16463,9 +16463,9 @@ var require_data_controls_metadata = __commonJS({
   }
 });
 
-// packages/shared/dist/rc-lite/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/index.js
 var require_rc_lite = __commonJS({
-  "packages/shared/dist/rc-lite/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rc-lite/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -16503,9 +16503,9 @@ var require_rc_lite = __commonJS({
   }
 });
 
-// packages/shared/dist/adobe-sign/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/adobe-sign/schemas.js
 var require_schemas12 = __commonJS({
-  "packages/shared/dist/adobe-sign/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/adobe-sign/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.pendingProvisionStatusSchema = exports2.rcAdminProvisioningInvokeSchema = exports2.adobeSignAgreementFieldsSchema = exports2.rcLiteServiceTierSchema = exports2.adobeSignAgreementTypeSchema = void 0;
@@ -16556,9 +16556,9 @@ var require_schemas12 = __commonJS({
   }
 });
 
-// packages/shared/dist/adobe-sign/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/adobe-sign/index.js
 var require_adobe_sign = __commonJS({
-  "packages/shared/dist/adobe-sign/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/adobe-sign/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -16581,9 +16581,9 @@ var require_adobe_sign = __commonJS({
   }
 });
 
-// packages/shared/dist/emergency-connect/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/emergency-connect/schemas.js
 var require_schemas13 = __commonJS({
-  "packages/shared/dist/emergency-connect/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/emergency-connect/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.upsertHospitalProfileBodySchema = exports2.acknowledgeHospitalPreAlertBodySchema = exports2.updateHospitalPreAlertBodySchema = exports2.createHospitalPreAlertBodySchema = exports2.hospitalProfileSchema = exports2.hospitalNotificationMethodSchema = exports2.hospitalTraumaLevelSchema = exports2.hospitalPreAlertSchema = exports2.hospitalPreAlertAttachmentSchema = exports2.hospitalPreAlertStatusSchema = exports2.hospitalPreAlertPrioritySchema = exports2.hospitalPreAlertTypeSchema = void 0;
@@ -16732,9 +16732,9 @@ var require_schemas13 = __commonJS({
   }
 });
 
-// packages/shared/dist/emergency-connect/medical-language.js
+// apps/api/node_modules/rapid-cortex-shared/dist/emergency-connect/medical-language.js
 var require_medical_language = __commonJS({
-  "packages/shared/dist/emergency-connect/medical-language.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/emergency-connect/medical-language.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.validateQualifiedMedicalLanguage = validateQualifiedMedicalLanguage;
@@ -16757,9 +16757,9 @@ var require_medical_language = __commonJS({
   }
 });
 
-// packages/shared/dist/emergency-connect/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/emergency-connect/index.js
 var require_emergency_connect = __commonJS({
-  "packages/shared/dist/emergency-connect/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/emergency-connect/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -16783,9 +16783,9 @@ var require_emergency_connect = __commonJS({
   }
 });
 
-// packages/shared/dist/hospital-routing/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/hospital-routing/schemas.js
 var require_schemas14 = __commonJS({
-  "packages/shared/dist/hospital-routing/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/hospital-routing/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.hospitalRecommendationSchema = exports2.hospitalRecommendationScoringSchema = exports2.hospitalRecommendationLevelSchema = exports2.hospitalRecommendationsBodySchema = exports2.hospitalPatientNeedsSchema = exports2.updateHospitalCapacityBodySchema = exports2.hospitalCapacitySchema = exports2.hospitalDiversionTypeSchema = exports2.hospitalCapacityDataSourceSchema = exports2.hospitalBedCountSchema = void 0;
@@ -16900,9 +16900,9 @@ var require_schemas14 = __commonJS({
   }
 });
 
-// packages/shared/dist/hospital-routing/mci-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/hospital-routing/mci-schemas.js
 var require_mci_schemas = __commonJS({
-  "packages/shared/dist/hospital-routing/mci-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/hospital-routing/mci-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.createMciPlanBodySchema = exports2.mciDistributionPlanSchema = exports2.mciHospitalAllocationSchema = exports2.mciIncidentSchema = exports2.mciPatientSchema = exports2.mciTriagePrioritySchema = void 0;
@@ -16956,9 +16956,9 @@ var require_mci_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/hospital-routing/analytics-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/hospital-routing/analytics-schemas.js
 var require_analytics_schemas = __commonJS({
-  "packages/shared/dist/hospital-routing/analytics-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/hospital-routing/analytics-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.hospitalLeaderboardQuerySchema = exports2.hospitalAnalyticsQuerySchema = exports2.hospitalPerformanceScoreSchema = exports2.hospitalDailyMetricsSchema = void 0;
@@ -17016,9 +17016,9 @@ var require_analytics_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/hospital-routing/portal-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/hospital-routing/portal-schemas.js
 var require_portal_schemas = __commonJS({
-  "packages/shared/dist/hospital-routing/portal-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/hospital-routing/portal-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.hospitalPortalContextSchema = exports2.registerHospitalUserBodySchema = exports2.manualCapacityUpdateBodySchema = exports2.manualCapacityBedInputSchema = void 0;
@@ -17099,9 +17099,9 @@ var require_portal_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/hospital-routing/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/hospital-routing/index.js
 var require_hospital_routing = __commonJS({
-  "packages/shared/dist/hospital-routing/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/hospital-routing/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -17127,9 +17127,9 @@ var require_hospital_routing = __commonJS({
   }
 });
 
-// packages/shared/dist/hl7/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/hl7/schemas.js
 var require_schemas15 = __commonJS({
-  "packages/shared/dist/hl7/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/hl7/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.hl7FacilityMapSchema = exports2.hl7FacilityMappingEntrySchema = exports2.hl7FacilityBedTotalsSchema = exports2.hl7ParsedAdtMessageSchema = exports2.hl7PatientEventSchema = exports2.hl7DepartmentSchema = void 0;
@@ -17168,9 +17168,9 @@ var require_schemas15 = __commonJS({
   }
 });
 
-// packages/shared/dist/hl7/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/hl7/index.js
 var require_hl7 = __commonJS({
-  "packages/shared/dist/hl7/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/hl7/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -17193,9 +17193,9 @@ var require_hl7 = __commonJS({
   }
 });
 
-// packages/shared/dist/video-assist/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/video-assist/schemas.js
 var require_schemas16 = __commonJS({
-  "packages/shared/dist/video-assist/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/video-assist/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.videoAssistDispatcherSessionSchema = exports2.videoAssistPublicSessionSchema = exports2.videoAssistConsentBodySchema = exports2.videoAssistSignalBodySchema = exports2.createVideoAssistSessionBodySchema = exports2.videoAssistSessionEventSchema = exports2.videoAssistEventTypeSchema = exports2.VIDEO_ASSIST_SMS_NOT_RECEIVED_MESSAGE = exports2.videoAssistSessionStatusSchema = void 0;
@@ -17312,9 +17312,9 @@ var require_schemas16 = __commonJS({
   }
 });
 
-// packages/shared/dist/video-assist/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/video-assist/index.js
 var require_video_assist = __commonJS({
-  "packages/shared/dist/video-assist/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/video-assist/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -17337,9 +17337,9 @@ var require_video_assist = __commonJS({
   }
 });
 
-// packages/shared/dist/silent-text/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/silent-text/schemas.js
 var require_schemas17 = __commonJS({
-  "packages/shared/dist/silent-text/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/silent-text/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.silentTextDispatcherSessionSchema = exports2.silentTextPublicSessionSchema = exports2.silentTextPresenceBodySchema = exports2.postSilentTextMessageBodySchema = exports2.createSilentTextSessionBodySchema = exports2.silentTextMessageSchema = exports2.silentTextSessionEventSchema = exports2.silentTextEventTypeSchema = exports2.silentTextSessionStatusSchema = void 0;
@@ -17445,9 +17445,9 @@ var require_schemas17 = __commonJS({
   }
 });
 
-// packages/shared/dist/silent-text/templates.js
+// apps/api/node_modules/rapid-cortex-shared/dist/silent-text/templates.js
 var require_templates = __commonJS({
-  "packages/shared/dist/silent-text/templates.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/silent-text/templates.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DEFAULT_CALLER_QUICK_REPLIES = exports2.DEFAULT_SILENT_TEXT_PROMPT_TEMPLATES = void 0;
@@ -17474,9 +17474,9 @@ var require_templates = __commonJS({
   }
 });
 
-// packages/shared/dist/silent-text/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/silent-text/index.js
 var require_silent_text = __commonJS({
-  "packages/shared/dist/silent-text/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/silent-text/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -17500,9 +17500,9 @@ var require_silent_text = __commonJS({
   }
 });
 
-// packages/shared/dist/pre-arrival/reconciliation-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/reconciliation-types.js
 var require_reconciliation_types = __commonJS({
-  "packages/shared/dist/pre-arrival/reconciliation-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/reconciliation-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RESTRICTED_NATURE_CODES = exports2.incidentUpdatedEventSchema = exports2.reconciliationResultSchema = exports2.reconciliationAuditRecordSchema = exports2.compatibilityRuleSchema = exports2.suspendedStepRecordSchema = exports2.activeStepSchema = exports2.stepCategorySchema = exports2.stepStatusSchema = void 0;
@@ -17608,9 +17608,9 @@ var require_reconciliation_types = __commonJS({
   }
 });
 
-// packages/shared/dist/pre-arrival/mode-policy.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/mode-policy.js
 var require_mode_policy = __commonJS({
-  "packages/shared/dist/pre-arrival/mode-policy.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/mode-policy.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.preArrivalSessionModeSchema = exports2.DEFAULT_RESPONSE_IQ_MODE_POLICY = exports2.responseIQModePolicySchema = exports2.sopStepOverrideSchema = void 0;
@@ -17723,9 +17723,9 @@ var require_mode_policy = __commonJS({
   }
 });
 
-// packages/shared/dist/pre-arrival/eta-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/eta-types.js
 var require_eta_types = __commonJS({
-  "packages/shared/dist/pre-arrival/eta-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/eta-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.dispatcherEtaUpdateSchema = exports2.unitEtaEventSchema = exports2.etaSessionExtensionSchema = exports2.etaNotificationRecordSchema = exports2.etaNotificationTriggerSchema = void 0;
@@ -17768,9 +17768,9 @@ var require_eta_types = __commonJS({
   }
 });
 
-// packages/shared/dist/pre-arrival/eta-messages.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/eta-messages.js
 var require_eta_messages = __commonJS({
-  "packages/shared/dist/pre-arrival/eta-messages.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/eta-messages.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.buildEtaMessage = buildEtaMessage;
@@ -17833,9 +17833,9 @@ var require_eta_messages = __commonJS({
   }
 });
 
-// packages/shared/dist/pre-arrival/instructions.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/instructions.js
 var require_instructions = __commonJS({
-  "packages/shared/dist/pre-arrival/instructions.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/instructions.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.GENERIC_FALLBACK_STEPS = exports2.DEFAULT_PROTOCOL_LIBRARY = exports2.responseIQInstructionSchema = void 0;
@@ -18171,9 +18171,9 @@ var require_instructions = __commonJS({
   }
 });
 
-// packages/shared/dist/pre-arrival/caller-presentation.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/caller-presentation.js
 var require_caller_presentation = __commonJS({
-  "packages/shared/dist/pre-arrival/caller-presentation.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/caller-presentation.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.PRE_ARRIVAL_REASON_PRESETS = void 0;
@@ -18459,9 +18459,9 @@ var require_caller_presentation = __commonJS({
   }
 });
 
-// packages/shared/dist/pre-arrival/instruction-resolver.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/instruction-resolver.js
 var require_instruction_resolver = __commonJS({
-  "packages/shared/dist/pre-arrival/instruction-resolver.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/instruction-resolver.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.resolveResponseIQInstructions = resolveResponseIQInstructions;
@@ -18533,9 +18533,9 @@ var require_instruction_resolver = __commonJS({
   }
 });
 
-// packages/shared/dist/pre-arrival/session.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/session.js
 var require_session = __commonJS({
-  "packages/shared/dist/pre-arrival/session.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/session.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.preArrivalPublicViewSchema = exports2.completePreArrivalStepBodySchema = exports2.createPreArrivalSessionBodySchema = exports2.preArrivalSessionSchema = exports2.preArrivalResponderStatusSchema = exports2.preArrivalSessionStatusSchema = void 0;
@@ -18648,9 +18648,9 @@ var require_session = __commonJS({
   }
 });
 
-// packages/shared/dist/pre-arrival/caller-channel.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/caller-channel.js
 var require_caller_channel = __commonJS({
-  "packages/shared/dist/pre-arrival/caller-channel.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/caller-channel.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callerChannelPublicItemSchema = exports2.callerChannelMessageSchema = exports2.dispatcherChannelReplySchema = exports2.callerChannelConfirmBodySchema = exports2.callerChannelUploadBodySchema = exports2.callerChannelLocationBodySchema = exports2.callerChannelTextBodySchema = exports2.callerChannelKindSchema = void 0;
@@ -18749,9 +18749,9 @@ var require_caller_channel = __commonJS({
   }
 });
 
-// packages/shared/dist/pre-arrival/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/index.js
 var require_pre_arrival = __commonJS({
-  "packages/shared/dist/pre-arrival/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pre-arrival/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -18782,9 +18782,9 @@ var require_pre_arrival = __commonJS({
   }
 });
 
-// packages/shared/dist/media/incident-media.js
+// apps/api/node_modules/rapid-cortex-shared/dist/media/incident-media.js
 var require_incident_media = __commonJS({
-  "packages/shared/dist/media/incident-media.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/media/incident-media.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.incidentMediaPublicMetaSchema = exports2.incidentMediaListItemSchema = exports2.incidentMediaRecordSchema = exports2.incidentMediaConfirmBodySchema = exports2.incidentMediaUploadUrlBodySchema = exports2.requestIncidentMediaBodySchema = exports2.incidentMediaConsentSchema = exports2.incidentMediaTypeSchema = exports2.incidentMediaStatusSchema = void 0;
@@ -18882,9 +18882,9 @@ var require_incident_media = __commonJS({
   }
 });
 
-// packages/shared/dist/media/caller-media-api.js
+// apps/api/node_modules/rapid-cortex-shared/dist/media/caller-media-api.js
 var require_caller_media_api = __commonJS({
-  "packages/shared/dist/media/caller-media-api.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/media/caller-media-api.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callerMediaUploadUrlBodySchema = exports2.callerMediaSendLinkBodySchema = exports2.callerMediaTypeSchema = void 0;
@@ -18904,9 +18904,9 @@ var require_caller_media_api = __commonJS({
   }
 });
 
-// packages/shared/dist/media/sms-provider.js
+// apps/api/node_modules/rapid-cortex-shared/dist/media/sms-provider.js
 var require_sms_provider = __commonJS({
-  "packages/shared/dist/media/sms-provider.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/media/sms-provider.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.smsSendResultSchema = exports2.retryableSmsErrorSchema = exports2.smsSendStatusSchema = exports2.smsSendResultProviderSchema = exports2.smsMessageTypeSchema = exports2.smsProviderModeSchema = void 0;
@@ -18959,9 +18959,9 @@ var require_sms_provider = __commonJS({
   }
 });
 
-// packages/shared/dist/media/live-session-storage.js
+// apps/api/node_modules/rapid-cortex-shared/dist/media/live-session-storage.js
 var require_live_session_storage = __commonJS({
-  "packages/shared/dist/media/live-session-storage.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/media/live-session-storage.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.recordedPlaybackResponseSchema = exports2.recordedPlaybackStatusSchema = exports2.storageModeConfigSchema = exports2.kvsChannelRoleModeSchema = exports2.liveVideoStorageModeSchema = void 0;
@@ -18994,9 +18994,9 @@ var require_live_session_storage = __commonJS({
   }
 });
 
-// packages/shared/dist/media/live-session.js
+// apps/api/node_modules/rapid-cortex-shared/dist/media/live-session.js
 var require_live_session = __commonJS({
-  "packages/shared/dist/media/live-session.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/media/live-session.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.liveHeartbeatPayloadSchema = exports2.endLiveVideoPayloadSchema = exports2.getLiveSessionResponseSchema = exports2.joinLiveVideoResponseSchema = exports2.kvsBrowserBundleSchema = exports2.joinLiveVideoPayloadSchema = exports2.requestLiveVideoPayloadSchema = exports2.liveVideoSessionSchema = exports2.liveVideoEndReasonSchema = exports2.liveVideoEndedBySchema = exports2.liveVideoSessionStatusSchema = void 0;
@@ -19166,9 +19166,9 @@ var require_live_session = __commonJS({
   }
 });
 
-// packages/shared/dist/media/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/media/index.js
 var require_media = __commonJS({
-  "packages/shared/dist/media/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/media/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -19195,9 +19195,9 @@ var require_media = __commonJS({
   }
 });
 
-// packages/shared/dist/triage/f3-queue.js
+// apps/api/node_modules/rapid-cortex-shared/dist/triage/f3-queue.js
 var require_f3_queue = __commonJS({
-  "packages/shared/dist/triage/f3-queue.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/triage/f3-queue.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.triageAnalyzeEventSchema = exports2.triageAnalyzeSegmentSchema = exports2.triageEscalationBodySchema = exports2.triageQueuePatchBodySchema = exports2.triageQueueItemSchema = exports2.triageQueueStatusSchema = void 0;
@@ -19259,9 +19259,9 @@ var require_f3_queue = __commonJS({
   }
 });
 
-// packages/shared/dist/confidence/normalize.js
+// apps/api/node_modules/rapid-cortex-shared/dist/confidence/normalize.js
 var require_normalize = __commonJS({
-  "packages/shared/dist/confidence/normalize.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/confidence/normalize.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.normalizeConfidence01 = normalizeConfidence01;
@@ -19289,9 +19289,9 @@ var require_normalize = __commonJS({
   }
 });
 
-// packages/shared/dist/confidence/scoring.js
+// apps/api/node_modules/rapid-cortex-shared/dist/confidence/scoring.js
 var require_scoring = __commonJS({
-  "packages/shared/dist/confidence/scoring.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/confidence/scoring.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CONFLICT_SCORE_CAP = exports2.LEXICAL_GROUNDING_SCORE_CAP = exports2.FIELD_WEIGHT_MULTIPLIER = void 0;
@@ -19441,9 +19441,9 @@ var require_scoring = __commonJS({
   }
 });
 
-// packages/shared/dist/confidence/cad-push-gate.js
+// apps/api/node_modules/rapid-cortex-shared/dist/confidence/cad-push-gate.js
 var require_cad_push_gate = __commonJS({
-  "packages/shared/dist/confidence/cad-push-gate.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/confidence/cad-push-gate.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CAD_PUSH_BLOCKED_PICTURE_STATUSES = void 0;
@@ -19467,9 +19467,9 @@ var require_cad_push_gate = __commonJS({
   }
 });
 
-// packages/shared/dist/confidence/incident-facts.js
+// apps/api/node_modules/rapid-cortex-shared/dist/confidence/incident-facts.js
 var require_incident_facts = __commonJS({
-  "packages/shared/dist/confidence/incident-facts.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/confidence/incident-facts.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callHasWeaponSignal = callHasWeaponSignal;
@@ -19665,9 +19665,9 @@ var require_incident_facts = __commonJS({
   }
 });
 
-// packages/shared/dist/confidence/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/confidence/index.js
 var require_confidence = __commonJS({
-  "packages/shared/dist/confidence/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/confidence/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -19694,9 +19694,9 @@ var require_confidence = __commonJS({
   }
 });
 
-// packages/shared/dist/staffing/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/staffing/types.js
 var require_types7 = __commonJS({
-  "packages/shared/dist/staffing/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/staffing/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.staffingScheduledEventSchema = exports2.weeklyStaffingForecastSchema = exports2.shiftForecastSchema = exports2.hourlyBucketSchema = exports2.riskLevelSchema = void 0;
@@ -19741,9 +19741,9 @@ var require_types7 = __commonJS({
   }
 });
 
-// packages/shared/dist/staffing/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/staffing/index.js
 var require_staffing = __commonJS({
-  "packages/shared/dist/staffing/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/staffing/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -19766,9 +19766,9 @@ var require_staffing = __commonJS({
   }
 });
 
-// packages/shared/dist/geo/distance.js
+// apps/api/node_modules/rapid-cortex-shared/dist/geo/distance.js
 var require_distance = __commonJS({
-  "packages/shared/dist/geo/distance.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/geo/distance.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.calculateDistanceMeters = calculateDistanceMeters;
@@ -19787,9 +19787,9 @@ var require_distance = __commonJS({
   }
 });
 
-// packages/shared/dist/geo/polygon-buffer.js
+// apps/api/node_modules/rapid-cortex-shared/dist/geo/polygon-buffer.js
 var require_polygon_buffer = __commonJS({
-  "packages/shared/dist/geo/polygon-buffer.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/geo/polygon-buffer.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.pointInPolygon = pointInPolygon;
@@ -19878,9 +19878,9 @@ var require_polygon_buffer = __commonJS({
   }
 });
 
-// packages/shared/dist/address/normalize-address.js
+// apps/api/node_modules/rapid-cortex-shared/dist/address/normalize-address.js
 var require_normalize_address = __commonJS({
-  "packages/shared/dist/address/normalize-address.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/address/normalize-address.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.normalizeAddressForIndex = normalizeAddressForIndex;
@@ -19915,9 +19915,9 @@ var require_normalize_address = __commonJS({
   }
 });
 
-// packages/shared/dist/caller-card/premise-note.js
+// apps/api/node_modules/rapid-cortex-shared/dist/caller-card/premise-note.js
 var require_premise_note = __commonJS({
-  "packages/shared/dist/caller-card/premise-note.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/caller-card/premise-note.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.patchPremiseNoteResponseSchema = exports2.createPremiseNoteResponseSchema = exports2.patchPremiseNoteRequestSchema = exports2.createPremiseNoteRequestSchema = exports2.premiseNoteRecordSchema = exports2.premiseHazardTypeSchema = void 0;
@@ -19982,9 +19982,9 @@ var require_premise_note = __commonJS({
   }
 });
 
-// packages/shared/dist/caller-card/caller-card.js
+// apps/api/node_modules/rapid-cortex-shared/dist/caller-card/caller-card.js
 var require_caller_card = __commonJS({
-  "packages/shared/dist/caller-card/caller-card.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/caller-card/caller-card.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getCallerCardResponseSchema = exports2.callerCardAddressTraumaFlagsSchema = exports2.callerCardCadDataSchema = exports2.callerCardCadDataSourceSchema = exports2.cadDataStatusSchema = exports2.callerCardPremiseNoteItemSchema = exports2.callerCardPremiseNoteSourceSchema = exports2.callerCardPriorIncidentSchema = exports2.priorIncidentAtAddressSourceSchema = exports2.callerCardLocationSchema = exports2.callerCardLocationSourceSchema = void 0;
@@ -20060,9 +20060,9 @@ var require_caller_card = __commonJS({
   }
 });
 
-// packages/shared/dist/performance/supervisor-performance.js
+// apps/api/node_modules/rapid-cortex-shared/dist/performance/supervisor-performance.js
 var require_supervisor_performance = __commonJS({
-  "packages/shared/dist/performance/supervisor-performance.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/performance/supervisor-performance.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.postDispatcherCoachingNoteBodySchema = void 0;
@@ -20074,17 +20074,17 @@ var require_supervisor_performance = __commonJS({
   }
 });
 
-// packages/shared/dist/analytics/admin-analytics.js
+// apps/api/node_modules/rapid-cortex-shared/dist/analytics/admin-analytics.js
 var require_admin_analytics = __commonJS({
-  "packages/shared/dist/analytics/admin-analytics.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/analytics/admin-analytics.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// packages/shared/dist/sharing/incident-share.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sharing/incident-share.js
 var require_incident_share = __commonJS({
-  "packages/shared/dist/sharing/incident-share.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sharing/incident-share.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.postAgencySharePartnerBodySchema = exports2.postIncidentShareBodySchema = void 0;
@@ -20099,9 +20099,9 @@ var require_incident_share = __commonJS({
   }
 });
 
-// packages/shared/dist/language/multilingual-provider-mode.js
+// apps/api/node_modules/rapid-cortex-shared/dist/language/multilingual-provider-mode.js
 var require_multilingual_provider_mode = __commonJS({
-  "packages/shared/dist/language/multilingual-provider-mode.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/language/multilingual-provider-mode.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.parseMultilingualProviderMode = parseMultilingualProviderMode;
@@ -20119,9 +20119,9 @@ var require_multilingual_provider_mode = __commonJS({
   }
 });
 
-// packages/shared/dist/language/google-language.js
+// apps/api/node_modules/rapid-cortex-shared/dist/language/google-language.js
 var require_google_language = __commonJS({
-  "packages/shared/dist/language/google-language.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/language/google-language.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.toTranslatePrimaryTag = toTranslatePrimaryTag;
@@ -20210,9 +20210,9 @@ var require_google_language = __commonJS({
   }
 });
 
-// packages/shared/dist/language/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/language/index.js
 var require_language = __commonJS({
-  "packages/shared/dist/language/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/language/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.toTranslatePrimaryTag = exports2.toGoogleTtsLanguageCode = exports2.isNonLatinScriptLanguage = exports2.isLikelyRightToLeftLanguage = exports2.parseMultilingualProviderMode = exports2.isMultilingualProviderMode = void 0;
@@ -20239,17 +20239,17 @@ var require_language = __commonJS({
   }
 });
 
-// packages/shared/dist/desktop-releases.js
+// apps/api/node_modules/rapid-cortex-shared/dist/desktop-releases.js
 var require_desktop_releases = __commonJS({
-  "packages/shared/dist/desktop-releases.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/desktop-releases.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// packages/shared/dist/seo-intelligence.js
+// apps/api/node_modules/rapid-cortex-shared/dist/seo-intelligence.js
 var require_seo_intelligence = __commonJS({
-  "packages/shared/dist/seo-intelligence.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/seo-intelligence.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.competitorOutlineBodySchema = exports2.schemaGenerateBodySchema = exports2.seoSuggestionsBodySchema = exports2.keywordIntelBodySchema = exports2.patchSeoIssueBodySchema = exports2.postSeoScanBodySchema = exports2.seoScanRecordSchema = exports2.seoIssueRecordSchema = exports2.seoCategoryScoresSchema = exports2.seoScanStatusSchema = exports2.seoIssueStatusSchema = exports2.seoIssueSeveritySchema = void 0;
@@ -20342,9 +20342,9 @@ var require_seo_intelligence = __commonJS({
   }
 });
 
-// packages/shared/dist/cad-module/access.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cad-module/access.js
 var require_access = __commonJS({
-  "packages/shared/dist/cad-module/access.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cad-module/access.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.patchUserCadAccessBodySchema = exports2.patchAgencyCadModuleBodySchema = exports2.CAD_SCOPES = exports2.NEXCORTIQ_MODULES = void 0;
@@ -20522,9 +20522,9 @@ var require_access = __commonJS({
   }
 });
 
-// packages/shared/dist/entitlements/products.js
+// apps/api/node_modules/rapid-cortex-shared/dist/entitlements/products.js
 var require_products = __commonJS({
-  "packages/shared/dist/entitlements/products.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/entitlements/products.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.agencyEntitlementsSchema = exports2.PRODUCT_LABELS = exports2.NEXCORTIQ_PRODUCTS = void 0;
@@ -20662,9 +20662,9 @@ var require_products = __commonJS({
   }
 });
 
-// packages/shared/dist/entitlements/gateway.js
+// apps/api/node_modules/rapid-cortex-shared/dist/entitlements/gateway.js
 var require_gateway = __commonJS({
-  "packages/shared/dist/entitlements/gateway.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/entitlements/gateway.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.pushIncidentContext = pushIncidentContext;
@@ -20689,9 +20689,9 @@ var require_gateway = __commonJS({
   }
 });
 
-// packages/shared/dist/entitlements/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/entitlements/index.js
 var require_entitlements2 = __commonJS({
-  "packages/shared/dist/entitlements/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/entitlements/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -20715,9 +20715,9 @@ var require_entitlements2 = __commonJS({
   }
 });
 
-// packages/shared/dist/cad-nature-mapping.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cad-nature-mapping.js
 var require_cad_nature_mapping = __commonJS({
-  "packages/shared/dist/cad-nature-mapping.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cad-nature-mapping.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.putCadNatureCodeMappingsBodySchema = exports2.cadNatureCodeMappingsSchema = exports2.cadNatureCodeMappingRowSchema = void 0;
@@ -20863,9 +20863,9 @@ var require_cad_nature_mapping = __commonJS({
   }
 });
 
-// packages/shared/dist/cad-connector/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cad-connector/types.js
 var require_types8 = __commonJS({
-  "packages/shared/dist/cad-connector/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cad-connector/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.UNIFIED_CAD_INCIDENT_RC_FIELDS = exports2.CAD_WRITE_BACK_STATUSES = exports2.UNIFIED_CAD_STATUSES = exports2.CAD_AUTH_TYPES = exports2.CAD_CONNECTION_MODES = exports2.CAD_DEPARTMENT_TYPES = exports2.CAD_VENDOR_LABELS = exports2.CAD_VENDOR_IDS = void 0;
@@ -20964,9 +20964,9 @@ var require_types8 = __commonJS({
   }
 });
 
-// packages/shared/dist/cad-connector/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cad-connector/schemas.js
 var require_schemas18 = __commonJS({
-  "packages/shared/dist/cad-connector/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cad-connector/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.cadAuditListQuerySchema = exports2.cadWriteBackListQuerySchema = exports2.cadIncidentListQuerySchema = exports2.cadWriteBackApproveBodySchema = exports2.cadWriteBackRejectBodySchema = exports2.cadWriteBackSubmitBodySchema = exports2.cadRoutingRulesPutBodySchema = exports2.cadFieldMappingsPutBodySchema = exports2.cadConnectorUpdateBodySchema = exports2.cadConnectorCreateBodySchema = exports2.cadRoutingRuleSchema = exports2.cadRoutingConditionSchema = exports2.cadFieldMappingSchema = exports2.cadFieldTransformSchema = exports2.cadWriteBackStatusSchema = exports2.unifiedCadStatusSchema = exports2.cadAuthTypeSchema = exports2.cadConnectionModeSchema = exports2.cadDepartmentTypeSchema = exports2.cadVendorIdSchema = void 0;
@@ -21124,9 +21124,9 @@ var require_schemas18 = __commonJS({
   }
 });
 
-// packages/shared/dist/cad-connector/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cad-connector/index.js
 var require_cad_connector = __commonJS({
-  "packages/shared/dist/cad-connector/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cad-connector/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -21150,9 +21150,9 @@ var require_cad_connector = __commonJS({
   }
 });
 
-// packages/shared/dist/cad-bridge/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cad-bridge/schemas.js
 var require_schemas19 = __commonJS({
-  "packages/shared/dist/cad-bridge/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cad-bridge/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.BUFFER_MAX_RETRY_ATTEMPTS = exports2.BUFFER_DEAD_TTL_SECONDS = exports2.BUFFER_TTL_SECONDS = exports2.CIRCUIT_BREAKER_RESET_SECONDS = exports2.CIRCUIT_BREAKER_FAILURE_THRESHOLD = exports2.LOOP_GUARD_TTL_MS = exports2.RC_BRIDGE_COMMENT_PREFIX = exports2.RC_BRIDGE_SOURCE_HEADER = exports2.CAD_BRIDGE_SECRET_ARN_PREFIXES = exports2.CAD_BRIDGE_SECRET_ARN_PREFIX_LEGACY = exports2.CAD_BRIDGE_SECRET_ARN_PREFIX = exports2.circuitBreakerStateSchema = exports2.bufferedOutboundEventSchema = exports2.bufferedOutboundHttpMethodSchema = exports2.cadBridgeAuditRecordSchema = exports2.cadBridgeTransferRequestSchema = exports2.cadBridgeConflictResolveSchema = exports2.cadBridgeSyncRulesPatchSchema = exports2.cadBridgeEnabledPatchSchema = exports2.cadBridgeConfigPutSchema = exports2.cadBridgeConfigSchema = exports2.bridgeSyncRulesSchema = exports2.cadBridgeExtraParticipantSchema = exports2.cadSlotConfigSchema = exports2.bridgeEventSchema = exports2.canonicalIncidentSchema = exports2.cadSlotLinkSchema = exports2.transferStateSchema = exports2.conflictRecordSchema = exports2.canonicalCallerSchema = exports2.canonicalCommentSchema = exports2.canonicalUnitSchema = exports2.canonicalLocationSchema = exports2.circuitBreakerStateNameSchema = exports2.bridgeOutcomeSchema = exports2.transferStatusSchema = exports2.incidentSyncStatusSchema = exports2.bridgeEventTypeSchema = exports2.unitStatusSchema = exports2.incidentStatusSchema = exports2.conflictStrategySchema = exports2.incidentPrioritySchema = exports2.cadBridgeExtraSlotSchema = exports2.cadSlotSchema = exports2.CAD_BRIDGE_EXTRA_SLOTS = exports2.CAD_BRIDGE_MAX_PARTICIPANTS = exports2.CAD_BRIDGE_SLOTS = exports2.CAD_BRIDGE_VENDOR_LABELS = exports2.cadBridgeVendorSchema = exports2.CAD_BRIDGE_VENDORS = void 0;
@@ -21529,9 +21529,9 @@ var require_schemas19 = __commonJS({
   }
 });
 
-// packages/shared/dist/cad-bridge/config.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cad-bridge/config.js
 var require_config = __commonJS({
-  "packages/shared/dist/cad-bridge/config.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cad-bridge/config.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CadBridgeConfigValidationError = exports2.DEFAULT_BRIDGE_SYNC_RULES = void 0;
@@ -21800,9 +21800,9 @@ var require_config = __commonJS({
   }
 });
 
-// packages/shared/dist/cad-bridge/loop.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cad-bridge/loop.js
 var require_loop = __commonJS({
-  "packages/shared/dist/cad-bridge/loop.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cad-bridge/loop.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.extractBridgeToken = extractBridgeToken;
@@ -21833,9 +21833,9 @@ ${bridgeToken}`;
   }
 });
 
-// packages/shared/dist/cad-bridge/conflict.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cad-bridge/conflict.js
 var require_conflict = __commonJS({
-  "packages/shared/dist/cad-bridge/conflict.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cad-bridge/conflict.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.detectCadBridgeConflicts = detectCadBridgeConflicts;
@@ -21975,9 +21975,9 @@ var require_conflict = __commonJS({
   }
 });
 
-// packages/shared/dist/cad-bridge/transfer.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cad-bridge/transfer.js
 var require_transfer = __commonJS({
-  "packages/shared/dist/cad-bridge/transfer.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cad-bridge/transfer.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CadBridgeTransferError = void 0;
@@ -22065,9 +22065,9 @@ var require_transfer = __commonJS({
   }
 });
 
-// packages/shared/dist/cad-bridge/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cad-bridge/index.js
 var require_cad_bridge = __commonJS({
-  "packages/shared/dist/cad-bridge/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cad-bridge/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -22094,17 +22094,17 @@ var require_cad_bridge = __commonJS({
   }
 });
 
-// packages/shared/dist/cad-mesh/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cad-mesh/types.js
 var require_types9 = __commonJS({
-  "packages/shared/dist/cad-mesh/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cad-mesh/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// packages/shared/dist/cad-mesh/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cad-mesh/schemas.js
 var require_schemas20 = __commonJS({
-  "packages/shared/dist/cad-mesh/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cad-mesh/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.writebackApprovalSchema = exports2.writebackToggleSchema = exports2.updatePolicyRequestSchema = exports2.revokeRelationshipSchema = exports2.suspendRelationshipSchema = exports2.acceptInviteRequestSchema = exports2.sendInviteRequestSchema = void 0;
@@ -22166,9 +22166,9 @@ var require_schemas20 = __commonJS({
   }
 });
 
-// packages/shared/dist/cad-mesh/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cad-mesh/index.js
 var require_cad_mesh = __commonJS({
-  "packages/shared/dist/cad-mesh/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cad-mesh/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -22192,9 +22192,9 @@ var require_cad_mesh = __commonJS({
   }
 });
 
-// packages/shared/dist/features/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/features/schemas.js
 var require_schemas21 = __commonJS({
-  "packages/shared/dist/features/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/features/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.escalationLevelSchema = exports2.checkInTimerStatusSchema = exports2.staffingPrioritySchema = exports2.publicEventStatusSchema = exports2.eventTypeSchema = exports2.impactLevelSchema = exports2.recommendationPrioritySchema = exports2.trainingRecommendationTypeSchema = exports2.learningPatternStatusSchema = exports2.patternTypeSchema = exports2.assessmentDifficultySchema = exports2.assessmentStatusSchema = exports2.publicRecordsStatusSchema = exports2.chainOfCustodyActionSchema = exports2.evidenceSourceMethodSchema = exports2.evidenceStatusSchema = exports2.evidenceTypeSchema = exports2.callQualitySchema = exports2.interpreterTriggerReasonSchema = exports2.interpreterRequestStatusSchema = exports2.interpreterMethodSchema = exports2.infrastructureTypeSchema = exports2.traumaLevelSchema = exports2.capRefillSchema = exports2.radialPulseSchema = exports2.transportStatusSchema = exports2.patientSexSchema = exports2.mciSeveritySchema = exports2.mciStatusSchema = exports2.triageColorSchema = exports2.commitmentStatusSchema = exports2.mutualAidPrioritySchema = exports2.resourceRequestStatusSchema = exports2.coResponderStatusSchema = exports2.altResolutionSchema = exports2.supervisorAltDecisionSchema = exports2.resourceAvailabilityStatusSchema = exports2.alternativeResourceTypeSchema = exports2.alternativeResponseTypeSchema = exports2.floorPlanAnnotationTypeSchema = exports2.facilityTypeSchema = exports2.hazardSeveritySchema = exports2.addressHazardTypeSchema = exports2.citizenMatchOnSchema = exports2.communicationPreferredMethodSchema = exports2.communicationNeedTypeSchema = exports2.medicalSeveritySchema = exports2.buildingTypeSchema = exports2.enrolledViaSchema = exports2.mobilityStatusSchema = void 0;
@@ -23569,9 +23569,9 @@ var require_schemas21 = __commonJS({
   }
 });
 
-// packages/shared/dist/features/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/features/types.js
 var require_types10 = __commonJS({
-  "packages/shared/dist/features/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/features/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.FEATURES_SK = void 0;
@@ -23686,9 +23686,9 @@ var require_types10 = __commonJS({
   }
 });
 
-// packages/shared/dist/features/audit-events.js
+// apps/api/node_modules/rapid-cortex-shared/dist/features/audit-events.js
 var require_audit_events = __commonJS({
-  "packages/shared/dist/features/audit-events.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/features/audit-events.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.FEATURES_AUDIT_EVENT_TYPES = void 0;
@@ -23745,9 +23745,9 @@ var require_audit_events = __commonJS({
   }
 });
 
-// packages/shared/dist/features/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/features/index.js
 var require_features = __commonJS({
-  "packages/shared/dist/features/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/features/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -23772,9 +23772,9 @@ var require_features = __commonJS({
   }
 });
 
-// packages/shared/dist/channels/channel.js
+// apps/api/node_modules/rapid-cortex-shared/dist/channels/channel.js
 var require_channel = __commonJS({
-  "packages/shared/dist/channels/channel.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/channels/channel.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.patchIncidentChannelBodySchema = exports2.assignChannelBodySchema = exports2.patchChannelBodySchema = exports2.createChannelBodySchema = exports2.incidentChannelAssignmentSchema = exports2.channelConfigSchema = exports2.channelDisciplineSchema = void 0;
@@ -23833,9 +23833,9 @@ var require_channel = __commonJS({
   }
 });
 
-// packages/shared/dist/agency/agency-slug.js
+// apps/api/node_modules/rapid-cortex-shared/dist/agency/agency-slug.js
 var require_agency_slug = __commonJS({
-  "packages/shared/dist/agency/agency-slug.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/agency/agency-slug.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.buildAgencySlug = buildAgencySlug;
@@ -23953,9 +23953,9 @@ var require_agency_slug = __commonJS({
   }
 });
 
-// packages/shared/dist/network/access-policy-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/network/access-policy-types.js
 var require_access_policy_types = __commonJS({
-  "packages/shared/dist/network/access-policy-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/network/access-policy-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.NETWORK_BYPASS_ROLES = exports2.DAYS_OF_WEEK = void 0;
@@ -24000,9 +24000,9 @@ var require_access_policy_types = __commonJS({
   }
 });
 
-// packages/shared/dist/network/time-utils.js
+// apps/api/node_modules/rapid-cortex-shared/dist/network/time-utils.js
 var require_time_utils = __commonJS({
-  "packages/shared/dist/network/time-utils.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/network/time-utils.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.isWithinAccessWindow = isWithinAccessWindow;
@@ -24122,9 +24122,9 @@ var require_time_utils = __commonJS({
   }
 });
 
-// packages/shared/dist/network/network-policy-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/network/network-policy-schemas.js
 var require_network_policy_schemas = __commonJS({
-  "packages/shared/dist/network/network-policy-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/network/network-policy-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.emergencyOverrideRequestBodySchema = exports2.grantEmergencyOverrideBodySchema = exports2.addNetworkCidrBodySchema = exports2.patchAgencyNetworkPolicyBodySchema = void 0;
@@ -24172,9 +24172,9 @@ var require_network_policy_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/network/ip-utils.js
+// apps/api/node_modules/rapid-cortex-shared/dist/network/ip-utils.js
 var require_ip_utils = __commonJS({
-  "packages/shared/dist/network/ip-utils.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/network/ip-utils.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.isValidCidr = isValidCidr;
@@ -24321,9 +24321,9 @@ var require_ip_utils = __commonJS({
   }
 });
 
-// packages/shared/dist/network/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/network/index.js
 var require_network = __commonJS({
-  "packages/shared/dist/network/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/network/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -24349,9 +24349,9 @@ var require_network = __commonJS({
   }
 });
 
-// packages/shared/dist/pinpoint-surge/constants.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pinpoint-surge/constants.js
 var require_constants3 = __commonJS({
-  "packages/shared/dist/pinpoint-surge/constants.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pinpoint-surge/constants.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SURGE_CONFIG = exports2.PINPOINT_CONFIG = void 0;
@@ -24381,9 +24381,9 @@ var require_constants3 = __commonJS({
   }
 });
 
-// packages/shared/dist/pinpoint-surge/surge-keywords.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pinpoint-surge/surge-keywords.js
 var require_surge_keywords = __commonJS({
-  "packages/shared/dist/pinpoint-surge/surge-keywords.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pinpoint-surge/surge-keywords.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SURGE_KEYWORDS = void 0;
@@ -24522,9 +24522,9 @@ var require_surge_keywords = __commonJS({
   }
 });
 
-// packages/shared/dist/pinpoint-surge/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pinpoint-surge/schemas.js
 var require_schemas22 = __commonJS({
-  "packages/shared/dist/pinpoint-surge/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pinpoint-surge/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.pinpointPublicSessionSchema = exports2.surgeSplitClusterBodySchema = exports2.pinpointPublicRevokeBodySchema = exports2.pinpointLocationCaptureBodySchema = exports2.createBrowserPinpointLinkBodySchema = exports2.createPinpointLinkBodySchema = void 0;
@@ -24572,9 +24572,9 @@ var require_schemas22 = __commonJS({
   }
 });
 
-// packages/shared/dist/pinpoint-surge/location-utils.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pinpoint-surge/location-utils.js
 var require_location_utils = __commonJS({
-  "packages/shared/dist/pinpoint-surge/location-utils.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pinpoint-surge/location-utils.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.calculateLocationConfidence = calculateLocationConfidence;
@@ -24611,9 +24611,9 @@ var require_location_utils = __commonJS({
   }
 });
 
-// packages/shared/dist/pinpoint-surge/location-status.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pinpoint-surge/location-status.js
 var require_location_status = __commonJS({
-  "packages/shared/dist/pinpoint-surge/location-status.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pinpoint-surge/location-status.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.resolvePinpointIqLocationStatus = resolvePinpointIqLocationStatus;
@@ -24701,9 +24701,9 @@ var require_location_status = __commonJS({
   }
 });
 
-// packages/shared/dist/pinpoint-surge/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pinpoint-surge/index.js
 var require_pinpoint_surge = __commonJS({
-  "packages/shared/dist/pinpoint-surge/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pinpoint-surge/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -24730,9 +24730,9 @@ var require_pinpoint_surge = __commonJS({
   }
 });
 
-// packages/shared/dist/call-control/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-control/schemas.js
 var require_schemas23 = __commonJS({
-  "packages/shared/dist/call-control/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-control/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.transferCallResponseSchema = exports2.activeCallsListResponseSchema = exports2.callIdBodySchema = exports2.takeoverCallBodySchema = exports2.transferCallBodySchema = exports2.activeCallRecordSchema = exports2.pendingTransferSchema = exports2.activeCallStatusSchema = exports2.callTransferStatusSchema = exports2.callTransferMethodSchema = void 0;
@@ -24813,9 +24813,9 @@ var require_schemas23 = __commonJS({
   }
 });
 
-// packages/shared/dist/call-control/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-control/index.js
 var require_call_control = __commonJS({
-  "packages/shared/dist/call-control/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-control/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -24838,9 +24838,9 @@ var require_call_control = __commonJS({
   }
 });
 
-// packages/shared/dist/voice-bridge/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/voice-bridge/schemas.js
 var require_schemas24 = __commonJS({
-  "packages/shared/dist/voice-bridge/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/voice-bridge/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.voiceBridgeOutboundResponseSchema = exports2.voiceBridgeOutboundBodySchema = void 0;
@@ -24866,9 +24866,9 @@ var require_schemas24 = __commonJS({
   }
 });
 
-// packages/shared/dist/cameras/wyze-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cameras/wyze-schemas.js
 var require_wyze_schemas = __commonJS({
-  "packages/shared/dist/cameras/wyze-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cameras/wyze-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.wyzeAnswerStreamBodySchema = exports2.wyzeRequestCameraAccessBodySchema = exports2.wyzeRegisterBodySchema = exports2.wyzeRequestDurationMinutesSchema = void 0;
@@ -24901,9 +24901,9 @@ var require_wyze_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/cameras/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/cameras/index.js
 var require_cameras = __commonJS({
-  "packages/shared/dist/cameras/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/cameras/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -24926,9 +24926,9 @@ var require_cameras = __commonJS({
   }
 });
 
-// packages/shared/dist/venue/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/venue/schemas.js
 var require_schemas25 = __commonJS({
-  "packages/shared/dist/venue/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/venue/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.streamViewerTokenRequestSchema = exports2.venueIntelligenceQuerySchema = exports2.venueCameraRequestBodySchema = void 0;
@@ -24951,9 +24951,9 @@ var require_schemas25 = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-cortex-video/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-cortex-video/types.js
 var require_types11 = __commonJS({
-  "packages/shared/dist/rapid-cortex-video/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-cortex-video/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CONCURRENT_STREAM_LIMITS = exports2.HEARTBEAT_OFFLINE_MS = exports2.videoRecordingStatusSchema = exports2.videoPlaybackSessionSchema = exports2.videoFragmentSchema = exports2.videoClipCreateBodySchema = exports2.videoClipSchema = exports2.videoClipStatusSchema = exports2.videoRecordingPatchBodySchema = exports2.videoCameraRetentionPolicySchema = exports2.videoRetentionHoursSchema = exports2.VIDEO_HLS_URL_TTL_SECONDS = exports2.VIDEO_CLIP_TTL_SECONDS = exports2.VIDEO_CLIP_MIN_SECONDS = exports2.VIDEO_CLIP_MAX_SECONDS = exports2.videoGatewayRelayBodySchema = exports2.videoGatewayRelayCommandSchema = exports2.videoPtzPresetSaveBodySchema = exports2.videoPtzPresetGotoBodySchema = exports2.videoPtzPresetSchema = exports2.videoPtzZoomBodySchema = exports2.videoPtzMoveBodySchema = exports2.videoPtzSpeedSchema = exports2.videoPtzDirectionSchema = exports2.VIDEO_PTZ_RATE_LIMIT_PER_MINUTE = exports2.videoApiErrorCodeSchema = exports2.cameraHealthSummarySchema = exports2.videoWallConfigPutBodySchema = exports2.videoWallConfigSchema = exports2.videoTileAssignmentSchema = exports2.videoTileStatusSchema = exports2.videoWallLayoutSchema = void 0;
@@ -25269,9 +25269,9 @@ var require_types11 = __commonJS({
   }
 });
 
-// packages/shared/dist/venue/camera-registry-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/venue/camera-registry-schemas.js
 var require_camera_registry_schemas = __commonJS({
-  "packages/shared/dist/venue/camera-registry-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/venue/camera-registry-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RTSP_PRODUCER_VENDORS = exports2.venueCameraDiscoverResponseSchema = exports2.venueCameraDiscoverBodySchema = exports2.venueCameraPtzBodySchema = exports2.venueCameraViewerTokenQuerySchema = exports2.venueIncidentStatusPatchSchema = exports2.venueIncidentUpdateBodySchema = exports2.venueIncidentCameraSummarySchema = exports2.transitCamerasQuerySchema = exports2.campusCamerasQuerySchema = exports2.venueCamerasQuerySchema = exports2.venueCameraUpsertBodySchema = exports2.venueCameraSchema = exports2.venueCameraStatusSchema = exports2.venueCameraVendorSchema = void 0;
@@ -25436,9 +25436,9 @@ var require_camera_registry_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/venue/operational-map-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/venue/operational-map-types.js
 var require_operational_map_types = __commonJS({
-  "packages/shared/dist/venue/operational-map-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/venue/operational-map-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.EXTERIOR_LAYER_IDS = exports2.FACILITY_LAYER_IDS = exports2.OPERATIONAL_VIEW_MODES = void 0;
@@ -25473,9 +25473,9 @@ var require_operational_map_types = __commonJS({
   }
 });
 
-// packages/shared/dist/venue/section-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/venue/section-schemas.js
 var require_section_schemas = __commonJS({
-  "packages/shared/dist/venue/section-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/venue/section-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.venueProfilePatchSchema = exports2.venueProfileSchema = exports2.venueSectionStatusPatchSchema = exports2.venueSectionUpsertBodySchema = exports2.venueSectionSchema = exports2.venueTypeSchema = exports2.venueSectionStatusSchema = exports2.venueSectionLevelSchema = void 0;
@@ -25532,9 +25532,9 @@ var require_section_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/venue/case-management-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/venue/case-management-schemas.js
 var require_case_management_schemas = __commonJS({
-  "packages/shared/dist/venue/case-management-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/venue/case-management-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DEFAULT_VENUE_FORM_SCHEMA = exports2.venueIntegrationImportBodySchema = exports2.venueFormSchemaPutBodySchema = exports2.venueFormSchemaConfigSchema = exports2.venueFormFieldSchema = exports2.venueSecureShareBodySchema = exports2.venueCustodyTransferBodySchema = exports2.venueEvidenceConfirmBodySchema = exports2.venueEvidenceUploadBodySchema = exports2.venueCaseActionBodySchema = exports2.venueCaseActionSchema = exports2.venueCaseStatusSchema = void 0;
@@ -25697,9 +25697,9 @@ var require_case_management_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/venue/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/venue/index.js
 var require_venue = __commonJS({
-  "packages/shared/dist/venue/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/venue/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -25847,9 +25847,9 @@ var require_venue = __commonJS({
   }
 });
 
-// packages/shared/dist/transit/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/transit/schemas.js
 var require_schemas26 = __commonJS({
-  "packages/shared/dist/transit/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/transit/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.transitAlertStateSchema = exports2.transitAlertLevelPatchSchema = exports2.transitBroadcastBodySchema = exports2.transitReportSchema = exports2.transitIncidentPatchBodySchema = exports2.transitIncidentCreateBodySchema = exports2.transitIncidentSchema = exports2.transitOperatorUpsertBodySchema = exports2.transitOperatorSchema = exports2.transitStationUpsertBodySchema = exports2.transitStationSchema = exports2.transitRouteUpsertBodySchema = exports2.transitRouteSchema = exports2.transitVehicleGpsBodySchema = exports2.transitVehicleUpsertBodySchema = exports2.transitVehicleSchema = exports2.transitIncidentTypeSchema = exports2.transitIncidentStatusSchema = exports2.transitAlertLevelSchema = exports2.transitVehicleStatusSchema = exports2.transitVehicleModeSchema = void 0;
@@ -26007,9 +26007,9 @@ var require_schemas26 = __commonJS({
   }
 });
 
-// packages/shared/dist/transit/place-cameras.js
+// apps/api/node_modules/rapid-cortex-shared/dist/transit/place-cameras.js
 var require_place_cameras = __commonJS({
-  "packages/shared/dist/transit/place-cameras.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/transit/place-cameras.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.scoreTransitCameraForPlace = scoreTransitCameraForPlace;
@@ -26100,9 +26100,9 @@ var require_place_cameras = __commonJS({
   }
 });
 
-// packages/shared/dist/transit/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/transit/index.js
 var require_transit = __commonJS({
-  "packages/shared/dist/transit/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/transit/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.selectCamerasForTransitPlace = exports2.rankTransitCamerasForPlace = exports2.toTransitCameraSummary = exports2.scoreTransitCameraForPlace = exports2.transitAlertStateSchema = exports2.transitAlertLevelPatchSchema = exports2.transitBroadcastBodySchema = exports2.transitReportSchema = exports2.transitIncidentPatchBodySchema = exports2.transitIncidentCreateBodySchema = exports2.transitIncidentSchema = exports2.transitOperatorUpsertBodySchema = exports2.transitOperatorSchema = exports2.transitStationUpsertBodySchema = exports2.transitStationSchema = exports2.transitRouteUpsertBodySchema = exports2.transitRouteSchema = exports2.transitVehicleGpsBodySchema = exports2.transitVehicleUpsertBodySchema = exports2.transitVehicleSchema = exports2.transitIncidentTypeSchema = exports2.transitIncidentStatusSchema = exports2.transitAlertLevelSchema = exports2.transitVehicleStatusSchema = exports2.transitVehicleModeSchema = void 0;
@@ -26186,17 +26186,17 @@ var require_transit = __commonJS({
   }
 });
 
-// packages/shared/dist/locations/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/locations/types.js
 var require_types12 = __commonJS({
-  "packages/shared/dist/locations/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/locations/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// packages/shared/dist/locations/rcli.js
+// apps/api/node_modules/rapid-cortex-shared/dist/locations/rcli.js
 var require_rcli = __commonJS({
-  "packages/shared/dist/locations/rcli.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/locations/rcli.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.generateRCLI = generateRCLI;
@@ -26243,9 +26243,9 @@ var require_rcli = __commonJS({
   }
 });
 
-// packages/shared/dist/locations/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/locations/schemas.js
 var require_schemas27 = __commonJS({
-  "packages/shared/dist/locations/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/locations/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.rcliParamSchema = exports2.qrPublicIntakeSchema = exports2.qrLocationBulkRowSchema = exports2.updateQRLocationSchema = exports2.createQRLocationSchema = exports2.qrLocationVerticalSchema = void 0;
@@ -26297,9 +26297,9 @@ var require_schemas27 = __commonJS({
   }
 });
 
-// packages/shared/dist/locations/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/locations/index.js
 var require_locations = __commonJS({
-  "packages/shared/dist/locations/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/locations/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -26324,9 +26324,9 @@ var require_locations = __commonJS({
   }
 });
 
-// packages/shared/dist/onboarding/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/onboarding/types.js
 var require_types13 = __commonJS({
-  "packages/shared/dist/onboarding/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/onboarding/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ONBOARDING_CHECKLIST_VENUE_STEP_IDS = exports2.ONBOARDING_CHECKLIST_CAMPUS_STEP_IDS = exports2.ONBOARDING_CHECKLIST_SHARED_STEP_IDS = void 0;
@@ -26369,9 +26369,9 @@ var require_types13 = __commonJS({
   }
 });
 
-// packages/shared/dist/guest-assist/knowledge.js
+// apps/api/node_modules/rapid-cortex-shared/dist/guest-assist/knowledge.js
 var require_knowledge = __commonJS({
-  "packages/shared/dist/guest-assist/knowledge.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/guest-assist/knowledge.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.GUEST_ASSIST_KNOWLEDGE_FIELDS = exports2.transitGuestAssistKnowledgeSchema = exports2.campusGuestAssistKnowledgeSchema = exports2.venueGuestAssistKnowledgeSchema = void 0;
@@ -26606,9 +26606,9 @@ var require_knowledge = __commonJS({
   }
 });
 
-// packages/shared/dist/onboarding/campus-intake-schema.js
+// apps/api/node_modules/rapid-cortex-shared/dist/onboarding/campus-intake-schema.js
 var require_campus_intake_schema = __commonJS({
-  "packages/shared/dist/onboarding/campus-intake-schema.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/onboarding/campus-intake-schema.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.campusIntakeSchema = exports2.campusDataRetentionPreferenceSchema = exports2.campusStudentCommsChannelSchema = exports2.campusSignInstallerSchema = exports2.campusNfcTagsNeededSchema = exports2.campusAcademicCalendarTypeSchema = exports2.campusAnonymousReportingPolicySchema = void 0;
@@ -26661,9 +26661,9 @@ var require_campus_intake_schema = __commonJS({
   }
 });
 
-// packages/shared/dist/onboarding/campus-integration-questionnaire-schema.js
+// apps/api/node_modules/rapid-cortex-shared/dist/onboarding/campus-integration-questionnaire-schema.js
 var require_campus_integration_questionnaire_schema = __commonJS({
-  "packages/shared/dist/onboarding/campus-integration-questionnaire-schema.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/onboarding/campus-integration-questionnaire-schema.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.campusIntegrationQuestionnaireSchema = exports2.campusAlprVendorSchema = exports2.campusAccessControlVendorSchema = exports2.campusVmsVendorSchema = exports2.campusProvisioningSchema = exports2.campusSsoProtocolSchema = exports2.campusIdpVendorSchema = exports2.campusIntegrationCampusSchema = void 0;
@@ -26892,9 +26892,9 @@ var require_campus_integration_questionnaire_schema = __commonJS({
   }
 });
 
-// packages/shared/dist/onboarding/venue-intake-schema.js
+// apps/api/node_modules/rapid-cortex-shared/dist/onboarding/venue-intake-schema.js
 var require_venue_intake_schema = __commonJS({
-  "packages/shared/dist/onboarding/venue-intake-schema.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/onboarding/venue-intake-schema.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.venueIntakeSchema = exports2.venueDataRetentionPreferenceSchema = exports2.venueSignInstallerSchema = exports2.venueNfcTagsNeededSchema = exports2.venueSecurityCommsToolSchema = exports2.venueSecurityStaffingSchema = exports2.venueEventFrequencySchema = void 0;
@@ -26947,9 +26947,9 @@ var require_venue_intake_schema = __commonJS({
   }
 });
 
-// packages/shared/dist/onboarding/transit-intake-schema.js
+// apps/api/node_modules/rapid-cortex-shared/dist/onboarding/transit-intake-schema.js
 var require_transit_intake_schema = __commonJS({
-  "packages/shared/dist/onboarding/transit-intake-schema.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/onboarding/transit-intake-schema.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.transitIntakeSchema = void 0;
@@ -26972,9 +26972,9 @@ var require_transit_intake_schema = __commonJS({
   }
 });
 
-// packages/shared/dist/onboarding/onboarding-checklist-schema.js
+// apps/api/node_modules/rapid-cortex-shared/dist/onboarding/onboarding-checklist-schema.js
 var require_onboarding_checklist_schema = __commonJS({
-  "packages/shared/dist/onboarding/onboarding-checklist-schema.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/onboarding/onboarding-checklist-schema.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.onboardingChecklistPatchSchema = void 0;
@@ -27012,9 +27012,9 @@ var require_onboarding_checklist_schema = __commonJS({
   }
 });
 
-// packages/shared/dist/onboarding/onboarding-packets.js
+// apps/api/node_modules/rapid-cortex-shared/dist/onboarding/onboarding-packets.js
 var require_onboarding_packets = __commonJS({
-  "packages/shared/dist/onboarding/onboarding-packets.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/onboarding/onboarding-packets.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.BUNDLED_ONBOARDING_PACKETS = exports2.ONBOARDING_PACKET_VERTICAL_LABELS = exports2.onboardingPacketDownloadBodySchema = exports2.onboardingPacketVerticalSchema = exports2.ONBOARDING_PACKETS_S3_PREFIX = exports2.ONBOARDING_PACKET_VERTICALS = void 0;
@@ -27377,9 +27377,9 @@ Use the agency implementation workbook and Admin \u2192 Pilot hub.
   }
 });
 
-// packages/shared/dist/onboarding/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/onboarding/index.js
 var require_onboarding = __commonJS({
-  "packages/shared/dist/onboarding/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/onboarding/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -27408,9 +27408,9 @@ var require_onboarding = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/dashboard-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/dashboard-schemas.js
 var require_dashboard_schemas = __commonJS({
-  "packages/shared/dist/campus/dashboard-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/dashboard-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.campusZoneUpdateBodySchema = exports2.campusZoneCreateBodySchema = exports2.campusThreatLevelPatchSchema = exports2.campusBroadcastBodySchema = exports2.campusNotificationBodySchema = exports2.campusNotificationPrioritySchema = exports2.campusNotificationAudienceSchema = exports2.campusStaffDutyStatusSchema = exports2.campusBuildingStatusSchema = exports2.campusZoneStatusSchema = exports2.campusThreatLevelSchema = void 0;
@@ -27459,9 +27459,9 @@ var require_dashboard_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/campus-buildings-from-qr.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/campus-buildings-from-qr.js
 var require_campus_buildings_from_qr = __commonJS({
-  "packages/shared/dist/campus/campus-buildings-from-qr.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/campus-buildings-from-qr.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CAMPUS_DEMO_FIXTURE_BUILDING_CODES = void 0;
@@ -27512,9 +27512,9 @@ var require_campus_buildings_from_qr = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/institution-type.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/institution-type.js
 var require_institution_type = __commonJS({
-  "packages/shared/dist/campus/institution-type.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/institution-type.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CAMPUS_INSTITUTION_LABELS = exports2.CAMPUS_INSTITUTION_TYPES = void 0;
@@ -27547,9 +27547,9 @@ var require_institution_type = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/k12-intake.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/k12-intake.js
 var require_k12_intake = __commonJS({
-  "packages/shared/dist/campus/k12-intake.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/k12-intake.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.K12_FOLLOW_UP_BY_TYPE = exports2.K12_TYPE_TO_GROUP = exports2.K12_INCIDENT_GROUPS = exports2.K12_INCIDENT_GROUP_IDS = void 0;
@@ -27817,9 +27817,9 @@ var require_k12_intake = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/incident-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/incident-types.js
 var require_incident_types = __commonJS({
-  "packages/shared/dist/campus/incident-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/incident-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.K12_INCIDENT_TYPE_ALIASES = exports2.K12_INCIDENT_TYPES = exports2.HIGHER_ED_INCIDENT_TYPES = void 0;
@@ -28210,9 +28210,9 @@ var require_incident_types = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/zone-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/zone-types.js
 var require_zone_types = __commonJS({
-  "packages/shared/dist/campus/zone-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/zone-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.K12_ZONE_DEFAULTS = exports2.HIGHER_ED_ZONE_DEFAULTS = void 0;
@@ -28250,9 +28250,9 @@ var require_zone_types = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/nsopw-client.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/nsopw-client.js
 var require_nsopw_client = __commonJS({
-  "packages/shared/dist/campus/nsopw-client.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/nsopw-client.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.searchNsopw = searchNsopw;
@@ -28293,9 +28293,9 @@ var require_nsopw_client = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/clery-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-schemas.js
 var require_clery_schemas = __commonJS({
-  "packages/shared/dist/campus/clery-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.cleryAsrPdfPostBodySchema = exports2.cleryReportPostBodySchema = exports2.cleryReportPdfOptionsSchema = exports2.cleryReportQuerySchema = exports2.clerySyncFromPlatformBodySchema = exports2.cleryExternalSyncBodySchema = exports2.cleryImportBodySchema = exports2.cleryImportRowSchema = exports2.cleryEntryUpdateSchema = exports2.cleryEntryCreateSchema = exports2.cleryAcademicYearSchema = exports2.cleryEntrySourceSchema = exports2.CLERY_GEOGRAPHY_LABELS = exports2.cleryGeographySchema = exports2.CLERY_GEOGRAPHIES = exports2.cleryCategorySchema = exports2.CLERY_CATEGORIES = void 0;
@@ -28440,9 +28440,9 @@ var require_clery_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/clery-act/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-act/schemas.js
 var require_schemas28 = __commonJS({
-  "packages/shared/dist/campus/clery-act/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-act/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CLERY_HUMAN_CLASSIFICATION_REQUIRED = exports2.UNFOUND_FORBIDDEN_MESSAGE = exports2.cleryPublicSettingsPatchBodySchema = exports2.cleryAsrPolicyPatchBodySchema = exports2.cleryTimelyWarningBodySchema = exports2.cleryDclPatchBodySchema = exports2.cleryZonePatchBodySchema = exports2.cleryCsaUpdateBodySchema = exports2.cleryCsaCreateBodySchema = exports2.cleryExcludeBodySchema = exports2.cleryUnfoundBodySchema = exports2.cleryClassifyBodySchema = exports2.cleryCreateRecordBodySchema = exports2.publicDailyCrimeLogEntrySchema = exports2.dailyCrimeLogEntrySchema = exports2.campusSecurityAuthoritySchema = exports2.cleryZoneConfigSchema = exports2.cleryRecordSchema = exports2.cleryClassificationHistoryEntrySchema = exports2.cleryDclDispositionSchema = exports2.CLERY_DCL_DISPOSITIONS = exports2.cleryAsrStatusSchema = exports2.CLERY_ASR_STATUSES = exports2.csaReporterTypeSchema = exports2.CSA_REPORTER_TYPES = exports2.cleryEnforcementActionSchema = exports2.CLERY_ENFORCEMENT_ACTIONS = exports2.cleryRecordStatusSchema = exports2.CLERY_RECORD_STATUSES = exports2.vawaOffenseTypeSchema = exports2.VAWA_OFFENSE_TYPES = exports2.drugLawViolationTypeSchema = exports2.DRUG_LAW_VIOLATION_TYPES = exports2.hateCrimeBiasSchema = exports2.HATE_CRIME_BIASES = exports2.HATE_CRIME_ONLY_CATEGORIES = exports2.VAWA_OFFENSE_CATEGORIES = exports2.CRIMINAL_OFFENSE_CATEGORIES = exports2.TIMELY_WARNING_HIGH_CATEGORIES = exports2.SEX_OFFENSE_CATEGORIES = exports2.CLERY_OFFENSE_DISPLAY_NAMES = exports2.cleryOffenseCategorySchema = exports2.CLERY_OFFENSE_CATEGORIES = exports2.CLERY_ACT_GEOGRAPHY_LABELS = exports2.cleryActGeographySchema = exports2.CLERY_ACT_GEOGRAPHIES = void 0;
@@ -28829,9 +28829,9 @@ var require_schemas28 = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/clery-act/redaction.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-act/redaction.js
 var require_redaction = __commonJS({
-  "packages/shared/dist/campus/clery-act/redaction.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-act/redaction.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.isSexOffenseCategory = isSexOffenseCategory;
@@ -28895,9 +28895,9 @@ var require_redaction = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/clery-act/deadlines.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-act/deadlines.js
 var require_deadlines = __commonJS({
-  "packages/shared/dist/campus/clery-act/deadlines.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-act/deadlines.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.isFederalHolidayUtc = isFederalHolidayUtc;
@@ -29008,9 +29008,9 @@ var require_deadlines = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/clery-act/unfounding.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-act/unfounding.js
 var require_unfounding = __commonJS({
-  "packages/shared/dist/campus/clery-act/unfounding.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-act/unfounding.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.canUnfoundCrime = canUnfoundCrime;
@@ -29037,9 +29037,9 @@ var require_unfounding = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/clery-act/asr.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-act/asr.js
 var require_asr = __commonJS({
-  "packages/shared/dist/campus/clery-act/asr.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-act/asr.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ASR_DISCLAIMER_TEMPLATE = void 0;
@@ -29219,9 +29219,9 @@ var require_asr = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/clery-act/classification-prompt.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-act/classification-prompt.js
 var require_classification_prompt = __commonJS({
-  "packages/shared/dist/campus/clery-act/classification-prompt.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-act/classification-prompt.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CLERY_CLASSIFICATION_SYSTEM_PROMPT = void 0;
@@ -29255,9 +29255,9 @@ RESPONSE FORMAT (JSON only):
   }
 });
 
-// packages/shared/dist/campus/clery-act/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-act/index.js
 var require_clery_act = __commonJS({
-  "packages/shared/dist/campus/clery-act/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/clery-act/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -29285,9 +29285,9 @@ var require_clery_act = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/eap-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/eap-schemas.js
 var require_eap_schemas = __commonJS({
-  "packages/shared/dist/campus/eap-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/eap-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.campusEapChecklistSchema = exports2.campusEapMatchQuerySchema = exports2.campusEapListQuerySchema = exports2.campusEapUpsertBodySchema = exports2.campusEapSchema = exports2.campusIncidentTypeKeySchema = void 0;
@@ -29351,9 +29351,9 @@ var require_eap_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/security-event-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/security-event-schemas.js
 var require_security_event_schemas = __commonJS({
-  "packages/shared/dist/campus/security-event-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/security-event-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.campusSecurityEventBodySchema = exports2.campusSecurityEventLocationSchema = exports2.campusSecurityEventSeveritySchema = exports2.campusSecurityEventSourceSchema = void 0;
@@ -29413,9 +29413,9 @@ var require_security_event_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/automation-rule-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/automation-rule-schemas.js
 var require_automation_rule_schemas = __commonJS({
-  "packages/shared/dist/campus/automation-rule-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/automation-rule-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.campusAutomationRuleUpsertBodySchema = exports2.campusAutomationRuleSchema = exports2.campusAutomationRuleActionsSchema = exports2.campusAutomationRuleMatchSchema = exports2.campusAutomationSeveritySchema = void 0;
@@ -29496,9 +29496,9 @@ var require_automation_rule_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/counselor-queue.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/counselor-queue.js
 var require_counselor_queue = __commonJS({
-  "packages/shared/dist/campus/counselor-queue.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/counselor-queue.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CAMPUS_COUNSELOR_QUEUE_TYPES = void 0;
@@ -29510,9 +29510,9 @@ var require_counselor_queue = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/school-safety-report-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/school-safety-report-schemas.js
 var require_school_safety_report_schemas = __commonJS({
-  "packages/shared/dist/campus/school-safety-report-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/school-safety-report-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.schoolSafetyReportPdfBodySchema = exports2.schoolSafetyReportRowSchema = void 0;
@@ -29550,9 +29550,9 @@ var require_school_safety_report_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/place-cameras.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/place-cameras.js
 var require_place_cameras2 = __commonJS({
-  "packages/shared/dist/campus/place-cameras.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/place-cameras.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.scoreCampusCameraForPlace = scoreCampusCameraForPlace;
@@ -29642,9 +29642,9 @@ var require_place_cameras2 = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/escort-iq/gates.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/escort-iq/gates.js
 var require_gates = __commonJS({
-  "packages/shared/dist/campus/escort-iq/gates.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/escort-iq/gates.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.isEscortIqHigherEdCampus = isEscortIqHigherEdCampus;
@@ -29684,9 +29684,9 @@ var require_gates = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/escort-iq/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/escort-iq/index.js
 var require_escort_iq = __commonJS({
-  "packages/shared/dist/campus/escort-iq/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/escort-iq/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -29710,9 +29710,9 @@ var require_escort_iq = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/campus-alerts/gates.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/campus-alerts/gates.js
 var require_gates2 = __commonJS({
-  "packages/shared/dist/campus/campus-alerts/gates.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/campus-alerts/gates.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.isCampusAlertsHigherEdCampus = isCampusAlertsHigherEdCampus;
@@ -29760,9 +29760,9 @@ var require_gates2 = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/campus-alerts/sms-cost.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/campus-alerts/sms-cost.js
 var require_sms_cost = __commonJS({
-  "packages/shared/dist/campus/campus-alerts/sms-cost.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/campus-alerts/sms-cost.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.estimateSmsSegments = estimateSmsSegments;
@@ -29799,9 +29799,9 @@ var require_sms_cost = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/campus-alerts/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/campus-alerts/index.js
 var require_campus_alerts = __commonJS({
-  "packages/shared/dist/campus/campus-alerts/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/campus-alerts/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -29826,9 +29826,9 @@ var require_campus_alerts = __commonJS({
   }
 });
 
-// packages/shared/dist/campus/silent-panic.js
+// apps/api/node_modules/rapid-cortex-shared/dist/campus/silent-panic.js
 var require_silent_panic = __commonJS({
-  "packages/shared/dist/campus/silent-panic.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/campus/silent-panic.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SILENT_PANIC_DISTRICT_OWNS = exports2.SILENT_PANIC_PRODUCT_DOES = exports2.silentPanicActivationSchema = void 0;
@@ -29883,9 +29883,9 @@ var require_silent_panic = __commonJS({
   }
 });
 
-// packages/shared/dist/venue/dashboard-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/venue/dashboard-schemas.js
 var require_dashboard_schemas2 = __commonJS({
-  "packages/shared/dist/venue/dashboard-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/venue/dashboard-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.venueNotificationBodySchema = exports2.venueNotificationPrioritySchema = exports2.venueNotificationAudienceSchema = void 0;
@@ -29909,17 +29909,17 @@ var require_dashboard_schemas2 = __commonJS({
   }
 });
 
-// packages/shared/dist/qr-nfc/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/qr-nfc/types.js
 var require_types14 = __commonJS({
-  "packages/shared/dist/qr-nfc/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/qr-nfc/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// packages/shared/dist/lib/phone-format.js
+// apps/api/node_modules/rapid-cortex-shared/dist/lib/phone-format.js
 var require_phone_format = __commonJS({
-  "packages/shared/dist/lib/phone-format.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/lib/phone-format.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.normalizePhoneE164 = normalizePhoneE164;
@@ -29981,9 +29981,9 @@ var require_phone_format = __commonJS({
   }
 });
 
-// packages/shared/dist/qr-nfc/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/qr-nfc/schemas.js
 var require_schemas29 = __commonJS({
-  "packages/shared/dist/qr-nfc/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/qr-nfc/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.publicReportSubmitSchema = exports2.tradeShowSiteUsageResponseSchema = exports2.tradeShowSiteUsageItemSchema = exports2.trackEngagementSchema = exports2.verifySafetyPointLocationSchema = exports2.updateQRNFCSchema = exports2.createQRNFCSchema = exports2.safetyPointGisImportCommitSchema = exports2.safetyPointGisImportPreviewSchema = exports2.safetyPointGisImportRowSchema = exports2.registeredSafetyPointLocationSchema = exports2.safetyPointVerificationStatusSchema = exports2.safetyPointCoordinateSourceSchema = exports2.reportMediumSchema = exports2.qrNfcReportTypeSchema = exports2.reportVerticalSchema = void 0;
@@ -30143,9 +30143,9 @@ var require_schemas29 = __commonJS({
   }
 });
 
-// packages/shared/dist/qr-nfc/trade-show.js
+// apps/api/node_modules/rapid-cortex-shared/dist/qr-nfc/trade-show.js
 var require_trade_show = __commonJS({
-  "packages/shared/dist/qr-nfc/trade-show.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/qr-nfc/trade-show.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.TRADE_SHOW_DESTINATIONS = exports2.TRADE_SHOW_SITE_QR_IDS = exports2.TRADE_SHOW_SITE_AGENCY_ID = exports2.TRADE_SHOW_DEMO_URL = exports2.TRADE_SHOW_HOME_URL = void 0;
@@ -30243,9 +30243,9 @@ var require_trade_show = __commonJS({
   }
 });
 
-// packages/shared/dist/qr-nfc/transit-place.js
+// apps/api/node_modules/rapid-cortex-shared/dist/qr-nfc/transit-place.js
 var require_transit_place = __commonJS({
-  "packages/shared/dist/qr-nfc/transit-place.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/qr-nfc/transit-place.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.transitPlaceFromQrRecord = transitPlaceFromQrRecord;
@@ -30269,17 +30269,17 @@ var require_transit_place = __commonJS({
   }
 });
 
-// packages/shared/dist/notices/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/notices/types.js
 var require_types15 = __commonJS({
-  "packages/shared/dist/notices/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/notices/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// packages/shared/dist/notices/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/notices/schemas.js
 var require_schemas30 = __commonJS({
-  "packages/shared/dist/notices/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/notices/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.createNoticeInputSchema = exports2.noticeSeveritySchema = exports2.noticeVerticalSchema = exports2.noticeTargetTypeSchema = void 0;
@@ -30316,9 +30316,9 @@ var require_schemas30 = __commonJS({
   }
 });
 
-// packages/shared/dist/notices/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/notices/index.js
 var require_notices = __commonJS({
-  "packages/shared/dist/notices/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/notices/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -30342,17 +30342,17 @@ var require_notices = __commonJS({
   }
 });
 
-// packages/shared/dist/pricing/pricing-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pricing/pricing-types.js
 var require_pricing_types2 = __commonJS({
-  "packages/shared/dist/pricing/pricing-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pricing/pricing-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// packages/shared/dist/pricing/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/pricing/index.js
 var require_pricing = __commonJS({
-  "packages/shared/dist/pricing/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/pricing/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -30375,9 +30375,9 @@ var require_pricing = __commonJS({
   }
 });
 
-// packages/shared/dist/safe-sound/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/safe-sound/schemas.js
 var require_schemas31 = __commonJS({
-  "packages/shared/dist/safe-sound/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/safe-sound/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.profileLanguagePayloadSchema = exports2.createSubscriptionPayloadSchema = exports2.guardianCancelPayloadSchema = exports2.saveEmergencyContactsPayloadSchema = exports2.createGeofencePayloadSchema = exports2.rcCoreConsentPayloadSchema = exports2.lostModePayloadSchema = exports2.postDeviceLocationPayloadSchema = exports2.patchDevicePayloadSchema = exports2.registerDevicePayloadSchema = exports2.logNfcWritePayloadSchema = exports2.updateCodePayloadSchema = exports2.createCodePayloadSchema = exports2.ssSubscriptionSchema = exports2.ssSubscriptionStatusSchema = exports2.guardianEmergencyEventSchema = exports2.wearerLanguageSourceSchema = exports2.sensorSnapshotSchema = exports2.statusTransitionSchema = exports2.emergencyStatusSchema = exports2.guardianDetectionTypeSchema = exports2.emergencyContactSchema = exports2.ssGeofenceSchema = exports2.ssGeofenceScheduleSchema = exports2.geofenceShapeSchema = exports2.ssLocationEventSchema = exports2.locationSnapshotSchema = exports2.locationSourceSchema = exports2.ssDeviceSchema = exports2.ssDeviceStatusSchema = exports2.ssDeviceTypeSchema = exports2.rcCodeSchema = exports2.rcCodeMetricsSchema = exports2.nfcWriteEventSchema = exports2.codeStatusSchema = exports2.codeVerticalSchema = exports2.rcCodeReportTypeSchema = exports2.apiEnvelopeSchema = void 0;
@@ -30673,9 +30673,9 @@ var require_schemas31 = __commonJS({
   }
 });
 
-// packages/shared/dist/safe-sound/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/safe-sound/index.js
 var require_safe_sound = __commonJS({
-  "packages/shared/dist/safe-sound/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/safe-sound/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -30698,9 +30698,9 @@ var require_safe_sound = __commonJS({
   }
 });
 
-// packages/shared/dist/rcs/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rcs/types.js
 var require_types16 = __commonJS({
-  "packages/shared/dist/rcs/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rcs/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RCS_ESCALATION_RULES_DEFAULTS = exports2.RCS_HANDOFF_STATES = exports2.RCS_AUDIO_STATUSES = exports2.RCS_ESCALATION_LEVELS = exports2.RCS_CLOSED_STATES = exports2.RCS_CALL_STATES = void 0;
@@ -30735,9 +30735,9 @@ var require_types16 = __commonJS({
   }
 });
 
-// packages/shared/dist/rcs/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rcs/schemas.js
 var require_schemas32 = __commonJS({
-  "packages/shared/dist/rcs/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rcs/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.rcsFloorHealthQuerySchema = exports2.rcsAiSummarySchema = exports2.rcsEscalationRulesPutSchema = exports2.rcsSoftHandoffAcceptRequestSchema = exports2.rcsSoftHandoffRequestSchema = exports2.RCS_CONCERN_KEYWORDS = exports2.rcsCallsListQuerySchema = exports2.rcsSupervisorAckBodySchema = exports2.rcsUnitPositionBodySchema = exports2.rcsAudioAlertBodySchema = exports2.rcsCallCloseBodySchema = exports2.rcsSupervisorOverrideSchema = exports2.rcsCallStateUpdateBodySchema = exports2.rcsCallStartBodySchema = exports2.rcsGeoPointSchema = exports2.rcsAudioStatusSchema = exports2.rcsEscalationLevelSchema = exports2.rcsCallStateSchema = void 0;
@@ -30828,9 +30828,9 @@ var require_schemas32 = __commonJS({
   }
 });
 
-// packages/shared/dist/rcs/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rcs/index.js
 var require_rcs = __commonJS({
-  "packages/shared/dist/rcs/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rcs/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -30854,9 +30854,9 @@ var require_rcs = __commonJS({
   }
 });
 
-// packages/shared/dist/ng911/diversion.js
+// apps/api/node_modules/rapid-cortex-shared/dist/ng911/diversion.js
 var require_diversion = __commonJS({
-  "packages/shared/dist/ng911/diversion.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/ng911/diversion.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.diversionConfirmResultSchema = exports2.diversionUtteranceResultSchema = exports2.diversionConfirmBodySchema = exports2.diversionUtteranceBodySchema = exports2.diversionStartBodySchema = exports2.diversionSessionSchema = exports2.diversionSessionStatusSchema = exports2.diversionAgencyConfigSchema = exports2.diversionWorkflowUpsertBodySchema = exports2.diversionWorkflowSchema = void 0;
@@ -30954,9 +30954,9 @@ var require_diversion = __commonJS({
   }
 });
 
-// packages/shared/dist/ng911/crisis-diversion.js
+// apps/api/node_modules/rapid-cortex-shared/dist/ng911/crisis-diversion.js
 var require_crisis_diversion = __commonJS({
-  "packages/shared/dist/ng911/crisis-diversion.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/ng911/crisis-diversion.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.dataPathExportSchema = exports2.dataPathElementSchema = exports2.partnerEidoHandoffResultSchema = exports2.partnerEidoHandoffBodySchema = exports2.clinicianConsultPatchBodySchema = exports2.clinicianConsultSchema = exports2.clinicianConsultStatusSchema = exports2.crisisCompleteBodySchema = exports2.crisisWarmTransferBodySchema = exports2.crisisSelectDestinationBodySchema = exports2.crisisAssessmentAnswerBodySchema = exports2.crisisAssessmentStartBodySchema = exports2.crisisAssessmentSchema = exports2.crisisAssessmentStatusSchema = exports2.crisisWarmTransferSchema = exports2.crisisWarmTransferStatusSchema = exports2.crisisAgencyConfigUpsertBodySchema = exports2.crisisAgencyConfigSchema = exports2.crisisProtocolUpsertBodySchema = exports2.crisisProtocolSchema = exports2.crisisDestinationUpsertBodySchema = exports2.crisisDestinationSchema = exports2.crisisProtocolStepSchema = exports2.crisisAssessmentAnswerSchema = exports2.crisisHardStopReasonSchema = exports2.crisisDestinationTypeSchema = void 0;
@@ -31200,9 +31200,9 @@ var require_crisis_diversion = __commonJS({
   }
 });
 
-// packages/shared/dist/ng911/eido.js
+// apps/api/node_modules/rapid-cortex-shared/dist/ng911/eido.js
 var require_eido = __commonJS({
-  "packages/shared/dist/ng911/eido.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/ng911/eido.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.eidoExportQuerySchema = exports2.eidoImportBodySchema = exports2.eidoDocumentSchema = exports2.eidoIncidentStatusSchema = exports2.eidoCallSchema = exports2.eidoLocationSchema = exports2.eidoAgencySchema = void 0;
@@ -31274,9 +31274,9 @@ var require_eido = __commonJS({
   }
 });
 
-// packages/shared/dist/ng911/additional-data.js
+// apps/api/node_modules/rapid-cortex-shared/dist/ng911/additional-data.js
 var require_additional_data = __commonJS({
-  "packages/shared/dist/ng911/additional-data.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/ng911/additional-data.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.additionalDataAutoBuildBodySchema = exports2.additionalDataUpsertBodySchema = exports2.additionalDataPackageSchema = exports2.additionalDataItemSchema = exports2.additionalDataProviderSchema = void 0;
@@ -31330,9 +31330,9 @@ var require_additional_data = __commonJS({
   }
 });
 
-// packages/shared/dist/ng911/metrics.js
+// apps/api/node_modules/rapid-cortex-shared/dist/ng911/metrics.js
 var require_metrics = __commonJS({
-  "packages/shared/dist/ng911/metrics.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/ng911/metrics.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ng911MetricsQuerySchema = exports2.ngSecEvidencePackSchema = exports2.ngSecControlEvidenceSchema = exports2.ngSecControlStatusSchema = exports2.ng911CallProcessingMetricsSchema = exports2.ng911MetricPeriodSchema = void 0;
@@ -31411,9 +31411,9 @@ var require_metrics = __commonJS({
   }
 });
 
-// packages/shared/dist/ng911/ng-sec-catalog.js
+// apps/api/node_modules/rapid-cortex-shared/dist/ng911/ng-sec-catalog.js
 var require_ng_sec_catalog = __commonJS({
-  "packages/shared/dist/ng911/ng-sec-catalog.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/ng911/ng-sec-catalog.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.NG_SEC_CONTROL_CATALOG = void 0;
@@ -31518,9 +31518,9 @@ var require_ng_sec_catalog = __commonJS({
   }
 });
 
-// packages/shared/dist/ng911/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/ng911/index.js
 var require_ng911 = __commonJS({
-  "packages/shared/dist/ng911/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/ng911/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -31548,9 +31548,9 @@ var require_ng911 = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/classifications.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/classifications.js
 var require_classifications = __commonJS({
-  "packages/shared/dist/call-assist/classifications.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/classifications.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CALL_ASSIST_SOURCES = exports2.EMERGENCY_TRANSFER_ACTION = exports2.TRANSFER_TYPES = exports2.ROUTING_DESTINATION_TYPES = exports2.CALL_TRIAGE_CLASSIFICATIONS = exports2.CALL_ASSIST_STATES = exports2.CALL_ASSIST_MODES = void 0;
@@ -31608,9 +31608,9 @@ var require_classifications = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/case-number.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/case-number.js
 var require_case_number = __commonJS({
-  "packages/shared/dist/call-assist/case-number.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/case-number.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CALL_ASSIST_CONFIRMATION_CHARSET = void 0;
@@ -31753,9 +31753,9 @@ var require_case_number = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/nexiq-identity.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/nexiq-identity.js
 var require_nexiq_identity = __commonJS({
-  "packages/shared/dist/call-assist/nexiq-identity.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/nexiq-identity.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.NEXIQ_IDENTITY_BLOCK = exports2.NEXIQ_IDENTITY_MARKER = exports2.NEXIQ_NAME_REPLY_PT = exports2.NEXIQ_NAME_REPLY_ES = exports2.NEXIQ_NAME_REPLY = exports2.NEXIQ_OPENING_GREETING = exports2.NEXIQ_PRONUNCIATION_IPA = exports2.NEXIQ_PRODUCT_NAME = void 0;
@@ -31766,7 +31766,7 @@ var require_nexiq_identity = __commonJS({
     exports2.ensureNexiqIdentity = ensureNexiqIdentity;
     exports2.NEXIQ_PRODUCT_NAME = "Nexiq";
     exports2.NEXIQ_PRONUNCIATION_IPA = "\u02C8n\u025Bks\u026Ak";
-    exports2.NEXIQ_OPENING_GREETING = "Thank you for calling. I'm Nexiq, your AI assistant.";
+    exports2.NEXIQ_OPENING_GREETING = "Thank you for calling. I'm Nexiq, an AI assistant.";
     exports2.NEXIQ_NAME_REPLY = "I'm Nexiq, your AI assistant for city services.";
     exports2.NEXIQ_NAME_REPLY_ES = "Soy Nexiq, su asistente de IA para servicios municipales.";
     exports2.NEXIQ_NAME_REPLY_PT = "Sou o Nexiq, seu assistente de IA para servi\xE7os municipais.";
@@ -31839,9 +31839,9 @@ ${body}`;
   }
 });
 
-// packages/shared/dist/call-assist/safety.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/safety.js
 var require_safety = __commonJS({
-  "packages/shared/dist/call-assist/safety.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/safety.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.evaluateSafety = evaluateSafety;
@@ -31956,9 +31956,9 @@ var require_safety = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/greeting.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/greeting.js
 var require_greeting = __commonJS({
-  "packages/shared/dist/call-assist/greeting.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/greeting.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.INTAKE_COMPLETION_PROTOCOL = exports2.CALL_ASSIST_OPENING_SEQUENCE_PROMPT = exports2.DEFAULT_GREETING_CONFIG = exports2.DEFAULT_LINE_DESCRIPTION = exports2.INTAKE_PROMPT_AR = exports2.INTAKE_PROMPT_VI = exports2.INTAKE_PROMPT_TL = exports2.INTAKE_PROMPT_ZH_HK = exports2.INTAKE_PROMPT_ZH_CN = exports2.INTAKE_PROMPT_ES = exports2.CONNECT_LEX_START_PROMPT = exports2.INTAKE_PROMPT_EN = exports2.FALLBACK_GREETING_AR = exports2.FALLBACK_GREETING_VI = exports2.FALLBACK_GREETING_TL = exports2.FALLBACK_GREETING_ZH_HK = exports2.FALLBACK_GREETING_ZH_CN = exports2.FALLBACK_GREETING_ES = exports2.FALLBACK_GREETING = exports2.DEFAULT_ES_ESCALATION_ANNOUNCEMENTS = exports2.DEFAULT_ESCALATION_ANNOUNCEMENTS = exports2.DEFAULT_ES_GREETING_TEMPLATES = exports2.GREETING_TEMPLATES = exports2.callAssistGreetingConfigPatchSchema = exports2.callAssistGreetingConfigSchema = exports2.ESCALATION_MODES = exports2.GREETING_MODES = void 0;
@@ -32489,9 +32489,9 @@ After you confirm the street address (caller says yes / that's right / correct):
   }
 });
 
-// packages/shared/dist/call-assist/lex/provisioning-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/lex/provisioning-types.js
 var require_provisioning_types = __commonJS({
-  "packages/shared/dist/call-assist/lex/provisioning-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/lex/provisioning-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.LEX_BOT_QUOTA_CONSOLE_URL = exports2.LEX_DEFAULT_BOT_QUOTA = exports2.LEX_BOT_BUILD_POLL_MS = exports2.LEX_BOT_BUILD_TIMEOUT_MS = exports2.LEX_BOT_QUOTA_HEADROOM = exports2.LEX_BOT_QUOTA_CODE = exports2.BOT_REBUILD_STATUSES = exports2.BOT_REBUILD_REASONS = exports2.ONBOARDING_STEP_STATUSES = exports2.CALL_ASSIST_ONBOARDING_STATUSES = exports2.LEX_BOT_STATUSES = exports2.CALL_ASSIST_911_LANGUAGE_PACK = exports2.CALL_ASSIST_LOCALE_META = exports2.MAX_CALL_ASSIST_LOCALES = exports2.CALL_ASSIST_LOCALES = void 0;
@@ -32580,9 +32580,9 @@ var require_provisioning_types = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/voice-config.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/voice-config.js
 var require_voice_config = __commonJS({
-  "packages/shared/dist/call-assist/voice-config.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/voice-config.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DEFAULT_CALL_ASSIST_SEED_AGENCY_ID = exports2.GENERIC_CALL_ASSIST_INFO_MISS_TEMPLATE = exports2.GENERIC_CALL_ASSIST_HUMAN_TRANSFER_TEMPLATE = exports2.GENERIC_CALL_ASSIST_FALLBACK_TEMPLATE = exports2.GENERIC_CALL_ASSIST_OPENING_TEMPLATE = exports2.GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE = exports2.callAssistAgencyVoiceConfigSchema = void 0;
@@ -32650,10 +32650,10 @@ var require_voice_config = __commonJS({
         "FAILED"
       ]).optional()
     });
-    exports2.GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE = "You are speaking with Nexiq for {{agencyShortName}}. This is a non-emergency line. This call is recorded. If this is an emergency, say emergency or hang up and dial {{emergencyLine}}.";
-    exports2.GENERIC_CALL_ASSIST_OPENING_TEMPLATE = "Thank you for calling. I'm Nexiq, your AI assistant. If this is a life-threatening emergency, hang up and dial {{emergencyLine}}. How can I help you today?";
-    exports2.GENERIC_CALL_ASSIST_FALLBACK_TEMPLATE = "I'm sorry, I'm having trouble understanding. Let me connect you to {{agencyShortName}} who can help. Stay on the line.";
-    exports2.GENERIC_CALL_ASSIST_HUMAN_TRANSFER_TEMPLATE = "Of course. I'm connecting you to {{agencyShortName}} now. Stay on the line.";
+    exports2.GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE = "You are speaking with an AI assistant named Nexiq for {{agencyShortName}}. This is a non-emergency line. This call is recorded. If this is an emergency, say emergency or hang up and dial {{emergencyLine}}.";
+    exports2.GENERIC_CALL_ASSIST_OPENING_TEMPLATE = "Thank you for calling. I'm Nexiq, an AI assistant. If this is a life-threatening emergency, hang up and dial {{emergencyLine}}. How can I help you today?";
+    exports2.GENERIC_CALL_ASSIST_FALLBACK_TEMPLATE = "Let me get you to {{agencyShortName}} who can help. Stay on the line.";
+    exports2.GENERIC_CALL_ASSIST_HUMAN_TRANSFER_TEMPLATE = "Sure \u2014 connecting you to {{agencyShortName}} now. Stay on the line.";
     exports2.GENERIC_CALL_ASSIST_INFO_MISS_TEMPLATE = "I don't have specific information about that available right now. I can connect you to the {{agencyShortName}} non-emergency line, or you can visit {{agencyWebsite}} for more information. Would you like me to transfer you?";
     function callAssistLexBotName(agencySlug, stage) {
       const slug = agencySlug.replace(/[^a-zA-Z0-9]+/g, "").slice(0, 40) || "agency";
@@ -32717,9 +32717,9 @@ var require_voice_config = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/taxonomy.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/taxonomy.js
 var require_taxonomy = __commonJS({
-  "packages/shared/dist/call-assist/taxonomy.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/taxonomy.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callAssistOperatingDaySchema = exports2.callAssistDemoScenarioConfigSchema = exports2.callAssistExternalTransferEntrySchema = exports2.DEFAULT_CALL_ASSIST_CONFIDENCE_THRESHOLDS = exports2.callAssistConfidenceThresholdsSchema = exports2.callAssistAgencyTaxonomySchema = exports2.callAssistCallTypeSchema = exports2.callAssistIntakeTemplateSchema = exports2.callAssistIntakeFieldSchema = exports2.callAssistFollowUpQuestionSchema = exports2.CALL_ASSIST_INTAKE_FIELD_TYPES = exports2.CALL_ASSIST_ESCALATION_PATHS = exports2.CALL_ASSIST_TAXONOMY_VERTICALS = void 0;
@@ -32906,9 +32906,9 @@ var require_taxonomy = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/taxonomy-presets.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/taxonomy-presets.js
 var require_taxonomy_presets = __commonJS({
-  "packages/shared/dist/call-assist/taxonomy-presets.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/taxonomy-presets.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.PRESET_911_TYPE_IDS = exports2.VENUE_DEMO_SCENARIO_PRESETS = exports2.CAMPUS_DEMO_SCENARIO_PRESETS = exports2.CALL_ASSIST_CAD_WIZARD_OPTIONS = exports2.DEFAULT_DISCLOSURE_BY_VERTICAL = exports2.TAXONOMY_PRESETS = exports2.PRESET_VENUE = exports2.PRESET_CAMPUS = exports2.PRESET_911 = void 0;
@@ -33565,9 +33565,9 @@ var require_taxonomy_presets = __commonJS({
       ];
     }
     exports2.DEFAULT_DISCLOSURE_BY_VERTICAL = {
-      "911": "You are speaking with Nexiq for {{agencyShortName}}. If this is an emergency, say emergency or hang up and dial {{emergencyLine}}.",
-      campus: "You are speaking with Nexiq for {{agencyShortName}} Campus Safety.",
-      venue: "You are speaking with Nexiq for {{agencyShortName}}."
+      "911": "You are speaking with an AI assistant named Nexiq for {{agencyShortName}}. If this is an emergency, say emergency or hang up and dial {{emergencyLine}}.",
+      campus: "You are speaking with an AI assistant named Nexiq for {{agencyShortName}} Campus Safety.",
+      venue: "You are speaking with an AI assistant named Nexiq for {{agencyShortName}}."
     };
     function defaultRetentionForVertical(vertical) {
       if (vertical === "911") {
@@ -33694,9 +33694,9 @@ var require_taxonomy_presets = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/triage.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/triage.js
 var require_triage2 = __commonJS({
-  "packages/shared/dist/call-assist/triage.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/triage.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.classifyCallTriage = classifyCallTriage;
@@ -33869,9 +33869,9 @@ var require_triage2 = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/language.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/language.js
 var require_language2 = __commonJS({
-  "packages/shared/dist/call-assist/language.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/language.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.normalizePreferredLanguage = normalizePreferredLanguage;
@@ -33963,9 +33963,9 @@ var require_language2 = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/intake.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/intake.js
 var require_intake = __commonJS({
-  "packages/shared/dist/call-assist/intake.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/intake.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.utteranceHasCorrectionCue = utteranceHasCorrectionCue;
@@ -34245,9 +34245,9 @@ var require_intake = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/conversation-memory.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/conversation-memory.js
 var require_conversation_memory = __commonJS({
-  "packages/shared/dist/call-assist/conversation-memory.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/conversation-memory.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.diffIntakeFields = diffIntakeFields;
@@ -34354,9 +34354,9 @@ var require_conversation_memory = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/routing.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/routing.js
 var require_routing = __commonJS({
-  "packages/shared/dist/call-assist/routing.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/routing.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.EXTERNAL_ROUTE_CONFIG_STATUSES = exports2.TRANSFER_FAILURE_POLICIES = exports2.AFTER_HOURS_POLICIES = void 0;
@@ -34680,9 +34680,9 @@ var require_routing = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/carfax.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/carfax.js
 var require_carfax = __commonJS({
-  "packages/shared/dist/call-assist/carfax.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/carfax.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.evaluateCarfaxEligibility = evaluateCarfaxEligibility;
@@ -34724,9 +34724,9 @@ var require_carfax = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/grounding.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/grounding.js
 var require_grounding = __commonJS({
-  "packages/shared/dist/call-assist/grounding.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/grounding.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.groundedKnowledgeReply = groundedKnowledgeReply;
@@ -34759,9 +34759,9 @@ var require_grounding = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/confidence-control.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/confidence-control.js
 var require_confidence_control = __commonJS({
-  "packages/shared/dist/call-assist/confidence-control.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/confidence-control.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.resolveCallAssistThresholds = resolveCallAssistThresholds;
@@ -34860,9 +34860,9 @@ var require_confidence_control = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/knowledge-retrieval.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/knowledge-retrieval.js
 var require_knowledge_retrieval = __commonJS({
-  "packages/shared/dist/call-assist/knowledge-retrieval.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/knowledge-retrieval.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.tokenizeKnowledgeQuery = tokenizeKnowledgeQuery;
@@ -34952,9 +34952,9 @@ var require_knowledge_retrieval = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/retention.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/retention.js
 var require_retention = __commonJS({
-  "packages/shared/dist/call-assist/retention.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/retention.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callAssistRetentionPatchSchema = exports2.CALL_ASSIST_RETENTION_DATA_TYPES = exports2.MISSOURI_SUNSHINE_RETENTION_POLICY = exports2.retentionPolicySchema = void 0;
@@ -35034,9 +35034,9 @@ var require_retention = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/human-request.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/human-request.js
 var require_human_request = __commonJS({
-  "packages/shared/dist/call-assist/human-request.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/human-request.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callerRequestedHuman = callerRequestedHuman;
@@ -35047,9 +35047,9 @@ var require_human_request = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/connect-live.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/connect-live.js
 var require_connect_live = __commonJS({
-  "packages/shared/dist/call-assist/connect-live.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/connect-live.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CONNECT_LANGUAGE_MENU_PROMPT = exports2.CONNECT_LANGUAGE_MENU_DTMF = exports2.CONNECT_LIVE_LEX_LOCALES = void 0;
@@ -35143,9 +35143,9 @@ var require_connect_live = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/tty.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/tty.js
 var require_tty = __commonJS({
-  "packages/shared/dist/call-assist/tty.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/tty.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.detectTtyMode = detectTtyMode;
@@ -35175,9 +35175,9 @@ var require_tty = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/cad-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/cad-types.js
 var require_cad_types = __commonJS({
-  "packages/shared/dist/call-assist/cad-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/cad-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CAD_CAPABILITIES = exports2.CAD_PROVIDER_IDS = void 0;
@@ -35205,9 +35205,9 @@ var require_cad_types = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/questioning.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/questioning.js
 var require_questioning = __commonJS({
-  "packages/shared/dist/call-assist/questioning.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/questioning.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.AMBIGUOUS_INTAKE_ANSWER = void 0;
@@ -35503,9 +35503,9 @@ var require_questioning = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/gis.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/gis.js
 var require_gis = __commonJS({
-  "packages/shared/dist/call-assist/gis.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/gis.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.assignCallAssistZone = assignCallAssistZone;
@@ -35565,9 +35565,9 @@ var require_gis = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/conversational-system-prompt-v2.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/conversational-system-prompt-v2.js
 var require_conversational_system_prompt_v2 = __commonJS({
-  "packages/shared/dist/call-assist/conversational-system-prompt-v2.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/conversational-system-prompt-v2.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CALL_ASSIST_CONVERSATIONAL_SYSTEM_PROMPT_V2 = void 0;
@@ -35602,6 +35602,28 @@ You talk the way a competent person on the phone talks.
 
 Short sentences. No filler. No ceremony.
 You move the conversation forward, not sideways.
+
+\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+CADENCE \u2014 TWO HUMANS ON A CALL
+\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+Sound like two people talking, not a form reading fields.
+
+Brief ack when it helps, then one short question:
+  "Got it. What street?"
+  "Okay. Anyone inside?"
+  "Blue Honda \u2014 plates?"
+  "Noise next door \u2014 which building?"
+
+Mirror the caller's energy without therapy-speak. If they are short, be short.
+If they dump details, do not replay the whole story \u2014 confirm the address and close.
+
+Never jump cold from a new fact to a second question with no beat:
+  \u2717 "Color and make and plates and how long has it been there?"
+  \u2713 "What's it look like?"
+
+Do not narrate your process ("I'm going to ask a few questions").
+Just ask.
 
 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 WHAT THIS CALL IS
@@ -35665,6 +35687,26 @@ Example \u2014 caller gives everything upfront:
 Example \u2014 caller is upset:
   Caller: "I've called about this three times, nobody does anything."
   You: "Let's get it on record right now. What's the address?"
+
+Example \u2014 noise complaint:
+  Caller: "My neighbors are blasting music again."
+  You: "Which address are you at?"
+  Caller: "812 Oak, apartment 3B."
+  You: "812 Oak 3B \u2014 is that right?"
+  Caller: "Yes."
+  You: "Your report number is KC, one one zero five, four Lima two Tango.
+        I'll say that again \u2014 KC, one one zero five, four Lima two Tango.
+        {{agency.voice.name}} will follow up."
+
+Example \u2014 animal / city service:
+  Caller: "My cat is stuck in a tree in the backyard."
+  You: "What's the address?"
+  Caller: "1900 Troost."
+  You: "1900 Troost \u2014 is that right?"
+  Caller: "Yeah."
+  You: "Your report number is KC, one one zero five, nine November three Bravo.
+        I'll say that again \u2014 KC, one one zero five, nine November three Bravo.
+        {{agency.voice.name}} will follow up."
 
 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 SPEECH RULES \u2014 NON-NEGOTIABLE
@@ -35766,9 +35808,9 @@ If they switch languages: switch with them.
   }
 });
 
-// packages/shared/dist/call-assist/nova-sonic.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/nova-sonic.js
 var require_nova_sonic = __commonJS({
-  "packages/shared/dist/call-assist/nova-sonic.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/nova-sonic.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.NOVA_SONIC_TOOL_NAMES = exports2.NOVA_SONIC_EXTRA_EMERGENCY_PHRASES = exports2.LEX_NOVA_SPEECH_MODEL_ID = exports2.NOVA_2_SONIC_MODEL_ID = void 0;
@@ -35968,7 +36010,8 @@ Say "I'm transferring you to emergency services now." Then stop.`;
           event: {
             sessionStart: {
               inferenceConfiguration: { maxTokens: 1024, topP: 0.9, temperature: 0.7 },
-              turnDetectionConfiguration: { endpointingSensitivity: "HIGH" }
+              // MEDIUM: allow natural pauses so Nexiq does not cut the caller mid-thought.
+              turnDetectionConfiguration: { endpointingSensitivity: "MEDIUM" }
             }
           }
         },
@@ -36110,9 +36153,9 @@ ${agencyExtra}` : systemPrompt,
   }
 });
 
-// packages/shared/dist/call-assist/conversation-thread.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/conversation-thread.js
 var require_conversation_thread = __commonJS({
-  "packages/shared/dist/call-assist/conversation-thread.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/conversation-thread.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.knownFactLines = knownFactLines;
@@ -36219,9 +36262,9 @@ var require_conversation_thread = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/transfer-package.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/transfer-package.js
 var require_transfer_package = __commonJS({
-  "packages/shared/dist/call-assist/transfer-package.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/transfer-package.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.buildTransferPackage = buildTransferPackage;
@@ -36271,9 +36314,9 @@ var require_transfer_package = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/callback.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/callback.js
 var require_callback = __commonJS({
-  "packages/shared/dist/call-assist/callback.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/callback.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callAssistCallbackTakeoverBodySchema = exports2.callAssistCallbackDecisionBodySchema = exports2.callAssistCallbackOfferBodySchema = exports2.callAssistCallbackCampaignSchema = exports2.callAssistCallbackAttemptSchema = exports2.DEFAULT_CALL_ASSIST_CALLBACK_SETTINGS = exports2.callAssistCallbackSettingsSchema = exports2.CALL_ASSIST_CALLBACK_FAILURE_REASONS = exports2.CALL_ASSIST_CALLBACK_STATUSES = void 0;
@@ -36436,9 +36479,9 @@ var require_callback = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/schemas.js
 var require_schemas33 = __commonJS({
-  "packages/shared/dist/call-assist/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CALL_ASSIST_SOURCE_SET = exports2.CALL_ASSIST_STATE_SET = exports2.callAssistConnectWebhookSchema = exports2.callAssistRmsFileBodySchema = exports2.callAssistVoiceConfigPatchSchema = exports2.callAssistDidClaimSchema = exports2.callAssistOnboardingInputSchema = exports2.callAssistShiftPatchSchema = exports2.callAssistAdminConfigPatchSchema = exports2.callAssistDemoRunSchema = exports2.callAssistKnowledgeUpsertSchema = exports2.callAssistExternalAgencyUpsertSchema = exports2.callAssistRecordsRequestSchema = exports2.callAssistLegalHoldBodySchema = exports2.callAssistSurveySubmitSchema = exports2.callAssistCadPushBodySchema = exports2.callAssistForceTransferBodySchema = exports2.callAssistUtteranceBodySchema = exports2.initiateCallAssistSessionSchema = exports2.callIntakeDataSchema = exports2.callAssistUtteranceSchema = void 0;
@@ -36680,9 +36723,9 @@ var require_schemas33 = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/response-generator.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/response-generator.js
 var require_response_generator = __commonJS({
-  "packages/shared/dist/call-assist/response-generator.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/response-generator.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ResponseGenerator = void 0;
@@ -36778,9 +36821,9 @@ var require_response_generator = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/lex/bot-template.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/lex/bot-template.js
 var require_bot_template = __commonJS({
-  "packages/shared/dist/call-assist/lex/bot-template.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/lex/bot-template.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.BOT_TEMPLATE_SLOT_TYPES = exports2.BOT_TEMPLATE_INTENT_NAMES = exports2.BOT_TEMPLATE_VERSION = void 0;
@@ -37000,9 +37043,9 @@ var require_bot_template = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/demo-scenarios.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/demo-scenarios.js
 var require_demo_scenarios = __commonJS({
-  "packages/shared/dist/call-assist/demo-scenarios.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/demo-scenarios.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.KCPD_RFP_DEMO_SCENARIOS = exports2.CALL_ASSIST_DEMO_SCENARIOS = exports2.KCPD_DEMO_CUSTOMIZATIONS = exports2.CALL_ASSIST_DEMO_SCENARIO_TEMPLATES = void 0;
@@ -37272,9 +37315,9 @@ var require_demo_scenarios = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/kcpd-tenant-seed.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/kcpd-tenant-seed.js
 var require_kcpd_tenant_seed = __commonJS({
-  "packages/shared/dist/call-assist/kcpd-tenant-seed.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/kcpd-tenant-seed.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.KCPD_TENANT_SEED = exports2.KCPD_KNOWLEDGE_SEED = exports2.KCPD_PREMIERONE_NATURE_MAPPING = exports2.KCPD_VOICE_CONFIG = exports2.KCPD_CARFAX_PORTAL_URL = exports2.KCPD_LEX_DEMO_SCENARIOS = exports2.CALL_ASSIST_LEX_DEMO_SCENARIOS = exports2.KCPD_LEX_DEMO_CUSTOMIZATIONS = exports2.CALL_ASSIST_LEX_DEMO_TEMPLATES = exports2.GENERIC_DISCLOSURE_TEXT = exports2.KCPD_LEX_DISCLOSURE_TEXT = exports2.KCPD_DISCLOSURE_TEXT = void 0;
@@ -37283,7 +37326,7 @@ var require_kcpd_tenant_seed = __commonJS({
     var retention_js_1 = require_retention();
     var voice_config_js_1 = require_voice_config();
     exports2.KCPD_DISCLOSURE_TEXT = "You've reached Nexiq, the Kansas City Police Department non-emergency line. This call may be handled initially by Nexiq to gather information and route your call. If this is an emergency, say 'emergency' or hang up and dial 9-1-1.";
-    exports2.KCPD_LEX_DISCLOSURE_TEXT = "You are speaking with Nexiq for the Kansas City Missouri Police Department. This is a non-emergency line. This call is recorded.";
+    exports2.KCPD_LEX_DISCLOSURE_TEXT = "You are speaking with an AI assistant named Nexiq for the Kansas City Missouri Police Department. This is a non-emergency line. This call is recorded. If this is an emergency, say emergency or hang up and dial 9-1-1.";
     exports2.GENERIC_DISCLOSURE_TEXT = voice_config_js_1.GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE;
     var LEX_DEMO_VERTICAL = { vertical: "911", source: "preset", enabled: true };
     exports2.CALL_ASSIST_LEX_DEMO_TEMPLATES = [
@@ -37452,7 +37495,9 @@ var require_kcpd_tenant_seed = __commonJS({
       defaultLocale: "en_US",
       supportedLocales: ["en_US", "es_US", "zh_CN", "zh_HK", "tl_PH", "vi_VN", "ar_AE"],
       disclosureText: exports2.KCPD_LEX_DISCLOSURE_TEXT,
-      openingGreeting: "Thank you for calling. I'm Nexiq, your AI assistant. This is the non-emergency service line for Kansas City. If this is a life-threatening emergency, hang up and dial 9-1-1. How can I help you today?"
+      /** Conversational Nova path for en/es demos — Lex/Polly remains fallback for other locales. */
+      novaSonicEnabled: true,
+      openingGreeting: "Thank you for calling. I'm Nexiq, an AI assistant. This is the non-emergency service line for Kansas City. If this is a life-threatening emergency, hang up and dial 9-1-1. How can I help you today?"
     };
     function withSeedRouting(route) {
       return {
@@ -37586,9 +37631,9 @@ var require_kcpd_tenant_seed = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/bid-matrix.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/bid-matrix.js
 var require_bid_matrix = __commonJS({
-  "packages/shared/dist/call-assist/bid-matrix.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/bid-matrix.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CALL_ASSIST_BID_LINE_MATRIX = void 0;
@@ -37728,9 +37773,9 @@ var require_bid_matrix = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/ui-profile.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/ui-profile.js
 var require_ui_profile = __commonJS({
-  "packages/shared/dist/call-assist/ui-profile.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/ui-profile.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CAD_PRIORITY_LABELS = exports2.callAssistUiProfileSchema = exports2.callAssistUiCapabilitiesSchema = exports2.callAssistUiDirectoryEntrySchema = exports2.CALL_ASSIST_VERTICAL_LABELS = exports2.CAD_PROVIDER_UI_LABELS = exports2.CALL_ASSIST_CLASS_BADGES = exports2.CALL_ASSIST_MONITOR_STATES = exports2.CALL_ASSIST_UI_VERTICALS = void 0;
@@ -38106,9 +38151,9 @@ var require_ui_profile = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/psap-availability.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/psap-availability.js
 var require_psap_availability = __commonJS({
-  "packages/shared/dist/call-assist/psap-availability.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/psap-availability.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.buildPsapAvailabilityNotice = buildPsapAvailabilityNotice;
@@ -38164,9 +38209,9 @@ var require_psap_availability = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/self-service.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/self-service.js
 var require_self_service = __commonJS({
-  "packages/shared/dist/call-assist/self-service.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/self-service.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callAssistSelfServiceCompleteBodySchema = exports2.callAssistSmsSendBodySchema = exports2.callAssistSmsSelfServiceSchema = exports2.CALL_ASSIST_SMS_STATUSES = void 0;
@@ -38245,9 +38290,9 @@ var require_self_service = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/analytics-suite.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/analytics-suite.js
 var require_analytics_suite = __commonJS({
-  "packages/shared/dist/call-assist/analytics-suite.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/analytics-suite.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callAssistAnalyticsFilterSchema = void 0;
@@ -38414,9 +38459,9 @@ var require_analytics_suite = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/qa-suite.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/qa-suite.js
 var require_qa_suite = __commonJS({
-  "packages/shared/dist/call-assist/qa-suite.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/qa-suite.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callAssistQaReviewBodySchema = exports2.callAssistQaSearchQuerySchema = exports2.callAssistQaReviewSchema = exports2.callAssistQaItemSchema = exports2.CALL_ASSIST_QA_CHECKLIST = void 0;
@@ -38566,9 +38611,9 @@ var require_qa_suite = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/prompt-cms.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/prompt-cms.js
 var require_prompt_cms = __commonJS({
-  "packages/shared/dist/call-assist/prompt-cms.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/prompt-cms.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callAssistPromptProposalDecisionSchema = exports2.callAssistPromptProposeBodySchema = exports2.callAssistPromptProposalSchema = exports2.CALL_ASSIST_PROMPT_PROPOSAL_STATUSES = exports2.DEFAULT_CALL_ASSIST_PROMPTS = exports2.callAssistPromptRollbackSchema = exports2.callAssistPromptUpsertSchema = exports2.callAssistPromptRecordSchema = exports2.callAssistPromptVersionSchema = exports2.CALL_ASSIST_PROMPT_LABELS = exports2.CALL_ASSIST_PROMPT_KEYS = void 0;
@@ -38794,9 +38839,77 @@ ${note}` : ""}`;
   }
 });
 
-// packages/shared/dist/call-assist/service-registry/seed.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/conversational-ops.js
+var require_conversational_ops = __commonJS({
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/conversational-ops.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.CONVERSATIONAL_STAGING_MIN_CALLS = exports2.CONVERSATIONAL_STAGING_TRAFFIC_PERCENT = exports2.NEXCORTIQ_CONVERSATIONAL_QA_TAG = void 0;
+    exports2.conversationalTrafficBucket = conversationalTrafficBucket;
+    exports2.assignConversationalCohort = assignConversationalCohort;
+    exports2.countCallerTurns = countCallerTurns;
+    exports2.buildConversationalTransferSummary = buildConversationalTransferSummary;
+    exports2.NEXCORTIQ_CONVERSATIONAL_QA_TAG = "NexCortIQ-Conversational-v2";
+    exports2.CONVERSATIONAL_STAGING_TRAFFIC_PERCENT = 5;
+    exports2.CONVERSATIONAL_STAGING_MIN_CALLS = 500;
+    function conversationalTrafficBucket(contactOrSessionId) {
+      const raw = contactOrSessionId.trim();
+      if (!raw)
+        return 0;
+      let hash = 0;
+      for (let i5 = 0; i5 < raw.length; i5 += 1) {
+        hash = hash * 31 + raw.charCodeAt(i5) >>> 0;
+      }
+      return hash % 100;
+    }
+    function assignConversationalCohort(contactOrSessionId, stagingPercent = exports2.CONVERSATIONAL_STAGING_TRAFFIC_PERCENT) {
+      const pct = Math.max(0, Math.min(100, Math.floor(stagingPercent)));
+      if (pct <= 0)
+        return "production";
+      return conversationalTrafficBucket(contactOrSessionId) < pct ? "staging" : "production";
+    }
+    function countCallerTurns(transcript) {
+      if (!transcript?.trim())
+        return 0;
+      return transcript.split("|").map((part) => part.trim()).filter((part) => /^caller:/i.test(part)).length;
+    }
+    function slotValue(slots, ...keys) {
+      for (const key of keys) {
+        const value = slots[key];
+        if (typeof value === "string" && value.trim())
+          return value.trim();
+      }
+      return "";
+    }
+    function buildConversationalTransferSummary(input) {
+      const agency = input.agencyShortName.trim() || "Agency";
+      const location = input.locationOverride?.trim() || slotValue(input.slots, "ServiceAddress", "NoiseLocation", "location", "Location", "address", "Address") || "Not provided";
+      const incidentType = slotValue(input.slots, "incidentType", "IncidentType", "SubIssue", "IssueDescription", "NoiseType") || "Not specified";
+      const callerName = input.callerName?.trim() || slotValue(input.slots, "CallerName", "callerName", "Name") || "Not provided";
+      const reason = (input.transferReason ?? "emergency").trim() || "emergency";
+      const language = (input.language ?? "en").trim() || "en";
+      const turns = typeof input.turnCount === "number" && Number.isFinite(input.turnCount) ? Math.max(0, Math.floor(input.turnCount)) : countCallerTurns(input.transcript);
+      const clipped = input.utterance.trim().slice(0, 120);
+      const lines = [
+        `${agency} Nexiq transfer`,
+        `Type: ${incidentType}`,
+        `Address: ${location}`,
+        `Caller: ${callerName}`,
+        `Language: ${language}`,
+        `Turns: ${turns}`,
+        `Reason: ${reason}`
+      ];
+      if (clipped)
+        lines.push(`Last: "${clipped}"`);
+      lines.push("Full transcript in contact attributes.");
+      return lines.join(" | ");
+    }
+  }
+});
+
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/service-registry/seed.js
 var require_seed = __commonJS({
-  "packages/shared/dist/call-assist/service-registry/seed.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/service-registry/seed.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.NEXCORT_311_SERVICE_REGISTRY = void 0;
@@ -39972,9 +40085,9 @@ var require_seed = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/citizen-call-reasons.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/citizen-call-reasons.js
 var require_citizen_call_reasons = __commonJS({
-  "packages/shared/dist/call-assist/citizen-call-reasons.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/citizen-call-reasons.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.listCitizenCallReasons = listCitizenCallReasons;
@@ -40155,9 +40268,9 @@ var require_citizen_call_reasons = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/everyday-phrases.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/everyday-phrases.js
 var require_everyday_phrases = __commonJS({
-  "packages/shared/dist/call-assist/everyday-phrases.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/everyday-phrases.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.EVERYDAY_CALL_PHRASES = exports2.CALLER_REASON_LANGUAGES = void 0;
@@ -40382,6 +40495,167 @@ var require_everyday_phrases = __commonJS({
         "chien errant",
         "chien en libert\xE9"
       ]),
+      phrase("NC311-0475", "ANIMAL_CONTROL", "animal stuck / trapped", [
+        "my cat is stuck in a tree",
+        "cat stuck in a tree",
+        "cat is stuck in a tree",
+        "stuck in a tree",
+        "stuck up a tree",
+        "cat can't get down",
+        "cat cant get down",
+        "cat on the roof",
+        "cat stuck on the roof",
+        "cat in the chimney",
+        "cat under the car",
+        "pet stuck",
+        "animal stuck",
+        "animal trapped",
+        "pet trapped",
+        "trapped animal",
+        "dog stuck under the porch",
+        "dog stuck in a fence",
+        "dog stuck in a storm drain",
+        "bird stuck in the house",
+        "animal in the chimney",
+        "animal in the crawlspace",
+        "squirrel stuck",
+        "raccoon stuck",
+        "mi gato est\xE1 atrapado en un \xE1rbol",
+        "gato atrapado en un \xE1rbol",
+        "gato en el \xE1rbol",
+        "gato no puede bajar",
+        "gato en el techo",
+        "gato en la chimenea",
+        "mascota atrapada",
+        "animal atrapado",
+        "perro atrapado en la cerca",
+        "p\xE1jaro atrapado en la casa",
+        "\u732B\u5361\u5728\u6811\u4E0A",
+        "\u732B\u56F0\u5728\u6811\u4E0A",
+        "\u732B\u4E0A\u6811\u4E0B\u4E0D\u6765",
+        "\u732B\u5728\u5C4B\u9876",
+        "\u732B\u5728\u70DF\u56F1\u91CC",
+        "\u732B\u56F0\u55BA\u6A39\u4E0A",
+        "\u8C93\u5361\u55BA\u6A39",
+        "\u8C93\u55BA\u5C4B\u9802",
+        "nakulong ang pusa sa puno",
+        "hindi makababa ang pusa",
+        "pusa sa bubong",
+        "nakulong ang alaga",
+        "aso na nakasabit sa bakod",
+        "m\xE8o k\u1EB9t tr\xEAn c\xE2y",
+        "m\xE8o kh\xF4ng xu\u1ED1ng \u0111\u01B0\u1EE3c",
+        "m\xE8o tr\xEAn m\xE1i nh\xE0",
+        "th\xFA c\u01B0ng b\u1ECB k\u1EB9t",
+        "ch\xF3 k\u1EB9t trong h\xE0ng r\xE0o",
+        "\u0642\u0637\u062A\u064A \u0639\u0627\u0644\u0642\u0629 \u0641\u064A \u0627\u0644\u0634\u062C\u0631\u0629",
+        "\u0642\u0637\u0629 \u0639\u0627\u0644\u0642\u0629 \u0641\u064A \u0634\u062C\u0631\u0629",
+        "\u0642\u0637\u0629 \u0639\u0644\u0649 \u0627\u0644\u0633\u0637\u062D",
+        "\u062D\u064A\u0648\u0627\u0646 \u0639\u0627\u0644\u0642",
+        "\u0643\u0644\u0628 \u0639\u0627\u0644\u0642 \u0641\u064A \u0627\u0644\u0633\u064A\u0627\u062C",
+        "mon chat est coinc\xE9 dans un arbre",
+        "chat coinc\xE9 dans un arbre",
+        "chat sur le toit",
+        "animal coinc\xE9",
+        "chien coinc\xE9 dans la cl\xF4ture",
+        "oiseau coinc\xE9 dans la maison"
+      ]),
+      phrase("NC311-0500", "ANIMAL_CONTROL", "dead animal removal", [
+        "dead animal in the road",
+        "dead animal on the sidewalk",
+        "dead raccoon in the yard",
+        "dead deer on the side of the road",
+        "please pick up a dead animal",
+        "animal muerto en la calle",
+        "hay un animal muerto",
+        "recojan un animal muerto",
+        "\u8DEF\u4E0A\u6709\u6B7B\u52A8\u7269",
+        "\u6B7B\u732B\u5728\u8DEF\u8FB9",
+        "\u8DEF\u908A\u6709\u6B7B\u52D5\u7269",
+        "may patay na hayop sa kalsada",
+        "patay na hayop",
+        "x\xE1c \u0111\u1ED9ng v\u1EADt tr\xEAn \u0111\u01B0\u1EDDng",
+        "\u0111\u1ED9ng v\u1EADt ch\u1EBFt",
+        "\u062D\u064A\u0648\u0627\u0646 \u0645\u064A\u062A \u0641\u064A \u0627\u0644\u0634\u0627\u0631\u0639",
+        "\u064A\u0648\u062C\u062F \u062D\u064A\u0648\u0627\u0646 \u0645\u064A\u062A",
+        "animal mort sur la route",
+        "ramasser un animal mort"
+      ]),
+      phrase("NC311-0501", "ANIMAL_CONTROL", "injured animal", [
+        "injured dog",
+        "injured cat",
+        "hurt animal",
+        "animal hit by a car",
+        "dog was hit by a car",
+        "cat was hit by a car",
+        "wounded animal",
+        "perro herido",
+        "gato herido",
+        "animal atropellado",
+        "animal lastimado",
+        "\u72D7\u53D7\u4F24\u4E86",
+        "\u732B\u88AB\u8F66\u649E\u4E86",
+        "\u53D7\u4F24\u7684\u52A8\u7269",
+        "\u52D5\u7269\u53D7\u50B7",
+        "\u8C93\u4FFE\u8ECA\u649E",
+        "nasugatan ang aso",
+        "nasugatan ang pusa",
+        "hayop na nabangga",
+        "ch\xF3 b\u1ECB th\u01B0\u01A1ng",
+        "m\xE8o b\u1ECB xe \u0111\u1EE5ng",
+        "\u0111\u1ED9ng v\u1EADt b\u1ECB th\u01B0\u01A1ng",
+        "\u0643\u0644\u0628 \u0645\u0635\u0627\u0628",
+        "\u0642\u0637\u0629 \u0645\u0635\u0627\u0628\u0629",
+        "\u062D\u064A\u0648\u0627\u0646 \u0635\u062F\u0645\u062A\u0647 \u0633\u064A\u0627\u0631\u0629",
+        "chien bless\xE9",
+        "chat bless\xE9",
+        "animal renvers\xE9"
+      ]),
+      phrase("NC311-0497", "ANIMAL_CONTROL", "barking dog", [
+        "dog won't stop barking",
+        "neighbor's dog keeps barking",
+        "barking all night",
+        "el perro no para de ladrar",
+        "perro ladrando toda la noche",
+        "\u72D7\u4E00\u76F4\u53EB",
+        "\u9694\u58C1\u72D7\u53EB\u4E2A\u4E0D\u505C",
+        "\u72D7\u5420\u6210\u65E5",
+        "hindi tumitigil ang tahol",
+        "tahol buong gabi",
+        "ch\xF3 s\u1EE7a su\u1ED1t \u0111\xEAm",
+        "ch\xF3 h\xE0ng x\xF3m s\u1EE7a m\xE3i",
+        "\u0627\u0644\u0643\u0644\u0628 \u064A\u0646\u0628\u062D \u0637\u0648\u0627\u0644 \u0627\u0644\u0644\u064A\u0644",
+        "\u0643\u0644\u0628 \u0627\u0644\u062C\u064A\u0631\u0627\u0646 \u064A\u0646\u0628\u062D",
+        "chien qui n'arr\xEAte pas d'aboyer",
+        "aboiements toute la nuit"
+      ]),
+      phrase("NC311-0502", "ANIMAL_CONTROL", "wildlife in the house", [
+        "raccoon in the attic",
+        "squirrel in the attic",
+        "bat in the house",
+        "skunk under the house",
+        "animal in the attic",
+        "opossum under the porch",
+        "mapache en el \xE1tico",
+        "ardilla en el \xE1tico",
+        "murci\xE9lago en la casa",
+        "zorrillo debajo de la casa",
+        "\u9601\u697C\u6709\u6D63\u718A",
+        "\u9601\u697C\u6709\u677E\u9F20",
+        "\u623F\u5B50\u91CC\u6709\u8759\u8760",
+        "\u95A3\u6A13\u6709\u677E\u9F20",
+        "may raccoon sa attic",
+        "may paniki sa bahay",
+        "g\u1EA5u m\xE8o tr\xEAn g\xE1c",
+        "d\u01A1i trong nh\xE0",
+        "s\xF3c tr\xEAn g\xE1c m\xE1i",
+        "\u0631\u0627\u0643\u0648\u0646 \u0641\u064A \u0627\u0644\u0639\u0644\u064A\u0629",
+        "\u0633\u0646\u062C\u0627\u0628 \u0641\u064A \u0627\u0644\u0639\u0644\u064A\u0629",
+        "\u062E\u0641\u0627\u0634 \u0641\u064A \u0627\u0644\u0645\u0646\u0632\u0644",
+        "raton laveur dans le grenier",
+        "\xE9cureuil dans le grenier",
+        "chauve-souris dans la maison"
+      ]),
       phrase("NC311-0163", "URBAN_FORESTRY", "fallen tree", [
         "tree fell down",
         "fallen tree",
@@ -40596,9 +40870,9 @@ var require_everyday_phrases = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/municipal-services.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/municipal-services.js
 var require_municipal_services = __commonJS({
-  "packages/shared/dist/call-assist/municipal-services.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/municipal-services.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SERVICE_CODE_DEPARTMENT = exports2.LEX_INTENT_DEPARTMENT = exports2.MUNICIPAL_ISSUES = exports2.MUNICIPAL_DEPARTMENTS = void 0;
@@ -40949,6 +41223,47 @@ var require_municipal_services = __commonJS({
         "dead animal",
         "animal bite"
       ]),
+      /** Pet or animal that needs help getting out — not a downed tree, not a loose dog at large. */
+      issue("TRAPPED_ANIMAL", "ANIMAL_CONTROL", "ANIMAL_CONTROL", ["nationwide"], [
+        "cat stuck in a tree",
+        "cat is stuck in a tree",
+        "cat stuck in the tree",
+        "my cat is stuck",
+        "cat stuck",
+        "cat can't get down",
+        "cat cant get down",
+        "cat on the roof",
+        "cat stuck on the roof",
+        "cat in the chimney",
+        "cat stuck in the garage",
+        "cat under the car",
+        "kitten stuck",
+        "kittens stuck",
+        "dog stuck under",
+        "dog stuck in a fence",
+        "dog stuck in the fence",
+        "dog stuck in the drain",
+        "dog stuck in a storm drain",
+        "dog under the porch",
+        "pet stuck",
+        "pet trapped",
+        "animal stuck",
+        "animal trapped",
+        "stuck in a tree",
+        "stuck up a tree",
+        "stuck in the chimney",
+        "stuck under the porch",
+        "stuck in a fence",
+        "stuck in the fence",
+        "trapped animal",
+        "trapped in a drain",
+        "bird stuck in the house",
+        "bird trapped inside",
+        "animal in the chimney",
+        "animal in the crawlspace",
+        "squirrel stuck",
+        "raccoon stuck"
+      ]),
       issue("WILDLIFE", "ANIMAL_CONTROL", "ANIMAL_CONTROL", ["nationwide", "west", "mountain", "southwest"], [
         "raccoon",
         "skunk",
@@ -40959,7 +41274,15 @@ var require_municipal_services = __commonJS({
         "deer in the yard",
         "bat in the house",
         "snake in",
-        "fox in"
+        "fox in",
+        "raccoon in the attic",
+        "squirrel in the attic",
+        "animal in the attic",
+        "wildlife in the attic",
+        "skunk under the house",
+        "opossum under the porch",
+        "goose nest",
+        "duckling in the drain"
       ]),
       issue("STINGING_INSECT", "ANIMAL_CONTROL", "ANIMAL_CONTROL", ["nationwide", "south", "southwest"], [
         "wasp nest",
@@ -41503,7 +41826,10 @@ var require_municipal_services = __commonJS({
         "BEE_SWARM_PUBLIC",
         "WASP_HORNET_NEST",
         "PIGEON_NUISANCE",
-        "DOG_IN_NON_DOG_PARK"
+        "DOG_IN_NON_DOG_PARK",
+        "TRAPPED_ANIMAL",
+        "CAT_STUCK_IN_TREE",
+        "ANIMAL_RESCUE"
       ]),
       ...desk("ENVIRONMENTAL_QUALITY", [
         "RODENT_INFESTATION",
@@ -41740,9 +42066,9 @@ var require_municipal_services = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/routing-rules.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/routing-rules.js
 var require_routing_rules = __commonJS({
-  "packages/shared/dist/call-assist/routing-rules.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/routing-rules.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callAssistTransferTargetSchema = exports2.callAssistRoutingRuleSchema = exports2.callAssistRoutingDestinationSchema = exports2.callAssistTimeWindowSchema = exports2.CALL_ASSIST_DELIVERY_METHODS = void 0;
@@ -42057,9 +42383,9 @@ var require_routing_rules = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/call-record.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/call-record.js
 var require_call_record = __commonJS({
-  "packages/shared/dist/call-assist/call-record.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/call-record.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callAssistCallRecordSchema = exports2.callAssistRoutingEventSchema = exports2.CALL_ASSIST_CALL_STATUSES = void 0;
@@ -42131,9 +42457,9 @@ var require_call_record = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/voice-emotion.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/voice-emotion.js
 var require_voice_emotion = __commonJS({
-  "packages/shared/dist/call-assist/voice-emotion.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/voice-emotion.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.VOICE_EMOTION_SOURCES = exports2.VOICE_DISTRESS_LEVELS = exports2.VOICE_EMOTION_LABELS = void 0;
@@ -42262,9 +42588,9 @@ var require_voice_emotion = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/sentiment.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/sentiment.js
 var require_sentiment = __commonJS({
-  "packages/shared/dist/call-assist/sentiment.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/sentiment.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callAssistSentimentSchema = exports2.CALL_ASSIST_SENTIMENT_SOURCES = exports2.CALL_ASSIST_SENTIMENT_LABELS = void 0;
@@ -42346,9 +42672,9 @@ var require_sentiment = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/transfer-ledger.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/transfer-ledger.js
 var require_transfer_ledger = __commonJS({
-  "packages/shared/dist/call-assist/transfer-ledger.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/transfer-ledger.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callAssistTransferOutcomeBodySchema = exports2.callAssistTransferLedgerEntrySchema = exports2.TRANSFER_LEDGER_CHANNELS = exports2.TRANSFER_LEDGER_OUTCOMES = void 0;
@@ -42421,9 +42747,9 @@ var require_transfer_ledger = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/speaker-diarization.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/speaker-diarization.js
 var require_speaker_diarization = __commonJS({
-  "packages/shared/dist/call-assist/speaker-diarization.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/speaker-diarization.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CALL_ASSIST_SPEAKERS = void 0;
@@ -42470,9 +42796,9 @@ var require_speaker_diarization = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/location-readback.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/location-readback.js
 var require_location_readback = __commonJS({
-  "packages/shared/dist/call-assist/location-readback.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/location-readback.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.isLocationSlot = isLocationSlot;
@@ -42580,9 +42906,9 @@ var require_location_readback = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/surge-mode.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/surge-mode.js
 var require_surge_mode = __commonJS({
-  "packages/shared/dist/call-assist/surge-mode.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/surge-mode.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.surgeCompletesInsteadOfTransfer = surgeCompletesInsteadOfTransfer;
@@ -42594,9 +42920,9 @@ var require_surge_mode = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/caller-survey.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/caller-survey.js
 var require_caller_survey = __commonJS({
-  "packages/shared/dist/call-assist/caller-survey.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/caller-survey.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.parseCallerSurveyScore = parseCallerSurveyScore;
@@ -42609,9 +42935,9 @@ var require_caller_survey = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/service-registry/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/service-registry/index.js
 var require_service_registry = __commonJS({
-  "packages/shared/dist/call-assist/service-registry/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/service-registry/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.NEXCORT_311_SERVICE_REGISTRY = void 0;
@@ -42646,9 +42972,9 @@ var require_service_registry = __commonJS({
   }
 });
 
-// packages/shared/dist/call-assist/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/call-assist/index.js
 var require_call_assist = __commonJS({
-  "packages/shared/dist/call-assist/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -42706,6 +43032,7 @@ var require_call_assist = __commonJS({
     __exportStar(require_qa_suite(), exports2);
     __exportStar(require_prompt_cms(), exports2);
     __exportStar(require_conversational_system_prompt_v2(), exports2);
+    __exportStar(require_conversational_ops(), exports2);
     __exportStar(require_routing_rules(), exports2);
     __exportStar(require_call_record(), exports2);
     __exportStar(require_voice_emotion(), exports2);
@@ -42725,9 +43052,9 @@ var require_call_assist = __commonJS({
   }
 });
 
-// packages/shared/dist/sop-intelligence/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sop-intelligence/schemas.js
 var require_schemas34 = __commonJS({
-  "packages/shared/dist/sop-intelligence/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sop-intelligence/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.sopClaudeSuggestionSchema = exports2.sopPatternThresholdDetailSchema = exports2.sopPendingActionSchema = exports2.sopLibraryStepPatchSchema = exports2.sopLibraryDocumentPatchSchema = exports2.sopIntelligencePhase2Schema = exports2.sopLibraryDocumentSchema = exports2.sopLibraryStepSchema = exports2.sopIntelligenceCoachingPrioritySchema = exports2.sopIntelligencePendingStatusSchema = exports2.sopIntelligenceResolutionStatusSchema = void 0;
@@ -42809,9 +43136,9 @@ var require_schemas34 = __commonJS({
   }
 });
 
-// packages/shared/dist/sop-intelligence/seed.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sop-intelligence/seed.js
 var require_seed2 = __commonJS({
-  "packages/shared/dist/sop-intelligence/seed.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sop-intelligence/seed.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SOP_INTELLIGENCE_PATTERN_THRESHOLD = exports2.SOP_INTELLIGENCE_DEFAULT_LIBRARY = void 0;
@@ -42886,9 +43213,9 @@ var require_seed2 = __commonJS({
   }
 });
 
-// packages/shared/dist/sop-intelligence/coaching.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sop-intelligence/coaching.js
 var require_coaching = __commonJS({
-  "packages/shared/dist/sop-intelligence/coaching.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sop-intelligence/coaching.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.deriveSopIntelligenceCoaching = deriveSopIntelligenceCoaching;
@@ -42943,9 +43270,9 @@ var require_coaching = __commonJS({
   }
 });
 
-// packages/shared/dist/sop-intelligence/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/sop-intelligence/index.js
 var require_sop_intelligence = __commonJS({
-  "packages/shared/dist/sop-intelligence/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/sop-intelligence/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -42970,9 +43297,9 @@ var require_sop_intelligence = __commonJS({
   }
 });
 
-// packages/shared/dist/support/ticket-types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/support/ticket-types.js
 var require_ticket_types = __commonJS({
-  "packages/shared/dist/support/ticket-types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/support/ticket-types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SUPPORT_CATEGORIES = exports2.TICKET_SEVERITIES = exports2.ACTIVE_TICKET_STATUSES = exports2.TICKET_STATUSES = exports2.SUPPORT_CHANNELS = void 0;
@@ -43017,9 +43344,9 @@ var require_ticket_types = __commonJS({
   }
 });
 
-// packages/shared/dist/support/ticket-config.js
+// apps/api/node_modules/rapid-cortex-shared/dist/support/ticket-config.js
 var require_ticket_config = __commonJS({
-  "packages/shared/dist/support/ticket-config.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/support/ticket-config.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RC_SUPPORT_PHONE = exports2.TICKET_STATUS_TRANSITIONS = exports2.CHANNEL_LABELS = exports2.CATEGORIES_BY_ROLE = exports2.CATEGORY_LABELS = exports2.SLA_BY_SEVERITY = exports2.SEVERITY_CONFIG = exports2.TICKET_STATUS_CONFIG = void 0;
@@ -43222,9 +43549,9 @@ var require_ticket_config = __commonJS({
   }
 });
 
-// packages/shared/dist/support/ticket-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/support/ticket-schemas.js
 var require_ticket_schemas = __commonJS({
-  "packages/shared/dist/support/ticket-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/support/ticket-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.addSupportTicketNoteBodySchema = exports2.patchSupportTicketBodySchema = exports2.submitTicketBodySchema = exports2.supportCategorySchema = exports2.ticketSeveritySchema = exports2.ticketStatusSchema = exports2.supportChannelSchema = void 0;
@@ -43262,9 +43589,9 @@ var require_ticket_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/support/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/support/index.js
 var require_support = __commonJS({
-  "packages/shared/dist/support/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/support/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -43289,9 +43616,9 @@ var require_support = __commonJS({
   }
 });
 
-// packages/shared/dist/translate/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/translate/types.js
 var require_types17 = __commonJS({
-  "packages/shared/dist/translate/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/translate/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.PHRASES_BY_VERTICAL = exports2.HOSPITAL_PHRASES = exports2.CAMPUS_PHRASES = exports2.VENUE_PHRASES = exports2.OFFICER_LANGUAGE = exports2.SUPPORTED_LANGUAGES = exports2.TRANSLATE_ADDON_BY_VERTICAL = exports2.TRANSLATE_SPEAKER_LABELS = exports2.TRANSLATE_VERTICALS = exports2.TRANSLATE_CAD_WRITEBACK_STATUSES = exports2.TRANSLATE_SPEAKERS = exports2.TRANSLATE_SESSION_CLOSED_STATUSES = exports2.TRANSLATE_SESSION_STATUSES = void 0;
@@ -43419,9 +43746,9 @@ var require_types17 = __commonJS({
   }
 });
 
-// packages/shared/dist/translate/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/translate/schemas.js
 var require_schemas35 = __commonJS({
-  "packages/shared/dist/translate/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/translate/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.translateAssistanceEncounterSchema = exports2.translateAssistanceSummaryQuerySchema = exports2.translateSessionCloseRequestSchema = exports2.translateLinkRequestSchema = exports2.translateSessionCreateRequestSchema = exports2.translateHospitalContextSchema = exports2.translateCampusContextSchema = exports2.translateVenueContextSchema = void 0;
@@ -43502,9 +43829,9 @@ var require_schemas35 = __commonJS({
   }
 });
 
-// packages/shared/dist/translate/authz.js
+// apps/api/node_modules/rapid-cortex-shared/dist/translate/authz.js
 var require_authz = __commonJS({
-  "packages/shared/dist/translate/authz.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/translate/authz.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.canStartTranslateSession = canStartTranslateSession;
@@ -43696,9 +44023,9 @@ var require_authz = __commonJS({
   }
 });
 
-// packages/shared/dist/translate/addon.js
+// apps/api/node_modules/rapid-cortex-shared/dist/translate/addon.js
 var require_addon = __commonJS({
-  "packages/shared/dist/translate/addon.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/translate/addon.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.translateAddonKey = translateAddonKey;
@@ -43721,9 +44048,9 @@ var require_addon = __commonJS({
   }
 });
 
-// packages/shared/dist/translate/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/translate/index.js
 var require_translate = __commonJS({
-  "packages/shared/dist/translate/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/translate/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -43749,9 +44076,9 @@ var require_translate = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-vision/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-vision/types.js
 var require_types18 = __commonJS({
-  "packages/shared/dist/rapid-vision/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-vision/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RAPID_VISION_PRODUCT_NAME_ASCII = exports2.RAPID_VISION_PRODUCT_NAME = void 0;
@@ -43760,9 +44087,9 @@ var require_types18 = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-vision/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-vision/schemas.js
 var require_schemas36 = __commonJS({
-  "packages/shared/dist/rapid-vision/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-vision/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.visionTranscriptSegmentSchema = exports2.visionCameraSceneConfigSchema = exports2.visionSceneEventPatchSchema = exports2.visionSceneEventsQuerySchema = exports2.visionTranscriptSessionBodySchema = exports2.visionTranscriptQuerySchema = exports2.visionSettingsPatchSchema = exports2.visionRequestAccessBodySchema = exports2.visionCameraSearchRequestSchema = void 0;
@@ -43832,9 +44159,9 @@ var require_schemas36 = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-vision/authz.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-vision/authz.js
 var require_authz2 = __commonJS({
-  "packages/shared/dist/rapid-vision/authz.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-vision/authz.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.canViewVision = canViewVision;
@@ -43958,9 +44285,9 @@ var require_authz2 = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-vision/scene-training.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-vision/scene-training.js
 var require_scene_training = __commonJS({
-  "packages/shared/dist/rapid-vision/scene-training.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-vision/scene-training.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SCENE_TRAINING_CLASSES = void 0;
@@ -44058,9 +44385,9 @@ var require_scene_training = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-vision/scene-intel.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-vision/scene-intel.js
 var require_scene_intel = __commonJS({
-  "packages/shared/dist/rapid-vision/scene-intel.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-vision/scene-intel.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SCENE_SENSITIVITY_THRESHOLD = exports2.SCENE_INTEL_EVENT_TYPE_LABELS = exports2.SCENE_INTEL_COOLDOWN_SECONDS_DEFAULT = void 0;
@@ -44388,9 +44715,9 @@ var require_scene_intel = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-vision/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-vision/index.js
 var require_rapid_vision = __commonJS({
-  "packages/shared/dist/rapid-vision/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-vision/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -44417,9 +44744,9 @@ var require_rapid_vision = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-cortex-video/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-cortex-video/index.js
 var require_rapid_cortex_video = __commonJS({
-  "packages/shared/dist/rapid-cortex-video/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-cortex-video/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -44442,9 +44769,9 @@ var require_rapid_cortex_video = __commonJS({
   }
 });
 
-// packages/shared/dist/alerts/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/alerts/schemas.js
 var require_schemas37 = __commonJS({
-  "packages/shared/dist/alerts/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/alerts/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ALERT_INITIATED_COPY = exports2.ALERT_SMS_CARRIER_CAVEAT = exports2.alertAcknowledgeBodySchema = exports2.alertSmsOptoutBodySchema = exports2.alertOrganizationUpsertBodySchema = exports2.alertTemplateUpsertBodySchema = exports2.alertGroupUpsertBodySchema = exports2.alertRecipientImportBodySchema = exports2.alertDispatchBodySchema = exports2.VERTICAL_ALERT_WS_TYPES = exports2.VERTICAL_ALERT_WS_TYPE = exports2.verticalAlertWsPayloadSchema = exports2.alertDispatchJobSchema = exports2.alertChannelSummarySchema = exports2.alertTemplateSchema = exports2.alertRecipientSchema = exports2.alertRecipientGroupSchema = exports2.alertOrganizationSchema = exports2.CONFIRM_DISPATCH_TOKEN = exports2.alertOptInMethodSchema = exports2.alertDeliveryStatusSchema = exports2.alertJobStatusSchema = exports2.alertTemplateTypeSchema = exports2.alertSeveritySchema = exports2.alertChannelSchema = exports2.alertVerticalSchema = void 0;
@@ -44661,9 +44988,9 @@ var require_schemas37 = __commonJS({
   }
 });
 
-// packages/shared/dist/alerts/templates.js
+// apps/api/node_modules/rapid-cortex-shared/dist/alerts/templates.js
 var require_templates2 = __commonJS({
-  "packages/shared/dist/alerts/templates.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/alerts/templates.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.systemTemplateSeeds = systemTemplateSeeds;
@@ -44811,9 +45138,9 @@ var require_templates2 = __commonJS({
   }
 });
 
-// packages/shared/dist/alerts/csv.js
+// apps/api/node_modules/rapid-cortex-shared/dist/alerts/csv.js
 var require_csv = __commonJS({
-  "packages/shared/dist/alerts/csv.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/alerts/csv.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.parseAlertRecipientCsv = parseAlertRecipientCsv;
@@ -44939,9 +45266,9 @@ var require_csv = __commonJS({
   }
 });
 
-// packages/shared/dist/alerts/ens-test-program.js
+// apps/api/node_modules/rapid-cortex-shared/dist/alerts/ens-test-program.js
 var require_ens_test_program = __commonJS({
-  "packages/shared/dist/alerts/ens-test-program.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/alerts/ens-test-program.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ensManualRunBodySchema = exports2.ensSiteBoundaryUpsertBodySchema = exports2.ensTestProgramUpsertBodySchema = exports2.ensTestRunSchema = exports2.ensSiteBoundarySchema = exports2.ensTestProgramSchema = exports2.ensAnnualComprehensiveScheduleSchema = exports2.ensSemesterAudibleScheduleSchema = exports2.ensMonthlySilentScheduleSchema = exports2.fourwindsDisplayScopeSchema = exports2.ensTestKindToTemplateType = exports2.ENS_TEST_KIND_LABELS = exports2.ensTestKindSchema = exports2.ENS_ONE_MILE_BUFFER_METERS = void 0;
@@ -45184,9 +45511,9 @@ var require_ens_test_program = __commonJS({
   }
 });
 
-// packages/shared/dist/alerts/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/alerts/index.js
 var require_alerts = __commonJS({
-  "packages/shared/dist/alerts/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/alerts/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -45212,9 +45539,9 @@ var require_alerts = __commonJS({
   }
 });
 
-// packages/shared/dist/physical-security/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/physical-security/schemas.js
 var require_schemas38 = __commonJS({
-  "packages/shared/dist/physical-security/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/physical-security/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.physicalSecurityCommandBodySchema = exports2.physicalSecurityCommandActionSchema = exports2.physicalSecurityIngestBodySchema = exports2.physicalSecurityEventSchema = exports2.PHYSICAL_EVENT_TO_BADGE = exports2.physicalSecurityMapBadgeSchema = exports2.physicalSecurityEventTypeSchema = exports2.physicalSecurityProviderIdSchema = exports2.PHYSICAL_SECURITY_COMMANDS_NOT_IMPLEMENTED = void 0;
@@ -45312,9 +45639,9 @@ var require_schemas38 = __commonJS({
   }
 });
 
-// packages/shared/dist/physical-security/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/physical-security/index.js
 var require_physical_security = __commonJS({
-  "packages/shared/dist/physical-security/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/physical-security/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -45337,9 +45664,9 @@ var require_physical_security = __commonJS({
   }
 });
 
-// packages/shared/dist/milestone/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/milestone/schemas.js
 var require_schemas39 = __commonJS({
-  "packages/shared/dist/milestone/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/milestone/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.milestoneOutboundAckSchema = exports2.milestoneAlarmBodySchema = exports2.milestoneEventBodySchema = exports2.milestoneLiveTicketSchema = exports2.milestoneLiveTicketBodySchema = exports2.milestoneNearCamerasQuerySchema = exports2.milestoneSyncResultSchema = exports2.milestoneCameraDtoSchema = exports2.milestoneStatusSchema = exports2.milestoneConnectBodySchema = void 0;
@@ -45425,9 +45752,9 @@ var require_schemas39 = __commonJS({
   }
 });
 
-// packages/shared/dist/milestone/bridge-protocol.js
+// apps/api/node_modules/rapid-cortex-shared/dist/milestone/bridge-protocol.js
 var require_bridge_protocol = __commonJS({
-  "packages/shared/dist/milestone/bridge-protocol.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/milestone/bridge-protocol.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.MILESTONE_BRIDGE_AUTH = exports2.MILESTONE_BRIDGE_PATHS = void 0;
@@ -45447,9 +45774,9 @@ var require_bridge_protocol = __commonJS({
   }
 });
 
-// packages/shared/dist/milestone/geo-cameras.js
+// apps/api/node_modules/rapid-cortex-shared/dist/milestone/geo-cameras.js
 var require_geo_cameras = __commonJS({
-  "packages/shared/dist/milestone/geo-cameras.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/milestone/geo-cameras.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.rankCampusCamerasForPlace = exports2.MILESTONE_CAMERA_ASSOCIATION_LIMIT = exports2.MILESTONE_GEO_MAX_RADIUS_METERS = exports2.MILESTONE_GEO_MIN_RADIUS_METERS = exports2.MILESTONE_GEO_DEFAULT_RADIUS_METERS = void 0;
@@ -45499,9 +45826,9 @@ var require_geo_cameras = __commonJS({
   }
 });
 
-// packages/shared/dist/milestone/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/milestone/index.js
 var require_milestone = __commonJS({
-  "packages/shared/dist/milestone/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/milestone/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -45526,9 +45853,9 @@ var require_milestone = __commonJS({
   }
 });
 
-// packages/shared/dist/location/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/location/schemas.js
 var require_schemas40 = __commonJS({
-  "packages/shared/dist/location/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/location/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.alsEducationSearchQuerySchema = exports2.EDUCATION_POI_CATEGORIES = exports2.alsHospitalSearchQuerySchema = exports2.HOSPITAL_POI_CATEGORIES = exports2.alsDevicePositionSchema = exports2.alsDevicePositionBodySchema = exports2.alsGeofenceListItemSchema = exports2.alsGeofenceUpsertBodySchema = exports2.alsRouteResultSchema = exports2.alsRouteQuerySchema = exports2.alsReverseGeocodeQuerySchema = exports2.alsGeocodeQuerySchema = exports2.alsGeocodeResultSchema = void 0;
@@ -45664,9 +45991,9 @@ var require_schemas40 = __commonJS({
   }
 });
 
-// packages/shared/dist/location/hospital-geojson.js
+// apps/api/node_modules/rapid-cortex-shared/dist/location/hospital-geojson.js
 var require_hospital_geojson = __commonJS({
-  "packages/shared/dist/location/hospital-geojson.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/location/hospital-geojson.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.haversineMiles = haversineMiles;
@@ -45757,9 +46084,9 @@ var require_hospital_geojson = __commonJS({
   }
 });
 
-// packages/shared/dist/location/education-geojson.js
+// apps/api/node_modules/rapid-cortex-shared/dist/location/education-geojson.js
 var require_education_geojson = __commonJS({
-  "packages/shared/dist/location/education-geojson.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/location/education-geojson.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.EDUCATION_TYPE_LABELS = void 0;
@@ -45867,9 +46194,9 @@ var require_education_geojson = __commonJS({
   }
 });
 
-// packages/shared/dist/location/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/location/index.js
 var require_location = __commonJS({
-  "packages/shared/dist/location/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/location/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -45894,9 +46221,9 @@ var require_location = __commonJS({
   }
 });
 
-// packages/shared/dist/field/workspaces.js
+// apps/api/node_modules/rapid-cortex-shared/dist/field/workspaces.js
 var require_workspaces = __commonJS({
-  "packages/shared/dist/field/workspaces.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/field/workspaces.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.FIELD_ACCESS_TOOL_IDS = exports2.FIELD_WORKSPACE_IDS = void 0;
@@ -46018,9 +46345,9 @@ var require_workspaces = __commonJS({
   }
 });
 
-// packages/shared/dist/field/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/field/schemas.js
 var require_schemas41 = __commonJS({
-  "packages/shared/dist/field/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/field/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.fieldIncidentMessageBodySchema = exports2.fieldContinuityLogBodySchema = exports2.FIELD_CONTINUITY_CATEGORIES = exports2.fieldCoachingNoteBodySchema = exports2.FIELD_COACHING_CATEGORIES = exports2.fieldAccessRequestBodySchema = exports2.fieldAccessToolIdSchema = exports2.fieldWorkspaceIdSchema = void 0;
@@ -46072,9 +46399,9 @@ var require_schemas41 = __commonJS({
   }
 });
 
-// packages/shared/dist/field/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/field/index.js
 var require_field = __commonJS({
-  "packages/shared/dist/field/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/field/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -46098,9 +46425,9 @@ var require_field = __commonJS({
   }
 });
 
-// packages/shared/dist/guest-assist/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/guest-assist/schemas.js
 var require_schemas42 = __commonJS({
-  "packages/shared/dist/guest-assist/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/guest-assist/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.guestAssistAlertBodySchema = exports2.guestAssistSessionBodySchema = exports2.guestAssistChatBodySchema = exports2.guestAssistChatMessageSchema = exports2.guestAssistVerticalSchema = void 0;
@@ -46132,9 +46459,9 @@ var require_schemas42 = __commonJS({
   }
 });
 
-// packages/shared/dist/guest-assist/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/guest-assist/index.js
 var require_guest_assist = __commonJS({
-  "packages/shared/dist/guest-assist/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/guest-assist/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -46158,9 +46485,9 @@ var require_guest_assist = __commonJS({
   }
 });
 
-// packages/shared/dist/marketing/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/marketing/schemas.js
 var require_schemas43 = __commonJS({
-  "packages/shared/dist/marketing/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/marketing/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.marketingUnsubscribeBodySchema = exports2.marketingLeadBodySchema = exports2.MARKETING_BLOCKED_EMAIL_DOMAINS = void 0;
@@ -46252,9 +46579,9 @@ var require_schemas43 = __commonJS({
   }
 });
 
-// packages/shared/dist/marketing/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/marketing/index.js
 var require_marketing = __commonJS({
-  "packages/shared/dist/marketing/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/marketing/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -46277,9 +46604,9 @@ var require_marketing = __commonJS({
   }
 });
 
-// packages/shared/dist/hiring/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/hiring/schemas.js
 var require_schemas44 = __commonJS({
-  "packages/shared/dist/hiring/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/hiring/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.STATUS_CONFIG = exports2.addApplicationNoteBodySchema = exports2.updateApplicationBodySchema = exports2.careersApplyBodySchema = exports2.careersPresignedUploadBodySchema = exports2.JobApplicationSchema = exports2.ApplicationActivitySchema = exports2.ApplicationNoteSchema = exports2.POSITION_DISPLAY_NAMES = exports2.DEFAULT_HIRING_POSITION = exports2.EMAIL_TRIGGERS = exports2.EmailTriggerStatusSchema = exports2.EMAIL_TRIGGER_STATUSES = exports2.ApplicationSourceSchema = exports2.APPLICATION_SOURCES = exports2.ALL_STAGES = exports2.ATS_STAGES = exports2.ApplicationStatusSchema = exports2.APPLICATION_STATUSES = void 0;
@@ -46466,9 +46793,9 @@ var require_schemas44 = __commonJS({
   }
 });
 
-// packages/shared/dist/hiring/job-postings.js
+// apps/api/node_modules/rapid-cortex-shared/dist/hiring/job-postings.js
 var require_job_postings = __commonJS({
-  "packages/shared/dist/hiring/job-postings.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/hiring/job-postings.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.STATUS_BADGE = exports2.LOCATION_LABEL = exports2.ENGAGEMENT_LABEL = exports2.updateJobPostingBodySchema = exports2.createJobPostingBodySchema = exports2.JobPostingSchema = exports2.CompensationUnitSchema = exports2.COMPENSATION_UNITS = exports2.WorkLocationSchema = exports2.WORK_LOCATIONS = exports2.EngagementTypeSchema = exports2.ENGAGEMENT_TYPES = exports2.PostingStatusSchema = exports2.POSTING_STATUSES = void 0;
@@ -46560,9 +46887,9 @@ var require_job_postings = __commonJS({
   }
 });
 
-// packages/shared/dist/hiring/bookings.js
+// apps/api/node_modules/rapid-cortex-shared/dist/hiring/bookings.js
 var require_bookings = __commonJS({
-  "packages/shared/dist/hiring/bookings.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/hiring/bookings.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.HIRING_BOOKINGS_SETTING_KEY = exports2.HiringBookingsConfigSchema = void 0;
@@ -46603,9 +46930,9 @@ var require_bookings = __commonJS({
   }
 });
 
-// packages/shared/dist/hiring/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/hiring/index.js
 var require_hiring = __commonJS({
-  "packages/shared/dist/hiring/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/hiring/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -46630,9 +46957,9 @@ var require_hiring = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/schemas.js
 var require_schemas45 = __commonJS({
-  "packages/shared/dist/rapid-iq/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.searchContactsBodySchema = exports2.competitorIntelBodySchema = exports2.researchAgencyBodySchema = exports2.agencyProfileBodySchema = exports2.rfpOutlineBodySchema = exports2.outreachBodySchema = exports2.talkingPointsBodySchema = exports2.signalChatBodySchema = exports2.convertToLeadBodySchema = exports2.updateOpportunityBodySchema = exports2.signalChatMessageSchema = exports2.refreshStatusSchema = exports2.mentionedEntitySchema = exports2.rapidIqSourceSchema = exports2.rapidIqContactSchema = exports2.rapidIqSignalSchema = exports2.rapidIqOpportunitySchema = exports2.opportunityStatusSchema = exports2.verificationStatusSchema = exports2.contactMatchTypeSchema = exports2.contactRoleTierSchema = exports2.signalTypeSchema = exports2.intentStageSchema = exports2.rcProductSchema = exports2.rapidIqVerticalSchema = void 0;
@@ -46822,9 +47149,9 @@ var require_schemas45 = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/signal-keywords.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/signal-keywords.js
 var require_signal_keywords = __commonJS({
-  "packages/shared/dist/rapid-iq/signal-keywords.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/signal-keywords.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RAPID_IQ_KANBAN_COLUMNS = exports2.PS_TAXONOMY = exports2.FIT_FACTORS = exports2.INTENT_FACTORS = exports2.RAPID_IQ_PROCUREMENT_STAGE_FILTERS = exports2.PROCUREMENT_STAGE_LABELS = exports2.RAPID_IQ_PROCUREMENT_STAGES = exports2.US_STATE_CODES = exports2.OPENSTATES_BILL_QUERIES = exports2.GRANTS_GOV_SEARCH_KEYWORDS = exports2.CIVIC_IQ_PROCUREMENT_KEYWORDS = exports2.CIVIC_IQ_BUDGET_KEYWORDS = exports2.CIVIC_IQ_MEETING_KEYWORDS = exports2.EXTRA_RELEVANCE_KEYWORDS = exports2.KEYWORDS = void 0;
@@ -47790,9 +48117,9 @@ var require_signal_keywords = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/pipeline-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/pipeline-schemas.js
 var require_pipeline_schemas = __commonJS({
-  "packages/shared/dist/rapid-iq/pipeline-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/pipeline-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RAPID_IQ_PIPELINE_FIT_SCORE_THRESHOLDS = exports2.enqueueRapidIqPipelineFromOpportunityBodySchema = exports2.rapidIqWatchIngestItemResultSchema = exports2.rapidIqWatchIngestRequestSchema = exports2.rapidIqWatchIngestBodySchema = exports2.rapidIqWatchIngestEvidenceSchema = exports2.RAPID_IQ_WATCH_INGEST_SOURCES = exports2.RAPID_IQ_WATCH_INGEST_SIGNAL_TYPES = exports2.RAPID_IQ_WATCH_INGEST_VERTICALS = exports2.RAPID_IQ_PIPELINE_SOURCE_LABELS = exports2.rapidIqPipelineCreditsResponseSchema = exports2.rapidIqPipelineCreditToolStatusSchema = exports2.pushRapidIqPipelineToCrmBodySchema = exports2.rapidIqResearchResponseSchema = exports2.rapidIqResearchRequestSchema = exports2.rapidIqAgencyContactSchema = exports2.rapidIqAgencyProfileSchema = exports2.rapidIqKnownContractSchema = exports2.RAPID_IQ_AGENCY_TYPES = exports2.createManualRapidIqPipelineSignalBodySchema = exports2.patchRapidIqPipelineSignalBodySchema = exports2.rapidIqPipelineExtractionSchema = exports2.rapidIqPipelineRawSignalSchema = exports2.rapidIqPipelineSignalSchema = exports2.rapidIqScoreEvidenceSchema = exports2.RAPID_IQ_CONTACT_CONFIDENCE_LABELS = exports2.RAPID_IQ_CONTACT_CONFIDENCE = exports2.rapidIqPipelineContactHintSchema = exports2.RAPID_IQ_PIPELINE_PROCUREMENT_TYPES = exports2.RAPID_IQ_PIPELINE_FIT_LABELS = exports2.RAPID_IQ_PIPELINE_SIGNAL_STATUSES = exports2.RAPID_IQ_PIPELINE_FEED_TABS = exports2.RAPID_IQ_PIPELINE_SOURCE_IDS = void 0;
@@ -48420,9 +48747,9 @@ var require_pipeline_schemas = __commonJS({
   }
 });
 
-// node_modules/@noble/hashes/cryptoNode.js
+// apps/api/node_modules/@noble/hashes/cryptoNode.js
 var require_cryptoNode = __commonJS({
-  "node_modules/@noble/hashes/cryptoNode.js"(exports2) {
+  "apps/api/node_modules/@noble/hashes/cryptoNode.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.crypto = void 0;
@@ -48431,9 +48758,9 @@ var require_cryptoNode = __commonJS({
   }
 });
 
-// node_modules/@noble/hashes/utils.js
+// apps/api/node_modules/@noble/hashes/utils.js
 var require_utils = __commonJS({
-  "node_modules/@noble/hashes/utils.js"(exports2) {
+  "apps/api/node_modules/@noble/hashes/utils.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.wrapXOFConstructorWithOpts = exports2.wrapConstructorWithOpts = exports2.wrapConstructor = exports2.Hash = exports2.nextTick = exports2.swap32IfBE = exports2.byteSwapIfBE = exports2.swap8IfBE = exports2.isLE = void 0;
@@ -48673,9 +49000,9 @@ var require_utils = __commonJS({
   }
 });
 
-// node_modules/@noble/hashes/_md.js
+// apps/api/node_modules/@noble/hashes/_md.js
 var require_md = __commonJS({
-  "node_modules/@noble/hashes/_md.js"(exports2) {
+  "apps/api/node_modules/@noble/hashes/_md.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SHA512_IV = exports2.SHA384_IV = exports2.SHA224_IV = exports2.SHA256_IV = exports2.HashMD = void 0;
@@ -48851,9 +49178,9 @@ var require_md = __commonJS({
   }
 });
 
-// node_modules/@noble/hashes/_u64.js
+// apps/api/node_modules/@noble/hashes/_u64.js
 var require_u64 = __commonJS({
-  "node_modules/@noble/hashes/_u64.js"(exports2) {
+  "apps/api/node_modules/@noble/hashes/_u64.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.toBig = exports2.shrSL = exports2.shrSH = exports2.rotrSL = exports2.rotrSH = exports2.rotrBL = exports2.rotrBH = exports2.rotr32L = exports2.rotr32H = exports2.rotlSL = exports2.rotlSH = exports2.rotlBL = exports2.rotlBH = exports2.add5L = exports2.add5H = exports2.add4L = exports2.add4H = exports2.add3L = exports2.add3H = void 0;
@@ -48947,9 +49274,9 @@ var require_u64 = __commonJS({
   }
 });
 
-// node_modules/@noble/hashes/sha2.js
+// apps/api/node_modules/@noble/hashes/sha2.js
 var require_sha2 = __commonJS({
-  "node_modules/@noble/hashes/sha2.js"(exports2) {
+  "apps/api/node_modules/@noble/hashes/sha2.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.sha512_224 = exports2.sha512_256 = exports2.sha384 = exports2.sha512 = exports2.sha224 = exports2.sha256 = exports2.SHA512_256 = exports2.SHA512_224 = exports2.SHA384 = exports2.SHA512 = exports2.SHA224 = exports2.SHA256 = void 0;
@@ -49417,9 +49744,9 @@ var require_sha2 = __commonJS({
   }
 });
 
-// node_modules/@noble/hashes/sha256.js
+// apps/api/node_modules/@noble/hashes/sha256.js
 var require_sha256 = __commonJS({
-  "node_modules/@noble/hashes/sha256.js"(exports2) {
+  "apps/api/node_modules/@noble/hashes/sha256.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.sha224 = exports2.SHA224 = exports2.sha256 = exports2.SHA256 = void 0;
@@ -49431,9 +49758,9 @@ var require_sha256 = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/watch-ingest-utils.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/watch-ingest-utils.js
 var require_watch_ingest_utils = __commonJS({
-  "packages/shared/dist/rapid-iq/watch-ingest-utils.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/watch-ingest-utils.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.normalizeWatchExternalKey = normalizeWatchExternalKey;
@@ -49544,9 +49871,9 @@ var require_watch_ingest_utils = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/watch-signal-schema.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/watch-signal-schema.js
 var require_watch_signal_schema = __commonJS({
-  "packages/shared/dist/rapid-iq/watch-signal-schema.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/watch-signal-schema.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.watchSignalActionBodySchema = exports2.watchIngestSuccessSchema = exports2.watchSignalIngestBodySchema = exports2.watchSignalSchema = exports2.watchSignalContactSchema = exports2.watchProcurementDetailsSchema = exports2.watchProcurementDocumentSchema = exports2.WATCH_PROCUREMENT_ACCESS_TYPES = exports2.watchSignalEvidenceSchema = exports2.WATCH_SIGNAL_PRIORITY_LABELS = exports2.WATCH_SIGNAL_SOURCE_QUALITIES = exports2.WATCH_SIGNAL_LIFECYCLE_CHANGES = exports2.WATCH_SIGNAL_BUYING_STAGES = exports2.WATCH_SIGNAL_STRENGTHS = exports2.WATCH_SIGNAL_TYPES = exports2.WATCH_SIGNAL_PRIMARY_VERTICALS = exports2.WATCH_SIGNAL_WATCHES = void 0;
@@ -49736,9 +50063,9 @@ var require_watch_signal_schema = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/watch-signal-adapter.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/watch-signal-adapter.js
 var require_watch_signal_adapter = __commonJS({
-  "packages/shared/dist/rapid-iq/watch-signal-adapter.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/watch-signal-adapter.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.watchSignalToPipelineIngest = watchSignalToPipelineIngest;
@@ -49940,9 +50267,9 @@ var require_watch_signal_adapter = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/buying-intelligence.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/buying-intelligence.js
 var require_buying_intelligence = __commonJS({
-  "packages/shared/dist/rapid-iq/buying-intelligence.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/buying-intelligence.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.rapidIqBuyingIntelligenceSchema = exports2.rapidIqPainPointSchema = exports2.RAPID_IQ_INTELLIGENCE_VERTICALS = exports2.RAPID_IQ_PAIN_CATEGORIES = exports2.RAPID_IQ_CAPABILITY_TAGS = exports2.RAPID_IQ_SIGNAL_CATEGORIES = exports2.RAPID_IQ_BUYING_SIGNAL_TYPES = exports2.RAPID_IQ_PRIORITY_BANDS = exports2.RAPID_IQ_SIGNAL_STRENGTHS = exports2.RAPID_IQ_BUYING_STAGES = void 0;
@@ -50484,9 +50811,9 @@ ${input.text}`;
   }
 });
 
-// packages/shared/dist/rapid-iq/discovery-query-library.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/discovery-query-library.js
 var require_discovery_query_library = __commonJS({
-  "packages/shared/dist/rapid-iq/discovery-query-library.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/discovery-query-library.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.NEXIQ_DISCOVERY_QUERY_LIBRARY = void 0;
@@ -50606,9 +50933,9 @@ var require_discovery_query_library = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/types.js
 var require_types19 = __commonJS({
-  "packages/shared/dist/rapid-iq/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.fitLabelFromScore = exports2.RAPID_IQ_FIT_SCORE_THRESHOLDS = exports2.RAPID_IQ_SOURCE_LABELS = exports2.RAPID_IQ_PROCUREMENT_TYPES = exports2.RAPID_IQ_FIT_LABELS = exports2.RAPID_IQ_SIGNAL_STATUSES = exports2.RAPID_IQ_SOURCE_IDS = void 0;
@@ -50637,9 +50964,9 @@ var require_types19 = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/conference-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/conference-schemas.js
 var require_conference_schemas = __commonJS({
-  "packages/shared/dist/rapid-iq/conference-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/conference-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SIGNIFICANT_CONFERENCE_CHANGE_TYPES = exports2.patchConferenceBodySchema = exports2.createConferenceBodySchema = exports2.extractedConferenceDataSchema = exports2.conferenceSchema = exports2.conferencePrioritySchema = exports2.conferenceVerticalSchema = exports2.conferenceChangeRecordSchema = exports2.conferenceChangeStatusSchema = exports2.conferenceChangeTypeSchema = exports2.conferenceChangeConfidenceSchema = exports2.PLATFORM_CONFERENCE_AGENCY_ID = void 0;
@@ -50778,9 +51105,9 @@ var require_conference_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/conference-change.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/conference-change.js
 var require_conference_change = __commonJS({
-  "packages/shared/dist/rapid-iq/conference-change.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/conference-change.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.detectConferenceChanges = detectConferenceChanges;
@@ -50900,9 +51227,9 @@ var require_conference_change = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/opportunity-intel-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/opportunity-intel-schemas.js
 var require_opportunity_intel_schemas = __commonJS({
-  "packages/shared/dist/rapid-iq/opportunity-intel-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/opportunity-intel-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.rapidIqIntelBidNoBidSchema = exports2.rapidIqIntelPursuitBriefSchema = exports2.rapidIqIntelManualIngestBodySchema = exports2.rapidIqIntelWatchJobSchema = exports2.rapidIqIntelOutreachBodySchema = exports2.patchRapidIqIntelOpportunityBodySchema = exports2.patchRapidIqIntelWatchBodySchema = exports2.createRapidIqIntelWatchBodySchema = exports2.rapidIqIntelWatchSchema = exports2.rapidIqIntelSourceDocumentSchema = exports2.rapidIqIntelClassificationSchema = exports2.rapidIqIntelAiExtractionSchema = exports2.rapidIqIntelOpportunitySchema = exports2.rapidIqIntelSupportingSourceSchema = exports2.rapidIqIntelContactSchema = exports2.RAPID_IQ_INTEL_SEARCH_TOPICS = exports2.RAPID_IQ_INTEL_PROCUREMENT_STAGE_LABELS = exports2.RAPID_IQ_INTEL_OUTREACH_AUDIENCES = exports2.RAPID_IQ_INTEL_SOURCE_TYPES = exports2.RAPID_IQ_INTEL_STATUSES = exports2.RAPID_IQ_INTEL_RECOMMENDATIONS = exports2.RAPID_IQ_INTEL_PRODUCTS = exports2.RAPID_IQ_INTEL_OPPORTUNITY_TYPES = exports2.RAPID_IQ_INTEL_MARKETS = void 0;
@@ -51252,9 +51579,9 @@ var require_opportunity_intel_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/transit-watches.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/transit-watches.js
 var require_transit_watches = __commonJS({
-  "packages/shared/dist/rapid-iq/transit-watches.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/transit-watches.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RAPID_IQ_TRANSIT_WATCH_SEEDS = void 0;
@@ -51444,9 +51771,9 @@ var require_transit_watches = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/intel-watch-seeds.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/intel-watch-seeds.js
 var require_intel_watch_seeds = __commonJS({
-  "packages/shared/dist/rapid-iq/intel-watch-seeds.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/intel-watch-seeds.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.VERTICAL_WATCH_SEED_SUMMARY = exports2.VERTICAL_INTEL_WATCH_SEEDS = exports2.VENUE_WATCH_SEEDS = exports2.CAMPUS_WATCH_SEEDS = exports2.PSAP_WATCH_SEEDS = void 0;
@@ -52127,9 +52454,9 @@ var require_intel_watch_seeds = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/rfp-unified-count.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/rfp-unified-count.js
 var require_rfp_unified_count = __commonJS({
-  "packages/shared/dist/rapid-iq/rfp-unified-count.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/rfp-unified-count.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RAPID_IQ_RFP_COUNT_SK = exports2.RAPID_IQ_RFP_COUNT_PK = exports2.RAPID_IQ_RFP_COUNT_VERTICALS = void 0;
@@ -52259,9 +52586,9 @@ var require_rfp_unified_count = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/sales-automation-schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/sales-automation-schemas.js
 var require_sales_automation_schemas = __commonJS({
-  "packages/shared/dist/rapid-iq/sales-automation-schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/sales-automation-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.updateRapidIqSalesBulkCopyBodySchema = exports2.updateRapidIqSalesDraftBodySchema = exports2.updateRapidIqSalesSequenceBodySchema = exports2.updateRapidIqSalesSequenceStepSchema = exports2.rapidIqOutlookCallbackBodySchema = exports2.rapidIqOutlookStatusSchema = exports2.rapidIqSalesBulkApproveResultSchema = exports2.rapidIqSalesBulkResultSchema = exports2.rapidIqSalesBulkBatchSchema = exports2.approveRapidIqSalesBulkBodySchema = exports2.createRapidIqSalesBulkCampaignBodySchema = exports2.rapidIqSalesBulkRecipientSchema = exports2.RAPID_IQ_SALES_BULK_MAX_RECIPIENTS = exports2.RAPID_IQ_SALES_DRAFT_GSI2PK = exports2.RAPID_IQ_SALES_SEQ_GSI2PK = exports2.createRapidIqSalesSequenceBodySchema = exports2.rapidIqApolloCampaignReadSchema = exports2.rapidIqApolloCampaignSchema = exports2.rapidIqSalesCampaignCardSchema = exports2.rapidIqSalesMetricsSchema = exports2.rapidIqSalesContentDraftSchema = exports2.rapidIqSalesSequenceSchema = exports2.rapidIqSalesOutreachStepSchema = exports2.rapidIqSalesOutreachEmailSchema = exports2.RAPID_IQ_SALES_STEP_DELAYS = exports2.RAPID_IQ_SALES_CONTENT_STATUSES = exports2.RAPID_IQ_SALES_CONTENT_TYPES = exports2.RAPID_IQ_SALES_CAMPAIGN_TYPES = exports2.RAPID_IQ_SALES_TRIGGER_TYPES = exports2.RAPID_IQ_SALES_STEP_LABELS = exports2.RAPID_IQ_SALES_STEP_STATUSES = exports2.RAPID_IQ_SALES_SEQUENCE_STATUSES = exports2.RAPID_IQ_SALES_VERTICALS = void 0;
@@ -52532,17 +52859,17 @@ var require_sales_automation_schemas = __commonJS({
   }
 });
 
-// packages/shared/dist/rapid-iq/nexiq-aliases.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/nexiq-aliases.js
 var require_nexiq_aliases = __commonJS({
-  "packages/shared/dist/rapid-iq/nexiq-aliases.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/nexiq-aliases.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
   }
 });
 
-// packages/shared/dist/rapid-iq/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/index.js
 var require_rapid_iq = __commonJS({
-  "packages/shared/dist/rapid-iq/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -52581,9 +52908,9 @@ var require_rapid_iq = __commonJS({
   }
 });
 
-// packages/shared/dist/nexiq-intel/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/nexiq-intel/types.js
 var require_types20 = __commonJS({
-  "packages/shared/dist/nexiq-intel/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/nexiq-intel/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.INTEL_GAP_CATEGORIES = exports2.INTEL_OPPORTUNITY_STAGES = exports2.INTEL_SIGNAL_TYPES = exports2.INTEL_CLASSIFICATIONS = exports2.INTEL_DOCUMENT_STATUSES = exports2.INTEL_SOURCE_RUN_STATUSES = exports2.INTEL_SOURCE_HEALTH = exports2.INTEL_CONNECTOR_TYPES = exports2.INTEL_SOURCE_TYPES = exports2.INTEL_VERTICALS = void 0;
@@ -52700,9 +53027,9 @@ var require_types20 = __commonJS({
   }
 });
 
-// packages/shared/dist/nexiq-intel/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/nexiq-intel/index.js
 var require_nexiq_intel = __commonJS({
-  "packages/shared/dist/nexiq-intel/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/nexiq-intel/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -52725,9 +53052,9 @@ var require_nexiq_intel = __commonJS({
   }
 });
 
-// packages/shared/dist/nexiq-signals/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/nexiq-signals/schemas.js
 var require_schemas46 = __commonJS({
-  "packages/shared/dist/nexiq-signals/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/nexiq-signals/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.nexiqSignalListQuerySchema = exports2.nexiqSignalPatchBodySchema = exports2.nexiqSignalCreateBodySchema = exports2.nexiqSignalGeographySchema = exports2.NEXIQ_SIGNAL_MIN_CONFIDENCE = exports2.NEXIQ_SIGNAL_TIERS = exports2.NEXIQ_SIGNAL_STATUSES = exports2.NEXIQ_SIGNAL_VERTICALS = void 0;
@@ -52791,9 +53118,9 @@ var require_schemas46 = __commonJS({
   }
 });
 
-// packages/shared/dist/nexiq-signals/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/nexiq-signals/index.js
 var require_nexiq_signals = __commonJS({
-  "packages/shared/dist/nexiq-signals/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/nexiq-signals/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -52816,9 +53143,9 @@ var require_nexiq_signals = __commonJS({
   }
 });
 
-// packages/shared/dist/loadout/features.js
+// apps/api/node_modules/rapid-cortex-shared/dist/loadout/features.js
 var require_features2 = __commonJS({
-  "packages/shared/dist/loadout/features.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/loadout/features.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ENDPOINT_FEATURE_MAP = exports2.LOADOUT_FEATURES = void 0;
@@ -53005,9 +53332,9 @@ var require_features2 = __commonJS({
   }
 });
 
-// packages/shared/dist/loadout/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/loadout/index.js
 var require_loadout = __commonJS({
-  "packages/shared/dist/loadout/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/loadout/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.formatCentsAsUsd = exports2.featureLineCost = exports2.ENDPOINT_FEATURE_MAP = exports2.LOADOUT_FEATURES = void 0;
@@ -53027,9 +53354,9 @@ var require_loadout = __commonJS({
   }
 });
 
-// packages/shared/dist/escalation/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/escalation/types.js
 var require_types21 = __commonJS({
-  "packages/shared/dist/escalation/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/escalation/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DeletePushSubscriptionBodySchema = exports2.UpsertPushSubscriptionBodySchema = exports2.PushSubscriptionKeysSchema = exports2.PutEscalationRelationshipBodySchema = exports2.PatchEscalationBodySchema = exports2.CreateEscalationBodySchema = exports2.AgencyRelationshipSchema = exports2.EscalationAuditEntrySchema = exports2.EscalationTimelineEntrySchema = exports2.EscalationIncidentLocationSchema = exports2.ESCALATION_STATUSES = void 0;
@@ -53123,9 +53450,9 @@ var require_types21 = __commonJS({
   }
 });
 
-// packages/shared/dist/escalation/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/escalation/index.js
 var require_escalation = __commonJS({
-  "packages/shared/dist/escalation/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/escalation/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -53148,9 +53475,9 @@ var require_escalation = __commonJS({
   }
 });
 
-// packages/shared/dist/rms/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rms/types.js
 var require_types22 = __commonJS({
-  "packages/shared/dist/rms/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rms/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RmsContextSchema = exports2.NibrsClassifyRequestSchema = exports2.FinalizeIncidentReportSchema = exports2.PatchIncidentReportSchema = exports2.GenerateReportRequestSchema = exports2.IncidentReportSchema = exports2.IncidentVehicleSchema = exports2.IncidentPersonSchema = exports2.IncidentReportNarrativeSchema = exports2.NibrsClassificationSchema = exports2.NibrsAlternativeSchema = exports2.RMS_PUSH_TARGETS = exports2.REPORT_STATUSES = exports2.NIBRS_OFFENSE_GROUPS = void 0;
@@ -53339,9 +53666,9 @@ var require_types22 = __commonJS({
   }
 });
 
-// packages/shared/dist/rms/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/rms/index.js
 var require_rms = __commonJS({
-  "packages/shared/dist/rms/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/rms/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -53364,9 +53691,9 @@ var require_rms = __commonJS({
   }
 });
 
-// packages/shared/dist/contacts/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/contacts/schemas.js
 var require_schemas47 = __commonJS({
-  "packages/shared/dist/contacts/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/contacts/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.updateContactBodySchema = exports2.createContactBodySchema = exports2.updateCompanyBodySchema = exports2.createCompanyBodySchema = exports2.contactPersonSchema = exports2.contactCompanySchema = exports2.outreachStatusSchema = exports2.contactSourceSchema = exports2.contactVerticalSchema = exports2.relationshipTypeSchema = void 0;
@@ -53481,9 +53808,9 @@ var require_schemas47 = __commonJS({
   }
 });
 
-// packages/shared/dist/contacts/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/contacts/index.js
 var require_contacts = __commonJS({
-  "packages/shared/dist/contacts/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/contacts/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -53506,9 +53833,9 @@ var require_contacts = __commonJS({
   }
 });
 
-// packages/shared/dist/ai-gate/types.js
+// apps/api/node_modules/rapid-cortex-shared/dist/ai-gate/types.js
 var require_types23 = __commonJS({
-  "packages/shared/dist/ai-gate/types.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/ai-gate/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.AI_GATE_DEFAULT_FEATURES = exports2.AI_GATE_FEATURES = void 0;
@@ -53563,9 +53890,9 @@ var require_types23 = __commonJS({
   }
 });
 
-// packages/shared/dist/ai-gate/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/ai-gate/index.js
 var require_ai_gate = __commonJS({
-  "packages/shared/dist/ai-gate/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/ai-gate/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -53588,9 +53915,9 @@ var require_ai_gate = __commonJS({
   }
 });
 
-// packages/shared/dist/comms-intel/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/comms-intel/schemas.js
 var require_schemas48 = __commonJS({
-  "packages/shared/dist/comms-intel/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/comms-intel/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.vaultIncidentSchema = exports2.vaultIngestionJobSchema = exports2.vaultSearchQuerySchema = exports2.vaultUploadUrlBodySchema = exports2.commandSummarySchema = exports2.commandSummaryQuerySchema = exports2.putSafetyFlagBodySchema = exports2.contextCardSchema = exports2.contextCardCallerSchema = exports2.contextCardLocationSchema = exports2.contextCardDataSourceSchema = void 0;
@@ -53714,9 +54041,9 @@ var require_schemas48 = __commonJS({
   }
 });
 
-// packages/shared/dist/comms-intel/entitlements.js
+// apps/api/node_modules/rapid-cortex-shared/dist/comms-intel/entitlements.js
 var require_entitlements3 = __commonJS({
-  "packages/shared/dist/comms-intel/entitlements.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/comms-intel/entitlements.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.COMMS_INTEL_ADDON_KEYS = void 0;
@@ -53745,9 +54072,9 @@ var require_entitlements3 = __commonJS({
   }
 });
 
-// packages/shared/dist/comms-intel/audit-events.js
+// apps/api/node_modules/rapid-cortex-shared/dist/comms-intel/audit-events.js
 var require_audit_events2 = __commonJS({
-  "packages/shared/dist/comms-intel/audit-events.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/comms-intel/audit-events.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.COMMS_INTEL_AUDIT_EVENT_TYPES = void 0;
@@ -53766,9 +54093,9 @@ var require_audit_events2 = __commonJS({
   }
 });
 
-// packages/shared/dist/comms-intel/normalize-address.js
+// apps/api/node_modules/rapid-cortex-shared/dist/comms-intel/normalize-address.js
 var require_normalize_address2 = __commonJS({
-  "packages/shared/dist/comms-intel/normalize-address.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/comms-intel/normalize-address.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.normalizeAddress = normalizeAddress;
@@ -53778,9 +54105,9 @@ var require_normalize_address2 = __commonJS({
   }
 });
 
-// packages/shared/dist/comms-intel/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/comms-intel/index.js
 var require_comms_intel = __commonJS({
-  "packages/shared/dist/comms-intel/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/comms-intel/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -53806,9 +54133,9 @@ var require_comms_intel = __commonJS({
   }
 });
 
-// packages/shared/dist/gis/schemas.js
+// apps/api/node_modules/rapid-cortex-shared/dist/gis/schemas.js
 var require_schemas49 = __commonJS({
-  "packages/shared/dist/gis/schemas.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/gis/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.gisSpatialContextResponseSchema = exports2.gisSpatialHitSchema = exports2.gisSpatialContextBodySchema = exports2.gisLayerSummarySchema = exports2.gisDatasetRecordSchema = exports2.gisLayerStyleSchema = exports2.gisApproveBodySchema = exports2.gisImportBodySchema = exports2.gisDatasetCandidateSchema = exports2.gisDiscoverQuerySchema = exports2.gisGeometryTypeSchema = exports2.gisSourceTypeSchema = exports2.gisValidationStatusSchema = exports2.gisApprovalStatusSchema = void 0;
@@ -53950,9 +54277,9 @@ var require_schemas49 = __commonJS({
   }
 });
 
-// packages/shared/dist/gis/authz.js
+// apps/api/node_modules/rapid-cortex-shared/dist/gis/authz.js
 var require_authz3 = __commonJS({
-  "packages/shared/dist/gis/authz.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/gis/authz.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.canManageGisDatasets = canManageGisDatasets;
@@ -53978,9 +54305,9 @@ var require_authz3 = __commonJS({
   }
 });
 
-// packages/shared/dist/gis/audit-events.js
+// apps/api/node_modules/rapid-cortex-shared/dist/gis/audit-events.js
 var require_audit_events3 = __commonJS({
-  "packages/shared/dist/gis/audit-events.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/gis/audit-events.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.GIS_AUDIT_EVENT_TYPES = void 0;
@@ -53995,9 +54322,9 @@ var require_audit_events3 = __commonJS({
   }
 });
 
-// packages/shared/dist/gis/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/gis/index.js
 var require_gis2 = __commonJS({
-  "packages/shared/dist/gis/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/gis/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;
@@ -54022,9 +54349,9 @@ var require_gis2 = __commonJS({
   }
 });
 
-// packages/shared/dist/index.js
+// apps/api/node_modules/rapid-cortex-shared/dist/index.js
 var require_dist = __commonJS({
-  "packages/shared/dist/index.js"(exports2) {
+  "apps/api/node_modules/rapid-cortex-shared/dist/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o3, m3, k5, k22) {
       if (k22 === void 0) k22 = k5;

@@ -62,32 +62,32 @@ export function slotPrompt(
 
 function defaultSlotPrompt(slotId: string): string {
   const defaults: Record<string, string> = {
-    location: "What is the address or location?",
+    location: "What's the address or nearest intersection?",
     ServiceAddress: "What's the address or nearest intersection?",
-    IsOngoing: "Is this happening right now?",
-    CallerName: "Can I get your name for the report, or you can stay anonymous.",
-    CallbackNumber: "Want to leave a callback number for updates on your request?",
-    IssueDescription: "Can you describe the issue in a bit more detail?",
-    crossStreets: "What are the nearest cross streets?",
-    aptBusiness: "Is there an apartment number or business name?",
-    vehicleMake: "Can you describe the vehicle, including the color and make?",
-    licensePlate: "Do you have the license plate number?",
+    IsOngoing: "Still happening right now?",
+    CallerName: "Want to leave a name, or stay anonymous?",
+    CallbackNumber: "Want a callback number?",
+    IssueDescription: "Anything else I should know?",
+    crossStreets: "Nearest cross streets?",
+    aptBusiness: "Apartment number or business name?",
+    vehicleMake: "What's it look like — color and make?",
+    licensePlate: "Got a plate number?",
     suspectDesc: "Can you describe the person?",
-    injuries: "Are there any injuries?",
-    weapons: "Are there any weapons involved?",
-    callbackNumber: "What is the best callback number for you?",
-    callerName: "May I have your name?",
-    building: "Which building are you in or near?",
+    injuries: "Anyone hurt?",
+    weapons: "Any weapons involved?",
+    callbackNumber: "Want to leave a callback number?",
+    callerName: "Can I get a name, or stay anonymous?",
+    building: "Which building?",
     room: "What room or area?",
-    section: "What section are you in?",
-    rowSeat: "What row and seat?",
-    description: "Can you describe what's happening?",
-    medicalNeeded: "Does anyone need medical attention?",
+    section: "What section?",
+    rowSeat: "Row and seat?",
+    description: "What's happening?",
+    medicalNeeded: "Anyone need medical help?",
   };
   if (defaults[slotId]) return defaults[slotId];
-  if (/SubIssue$/i.test(slotId)) return "Can you describe the issue in a bit more detail?";
+  if (/SubIssue$/i.test(slotId)) return "What's going on?";
   // Never surface camelCase Lex slot names to citizens.
-  return "Can you share a bit more detail so we can log this correctly?";
+  return "Say that again?";
 }
 
 export function closingPrompt(config: CallAssistTenantConfig, _callTypeId: string, caseNumber: string): string {

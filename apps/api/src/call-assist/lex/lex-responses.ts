@@ -109,6 +109,19 @@ export function closeTransferResponse(
 ): LexV2Response {
   const emergency = transferReason === "EMERGENCY" || transferReason === "INJURY_PRIORITY";
   const endSession = Boolean(opts?.endSession);
+  // Structured metric for CloudWatch Logs Insights / conversational staging dashboard.
+  console.info(
+    JSON.stringify({
+      msg: "nexcortiq_conversational_transfer",
+      qaTag: sessionAttributes.qaTag ?? "NexCortIQ-Conversational-v2",
+      conversationalCohort: sessionAttributes.conversationalCohort ?? "production",
+      transferReason,
+      agencyId: sessionAttributes.agencyId ?? "",
+      callId: sessionAttributes.callId ?? "",
+      language: sessionAttributes.language ?? sessionAttributes.locale ?? "",
+      emergency,
+    }),
+  );
   return {
     sessionState: {
       sessionAttributes: {

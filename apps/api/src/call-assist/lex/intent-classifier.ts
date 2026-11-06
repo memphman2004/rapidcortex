@@ -17,6 +17,8 @@ const CALL_TYPE_TO_LEX_INTENT: Record<string, string> = {
   CODE_ENFORCEMENT: "CodeEnforcement",
   // Lex bot intent id (not the call-type alias). "PublicWorks" is not a bot intent.
   PUBLIC_WORKS: "PublicWorksIssue",
+  // 311 category intent — not the legacy AnimalControl/AnimalComplaint names.
+  ANIMAL_CONTROL: "ReportAnimalsPests",
 };
 
 /** Maps call type id (NOISE_COMPLAINT or noise_complaint) to Lex PascalCase intent. */

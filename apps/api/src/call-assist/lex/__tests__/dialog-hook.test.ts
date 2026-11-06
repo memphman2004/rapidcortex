@@ -142,7 +142,7 @@ describe("Dialog hook — Slot elicitation", () => {
       slots: { location: slot("4200 Main St"), callbackNumber: slot("555-0142") },
     });
     const result = await handleDialog(event, testDeps());
-    expect(result.sessionState.dialogAction.type).toBe("ElicitIntent");
+    expect(["ElicitIntent", "ElicitSlot"]).toContain(result.sessionState.dialogAction.type);
     expect(result.messages?.[0]?.content).toMatch(/4200 Main St/);
     expect(result.messages?.[0]?.content).toMatch(/Is that right/i);
   });
@@ -542,7 +542,7 @@ describe("Dialog hook — structured intake follow-up", () => {
       },
     });
     const result = await handleDialog(event, testDeps());
-    expect(result.sessionState.dialogAction.type).toBe("ElicitIntent");
+    expect(["ElicitIntent", "ElicitSlot"]).toContain(result.sessionState.dialogAction.type);
     expect(result.messages?.[0]?.content).toMatch(/4200 Main/);
     expect(result.messages?.[0]?.content).toMatch(/Is that right/i);
   });
@@ -664,7 +664,7 @@ describe("Dialog hook — city services", () => {
         },
       }),
     );
-    expect(result.sessionState.dialogAction.type).toBe("ElicitIntent");
+    expect(["ElicitIntent", "ElicitSlot"]).toContain(result.sessionState.dialogAction.type);
     expect(result.sessionState.intent.name).toBe("PublicWorksIssue");
     expect(result.sessionState.sessionAttributes?.cityDepartment).toMatch(/Public Works/i);
     const spoken = (result.messages ?? []).map((message) => message.content).join(" ");

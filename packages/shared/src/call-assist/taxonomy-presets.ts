@@ -133,7 +133,23 @@ export const PRESET_911: AgencyTaxonomy = {
       escalationPath: "external",
       isEmergency: false,
       sortOrder: 2,
-      classifierKeywords: ["animal", "dog", "stray", "loose", "bite", "raccoon", "animal control"],
+      classifierKeywords: [
+        "animal",
+        "dog",
+        "cat",
+        "kitten",
+        "stray",
+        "loose",
+        "bite",
+        "raccoon",
+        "animal control",
+        "stuck in a tree",
+        "stuck up a tree",
+        "pet stuck",
+        "animal stuck",
+        "animal trapped",
+        "can't get down",
+      ],
     },
     {
       id: "PARKING",
@@ -693,9 +709,9 @@ export function transferDirectoryPreset(vertical: CallAssistTaxonomyVertical): C
 
 export const DEFAULT_DISCLOSURE_BY_VERTICAL: Record<CallAssistTaxonomyVertical, string> = {
   "911":
-    "You are speaking with Nexiq for {{agencyShortName}}. If this is an emergency, say emergency or hang up and dial {{emergencyLine}}.",
-  campus: "You are speaking with Nexiq for {{agencyShortName}} Campus Safety.",
-  venue: "You are speaking with Nexiq for {{agencyShortName}}.",
+    "You are speaking with an AI assistant named Nexiq for {{agencyShortName}}. If this is an emergency, say emergency or hang up and dial {{emergencyLine}}.",
+  campus: "You are speaking with an AI assistant named Nexiq for {{agencyShortName}} Campus Safety.",
+  venue: "You are speaking with an AI assistant named Nexiq for {{agencyShortName}}.",
 };
 
 export function defaultRetentionForVertical(vertical: CallAssistTaxonomyVertical): {

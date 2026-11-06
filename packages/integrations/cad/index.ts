@@ -17,6 +17,7 @@ export { SunridgeRimsAdapter } from "./adapters/SunridgeRimsAdapter.js";
 export { KabatOneAdapter } from "./adapters/KabatOneAdapter.js";
 export { OraclePsdcAdapter } from "./adapters/OraclePsdcAdapter.js";
 export { ProPhoenixAdapter } from "./adapters/ProPhoenixAdapter.js";
+export { SouthernSoftwareAdapter } from "./adapters/SouthernSoftwareAdapter.js";
 export { GenericRestAdapter } from "./adapters/GenericRestAdapter.js";
 export { defaultMappingsForVendor } from "./adapters/default-mappings.js";
 export { CadFieldMappingEngine } from "./services/CadFieldMappingEngine.js";

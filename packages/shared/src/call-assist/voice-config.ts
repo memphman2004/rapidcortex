@@ -82,20 +82,21 @@ export type CallAssistVoiceVars = {
   referenceNumber?: string | null;
 };
 
+/** FCC-style AI disclosure: state AI explicitly before any intake question. */
 export const GENERIC_CALL_ASSIST_DISCLOSURE_TEMPLATE =
-  "You are speaking with Nexiq for {{agencyShortName}}. " +
+  "You are speaking with an AI assistant named Nexiq for {{agencyShortName}}. " +
   "This is a non-emergency line. This call is recorded. " +
   "If this is an emergency, say emergency or hang up and dial {{emergencyLine}}.";
 
 export const GENERIC_CALL_ASSIST_OPENING_TEMPLATE =
-  "Thank you for calling. I'm Nexiq, your AI assistant. " +
+  "Thank you for calling. I'm Nexiq, an AI assistant. " +
   "If this is a life-threatening emergency, hang up and dial {{emergencyLine}}. How can I help you today?";
 
 export const GENERIC_CALL_ASSIST_FALLBACK_TEMPLATE =
-  "I'm sorry, I'm having trouble understanding. Let me connect you to {{agencyShortName}} who can help. Stay on the line.";
+  "Let me get you to {{agencyShortName}} who can help. Stay on the line.";
 
 export const GENERIC_CALL_ASSIST_HUMAN_TRANSFER_TEMPLATE =
-  "Of course. I'm connecting you to {{agencyShortName}} now. Stay on the line.";
+  "Sure — connecting you to {{agencyShortName}} now. Stay on the line.";
 
 export const GENERIC_CALL_ASSIST_INFO_MISS_TEMPLATE =
   "I don't have specific information about that available right now. I can connect you to the {{agencyShortName}} non-emergency line, or you can visit {{agencyWebsite}} for more information. Would you like me to transfer you?";

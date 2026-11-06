@@ -68,9 +68,16 @@ describe("conversational system prompt v2", () => {
     expect(body).toContain("Kansas City Police will follow up.");
     expect(body).not.toContain("{{agency.voice.name}}");
     expect(body).toContain("PERSONA");
+    expect(body).toContain("TWO HUMANS ON A CALL — THE WHOLE POINT");
+    expect(body).toContain("If a real person on the other end of the phone wouldn't say it, don't say it.");
+    expect(body).toContain("CADENCE");
     expect(body).toContain("One question per turn");
     expect(body).toContain("REPORT NUMBER — SPEAK IT IMMEDIATELY");
     expect(body).toContain("HOW THE CONVERSATION SOUNDS");
+    expect(body).toContain("My cat is stuck in a tree");
+    expect(body).toContain("Got it. What's the address?");
+    expect(body).toMatch(/Do not ask what kind\s+of problem it is/);
+    expect(body).toContain("Do not say you only handle police matters");
     expect(CALL_ASSIST_CONVERSATIONAL_SYSTEM_PROMPT_V2).toContain("{{agency.voice.name}}");
   });
 });

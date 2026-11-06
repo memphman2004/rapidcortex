@@ -15,6 +15,7 @@ export type CadVendor =
   | "kabat_one"
   | "oracle_psdc"
   | "prophoenix"
+  | "southern_software"
   | "generic"
   | "mock";
 

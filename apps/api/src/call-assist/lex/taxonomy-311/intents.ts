@@ -40,10 +40,10 @@ const COMMON_SLOTS = {
     description: 'The address or location where the issue is occurring',
     slotTypeName: 'AMAZON.FreeFormInput',
     isRequired: true,
-    elicitationPrompt: 'What is the address or cross streets where the issue is located?',
+    elicitationPrompt: "What's the address or nearest intersection?",
     clarificationPrompts: [
-      'Could you give me the street address or the nearest intersection?',
-      'What is the closest address or landmark to the issue?',
+      'Which street was that?',
+      "Say that again — address or nearest landmark?",
     ],
     priority: 2,
   },
@@ -52,8 +52,8 @@ const COMMON_SLOTS = {
     description: 'Whether the issue is happening right now, is chronic, or already occurred',
     slotTypeName: 'CA_IsOngoing',
     isRequired: true,
-    elicitationPrompt: 'Is this happening right now, is it an ongoing issue, or did it already occur?',
-    clarificationPrompts: ['Is this a current problem or something that already happened?'],
+    elicitationPrompt: 'Still happening right now?',
+    clarificationPrompts: ['Happening now, or already over?'],
     priority: 3,
   },
   issueDescription: {
@@ -61,8 +61,8 @@ const COMMON_SLOTS = {
     description: 'Additional details about the issue in the callers own words',
     slotTypeName: 'AMAZON.FreeFormInput',
     isRequired: false,
-    elicitationPrompt: 'Can you describe the issue in a bit more detail?',
-    clarificationPrompts: ['Any additional details that would help us respond?'],
+    elicitationPrompt: "What's going on, in a bit more detail?",
+    clarificationPrompts: ['Anything else that would help?'],
     priority: 4,
   },
   callerName: {
@@ -70,8 +70,8 @@ const COMMON_SLOTS = {
     description: 'Caller name for service request record',
     slotTypeName: 'AMAZON.FirstName',
     isRequired: false,
-    elicitationPrompt: "May I have your name for the service request? You are welcome to remain anonymous.",
-    clarificationPrompts: ['Your name, or you can say anonymous if you prefer.'],
+    elicitationPrompt: 'Can I get a name, or stay anonymous?',
+    clarificationPrompts: ['Name for the report, or say anonymous.'],
     priority: 5,
   },
   callbackNumber: {
@@ -79,8 +79,8 @@ const COMMON_SLOTS = {
     description: 'Callback phone number if follow-up is needed',
     slotTypeName: 'AMAZON.PhoneNumber',
     isRequired: false,
-    elicitationPrompt: 'Would you like to provide a callback number for updates on your request?',
-    clarificationPrompts: ['A phone number where we can reach you if needed.'],
+    elicitationPrompt: 'Want to leave a callback number?',
+    clarificationPrompts: ['A number we can reach you on, if you want.'],
     priority: 6,
   },
 };
@@ -125,7 +125,7 @@ export const INTENTS: IntentDefinition[] = [
         description: 'Specific type of road or infrastructure issue',
         slotTypeName: 'CA_Roads_SubIssue',
         isRequired: true,
-        elicitationPrompt: 'What type of road or infrastructure issue are you reporting? For example, a pothole, damaged sidewalk, missing manhole cover, street flooding, or debris?',
+        elicitationPrompt: "What's wrong with the road?",
         clarificationPrompts: [
           'Is this a pothole, sidewalk damage, flooding, debris, manhole issue, or something else?',
           'Can you describe what the road problem looks like?',
@@ -138,7 +138,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your road report at that location. Should I submit this to Public Works?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your road and infrastructure report has been submitted to Public Works. You will receive a service request number. You can track it by calling 311 again or visiting the city portal.',
   },
 
@@ -175,7 +175,7 @@ export const INTENTS: IntentDefinition[] = [
         description: 'Specific type of lighting or signal issue',
         slotTypeName: 'CA_Lighting_SubIssue',
         isRequired: true,
-        elicitationPrompt: 'Is this about a streetlight, a traffic signal, a light pole, or a pedestrian crosswalk signal?',
+        elicitationPrompt: "What's wrong with the light?",
         clarificationPrompts: [
           'Is the light completely out, flickering, or is this about the traffic signal?',
           'Is this a pedestrian signal, a streetlight, or a traffic signal for vehicles?',
@@ -188,7 +188,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your lighting report at that location. Should I submit this to Public Works Electrical?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your lighting report has been submitted. A service request has been sent to the Electrical Division. Typical response time is 24 to 72 hours.',
   },
 
@@ -222,7 +222,7 @@ export const INTENTS: IntentDefinition[] = [
         description: 'Specific type of sign or road marking issue',
         slotTypeName: 'CA_Signs_SubIssue',
         isRequired: true,
-        elicitationPrompt: 'What type of sign or road marking issue are you reporting? For example, a missing stop sign, faded crosswalk, incorrect sign, or lane markings?',
+        elicitationPrompt: "What's wrong with the sign?",
         clarificationPrompts: [
           'Is this a missing sign, a damaged sign, or a faded road marking?',
         ],
@@ -234,7 +234,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your sign or road marking report at that location. Should I submit this?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your traffic sign and markings report has been submitted. A service request has been sent to Public Works.',
   },
 
@@ -272,7 +272,7 @@ export const INTENTS: IntentDefinition[] = [
         description: 'Specific type of sanitation or waste issue',
         slotTypeName: 'CA_Sanitation_SubIssue',
         isRequired: true,
-        elicitationPrompt: 'What is the sanitation issue? For example, missed pickup, illegal dumping, overflowing trash can, dead animal pickup, or a disposal question?',
+        elicitationPrompt: "What's the trash issue?",
         clarificationPrompts: [
           'Is this a missed collection, an illegal dumping report, or do you need a bin replaced?',
           'Are you reporting a problem, or do you need information about disposal services?',
@@ -285,7 +285,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your sanitation report at that location. Should I submit this to Sanitation?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your sanitation request has been submitted. A service request has been sent to the Sanitation Department.',
   },
 
@@ -330,7 +330,7 @@ export const INTENTS: IntentDefinition[] = [
         description: 'Specific type of water, sewer, or drainage issue',
         slotTypeName: 'CA_Water_SubIssue',
         isRequired: true,
-        elicitationPrompt: 'What is the water or sewer issue? Is it a water main break, fire hydrant problem, low pressure, water quality concern, sewer issue, or blocked drain?',
+        elicitationPrompt: "What's going on with the water?",
         clarificationPrompts: [
           'Is water actively coming from the ground, or is this a quality or pressure issue?',
           'Is this a sewer smell, a drain backup, or a water service issue?',
@@ -343,7 +343,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your water or sewer report at that location. Should I submit this to the Water Authority?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your water and sewer report has been submitted. A service request has been sent to the Water and Sewer Authority. For active main breaks, a crew will be dispatched.',
     conditionalDepartmentRouting: {
       WATER_METER_DISPUTE: 'WATER_SEWER_AUTHORITY',
@@ -385,7 +385,7 @@ export const INTENTS: IntentDefinition[] = [
         description: 'Specific type of noise complaint',
         slotTypeName: 'CA_Noise_SubIssue',
         isRequired: true,
-        elicitationPrompt: 'What type of noise is the problem? For example, loud music, a party, construction, a car alarm, a barking dog, or fireworks?',
+        elicitationPrompt: "What kind of noise?",
         clarificationPrompts: [
           'Is this coming from a residence, a business, or a vehicle?',
           'Is this construction noise, music, an alarm, or an animal?',
@@ -398,7 +398,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your noise complaint at that location. Should I submit this?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your noise complaint has been submitted. A service request has been sent to Code Enforcement.',
   },
 
@@ -435,7 +435,7 @@ export const INTENTS: IntentDefinition[] = [
         description: 'Specific type of vehicle parking or abandonment issue',
         slotTypeName: 'CA_Vehicles_SubIssue',
         isRequired: true,
-        elicitationPrompt: 'What is the vehicle issue? Is it abandoned, blocking a driveway or hydrant, parked illegally, or something else?',
+        elicitationPrompt: "What's going on with the vehicle?",
         clarificationPrompts: [
           'Is the vehicle abandoned, or is it parked illegally right now?',
           'Is the vehicle blocking something like a driveway, hydrant, sidewalk, or bike lane?',
@@ -456,7 +456,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your vehicle report at that location. Should I submit this to Parking Enforcement?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your vehicle complaint has been submitted. A service request has been sent to Parking Enforcement.',
   },
 
@@ -511,7 +511,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your graffiti report at that location. Should I submit this?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your graffiti report has been submitted. A service request has been created. Public property graffiti is typically removed within 5 business days.',
   },
 
@@ -519,7 +519,8 @@ export const INTENTS: IntentDefinition[] = [
   {
     name: 'ReportAnimalsPests',
     displayName: 'Animals & Pests',
-    description: 'Report stray animals, animal neglect or cruelty, wildlife complaints, rodent infestations, bees, mosquitoes, or dead animal pickup',
+    description:
+      'Report stray animals, pets stuck or trapped (cat in a tree), animal neglect or cruelty, wildlife complaints, rodent infestations, bees, mosquitoes, or dead animal pickup',
     category: 'ANIMALS_PESTS',
     primaryDepartment: 'ANIMAL_CONTROL',
     conditionalDepartmentRouting: {
@@ -533,6 +534,12 @@ export const INTENTS: IntentDefinition[] = [
     escalationKeywords: ['dog is attacking me right now', 'animal is attacking', 'dog bit my child', 'being chased by animal'],
     requiresDisambiguation: true,
     sampleUtterances: [
+      'My cat is stuck in a tree',
+      'My cat is stuck in a tree in the backyard',
+      'Cat stuck in a tree',
+      'Cat cannot get down from the tree',
+      "My cat can't get down",
+      'Dog stuck under the porch',
       'There is a stray dog running loose',
       'My neighbors dog keeps barking',
       'I was bitten by a dog',
@@ -557,10 +564,10 @@ export const INTENTS: IntentDefinition[] = [
         description: 'Specific type of animal or pest issue',
         slotTypeName: 'CA_Animals_SubIssue',
         isRequired: true,
-        elicitationPrompt: 'What type of animal or pest issue are you reporting? A stray dog, wildlife, rodents, insects, or something else?',
+        elicitationPrompt: 'What kind of animal, and what is going on?',
         clarificationPrompts: [
-          'Is this about a stray or aggressive animal, a wildlife complaint, a pest infestation, or a dead animal pickup?',
-          'What type of animal are you reporting?',
+          'Is it a pet stuck, a loose animal, wildlife, or something else?',
+          'What kind of animal?',
         ],
         priority: 1,
       },
@@ -571,15 +578,15 @@ export const INTENTS: IntentDefinition[] = [
         description: 'Description of the animal including type, color, size, and behavior',
         slotTypeName: 'AMAZON.FreeFormInput',
         isRequired: false,
-        elicitationPrompt: 'Can you describe the animal — what type, what it looks like, and what it is doing?',
-        clarificationPrompts: ['What does the animal look like and how is it behaving?'],
+        elicitationPrompt: "What's it look like, and what's it doing?",
+        clarificationPrompts: ['Type, color, size — and what is it doing?'],
         priority: 3,
       },
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your animal report at that location. Should I submit this?',
-    fulfillmentMessage: 'Your animal and pest report has been submitted. A service request has been sent to Animal Control.',
+    confirmationPrompt: 'Got it for that location. Ready to submit?',
+    fulfillmentMessage: "You're set — Animal Control has the request.",
   },
 
   // ── 10. TREES & VEGETATION ───────────────────────────────────────────────────
@@ -629,7 +636,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your tree report at that location. Should I submit this to Urban Forestry?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your tree and vegetation report has been submitted. A service request has been sent to Urban Forestry.',
   },
 
@@ -687,7 +694,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your parks report at that location. Should I submit this to Parks and Recreation?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your parks report has been submitted. A service request has been sent to the Parks and Recreation Department.',
   },
 
@@ -754,7 +761,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your building and housing report at that location. Should I submit this?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your building and housing report has been submitted. A service request has been sent to Code Enforcement.',
   },
 
@@ -799,7 +806,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your report at that location. Should I submit this?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your request has been submitted. A service request has been routed to the appropriate social services team.',
   },
 
@@ -838,7 +845,7 @@ export const INTENTS: IntentDefinition[] = [
         description: 'Specific type of environmental or health complaint',
         slotTypeName: 'CA_Environmental_SubIssue',
         isRequired: true,
-        elicitationPrompt: 'What is the environmental or health concern? A smell, illegal burning, spill, drain contamination, food safety issue, or something else?',
+        elicitationPrompt: "What's the concern?",
         clarificationPrompts: [
           'Is this an odor complaint, a spill, illegal burning, a food safety issue, or environmental contamination?',
         ],
@@ -850,7 +857,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your environmental report at that location. Should I submit this?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your environmental and health report has been submitted. A service request has been sent to Environmental Quality.',
   },
 
@@ -895,7 +902,7 @@ export const INTENTS: IntentDefinition[] = [
         description: 'Specific type of non-emergency law enforcement request',
         slotTypeName: 'CA_LawEnforcement_SubIssue',
         isRequired: true,
-        elicitationPrompt: 'What is the non-emergency police concern? For example, chronic drug activity, speeding, a theft that already occurred, a property dispute, or a patrol request?',
+        elicitationPrompt: "What's going on?",
         clarificationPrompts: [
           'Is this an ongoing problem in the area, or something that already happened?',
           'Is this a chronic community issue or a report about something that has already occurred?',
@@ -908,7 +915,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your non-emergency police report at that location. Should I submit this?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your non-emergency police request has been submitted. A service request has been sent to the Police Department non-emergency unit.',
   },
 
@@ -954,7 +961,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your fire safety report at that location. Should I submit this?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your fire safety report has been submitted. A service request has been sent to the Fire Marshal.',
   },
 
@@ -1008,7 +1015,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your transit report at that location. Should I submit this?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your transit and transportation report has been submitted. A service request has been sent to the appropriate department.',
   },
 
@@ -1049,7 +1056,7 @@ export const INTENTS: IntentDefinition[] = [
         description: 'Specific type of government information or service needed',
         slotTypeName: 'CA_GovInfo_SubIssue',
         isRequired: true,
-        elicitationPrompt: 'What city service or information are you looking for? Permits, licenses, vital records, social services, senior programs, or something else?',
+        elicitationPrompt: "What are you looking for?",
         clarificationPrompts: [
           'Are you looking for information about permits, social services, records, or a city department?',
         ],
@@ -1089,7 +1096,7 @@ export const INTENTS: IntentDefinition[] = [
         description: 'Specific type of special event inquiry or complaint',
         slotTypeName: 'CA_SpecialEvents_SubIssue',
         isRequired: true,
-        elicitationPrompt: 'What is your special event question or concern? A street closure, event noise complaint, permit application, or something else?',
+        elicitationPrompt: "What's going on with the event?",
         clarificationPrompts: [
           'Are you asking about a permit, reporting noise from an event, or asking about a street closure?',
         ],
@@ -1100,7 +1107,7 @@ export const INTENTS: IntentDefinition[] = [
       COMMON_SLOTS.callerName,
       COMMON_SLOTS.callbackNumber,
     ],
-    confirmationPrompt: 'I have your special event inquiry. Should I send this to the right office?',
+    confirmationPrompt: 'Got it. Ready to file?',
     fulfillmentMessage: 'Your special event inquiry has been submitted. A service request has been sent to the appropriate department.',
   },
 

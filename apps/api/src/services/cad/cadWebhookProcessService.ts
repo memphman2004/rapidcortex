@@ -84,6 +84,7 @@ function vendorToCadSystem(v: CadVendor): NonNullable<Incident["cadSystem"]> {
       return "hexagon";
     case "console_one":
     case "prophoenix":
+    case "southern_software":
       return "generic";
     case "generic_webhook":
     default:
@@ -185,6 +186,17 @@ function buildSelfTestPayload(vendor: CadVendor): unknown {
         UnitList: [],
         CallerName: "NexCort iQ",
         CallerPhone: "5550100",
+      };
+    case "southern_software":
+      return {
+        incidentId: `RC-TEST-${Date.now()}`,
+        callType: "TEST",
+        priority: "3",
+        status: "ACTIVE",
+        address: "1 Test St",
+        callerName: "NexCort iQ",
+        callerPhone: "5550100",
+        receivedAt: new Date().toISOString(),
       };
     default:
       return {
