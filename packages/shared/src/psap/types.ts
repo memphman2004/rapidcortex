@@ -161,6 +161,8 @@ export interface PsapProspect {
   primaryContactTitle?: string;
   primaryContactEmail?: string;
   primaryContactPhone?: string;
+  /** Opt-in for monthly Inside iQ email list (PSAP vertical). Honored only when not unsubscribed. */
+  monthlyEmailOptIn?: boolean;
   /** Hunter/Apollo enriched contacts (cap ~5). */
   contacts?: PsapProspectContact[];
   contactCount?: number;
@@ -198,6 +200,8 @@ export interface PatchPsapProspectBody {
   primaryContactTitle?: string;
   primaryContactEmail?: string;
     primaryContactPhone?: string;
+  /** Subscribe (true) or unsubscribe (false) primary contact from monthly email list. */
+  monthlyEmailOptIn?: boolean;
   mailingAddress?: Partial<PsapMailingAddress>;
   website?: string;
   notes?: string;

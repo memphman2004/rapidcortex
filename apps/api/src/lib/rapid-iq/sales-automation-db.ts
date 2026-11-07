@@ -274,6 +274,18 @@ export async function putSalesUnsubscribe(email: string): Promise<void> {
   );
 }
 
+/** Admin / Save-contact re-opt-in clears the local suppression key. */
+export async function clearSalesUnsubscribe(email: string): Promise<void> {
+  const lower = email.trim().toLowerCase();
+  if (!lower) return;
+  await pipelineDdb.send(
+    new DeleteCommand({
+      TableName: table(),
+      Key: { pk: `UNSUB#${lower}`, sk: "META" },
+    }),
+  );
+}
+
 export async function isLocallyUnsubscribed(email: string): Promise<boolean> {
   const lower = email.trim().toLowerCase();
   const res = await pipelineDdb.send(

@@ -6,9 +6,12 @@
 import { randomBytes } from "node:crypto";
 import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import {
+  EMAIL_LIST_VERTICALS,
+  emailListVerticalsForCampaign,
   normalizeSalesAutomationVertical,
   type CreateNexiQSalesBulkCampaignBody,
   type CreateNexiQSalesSequenceBody,
+  type EmailListEntry,
   type RapidIqSalesBulkApproveResult,
   type RapidIqSalesBulkBatch,
   type RapidIqSalesBulkResult,
@@ -22,6 +25,7 @@ import {
   type UpdateNexiQSalesDraftBody,
   type UpdateNexiQSalesSequenceBody,
 } from "rapid-cortex-shared";
+import { listActiveEmailListRecipients } from "./email-list-db.js";
 import { isCollectorsMockEnabled } from "./agenda-finder.js";
 import { scrubSalesBrand } from "./blog-article.js";
 import { findContactsViaHunter } from "./hunter-enrichment.js";
@@ -773,7 +777,8 @@ export function listCampaignCards(
     {
       id: "newsletter",
       name: "Weekly Newsletter",
-      description: "Inside iQ draft every Monday 08:00 UTC. Approval required before any send.",
+      description:
+        "Inside iQ draft every Monday 08:00 UTC. Recipients come from the vertical Email List (minus unsubs). Approval required before any send.",
       next: "Mondays 08:00 UTC",
       status: "active",
     },
@@ -825,6 +830,88 @@ export function applyCampaignControls(
     });
   }
   return visible;
+}
+
+/** Active Inside iQ list members for a newsletter vertical (ALL = every product vertical). */
+export async function resolveNewsletterRecipients(
+  vertical: RapidIqSalesVertical = "ALL",
+): Promise<EmailListEntry[]> {
+  const parts = emailListVerticalsForCampaign(vertical);
+  const seen = new Set<string>();
+  const out: EmailListEntry[] = [];
+  for (const v of parts) {
+    const rows = await listActiveEmailListRecipients(v);
+    for (const row of rows) {
+      if (seen.has(row.email)) continue;
+      seen.add(row.email);
+      out.push(row);
+    }
+  }
+  return out;
+}
+
+/**
+ * On newsletter draft approve: queue one-touch draft sequences for each active list recipient.
+ * Still requires per-sequence approve before send (never auto-send).
+ */
+export async function queueNewsletterFromEmailList(draft: RapidIqSalesContentDraft): Promise<{
+  queued: number;
+  suppressed: number;
+  recipients: number;
+}> {
+  const subject = (draft.subject ?? "Inside iQ").trim() || "Inside iQ";
+  const bodyText = draft.bodyText.trim();
+  const recipients = await resolveNewsletterRecipients(draft.vertical);
+  let queued = 0;
+  let suppressed = 0;
+  const now = new Date().toISOString();
+
+  for (const row of recipients) {
+    const suppression = await checkSuppression(row.email);
+    const firstName = row.name?.trim().split(/\s+/)[0];
+    const body = wrapBody(firstName, bodyText);
+    const step: RapidIqSalesOutreachStep = {
+      stepId: newId("step"),
+      stepNumber: 1,
+      label: "initial",
+      delayDays: 0,
+      status: "pending",
+      email: { subject, bodyText: body, bodyHtml: buildHtmlEmail(subject, body) },
+    };
+    const seq: RapidIqSalesSequence = {
+      sequenceId: newId("seq"),
+      triggerId: draft.draftId,
+      triggerType: "newsletter",
+      vertical: row.vertical,
+      recipientEmail: row.email,
+      recipientName: row.name,
+      agencyName: row.name?.trim() || row.email.split("@")[1] || "Subscriber",
+      status: suppression.suppressed ? "suppressed" : "draft",
+      autoApprove: false,
+      steps: [step],
+      createdAt: now,
+      updatedAt: now,
+      suppressedReason: suppression.reason,
+      attribution: {
+        campaignId: "newsletter",
+        campaignName: "Weekly Newsletter",
+      },
+    };
+    await putSalesSequence(seq);
+    if (suppression.suppressed) suppressed += 1;
+    else queued += 1;
+  }
+
+  return { queued, suppressed, recipients: recipients.length };
+}
+
+/** Count of subscribed addresses across product verticals (for campaign cards / UI). */
+export async function countEmailListSubscribers(): Promise<number> {
+  let n = 0;
+  for (const v of EMAIL_LIST_VERTICALS) {
+    n += (await listActiveEmailListRecipients(v)).length;
+  }
+  return n;
 }
 
 export function emptyDraft(partial: Omit<RapidIqSalesContentDraft, "createdAt" | "updatedAt" | "status" | "generatedBy" | "draftId"> & { draftId?: string }): RapidIqSalesContentDraft {

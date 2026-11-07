@@ -9,6 +9,7 @@ import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { marketingUnsubscribeBodySchema } from "rapid-cortex-shared";
 import { ddb } from "../repositories/baseRepository.js";
 import { env } from "../lib/env.js";
+import { unsubscribeEmailEverywhere } from "../lib/rapid-iq/email-list-db.js";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -78,6 +79,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     if ("email" in parsed.data) {
       await markLeadUnsubscribed(table, parsed.data.email);
+      try {
+        await unsubscribeEmailEverywhere(parsed.data.email);
+      } catch (listErr) {
+        console.warn(
+          JSON.stringify({
+            msg: "marketing_unsub_email_list_skip",
+            error: listErr instanceof Error ? listErr.message : String(listErr),
+          }),
+        );
+      }
       console.info(JSON.stringify({ msg: "marketing_lead_unsubscribed", via: "email" }));
       return json({ success: true });
     }
@@ -98,6 +109,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (!email) return json({ success: true });
 
     await markLeadUnsubscribed(table, email);
+    try {
+      await unsubscribeEmailEverywhere(email);
+    } catch (listErr) {
+      console.warn(
+        JSON.stringify({
+          msg: "marketing_unsub_email_list_skip",
+          error: listErr instanceof Error ? listErr.message : String(listErr),
+        }),
+      );
+    }
     console.info(JSON.stringify({ msg: "marketing_lead_unsubscribed", via: "token" }));
     return json({ success: true });
   } catch (err) {

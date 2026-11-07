@@ -12,6 +12,7 @@ export const SALES_CONTRACTOR_RC_ADMIN_PATH_PREFIXES = [
   "/rc-admin/intelligence/watch",
   "/rc-admin/watch-ingest",
   "/rc-admin/sales-automation",
+  "/rc-admin/email-list",
   "/rc-admin/nexiq/intel/sources",
   "/rc-admin/nexiq/intel/coverage",
   "/rc-admin/conferences",

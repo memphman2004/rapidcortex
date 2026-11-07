@@ -620,12 +620,34 @@ export function PsapDetailPanel({
                   primaryContactTitle: draft.primaryContactTitle,
                   primaryContactEmail: draft.primaryContactEmail,
                   primaryContactPhone: draft.primaryContactPhone,
+                  monthlyEmailOptIn: draft.monthlyEmailOptIn === true,
                 })
               }
               className="rounded border border-violet-500/40 bg-violet-500/10 px-2.5 py-1 text-xs text-violet-200 disabled:opacity-50"
             >
               Save contact
             </button>
+            <label
+              className={`mt-2 flex items-start gap-2 text-xs ${
+                draft.primaryContactEmail?.trim().includes("@")
+                  ? "text-slate-300"
+                  : "cursor-not-allowed text-slate-600"
+              }`}
+            >
+              <input
+                type="checkbox"
+                className="mt-0.5 rounded border-[#1e2130] bg-[#0a0b0f] text-violet-500 focus:ring-violet-500/40"
+                checked={draft.monthlyEmailOptIn === true}
+                disabled={!draft.primaryContactEmail?.trim().includes("@") || saving}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, monthlyEmailOptIn: e.target.checked }))
+                }
+              />
+              <span>
+                Subscribe to monthly email (Inside iQ). Unchecked automatically if they
+                unsubscribe.
+              </span>
+            </label>
 
             <SectionHeader title="PSAP Info" />
             <Field label="PSAP Name" value={draft.psapName} readOnly />

@@ -27,6 +27,8 @@ export const patchPsapProspectBodySchema = z
     primaryContactTitle: z.string().trim().max(128).optional(),
     primaryContactEmail: z.string().trim().email().max(200).optional().or(z.literal("")),
     primaryContactPhone: z.string().trim().max(32).optional(),
+    /** Opt into monthly Inside iQ list for primaryContactEmail (PSAP vertical). */
+    monthlyEmailOptIn: z.boolean().optional(),
     mailingAddress: psapMailingAddressSchema.partial().optional(),
     website: z.string().trim().url().max(400).optional().or(z.literal("")),
     notes: z.string().trim().max(8000).optional(),

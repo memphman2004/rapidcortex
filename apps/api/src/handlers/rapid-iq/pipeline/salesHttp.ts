@@ -6,10 +6,13 @@
 
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
 import {
+  addEmailListEntryBodySchema,
   approveRapidIqSalesBulkBodySchema as approveNexiQSalesBulkBodySchema,
   canManageSalesAutomation,
   createRapidIqSalesBulkCampaignBodySchema as createNexiQSalesBulkCampaignBodySchema,
   createRapidIqSalesSequenceBodySchema as createNexiQSalesSequenceBodySchema,
+  emailListQuerySchema,
+  emailListVerticalSchema,
   rapidIqOutlookCallbackBodySchema,
   updateRapidIqSalesBulkCopyBodySchema as updateNexiQSalesBulkCopyBodySchema,
   updateRapidIqSalesDraftBodySchema as updateNexiQSalesDraftBodySchema,
@@ -32,6 +35,7 @@ import {
   listSalesSequences,
   putOutlookConnection,
   putSalesDraft,
+  putSalesUnsubscribe,
   upsertSalesCampaignControl,
 } from "../../../lib/rapid-iq/sales-automation-db.js";
 import {
@@ -55,6 +59,7 @@ import {
   createSequenceFromTrigger,
   deleteBulkCampaign,
   listCampaignCards,
+  queueNewsletterFromEmailList,
   summarizeBulkBatches,
   suppressSequence,
   updateBulkCampaignCopy,
@@ -73,6 +78,14 @@ import {
 import { AuditRepository } from "../../../repositories/auditRepository.js";
 import { listApolloEmailerCampaigns } from "../../../lib/rapid-iq/apollo-campaigns.js";
 import { sendDueStepsNow } from "./sales-automation-send.js";
+import {
+  emailListEntriesToCsv,
+  listAllEmailListEntries,
+  listEmailListEntries,
+  removeEmailListEntry,
+  subscribeEmailList,
+  unsubscribeEmailEverywhere,
+} from "../../../lib/rapid-iq/email-list-db.js";
 
 const auditRepo = new AuditRepository();
 
@@ -148,6 +161,10 @@ export async function handleSalesAutomationHttp(
 
   if (path.includes("/sales-automation/outlook")) {
     return handleOutlook(method, path, event, user);
+  }
+
+  if (path.includes("/sales-automation/email-list")) {
+    return handleEmailList(method, path, event, user);
   }
 
   if (path.includes("/sales-automation/bulk")) {
@@ -247,8 +264,31 @@ export async function handleSalesAutomationHttp(
       if (!draft) return notFound("Draft not found");
       const next = { ...draft, status: "approved" as const, updatedAt: new Date().toISOString() };
       await putSalesDraft(next);
-      await audit(user, AUDIT_EVENT_TYPES.RAPID_IQ_SALES_DRAFT_APPROVED, draftId, { contentType: draft.contentType });
-      return ok({ draft: next });
+      let newsletterQueue: Awaited<ReturnType<typeof queueNewsletterFromEmailList>> | undefined;
+      if (draft.contentType === "newsletter") {
+        try {
+          newsletterQueue = await queueNewsletterFromEmailList(next);
+        } catch (err) {
+          console.warn(
+            JSON.stringify({
+              msg: "rapid_iq_newsletter_queue_failed",
+              draftId,
+              error: err instanceof Error ? err.message : String(err),
+            }),
+          );
+        }
+      }
+      await audit(user, AUDIT_EVENT_TYPES.RAPID_IQ_SALES_DRAFT_APPROVED, draftId, {
+        contentType: draft.contentType,
+        ...(newsletterQueue
+          ? {
+              newsletterQueued: newsletterQueue.queued,
+              newsletterSuppressed: newsletterQueue.suppressed,
+              newsletterRecipients: newsletterQueue.recipients,
+            }
+          : {}),
+      });
+      return ok({ draft: next, newsletterQueue });
     }
     if ((method === "PATCH" || method === "PUT") && !path.endsWith("/approve")) {
       const denied = denyUnlessManage(user);
@@ -393,6 +433,89 @@ async function outlookStatusPayload() {
     expectedMailbox: salesOutlookMailbox(),
     connectedAt: conn?.connectedAt,
   };
+}
+
+async function handleEmailList(
+  method: string,
+  path: string,
+  event: APIGatewayProxyEventV2,
+  user: UserContext,
+): Promise<ReturnType<typeof ok>> {
+  const qs = event.queryStringParameters ?? {};
+
+  if (method === "GET" && path.includes("/email-list/export")) {
+    const verticalRaw = qs.vertical?.trim();
+    if (verticalRaw) {
+      const v = emailListVerticalSchema.safeParse(verticalRaw.toUpperCase());
+      if (!v.success) return badRequestFromZod(v.error);
+      const entries = await listEmailListEntries(v.data);
+      const csv = emailListEntriesToCsv(entries);
+      return ok({ csv, count: entries.length, vertical: v.data });
+    }
+    const entries = await listAllEmailListEntries();
+    return ok({ csv: emailListEntriesToCsv(entries), count: entries.length, vertical: "ALL" });
+  }
+
+  if (method === "GET") {
+    const parsed = emailListQuerySchema.safeParse({
+      vertical: qs.vertical ? String(qs.vertical).toUpperCase() : undefined,
+    });
+    if (!parsed.success) return badRequestFromZod(parsed.error);
+    if (parsed.data.vertical) {
+      const entries = await listEmailListEntries(parsed.data.vertical);
+      return ok({ entries, vertical: parsed.data.vertical });
+    }
+    const entries = await listAllEmailListEntries();
+    return ok({ entries, vertical: "ALL" });
+  }
+
+  if (method === "POST") {
+    const body = parseBody(event);
+    if (body === null) return badRequest("Invalid JSON");
+    const parsed = addEmailListEntryBodySchema.safeParse(body);
+    if (!parsed.success) return badRequestFromZod(parsed.error);
+    const canClearUnsub = canManageSalesAutomation(user.role);
+    const result = await subscribeEmailList({
+      body: parsed.data,
+      createdBy: user.userId,
+      clearUnsubscribe: canClearUnsub,
+      allowIfUnsubscribed: false,
+    });
+    if (!result.ok) {
+      if (result.reason === "unsubscribed") {
+        return badRequest(
+          canClearUnsub
+            ? "Subscribe failed"
+            : "This address unsubscribed from marketing email. An RC admin must re-subscribe them.",
+        );
+      }
+      return badRequest("Invalid email");
+    }
+    await audit(user, "rapid_iq.email_list_subscribed", result.entry.email, {
+      vertical: result.entry.vertical,
+      source: result.entry.source,
+    });
+    return ok({ entry: result.entry });
+  }
+
+  if (method === "DELETE") {
+    const email = (qs.email ?? "").trim().toLowerCase();
+    const verticalRaw = (qs.vertical ?? "").trim().toUpperCase();
+    if (!email) return badRequest("email query required");
+    if (verticalRaw === "ALL" || !verticalRaw) {
+      await unsubscribeEmailEverywhere(email);
+      await audit(user, "rapid_iq.email_list_unsubscribed", email, { everywhere: true });
+      return ok({ removed: true, email });
+    }
+    const v = emailListVerticalSchema.safeParse(verticalRaw);
+    if (!v.success) return badRequestFromZod(v.error);
+    await removeEmailListEntry(v.data, email);
+    await putSalesUnsubscribe(email);
+    await audit(user, "rapid_iq.email_list_unsubscribed", email, { vertical: v.data });
+    return ok({ removed: true, email, vertical: v.data });
+  }
+
+  return notFound("Not found");
 }
 
 async function handleOutlook(

@@ -71,9 +71,11 @@ else
   echo "Reusing integration: $INTEG"
 fi
 
-python3 - "$API_ID" "$INTEG" "${KEYS[@]}" <<'PY'
+AUTHORIZER_ID="${HTTP_API_3_JWT_AUTHORIZER_ID:-k8rjdh}"
+
+python3 - "$API_ID" "$INTEG" "$AUTHORIZER_ID" "${KEYS[@]}" <<'PY'
 import json, subprocess, sys
-api, integ, *keys = sys.argv[1:]
+api, integ, authorizer, *keys = sys.argv[1:]
 routes = {
     r["RouteKey"]: r
     for r in json.loads(
@@ -83,12 +85,25 @@ routes = {
         )
     )["Items"]
 }
+target = f"integrations/{integ}"
 for key in keys:
     r = routes.get(key)
     if not r:
-        print("MISSING", key)
+        rid = subprocess.check_output(
+            [
+                "aws", "apigatewayv2", "create-route",
+                "--api-id", api,
+                "--route-key", key,
+                "--target", target,
+                "--authorization-type", "JWT",
+                "--authorizer-id", authorizer,
+                "--query", "RouteId",
+                "--output", "text",
+            ],
+            text=True,
+        ).strip()
+        print("CREATE", key, "->", rid)
         continue
-    target = f"integrations/{integ}"
     if r.get("Target") == target:
         print("OK (already)", key)
         continue
@@ -103,9 +118,13 @@ for key in keys:
             r["RouteId"],
             "--target",
             target,
+            "--authorization-type",
+            "JWT",
+            "--authorizer-id",
+            authorizer,
         ]
     )
     print("UPDATED", key, "->", target)
 PY
 
-echo "Done. Hard-refresh /rc-admin/rapid-iq (opportunities should stop 404'ing)."
+echo "Done. Hard-refresh /rc-admin/nexiq (opportunities should stop 404'ing)."

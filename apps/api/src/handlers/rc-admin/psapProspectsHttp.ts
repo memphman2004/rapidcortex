@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import {
   addPsapActivityRequestSchema,
   canAccessPsapProspectsCrm,
+  canManageSalesAutomation,
   patchPsapProspectBodySchema,
   psapPinsToGeoJSON,
   PSAP_CONTACT_METHOD_LABELS,
@@ -13,6 +14,7 @@ import {
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import {
+  badRequest,
   badRequestFromZod,
   forbidden,
   notFound,
@@ -32,6 +34,11 @@ import { isExplicitCollectorsMockEnabled } from "../../lib/rapid-iq/agenda-finde
 import { hasApolloApiKey } from "../../lib/rapid-iq/apollo-enrichment.js";
 import { hasHunterApiKey } from "../../lib/rapid-iq/hunter-enrichment.js";
 import { syncContactToAddressBook } from "../../lib/contacts/sync-to-address-book.js";
+import {
+  isMonthlyEmailSubscribed,
+  subscribeEmailList,
+  unsubscribeEmailEverywhere,
+} from "../../lib/rapid-iq/email-list-db.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { PsapProspectRepository } from "../../repositories/psapProspectRepository.js";
 
@@ -439,7 +446,18 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     if (method === "GET" && psapId && !path.endsWith("/activities")) {
       const prospect = await repo.get(psapId);
       if (!prospect) return notFound("PSAP not found");
-      return ok({ prospect });
+      const email = prospect.primaryContactEmail?.trim() ?? "";
+      let monthlyEmailOptIn = prospect.monthlyEmailOptIn === true;
+      if (email) {
+        try {
+          monthlyEmailOptIn = await isMonthlyEmailSubscribed("PSAP", email);
+        } catch {
+          /* table unset in some envs — keep stored flag */
+        }
+      } else {
+        monthlyEmailOptIn = false;
+      }
+      return ok({ prospect: { ...prospect, monthlyEmailOptIn } });
     }
 
     // PATCH /{psapId}
@@ -452,6 +470,47 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         displayName: actorName(user),
       });
       if (!updated) return notFound("PSAP not found");
+
+      if (typeof parsed.data.monthlyEmailOptIn === "boolean") {
+        const email = (
+          parsed.data.primaryContactEmail?.trim() ||
+          updated.primaryContactEmail?.trim() ||
+          ""
+        ).toLowerCase();
+        if (email && email.includes("@")) {
+          try {
+            if (parsed.data.monthlyEmailOptIn) {
+              const sub = await subscribeEmailList({
+                body: {
+                  email,
+                  vertical: "PSAP",
+                  name: updated.primaryContactName,
+                  source: "psap_prospect",
+                  psapId,
+                },
+                createdBy: user.userId,
+                clearUnsubscribe: canManageSalesAutomation(user.role),
+              });
+              if (!sub.ok && sub.reason === "unsubscribed") {
+                return badRequest(
+                  "Address previously unsubscribed; an RC admin must re-subscribe them.",
+                );
+              }
+            } else {
+              await unsubscribeEmailEverywhere(email);
+            }
+          } catch (err) {
+            console.warn(
+              JSON.stringify({
+                msg: "psap_monthly_email_list_sync_failed",
+                psapId,
+                error: err instanceof Error ? err.message : String(err),
+              }),
+            );
+          }
+        }
+      }
+
       const statusChanged =
         parsed.data.outreachStatus &&
         before &&
@@ -468,7 +527,18 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         resourceType: "psap_prospect",
         resourceId: psapId,
       });
-      return ok({ prospect: updated });
+      const email = updated.primaryContactEmail?.trim() ?? "";
+      let monthlyEmailOptIn = updated.monthlyEmailOptIn === true;
+      if (email) {
+        try {
+          monthlyEmailOptIn = await isMonthlyEmailSubscribed("PSAP", email);
+        } catch {
+          /* ignore */
+        }
+      } else {
+        monthlyEmailOptIn = false;
+      }
+      return ok({ prospect: { ...updated, monthlyEmailOptIn } });
     }
 
     // GET list
