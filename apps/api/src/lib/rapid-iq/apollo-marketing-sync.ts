@@ -5,7 +5,9 @@
 
 import {
   APOLLO_VERTICAL_SEARCH_TITLES,
+  emailListPartitionsForVertical,
   emailListVerticalToLeadVertical,
+  normalizeEmailListVertical,
   type EmailListVertical,
 } from "rapid-cortex-shared";
 import { resolvePlainOrSecretArn } from "../runtimeSecrets.js";
@@ -87,13 +89,19 @@ export async function syncApolloMarketingVertical(
   vertical: EmailListVertical,
   opts?: { maxPages?: number },
 ): Promise<ApolloMarketingSyncResult> {
-  const titles = APOLLO_VERTICAL_SEARCH_TITLES[vertical] ?? [];
+  // Law / fire fold into PSAP; merge legacy partition title keywords for Apollo search.
+  const uiVertical = normalizeEmailListVertical(vertical);
+  const titleSet = new Set<string>();
+  for (const part of emailListPartitionsForVertical(uiVertical)) {
+    for (const t of APOLLO_VERTICAL_SEARCH_TITLES[part] ?? []) titleSet.add(t);
+  }
+  const titles = [...titleSet];
   const maxPages = opts?.maxPages ?? 2;
   let scanned = 0;
   let imported = 0;
   let skipped = 0;
   let errors = 0;
-  const leadVertical = emailListVerticalToLeadVertical(vertical);
+  const leadVertical = emailListVerticalToLeadVertical(uiVertical);
 
   for (let page = 1; page <= maxPages; page += 1) {
     const people = await searchApolloPeople(titles, page);
@@ -138,5 +146,5 @@ export async function syncApolloMarketingVertical(
     }
   }
 
-  return { vertical, scanned, imported, skipped, errors };
+  return { vertical: uiVertical, scanned, imported, skipped, errors };
 }

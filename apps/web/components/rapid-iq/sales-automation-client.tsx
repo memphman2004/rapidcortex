@@ -808,8 +808,6 @@ function TriggerModal({
             className="mt-1 w-full rounded-md border border-white/10 bg-[#071224] px-3 py-2 text-sm text-white"
           >
             <option value="PSAP">PSAP / 911</option>
-            <option value="LAW_ENFORCEMENT">Law Enforcement</option>
-            <option value="FIRE_EMS">Fire / EMS</option>
             <option value="CAMPUS">Campus</option>
             <option value="VENUE">Venue</option>
             <option value="HOSPITAL">Hospital</option>
@@ -903,8 +901,6 @@ function BulkCampaignModal({
             className="mt-1 w-full rounded-md border border-white/10 bg-[#071224] px-3 py-2 text-sm text-white"
           >
             <option value="PSAP">PSAP / 911</option>
-            <option value="LAW_ENFORCEMENT">Law Enforcement</option>
-            <option value="FIRE_EMS">Fire / EMS</option>
             <option value="CAMPUS">Campus</option>
             <option value="VENUE">Venue</option>
             <option value="HOSPITAL">Hospital</option>

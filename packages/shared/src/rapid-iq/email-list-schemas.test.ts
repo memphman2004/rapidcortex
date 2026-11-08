@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  EMAIL_LIST_UI_VERTICALS,
   EMAIL_LIST_VERTICALS,
   addEmailListEntryBodySchema,
+  emailListPartitionsForVertical,
   emailListVerticalsForCampaign,
   moveEmailListEntryBodySchema,
   normalizeEmailListVertical,
@@ -11,16 +13,43 @@ describe("email list schemas", () => {
   it("normalizes verticals", () => {
     expect(normalizeEmailListVertical("campus")).toBe("CAMPUS");
     expect(normalizeEmailListVertical("all")).toBe("PSAP");
-    expect(normalizeEmailListVertical("law_enforcement")).toBe("LAW_ENFORCEMENT");
-    expect(normalizeEmailListVertical("fire_ems")).toBe("FIRE_EMS");
+    expect(normalizeEmailListVertical("law_enforcement")).toBe("PSAP");
+    expect(normalizeEmailListVertical("fire_ems")).toBe("PSAP");
     expect(EMAIL_LIST_VERTICALS).toContain("PSAP");
     expect(EMAIL_LIST_VERTICALS).toContain("LAW_ENFORCEMENT");
     expect(EMAIL_LIST_VERTICALS).toContain("FIRE_EMS");
   });
 
-  it("expands ALL campaign verticals", () => {
+  it("UI verticals omit separate law / fire tabs", () => {
+    expect([...EMAIL_LIST_UI_VERTICALS]).toEqual([
+      "PSAP",
+      "CAMPUS",
+      "VENUE",
+      "HOSPITAL",
+      "TRANSIT",
+    ]);
+    expect(EMAIL_LIST_UI_VERTICALS).not.toContain("LAW_ENFORCEMENT");
+    expect(EMAIL_LIST_UI_VERTICALS).not.toContain("FIRE_EMS");
+    expect(emailListPartitionsForVertical("PSAP")).toEqual([
+      "PSAP",
+      "LAW_ENFORCEMENT",
+      "FIRE_EMS",
+    ]);
+  });
+
+  it("expands ALL and PSAP campaign verticals", () => {
     expect(emailListVerticalsForCampaign("ALL")).toEqual([...EMAIL_LIST_VERTICALS]);
     expect(emailListVerticalsForCampaign("VENUE")).toEqual(["VENUE"]);
+    expect(emailListVerticalsForCampaign("PSAP")).toEqual([
+      "PSAP",
+      "LAW_ENFORCEMENT",
+      "FIRE_EMS",
+    ]);
+    expect(emailListVerticalsForCampaign("LAW_ENFORCEMENT")).toEqual([
+      "PSAP",
+      "LAW_ENFORCEMENT",
+      "FIRE_EMS",
+    ]);
   });
 
   it("parses add body with default source", () => {

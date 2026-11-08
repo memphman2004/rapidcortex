@@ -9,8 +9,9 @@ import type { RapidIqSalesVertical } from "./sales-automation-schemas.js";
 
 const LEAD_TO_EMAIL_LIST: Record<Exclude<LeadVertical, "unknown">, EmailListVertical> = {
   rc911: "PSAP",
-  law_enforcement: "LAW_ENFORCEMENT",
-  fire_ems: "FIRE_EMS",
+  // Law / fire fold into the PSAP / 911 marketing list.
+  law_enforcement: "PSAP",
+  fire_ems: "PSAP",
   campus: "CAMPUS",
   venue: "VENUE",
   hospital: "HOSPITAL",
@@ -96,12 +97,17 @@ export function mapApolloTitleToVertical(title?: string, orgName?: string): Lead
 
 /** Title keywords used when syncing Apollo people into a specific email-list vertical. */
 export const APOLLO_VERTICAL_SEARCH_TITLES: Record<EmailListVertical, string[]> = {
+  // PSAP / 911 includes law + fire titles (those audiences fold under 911).
   PSAP: [
     "PSAP Director",
     "911 Director",
     "Communications Director",
     "Emergency Communications Manager",
     "Public Safety Director",
+    "Chief of Police",
+    "Sheriff",
+    "Fire Chief",
+    "EMS Director",
   ],
   LAW_ENFORCEMENT: [
     "Chief of Police",
@@ -152,11 +158,9 @@ export const APOLLO_VERTICAL_SEARCH_TITLES: Record<EmailListVertical, string[]> 
 export function emailListVerticalLabel(vertical: EmailListVertical | "ALL"): string {
   switch (vertical) {
     case "PSAP":
-      return "PSAP / 911";
     case "LAW_ENFORCEMENT":
-      return "Law Enforcement";
     case "FIRE_EMS":
-      return "Fire / EMS";
+      return "PSAP / 911";
     case "CAMPUS":
       return "Campus";
     case "VENUE":

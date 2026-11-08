@@ -7,8 +7,8 @@ import {
 
 describe("marketing vertical maps", () => {
   it("round-trips email-list ↔ lead verticals", () => {
-    expect(leadVerticalToEmailListVertical("law_enforcement")).toBe("LAW_ENFORCEMENT");
-    expect(leadVerticalToEmailListVertical("fire_ems")).toBe("FIRE_EMS");
+    expect(leadVerticalToEmailListVertical("law_enforcement")).toBe("PSAP");
+    expect(leadVerticalToEmailListVertical("fire_ems")).toBe("PSAP");
     expect(emailListVerticalToLeadVertical("FIRE_EMS")).toBe("fire_ems");
     expect(leadVerticalToEmailListVertical("unknown")).toBe("PSAP");
   });

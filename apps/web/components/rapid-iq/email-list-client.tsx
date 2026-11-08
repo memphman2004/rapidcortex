@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  EMAIL_LIST_VERTICALS,
+  EMAIL_LIST_UI_VERTICALS,
+  emailListPartitionsForVertical,
   emailListVerticalLabel,
+  normalizeEmailListVertical,
   type EmailListEntry,
   type EmailListVertical,
 } from "rapid-cortex-shared";
@@ -22,7 +24,7 @@ type Props = {
   canRemove: boolean;
 };
 
-const TABS: Array<EmailListVertical | "ALL"> = ["ALL", ...EMAIL_LIST_VERTICALS];
+const TABS: Array<EmailListVertical | "ALL"> = ["ALL", ...EMAIL_LIST_UI_VERTICALS];
 
 type StatusFilter = "active" | "inactive" | "all";
 
@@ -77,11 +79,12 @@ function normalizeImportVertical(raw: string): EmailListVertical | null {
     PSAP: "PSAP",
     RC911: "PSAP",
     "911": "PSAP",
-    LAW_ENFORCEMENT: "LAW_ENFORCEMENT",
-    POLICE: "LAW_ENFORCEMENT",
-    FIRE_EMS: "FIRE_EMS",
-    FIRE: "FIRE_EMS",
-    EMS: "FIRE_EMS",
+    // Law / fire fall under the PSAP / 911 list.
+    LAW_ENFORCEMENT: "PSAP",
+    POLICE: "PSAP",
+    FIRE_EMS: "PSAP",
+    FIRE: "PSAP",
+    EMS: "PSAP",
     CAMPUS: "CAMPUS",
     VENUE: "VENUE",
     HOSPITAL: "HOSPITAL",
@@ -126,28 +129,36 @@ export function EmailListClient({ canRemove }: Props) {
     void load();
   }, [load]);
 
+  const tabPartitions = useMemo(() => {
+    if (vertical === "ALL") return null;
+    return new Set(emailListPartitionsForVertical(vertical));
+  }, [vertical]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return entries.filter((e) => {
-      if (vertical !== "ALL" && e.vertical !== vertical) return false;
+      // PSAP tab includes legacy LAW_ENFORCEMENT / FIRE_EMS partitions.
+      if (tabPartitions && !tabPartitions.has(e.vertical)) return false;
       if (statusFilter === "active" && isInactive(e)) return false;
       if (statusFilter === "inactive" && !isInactive(e)) return false;
       if (!q) return true;
       const hay = `${e.email} ${e.name ?? ""} ${e.agencyName ?? ""} ${e.source}`.toLowerCase();
       return hay.includes(q);
     });
-  }, [entries, vertical, statusFilter, search]);
+  }, [entries, tabPartitions, statusFilter, search]);
 
   const counts = useMemo(() => {
     const scoped =
-      vertical === "ALL" ? entries : entries.filter((e) => e.vertical === vertical);
+      tabPartitions == null
+        ? entries
+        : entries.filter((e) => tabPartitions.has(e.vertical));
     const inactive = scoped.filter(isInactive).length;
     return {
       total: scoped.length,
       active: scoped.length - inactive,
       inactive,
     };
-  }, [entries, vertical]);
+  }, [entries, tabPartitions]);
 
   async function onAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -194,7 +205,8 @@ export function EmailListClient({ canRemove }: Props) {
   }
 
   async function onChangeVertical(row: EmailListEntry, next: EmailListVertical) {
-    if (next === row.vertical) return;
+    const toVertical = normalizeEmailListVertical(next);
+    if (toVertical === row.vertical) return;
     setBusy(true);
     setError(null);
     setToast(null);
@@ -202,9 +214,9 @@ export function EmailListClient({ canRemove }: Props) {
       await moveEmailListEntry({
         email: row.email,
         fromVertical: row.vertical,
-        vertical: next,
+        vertical: toVertical,
       });
-      setToast(`Moved ${row.email} to ${emailListVerticalLabel(next)}`);
+      setToast(`Moved ${row.email} to ${emailListVerticalLabel(toVertical)}`);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Vertical update failed");
@@ -483,7 +495,7 @@ export function EmailListClient({ canRemove }: Props) {
           onChange={(e) => setAddVertical(e.target.value as EmailListVertical)}
           className="rounded border border-[#1e2130] bg-[#12141c] px-2.5 py-1.5 text-sm text-slate-200"
         >
-          {EMAIL_LIST_VERTICALS.map((v) => (
+          {EMAIL_LIST_UI_VERTICALS.map((v) => (
             <option key={v} value={v}>
               {emailListVerticalLabel(v)}
             </option>
@@ -547,14 +559,14 @@ export function EmailListClient({ canRemove }: Props) {
                     <td className="px-3 py-2">
                       <select
                         aria-label={`Vertical for ${row.email}`}
-                        value={row.vertical}
+                        value={normalizeEmailListVertical(row.vertical)}
                         disabled={busy || inactive}
                         onChange={(e) =>
                           void onChangeVertical(row, e.target.value as EmailListVertical)
                         }
                         className="rounded border border-[#1e2130] bg-[#12141c] px-2 py-1 text-xs text-slate-200 disabled:opacity-50"
                       >
-                        {EMAIL_LIST_VERTICALS.map((v) => (
+                        {EMAIL_LIST_UI_VERTICALS.map((v) => (
                           <option key={v} value={v}>
                             {emailListVerticalLabel(v)}
                           </option>

@@ -15,8 +15,10 @@ import {
   emailListApolloSyncBodySchema,
   emailListImportBodySchema,
   emailListImportRowSchema,
+  emailListPartitionsForVertical,
   emailListVerticalSchema,
   moveEmailListEntryBodySchema,
+  normalizeEmailListVertical,
   rapidIqOutlookCallbackBodySchema,
   updateRapidIqSalesBulkCopyBodySchema as updateNexiQSalesBulkCopyBodySchema,
   updateRapidIqSalesDraftBodySchema as updateNexiQSalesDraftBodySchema,
@@ -460,11 +462,22 @@ async function handleEmailList(
   if (method === "GET" && path.includes("/email-list/export")) {
     const verticalRaw = qs.vertical?.trim();
     if (verticalRaw) {
-      const v = emailListVerticalSchema.safeParse(verticalRaw.toUpperCase());
+      const upper = verticalRaw.toUpperCase();
+      if (upper === "ALL") {
+        const entries = await listAllEmailListEntries();
+        return ok({ csv: emailListEntriesToCsv(entries), count: entries.length, vertical: "ALL" });
+      }
+      const v = emailListVerticalSchema.safeParse(upper);
       if (!v.success) return badRequestFromZod(v.error);
-      const entries = await listEmailListEntries(v.data);
+      const uiVertical = normalizeEmailListVertical(v.data);
+      const entries = await listEmailListEntries(uiVertical);
       const csv = emailListEntriesToCsv(entries);
-      return ok({ csv, count: entries.length, vertical: v.data });
+      return ok({
+        csv,
+        count: entries.length,
+        vertical: uiVertical,
+        partitions: emailListPartitionsForVertical(uiVertical),
+      });
     }
     const entries = await listAllEmailListEntries();
     return ok({ csv: emailListEntriesToCsv(entries), count: entries.length, vertical: "ALL" });
@@ -477,8 +490,13 @@ async function handleEmailList(
     if (verticalRaw && verticalRaw !== "ALL") {
       const v = emailListVerticalSchema.safeParse(verticalRaw);
       if (!v.success) return badRequestFromZod(v.error);
-      const entries = await listEmailListEntries(v.data);
-      return ok({ entries, vertical: v.data });
+      const uiVertical = normalizeEmailListVertical(v.data);
+      const entries = await listEmailListEntries(uiVertical);
+      return ok({
+        entries,
+        vertical: uiVertical,
+        partitions: emailListPartitionsForVertical(uiVertical),
+      });
     }
     const entries = await listAllEmailListEntries();
     return ok({ entries, vertical: "ALL" });

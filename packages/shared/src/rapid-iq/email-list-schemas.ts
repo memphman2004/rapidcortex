@@ -10,7 +10,10 @@ import {
   type RapidIqSalesVertical,
 } from "./sales-automation-schemas.js";
 
-/** Product verticals for the list UI (excludes ALL). */
+/**
+ * Stored partition keys (excludes ALL).
+ * LAW_ENFORCEMENT / FIRE_EMS remain readable for legacy rows; new writes fold into PSAP (911).
+ */
 export const EMAIL_LIST_VERTICALS = [
   "PSAP",
   "LAW_ENFORCEMENT",
@@ -21,6 +24,23 @@ export const EMAIL_LIST_VERTICALS = [
   "TRANSIT",
 ] as const;
 export type EmailListVertical = (typeof EMAIL_LIST_VERTICALS)[number];
+
+/** Tabs / add-form choices — Law Enforcement and Fire/EMS fall under PSAP / 911. */
+export const EMAIL_LIST_UI_VERTICALS = [
+  "PSAP",
+  "CAMPUS",
+  "VENUE",
+  "HOSPITAL",
+  "TRANSIT",
+] as const satisfies readonly EmailListVertical[];
+export type EmailListUiVertical = (typeof EMAIL_LIST_UI_VERTICALS)[number];
+
+/** Legacy 911 sub-partitions collapsed into the PSAP audience. */
+export const EMAIL_LIST_PSAP_PARTITIONS = [
+  "PSAP",
+  "LAW_ENFORCEMENT",
+  "FIRE_EMS",
+] as const satisfies readonly EmailListVertical[];
 
 export const EMAIL_LIST_SOURCES = [
   "manual",
@@ -110,6 +130,9 @@ export type MoveEmailListEntryBody = z.infer<typeof moveEmailListEntryBodySchema
 export function normalizeEmailListVertical(raw: unknown): EmailListVertical {
   const v = normalizeSalesAutomationVertical(raw);
   if (v === "ALL") return "PSAP";
+  // Police / fire fold into the 911 PSAP list for new membership.
+  if (v === "LAW_ENFORCEMENT" || v === "FIRE_EMS") return "PSAP";
+  if ((EMAIL_LIST_UI_VERTICALS as readonly string[]).includes(v)) return v as EmailListVertical;
   if ((EMAIL_LIST_VERTICALS as readonly string[]).includes(v)) return v as EmailListVertical;
   return "PSAP";
 }
@@ -118,11 +141,30 @@ export function isEmailListVertical(raw: unknown): raw is EmailListVertical {
   return typeof raw === "string" && (EMAIL_LIST_VERTICALS as readonly string[]).includes(raw);
 }
 
+export function isEmailListUiVertical(raw: unknown): raw is EmailListUiVertical {
+  return typeof raw === "string" && (EMAIL_LIST_UI_VERTICALS as readonly string[]).includes(raw);
+}
+
+/**
+ * Partitions to read when listing / exporting / campaigning a UI vertical.
+ * PSAP includes legacy LAW_ENFORCEMENT + FIRE_EMS rows.
+ */
+export function emailListPartitionsForVertical(
+  vertical: EmailListVertical | "ALL",
+): EmailListVertical[] {
+  if (vertical === "ALL") return [...EMAIL_LIST_VERTICALS];
+  if (vertical === "PSAP") return [...EMAIL_LIST_PSAP_PARTITIONS];
+  return [vertical];
+}
+
 /** Map sales automation vertical (incl. ALL) onto list partition keys. */
 export function emailListVerticalsForCampaign(
   vertical: RapidIqSalesVertical,
 ): EmailListVertical[] {
   if (vertical === "ALL") return [...EMAIL_LIST_VERTICALS];
+  if (vertical === "LAW_ENFORCEMENT" || vertical === "FIRE_EMS" || vertical === "PSAP") {
+    return [...EMAIL_LIST_PSAP_PARTITIONS];
+  }
   if (isEmailListVertical(vertical)) return [vertical];
   return ["PSAP"];
 }

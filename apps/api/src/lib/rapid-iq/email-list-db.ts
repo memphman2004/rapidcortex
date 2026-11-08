@@ -7,6 +7,8 @@ import { DeleteCommand, GetCommand, PutCommand, QueryCommand } from "@aws-sdk/li
 import {
   EMAIL_LIST_VERTICALS,
   emailListEntrySchema,
+  emailListPartitionsForVertical,
+  normalizeEmailListVertical,
   type AddEmailListEntryBody,
   type EmailListEntry,
   type EmailListVertical,
@@ -72,9 +74,9 @@ export async function getEmailListEntry(
   return parseEntry(res.Item as Record<string, unknown>);
 }
 
-export async function listEmailListEntries(
+async function listEmailListPartition(
   vertical: EmailListVertical,
-  limit = 2000,
+  limit: number,
 ): Promise<EmailListEntry[]> {
   const items: EmailListEntry[] = [];
   let ExclusiveStartKey: Record<string, unknown> | undefined;
@@ -100,12 +102,42 @@ export async function listEmailListEntries(
   return items;
 }
 
+/** List one UI vertical (PSAP expands to include legacy law/fire partitions). */
+export async function listEmailListEntries(
+  vertical: EmailListVertical,
+  limit = 2000,
+): Promise<EmailListEntry[]> {
+  const partitions = emailListPartitionsForVertical(vertical);
+  if (partitions.length === 1) {
+    return listEmailListPartition(partitions[0]!, limit);
+  }
+  const seen = new Set<string>();
+  const out: EmailListEntry[] = [];
+  for (const part of partitions) {
+    const rows = await listEmailListPartition(part, limit);
+    for (const row of rows) {
+      const key = row.email.trim().toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(row);
+      if (out.length >= limit) return out;
+    }
+  }
+  return out;
+}
+
 export async function listAllEmailListEntries(limit = 5000): Promise<EmailListEntry[]> {
+  const seen = new Set<string>();
   const out: EmailListEntry[] = [];
   for (const vertical of EMAIL_LIST_VERTICALS) {
-    const rows = await listEmailListEntries(vertical, limit);
-    out.push(...rows);
-    if (out.length >= limit) return out.slice(0, limit);
+    const rows = await listEmailListPartition(vertical, limit);
+    for (const row of rows) {
+      const key = row.email.trim().toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(row);
+      if (out.length >= limit) return out;
+    }
   }
   return out;
 }
@@ -137,11 +169,20 @@ export async function subscribeEmailList(
     await clearSalesUnsubscribe(email);
   }
 
+  const vertical = normalizeEmailListVertical(opts.body.vertical);
   const now = new Date().toISOString();
-  const existing = await getEmailListEntry(opts.body.vertical, email);
+  // Prefer an existing row in any PSAP-family partition when folding law/fire into PSAP.
+  let existing = await getEmailListEntry(vertical, email);
+  if (!existing && vertical === "PSAP") {
+    for (const part of emailListPartitionsForVertical("PSAP")) {
+      if (part === "PSAP") continue;
+      existing = await getEmailListEntry(part, email);
+      if (existing) break;
+    }
+  }
   const entry: EmailListEntry = {
     email,
-    vertical: opts.body.vertical,
+    vertical,
     name: opts.body.name?.trim() || existing?.name,
     agencyName: opts.body.agencyName?.trim() || existing?.agencyName,
     source: opts.body.source ?? "manual",
@@ -194,7 +235,8 @@ export async function moveEmailListEntry(opts: {
 }): Promise<MoveEmailListEntryResult> {
   const email = opts.email.trim().toLowerCase();
   if (!email || !email.includes("@")) return { ok: false, reason: "invalid_email" };
-  if (opts.fromVertical === opts.toVertical) return { ok: false, reason: "same_vertical" };
+  const toVertical = normalizeEmailListVertical(opts.toVertical);
+  if (opts.fromVertical === toVertical) return { ok: false, reason: "same_vertical" };
 
   const existing = await getEmailListEntry(opts.fromVertical, email);
   if (!existing) return { ok: false, reason: "not_found" };
@@ -203,7 +245,7 @@ export async function moveEmailListEntry(opts: {
   const entry: EmailListEntry = {
     ...existing,
     email,
-    vertical: opts.toVertical,
+    vertical: toVertical,
     createdBy: opts.updatedBy ?? existing.createdBy,
     unsubscribed: false,
   };
@@ -213,7 +255,7 @@ export async function moveEmailListEntry(opts: {
       TableName: table(),
       Item: {
         ...entry,
-        pk: listPk(opts.toVertical),
+        pk: listPk(toVertical),
         sk: emailSk(email),
         entityType: "email_list",
         agencyId: "platform",
