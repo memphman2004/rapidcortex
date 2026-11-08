@@ -114,6 +114,7 @@ type PostBody = {
   confirmed?: boolean;
   rights?: RightsInput;
   box?: StudioBox | null;
+  boxes?: StudioBox[] | null;
   identifiable?: boolean;
   costApproved?: boolean;
   prompt?: string;

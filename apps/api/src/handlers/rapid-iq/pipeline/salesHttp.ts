@@ -15,7 +15,6 @@ import {
   emailListApolloSyncBodySchema,
   emailListImportBodySchema,
   emailListImportRowSchema,
-  emailListQuerySchema,
   emailListVerticalSchema,
   moveEmailListEntryBodySchema,
   rapidIqOutlookCallbackBodySchema,
@@ -472,13 +471,14 @@ async function handleEmailList(
   }
 
   if (method === "GET") {
-    const parsed = emailListQuerySchema.safeParse({
-      vertical: qs.vertical ? String(qs.vertical).toUpperCase() : undefined,
-    });
-    if (!parsed.success) return badRequestFromZod(parsed.error);
-    if (parsed.data.vertical) {
-      const entries = await listEmailListEntries(parsed.data.vertical);
-      return ok({ entries, vertical: parsed.data.vertical });
+    // Validate with emailListVerticalSchema (always exported). Avoid emailListQuerySchema —
+    // some Lambda bundles left it undefined and crashed on .safeParse.
+    const verticalRaw = qs.vertical ? String(qs.vertical).trim().toUpperCase() : "";
+    if (verticalRaw && verticalRaw !== "ALL") {
+      const v = emailListVerticalSchema.safeParse(verticalRaw);
+      if (!v.success) return badRequestFromZod(v.error);
+      const entries = await listEmailListEntries(v.data);
+      return ok({ entries, vertical: v.data });
     }
     const entries = await listAllEmailListEntries();
     return ok({ entries, vertical: "ALL" });
