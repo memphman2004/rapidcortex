@@ -19,6 +19,7 @@ export type ContactFlowParams = {
   lexBotAliasArn?: string;
   novaSessionStartLambdaArn?: string;
   novaSessionAwaitLambdaArn?: string;
+  disconnectHandlerLambdaArn?: string;
   stage: string;
 };
 
@@ -33,6 +34,7 @@ export function parameterizeContactFlowTemplate(template: string, params: Contac
     .replaceAll("{{lexBotAliasArn}}", params.lexBotAliasArn ?? "")
     .replaceAll("{{novaSessionStartLambdaArn}}", params.novaSessionStartLambdaArn ?? "")
     .replaceAll("{{novaSessionAwaitLambdaArn}}", params.novaSessionAwaitLambdaArn ?? "")
+    .replaceAll("{{disconnectHandlerLambdaArn}}", params.disconnectHandlerLambdaArn ?? "")
     .replaceAll("{{stage}}", params.stage)
     .replaceAll("__DEMO_QUEUE_ARN__", params.primaryQueueArn)
     .replaceAll("__EMERGENCY_QUEUE_ARN__", params.emergencyQueueArn);
@@ -80,6 +82,7 @@ async function resolveFlowParams(
     fulfillmentLambdaArn: process.env.CALL_ASSIST_FULFILLMENT_LAMBDA_ARN?.trim() ?? "",
     novaSessionStartLambdaArn: process.env.NOVA_SESSION_START_LAMBDA_ARN?.trim() ?? "",
     novaSessionAwaitLambdaArn: process.env.NOVA_SESSION_AWAIT_LAMBDA_ARN?.trim() ?? "",
+    disconnectHandlerLambdaArn: process.env.CALL_ASSIST_DISCONNECT_LAMBDA_ARN?.trim() ?? "",
     stage,
   };
 }

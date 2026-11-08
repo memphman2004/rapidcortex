@@ -141,15 +141,26 @@ export function CreateWizard() {
       setMessage("That person already has a card. Open it from the list above.");
       return;
     }
-    const [firstName, ...rest] = displayName.split(" ");
+    const name = displayName.trim() || selected?.name?.trim() || "";
+    if (!name) {
+      setMessage("Enter the person’s first and last name before activating.");
+      return;
+    }
+    const parts = name.split(/\s+/).filter(Boolean);
+    const firstName = parts[0] ?? "";
+    const lastName = parts.slice(1).join(" ");
+    if (!firstName) {
+      setMessage("Enter the card owner’s name so the public URL can use it (spaces are removed).");
+      return;
+    }
     const created = await bizCardFetch<ApiProfile>("/api/admin/business-cards", {
       method: "POST",
       body: JSON.stringify({
         cognitoUserId,
-        displayName,
+        displayName: name,
         title,
         firstName,
-        lastName: rest.join(" "),
+        lastName,
         emailAddresses: email ? [{ type: "primary", address: email, public: true }] : undefined,
       }),
     });

@@ -7,19 +7,25 @@
  */
 
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { env } from "../../../lib/env.js";
 import { makeId } from "../../../lib/ids.js";
-import { sesConfigurationSetFields } from "../../../lib/ses/sesConfigurationSet.js";
-import { checkSuppression } from "../../../lib/rapid-iq/sales-automation-engine.js";
+import { sesMarketingConfigurationSetFields } from "../../../lib/ses/sesMarketingConfigurationSet.js";
+import {
+  applyUnsubscribeTokenToEmailBodies,
+  checkSuppression,
+} from "../../../lib/rapid-iq/sales-automation-engine.js";
 import {
   getOutlookConnection,
   getSalesSequence,
+  incrementSalesCampaignStat,
   listSalesSequences,
   putOutlookConnection,
   putSalesSequence,
   recordSalesSend,
 } from "../../../lib/rapid-iq/sales-automation-db.js";
+import { ddb } from "../../../repositories/baseRepository.js";
 import {
   ensureOutlookAccessToken,
   isOutlookGraphMock,
@@ -43,6 +49,24 @@ function fromAddress(): string {
   return process.env.SES_FROM_EMAIL?.trim() || env.sesFromEmail || "noreply@nexcortiq.us";
 }
 
+async function lookupUnsubscribeToken(email: string): Promise<string> {
+  const marketingTable = env.marketingLeadsTable?.trim();
+  if (!marketingTable) return "";
+  try {
+    const profile = await ddb.send(
+      new GetCommand({
+        TableName: marketingTable,
+        Key: { pk: `LEAD#${email.trim().toLowerCase()}`, sk: "PROFILE" },
+      }),
+    );
+    return typeof profile.Item?.unsubscribeToken === "string"
+      ? profile.Item.unsubscribeToken
+      : "";
+  } catch {
+    return "";
+  }
+}
+
 export type CampaignSendChannel = "outlook" | "outlook_mock" | "ses" | "log";
 
 export async function deliverCampaignStep(
@@ -50,6 +74,12 @@ export async function deliverCampaignStep(
   step: RapidIqSalesOutreachStep,
   outlook: SalesOutlookConnection | null,
 ): Promise<{ live: boolean; channel: CampaignSendChannel; outlook?: SalesOutlookConnection }> {
+  const unsubscribeToken = await lookupUnsubscribeToken(seq.recipientEmail);
+  const bodies = applyUnsubscribeTokenToEmailBodies(
+    { text: step.email.bodyText, html: step.email.bodyHtml },
+    unsubscribeToken || null,
+  );
+
   if (outlook) {
     if (outlook.mock || isOutlookGraphMock()) {
       console.log(
@@ -68,8 +98,8 @@ export async function deliverCampaignStep(
       accessToken: ensured.accessToken,
       to: seq.recipientEmail,
       subject: step.email.subject,
-      text: step.email.bodyText,
-      html: step.email.bodyHtml,
+      text: bodies.text,
+      html: bodies.html,
     });
     return { live: true, channel: "outlook", outlook: ensured.next };
   }
@@ -77,6 +107,7 @@ export async function deliverCampaignStep(
   const from = fromAddress();
   const live = !env.sesMock && from.includes("@") && seq.recipientEmail.includes("@");
   if (live) {
+    const campaignId = seq.attribution.campaignId?.trim() || seq.sequenceId;
     await ses.send(
       new SendEmailCommand({
         Source: from,
@@ -84,13 +115,24 @@ export async function deliverCampaignStep(
         Message: {
           Subject: { Data: step.email.subject, Charset: "UTF-8" },
           Body: {
-            Text: { Data: step.email.bodyText, Charset: "UTF-8" },
-            ...(step.email.bodyHtml ? { Html: { Data: step.email.bodyHtml, Charset: "UTF-8" } } : {}),
+            Text: { Data: bodies.text, Charset: "UTF-8" },
+            ...(bodies.html ? { Html: { Data: bodies.html, Charset: "UTF-8" } } : {}),
           },
         },
-        ...sesConfigurationSetFields(),
+        Tags: [
+          { Name: "campaignId", Value: campaignId.slice(0, 256) },
+          ...(unsubscribeToken
+            ? [{ Name: "unsubscribeToken", Value: unsubscribeToken.slice(0, 256) }]
+            : []),
+        ],
+        ...sesMarketingConfigurationSetFields(),
       }),
     );
+    try {
+      await incrementSalesCampaignStat(campaignId, "sent");
+    } catch {
+      /* stats must not block send */
+    }
     return { live: true, channel: "ses" };
   }
 

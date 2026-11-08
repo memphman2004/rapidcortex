@@ -206,7 +206,8 @@ export default function UnsubscribePage() {
               </div>
               <h1 style={S.title}>Unsubscribe from Inside iQ?</h1>
               <p style={S.sub}>
-                You won&apos;t receive any more updates from us. You can always sign up again at
+                We&apos;ll stop sending you marketing emails. Your address stays on file as inactive
+                so we don&apos;t contact you again by mistake. You can always sign up again at
                 nexcortiq.us if you change your mind.
               </p>
               <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
@@ -236,8 +237,8 @@ export default function UnsubscribePage() {
               </div>
               <h1 style={S.title}>Unsubscribe from NexCort iQ emails</h1>
               <p style={S.sub}>
-                Enter the email address that receives our messages and we&apos;ll remove you from
-                the list.
+                Enter the email address that receives our messages and we&apos;ll mark it inactive
+                so you stop getting mail.
               </p>
               <form onSubmit={handleEmailSubmit} style={{ textAlign: "left", maxWidth: 320, margin: "0 auto" }}>
                 <label htmlFor="unsub-email" style={{ display: "block", fontSize: 12, color: "#6b83a8", marginBottom: 6 }}>

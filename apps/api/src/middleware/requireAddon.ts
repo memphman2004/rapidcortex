@@ -228,13 +228,30 @@ export function requireTranslateAddon(vertical: TranslateVertical): LambdaMiddle
     const listed = [...jwtAddons, ...agencyAddons];
     if (matchesTranslateAddon(listed, vertical)) return null;
 
-    // Venue/campus/hospital field products: matching tenant vertical unlocks that
-    // Translator SKU without a separate add-on row (LE `rc.translate` still plan-gated).
+    // Matching tenant vertical/type unlocks Translator for that product without a
+    // separate add-on row (field apps must work for every login at that agency).
+    const psapTypes = new Set([
+      "city",
+      "county",
+      "municipality",
+      "regional_center",
+      "pilot",
+      "state_agency",
+      "psap",
+      "911",
+      "law_enforcement",
+    ]);
     if (
-      (vertical === "venue" && tenantVertical === "venue") ||
+      (vertical === "venue" && (tenantVertical === "venue" || tenantVertical === "transit")) ||
       (vertical === "campus" && tenantVertical === "campus") ||
       (vertical === "hospital" &&
-        (tenantVertical === "hospital" || tenantVertical === "healthcare"))
+        (tenantVertical === "hospital" || tenantVertical === "healthcare")) ||
+      (vertical === "law_enforcement" &&
+        tenantVertical != null &&
+        (psapTypes.has(tenantVertical) ||
+          tenantVertical === "core" ||
+          tenantVertical === "call_assist" ||
+          tenantVertical === "nexiq"))
     ) {
       return null;
     }

@@ -159,6 +159,11 @@ struct RCUserClaims {
         ["rcsuperadmin", "rcadmin", "rcitadmin"].contains(canonicalRole)
     }
 
+    /// Business-card NFC admin API allows rcadmin / rcsuperadmin only (not rcitadmin).
+    var canManageBusinessCardNfc: Bool {
+        ["rcsuperadmin", "rcadmin"].contains(canonicalRole)
+    }
+
     var isAgencyAdmin: Bool {
         [
             "agencyadmin",

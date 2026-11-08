@@ -63,6 +63,40 @@ export function verticalThreeTouchCopy(input: {
     ];
   }
 
+  if (input.vertical === "LAW_ENFORCEMENT") {
+    return [
+      {
+        subject: `${org}: real-time scene intelligence for every shift`,
+        body: `${signal}Officers and dispatchers at ${org} still piece scene context together mid-call. NexCort iQ gives live AI-powered observations from cameras you already have — no new hardware required. It does not replace CAD or radio.\n\nWould a 15-minute walkthrough this week be useful?`,
+      },
+      {
+        subject: `Re: ${org} — CAD stays the system of record`,
+        body: `CAD remains the system of record. NexCort iQ is an intelligence layer for patrol and dispatch: camera observations, structured incident notes, and supervisor visibility when you enable them.\n\nHappy to send a one-pager or walk the console live.`,
+      },
+      {
+        subject: `${org} — last note unless you want a working session`,
+        body: `If timing is wrong, say so. If command staff wants a short floor walkthrough, I will keep it tight.`,
+      },
+    ];
+  }
+
+  if (input.vertical === "FIRE_EMS") {
+    return [
+      {
+        subject: `${org}: pre-arrival intelligence before the first unit clears`,
+        body: `${signal}Fire and EMS at ${org} still arrive with partial scene context. NexCort iQ pulls live scene data, protocol guidance, and translation support into the dispatch console — before the first unit clears. It does not replace CAD or medical direction.\n\nWould a short demo this week help?`,
+      },
+      {
+        subject: `Re: ${org} — assistive, not a CAD rip-and-replace`,
+        body: `We start most agencies on a standalone pilot so IT is not blocked on a vendor CAD program. Write-back stays off unless you later sign a scoped connector project.\n\nHappy to walk the console or send the Fire/EMS overview.`,
+      },
+      {
+        subject: `${org} — last note unless you want a working session`,
+        body: `If this budget cycle is locked, say so. If a 15-minute walkthrough is useful, I will keep it tight.`,
+      },
+    ];
+  }
+
   // PSAP / HOSPITAL / TRANSIT / ALL — Core 911 posture (assistive, CAD remains SoR).
   return [
     {

@@ -128,6 +128,12 @@ export function isRcInternalRole(role: string): boolean {
   return c === 'rcadmin' || c === 'rcsuperadmin' || c === 'rcitadmin';
 }
 
+/** Business-card NFC admin API: rcadmin / rcsuperadmin only — not rcitadmin, not VENUE_*/CAMPUS_*. */
+export function canManageBusinessCardNfc(role: string): boolean {
+  const c = canonicalizeMobileRole(role);
+  return c === 'rcadmin' || c === 'rcsuperadmin';
+}
+
 export function isVenueRole(role: string): boolean {
   const c = canonicalizeMobileRole(role);
   if (!c) return false;

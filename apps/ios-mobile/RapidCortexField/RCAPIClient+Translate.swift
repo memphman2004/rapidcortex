@@ -60,6 +60,7 @@ struct TranslateWsTokenResponse: Decodable {
 struct TranslateSessionCreateBody: Encodable {
     let subjectLanguage: String
     let vertical: String
+    let agencyId: String?
     let campusContext: CampusCtx?
     let venueContext: VenueCtx?
     let hospitalContext: HospitalCtx?
@@ -95,33 +96,55 @@ extension RCAPIClient {
         return session
     }
 
-    func getTranslateWsToken(sessionId: String, role: String = "officer") async throws -> TranslateWsTokenResponse {
+    func getTranslateWsToken(
+        sessionId: String,
+        role: String = "officer",
+        agencyId: String? = nil
+    ) async throws -> TranslateWsTokenResponse {
         let encoded = sessionId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? sessionId
-        return try await get(
-            path: "/api/translate/sessions/\(encoded)/ws-token?role=\(role)"
-        )
+        var path = "/api/translate/sessions/\(encoded)/ws-token?role=\(role)"
+        if let agencyId, !agencyId.isEmpty {
+            let a = agencyId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? agencyId
+            path += "&agencyId=\(a)"
+        }
+        return try await get(path: path)
     }
 
-    func listTranslateSegments(sessionId: String) async throws -> [TranslateSegmentDTO] {
+    func listTranslateSegments(sessionId: String, agencyId: String? = nil) async throws -> [TranslateSegmentDTO] {
         let encoded = sessionId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? sessionId
-        let resp: TranslateSegmentsResponse = try await get(
-            path: "/api/translate/sessions/\(encoded)/segments"
-        )
+        var path = "/api/translate/sessions/\(encoded)/segments"
+        if let agencyId, !agencyId.isEmpty {
+            let a = agencyId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? agencyId
+            path += "?agencyId=\(a)"
+        }
+        let resp: TranslateSegmentsResponse = try await get(path: path)
         return resp.items
     }
 
-    func getTranslateSession(sessionId: String) async throws -> TranslateSessionDTO {
+    func getTranslateSession(sessionId: String, agencyId: String? = nil) async throws -> TranslateSessionDTO {
         let encoded = sessionId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? sessionId
-        let resp: TranslateSessionResponse = try await get(
-            path: "/api/translate/sessions/\(encoded)"
-        )
+        var path = "/api/translate/sessions/\(encoded)"
+        if let agencyId, !agencyId.isEmpty {
+            let a = agencyId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? agencyId
+            path += "?agencyId=\(a)"
+        }
+        let resp: TranslateSessionResponse = try await get(path: path)
         return resp.session
     }
 
-    func closeTranslateSession(sessionId: String, writebackNote: Bool) async throws -> TranslateCloseResponse {
+    func closeTranslateSession(
+        sessionId: String,
+        writebackNote: Bool,
+        agencyId: String? = nil
+    ) async throws -> TranslateCloseResponse {
         let encoded = sessionId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? sessionId
+        var path = "/api/translate/sessions/\(encoded)/close"
+        if let agencyId, !agencyId.isEmpty {
+            let a = agencyId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? agencyId
+            path += "?agencyId=\(a)"
+        }
         return try await post(
-            path: "/api/translate/sessions/\(encoded)/close",
+            path: path,
             body: TranslateCloseBody(writebackNote: writebackNote),
             timeout: 60
         )

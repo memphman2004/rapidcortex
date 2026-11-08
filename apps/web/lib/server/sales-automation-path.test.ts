@@ -15,10 +15,12 @@ describe("salesAutomationPathRequiresManage", () => {
     expect(salesAutomationPathRequiresManage("POST", ["bulk", "approve"])).toBe(true);
     expect(salesAutomationPathRequiresManage("POST", ["sequences", "x", "suppress"])).toBe(true);
     expect(salesAutomationPathRequiresManage("PATCH", ["sequences", "x"])).toBe(true);
+    expect(salesAutomationPathRequiresManage("PATCH", ["email-list"])).toBe(false);
     expect(salesAutomationPathRequiresManage("GET", ["outlook", "connect"])).toBe(true);
     expect(salesAutomationPathRequiresManage("POST", ["outlook", "disconnect"])).toBe(true);
     expect(salesAutomationPathRequiresManage("DELETE", ["sequences", "x"])).toBe(true);
     expect(salesAutomationPathRequiresManage("DELETE", ["drafts", "x"])).toBe(true);
     expect(salesAutomationPathRequiresManage("DELETE", ["bulk", "camp"])).toBe(true);
+    expect(salesAutomationPathRequiresManage("DELETE", ["email-list"])).toBe(true);
   });
 });

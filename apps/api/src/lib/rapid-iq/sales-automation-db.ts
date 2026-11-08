@@ -34,6 +34,18 @@ function draftPk(id: string): string {
 
 const SALES_CAMPAIGN_GSI2PK = "SALES_CAMPAIGN#ALL";
 
+export type SalesCampaignStats = {
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  bounced: number;
+  unsubscribed: number;
+  complained: number;
+  openRate: number;
+  clickRate: number;
+};
+
 export type SalesCampaignControl = {
   campaignId: string;
   deleted: boolean;
@@ -41,10 +53,52 @@ export type SalesCampaignControl = {
   subject?: string;
   bodyText?: string;
   updatedAt: string;
+  stats?: SalesCampaignStats;
 };
+
+export function emptySalesCampaignStats(): SalesCampaignStats {
+  return {
+    sent: 0,
+    delivered: 0,
+    opened: 0,
+    clicked: 0,
+    bounced: 0,
+    unsubscribed: 0,
+    complained: 0,
+    openRate: 0,
+    clickRate: 0,
+  };
+}
+
+function recomputeRates(stats: SalesCampaignStats): SalesCampaignStats {
+  const delivered = Math.max(stats.delivered, 0);
+  return {
+    ...stats,
+    openRate: delivered > 0 ? Number(((stats.opened / delivered) * 100).toFixed(1)) : 0,
+    clickRate: delivered > 0 ? Number(((stats.clicked / delivered) * 100).toFixed(1)) : 0,
+  };
+}
 
 function campaignPk(id: string): string {
   return `SALES_CAMPAIGN#${id}`;
+}
+
+function parseCampaignStats(raw: unknown): SalesCampaignStats | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const s = raw as Record<string, unknown>;
+  const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0);
+  const base = {
+    sent: n(s.sent),
+    delivered: n(s.delivered),
+    opened: n(s.opened),
+    clicked: n(s.clicked),
+    bounced: n(s.bounced),
+    unsubscribed: n(s.unsubscribed),
+    complained: n(s.complained),
+    openRate: typeof s.openRate === "number" ? s.openRate : 0,
+    clickRate: typeof s.clickRate === "number" ? s.clickRate : 0,
+  };
+  return recomputeRates(base);
 }
 
 function parseCampaignControl(item: Record<string, unknown>): SalesCampaignControl | null {
@@ -57,6 +111,7 @@ function parseCampaignControl(item: Record<string, unknown>): SalesCampaignContr
     subject: typeof item.subject === "string" ? item.subject : undefined,
     bodyText: typeof item.bodyText === "string" ? item.bodyText : undefined,
     updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : new Date().toISOString(),
+    stats: parseCampaignStats(item.stats),
   };
 }
 
@@ -196,7 +251,7 @@ export async function listSalesCampaignControls(): Promise<SalesCampaignControl[
 
 export async function upsertSalesCampaignControl(
   id: string,
-  patch: Partial<Pick<SalesCampaignControl, "deleted" | "approved" | "subject" | "bodyText">>,
+  patch: Partial<Pick<SalesCampaignControl, "deleted" | "approved" | "subject" | "bodyText" | "stats">>,
 ): Promise<SalesCampaignControl> {
   const current = await getSalesCampaignControl(id);
   const next: SalesCampaignControl = {
@@ -205,6 +260,7 @@ export async function upsertSalesCampaignControl(
     approved: patch.approved ?? current?.approved ?? false,
     subject: patch.subject !== undefined ? patch.subject : current?.subject,
     bodyText: patch.bodyText !== undefined ? patch.bodyText : current?.bodyText,
+    stats: patch.stats !== undefined ? recomputeRates(patch.stats) : current?.stats,
     updatedAt: new Date().toISOString(),
   };
   await pipelineDdb.send(
@@ -220,6 +276,37 @@ export async function upsertSalesCampaignControl(
       },
     }),
   );
+  return next;
+}
+
+export type SalesCampaignStatKey =
+  | "sent"
+  | "delivered"
+  | "opened"
+  | "clicked"
+  | "bounced"
+  | "unsubscribed"
+  | "complained";
+
+/** Atomic-ish increment of a campaign engagement counter (read → write). */
+export async function incrementSalesCampaignStat(
+  campaignId: string,
+  key: SalesCampaignStatKey,
+  by = 1,
+): Promise<SalesCampaignStats> {
+  const id = campaignId.trim();
+  if (!id) return emptySalesCampaignStats();
+  const current = await getSalesCampaignControl(id);
+  const stats = { ...(current?.stats ?? emptySalesCampaignStats()) };
+  stats[key] = Math.max(0, (stats[key] ?? 0) + by);
+  const next = recomputeRates(stats);
+  await upsertSalesCampaignControl(id, {
+    deleted: current?.deleted ?? false,
+    approved: current?.approved ?? false,
+    subject: current?.subject,
+    bodyText: current?.bodyText,
+    stats: next,
+  });
   return next;
 }
 

@@ -93,6 +93,8 @@ sam deploy \
     "HttpApiJwtAuthorizerId=${JWT_AUTHORIZER_ID}" \
     SalesLeadsTable=rapid-cortex-sales-leads-dev \
     LeadSignalsTable=rapid-cortex-lead-signals-dev \
+    MarketingLeadsTable=rapid-cortex-marketing-leads-dev \
+    RapidIqPipelineSignalsTable=rapid-cortex-rapid-iq-pipeline-signals-dev \
     AuditTable=rapid-cortex-audit-dev \
     AgenciesTable=rapid-cortex-agencies-dev \
     IncidentsTable=rapid-cortex-incidents-dev \

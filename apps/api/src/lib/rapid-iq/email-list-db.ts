@@ -37,13 +37,23 @@ function parseEntry(item: Record<string, unknown>): EmailListEntry | null {
     email: item.email,
     vertical: item.vertical,
     name: item.name,
+    agencyName: item.agencyName,
     source: item.source,
     psapId: item.psapId,
     createdAt: item.createdAt,
     createdBy: item.createdBy,
     unsubscribed: item.unsubscribed,
   });
-  return parsed.success ? parsed.data : null;
+  if (!parsed.success) return null;
+  // Preserve agencyName even if an older shared schema strip it on parse.
+  const rawAgency =
+    typeof item.agencyName === "string" && item.agencyName.trim()
+      ? item.agencyName.trim().slice(0, 300)
+      : undefined;
+  if (rawAgency && !parsed.data.agencyName) {
+    return { ...parsed.data, agencyName: rawAgency };
+  }
+  return parsed.data;
 }
 
 export async function getEmailListEntry(
@@ -133,6 +143,7 @@ export async function subscribeEmailList(
     email,
     vertical: opts.body.vertical,
     name: opts.body.name?.trim() || existing?.name,
+    agencyName: opts.body.agencyName?.trim() || existing?.agencyName,
     source: opts.body.source ?? "manual",
     psapId: opts.body.psapId?.trim() || existing?.psapId,
     createdAt: existing?.createdAt ?? now,
@@ -170,12 +181,90 @@ export async function removeEmailListEntry(
   );
 }
 
-/** Unsubscribe: local UNSUB# + remove from all vertical lists. */
+export type MoveEmailListEntryResult =
+  | { ok: true; entry: EmailListEntry }
+  | { ok: false; reason: "not_found" | "invalid_email" | "same_vertical" };
+
+/** Move membership to another vertical (copy then delete source). */
+export async function moveEmailListEntry(opts: {
+  email: string;
+  fromVertical: EmailListVertical;
+  toVertical: EmailListVertical;
+  updatedBy?: string;
+}): Promise<MoveEmailListEntryResult> {
+  const email = opts.email.trim().toLowerCase();
+  if (!email || !email.includes("@")) return { ok: false, reason: "invalid_email" };
+  if (opts.fromVertical === opts.toVertical) return { ok: false, reason: "same_vertical" };
+
+  const existing = await getEmailListEntry(opts.fromVertical, email);
+  if (!existing) return { ok: false, reason: "not_found" };
+
+  const now = new Date().toISOString();
+  const entry: EmailListEntry = {
+    ...existing,
+    email,
+    vertical: opts.toVertical,
+    createdBy: opts.updatedBy ?? existing.createdBy,
+    unsubscribed: false,
+  };
+
+  await pipelineDdb.send(
+    new PutCommand({
+      TableName: table(),
+      Item: {
+        ...entry,
+        pk: listPk(opts.toVertical),
+        sk: emailSk(email),
+        entityType: "email_list",
+        agencyId: "platform",
+        updatedAt: now,
+        movedFromVertical: opts.fromVertical,
+      },
+    }),
+  );
+  await removeEmailListEntry(opts.fromVertical, email);
+  return { ok: true, entry };
+}
+
+/**
+ * Soft-unsubscribe one vertical membership: keep the row, set unsubscribed=true
+ * so the Email List UI can show it greyed/inactive without deleting history.
+ */
+export async function markEmailListUnsubscribed(
+  vertical: EmailListVertical,
+  email: string,
+): Promise<boolean> {
+  const lower = email.trim().toLowerCase();
+  if (!lower) return false;
+  const existing = await getEmailListEntry(vertical, lower);
+  if (!existing) return false;
+  const now = new Date().toISOString();
+  await pipelineDdb.send(
+    new PutCommand({
+      TableName: table(),
+      Item: {
+        ...existing,
+        pk: listPk(vertical),
+        sk: emailSk(lower),
+        entityType: "email_list",
+        agencyId: "platform",
+        unsubscribed: true,
+        updatedAt: now,
+      },
+    }),
+  );
+  return true;
+}
+
+/**
+ * Unsubscribe: local UNSUB# + soft-deactivate every vertical membership.
+ * Rows stay on the Email List (greyed/inactive); they are excluded from sends.
+ */
 export async function unsubscribeEmailEverywhere(email: string): Promise<void> {
   const lower = email.trim().toLowerCase();
   if (!lower) return;
   await putSalesUnsubscribe(lower);
-  await Promise.all(EMAIL_LIST_VERTICALS.map((v) => removeEmailListEntry(v, lower)));
+  await Promise.all(EMAIL_LIST_VERTICALS.map((v) => markEmailListUnsubscribed(v, lower)));
 }
 
 /**
@@ -207,13 +296,15 @@ export async function listActiveEmailListRecipients(
 }
 
 export function emailListEntriesToCsv(entries: EmailListEntry[]): string {
-  const header = "email,name,vertical,source,createdAt,psapId";
+  const header = "email,name,agencyName,vertical,source,status,createdAt,psapId";
   const lines = entries.map((e) =>
     [
       e.email,
       csvEscape(e.name ?? ""),
+      csvEscape(e.agencyName ?? ""),
       e.vertical,
       e.source,
+      e.unsubscribed ? "unsubscribed" : "active",
       e.createdAt,
       e.psapId ?? "",
     ].join(","),

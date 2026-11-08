@@ -48,9 +48,19 @@ Parameters:
     Type: String
     Default: ""
     Description: Lead signals table for GET /api/rc-admin/signal-feed (ByVerticalDetectedAt GSI)
+  MarketingLeadsTable:
+    Type: String
+    Default: ""
+    Description: Inside the Cortex marketing leads (Apollo dual-write + unsubscribe SoT)
+  RapidIqPipelineSignalsTable:
+    Type: String
+    Default: ""
+    Description: Pipeline signals table hosting EMAILLIST# vertical membership
 
 Conditions:
   HasLeadSignalsTable: !Not [!Equals [!Ref LeadSignalsTable, ""]]
+  HasMarketingLeadsTable: !Not [!Equals [!Ref MarketingLeadsTable, ""]]
+  HasPipelineSignalsTable: !Not [!Equals [!Ref RapidIqPipelineSignalsTable, ""]]
 
 Globals:
   Function:
@@ -77,6 +87,8 @@ Globals:
         COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
         COGNITO_REGION: !Ref AWS::Region
         APPROVED_CORS_ORIGINS: !Ref ApprovedCorsOrigins
+        MARKETING_LEADS_TABLE: !Ref MarketingLeadsTable
+        RAPID_IQ_PIPELINE_SIGNALS_TABLE: !Ref RapidIqPipelineSignalsTable
 
 Resources:
   NodeDepsLayer:
@@ -137,6 +149,39 @@ Resources:
                 - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LeadSignalsTable}
                 - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LeadSignalsTable}/index/*
             - !Ref AWS::NoValue
+          - !If
+            - HasMarketingLeadsTable
+            - Sid: MarketingLeadsApolloWrite
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:Query
+              Resource:
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MarketingLeadsTable}
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MarketingLeadsTable}/index/*
+            - !Ref AWS::NoValue
+          - !If
+            - HasPipelineSignalsTable
+            - Sid: EmailListApolloWrite
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+                - dynamodb:Query
+              Resource:
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RapidIqPipelineSignalsTable}
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RapidIqPipelineSignalsTable}/index/*
+            - !Ref AWS::NoValue
+          - Sid: SesSuppressionCheck
+            Effect: Allow
+            Action:
+              - ses:GetSuppressedDestination
+              - sesv2:GetSuppressedDestination
+            Resource: "*"
 
   ApolloLeadsIngestFunction:
     Type: AWS::Serverless::Function

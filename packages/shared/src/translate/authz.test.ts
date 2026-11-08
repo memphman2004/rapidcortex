@@ -27,19 +27,21 @@ describe("Translate RBAC", () => {
     expect(canStartTranslateSession(user("dispatcher"), "other")).toBe(false);
   });
 
-  it("rejects venue staff from LE start", () => {
-    expect(canStartTranslateSession(user("VENUE_OPERATOR"), "kcpd")).toBe(false);
+  it("allows venue staff to start LE sessions in their own agency", () => {
+    expect(canStartTranslateSession(user("VENUE_OPERATOR"), "kcpd")).toBe(true);
+    expect(canStartTranslateSession(user("VENUE_OPERATOR"), "other")).toBe(false);
   });
 
-  it("allows canonical venue roles to start venue sessions", () => {
+  it("allows any same-agency venue login to start (including guest services)", () => {
     expect(canStartTranslateSessionVenue(user("VENUE_SUPERVISOR"), "kcpd")).toBe(true);
     expect(canStartTranslateSessionVenue(user("VENUE_OPERATOR"), "kcpd")).toBe(true);
-    expect(canStartTranslateSessionVenue(user("VENUE_GUEST_SERVICES"), "kcpd")).toBe(false);
+    expect(canStartTranslateSessionVenue(user("VENUE_GUEST_SERVICES"), "kcpd")).toBe(true);
+    expect(canStartTranslateSessionVenue(user("VENUE_GUEST_SERVICES"), "other")).toBe(false);
   });
 
-  it("normalizes uppercase campus Cognito groups", () => {
+  it("allows any same-agency campus login to start (including faculty)", () => {
     expect(canStartTranslateSessionCampus(user("CAMPUS_SECURITY"), "kcpd")).toBe(true);
-    expect(canStartTranslateSessionCampus(user("CAMPUS_FACULTY"), "kcpd")).toBe(false);
+    expect(canStartTranslateSessionCampus(user("CAMPUS_FACULTY"), "kcpd")).toBe(true);
     expect(canMonitorTranslateSessionCampus(user("campus_security"), "kcpd")).toBe(true);
     expect(canMonitorTranslateSessionCampus(user("CAMPUS_DISPATCH"), "kcpd")).toBe(true);
     expect(canMonitorTranslateSessionCampus(user("CAMPUS_FACULTY"), "kcpd")).toBe(true);
@@ -50,11 +52,12 @@ describe("Translate RBAC", () => {
     expect(canStartTranslateSessionHospital(user("HOSPITAL_STAFF"), "kcpd")).toBe(true);
   });
 
-  it("resolves vertical start checks", () => {
+  it("resolves vertical start checks for any same-agency login", () => {
     expect(canStartTranslateSessionForVertical(user("dispatcher"), "kcpd", "law_enforcement")).toBe(
       true,
     );
-    expect(canStartTranslateSessionForVertical(user("dispatcher"), "kcpd", "venue")).toBe(false);
+    expect(canStartTranslateSessionForVertical(user("dispatcher"), "kcpd", "venue")).toBe(true);
+    expect(canStartTranslateSessionForVertical(user("dispatcher"), "other", "venue")).toBe(false);
   });
 
   it("allows transit security to start venue translate sessions", () => {
@@ -66,7 +69,8 @@ describe("Translate RBAC", () => {
     expect(canViewTranslateAssistanceSummary(user("CAMPUS_SECURITY"), "kcpd")).toBe(true);
     expect(canViewTranslateAssistanceSummary(user("CAMPUS_SECURITY"), "other")).toBe(false);
     expect(canViewTranslateAssistanceSummary(user("VENUE_SECURITY"), "kcpd")).toBe(true);
-    expect(canViewTranslateAssistanceSummary(user("VENUE_GUEST_SERVICES"), "kcpd")).toBe(false);
+    // Guest services can start; summary remains monitor/start-aware — guest can start so summary true.
+    expect(canViewTranslateAssistanceSummary(user("VENUE_GUEST_SERVICES"), "kcpd")).toBe(true);
   });
 });
 

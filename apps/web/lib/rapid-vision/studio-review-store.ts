@@ -68,6 +68,7 @@ export function recordFrom(item: Record<string, unknown>): StudioReviewRecord | 
     labelReviewer: typeof item.labelReviewer === "string" ? item.labelReviewer : undefined,
     labelVerifiedAt: typeof item.labelVerifiedAt === "string" ? item.labelVerifiedAt : undefined,
     box: boxFrom(item.box),
+    boxes: boxesFrom(item.boxes, item.box),
     audit: auditFrom(item.audit),
     distance: typeof item.distance === "string" ? item.distance : null,
     difficulty: item.difficulty === "challenging" || item.difficulty === "standard" ? item.difficulty : undefined,
@@ -105,6 +106,15 @@ function boxFrom(value: unknown): StudioReviewRecord["box"] {
   const height = Number(box.height);
   if ([x, y, width, height].some((n) => !Number.isFinite(n))) return undefined;
   return { x, y, width, height };
+}
+
+function boxesFrom(value: unknown, legacyBox: unknown): StudioReviewRecord["boxes"] {
+  if (Array.isArray(value)) {
+    const boxes = value.map(boxFrom).filter((box): box is NonNullable<StudioReviewRecord["box"]> => Boolean(box));
+    return boxes.length > 0 ? boxes : undefined;
+  }
+  const single = boxFrom(legacyBox);
+  return single ? [single] : undefined;
 }
 
 function auditFrom(value: unknown): StudioReviewRecord["audit"] {

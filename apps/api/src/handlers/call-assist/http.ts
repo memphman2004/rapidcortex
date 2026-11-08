@@ -7,6 +7,7 @@ import {
   callAssistAdminConfigPatchSchema,
   callAssistCadPushBodySchema,
   callAssistDidClaimSchema,
+  callAssistDidMappingSchema,
   callAssistDemoRunSchema,
   callAssistExternalAgencyUpsertSchema,
   callAssistForceTransferBodySchema,
@@ -270,6 +271,35 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
       await callAssistOnboardingService.claimDid(parts[1], parsed.data.phoneNumber);
       return withCorrelationHeaders(event, ok({ agencyId: parts[1], onboardingStatus: "SMOKE_TEST_PENDING" }));
+    }
+
+    // RC-internal DID → agency mapping (no redeploy). Superadmin / rcadmin / rcitadmin only.
+    if (
+      (method === "PUT" || method === "POST") &&
+      parts[0] === "admin" &&
+      parts[1] === "did-mapping" &&
+      parts.length === 2
+    ) {
+      if (!isRcInternalOperator(user.role)) {
+        return withCorrelationHeaders(event, forbidden("RC internal operators only"));
+      }
+      const parsed = callAssistDidMappingSchema.safeParse(body);
+      if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      await callAssistStore.putDidLookup(parsed.data.phoneNumber, parsed.data.agencyId);
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: parsed.data.agencyId,
+        actorId: user.userId,
+        type: AUDIT_EVENT_TYPES.CALL_ASSIST_ONBOARDING_STARTED,
+        details: { didMapping: true, phoneNumber: parsed.data.phoneNumber },
+        createdAt: new Date().toISOString(),
+        resourceType: "session",
+        resourceId: parsed.data.agencyId,
+      });
+      return withCorrelationHeaders(
+        event,
+        ok({ phoneNumber: parsed.data.phoneNumber, agencyId: parsed.data.agencyId }),
+      );
     }
 
     if (method === "POST" && parts[0] === "onboarding" && parts[2] === "retry" && parts[1]) {

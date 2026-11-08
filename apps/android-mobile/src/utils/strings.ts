@@ -309,6 +309,26 @@ export const Strings = {
     },
   },
 
+  businessCards: {
+    cta: 'Business Card NFC',
+    ctaBlurb: 'Program employee NFC stickers with /c/… permanent links',
+    nfcListTitle: 'Business Card NFC',
+    nfcListBlurb:
+      'Pick an assigned NTAG, then write its permanent /c/… URL. Do not write the public /card/… profile link.',
+    nfcListEmpty: 'No NFC cards yet. Create and assign tags in RC Admin → NFC Card Management.',
+    unassigned: 'Unassigned',
+    programNfc: 'Program NFC Tag',
+    ready: 'Hold an NTAG213, NTAG215, or NTAG216 sticker to the back of your phone',
+    writing: 'Writing business card URL…',
+    success: 'Tag opens this person’s digital business card',
+    markedProgrammed: 'Marked programmed in NFC Card Management.',
+    markProgrammedFailed:
+      'Tag was written, but status could not be updated. Mark programmed in RC Admin if needed.',
+    missingCard: 'That NFC card was not found.',
+    revoked: 'This tag was revoked. Issue a new NTAG instead.',
+    invalidUrl: 'This card does not have a valid permanent /c/… URL.',
+  },
+
   campus: {
     codes: 'Reporting Points',
     create: 'Add',

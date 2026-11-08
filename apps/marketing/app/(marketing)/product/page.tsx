@@ -6,17 +6,18 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Product Overview | NexCort iQ",
     description:
-      "Explore NexCort iQ product lines for 911 centers, campus safety teams, and venue command environments.",
+      "Explore NexCort iQ product lines for 911 centers, campus safety, venue command, and transit operations.",
     keywords: [
       "public safety software",
       "campus safety platform",
       "venue security software",
+      "transit operations software",
       "911 dispatch intelligence",
       "incident coordination",
     ],
     openGraph: {
       title: "Product Overview | NexCort iQ",
-      description: "NexCort iQ products for Core, Campus, and Venue operations.",
+      description: "NexCort iQ products for Core, Campus, Venue, and Transit operations.",
       url: absoluteUrl("/product"),
       siteName: "NexCort iQ",
       images: [buildOgShareImage("NexCort iQ product overview")],
@@ -25,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
     twitter: {
       card: "summary_large_image",
       title: "Product Overview | NexCort iQ",
-      description: "Product lines for Core, Campus, and Venue operations.",
+      description: "Product lines for Core, Campus, Venue, and Transit operations.",
       images: [{ url: buildOgShareImage().url, alt: buildOgShareImage().alt }],
     },
     alternates: { canonical: absoluteUrl("/product") },
@@ -41,11 +42,11 @@ export default function ProductOverviewPage() {
         <h1 className="text-3xl font-semibold text-white sm:text-4xl">NexCort iQ Product Overview</h1>
         <p className="max-w-3xl text-sm text-slate-300">
           NexCort iQ delivers decision-support and incident intelligence for
-          emergency operations across core public safety, campus safety, and venue command environments.
+          emergency operations across core public safety, campus safety, venue command, and transit environments.
         </p>
       </header>
 
-      <section className="mt-8 grid gap-4 md:grid-cols-3">
+      <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <section className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
           <h2 className="text-lg font-medium text-white">911 Centers/PSAPs</h2>
           <p className="mt-2 text-sm text-slate-300">
@@ -71,6 +72,15 @@ export default function ProductOverviewPage() {
           </p>
           <Link href="/product/venue" className="mt-4 inline-block text-sm font-medium text-sky-300 hover:text-sky-200">
             View Venue
+          </Link>
+        </section>
+        <section className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
+          <h2 className="text-lg font-medium text-white">Transit</h2>
+          <p className="mt-2 text-sm text-slate-300">
+            Fleet, route, and station operations for bus, rail, and ferry agencies.
+          </p>
+          <Link href="/product/transit" className="mt-4 inline-block text-sm font-medium text-sky-300 hover:text-sky-200">
+            View Transit
           </Link>
         </section>
       </section>

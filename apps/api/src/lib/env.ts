@@ -805,6 +805,12 @@ export const env = {
     return stage ? `rapid-cortex-transactional-${stage}` : "";
   })(),
   /**
+   * SES configuration set for marketing / campaign mail (open/click tracking).
+   * Canonical: nexcortiq-marketing. Do not mix with transactional billing mail.
+   */
+  sesMarketingConfigurationSetName:
+    process.env.SES_MARKETING_CONFIGURATION_SET_NAME?.trim() || "nexcortiq-marketing",
+  /**
    * Origin of the public marketing site (absolute logo URLs in HTML email, etc.).
    * Aligns with web `NEXT_PUBLIC_SITE_URL`; defaults to https://www.rapidcortex.us
    */

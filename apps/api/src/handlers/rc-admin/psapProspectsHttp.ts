@@ -480,11 +480,16 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         if (email && email.includes("@")) {
           try {
             if (parsed.data.monthlyEmailOptIn) {
+              const contactName =
+                parsed.data.primaryContactName?.trim() ||
+                updated.primaryContactName?.trim() ||
+                undefined;
               const sub = await subscribeEmailList({
                 body: {
                   email,
                   vertical: "PSAP",
-                  name: updated.primaryContactName,
+                  name: contactName,
+                  agencyName: updated.psapName?.trim() || undefined,
                   source: "psap_prospect",
                   psapId,
                 },
@@ -500,12 +505,15 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
               await unsubscribeEmailEverywhere(email);
             }
           } catch (err) {
-            console.warn(
+            console.error(
               JSON.stringify({
                 msg: "psap_monthly_email_list_sync_failed",
                 psapId,
                 error: err instanceof Error ? err.message : String(err),
               }),
+            );
+            return serverError(
+              "Could not update the monthly email list. Contact has been saved; try Subscribe again.",
             );
           }
         }

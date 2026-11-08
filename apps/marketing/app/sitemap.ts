@@ -41,6 +41,7 @@ const PUBLIC_ROUTES: RouteEntry[] = [
   { path: "/product/core", changeFrequency: "weekly", priority: 0.95 },
   { path: "/product/campus", changeFrequency: "weekly", priority: 0.9 },
   { path: "/product/venue", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/product/transit", changeFrequency: "weekly", priority: 0.9 },
   { path: "/venue", changeFrequency: "weekly", priority: 0.9 },
   { path: "/venue/how-it-works", changeFrequency: "monthly", priority: 0.7 },
   { path: "/rc-lite", changeFrequency: "weekly", priority: 0.75 },

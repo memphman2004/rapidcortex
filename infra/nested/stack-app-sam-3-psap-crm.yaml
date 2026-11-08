@@ -56,12 +56,17 @@ Parameters:
     Type: String
     Default: ""
     Description: Contacts address book persons table (optional — sync no-ops when empty)
+  RapidIqPipelineSignalsTable:
+    Type: String
+    Default: ""
+    Description: Pipeline signals table (EMAILLIST# membership for monthly Inside iQ subscribe)
 
 Conditions:
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
   HasHunterSecretArn: !Not [!Equals [!Ref RapidIqHunterApiKeySecretArn, ""]]
   HasApolloSecretArn: !Not [!Equals [!Ref RapidIqApolloApiKeySecretArn, ""]]
   HasContactCompaniesTable: !Not [!Equals [!Ref ContactCompaniesTable, ""]]
+  HasRapidIqPipelineSignalsTable: !Not [!Equals [!Ref RapidIqPipelineSignalsTable, ""]]
 
 Globals:
   Function:
@@ -93,6 +98,7 @@ Globals:
         RAPID_IQ_APOLLO_API_KEY_SECRET_ARN: !Ref RapidIqApolloApiKeySecretArn
         CONTACT_COMPANIES_TABLE: !Ref ContactCompaniesTable
         CONTACT_PERSONS_TABLE: !Ref ContactPersonsTable
+        RAPID_IQ_PIPELINE_SIGNALS_TABLE: !Ref RapidIqPipelineSignalsTable
 
 Resources:
   NodeDepsLayer:
@@ -153,6 +159,19 @@ Resources:
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ContactPersonsTable}/index/*
               - - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-unused-contact-companies
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-unused-contact-persons
+          - Sid: EmailListPipelineWrite
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+            Resource: !If
+              - HasRapidIqPipelineSignalsTable
+              - - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RapidIqPipelineSignalsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RapidIqPipelineSignalsTable}/index/*
+              - - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-unused-pipeline-signals
 
   PsapProspectsHttpFunction:
     Type: AWS::Serverless::Function

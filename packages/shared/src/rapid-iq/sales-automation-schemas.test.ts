@@ -19,6 +19,8 @@ describe("normalizeSalesAutomationVertical", () => {
     expect(normalizeSalesAutomationVertical("hospital")).toBe("HOSPITAL");
     expect(normalizeSalesAutomationVertical("transit")).toBe("TRANSIT");
     expect(normalizeSalesAutomationVertical("airport")).toBe("TRANSIT");
+    expect(normalizeSalesAutomationVertical("law_enforcement")).toBe("LAW_ENFORCEMENT");
+    expect(normalizeSalesAutomationVertical("fire_ems")).toBe("FIRE_EMS");
     expect(normalizeSalesAutomationVertical("all")).toBe("ALL");
   });
 

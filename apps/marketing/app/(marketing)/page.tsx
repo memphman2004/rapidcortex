@@ -145,6 +145,12 @@ export default function MarketingHomePage() {
               View plans
             </Link>
             <Link
+              href="#explore-product-lines"
+              className="inline-flex min-h-12 w-full max-w-xs items-center justify-center rounded-md border border-slate-600/90 bg-slate-950/40 px-6 py-3 text-base font-semibold text-slate-100 backdrop-blur-sm hover:border-slate-500 sm:w-auto sm:text-sm"
+            >
+              Explore products
+            </Link>
+            <Link
               href={login}
               className="hidden shrink-0 text-sm font-medium text-slate-400 underline-offset-4 hover:text-slate-200 hover:underline md:inline"
             >
@@ -238,9 +244,12 @@ export default function MarketingHomePage() {
         </ul>
       </section>
 
-      <section className="relative z-10 bg-slate-950 mx-auto max-w-6xl px-4 pb-8 sm:px-6">
+      <section
+        id="explore-product-lines"
+        className="relative z-10 scroll-mt-24 bg-slate-950 mx-auto max-w-6xl px-4 pb-8 sm:px-6"
+      >
         <h2 className="text-center text-xl font-semibold text-white sm:text-2xl">Explore product lines</h2>
-        <nav className="mt-6 grid gap-3 sm:grid-cols-3" aria-label="Product pages">
+        <nav className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Product pages">
           <Link
             href="/product/core"
             className="flex items-start rounded-md border border-slate-700 bg-slate-900/40 px-4 pt-2 pb-3 text-sm font-medium leading-snug text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
@@ -258,6 +267,12 @@ export default function MarketingHomePage() {
             className="flex items-start rounded-md border border-slate-700 bg-slate-900/40 px-4 pt-2 pb-3 text-sm font-medium leading-snug text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
           >
             Venue
+          </Link>
+          <Link
+            href="/product/transit"
+            className="flex items-start rounded-md border border-slate-700 bg-slate-900/40 px-4 pt-2 pb-3 text-sm font-medium leading-snug text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
+          >
+            Transit
           </Link>
         </nav>
       </section>

@@ -19,7 +19,6 @@ function sameAgency(user: Pick<UserContext, "agencyId">, agencyId: string): bool
   return Boolean(agencyId) && user.agencyId === agencyId;
 }
 
-const LE_START = new Set(["dispatcher", "supervisor", "agencyadmin", "officer"]);
 const LE_LINK = new Set(["dispatcher", "supervisor", "agencyadmin"]);
 const LE_MONITOR = new Set([
   "dispatcher",
@@ -32,20 +31,6 @@ const LE_MONITOR = new Set([
 const LE_EXPORT = new Set(["supervisor", "agencyadmin", "analyst", "auditor"]);
 const LE_CAD_APPROVE = new Set(["supervisor", "agencyadmin"]);
 
-const VENUE_START = new Set([
-  "venue_supervisor",
-  "venue_staff",
-  "venue_operator",
-  "venue_security",
-  "venue_admin",
-  "agencyadmin",
-  "agencyit",
-  // Transit field apps share the venue product path / translate vertical.
-  "transit_admin",
-  "transit_supervisor",
-  "transit_security",
-  "transit_operator",
-]);
 const VENUE_MONITOR = new Set([
   "venue_supervisor",
   "venue_admin",
@@ -57,13 +42,6 @@ const VENUE_MONITOR = new Set([
   "transit_supervisor",
 ]);
 
-const CAMPUS_START = new Set([
-  "CAMPUS_SECURITY",
-  "CAMPUS_DISPATCH",
-  "CAMPUS_SUPERVISOR",
-  "CAMPUS_ADMIN",
-  "CAMPUS_COUNSELOR",
-]);
 const CAMPUS_MONITOR = new Set([
   "CAMPUS_SUPERVISOR",
   "CAMPUS_ADMIN",
@@ -72,23 +50,22 @@ const CAMPUS_MONITOR = new Set([
   "CAMPUS_FACULTY",
 ]);
 
-const HOSPITAL_START = new Set([
-  "hospitalstaff",
-  "hospitaladmin",
-  "hospital_staff",
-  "hospital_admin",
-  "hospital_coord",
-]);
-
 function platformOverride(user: UserContext): boolean {
   return isRcsuperadmin(user) || isRcInternalOperator(user.role);
 }
 
-/** Officers, dispatchers, supervisors, and admins can start a session. */
-export function canStartTranslateSession(user: UserContext, agencyId: string): boolean {
+/**
+ * Field Translator start: any authenticated account in the target agency
+ * (mobile + web field apps). RC platform operators may start for any agency.
+ */
+function canStartInAgency(user: UserContext, agencyId: string): boolean {
   if (platformOverride(user)) return true;
-  if (!sameAgency(user, agencyId)) return false;
-  return LE_START.has(role(user));
+  return sameAgency(user, agencyId);
+}
+
+/** Any same-agency login can start a law-enforcement Translator session. */
+export function canStartTranslateSession(user: UserContext, agencyId: string): boolean {
+  return canStartInAgency(user, agencyId);
 }
 
 export function canSendTranslateLink(user: UserContext, agencyId: string): boolean {
@@ -116,9 +93,7 @@ export function canApproveTranslateCadWriteback(user: UserContext, agencyId: str
 }
 
 export function canStartTranslateSessionVenue(user: UserContext, agencyId: string): boolean {
-  if (platformOverride(user)) return true;
-  if (!sameAgency(user, agencyId)) return false;
-  return VENUE_START.has(role(user));
+  return canStartInAgency(user, agencyId);
 }
 
 export function canMonitorTranslateSessionVenue(user: UserContext, agencyId: string): boolean {
@@ -131,9 +106,7 @@ export function canMonitorTranslateSessionVenue(user: UserContext, agencyId: str
  * Campus roles use product suffixes (`CAMPUS_SECURITY_K12`); compare matrix family.
  */
 export function canStartTranslateSessionCampus(user: UserContext, agencyId: string): boolean {
-  if (platformOverride(user)) return true;
-  if (!sameAgency(user, agencyId)) return false;
-  return CAMPUS_START.has(campusFamilyOrUpper(user));
+  return canStartInAgency(user, agencyId);
 }
 
 export function canMonitorTranslateSessionCampus(user: UserContext, agencyId: string): boolean {
@@ -143,10 +116,7 @@ export function canMonitorTranslateSessionCampus(user: UserContext, agencyId: st
 }
 
 export function canStartTranslateSessionHospital(user: UserContext, agencyId: string): boolean {
-  if (platformOverride(user)) return true;
-  if (!sameAgency(user, agencyId)) return false;
-  const r = role(user);
-  return HOSPITAL_START.has(r) || HOSPITAL_START.has(r.replace(/_/g, ""));
+  return canStartInAgency(user, agencyId);
 }
 
 export function canStartTranslateSessionForVertical(

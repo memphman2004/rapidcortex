@@ -46,6 +46,25 @@ struct AgencySelectView: View {
                     ProgressView().tint(RCTheme.accentLight)
                 } else {
                     List {
+                        if auth.claims?.canManageBusinessCardNfc == true {
+                            Section {
+                                NavigationLink {
+                                    BusinessCardNfcListView()
+                                } label: {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Business Card NFC")
+                                            .font(.system(size: 15, weight: .semibold))
+                                            .foregroundColor(RCTheme.amber)
+                                        Text("Program employee NFC stickers — no agency pick required")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(RCTheme.textSecondary)
+                                    }
+                                    .padding(.vertical, 4)
+                                }
+                                .listRowBackground(RCTheme.surface1)
+                            }
+                        }
+
                         if let error = vm.error {
                             Section {
                                 Text(error)

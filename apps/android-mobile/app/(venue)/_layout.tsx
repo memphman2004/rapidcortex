@@ -6,7 +6,7 @@ import { FieldProductProvider } from '@/navigation/field-product';
 import { Colors, ThemeProvider } from '@/theme';
 import { loginHrefForProduct } from '@/utils/auth-routes';
 import { isRcTranslateEnabled } from '@/utils/feature-flags';
-import { canStartFieldTranslate, isTransitRole, isVenueRole } from '@/utils/roles';
+import { isTransitRole, isVenueRole } from '@/utils/roles';
 import { Strings } from '@/utils/strings';
 
 function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
@@ -14,8 +14,7 @@ function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
 }
 
 function VenueTabs() {
-  const { role } = useAuth();
-  const showTranslate = isRcTranslateEnabled() && canStartFieldTranslate(role);
+  const showTranslate = isRcTranslateEnabled();
 
   return (
     <Tabs
@@ -67,6 +66,13 @@ function VenueTabs() {
       />
       <Tabs.Screen
         name="trade-show-nfc"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="business-card-nfc"
         options={{
           href: null,
           headerShown: false,

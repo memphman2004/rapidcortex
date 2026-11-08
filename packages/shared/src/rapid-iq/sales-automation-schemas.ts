@@ -7,6 +7,8 @@ import { z } from "zod";
 
 export const RAPID_IQ_SALES_VERTICALS = [
   "PSAP",
+  "LAW_ENFORCEMENT",
+  "FIRE_EMS",
   "CAMPUS",
   "VENUE",
   "HOSPITAL",
@@ -79,6 +81,11 @@ const VERTICAL_ALIASES: Record<string, RapidIqSalesVertical> = {
   rc911: "PSAP",
   "911": "PSAP",
   core: "PSAP",
+  lawenforcement: "LAW_ENFORCEMENT",
+  police: "LAW_ENFORCEMENT",
+  fireems: "FIRE_EMS",
+  fire: "FIRE_EMS",
+  ems: "FIRE_EMS",
   campus: "CAMPUS",
   venue: "VENUE",
   hospital: "HOSPITAL",
@@ -174,6 +181,19 @@ export const rapidIqSalesMetricsSchema = z.object({
 });
 export type RapidIqSalesMetrics = z.infer<typeof rapidIqSalesMetricsSchema>;
 
+export const rapidIqSalesCampaignStatsSchema = z.object({
+  sent: z.number().int().nonnegative().default(0),
+  delivered: z.number().int().nonnegative().default(0),
+  opened: z.number().int().nonnegative().default(0),
+  clicked: z.number().int().nonnegative().default(0),
+  bounced: z.number().int().nonnegative().default(0),
+  unsubscribed: z.number().int().nonnegative().default(0),
+  complained: z.number().int().nonnegative().default(0),
+  openRate: z.number().nonnegative().default(0),
+  clickRate: z.number().nonnegative().default(0),
+});
+export type RapidIqSalesCampaignStats = z.infer<typeof rapidIqSalesCampaignStatsSchema>;
+
 export const rapidIqSalesCampaignCardSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -182,6 +202,7 @@ export const rapidIqSalesCampaignCardSchema = z.object({
   status: z.enum(["scheduled", "active", "pending"]),
   subject: z.string().optional(),
   bodyText: z.string().optional(),
+  stats: rapidIqSalesCampaignStatsSchema.optional(),
 });
 export type RapidIqSalesCampaignCard = z.infer<typeof rapidIqSalesCampaignCardSchema>;
 

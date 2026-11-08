@@ -47,7 +47,10 @@ export type StudioReviewRecord = {
   rightsVerifiedAt?: string;
   labelReviewer?: string;
   labelVerifiedAt?: string;
+  /** Primary / first box — kept for older records and training exporters that read a single box. */
   box?: StudioBox | null;
+  /** All object boxes on this frame. When set, `box` mirrors `boxes[0]`. */
+  boxes?: StudioBox[];
   audit?: ReviewAuditEntry[];
   distance?: string | null;
   difficulty?: "standard" | "challenging";

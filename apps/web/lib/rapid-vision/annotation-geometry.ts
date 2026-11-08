@@ -18,6 +18,16 @@ export function roundStudioBox(box: StudioBox): StudioBox {
   return clampStudioBox({ x: round(box.x), y: round(box.y), width: round(box.width), height: round(box.height) });
 }
 
+export function studioBoxesListMatch(
+  left: StudioBox[] | null | undefined,
+  right: StudioBox[] | null | undefined,
+): boolean {
+  const a = left ?? [];
+  const b = right ?? [];
+  if (a.length !== b.length) return false;
+  return a.every((box, index) => boxesMatch(box, b[index]));
+}
+
 export function boxesMatch(left: StudioBox | null | undefined, right: StudioBox | null | undefined): boolean {
   if (!left && !right) return true;
   if (!left || !right) return false;

@@ -77,9 +77,55 @@ export function slugifyName(first: string, last: string): string {
     .replace(/^-+|-+$/g, "")
     .slice(0, 60)
     .replace(/-+$/g, "");
-  const base = raw.length >= 3 ? raw : "card-user";
+  // Never emit the old "card-user" placeholder — pad short names instead.
+  const base = raw.length >= 3 ? raw : raw ? `${raw}-card`.slice(0, 60) : "contact-card";
   if (RESERVED_SLUGS.has(base)) return `${base}-card`.slice(0, 60);
   return base;
+}
+
+/** Card-owner / display name → slug with spaces removed (Jeff Coleman → jeffcoleman). */
+export function slugifyCardOwner(name: string): string {
+  const raw = name
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "")
+    .slice(0, 60);
+  const base = raw.length >= 3 ? raw : raw ? `${raw}card`.slice(0, 60) : "contactcard";
+  if (RESERVED_SLUGS.has(base)) return `${base}card`.slice(0, 60);
+  return base;
+}
+
+/**
+ * Build a public `/card/{slug}` from the card owner name (spaces stripped).
+ * Prefer displayName, then first+last, then email local-part.
+ * Never invents the literal pair "card" / "user".
+ */
+export function suggestBusinessCardSlug(input: {
+  firstName?: string | null;
+  lastName?: string | null;
+  displayName?: string | null;
+  email?: string | null;
+  fallbackId?: string | null;
+}): string {
+  const display = (input.displayName ?? "").trim();
+  if (display) return slugifyCardOwner(display);
+
+  const first = (input.firstName ?? "").trim();
+  const last = (input.lastName ?? "").trim();
+  const combined = `${first} ${last}`.trim();
+  if (combined) return slugifyCardOwner(combined);
+
+  const emailLocal = (input.email ?? "").split("@")[0]?.trim() ?? "";
+  if (emailLocal) return slugifyCardOwner(emailLocal.replace(/[._]+/g, " "));
+
+  const id = (input.fallbackId ?? "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toLowerCase();
+  return slugifyCardOwner(id || "contact");
+}
+
+/** Placeholder slug written by the old create path — replace when a real name is saved. */
+export function isPlaceholderBusinessCardSlug(slug: string): boolean {
+  return slug === "card-user" || slug === "contact-card";
 }
 
 export function assertSlug(slug: string): void {

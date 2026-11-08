@@ -10,7 +10,10 @@ import {
   isPlatformCardAgency,
   isBusinessCardsEnabled,
   resetRateLimits,
+  isPlaceholderBusinessCardSlug,
+  slugifyCardOwner,
   slugifyName,
+  suggestBusinessCardSlug,
 } from "./domain.js";
 import { DraftSchema, SettingsSchema } from "./schemas.js";
 import { buildVCard, foldVCardLine, vcardPhotoFromBytes } from "./vcard.js";
@@ -37,9 +40,20 @@ describe("business card slugs", () => {
   it("builds a url-safe slug and rejects reserved words", () => {
     expect(slugifyName("Jeff", "Coleman")).toBe("jeff-coleman");
     expect(slugifyName("Admin", "")).not.toBe("admin");
+    expect(slugifyName("", "")).not.toBe("card-user");
     expect(() => assertSlug("admin")).toThrow(BizCardError);
     expect(() => assertSlug("ab")).toThrow(BizCardError);
     expect(() => assertSlug("ok name")).toThrow(BizCardError);
+  });
+
+  it("places the card owner in the slug without spaces", () => {
+    expect(slugifyCardOwner("Jeff Coleman")).toBe("jeffcoleman");
+    expect(suggestBusinessCardSlug({ displayName: "Jeff Coleman" })).toBe("jeffcoleman");
+    expect(suggestBusinessCardSlug({ firstName: "Jeff", lastName: "Coleman" })).toBe("jeffcoleman");
+    expect(suggestBusinessCardSlug({ email: "jeff.coleman@rapidcortex.us" })).toBe("jeffcoleman");
+    expect(suggestBusinessCardSlug({})).not.toBe("card-user");
+    expect(isPlaceholderBusinessCardSlug("card-user")).toBe(true);
+    expect(isPlaceholderBusinessCardSlug("jeffcoleman")).toBe(false);
   });
 });
 

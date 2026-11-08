@@ -1965,6 +1965,30 @@
     },
     {
       "Identifier": "disconnect",
+      "Type": "InvokeLambdaFunction",
+      "Parameters": {
+        "LambdaFunctionARN": "{{disconnectHandlerLambdaArn}}",
+        "InvocationTimeLimitSeconds": "8",
+        "LambdaInvocationAttributes": {
+          "agencyId": "$.Attributes.agencyId",
+          "contactId": "$.ContactId"
+        },
+        "ResponseValidation": {
+          "ResponseType": "STRING_MAP"
+        }
+      },
+      "Transitions": {
+        "NextAction": "disconnect-hangup",
+        "Errors": [
+          {
+            "NextAction": "disconnect-hangup",
+            "ErrorType": "NoMatchingError"
+          }
+        ]
+      }
+    },
+    {
+      "Identifier": "disconnect-hangup",
       "Type": "DisconnectParticipant",
       "Parameters": {},
       "Transitions": {}

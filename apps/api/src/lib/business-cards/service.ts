@@ -15,7 +15,8 @@ import {
   BIOGRAPHY_MAX_LENGTH,
   isCardTheme,
   monthKey,
-  slugifyName,
+  isPlaceholderBusinessCardSlug,
+  suggestBusinessCardSlug,
 } from "./domain.js";
 import type { BizCardRepo } from "./repo.js";
 import type {
@@ -619,7 +620,15 @@ export class BusinessCardService {
     const now = this.now();
     const profileId = this.id();
     const publicProfileId = this.id();
-    const slug = draft.slug?.trim() || slugifyName(draft.firstName || owner.displayName || "card", draft.lastName || "user");
+    const slug =
+      draft.slug?.trim() ||
+      suggestBusinessCardSlug({
+        firstName: draft.firstName,
+        lastName: draft.lastName,
+        displayName: draft.displayName || owner.displayName,
+        email: owner.email,
+        fallbackId: profileId,
+      });
     assertSlug(slug);
     this.validateDraft(draft);
     const profile: BusinessCardProfile = {
@@ -684,15 +693,36 @@ export class BusinessCardService {
     const company = await this.options.resolveCompany(actor.tenantId);
     const locked = new Set(profile.lockedFields.filter((field) => field !== "website" && field !== "primaryEmail"));
     if (!asAdmin) this.rejectLockedChanges(profile, draft, locked);
-    const slug = (asAdmin || !locked.has("slug")) && draft.slug ? draft.slug : profile.slug;
-    if (asAdmin && draft.slug) assertSlug(draft.slug);
+    const firstName = pick(draft.firstName, profile.firstName, asAdmin || !locked.has("firstName")) ?? "";
+    const lastName = pick(draft.lastName, profile.lastName, asAdmin || !locked.has("lastName")) ?? "";
+    const displayName =
+      pick(draft.displayName, profile.displayName, asAdmin || !locked.has("displayName")) ||
+      profile.displayName ||
+      actor.displayName ||
+      actor.email;
+    let slug = (asAdmin || !locked.has("slug")) && draft.slug ? draft.slug : profile.slug;
+    // Replace the old "card-user" placeholder once a real name exists.
+    if (
+      !draft.slug &&
+      isPlaceholderBusinessCardSlug(profile.slug) &&
+      (asAdmin || !locked.has("slug"))
+    ) {
+      slug = suggestBusinessCardSlug({
+        firstName,
+        lastName,
+        displayName,
+        email: actor.email,
+        fallbackId: profile.profileId,
+      });
+    }
+    if (draft.slug || slug !== profile.slug) assertSlug(slug);
     const now = this.now();
     const next: BusinessCardProfile = {
       ...profile,
       slug,
-      firstName: pick(draft.firstName, profile.firstName, asAdmin || !locked.has("firstName")),
-      lastName: pick(draft.lastName, profile.lastName, asAdmin || !locked.has("lastName")),
-      displayName: pick(draft.displayName, profile.displayName, asAdmin || !locked.has("displayName")),
+      firstName,
+      lastName,
+      displayName,
       credentials: pick(draft.credentials, profile.credentials, asAdmin || !locked.has("credentials")),
       title: pick(draft.title, profile.title, asAdmin || !locked.has("title")) ?? "",
       department: pick(draft.department, profile.department, asAdmin || !locked.has("department")),

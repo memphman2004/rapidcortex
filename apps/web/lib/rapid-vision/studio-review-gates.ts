@@ -128,7 +128,7 @@ export function verifyTrainingLabel(
     return { ok: false, reason: "Rights are still open. The label was not verified." };
   }
   if (!record.category.trim()) return { ok: false, reason: "A category is required before the label can be verified." };
-  if (!validStudioBox(record.box)) {
+  if (studioBoxesOnRecord(record).length === 0) {
     return { ok: false, reason: "Draw a box around the object before verifying the label." };
   }
   const blocked = syntheticTrainingBlock(record);
@@ -156,18 +156,45 @@ export function verifyTrainingLabel(
   };
 }
 
+/** Prefer `boxes`; fall back to legacy singular `box`. */
+export function studioBoxesOnRecord(record: Pick<StudioReviewRecord, "box" | "boxes">): StudioBox[] {
+  if (Array.isArray(record.boxes) && record.boxes.length > 0) {
+    return record.boxes.filter(validStudioBox);
+  }
+  return validStudioBox(record.box) ? [record.box] : [];
+}
+
+export function withStudioBoxes(
+  record: StudioReviewRecord,
+  boxes: StudioBox[],
+): StudioReviewRecord {
+  const clean = boxes.filter(validStudioBox);
+  const next: StudioReviewRecord = {
+    ...record,
+    box: clean[0] ?? null,
+    boxes: clean.length > 0 ? clean : undefined,
+  };
+  if (clean.length === 0) delete next.boxes;
+  return next;
+}
+
 export function clearStudioBox(
   record: StudioReviewRecord,
   reviewer: string,
   now: string,
 ): { ok: true; record: StudioReviewRecord } {
   const who = reviewer.trim() || "reviewer";
-  const next: StudioReviewRecord = { ...record, box: null, trainingLabel: false };
+  const next: StudioReviewRecord = withStudioBoxes({ ...record, trainingLabel: false }, []);
   delete next.labelVerifiedAt;
   delete next.labelReviewer;
   return {
     ok: true,
-    record: audit(next, { at: now, reviewer: who, action: "clear-box", note: "The box was removed. The label is unverified." }),
+    record: audit(next, {
+      at: now,
+      reviewer: who,
+      action: "clear-box",
+      note: "The box was removed. The label is unverified.",
+    }),
   };
 }
 
@@ -178,19 +205,55 @@ export function parseStudioBox(value: unknown): StudioBox | null {
   return validStudioBox(parsed) ? parsed : null;
 }
 
+export function parseStudioBoxes(value: unknown): StudioBox[] | null {
+  if (!Array.isArray(value)) return null;
+  if (value.length === 0) return [];
+  if (value.length > 8) return null;
+  const boxes = value.map(parseStudioBox);
+  if (boxes.some((box) => box === null)) return null;
+  return boxes as StudioBox[];
+}
+
 export function adjustStudioBox(
   record: StudioReviewRecord,
   box: StudioBox,
   reviewer: string,
   now: string,
 ): { ok: true; record: StudioReviewRecord } | { ok: false; reason: string } {
-  if (!validStudioBox(box)) return { ok: false, reason: "The box must sit inside the image. Coordinates are 0 to 1." };
+  return adjustStudioBoxes(record, [box], reviewer, now);
+}
+
+export function adjustStudioBoxes(
+  record: StudioReviewRecord,
+  boxes: StudioBox[],
+  reviewer: string,
+  now: string,
+): { ok: true; record: StudioReviewRecord } | { ok: false; reason: string } {
+  if (boxes.length === 0) {
+    return { ok: false, reason: "The box must sit inside the image. Coordinates are 0 to 1." };
+  }
+  if (boxes.length > 8) {
+    return { ok: false, reason: "At most eight boxes can be stored on one candidate." };
+  }
+  if (!boxes.every(validStudioBox)) {
+    return { ok: false, reason: "The box must sit inside the image. Coordinates are 0 to 1." };
+  }
   const who = reviewer.trim() || "reviewer";
   return {
     ok: true,
     record: audit(
-      { ...record, box, trainingLabel: false, labelVerifiedAt: undefined, labelReviewer: undefined },
-      { at: now, reviewer: who, action: "correct-box" },
+      {
+        ...withStudioBoxes(record, boxes),
+        trainingLabel: false,
+        labelVerifiedAt: undefined,
+        labelReviewer: undefined,
+      },
+      {
+        at: now,
+        reviewer: who,
+        action: "correct-box",
+        note: boxes.length > 1 ? `${boxes.length} boxes` : undefined,
+      },
     ),
   };
 }

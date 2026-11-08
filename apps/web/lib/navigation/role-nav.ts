@@ -1134,6 +1134,7 @@ export function getAgencyItNav(jurisdiction: string): RoleNav {
             feature: "ng911Assist" },
           { id: "call-assist-admin", label: "Nexiq", href: `${j}/call-assist/admin`, icon: "PhoneIncoming",
             feature: "callAssist" },
+          rcTranslateNavItem(`${j}/translate`, "rcTranslate"),
         ],
       },
       {
@@ -1959,6 +1960,7 @@ export function getVenueGuestServicesNav(code: string): RoleNav {
         // No section label — single-section roles get no header
         items: [
           { id: "reports",     label: "Guest Reports",     href: base,                       icon: "MessageSquare", exact: true },
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateVenue"),
         ],
       },
     ],
@@ -1992,6 +1994,7 @@ export function getTransitAdminNav(code: string): RoleNav {
           cameraAiNavItem(`${base}/vision-ai`),
           rcVideoWallNavItem(`${base}/video-wall`),
           { id: "qr", label: "QR Codes", href: `${base}/qr-codes`, icon: "QrCode" },
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateVenue"),
         ],
       },
       {
@@ -2048,6 +2051,7 @@ export function getTransitSupervisorNav(code: string): RoleNav {
           cameraAiNavItem(`${base}/vision-ai`),
           rcVideoWallNavItem(`${base}/video-wall`),
           { id: "qr", label: "QR Codes", href: `${base}/qr-codes`, icon: "QrCode" },
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateVenue"),
         ],
       },
     ],
@@ -2071,6 +2075,7 @@ export function getTransitSecurityNav(code: string): RoleNav {
           { id: "cameras", label: "Cameras", href: `${base}/cameras`, icon: "Camera", feature: "transitCameras" },
           cameraAiNavItem(`/app/transit/security/vision-ai`),
           rcVideoWallNavItem(`${base}/video-wall`),
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateVenue"),
         ],
       },
     ],
@@ -2091,6 +2096,7 @@ export function getTransitOperatorNav(code: string): RoleNav {
           { id: "incidents", label: "Incidents", href: `${base}/incidents`, icon: "AlertTriangle",
             badge: { type: "label", text: "REPORT", color: "blue" }, feature: "verticalTransit" },
           rcVideoWallNavItem(`${base}/video-wall`),
+          rcTranslateNavItem(`${base}/translate`, "rcTranslateVenue"),
         ],
       },
     ],
@@ -2109,7 +2115,10 @@ export function getCallAssistOperatorNav(): RoleNav {
       {
         id: "ops",
         label: "NON-EMERGENCY",
-        items: [callAssistLiveItem("/app/call-assist/operator")],
+        items: [
+          callAssistLiveItem("/app/call-assist/operator"),
+          rcTranslateNavItem("/app/call-assist/translate", "rcTranslate"),
+        ],
       },
     ],
   };
@@ -2125,6 +2134,7 @@ export function getCallAssistSupervisorNav(): RoleNav {
         label: "NON-EMERGENCY",
         items: [
           callAssistLiveItem("/app/call-assist/supervisor"),
+          rcTranslateNavItem("/app/call-assist/translate", "rcTranslate"),
           { id: "qa", label: "QA", href: "/app/call-assist/qa", icon: "ClipboardCheck", feature: "callAssist" },
           { id: "analytics", label: "Analytics", href: "/app/call-assist/analytics", icon: "BarChart3", feature: "callAssist" },
         ],
@@ -2144,6 +2154,7 @@ export function getCallAssistAdminNav(): RoleNav {
         items: [
           { id: "dashboard", label: "Configuration", href: "/app/call-assist/admin", icon: "Settings", exact: true, feature: "callAssist" },
           { id: "live", label: "Live calls", href: "/app/call-assist/live", icon: "PhoneIncoming", feature: "callAssist" },
+          rcTranslateNavItem("/app/call-assist/translate", "rcTranslate"),
           { id: "qa", label: "QA", href: "/app/call-assist/qa", icon: "ClipboardCheck", feature: "callAssist" },
           { id: "analytics", label: "Analytics", href: "/app/call-assist/analytics", icon: "BarChart3", feature: "callAssist" },
           { id: "records", label: "Records", href: "/app/call-assist/records", icon: "Scale", feature: "callAssist" },

@@ -112,7 +112,18 @@ export const patchSalesLeadBodySchema = z
     title: z.string().max(200).optional(),
     agencyName: z.string().max(300).optional(),
     agencyType: z.string().max(100).optional(),
-    vertical: z.enum(["rc911", "campus", "venue", "hospital", "transit", "unknown"]).optional(),
+    vertical: z
+      .enum([
+        "rc911",
+        "law_enforcement",
+        "fire_ems",
+        "campus",
+        "venue",
+        "hospital",
+        "transit",
+        "unknown",
+      ])
+      .optional(),
     estimatedValue: z.number().min(0).max(100_000_000).optional(),
     probability: z.number().min(0).max(100).optional(),
     assignedTo: z.string().max(320).optional(),

@@ -6,7 +6,13 @@ import {
   prepareSageMakerTraining,
   type StudioReviewRecord,
 } from "./studio-dataset";
-import { adjustStudioBox, clearStudioBox, verifyMediaRights, verifyTrainingLabel } from "./studio-review-gates";
+import {
+  adjustStudioBox,
+  adjustStudioBoxes,
+  clearStudioBox,
+  verifyMediaRights,
+  verifyTrainingLabel,
+} from "./studio-review-gates";
 
 const commons: StudioReviewRecord = {
   id: "visual-glock-commons",
@@ -127,6 +133,21 @@ describe("studio review gates", () => {
   });
 
   it("clears a box without turning the row into a training label", () => {
+    const multi = adjustStudioBoxes(
+      commons,
+      [
+        { x: 0.1, y: 0.1, width: 0.2, height: 0.2 },
+        { x: 0.5, y: 0.4, width: 0.15, height: 0.12 },
+      ],
+      "ada@nexcortiq.us",
+      "2026-10-30T16:05:00.000Z",
+    );
+    expect(multi.ok).toBe(true);
+    if (multi.ok) {
+      expect(multi.record.boxes).toHaveLength(2);
+      expect(multi.record.box).toEqual(multi.record.boxes?.[0]);
+    }
+
     const cleared = clearStudioBox({ ...commons, box: { x: 0.1, y: 0.1, width: 0.2, height: 0.2 }, trainingLabel: true }, "ada@nexcortiq.us", "2026-10-30T16:10:00.000Z");
     expect(cleared.record.box).toBeNull();
     expect(cleared.record.trainingLabel).toBe(false);

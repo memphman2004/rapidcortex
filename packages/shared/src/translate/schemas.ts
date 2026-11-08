@@ -32,6 +32,8 @@ export const translateHospitalContextSchema = z.object({
 
 export const translateSessionCreateRequestSchema = z.object({
   incidentId: z.string().max(128).optional(),
+  /** RC operators may target a tenant agency; ignored for agency-scoped JWTs. */
+  agencyId: z.string().min(1).max(128).optional(),
   subjectLanguage: z.string().max(16).optional(),
   location: locationSchema.optional(),
   vertical: z.enum(TRANSLATE_VERTICALS).optional(),

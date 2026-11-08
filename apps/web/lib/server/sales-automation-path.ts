@@ -4,9 +4,11 @@ export function salesAutomationPathRequiresManage(
   segments: string[] | undefined,
 ): boolean {
   const m = method.toUpperCase();
+  const path = (segments ?? []).join("/");
+  // Email-list vertical moves share the same access bar as add (sales access), not campaign manage.
+  if (m === "PATCH" && path === "email-list") return false;
   if (m === "DELETE" || m === "PATCH" || m === "PUT") return true;
   if (m !== "POST" && m !== "GET") return false;
-  const path = (segments ?? []).join("/");
   if (path.includes("approve") || path.includes("suppress")) return true;
   if (path.includes("outlook/connect") || path.includes("outlook/disconnect")) return true;
   if (path.includes("outlook/callback")) return true;

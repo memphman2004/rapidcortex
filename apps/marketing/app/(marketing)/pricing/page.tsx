@@ -6,13 +6,14 @@ import { absoluteUrl, buildOgShareImage } from "@/lib/seo";
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Pricing | NexCort iQ",
-    description: "Quote-based pricing tiers for 911 Centers/PSAPs, Campus, and Venue product deployments.",
+    description: "Quote-based pricing tiers for 911 Centers/PSAPs, Campus, Venue, and Transit product deployments.",
     keywords: [
       "public safety pricing",
       "dispatch software pricing",
       "quote based pricing",
       "campus safety pricing",
       "venue security pricing",
+      "transit operations pricing",
     ],
     openGraph: {
       title: "Pricing | NexCort iQ",

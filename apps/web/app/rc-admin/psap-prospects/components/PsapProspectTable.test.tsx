@@ -58,6 +58,7 @@ describe("PsapProspectTable contact column", () => {
     );
     expect(html).toContain("2 times");
     expect(html).toContain("Email · Bea Ortiz");
+    expect(html).toContain(">Email<");
     expect(html).toContain("Contacted");
   });
 

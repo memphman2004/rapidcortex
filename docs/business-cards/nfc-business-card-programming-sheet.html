@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NexCort iQ — Program NFC Business Cards</title>
+  <style>
+    :root {
+      --ink: #12141a;
+      --muted: #4b5563;
+      --rule: #d1d5db;
+      --accent: #0c4a6e;
+      --chip: #f1f5f9;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font: 11.5pt/1.45 "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: #fff;
+    }
+    .sheet {
+      max-width: 8.5in;
+      margin: 0 auto;
+      padding: 0.55in 0.65in 0.5in;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 1rem;
+      border-bottom: 2.5px solid var(--accent);
+      padding-bottom: 0.45rem;
+      margin-bottom: 0.75rem;
+    }
+    h1 {
+      margin: 0;
+      font-size: 18pt;
+      letter-spacing: -0.02em;
+      color: var(--accent);
+    }
+    .sub {
+      margin: 0.15rem 0 0;
+      color: var(--muted);
+      font-size: 9.5pt;
+    }
+    .meta {
+      text-align: right;
+      font-size: 8.5pt;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    h2 {
+      margin: 0.9rem 0 0.35rem;
+      font-size: 11.5pt;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    p, li { margin: 0 0 0.35rem; }
+    ol, ul { margin: 0.2rem 0 0.45rem; padding-left: 1.2rem; }
+    li { margin-bottom: 0.28rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.55rem 0.75rem;
+    }
+    .card {
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 0.55rem 0.65rem;
+      background: #fff;
+    }
+    .card h3 {
+      margin: 0 0 0.35rem;
+      font-size: 10.5pt;
+    }
+    .chip {
+      display: inline-block;
+      background: var(--chip);
+      border: 1px solid var(--rule);
+      border-radius: 999px;
+      padding: 0.08rem 0.45rem;
+      font-size: 8.5pt;
+      font-weight: 600;
+      margin-right: 0.25rem;
+    }
+    code, .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 9.2pt;
+    }
+    .callout {
+      background: #f8fafc;
+      border-left: 3px solid var(--accent);
+      padding: 0.45rem 0.6rem;
+      margin: 0.45rem 0 0.65rem;
+      font-size: 10pt;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.35rem 0 0.55rem;
+      font-size: 10pt;
+    }
+    th, td {
+      border: 1px solid var(--rule);
+      padding: 0.28rem 0.4rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #f8fafc; font-size: 9pt; }
+    .checklist td:first-child { width: 1.1rem; text-align: center; }
+    .footer {
+      margin-top: 0.75rem;
+      padding-top: 0.4rem;
+      border-top: 1px solid var(--rule);
+      font-size: 8.5pt;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .no-print {
+      margin: 0.75rem auto 0;
+      max-width: 8.5in;
+      padding: 0 0.65in;
+      font-size: 10pt;
+      color: var(--muted);
+    }
+    @media print {
+      .no-print { display: none !important; }
+      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .sheet { padding: 0.35in 0.45in; }
+      a { color: inherit; text-decoration: none; }
+    }
+    @page { size: letter; margin: 0.4in; }
+  </style>
+</head>
+<body>
+  <p class="no-print"><strong>Print tip:</strong> Open this file in a browser → File → Print (or ⌘P) → Letter, portrait, no headers/footers if available.</p>
+
+  <main class="sheet">
+    <header>
+      <div>
+        <h1>Program NFC Business Cards</h1>
+        <p class="sub">NexCort iQ digital cards · NTAG213 / NTAG215 / NTAG216 stickers</p>
+      </div>
+      <div class="meta">
+        Field programming sheet · Rev 1.1<br />
+        Keep with blank tags &amp; Android phone
+      </div>
+    </header>
+
+    <div class="callout">
+      <strong>What you write to the tag:</strong>
+      <span class="mono">https://www.nexcortiq.us/c/{cardId}</span>
+      — not the public profile URL
+      <span class="mono">/card/{slug}</span>.
+      Editing the card later does <em>not</em> require rewriting the tag.
+    </div>
+
+    <h2>Before you start</h2>
+    <ul>
+      <li>Blank NFC stickers: <span class="chip">NTAG213</span><span class="chip">NTAG215</span><span class="chip">NTAG216</span> (all OK)</li>
+      <li><strong>Android phone</strong> with NFC on — <strong>NexCort iQ Mobile</strong> preferred (RC admin → Venue or Campus)</li>
+      <li>Chrome on Android as a fallback (Web NFC from NFC Card Management). iPhone can <em>read</em> tags after programming but cannot write from Chrome/Safari.</li>
+      <li>Person’s digital card created and <strong>Activated / Published</strong> in Business Cards</li>
+    </ul>
+
+    <h2>A. Console — create &amp; assign the tag</h2>
+    <ol>
+      <li>Sign in to NexCort iQ and open <strong>NFC Card Management</strong> (Business Cards → NFC).</li>
+      <li>Click <strong>Add NTAG213</strong> (creates the permanent tag record and URL).</li>
+      <li>Copy the URL shown for that card — form
+        <span class="mono">https://www.nexcortiq.us/c/…</span></li>
+      <li>Choose the person under <strong>Assign to…</strong> → click <strong>Assign</strong>.</li>
+    </ol>
+
+    <h2>B. Write the physical sticker</h2>
+    <div class="grid">
+      <section class="card">
+        <h3>Option 1 — NexCort iQ Mobile (recommended)</h3>
+        <ol>
+          <li>Sign in as <span class="mono">rcadmin</span> or <span class="mono">rcsuperadmin</span> (venue/campus staff roles do not see this tool).</li>
+          <li><strong>Android:</strong> NC Venue or NC Campus with that RC account → <strong>Business Card NFC</strong>. <strong>iOS:</strong> agency select → <strong>Business Card NFC</strong> (or Reporting Points after picking an agency).</li>
+          <li>Select the person’s tag and start programming.</li>
+          <li>Hold the sticker to the phone until write succeeds (Android: upper back; iPhone: top edge).</li>
+          <li>Status is marked <strong>programmed</strong> automatically — no separate web step.</li>
+        </ol>
+      </section>
+      <section class="card">
+        <h3>Option 2 — Chrome on Android (fallback)</h3>
+        <ol>
+          <li>On the NFC Card Management row, tap <strong>Write to tag</strong> (Web NFC) over HTTPS.</li>
+          <li>Allow NFC when Chrome prompts, then hold the blank sticker flat against the <strong>upper back</strong> of the phone.</li>
+          <li>Keep still until the write succeeds.</li>
+          <li>Confirm status <strong>programmed</strong> (or tap <strong>Mark programmed</strong>).</li>
+        </ol>
+      </section>
+    </div>
+
+    <h2>C. Verify before you hand out the card</h2>
+    <ol>
+      <li>With a second phone (or the same phone after leaving the write screen), tap the sticker.</li>
+      <li>The phone should open the person’s public card (redirect from <span class="mono">/c/{cardId}</span>).</li>
+      <li>Confirm name, company, and “Add to Contacts” look correct.</li>
+      <li>In NFC Card Management, click <strong>Mark verified</strong>.</li>
+      <li>Affix the sticker to the business card / badge holder. Do not cover with metal laminate.</li>
+    </ol>
+
+    <h2>Quick reference</h2>
+    <table>
+      <thead>
+        <tr><th>Item</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Tag URL pattern</td><td class="mono">https://www.nexcortiq.us/c/{cardId}</td></tr>
+        <tr><td>Public profile (QR / share)</td><td class="mono">https://www.nexcortiq.us/card/{slug}</td></tr>
+        <tr><td>Supported tags</td><td>NTAG213, NTAG215, NTAG216</td></tr>
+        <tr><td>Android field app</td><td>NexCort iQ — Google Play <span class="mono">us.rapidcortex.app</span></td></tr>
+        <tr><td>iOS field app</td><td>NexCort iQ Mobile — App Store (unlisted; use direct link)</td></tr>
+        <tr><td>Revoke a lost tag</td><td>NFC Card Management → enter reason → <strong>Revoke</strong> (profile stays up; tag goes to /c/revoked)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Station checklist</h2>
+    <table class="checklist">
+      <thead><tr><th></th><th>Step</th><th>Initials</th></tr></thead>
+      <tbody>
+        <tr><td>☐</td><td>Card activated / published for this person</td><td></td></tr>
+        <tr><td>☐</td><td>NTAG record created &amp; assigned</td><td></td></tr>
+        <tr><td>☐</td><td>URL written to sticker (Chrome or mobile app)</td><td></td></tr>
+        <tr><td>☐</td><td>Status = programmed</td><td></td></tr>
+        <tr><td>☐</td><td>Tap-test opens correct profile</td><td></td></tr>
+        <tr><td>☐</td><td>Status = verified; sticker affixed</td><td></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>Troubleshooting:</strong>
+      App missing Business Card NFC → need an RC admin build with the feature; sign into Venue or Campus, not Safe &amp; Sound.
+      No write prompt in Chrome → Android Chrome only, NFC enabled, HTTPS page (Safari / desktop cannot write).
+      Tag not detected → remove phone case; hold center of tag to NFC antenna (usually upper back).
+      Wrong page after tap → confirm you wrote the <span class="mono">/c/…</span> URL, not <span class="mono">/card/…</span>.
+      Lost card → Revoke the NFC id; issue a new NTAG; do not reuse revoked ids.
+    </div>
+
+    <div class="footer">
+      <span>NexCort iQ · Apps on Demand LLC · Internal ops sheet · Rev 1.2</span>
+      <span>Print one-sided · Letter</span>
+    </div>
+  </main>
+</body>
+</html>

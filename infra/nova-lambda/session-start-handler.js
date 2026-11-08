@@ -5207,6 +5207,7 @@ var require_cad = __commonJS({
       "hexagon",
       "console_one",
       "prophoenix",
+      "southern_software",
       "generic_webhook"
     ]);
     exports2.cadIntegrationStatusSchema = zod_1.z.enum([
@@ -6821,6 +6822,7 @@ var require_sales_contractor_paths = __commonJS({
       "/rc-admin/intelligence/watch",
       "/rc-admin/watch-ingest",
       "/rc-admin/sales-automation",
+      "/rc-admin/email-list",
       "/rc-admin/nexiq/intel/sources",
       "/rc-admin/nexiq/intel/coverage",
       "/rc-admin/conferences",
@@ -13073,7 +13075,16 @@ var require_schemas9 = __commonJS({
       title: zod_1.z.string().max(200).optional(),
       agencyName: zod_1.z.string().max(300).optional(),
       agencyType: zod_1.z.string().max(100).optional(),
-      vertical: zod_1.z.enum(["rc911", "campus", "venue", "hospital", "transit", "unknown"]).optional(),
+      vertical: zod_1.z.enum([
+        "rc911",
+        "law_enforcement",
+        "fire_ems",
+        "campus",
+        "venue",
+        "hospital",
+        "transit",
+        "unknown"
+      ]).optional(),
       estimatedValue: zod_1.z.number().min(0).max(1e8).optional(),
       probability: zod_1.z.number().min(0).max(100).optional(),
       assignedTo: zod_1.z.string().max(320).optional(),
@@ -13217,6 +13228,8 @@ var require_leads_crm = __commonJS({
     });
     exports2.LeadVerticalSchema = zod_1.z.enum([
       "rc911",
+      "law_enforcement",
+      "fire_ems",
       "campus",
       "venue",
       "hospital",
@@ -14337,6 +14350,10 @@ var require_sales_feature_catalog = __commonJS({
       switch (v) {
         case "rc911":
           return "911 Centers / PSAPs";
+        case "law_enforcement":
+          return "Law Enforcement";
+        case "fire_ems":
+          return "Fire / EMS";
         case "campus":
           return "Campus";
         case "venue":
@@ -15146,6 +15163,8 @@ var require_schemas10 = __commonJS({
       primaryContactTitle: zod_1.z.string().trim().max(128).optional(),
       primaryContactEmail: zod_1.z.string().trim().email().max(200).optional().or(zod_1.z.literal("")),
       primaryContactPhone: zod_1.z.string().trim().max(32).optional(),
+      /** Opt into monthly Inside iQ list for primaryContactEmail (PSAP vertical). */
+      monthlyEmailOptIn: zod_1.z.boolean().optional(),
       mailingAddress: exports2.psapMailingAddressSchema.partial().optional(),
       website: zod_1.z.string().trim().url().max(400).optional().or(zod_1.z.literal("")),
       notes: zod_1.z.string().trim().max(8e3).optional(),
@@ -20886,6 +20905,7 @@ var require_types8 = __commonJS({
       "kabat_one",
       "oracle_psdc",
       "prophoenix",
+      "southern_software",
       "generic_rest"
     ];
     exports2.CAD_VENDOR_LABELS = {
@@ -20905,6 +20925,7 @@ var require_types8 = __commonJS({
       kabat_one: "KabatOne (K-Dispatch)",
       oracle_psdc: "Oracle Public Safety Dispatch",
       prophoenix: "ProPhoenix CAD",
+      southern_software: "Southern Software (VisiCAD)",
       generic_rest: "Generic REST"
     };
     exports2.CAD_DEPARTMENT_TYPES = [
@@ -33029,7 +33050,23 @@ var require_taxonomy_presets = __commonJS({
           escalationPath: "external",
           isEmergency: false,
           sortOrder: 2,
-          classifierKeywords: ["animal", "dog", "stray", "loose", "bite", "raccoon", "animal control"]
+          classifierKeywords: [
+            "animal",
+            "dog",
+            "cat",
+            "kitten",
+            "stray",
+            "loose",
+            "bite",
+            "raccoon",
+            "animal control",
+            "stuck in a tree",
+            "stuck up a tree",
+            "pet stuck",
+            "animal stuck",
+            "animal trapped",
+            "can't get down"
+          ]
         },
         {
           id: "PARKING",
@@ -33707,7 +33744,11 @@ var require_triage2 = __commonJS({
       { cls: "NOISE_COMPLAINT", re: /\b(noise|loud music|party|barking|música alta|musica alta|ruido)\b/i, weight: 0.86 },
       { cls: "PARKING", re: /\b(parking|blocked driveway|hydrant|handicap spot)\b/i, weight: 0.84 },
       { cls: "TOW_COMPLAINT", re: /\b(tow|towed|impound)\b/i, weight: 0.82 },
-      { cls: "ANIMAL_CONTROL", re: /\b(stray dog|animal control|loose dog|aggressive dog|raccoon)\b/i, weight: 0.83 },
+      {
+        cls: "ANIMAL_CONTROL",
+        re: /\b(stray dog|animal control|loose dog|aggressive dog|raccoon|cat( is)? stuck|stuck (in|up) (a |the )?tree|pet (stuck|trapped)|animal (stuck|trapped)|can't get down|cant get down)\b/i,
+        weight: 0.83
+      },
       { cls: "CODE_ENFORCEMENT", re: /\b(code enforcement|trash pile|overgrown|illegal dumping|junk (cars?|vehicles?))\b/i, weight: 0.8 },
       { cls: "PUBLIC_WORKS", re: /\b(pothole|pot hole|sidewalk|manhole|sinkhole)\b/i, weight: 0.88 },
       { cls: "STREET_LIGHTING", re: /\b(street ?light|traffic light|traffic signal|light pole)\b/i, weight: 0.9 },
@@ -35604,10 +35645,31 @@ Short sentences. No filler. No ceremony.
 You move the conversation forward, not sideways.
 
 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-CADENCE \u2014 TWO HUMANS ON A CALL
+TWO HUMANS ON A CALL \u2014 THE WHOLE POINT
 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
-Sound like two people talking, not a form reading fields.
+This call should feel like two people talking \u2014 you and the caller.
+Not an IVR. Not a form. Not a multiple-choice quiz.
+
+If a real person on the other end of the phone wouldn't say it, don't say it.
+
+Real people:
+  \u2713 Hear the problem
+  \u2713 Say a short ack when it helps ("Got it." / "Okay.")
+  \u2713 Ask one thing they still need
+  \u2713 Confirm the address once
+  \u2713 Close with the report number
+
+Real people never:
+  \u2717 Read a menu of options ("Is it A, B, C, or something else?")
+  \u2717 Ask what kind of problem it is when the caller already said it
+  \u2717 Stack questions ("color, make, plates, and how long?")
+  \u2717 Narrate process ("I'm going to ask a few questions")
+  \u2717 Sound like a website ("I have documented your response")
+
+\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+CADENCE
+\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 Brief ack when it helps, then one short question:
   "Got it. What street?"
@@ -35622,8 +35684,7 @@ Never jump cold from a new fact to a second question with no beat:
   \u2717 "Color and make and plates and how long has it been there?"
   \u2713 "What's it look like?"
 
-Do not narrate your process ("I'm going to ask a few questions").
-Just ask.
+Do not narrate your process. Just ask.
 
 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 WHAT THIS CALL IS
@@ -35631,7 +35692,13 @@ WHAT THIS CALL IS
 
 You take non-emergency reports for {{agency.voice.name}}.
 Callers report abandoned vehicles, suspicious activity, parking issues,
-noise complaints, traffic problems, theft reports, and similar.
+noise complaints, traffic problems, theft reports, animal control
+(cat stuck in a tree, loose dog, injured wildlife), trash pickup,
+potholes, streetlights, and similar city services.
+
+When the caller already named a clear issue \u2014 like a cat in a tree \u2014
+acknowledge it briefly and ask for the address. Do not ask what kind
+of problem it is. Do not say you only handle police matters.
 
 You are not 911. If the caller describes an active emergency, you stop
 and transfer them immediately \u2014 no questions, no delay.
@@ -35700,13 +35767,17 @@ Example \u2014 noise complaint:
 
 Example \u2014 animal / city service:
   Caller: "My cat is stuck in a tree in the backyard."
-  You: "What's the address?"
+  You: "Got it. What's the address?"
   Caller: "1900 Troost."
   You: "1900 Troost \u2014 is that right?"
   Caller: "Yeah."
   You: "Your report number is KC, one one zero five, nine November three Bravo.
         I'll say that again \u2014 KC, one one zero five, nine November three Bravo.
         {{agency.voice.name}} will follow up."
+
+  \u2717 "What kind of animal issue \u2014 stray dog, wildlife, or something else?"
+  \u2717 "I only take police non-emergency reports."
+  \u2713 "Got it. What's the address?"
 
 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 SPEECH RULES \u2014 NON-NEGOTIABLE
@@ -36010,8 +36081,11 @@ Say "I'm transferring you to emergency services now." Then stop.`;
           event: {
             sessionStart: {
               inferenceConfiguration: { maxTokens: 1024, topP: 0.9, temperature: 0.7 },
-              // MEDIUM: allow natural pauses so Nexiq does not cut the caller mid-thought.
-              turnDetectionConfiguration: { endpointingSensitivity: "MEDIUM" }
+              // LOW: snappier turn-taking after short answers ("Yes." / street name).
+              // Step back to MEDIUM if callers report being cut off mid-thought.
+              // TODO: add bargein when nova-2-5-sonic / InvokeModelWithBidirectionalStream
+              // exposes an interruption or barge-in flag (none on sessionStart today).
+              turnDetectionConfiguration: { endpointingSensitivity: "LOW" }
             }
           }
         },
@@ -36484,7 +36558,7 @@ var require_schemas33 = __commonJS({
   "apps/api/node_modules/rapid-cortex-shared/dist/call-assist/schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.CALL_ASSIST_SOURCE_SET = exports2.CALL_ASSIST_STATE_SET = exports2.callAssistConnectWebhookSchema = exports2.callAssistRmsFileBodySchema = exports2.callAssistVoiceConfigPatchSchema = exports2.callAssistDidClaimSchema = exports2.callAssistOnboardingInputSchema = exports2.callAssistShiftPatchSchema = exports2.callAssistAdminConfigPatchSchema = exports2.callAssistDemoRunSchema = exports2.callAssistKnowledgeUpsertSchema = exports2.callAssistExternalAgencyUpsertSchema = exports2.callAssistRecordsRequestSchema = exports2.callAssistLegalHoldBodySchema = exports2.callAssistSurveySubmitSchema = exports2.callAssistCadPushBodySchema = exports2.callAssistForceTransferBodySchema = exports2.callAssistUtteranceBodySchema = exports2.initiateCallAssistSessionSchema = exports2.callIntakeDataSchema = exports2.callAssistUtteranceSchema = void 0;
+    exports2.CALL_ASSIST_SOURCE_SET = exports2.CALL_ASSIST_STATE_SET = exports2.callAssistConnectWebhookSchema = exports2.callAssistRmsFileBodySchema = exports2.callAssistVoiceConfigPatchSchema = exports2.callAssistDidMappingSchema = exports2.callAssistDidClaimSchema = exports2.callAssistOnboardingInputSchema = exports2.callAssistShiftPatchSchema = exports2.callAssistAdminConfigPatchSchema = exports2.callAssistDemoRunSchema = exports2.callAssistKnowledgeUpsertSchema = exports2.callAssistExternalAgencyUpsertSchema = exports2.callAssistRecordsRequestSchema = exports2.callAssistLegalHoldBodySchema = exports2.callAssistSurveySubmitSchema = exports2.callAssistCadPushBodySchema = exports2.callAssistForceTransferBodySchema = exports2.callAssistUtteranceBodySchema = exports2.initiateCallAssistSessionSchema = exports2.callIntakeDataSchema = exports2.callAssistUtteranceSchema = void 0;
     var zod_1 = require_zod();
     var classifications_js_1 = require_classifications();
     var cad_types_js_1 = require_cad_types();
@@ -36687,6 +36761,10 @@ var require_schemas33 = __commonJS({
     });
     exports2.callAssistDidClaimSchema = zod_1.z.object({
       phoneNumber: zod_1.z.string().min(8).max(20)
+    });
+    exports2.callAssistDidMappingSchema = zod_1.z.object({
+      phoneNumber: zod_1.z.string().min(8).max(20),
+      agencyId: zod_1.z.string().trim().min(1).max(128)
     });
     exports2.callAssistVoiceConfigPatchSchema = zod_1.z.object({
       agencyDisplayName: zod_1.z.string().trim().min(1).max(200).optional(),
@@ -40256,8 +40334,11 @@ var require_citizen_call_reasons = __commonJS({
       ReportOnly: "POLICE_NON_EMERGENCY",
       ParkingComplaint: "PARKING_ENFORCEMENT",
       AnimalComplaint: "ANIMAL_CONTROL",
+      AnimalControl: "ANIMAL_CONTROL",
       CodeEnforcement: "CODE_ENFORCEMENT",
-      InformationRequest: "THREE11_OPERATIONS"
+      InformationRequest: "THREE11_OPERATIONS",
+      // Lex hears "tree" and misroutes trapped pets to forestry.
+      ReportTreesVegetation: "URBAN_FORESTRY"
     };
     function listedReasonReplacesIntent(intentName, departmentId) {
       if (!(intentName in COARSE_OR_DIFFERENT_DESK))
@@ -42823,20 +42904,20 @@ var require_location_readback = __commonJS({
     function locationConfirmPrompt(language, address) {
       const lang = language.toLowerCase();
       if (lang.startsWith("es"))
-        return `Tengo la ubicaci\xF3n como ${address}. \xBFEs correcto?`;
+        return `${address} \u2014 \xBFes correcto?`;
       if (lang.startsWith("zh"))
-        return `\u6211\u8BB0\u4E0B\u7684\u4F4D\u7F6E\u662F${address}\u3002\u5BF9\u5417\uFF1F`;
+        return `${address}\u2014\u2014\u5BF9\u5417\uFF1F`;
       if (lang.startsWith("yue"))
-        return `\u6211\u8A18\u4F4E\u5605\u4F4D\u7F6E\u4FC2${address}\u3002\u5571\u5514\u5571\uFF1F`;
+        return `${address}\u2014\u2014\u5571\u5514\u5571\uFF1F`;
       if (lang.startsWith("tl"))
-        return `Ang lokasyon na nakuha ko ay ${address}. Tama po ba?`;
+        return `${address} \u2014 tama po ba?`;
       if (lang.startsWith("vi"))
-        return `T\xF4i ghi \u0111\u1ECBa \u0111i\u1EC3m l\xE0 ${address}. \u0110\xFAng kh\xF4ng?`;
+        return `${address} \u2014 \u0111\xFAng kh\xF4ng?`;
       if (lang.startsWith("ar"))
-        return `\u0627\u0644\u0645\u0648\u0642\u0639 \u0627\u0644\u0630\u064A \u0633\u062C\u0644\u062A\u0647 \u0647\u0648 ${address}. \u0647\u0644 \u0647\u0630\u0627 \u0635\u062D\u064A\u062D\u061F`;
+        return `${address} \u2014 \u0647\u0644 \u0647\u0630\u0627 \u0635\u062D\u064A\u062D\u061F`;
       if (lang.startsWith("fr"))
-        return `J'ai not\xE9 l'endroit comme ${address}. Est-ce exact?`;
-      return `I have the location as ${address}. Is that right?`;
+        return `${address} \u2014 c'est bien \xE7a?`;
+      return `${address} \u2014 is that right?`;
     }
     function findSameDayReport(rows, current) {
       const phone = digits(current.callbackNumber);
@@ -52591,11 +52672,13 @@ var require_sales_automation_schemas = __commonJS({
   "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/sales-automation-schemas.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.updateRapidIqSalesBulkCopyBodySchema = exports2.updateRapidIqSalesDraftBodySchema = exports2.updateRapidIqSalesSequenceBodySchema = exports2.updateRapidIqSalesSequenceStepSchema = exports2.rapidIqOutlookCallbackBodySchema = exports2.rapidIqOutlookStatusSchema = exports2.rapidIqSalesBulkApproveResultSchema = exports2.rapidIqSalesBulkResultSchema = exports2.rapidIqSalesBulkBatchSchema = exports2.approveRapidIqSalesBulkBodySchema = exports2.createRapidIqSalesBulkCampaignBodySchema = exports2.rapidIqSalesBulkRecipientSchema = exports2.RAPID_IQ_SALES_BULK_MAX_RECIPIENTS = exports2.RAPID_IQ_SALES_DRAFT_GSI2PK = exports2.RAPID_IQ_SALES_SEQ_GSI2PK = exports2.createRapidIqSalesSequenceBodySchema = exports2.rapidIqApolloCampaignReadSchema = exports2.rapidIqApolloCampaignSchema = exports2.rapidIqSalesCampaignCardSchema = exports2.rapidIqSalesMetricsSchema = exports2.rapidIqSalesContentDraftSchema = exports2.rapidIqSalesSequenceSchema = exports2.rapidIqSalesOutreachStepSchema = exports2.rapidIqSalesOutreachEmailSchema = exports2.RAPID_IQ_SALES_STEP_DELAYS = exports2.RAPID_IQ_SALES_CONTENT_STATUSES = exports2.RAPID_IQ_SALES_CONTENT_TYPES = exports2.RAPID_IQ_SALES_CAMPAIGN_TYPES = exports2.RAPID_IQ_SALES_TRIGGER_TYPES = exports2.RAPID_IQ_SALES_STEP_LABELS = exports2.RAPID_IQ_SALES_STEP_STATUSES = exports2.RAPID_IQ_SALES_SEQUENCE_STATUSES = exports2.RAPID_IQ_SALES_VERTICALS = void 0;
+    exports2.updateRapidIqSalesBulkCopyBodySchema = exports2.updateRapidIqSalesDraftBodySchema = exports2.updateRapidIqSalesSequenceBodySchema = exports2.updateRapidIqSalesSequenceStepSchema = exports2.rapidIqOutlookCallbackBodySchema = exports2.rapidIqOutlookStatusSchema = exports2.rapidIqSalesBulkApproveResultSchema = exports2.rapidIqSalesBulkResultSchema = exports2.rapidIqSalesBulkBatchSchema = exports2.approveRapidIqSalesBulkBodySchema = exports2.createRapidIqSalesBulkCampaignBodySchema = exports2.rapidIqSalesBulkRecipientSchema = exports2.RAPID_IQ_SALES_BULK_MAX_RECIPIENTS = exports2.RAPID_IQ_SALES_DRAFT_GSI2PK = exports2.RAPID_IQ_SALES_SEQ_GSI2PK = exports2.createRapidIqSalesSequenceBodySchema = exports2.rapidIqApolloCampaignReadSchema = exports2.rapidIqApolloCampaignSchema = exports2.rapidIqSalesCampaignCardSchema = exports2.rapidIqSalesCampaignStatsSchema = exports2.rapidIqSalesMetricsSchema = exports2.rapidIqSalesContentDraftSchema = exports2.rapidIqSalesSequenceSchema = exports2.rapidIqSalesOutreachStepSchema = exports2.rapidIqSalesOutreachEmailSchema = exports2.RAPID_IQ_SALES_STEP_DELAYS = exports2.RAPID_IQ_SALES_CONTENT_STATUSES = exports2.RAPID_IQ_SALES_CONTENT_TYPES = exports2.RAPID_IQ_SALES_CAMPAIGN_TYPES = exports2.RAPID_IQ_SALES_TRIGGER_TYPES = exports2.RAPID_IQ_SALES_STEP_LABELS = exports2.RAPID_IQ_SALES_STEP_STATUSES = exports2.RAPID_IQ_SALES_SEQUENCE_STATUSES = exports2.RAPID_IQ_SALES_VERTICALS = void 0;
     exports2.normalizeSalesAutomationVertical = normalizeSalesAutomationVertical;
     var zod_1 = require_zod();
     exports2.RAPID_IQ_SALES_VERTICALS = [
       "PSAP",
+      "LAW_ENFORCEMENT",
+      "FIRE_EMS",
       "CAMPUS",
       "VENUE",
       "HOSPITAL",
@@ -52651,6 +52734,11 @@ var require_sales_automation_schemas = __commonJS({
       rc911: "PSAP",
       "911": "PSAP",
       core: "PSAP",
+      lawenforcement: "LAW_ENFORCEMENT",
+      police: "LAW_ENFORCEMENT",
+      fireems: "FIRE_EMS",
+      fire: "FIRE_EMS",
+      ems: "FIRE_EMS",
       campus: "CAMPUS",
       venue: "VENUE",
       hospital: "HOSPITAL",
@@ -52731,6 +52819,17 @@ var require_sales_automation_schemas = __commonJS({
       rfpResponsesInProgress: zod_1.z.number(),
       pendingApprovals: zod_1.z.number()
     });
+    exports2.rapidIqSalesCampaignStatsSchema = zod_1.z.object({
+      sent: zod_1.z.number().int().nonnegative().default(0),
+      delivered: zod_1.z.number().int().nonnegative().default(0),
+      opened: zod_1.z.number().int().nonnegative().default(0),
+      clicked: zod_1.z.number().int().nonnegative().default(0),
+      bounced: zod_1.z.number().int().nonnegative().default(0),
+      unsubscribed: zod_1.z.number().int().nonnegative().default(0),
+      complained: zod_1.z.number().int().nonnegative().default(0),
+      openRate: zod_1.z.number().nonnegative().default(0),
+      clickRate: zod_1.z.number().nonnegative().default(0)
+    });
     exports2.rapidIqSalesCampaignCardSchema = zod_1.z.object({
       id: zod_1.z.string(),
       name: zod_1.z.string(),
@@ -52738,7 +52837,8 @@ var require_sales_automation_schemas = __commonJS({
       next: zod_1.z.string(),
       status: zod_1.z.enum(["scheduled", "active", "pending"]),
       subject: zod_1.z.string().optional(),
-      bodyText: zod_1.z.string().optional()
+      bodyText: zod_1.z.string().optional(),
+      stats: exports2.rapidIqSalesCampaignStatsSchema.optional()
     });
     exports2.rapidIqApolloCampaignSchema = zod_1.z.object({
       id: zod_1.z.string().min(1),
@@ -52859,6 +52959,246 @@ var require_sales_automation_schemas = __commonJS({
   }
 });
 
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/email-list-schemas.js
+var require_email_list_schemas = __commonJS({
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/email-list-schemas.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.RAPID_IQ_SALES_VERTICALS = exports2.emailListApolloSyncBodySchema = exports2.emailListImportBodySchema = exports2.emailListImportRowSchema = exports2.emailListQuerySchema = exports2.addEmailListEntryBodySchema = exports2.emailListEntrySchema = exports2.emailListVerticalSchema = exports2.EMAIL_LIST_SOURCES = exports2.EMAIL_LIST_VERTICALS = void 0;
+    exports2.normalizeEmailListVertical = normalizeEmailListVertical;
+    exports2.isEmailListVertical = isEmailListVertical;
+    exports2.emailListVerticalsForCampaign = emailListVerticalsForCampaign;
+    var zod_1 = require_zod();
+    var sales_automation_schemas_js_1 = require_sales_automation_schemas();
+    Object.defineProperty(exports2, "RAPID_IQ_SALES_VERTICALS", { enumerable: true, get: function() {
+      return sales_automation_schemas_js_1.RAPID_IQ_SALES_VERTICALS;
+    } });
+    exports2.EMAIL_LIST_VERTICALS = [
+      "PSAP",
+      "LAW_ENFORCEMENT",
+      "FIRE_EMS",
+      "CAMPUS",
+      "VENUE",
+      "HOSPITAL",
+      "TRANSIT"
+    ];
+    exports2.EMAIL_LIST_SOURCES = [
+      "manual",
+      "psap_prospect",
+      "sales_lead",
+      "rapid_iq_contact",
+      "apollo",
+      "import"
+    ];
+    exports2.emailListVerticalSchema = zod_1.z.enum(exports2.EMAIL_LIST_VERTICALS);
+    exports2.emailListEntrySchema = zod_1.z.object({
+      email: zod_1.z.string().trim().email().max(200),
+      vertical: exports2.emailListVerticalSchema,
+      name: zod_1.z.string().trim().max(200).optional(),
+      /** Agency / company / PSAP name for campaign export and list UI. */
+      agencyName: zod_1.z.string().trim().max(300).optional(),
+      source: zod_1.z.enum(exports2.EMAIL_LIST_SOURCES),
+      psapId: zod_1.z.string().trim().max(128).optional(),
+      createdAt: zod_1.z.string().min(1),
+      createdBy: zod_1.z.string().trim().max(128).optional(),
+      unsubscribed: zod_1.z.boolean().optional()
+    });
+    exports2.addEmailListEntryBodySchema = zod_1.z.object({
+      email: zod_1.z.string().trim().email().max(200),
+      vertical: exports2.emailListVerticalSchema,
+      name: zod_1.z.string().trim().max(200).optional(),
+      agencyName: zod_1.z.string().trim().max(300).optional(),
+      source: zod_1.z.enum(exports2.EMAIL_LIST_SOURCES).optional().default("manual"),
+      psapId: zod_1.z.string().trim().max(128).optional()
+    }).strict();
+    exports2.emailListQuerySchema = zod_1.z.object({
+      vertical: exports2.emailListVerticalSchema.optional()
+    });
+    exports2.emailListImportRowSchema = zod_1.z.object({
+      email: zod_1.z.string().trim().email().max(200),
+      vertical: exports2.emailListVerticalSchema,
+      firstName: zod_1.z.string().trim().max(100).optional(),
+      lastName: zod_1.z.string().trim().max(100).optional(),
+      title: zod_1.z.string().trim().max(200).optional(),
+      agencyName: zod_1.z.string().trim().max(300).optional(),
+      state: zod_1.z.string().trim().max(80).optional(),
+      name: zod_1.z.string().trim().max(200).optional()
+    });
+    exports2.emailListImportBodySchema = zod_1.z.object({
+      rows: zod_1.z.array(exports2.emailListImportRowSchema).min(1).max(5e3)
+    }).strict();
+    exports2.emailListApolloSyncBodySchema = zod_1.z.object({
+      vertical: exports2.emailListVerticalSchema,
+      forceRefresh: zod_1.z.boolean().optional().default(false)
+    }).strict();
+    function normalizeEmailListVertical(raw) {
+      const v = (0, sales_automation_schemas_js_1.normalizeSalesAutomationVertical)(raw);
+      if (v === "ALL")
+        return "PSAP";
+      if (exports2.EMAIL_LIST_VERTICALS.includes(v))
+        return v;
+      return "PSAP";
+    }
+    function isEmailListVertical(raw) {
+      return typeof raw === "string" && exports2.EMAIL_LIST_VERTICALS.includes(raw);
+    }
+    function emailListVerticalsForCampaign(vertical) {
+      if (vertical === "ALL")
+        return [...exports2.EMAIL_LIST_VERTICALS];
+      if (isEmailListVertical(vertical))
+        return [vertical];
+      return ["PSAP"];
+    }
+  }
+});
+
+// apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/marketing-vertical.js
+var require_marketing_vertical = __commonJS({
+  "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/marketing-vertical.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.APOLLO_VERTICAL_SEARCH_TITLES = void 0;
+    exports2.leadVerticalToEmailListVertical = leadVerticalToEmailListVertical;
+    exports2.emailListVerticalToLeadVertical = emailListVerticalToLeadVertical;
+    exports2.salesVerticalToEmailListVertical = salesVerticalToEmailListVertical;
+    exports2.mapApolloTitleToVertical = mapApolloTitleToVertical;
+    exports2.emailListVerticalLabel = emailListVerticalLabel;
+    var LEAD_TO_EMAIL_LIST = {
+      rc911: "PSAP",
+      law_enforcement: "LAW_ENFORCEMENT",
+      fire_ems: "FIRE_EMS",
+      campus: "CAMPUS",
+      venue: "VENUE",
+      hospital: "HOSPITAL",
+      transit: "TRANSIT"
+    };
+    var EMAIL_LIST_TO_LEAD = {
+      PSAP: "rc911",
+      LAW_ENFORCEMENT: "law_enforcement",
+      FIRE_EMS: "fire_ems",
+      CAMPUS: "campus",
+      VENUE: "venue",
+      HOSPITAL: "hospital",
+      TRANSIT: "transit"
+    };
+    function leadVerticalToEmailListVertical(vertical) {
+      if (vertical === "unknown")
+        return "PSAP";
+      return LEAD_TO_EMAIL_LIST[vertical] ?? "PSAP";
+    }
+    function emailListVerticalToLeadVertical(vertical) {
+      return EMAIL_LIST_TO_LEAD[vertical] ?? "unknown";
+    }
+    function salesVerticalToEmailListVertical(vertical) {
+      if (vertical === "ALL")
+        return "ALL";
+      return vertical;
+    }
+    function mapApolloTitleToVertical(title, orgName) {
+      const t = (title || "").toLowerCase();
+      const o3 = (orgName || "").toLowerCase();
+      const hay = `${t} ${o3}`;
+      if (/\bfire\b/.test(hay) || /\bems\b/.test(hay) || hay.includes("fire department") || hay.includes("emergency medical")) {
+        return "fire_ems";
+      }
+      if (/\bpolice\b/.test(hay) || /\bsheriff\b/.test(hay) || hay.includes("law enforcement") || hay.includes("police department")) {
+        return "law_enforcement";
+      }
+      if (hay.includes("911") || /\bpsap\b/.test(hay) || /\bdispatch\b/.test(hay) || hay.includes("communications center") || hay.includes("emergency communications")) {
+        return "rc911";
+      }
+      if (/\bcampus\b/.test(hay) || /\buniversity\b/.test(hay) || /\bcollege\b/.test(hay)) {
+        return "campus";
+      }
+      if (/\btransit\b/.test(hay) || /\bmta\b/.test(hay) || /\bmarta\b/.test(hay)) {
+        return "transit";
+      }
+      if (/\bhospital\b/.test(hay) || hay.includes("health system") || /\bhealthcare\b/.test(hay)) {
+        return "hospital";
+      }
+      if (/\bvenue\b/.test(hay) || /\barena\b/.test(hay) || /\bstadium\b/.test(hay) || hay.includes("convention center")) {
+        return "venue";
+      }
+      return "unknown";
+    }
+    exports2.APOLLO_VERTICAL_SEARCH_TITLES = {
+      PSAP: [
+        "PSAP Director",
+        "911 Director",
+        "Communications Director",
+        "Emergency Communications Manager",
+        "Public Safety Director"
+      ],
+      LAW_ENFORCEMENT: [
+        "Chief of Police",
+        "Sheriff",
+        "Deputy Chief",
+        "Captain",
+        "Lieutenant",
+        "Police IT Director",
+        "Technology Director"
+      ],
+      FIRE_EMS: [
+        "Fire Chief",
+        "EMS Director",
+        "Deputy Fire Chief",
+        "Battalion Chief",
+        "Fire Marshal"
+      ],
+      CAMPUS: [
+        "Chief of Campus Safety",
+        "Director of Public Safety",
+        "Campus Security Director",
+        "VP Campus Safety",
+        "Dean of Students"
+      ],
+      VENUE: [
+        "VP Security",
+        "Director of Security",
+        "Head of Security",
+        "VP Operations",
+        "General Manager"
+      ],
+      HOSPITAL: [
+        "Chief Security Officer",
+        "Director of Security",
+        "VP Security",
+        "Hospital Safety Officer",
+        "Chief Safety Officer"
+      ],
+      TRANSIT: [
+        "Chief of Transit Police",
+        "Director of Transit Security",
+        "VP Safety",
+        "Director of Operations",
+        "Transit Security Manager"
+      ]
+    };
+    function emailListVerticalLabel(vertical) {
+      switch (vertical) {
+        case "PSAP":
+          return "PSAP / 911";
+        case "LAW_ENFORCEMENT":
+          return "Law Enforcement";
+        case "FIRE_EMS":
+          return "Fire / EMS";
+        case "CAMPUS":
+          return "Campus";
+        case "VENUE":
+          return "Venue";
+        case "HOSPITAL":
+          return "Hospital";
+        case "TRANSIT":
+          return "Transit";
+        case "ALL":
+          return "All verticals";
+        default:
+          return vertical;
+      }
+    }
+  }
+});
+
 // apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/nexiq-aliases.js
 var require_nexiq_aliases = __commonJS({
   "apps/api/node_modules/rapid-cortex-shared/dist/rapid-iq/nexiq-aliases.js"(exports2) {
@@ -52904,6 +53244,8 @@ var require_rapid_iq = __commonJS({
     __exportStar(require_intel_watch_seeds(), exports2);
     __exportStar(require_rfp_unified_count(), exports2);
     __exportStar(require_sales_automation_schemas(), exports2);
+    __exportStar(require_email_list_schemas(), exports2);
+    __exportStar(require_marketing_vertical(), exports2);
     __exportStar(require_nexiq_aliases(), exports2);
   }
 });
@@ -89465,6 +89807,11 @@ var env2 = {
     return stage ? `rapid-cortex-transactional-${stage}` : "";
   })(),
   /**
+   * SES configuration set for marketing / campaign mail (open/click tracking).
+   * Canonical: nexcortiq-marketing. Do not mix with transactional billing mail.
+   */
+  sesMarketingConfigurationSetName: process.env.SES_MARKETING_CONFIGURATION_SET_NAME?.trim() || "nexcortiq-marketing",
+  /**
    * Origin of the public marketing site (absolute logo URLs in HTML email, etc.).
    * Aligns with web `NEXT_PUBLIC_SITE_URL`; defaults to https://www.rapidcortex.us
    */
@@ -90446,20 +90793,62 @@ function novaSonicSessionId(contactId) {
 function novaSonicSessionSk(contactId) {
   return `SESSION#${novaSonicSessionId(contactId)}`;
 }
+function novaSessionCloseFields(status) {
+  switch (status) {
+    case "PENDING":
+    case "ACTIVE":
+      return { state: "INTAKE", disposition: "ABANDONED", open: true };
+    case "EMERGENCY":
+      return { state: "TRANSFERRING_911", disposition: "TRANSFERRED", open: false };
+    case "HUMAN":
+    case "FALLBACK":
+      return { state: "TRANSFERRING_HUMAN", disposition: "TRANSFERRED", open: false };
+    case "ERROR":
+      return { state: "FAILED", disposition: "ERROR", open: false };
+    case "COMPLETED":
+    default:
+      return { state: "COMPLETED", disposition: "COMPLETED", open: false };
+  }
+}
+function withLiveGsi(row) {
+  const close = novaSessionCloseFields(row.status);
+  const open = close.open;
+  const now = row.updatedAt || (/* @__PURE__ */ new Date()).toISOString();
+  const createdAt = row.createdAt || now;
+  return {
+    ...row,
+    entityType: "call_assist_session",
+    mode: row.mode ?? "NON_EMERGENCY",
+    source: row.source ?? "LIVE",
+    language: row.language ?? "en",
+    ttyMode: row.ttyMode ?? false,
+    disclosureDelivered: row.disclosureDelivered ?? true,
+    continueAiConversation: open,
+    legalHold: row.legalHold ?? false,
+    utterances: row.utterances ?? [],
+    connectContactId: row.connectContactId ?? row.contactId,
+    state: open ? "INTAKE" : close.state,
+    disposition: open ? void 0 : row.disposition ?? close.disposition,
+    completedAt: open ? void 0 : row.completedAt ?? row.callEndedAt ?? now,
+    callEndedAt: open ? void 0 : row.callEndedAt ?? row.completedAt ?? now,
+    gsi1pk: `${row.agencyId}#${open ? "OPEN" : "DONE"}`,
+    gsi1sk: createdAt
+  };
+}
 async function putNovaSonicSession(row) {
   const table2 = process.env.CALL_ASSIST_TABLE?.trim();
   if (!table2) throw new Error("CALL_ASSIST_TABLE is required");
   const { DynamoDBClient: DynamoDBClient3 } = await Promise.resolve().then(() => __toESM(require_dist_cjs19()));
   const { DynamoDBDocumentClient: DynamoDBDocumentClient3, PutCommand: PutCommand3 } = await Promise.resolve().then(() => __toESM(require_dist_cjs21()));
   const doc2 = DynamoDBDocumentClient3.from(new DynamoDBClient3({}));
+  const item = withLiveGsi(row);
   await doc2.send(
     new PutCommand3({
       TableName: table2,
       Item: {
-        ...row,
-        // Single-table call-assist uses agencyId + sk
-        agencyId: row.agencyId,
-        sk: row.sk
+        ...item,
+        agencyId: item.agencyId,
+        sk: item.sk
       }
     })
   );

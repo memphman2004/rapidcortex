@@ -15,7 +15,18 @@ import {
   type ReviewDecision,
   type StudioBox,
 } from "@/lib/rapid-vision/studio-dataset";
-import { addReviewComment, adjustStudioBox, clearStudioBox, parseStudioBox, verifyMediaRights, verifyTrainingLabel, appendAudit, type RightsInput } from "@/lib/rapid-vision/studio-review-gates";
+import {
+  addReviewComment,
+  adjustStudioBox,
+  adjustStudioBoxes,
+  clearStudioBox,
+  parseStudioBox,
+  parseStudioBoxes,
+  verifyMediaRights,
+  verifyTrainingLabel,
+  appendAudit,
+  type RightsInput,
+} from "@/lib/rapid-vision/studio-review-gates";
 import { hasActiveBatchJob, listDatasetVersions, listStudioReviews, saveDatasetVersion, saveStudioReview } from "@/lib/rapid-vision/studio-review-store";
 import { loadStudioPreview } from "@/lib/rapid-vision/studio-preview";
 import { generateNextStill, storeUploadedSynthetic } from "@/lib/rapid-vision/studio-batch-generate";
@@ -226,7 +237,12 @@ export async function POST(request: Request) {
     const current = reviews.find((item) => item.id === body.id);
     if (!current) return NextResponse.json({ ok: false, reason: "That review record was not found." }, { status: 404 });
 
-    const parsedBox = body.action === "correct-box" && body.box !== null ? parseStudioBox(body.box) : null;
+    const parsedBoxes =
+      body.action === "correct-box" && Array.isArray(body.boxes) ? parseStudioBoxes(body.boxes) : null;
+    const parsedBox =
+      body.action === "correct-box" && body.box !== null && body.box !== undefined
+        ? parseStudioBox(body.box)
+        : null;
     const result =
       body.action === "verify-rights"
         ? verifyMediaRights(current, body.rights ?? {}, reviewer, now)
@@ -235,11 +251,15 @@ export async function POST(request: Request) {
               identifiable: body.identifiable === false ? false : undefined,
             })
           : body.action === "correct-box"
-            ? body.box === null
+            ? body.boxes === null || body.box === null
               ? clearStudioBox(current, reviewer, now)
-              : parsedBox
-                ? adjustStudioBox(current, parsedBox, reviewer, now)
-                : { ok: false as const, reason: "The box must sit inside the image. Coordinates are 0 to 1." }
+              : parsedBoxes
+                ? parsedBoxes.length === 0
+                  ? clearStudioBox(current, reviewer, now)
+                  : adjustStudioBoxes(current, parsedBoxes, reviewer, now)
+                : parsedBox
+                  ? adjustStudioBox(current, parsedBox, reviewer, now)
+                  : { ok: false as const, reason: "The box must sit inside the image. Coordinates are 0 to 1." }
             : body.action === "comment"
               ? addReviewComment(current, body.note ?? "", reviewer, now)
               : body.action === "review-decision" && body.decision

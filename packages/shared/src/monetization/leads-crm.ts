@@ -143,6 +143,8 @@ export type LeadAttribution = z.infer<typeof LeadAttributionSchema>;
 
 export const LeadVerticalSchema = z.enum([
   "rc911",
+  "law_enforcement",
+  "fire_ems",
   "campus",
   "venue",
   "hospital",

@@ -117,8 +117,8 @@ export function useTranslateLiveSession() {
   }, []);
 
   const connectWs = useCallback(
-    async (sessionId: string) => {
-      const tok = await getTranslateWsToken(sessionId, 'officer');
+    async (sessionId: string, agencyId?: string) => {
+      const tok = await getTranslateWsToken(sessionId, 'officer', agencyId);
       const client = new TranslateWsClient({
         onEvent: applyEvent,
         onOpen: () => setConnected(true),
@@ -182,7 +182,7 @@ export function useTranslateLiveSession() {
           wsRef.current = client;
           client.connect(created.wsEndpoint);
         } else {
-          await connectWs(created.session.sessionId);
+          await connectWs(created.session.sessionId, created.session.agencyId);
         }
         return created.session;
       } catch (e) {
@@ -238,7 +238,10 @@ export function useTranslateLiveSession() {
     await stopTranslateTts();
     if (!session) return;
     try {
-      const res = await closeTranslateSession(session.sessionId, { writebackNote });
+      const res = await closeTranslateSession(session.sessionId, {
+        writebackNote,
+        agencyId: session.agencyId,
+      });
       setSession(res.session);
       wsRef.current?.close();
       setConnected(false);

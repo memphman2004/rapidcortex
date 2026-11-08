@@ -264,8 +264,11 @@ export function novaSonicOpeningEvents(opts: {
       event: {
         sessionStart: {
           inferenceConfiguration: { maxTokens: 1024, topP: 0.9, temperature: 0.7 },
-          // MEDIUM: allow natural pauses so Nexiq does not cut the caller mid-thought.
-          turnDetectionConfiguration: { endpointingSensitivity: "MEDIUM" },
+          // LOW: snappier turn-taking after short answers ("Yes." / street name).
+          // Step back to MEDIUM if callers report being cut off mid-thought.
+          // TODO: add bargein when nova-2-5-sonic / InvokeModelWithBidirectionalStream
+          // exposes an interruption or barge-in flag (none on sessionStart today).
+          turnDetectionConfiguration: { endpointingSensitivity: "LOW" },
         },
       },
     },

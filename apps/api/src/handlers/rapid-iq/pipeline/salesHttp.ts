@@ -8,11 +8,16 @@ import type { APIGatewayProxyEventV2 } from "aws-lambda";
 import {
   addEmailListEntryBodySchema,
   approveRapidIqSalesBulkBodySchema as approveNexiQSalesBulkBodySchema,
+  canAccessSalesAutomation,
   canManageSalesAutomation,
   createRapidIqSalesBulkCampaignBodySchema as createNexiQSalesBulkCampaignBodySchema,
   createRapidIqSalesSequenceBodySchema as createNexiQSalesSequenceBodySchema,
+  emailListApolloSyncBodySchema,
+  emailListImportBodySchema,
+  emailListImportRowSchema,
   emailListQuerySchema,
   emailListVerticalSchema,
+  moveEmailListEntryBodySchema,
   rapidIqOutlookCallbackBodySchema,
   updateRapidIqSalesBulkCopyBodySchema as updateNexiQSalesBulkCopyBodySchema,
   updateRapidIqSalesDraftBodySchema as updateNexiQSalesDraftBodySchema,
@@ -82,15 +87,25 @@ import {
   emailListEntriesToCsv,
   listAllEmailListEntries,
   listEmailListEntries,
-  removeEmailListEntry,
+  markEmailListUnsubscribed,
+  moveEmailListEntry,
   subscribeEmailList,
   unsubscribeEmailEverywhere,
 } from "../../../lib/rapid-iq/email-list-db.js";
+import { upsertMarketingContact } from "../../../lib/rapid-iq/marketing-contacts-upsert.js";
+import { syncApolloMarketingVertical } from "../../../lib/rapid-iq/apollo-marketing-sync.js";
+import { isSuppressedInSES } from "../../../lib/ses/sesSuppression.js";
 
 const auditRepo = new AuditRepository();
 
 function denyUnlessManage(user: UserContext): ReturnType<typeof forbidden> | null {
   if (!canManageSalesAutomation(user.role)) return forbidden();
+  return null;
+}
+
+/** Email-list read/add/import — sales contractors + RC admins. */
+function denyUnlessSalesAccess(user: UserContext): ReturnType<typeof forbidden> | null {
+  if (!canAccessSalesAutomation(user.role)) return forbidden();
   return null;
 }
 
@@ -469,12 +484,94 @@ async function handleEmailList(
     return ok({ entries, vertical: "ALL" });
   }
 
+  if (method === "POST" && path.includes("/email-list/import")) {
+    const denied = denyUnlessSalesAccess(user);
+    if (denied) return denied;
+    const body = parseBody(event);
+    if (body === null) return badRequest("Invalid JSON");
+    const parsed = emailListImportBodySchema.safeParse(body);
+    if (!parsed.success) return badRequestFromZod(parsed.error);
+    const importSource = parsed.data.source ?? "import";
+    let imported = 0;
+    let skipped = 0;
+    const errors: string[] = [];
+    for (const row of parsed.data.rows) {
+      const rowParsed = emailListImportRowSchema.safeParse(row);
+      if (!rowParsed.success) {
+        errors.push(row.email ?? "invalid-row");
+        continue;
+      }
+      if (await isSuppressedInSES(rowParsed.data.email)) {
+        skipped += 1;
+        continue;
+      }
+      const name =
+        rowParsed.data.name ||
+        [rowParsed.data.firstName, rowParsed.data.lastName].filter(Boolean).join(" ") ||
+        undefined;
+      const result = await upsertMarketingContact({
+        email: rowParsed.data.email,
+        vertical: rowParsed.data.vertical,
+        firstName: rowParsed.data.firstName,
+        lastName: rowParsed.data.lastName,
+        name,
+        title: rowParsed.data.title,
+        agencyName: rowParsed.data.agencyName,
+        state: rowParsed.data.state,
+        source: importSource,
+      });
+      if (!result.ok) {
+        if (result.reason === "suppressed" || result.reason === "unsubscribed") skipped += 1;
+        else errors.push(rowParsed.data.email);
+        continue;
+      }
+      imported += 1;
+    }
+    await audit(user, "rapid_iq.email_list_imported", "csv", {
+      imported,
+      skipped,
+      errors: errors.length,
+      source: importSource,
+    });
+    return ok({ imported, skipped, errors });
+  }
+
+  if (method === "POST" && path.includes("/email-list/apollo-sync")) {
+    const denied = denyUnlessManage(user);
+    if (denied) return denied;
+    const body = parseBody(event);
+    if (body === null) return badRequest("Invalid JSON");
+    const parsed = emailListApolloSyncBodySchema.safeParse(body);
+    if (!parsed.success) return badRequestFromZod(parsed.error);
+    const result = await syncApolloMarketingVertical(parsed.data.vertical, {
+      maxPages: parsed.data.forceRefresh ? 3 : 2,
+    });
+    await audit(user, "rapid_iq.email_list_apollo_sync", parsed.data.vertical, result);
+    return ok({ result });
+  }
+
   if (method === "POST") {
     const body = parseBody(event);
     if (body === null) return badRequest("Invalid JSON");
     const parsed = addEmailListEntryBodySchema.safeParse(body);
     if (!parsed.success) return badRequestFromZod(parsed.error);
     const canClearUnsub = canManageSalesAutomation(user.role);
+    if (await isSuppressedInSES(parsed.data.email)) {
+      return badRequest("This address is on the SES suppression list and cannot be added.");
+    }
+    const dual = await upsertMarketingContact({
+      email: parsed.data.email,
+      vertical: parsed.data.vertical,
+      name: parsed.data.name,
+      source: parsed.data.source ?? "manual",
+    });
+    if (!dual.ok && dual.reason === "unsubscribed") {
+      if (!canClearUnsub) {
+        return badRequest(
+          "This address unsubscribed from marketing email. An RC admin must re-subscribe them.",
+        );
+      }
+    }
     const result = await subscribeEmailList({
       body: parsed.data,
       createdBy: user.userId,
@@ -498,6 +595,29 @@ async function handleEmailList(
     return ok({ entry: result.entry });
   }
 
+  if (method === "PATCH") {
+    const body = parseBody(event);
+    if (body === null) return badRequest("Invalid JSON");
+    const parsed = moveEmailListEntryBodySchema.safeParse(body);
+    if (!parsed.success) return badRequestFromZod(parsed.error);
+    const moved = await moveEmailListEntry({
+      email: parsed.data.email,
+      fromVertical: parsed.data.fromVertical,
+      toVertical: parsed.data.vertical,
+      updatedBy: user.userId,
+    });
+    if (!moved.ok) {
+      if (moved.reason === "not_found") return notFound("Email list entry not found");
+      if (moved.reason === "same_vertical") return badRequest("vertical must differ from fromVertical");
+      return badRequest("Invalid email");
+    }
+    await audit(user, "rapid_iq.email_list_vertical_moved", moved.entry.email, {
+      fromVertical: parsed.data.fromVertical,
+      vertical: moved.entry.vertical,
+    });
+    return ok({ entry: moved.entry });
+  }
+
   if (method === "DELETE") {
     const email = (qs.email ?? "").trim().toLowerCase();
     const verticalRaw = (qs.vertical ?? "").trim().toUpperCase();
@@ -509,10 +629,11 @@ async function handleEmailList(
     }
     const v = emailListVerticalSchema.safeParse(verticalRaw);
     if (!v.success) return badRequestFromZod(v.error);
-    await removeEmailListEntry(v.data, email);
+    // Soft-deactivate: keep the row greyed/inactive on the Email List.
     await putSalesUnsubscribe(email);
-    await audit(user, "rapid_iq.email_list_unsubscribed", email, { vertical: v.data });
-    return ok({ removed: true, email, vertical: v.data });
+    await markEmailListUnsubscribed(v.data, email);
+    await audit(user, "rapid_iq.email_list_unsubscribed", email, { vertical: v.data, soft: true });
+    return ok({ removed: true, deactivated: true, email, vertical: v.data });
   }
 
   return notFound("Not found");

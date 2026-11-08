@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnnotationStage, inspectImageElement, type PreviewInspection } from "@/components/rc-admin/annotation-stage";
-import { boxesMatch, roundStudioBox } from "@/lib/rapid-vision/annotation-geometry";
+import { roundStudioBox, studioBoxesListMatch } from "@/lib/rapid-vision/annotation-geometry";
 import type { StudioBox, StudioReviewRecord, StudioReviewStatus } from "@/lib/rapid-vision/studio-dataset";
 import { BATCH_CATEGORY_CHOICES, BATCH_SIZE_CHOICES, DEFAULT_BATCH_SIZE, batchEstimateUsd, firearmMix, progressSummary, type BatchProgress } from "@/lib/rapid-vision/studio-batch";
-import { validStudioBox } from "@/lib/rapid-vision/studio-review-gates";
+import { studioBoxesOnRecord, validStudioBox } from "@/lib/rapid-vision/studio-review-gates";
 
 type Readiness = {
   candidates: number;
@@ -273,7 +273,7 @@ export function StudioReviewQueue() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold">Labeling workspace</h2>
           <p className="text-xs text-slate-500">
-            {payload.storage === "dynamodb" ? "Loaded from the studio table." : "The studio table could not be read."} Live detection is disabled. One box is stored per candidate.
+            {payload.storage === "dynamodb" ? "Loaded from the studio table." : "The studio table could not be read."} Live detection is disabled. Draw one box per object — up to eight per frame.
           </p>
         </div>
         <div className="flex flex-wrap gap-1">
@@ -440,7 +440,9 @@ function CandidateEditor({
   magnifier: boolean;
   onAct: (body: Record<string, unknown>) => Promise<void>;
 }) {
-  const [draft, setDraft] = useState<StudioBox | null>(item.box ?? null);
+  const savedBoxes = studioBoxesOnRecord(item);
+  const [draftBoxes, setDraftBoxes] = useState<StudioBox[]>(savedBoxes);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [category, setCategory] = useState(item.category);
   const [author, setAuthor] = useState(item.author ?? "");
   const [license, setLicense] = useState(item.license ?? "");
@@ -452,16 +454,42 @@ function CandidateEditor({
 
   useEffect(() => {
     setComment(item.reviewerNote ?? "");
-  }, [item.id, item.reviewerNote]);
+    const next = studioBoxesOnRecord(item);
+    setDraftBoxes(next);
+    setSelectedIndex(0);
+  }, [item.id, item.reviewerNote, item.box, item.boxes]);
 
-  const boxSaved = boxesMatch(draft, item.box ?? null);
+  const draft = draftBoxes[selectedIndex] ?? null;
+  const boxSaved = studioBoxesListMatch(draftBoxes, savedBoxes);
   const lookalike = item.role === "negative";
-  const verifyReason = verificationBlock({ item, draft, boxSaved, cannotIdentify, inspection, category });
+  const verifyReason = verificationBlock({
+    item,
+    draftBoxes,
+    boxSaved,
+    cannotIdentify,
+    inspection,
+    category,
+  });
   const area = draft ? draft.width * draft.height : 0;
 
   function updateField(key: keyof StudioBox, value: number) {
     const base = draft ?? { x: 0, y: 0, width: 0.1, height: 0.1 };
-    setDraft(roundStudioBox({ ...base, [key]: value }));
+    const nextBox = roundStudioBox({ ...base, [key]: value });
+    if (!draft) {
+      setDraftBoxes([nextBox]);
+      setSelectedIndex(0);
+      return;
+    }
+    setDraftBoxes(draftBoxes.map((box, index) => (index === selectedIndex ? nextBox : box)));
+  }
+
+  function saveBoxes(next: StudioBox[]) {
+    void onAct({
+      action: "correct-box",
+      id: item.id,
+      boxes: next,
+      box: next[0] ?? null,
+    });
   }
 
   return (
@@ -469,13 +497,17 @@ function CandidateEditor({
       <AnnotationStage
         src={previewSrc(item.id)}
         candidateId={item.id}
-        box={draft}
+        boxes={draftBoxes}
+        selectedIndex={selectedIndex}
         brightness={brightness}
         contrast={contrast}
         magnifier={magnifier}
         onInspection={setInspection}
-        onBoxChange={setDraft}
-        onCommit={(box) => void onAct({ action: "correct-box", id: item.id, box })}
+        onBoxesChange={(next, index) => {
+          setDraftBoxes(next);
+          setSelectedIndex(index);
+        }}
+        onCommit={saveBoxes}
       />
       <aside className="space-y-4 rounded-xl border border-slate-800 p-3 text-sm">
         <div>
@@ -513,8 +545,24 @@ function CandidateEditor({
           )}
         </section>
         <section className="space-y-2 border-t border-slate-800 pt-3">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Box</h3>
-          <p className="text-[11px] text-slate-500">Draw, drag, or resize on the image. These numbers stay in fractions of the frame.</p>
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Boxes</h3>
+          <p className="text-[11px] text-slate-500">
+            Draw on empty space to add another yellow box (for example a second lookalike object). Selected box numbers are fractions of the frame.
+          </p>
+          {draftBoxes.length > 1 ? (
+            <div className="flex flex-wrap gap-1">
+              {draftBoxes.map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => setSelectedIndex(index)}
+                  className={`rounded px-2 py-0.5 text-[11px] ${index === selectedIndex ? "bg-amber-800 text-amber-50" : "bg-slate-800 text-slate-300"}`}
+                >
+                  Box {index + 1}
+                </button>
+              ))}
+            </div>
+          ) : null}
           <div className="grid grid-cols-4 gap-1">
             {(["x", "y", "width", "height"] as const).map((key) => (
               <label key={key} className="text-[10px] text-slate-500">
@@ -537,9 +585,37 @@ function CandidateEditor({
             <input type="checkbox" checked={cannotIdentify} onChange={(event) => setCannotIdentify(event.target.checked)} />
             The object cannot be identified in this image
           </label>
-          <div className="flex gap-2">
-            <button type="button" className="rounded bg-slate-800 px-2 py-1 text-xs" onClick={() => void onAct({ action: "correct-box", id: item.id, box: draft })}>Save box</button>
-            <button type="button" className="rounded bg-slate-800 px-2 py-1 text-xs" onClick={() => { setDraft(null); void onAct({ action: "correct-box", id: item.id, box: null }); }}>Delete box</button>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="rounded bg-slate-800 px-2 py-1 text-xs" onClick={() => saveBoxes(draftBoxes)}>
+              Save boxes
+            </button>
+            <button
+              type="button"
+              className="rounded bg-slate-800 px-2 py-1 text-xs"
+              disabled={draftBoxes.length === 0}
+              onClick={() => {
+                if (draftBoxes.length === 0) return;
+                const index = Math.min(selectedIndex, draftBoxes.length - 1);
+                const next = draftBoxes.filter((_, i) => i !== index);
+                setDraftBoxes(next);
+                setSelectedIndex(next.length === 0 ? 0 : Math.min(index, next.length - 1));
+                saveBoxes(next);
+              }}
+            >
+              Delete selected
+            </button>
+            <button
+              type="button"
+              className="rounded bg-slate-800 px-2 py-1 text-xs"
+              disabled={draftBoxes.length === 0}
+              onClick={() => {
+                setDraftBoxes([]);
+                setSelectedIndex(0);
+                saveBoxes([]);
+              }}
+            >
+              Clear all
+            </button>
           </div>
         </section>
         <section className="space-y-2 border-t border-slate-800 pt-3">
@@ -585,7 +661,7 @@ function CandidateEditor({
 
 function verificationBlock(input: {
   item: StudioReviewRecord;
-  draft: StudioBox | null;
+  draftBoxes: StudioBox[];
   boxSaved: boolean;
   cannotIdentify: boolean;
   inspection: PreviewInspection;
@@ -595,8 +671,10 @@ function verificationBlock(input: {
   if (input.inspection === "black") return "The preview is almost black. Do not verify the label until the object is visible.";
   if (input.inspection === "loading") return "The image is still loading.";
   if (input.cannotIdentify) return "The object cannot be identified. Reject the candidate or request another review.";
-  if (!validStudioBox(input.draft)) return "Draw a box around the object before verifying the label.";
-  if (!input.boxSaved) return "Save the box before verifying the label.";
+  if (input.draftBoxes.length === 0 || !input.draftBoxes.every(validStudioBox)) {
+    return "Draw a box around the object before verifying the label.";
+  }
+  if (!input.boxSaved) return "Save the boxes before verifying the label.";
   if (!input.category.trim()) return "A category is required before the label can be verified.";
   if (!input.item.rightsVerifiedAt || input.item.rightsStatus === "REVIEW_REQUIRED" || input.item.rightsStatus === "UNKNOWN" || input.item.rightsStatus === "RESTRICTED") {
     return "Record rights before verifying the label. Rights approval and label verification stay separate.";

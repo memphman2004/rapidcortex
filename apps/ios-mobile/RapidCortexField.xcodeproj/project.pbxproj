@@ -7,31 +7,33 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00C833E8F0A80CBC762E1873 /* AgencySelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88514CE4596CA8F5B9D865B2 /* AgencySelectView.swift */; };
+		020D17F4AC1B8B4304D3C68C /* RCAPIClient+AccessRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A337951C8C2178A43606885 /* RCAPIClient+AccessRequest.swift */; };
 		16180FBD3683BFA383D624B3 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654A542785A3A65C131D6BA0 /* SettingsView.swift */; };
+		1865C3F8FD747D1A568B039D /* TranslateSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A29728E4471835B5DC312E2 /* TranslateSessionController.swift */; };
 		1A10B271CBEC16332E2A0C6D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1D67F9C6BA25D2460EB0B39F /* Assets.xcassets */; };
 		1FAE77695459CF7D7BBF77E9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 057FE9DD183AB56F2B705B77 /* PrivacyInfo.xcprivacy */; };
+		2FA13F04625F912EFE89046D /* TranslateRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CC04E421C375B0DAD9CE1FA /* TranslateRootView.swift */; };
+		311752D48064BD22E377C0BB /* BusinessCardNfcViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E46064E137AF2AA3BE702E /* BusinessCardNfcViews.swift */; };
+		31897F4C0801E8F3B8B570B5 /* RCAPIClient+FieldCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C14DA68A6F92326FFAADD2E /* RCAPIClient+FieldCommand.swift */; };
 		549C3397BB4147D7114D9784 /* SiteQrNfcView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCD7A49737FBDFF668306B5 /* SiteQrNfcView.swift */; };
 		589DFCFDE03A55F472904DAC /* RCTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7EF1CC5076A69563443CFC /* RCTheme.swift */; };
 		63CE5E108DC5D24AEE053965 /* TradeShowSite.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AB2BDE52E6C56177C9F254 /* TradeShowSite.swift */; };
 		69D1E716FFCE352A17B00483 /* CognitoSRPHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81ADA5F5FDE82F22CBF15AE8 /* CognitoSRPHelper.swift */; };
 		6D749E962B24880877CB2846 /* NeuralFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F6237F881810AA1BB3C4415 /* NeuralFieldView.swift */; };
+		6E756F82BEEA4A75426D1853 /* RCAPIClient+Translate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4E10760BE1EBFA5939086AA /* RCAPIClient+Translate.swift */; };
+		6FFB0595438F19135900CA8E /* ContinuityLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB82D854CC2534E051E022B8 /* ContinuityLogView.swift */; };
 		755F8DBDC69D6B82496648E6 /* CognitoAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A518817267A64322DA4A72A /* CognitoAuthManager.swift */; };
 		7C22EA801C6233053CC8120A /* AgenciesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4CD77DA86F68AE37FE18105 /* AgenciesView.swift */; };
 		7E1906EF5074FB17C815BBAA /* RapidCortexFieldApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 603AF2D2575FFC8F8DD842EF /* RapidCortexFieldApp.swift */; };
 		7FB286C1831F86A67AAE69C3 /* NFCWriterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2AACB12525FDDC372A48FD3 /* NFCWriterView.swift */; };
 		837EF0FF5D55556F8AB3D82E /* EnterTheCortexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B435077A0EF9220C61909040 /* EnterTheCortexView.swift */; };
 		956CF0F79134636ECD405A33 /* CodeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19837D545796E0FFCAA37A0D /* CodeDetailView.swift */; };
-		A11F10000000000000000005 /* RCAPIClient+AccessRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000006 /* RCAPIClient+AccessRequest.swift */; };
-		A11F10000000000000000007 /* RCAPIClient+FieldCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000008 /* RCAPIClient+FieldCommand.swift */; };
-		A11F10000000000000000009 /* CommandHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F1000000000000000000A /* CommandHomeView.swift */; };
-		A11F1000000000000000000B /* IncidentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F1000000000000000000C /* IncidentDetailView.swift */; };
-		A11F1000000000000000000D /* ContinuityLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F1000000000000000000E /* ContinuityLogView.swift */; };
-		A11F1000000000000000000F /* DispatcherStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000010 /* DispatcherStatusView.swift */; };
-		A11F10000000000000000011 /* RCRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000012 /* RCRouter.swift */; };
-		A11F10000000000000000013 /* AgencySelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000014 /* AgencySelectView.swift */; };
-		A11F10000000000000000020 /* TranslateRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000021 /* TranslateRootView.swift */; };
-		A11F10000000000000000022 /* RCAPIClient+Translate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000023 /* RCAPIClient+Translate.swift */; };
-		A11F10000000000000000024 /* TranslateSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F10000000000000000025 /* TranslateSessionController.swift */; };
+		9C868919292502213505C09C /* RCRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF422B82F459FAF0E5644C46 /* RCRouter.swift */; };
+		A2642395830E1A86677056F7 /* DispatcherStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C858F37121F889ACB3395495 /* DispatcherStatusView.swift */; };
+		A314375EC89F2424BFBA3230 /* IncidentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB354805F7E5551F4810A56 /* IncidentDetailView.swift */; };
+		A3E7E28740BD970BE0D5DBBF /* RCAPIClient+BusinessCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5C594B26BB40C001A7B6CB8 /* RCAPIClient+BusinessCards.swift */; };
+		A771D5082477BF5191554461 /* CommandHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C12969E7845CE799C2566491 /* CommandHomeView.swift */; };
 		ABA864AB6F8D9678FAAE2FED /* NewCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BBA1522382B1DC0D524A09 /* NewCodeView.swift */; };
 		AC8233B06BC7DE757AC2A884 /* QRCodeGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21FCDADDE3B105919E10A34 /* QRCodeGenerator.swift */; };
 		BDDAD1193D99921A2859FE0F /* CodesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B252404851C891A2616CAD4E /* CodesListView.swift */; };
@@ -41,47 +43,51 @@
 		E4576C96109EB52ABF768449 /* RCAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6593C4876F9DDEB383A5424 /* RCAPIClient.swift */; };
 		F3D826B2EFF4C7268A211B14 /* NFCTagWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7822122D60E0CE42710DB109 /* NFCTagWriter.swift */; };
 		F733E58FB3465919C9AAEF52 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8538AB9AA07AFFCE1B642AE /* Models.swift */; };
+		F8331E1513BEE76AFB2374E9 /* CoreNFC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C6F8CF057ABC1F9778764414 /* CoreNFC.framework */; };
 		F9397BE94CFBF1FC2C216C24 /* BigInt in Frameworks */ = {isa = PBXBuildFile; productRef = F9A46F04A315A71390FF0FF5 /* BigInt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		057FE9DD183AB56F2B705B77 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		057FE9DD183AB56F2B705B77 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		19837D545796E0FFCAA37A0D /* CodeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeDetailView.swift; sourceTree = "<group>"; };
 		19DC816E5E5EEF1C0889A61E /* RapidCortexField.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RapidCortexField.entitlements; sourceTree = "<group>"; };
 		1C7EF1CC5076A69563443CFC /* RCTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCTheme.swift; sourceTree = "<group>"; };
 		1D67F9C6BA25D2460EB0B39F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		24BBA1522382B1DC0D524A09 /* NewCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewCodeView.swift; sourceTree = "<group>"; };
+		2C14DA68A6F92326FFAADD2E /* RCAPIClient+FieldCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+FieldCommand.swift"; sourceTree = "<group>"; };
 		5995D754E41066DE1F4B2B8E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		5A337951C8C2178A43606885 /* RCAPIClient+AccessRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+AccessRequest.swift"; sourceTree = "<group>"; };
 		5A518817267A64322DA4A72A /* CognitoAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CognitoAuthManager.swift; sourceTree = "<group>"; };
+		5CC04E421C375B0DAD9CE1FA /* TranslateRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateRootView.swift; sourceTree = "<group>"; };
 		603AF2D2575FFC8F8DD842EF /* RapidCortexFieldApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RapidCortexFieldApp.swift; sourceTree = "<group>"; };
 		654A542785A3A65C131D6BA0 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		6A29728E4471835B5DC312E2 /* TranslateSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateSessionController.swift; sourceTree = "<group>"; };
 		7822122D60E0CE42710DB109 /* NFCTagWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCTagWriter.swift; sourceTree = "<group>"; };
 		7F6237F881810AA1BB3C4415 /* NeuralFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeuralFieldView.swift; sourceTree = "<group>"; };
 		81ADA5F5FDE82F22CBF15AE8 /* CognitoSRPHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CognitoSRPHelper.swift; sourceTree = "<group>"; };
+		86E46064E137AF2AA3BE702E /* BusinessCardNfcViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessCardNfcViews.swift; sourceTree = "<group>"; };
+		88514CE4596CA8F5B9D865B2 /* AgencySelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgencySelectView.swift; sourceTree = "<group>"; };
 		96D3566610236B84B3A54FBA /* RCConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCConfig.swift; sourceTree = "<group>"; };
-		A11F10000000000000000006 /* RCAPIClient+AccessRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+AccessRequest.swift"; sourceTree = "<group>"; };
-		A11F10000000000000000008 /* RCAPIClient+FieldCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+FieldCommand.swift"; sourceTree = "<group>"; };
-		A11F1000000000000000000A /* CommandHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandHomeView.swift; sourceTree = "<group>"; };
-		A11F1000000000000000000C /* IncidentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncidentDetailView.swift; sourceTree = "<group>"; };
-		A11F1000000000000000000E /* ContinuityLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuityLogView.swift; sourceTree = "<group>"; };
-		A11F10000000000000000010 /* DispatcherStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DispatcherStatusView.swift; sourceTree = "<group>"; };
-		A11F10000000000000000012 /* RCRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCRouter.swift; sourceTree = "<group>"; };
-		A11F10000000000000000014 /* AgencySelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgencySelectView.swift; sourceTree = "<group>"; };
-		A11F10000000000000000021 /* TranslateRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateRootView.swift; sourceTree = "<group>"; };
-		A11F10000000000000000023 /* RCAPIClient+Translate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+Translate.swift"; sourceTree = "<group>"; };
-		A11F10000000000000000025 /* TranslateSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateSessionController.swift; sourceTree = "<group>"; };
 		A21FCDADDE3B105919E10A34 /* QRCodeGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeGenerator.swift; sourceTree = "<group>"; };
+		AAB354805F7E5551F4810A56 /* IncidentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncidentDetailView.swift; sourceTree = "<group>"; };
+		AF422B82F459FAF0E5644C46 /* RCRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCRouter.swift; sourceTree = "<group>"; };
 		B252404851C891A2616CAD4E /* CodesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodesListView.swift; sourceTree = "<group>"; };
 		B435077A0EF9220C61909040 /* EnterTheCortexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnterTheCortexView.swift; sourceTree = "<group>"; };
 		B8538AB9AA07AFFCE1B642AE /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
-		BACB5C6D2D31F61953AE2040 /* NexCort iQ Mobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NexCort iQ Mobile.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BACB5C6D2D31F61953AE2040 /* RapidCortexField.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = RapidCortexField.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C12969E7845CE799C2566491 /* CommandHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandHomeView.swift; sourceTree = "<group>"; };
 		C2AACB12525FDDC372A48FD3 /* NFCWriterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCWriterView.swift; sourceTree = "<group>"; };
+		C5C594B26BB40C001A7B6CB8 /* RCAPIClient+BusinessCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+BusinessCards.swift"; sourceTree = "<group>"; };
+		C6F8CF057ABC1F9778764414 /* CoreNFC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreNFC.framework; path = System/Library/Frameworks/CoreNFC.framework; sourceTree = SDKROOT; };
+		C858F37121F889ACB3395495 /* DispatcherStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DispatcherStatusView.swift; sourceTree = "<group>"; };
 		CBCD7A49737FBDFF668306B5 /* SiteQrNfcView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteQrNfcView.swift; sourceTree = "<group>"; };
 		D8AB2BDE52E6C56177C9F254 /* TradeShowSite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeShowSite.swift; sourceTree = "<group>"; };
 		E4CD77DA86F68AE37FE18105 /* AgenciesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgenciesView.swift; sourceTree = "<group>"; };
+		E4E10760BE1EBFA5939086AA /* RCAPIClient+Translate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+Translate.swift"; sourceTree = "<group>"; };
 		E6593C4876F9DDEB383A5424 /* RCAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCAPIClient.swift; sourceTree = "<group>"; };
 		E87EB121463FCBE16D183EF3 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		EE074FA881BD0A28AEEE4F4B /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		FB82D854CC2534E051E022B8 /* ContinuityLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuityLogView.swift; sourceTree = "<group>"; };
 		FF6E82D55A05DC4330AF5F57 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -91,6 +97,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F9397BE94CFBF1FC2C216C24 /* BigInt in Frameworks */,
+				F8331E1513BEE76AFB2374E9 /* CoreNFC.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,25 +107,35 @@
 		0CF5771E1ACE154F17F24AE3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				BACB5C6D2D31F61953AE2040 /* NexCort iQ Mobile.app */,
+				BACB5C6D2D31F61953AE2040 /* RapidCortexField.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		384B2831881BC7993E4C3158 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C6F8CF057ABC1F9778764414 /* CoreNFC.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		9C8427ABA4062F1E74306E16 /* RapidCortexField */ = {
 			isa = PBXGroup;
 			children = (
 				E4CD77DA86F68AE37FE18105 /* AgenciesView.swift */,
+				88514CE4596CA8F5B9D865B2 /* AgencySelectView.swift */,
 				1D67F9C6BA25D2460EB0B39F /* Assets.xcassets */,
+				86E46064E137AF2AA3BE702E /* BusinessCardNfcViews.swift */,
 				19837D545796E0FFCAA37A0D /* CodeDetailView.swift */,
-				A11F1000000000000000000C /* IncidentDetailView.swift */,
 				B252404851C891A2616CAD4E /* CodesListView.swift */,
-				A11F1000000000000000000A /* CommandHomeView.swift */,
-				A11F1000000000000000000E /* ContinuityLogView.swift */,
 				5A518817267A64322DA4A72A /* CognitoAuthManager.swift */,
 				81ADA5F5FDE82F22CBF15AE8 /* CognitoSRPHelper.swift */,
-				A11F10000000000000000010 /* DispatcherStatusView.swift */,
+				C12969E7845CE799C2566491 /* CommandHomeView.swift */,
+				FB82D854CC2534E051E022B8 /* ContinuityLogView.swift */,
+				C858F37121F889ACB3395495 /* DispatcherStatusView.swift */,
 				B435077A0EF9220C61909040 /* EnterTheCortexView.swift */,
+				AAB354805F7E5551F4810A56 /* IncidentDetailView.swift */,
 				5995D754E41066DE1F4B2B8E /* Info.plist */,
 				FF6E82D55A05DC4330AF5F57 /* KeychainManager.swift */,
 				EE074FA881BD0A28AEEE4F4B /* LoginView.swift */,
@@ -132,18 +149,18 @@
 				19DC816E5E5EEF1C0889A61E /* RapidCortexField.entitlements */,
 				603AF2D2575FFC8F8DD842EF /* RapidCortexFieldApp.swift */,
 				E6593C4876F9DDEB383A5424 /* RCAPIClient.swift */,
-				A11F10000000000000000006 /* RCAPIClient+AccessRequest.swift */,
-				A11F10000000000000000008 /* RCAPIClient+FieldCommand.swift */,
+				5A337951C8C2178A43606885 /* RCAPIClient+AccessRequest.swift */,
+				C5C594B26BB40C001A7B6CB8 /* RCAPIClient+BusinessCards.swift */,
+				2C14DA68A6F92326FFAADD2E /* RCAPIClient+FieldCommand.swift */,
+				E4E10760BE1EBFA5939086AA /* RCAPIClient+Translate.swift */,
 				96D3566610236B84B3A54FBA /* RCConfig.swift */,
-				A11F10000000000000000012 /* RCRouter.swift */,
+				AF422B82F459FAF0E5644C46 /* RCRouter.swift */,
 				1C7EF1CC5076A69563443CFC /* RCTheme.swift */,
 				654A542785A3A65C131D6BA0 /* SettingsView.swift */,
-				A11F10000000000000000021 /* TranslateRootView.swift */,
-				A11F10000000000000000023 /* RCAPIClient+Translate.swift */,
-				A11F10000000000000000025 /* TranslateSessionController.swift */,
 				CBCD7A49737FBDFF668306B5 /* SiteQrNfcView.swift */,
 				D8AB2BDE52E6C56177C9F254 /* TradeShowSite.swift */,
-				A11F10000000000000000014 /* AgencySelectView.swift */,
+				5CC04E421C375B0DAD9CE1FA /* TranslateRootView.swift */,
+				6A29728E4471835B5DC312E2 /* TranslateSessionController.swift */,
 			);
 			path = RapidCortexField;
 			sourceTree = "<group>";
@@ -153,6 +170,7 @@
 			children = (
 				D83BC1D7FF9D46A46E6F484E /* Config */,
 				9C8427ABA4062F1E74306E16 /* RapidCortexField */,
+				384B2831881BC7993E4C3158 /* Frameworks */,
 				0CF5771E1ACE154F17F24AE3 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -185,7 +203,7 @@
 				F9A46F04A315A71390FF0FF5 /* BigInt */,
 			);
 			productName = RapidCortexField;
-			productReference = BACB5C6D2D31F61953AE2040 /* NexCort iQ Mobile.app */;
+			productReference = BACB5C6D2D31F61953AE2040 /* RapidCortexField.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -195,7 +213,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2630;
+				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					1346BB3F4F3B40C973C763BC = {
 						DevelopmentTeam = 6D7D94PU3M;
@@ -243,15 +261,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				7C22EA801C6233053CC8120A /* AgenciesView.swift in Sources */,
-				A11F1000000000000000000F /* DispatcherStatusView.swift in Sources */,
+				00C833E8F0A80CBC762E1873 /* AgencySelectView.swift in Sources */,
+				311752D48064BD22E377C0BB /* BusinessCardNfcViews.swift in Sources */,
 				956CF0F79134636ECD405A33 /* CodeDetailView.swift in Sources */,
 				BDDAD1193D99921A2859FE0F /* CodesListView.swift in Sources */,
-				A11F10000000000000000009 /* CommandHomeView.swift in Sources */,
-				A11F1000000000000000000D /* ContinuityLogView.swift in Sources */,
 				755F8DBDC69D6B82496648E6 /* CognitoAuthManager.swift in Sources */,
 				69D1E716FFCE352A17B00483 /* CognitoSRPHelper.swift in Sources */,
+				A771D5082477BF5191554461 /* CommandHomeView.swift in Sources */,
+				6FFB0595438F19135900CA8E /* ContinuityLogView.swift in Sources */,
+				A2642395830E1A86677056F7 /* DispatcherStatusView.swift in Sources */,
 				837EF0FF5D55556F8AB3D82E /* EnterTheCortexView.swift in Sources */,
-				A11F1000000000000000000B /* IncidentDetailView.swift in Sources */,
+				A314375EC89F2424BFBA3230 /* IncidentDetailView.swift in Sources */,
 				D7D7EEA370C670E73E551DF0 /* KeychainManager.swift in Sources */,
 				D4CCF1652C24E923DD8F9E2D /* LoginView.swift in Sources */,
 				F733E58FB3465919C9AAEF52 /* Models.swift in Sources */,
@@ -260,20 +280,20 @@
 				6D749E962B24880877CB2846 /* NeuralFieldView.swift in Sources */,
 				ABA864AB6F8D9678FAAE2FED /* NewCodeView.swift in Sources */,
 				AC8233B06BC7DE757AC2A884 /* QRCodeGenerator.swift in Sources */,
+				020D17F4AC1B8B4304D3C68C /* RCAPIClient+AccessRequest.swift in Sources */,
+				A3E7E28740BD970BE0D5DBBF /* RCAPIClient+BusinessCards.swift in Sources */,
+				31897F4C0801E8F3B8B570B5 /* RCAPIClient+FieldCommand.swift in Sources */,
+				6E756F82BEEA4A75426D1853 /* RCAPIClient+Translate.swift in Sources */,
 				E4576C96109EB52ABF768449 /* RCAPIClient.swift in Sources */,
-				A11F10000000000000000005 /* RCAPIClient+AccessRequest.swift in Sources */,
-				A11F10000000000000000007 /* RCAPIClient+FieldCommand.swift in Sources */,
 				C422E7E461F419277457F844 /* RCConfig.swift in Sources */,
+				9C868919292502213505C09C /* RCRouter.swift in Sources */,
 				589DFCFDE03A55F472904DAC /* RCTheme.swift in Sources */,
-				A11F10000000000000000011 /* RCRouter.swift in Sources */,
-				A11F10000000000000000013 /* AgencySelectView.swift in Sources */,
 				7E1906EF5074FB17C815BBAA /* RapidCortexFieldApp.swift in Sources */,
 				16180FBD3683BFA383D624B3 /* SettingsView.swift in Sources */,
-				A11F10000000000000000020 /* TranslateRootView.swift in Sources */,
-				A11F10000000000000000022 /* RCAPIClient+Translate.swift in Sources */,
-				A11F10000000000000000024 /* TranslateSessionController.swift in Sources */,
 				549C3397BB4147D7114D9784 /* SiteQrNfcView.swift in Sources */,
 				63CE5E108DC5D24AEE053965 /* TradeShowSite.swift in Sources */,
+				2FA13F04625F912EFE89046D /* TranslateRootView.swift in Sources */,
+				1865C3F8FD747D1A568B039D /* TranslateSessionController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -316,7 +336,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 6D7D94PU3M;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -337,7 +357,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = us.rapidcortex.field;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
@@ -405,7 +424,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 6D7D94PU3M;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -433,7 +452,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = us.rapidcortex.field;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";

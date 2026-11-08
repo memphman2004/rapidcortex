@@ -213,12 +213,14 @@ describe("getRoleNav", () => {
     expect(byId.translate).toBe("/test-psap/translate");
   });
 
-  it("adds Translate to venue and campus navs and hides it from guest services", () => {
+  it("adds Translate to venue, campus, guest services, transit, and Nexiq navs", () => {
     const venue = getRoleNav("VENUE_OPERATOR", { venueCode: "MBS" });
     const venueHrefs = venue.sections.flatMap((s) => s.items).map((i) => i.id);
     expect(venueHrefs).toContain("translate");
     const guest = getRoleNav("VENUE_GUEST_SERVICES", { venueCode: "MBS" });
-    expect(guest.sections.flatMap((s) => s.items).map((i) => i.id)).not.toContain("translate");
+    expect(guest.sections.flatMap((s) => s.items).find((i) => i.id === "translate")?.href).toBe(
+      "/app/venue/MBS/translate",
+    );
     const campus = getRoleNav("CAMPUS_SECURITY", { campusCode: "LINCOLNHIGH" });
     expect(campus.sections.flatMap((s) => s.items).find((i) => i.id === "translate")?.href).toBe(
       "/app/campus/LINCOLNHIGH/translate",
@@ -227,6 +229,14 @@ describe("getRoleNav", () => {
     const facultyItem = faculty.sections.flatMap((s) => s.items).find((i) => i.id === "translate");
     expect(facultyItem?.href).toBe("/app/campus/LINCOLNHIGH/translate");
     expect(facultyItem?.badge).toBeUndefined();
+    const transit = getRoleNav("TRANSIT_OPERATOR", { transitCode: "KCATA" });
+    expect(transit.sections.flatMap((s) => s.items).find((i) => i.id === "translate")?.href).toBe(
+      "/transit/KCATA/translate",
+    );
+    const nexiq = getRoleNav("CALL_ASSIST_OPERATOR", {});
+    expect(nexiq.sections.flatMap((s) => s.items).find((i) => i.id === "translate")?.href).toBe(
+      "/app/call-assist/translate",
+    );
   });
 
   it("exposes Nexiq QA to supervisors and analytics on the Nexiq page", () => {

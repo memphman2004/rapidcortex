@@ -132,6 +132,27 @@ struct CodesListView: View {
                 .font(.system(size: 13))
                 .foregroundColor(RCTheme.textSecondary)
 
+            if auth.claims?.canManageBusinessCardNfc == true {
+                NavigationLink {
+                    BusinessCardNfcListView()
+                } label: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Business Card NFC")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(RCTheme.amber)
+                        Text("Program employee NFC stickers with /c/… permanent links")
+                            .font(.system(size: 12))
+                            .foregroundColor(RCTheme.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(RCTheme.amber, lineWidth: 1)
+                    )
+                }
+            }
+
             if auth.claims?.isPlatformAdmin == true {
                 NavigationLink {
                     SiteQrNfcView()

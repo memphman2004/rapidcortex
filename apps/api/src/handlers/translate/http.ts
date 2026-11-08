@@ -8,6 +8,7 @@ import {
   isRcInternalOperator,
   OFFICER_LANGUAGE,
   PHRASES_BY_VERTICAL,
+  PLATFORM_AGENCY_ID,
   SUPPORTED_LANGUAGES,
   translateAssistanceSummaryQuerySchema,
   translateSessionCloseRequestSchema,
@@ -107,6 +108,17 @@ function canReadSession(user: UserContext, session: TranslateSession): boolean {
   return canMonitorTranslateSessionForVertical(user, session.agencyId, session.vertical);
 }
 
+/** Tenant for a new session. RC operators may pass agencyId in the body. */
+function resolveSessionAgencyId(user: UserContext, requested?: string): string | null {
+  const fromBody = (requested ?? "").trim();
+  if (isRcInternalOperator(user.role)) {
+    if (fromBody && fromBody !== PLATFORM_AGENCY_ID) return fromBody;
+    if (user.agencyId && user.agencyId !== PLATFORM_AGENCY_ID) return user.agencyId;
+    return fromBody || null;
+  }
+  return user.agencyId || null;
+}
+
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     if (!env.enableRcTranslate || !env.translateSessionsTable) {
@@ -177,10 +189,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       const parsed = translateSessionCreateRequestSchema.safeParse(parseBody(event.body));
       if (!parsed.success) return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
       const vertical = parsed.data.vertical ?? "law_enforcement";
-      if (!user.agencyId) {
+      const agencyId = resolveSessionAgencyId(user, parsed.data.agencyId);
+      if (!agencyId) {
         return withCorrelationHeaders(event, forbidden());
       }
-      const gate = await assertAIGateFeature(user.agencyId, "translation");
+      if (!canStartTranslateSessionForVertical(user, agencyId, vertical)) {
+        return withCorrelationHeaders(event, forbidden());
+      }
+      const gate = await assertAIGateFeature(agencyId, "translation");
       if (!gate.allowed) {
         return withCorrelationHeaders(
           event,
@@ -188,7 +204,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         );
       }
       if (!isRcInternalOperator(user.role)) {
-        const addonGate = await requireTranslateAddon(vertical)(event, user);
+        const addonGate = await requireTranslateAddon(vertical)(event, { ...user, agencyId });
         if (addonGate) return withCorrelationHeaders(event, addonGate);
       }
       if (parsed.data.subjectLanguage && !findSupportedLanguage(parsed.data.subjectLanguage)) {
@@ -198,7 +214,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       const sessionId = makeId("xlat");
       const session: TranslateSession = {
         sessionId,
-        agencyId: user.agencyId,
+        agencyId,
         incidentId: parsed.data.incidentId,
         officerId: user.userId,
         officerName: user.displayName || user.email,
@@ -223,7 +239,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       await translateStore.putSession(session);
       await auditRepo.create({
         eventId: makeId("audit"),
-        agencyId: user.agencyId,
+        agencyId,
         actorId: user.userId,
         type: AUDIT_EVENT_TYPES.TRANSLATE_SESSION_CREATED,
         details: { sessionId, vertical, incidentId: session.incidentId },
@@ -233,7 +249,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       });
       const token = await signTranslateWsToken({
         sub: user.userId,
-        agencyId: user.agencyId,
+        agencyId,
         sessionId,
         wsRole: "officer",
       });
@@ -362,7 +378,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     if (parts[0] === "sessions" && parts[1]) {
       const sessionId = parts[1];
+      const agencyHint = (query.agencyId ?? "").trim();
       let session = await translateStore.getSession(user.agencyId, sessionId);
+      // RC operators create under a selected tenant; JWT may still be __platform__.
+      if (!session && isRcInternalOperator(user.role) && agencyHint && agencyHint !== user.agencyId) {
+        session = await translateStore.getSession(agencyHint, sessionId);
+      }
       if (!session) return withCorrelationHeaders(event, notFound("Session not found"));
       session = await maybeExpire(session);
       if (!canReadSession(user, session)) {
@@ -374,25 +395,25 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }
 
       if (method === "GET" && parts[2] === "segments") {
-        const items = await translateStore.listSegments(sessionId, user.agencyId);
+        const items = await translateStore.listSegments(sessionId, session.agencyId);
         return withCorrelationHeaders(event, ok({ items }));
       }
 
       if (method === "GET" && parts[2] === "ws-token") {
         const wsRole = query.role === "monitor" ? "monitor" : "officer";
         if (wsRole === "monitor") {
-          if (!canMonitorTranslateSessionForVertical(user, user.agencyId, session.vertical)) {
+          if (!canMonitorTranslateSessionForVertical(user, session.agencyId, session.vertical)) {
             return withCorrelationHeaders(event, forbidden());
           }
         } else if (
           session.officerId !== user.userId &&
-          !canStartTranslateSessionForVertical(user, user.agencyId, session.vertical)
+          !canStartTranslateSessionForVertical(user, session.agencyId, session.vertical)
         ) {
           return withCorrelationHeaders(event, forbidden());
         }
         const token = await signTranslateWsToken({
           sub: user.userId,
-          agencyId: user.agencyId,
+          agencyId: session.agencyId,
           sessionId,
           wsRole,
         });
@@ -403,7 +424,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }
 
       if (method === "POST" && parts[2] === "monitor") {
-        if (!canMonitorTranslateSessionForVertical(user, user.agencyId, session.vertical)) {
+        if (!canMonitorTranslateSessionForVertical(user, session.agencyId, session.vertical)) {
           return withCorrelationHeaders(event, forbidden());
         }
         if (!session.monitorUserIds.includes(user.userId)) {
@@ -416,7 +437,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         }
         await auditRepo.create({
           eventId: makeId("audit"),
-          agencyId: user.agencyId,
+          agencyId: session.agencyId,
           actorId: user.userId,
           type: AUDIT_EVENT_TYPES.TRANSLATE_MONITOR_JOINED,
           details: { sessionId, vertical: session.vertical },
@@ -426,7 +447,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         });
         const token = await signTranslateWsToken({
           sub: user.userId,
-          agencyId: user.agencyId,
+          agencyId: session.agencyId,
           sessionId,
           wsRole: "monitor",
         });
@@ -444,13 +465,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         }
         if (
           session.officerId !== user.userId &&
-          !canStartTranslateSessionForVertical(user, user.agencyId, session.vertical)
+          !canStartTranslateSessionForVertical(user, session.agencyId, session.vertical)
         ) {
           return withCorrelationHeaders(event, forbidden());
         }
         const now = new Date().toISOString();
-        const segments = await translateStore.listSegments(sessionId, user.agencyId);
-        const gate = await assertAIGateFeature(user.agencyId, "summaries");
+        const segments = await translateStore.listSegments(sessionId, session.agencyId);
+        const gate = await assertAIGateFeature(session.agencyId, "summaries");
         const summary = gate.allowed
           ? await generateSessionSummary(session, segments)
           : undefined;
@@ -477,13 +498,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         const cadWritebackQueued = result.cadQueued;
         const assistanceEncounterId = result.assistanceId;
         if (wantNoteWriteback) {
-          const refreshed = await translateStore.getSession(user.agencyId, sessionId);
+          const refreshed = await translateStore.getSession(session.agencyId, sessionId);
           if (refreshed) session = refreshed;
         }
 
         await auditRepo.create({
           eventId: makeId("audit"),
-          agencyId: user.agencyId,
+          agencyId: session.agencyId,
           actorId: user.userId,
           type: AUDIT_EVENT_TYPES.TRANSLATE_SESSION_CLOSED,
           details: {

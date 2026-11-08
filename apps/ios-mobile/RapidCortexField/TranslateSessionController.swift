@@ -58,6 +58,7 @@ final class TranslateSessionController: NSObject, ObservableObject {
             body = TranslateSessionCreateBody(
                 subjectLanguage: subjectLanguage,
                 vertical: "campus",
+                agencyId: agencyId,
                 campusContext: .init(campusCode: agencyId),
                 venueContext: nil,
                 hospitalContext: nil
@@ -66,6 +67,7 @@ final class TranslateSessionController: NSObject, ObservableObject {
             body = TranslateSessionCreateBody(
                 subjectLanguage: subjectLanguage,
                 vertical: "hospital",
+                agencyId: agencyId,
                 campusContext: nil,
                 venueContext: nil,
                 hospitalContext: .init(hospitalId: agencyId)
@@ -74,6 +76,7 @@ final class TranslateSessionController: NSObject, ObservableObject {
             body = TranslateSessionCreateBody(
                 subjectLanguage: subjectLanguage,
                 vertical: "law_enforcement",
+                agencyId: agencyId,
                 campusContext: nil,
                 venueContext: nil,
                 hospitalContext: nil
@@ -82,6 +85,7 @@ final class TranslateSessionController: NSObject, ObservableObject {
             body = TranslateSessionCreateBody(
                 subjectLanguage: subjectLanguage,
                 vertical: "venue",
+                agencyId: agencyId,
                 campusContext: nil,
                 venueContext: .init(venueCode: agencyId),
                 hospitalContext: nil
@@ -91,7 +95,10 @@ final class TranslateSessionController: NSObject, ObservableObject {
         do {
             let created = try await api.createTranslateSession(body: body)
             session = created
-            let tokenResp = try await api.getTranslateWsToken(sessionId: created.sessionId)
+            let tokenResp = try await api.getTranslateWsToken(
+                sessionId: created.sessionId,
+                agencyId: created.agencyId
+            )
             connectWebSocket(endpoint: tokenResp.wsEndpoint)
         } catch {
             errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
@@ -105,7 +112,8 @@ final class TranslateSessionController: NSObject, ObservableObject {
         do {
             let result = try await api.closeTranslateSession(
                 sessionId: sessionId,
-                writebackNote: writebackNote
+                writebackNote: writebackNote,
+                agencyId: session?.agencyId
             )
             session = result.session
             disconnectWebSocket()

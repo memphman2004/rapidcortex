@@ -152,10 +152,10 @@ describe("business card service", () => {
     const card = await svc.createCard(admin, "NTAG213");
     const assigned = await svc.assignCard(admin, card.cardId, profile.profileId, card.version);
     const programmed = await svc.setCardStatus(admin, card.cardId, "programmed", assigned.version);
-    expect((await svc.resolveNfc(card.cardId)).location).toBe("/card/jeff-coleman");
+    expect((await svc.resolveNfc(card.cardId)).location).toBe("/card/jeffcoleman");
     await svc.revokeCard(admin, card.cardId, "Tag lost", programmed.version);
     expect((await svc.resolveNfc(card.cardId)).location).toBe("/c/revoked");
-    const live = await svc.publicBySlug("jeff-coleman");
+    const live = await svc.publicBySlug("jeffcoleman");
     expect(live.companyName).toBe("NexCort iQ");
     expect(publicResponseHasInternalFields(live)).toBe(false);
     await svc.recordEvent({
@@ -179,9 +179,9 @@ describe("business card service", () => {
       phoneNumbers: [{ type: "mobile", number: "+14155552671", public: true }],
       emailAddresses: [{ type: "primary", address: employee.email, public: true }],
     });
-    expect(await svc.publicBySlug("jeff-coleman").catch((error: BizCardError) => error.status)).toBe(404);
+    expect(await svc.publicBySlug("jeffcoleman").catch((error: BizCardError) => error.status)).toBe(404);
     await svc.publishMine(employee);
-    const live = await svc.publicBySlug("jeff-coleman");
+    const live = await svc.publicBySlug("jeffcoleman");
     const file = await svc.vcardForPublicId(live.publicProfileId);
     expect(file.body).toContain("FN:Jeff Coleman");
     expect(file.body).toContain("ORG:NexCort iQ");
@@ -195,10 +195,10 @@ describe("business card service", () => {
     const assigned = await svc.assignCard(admin, card.cardId, draft.profileId, card.version);
     const programmed = await svc.setCardStatus(admin, card.cardId, "programmed", assigned.version);
     const verified = await svc.setCardStatus(admin, card.cardId, "verified", programmed.version);
-    expect((await svc.resolveNfc(card.cardId)).location).toBe("/card/jeff-coleman");
+    expect((await svc.resolveNfc(card.cardId)).location).toBe("/card/jeffcoleman");
     await svc.revokeCard(admin, card.cardId, "Lost tag", verified.version);
     expect((await svc.resolveNfc(card.cardId)).location).toBe("/c/revoked");
-    expect((await svc.publicBySlug("jeff-coleman")).displayName).toBe("Jeff Coleman");
+    expect((await svc.publicBySlug("jeffcoleman")).displayName).toBe("Jeff Coleman");
   });
 
   it("denies an employee who targets someone else's card in the same agency", async () => {

@@ -70,6 +70,8 @@ function ApolloCampaignCard({ campaign }: { campaign: RapidIqApolloCampaign }) {
 
 const VERTICAL_BADGE: Record<string, string> = {
   PSAP: "bg-sky-500/10 text-sky-300",
+  LAW_ENFORCEMENT: "bg-blue-500/10 text-blue-300",
+  FIRE_EMS: "bg-orange-500/10 text-orange-300",
   CAMPUS: "bg-violet-500/10 text-violet-300",
   VENUE: "bg-amber-500/10 text-amber-300",
   HOSPITAL: "bg-teal-500/10 text-teal-300",
@@ -805,7 +807,9 @@ function TriggerModal({
             onChange={(e) => setVertical(e.target.value as RapidIqSalesVertical)}
             className="mt-1 w-full rounded-md border border-white/10 bg-[#071224] px-3 py-2 text-sm text-white"
           >
-            <option value="PSAP">PSAP</option>
+            <option value="PSAP">PSAP / 911</option>
+            <option value="LAW_ENFORCEMENT">Law Enforcement</option>
+            <option value="FIRE_EMS">Fire / EMS</option>
             <option value="CAMPUS">Campus</option>
             <option value="VENUE">Venue</option>
             <option value="HOSPITAL">Hospital</option>
@@ -898,7 +902,9 @@ function BulkCampaignModal({
             onChange={(e) => setVertical(e.target.value as RapidIqSalesVertical)}
             className="mt-1 w-full rounded-md border border-white/10 bg-[#071224] px-3 py-2 text-sm text-white"
           >
-            <option value="PSAP">PSAP</option>
+            <option value="PSAP">PSAP / 911</option>
+            <option value="LAW_ENFORCEMENT">Law Enforcement</option>
+            <option value="FIRE_EMS">Fire / EMS</option>
             <option value="CAMPUS">Campus</option>
             <option value="VENUE">Venue</option>
             <option value="HOSPITAL">Hospital</option>
@@ -1748,6 +1754,26 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
                   <div className="min-w-0">
                     <div className="text-sm font-semibold text-slate-100">{c.name}</div>
                     <div className="mt-0.5 max-w-lg text-[11px] text-slate-500">{c.description}</div>
+                    {c.stats ? (
+                      <div className="mt-2 flex flex-wrap gap-3 text-[10px] tabular-nums text-slate-400">
+                        <span>sent {c.stats.sent}</span>
+                        <span>delivered {c.stats.delivered}</span>
+                        <span className="text-emerald-400">
+                          open {c.stats.opened} ({c.stats.openRate}%)
+                        </span>
+                        <span className="text-violet-300">
+                          click {c.stats.clicked} ({c.stats.clickRate}%)
+                        </span>
+                        <span className="text-rose-300">bounce {c.stats.bounced}</span>
+                        <span>unsub {c.stats.unsubscribed}</span>
+                        <span>complaint {c.stats.complained}</span>
+                      </div>
+                    ) : (
+                      <div className="mt-2 text-[10px] text-slate-600">
+                        SES open/click stats appear after marketing sends with the nexcortiq-marketing
+                        config set.
+                      </div>
+                    )}
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">
                     <div

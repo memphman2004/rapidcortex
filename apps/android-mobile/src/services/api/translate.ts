@@ -33,6 +33,8 @@ export interface TranslateSegment {
 
 export interface TranslateSessionCreateBody {
   subjectLanguage?: string;
+  /** Required for RC operators without a home tenant JWT agency. */
+  agencyId?: string;
   vertical: TranslateVertical;
   campusContext?: { campusCode: string; campusIncidentId?: string };
   venueContext?: { venueCode: string; venueIncidentId?: string };
@@ -75,26 +77,33 @@ export async function getTranslateSession(
 
 export async function closeTranslateSession(
   sessionId: string,
-  opts?: { writebackNote?: boolean; notes?: string },
+  opts?: { writebackNote?: boolean; notes?: string; agencyId?: string },
 ): Promise<{
   session: TranslateSession;
   writebackQueued?: boolean;
   assistanceEncounterId?: string;
 }> {
+  const agencyQ = opts?.agencyId
+    ? `?agencyId=${encodeURIComponent(opts.agencyId)}`
+    : '';
+  const { agencyId: _agencyId, ...body } = opts ?? {};
   const res = await post<{
     session: TranslateSession;
     writebackQueued?: boolean;
     assistanceEncounterId?: string;
-  }>(`/api/translate/sessions/${encodeURIComponent(sessionId)}/close`, opts ?? {});
+  }>(`/api/translate/sessions/${encodeURIComponent(sessionId)}/close${agencyQ}`, body);
   return res.data;
 }
 
 export async function getTranslateWsToken(
   sessionId: string,
   role: 'officer' | 'monitor' = 'officer',
+  agencyId?: string,
 ): Promise<{ token: string; wsEndpoint: string; expiresIn: number }> {
+  const params = new URLSearchParams({ role });
+  if (agencyId) params.set('agencyId', agencyId);
   const res = await get<{ token: string; wsEndpoint: string; expiresIn: number }>(
-    `/api/translate/sessions/${encodeURIComponent(sessionId)}/ws-token?role=${role}`,
+    `/api/translate/sessions/${encodeURIComponent(sessionId)}/ws-token?${params.toString()}`,
   );
   return res.data;
 }

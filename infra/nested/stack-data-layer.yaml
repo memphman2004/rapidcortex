@@ -493,7 +493,7 @@
     "ExistingMarketingLeadsTableName": {
       "Type": "String",
       "Default": "rapid-cortex-marketing-leads-dev",
-      "Description": "Pre-existing DynamoDB table name for MarketingLeadsTable (parameter workaround; do not create)."
+      "Description": "Pre-existing DynamoDB table name for MarketingLeadsTable (parameter workaround; do not create). Add vertical-createdAt-index via scripts/ensure-marketing-leads-vertical-gsi.sh — CFN cannot alter this retained table in-place."
     },
     "ExistingPsapProspectsTableName": {
       "Type": "String",

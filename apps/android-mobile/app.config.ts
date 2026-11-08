@@ -47,7 +47,7 @@ const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim() || '';
 const config: ExpoConfig = {
   name: 'NexCort iQ',
   slug: 'rapid-cortex',
-  version: '1.0.0',
+  version: '1.0.1',
   orientation: 'portrait',
   icon: './assets/icon.png',
   // Light-mode "automatic" makes the RCT root white the instant native splash hides
@@ -111,7 +111,8 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'us.rapidcortex.app',
-    versionCode: 1,
+    // Floor for local/dev; EAS production/preview use remote autoIncrement (next Play build after 5).
+    versionCode: 6,
     userInterfaceStyle: 'dark',
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',

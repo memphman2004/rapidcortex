@@ -16,7 +16,7 @@ import { useFieldProduct } from '@/navigation/field-product';
 import { useCodesStore, type CodesStatusFilter } from '@/stores/codes.store';
 import { useTheme } from '@/theme';
 import { Strings } from '@/utils/strings';
-import { isRcInternalRole } from '@/utils/roles';
+import { canManageBusinessCardNfc, isRcInternalRole } from '@/utils/roles';
 
 const STATUS_FILTERS: Array<{ key: CodesStatusFilter; label: string }> = [
   { key: 'all', label: Strings.venue.filters.all },
@@ -110,32 +110,60 @@ export default function CodesListScreen() {
         >
           Tap a code for QR details, or Program NFC Tag on the card.
         </Text>
-        {isRcInternalRole(role) ? (
-        <Pressable
-          onPress={() => router.push(href("/trade-show-nfc") as never)}
-          accessibilityRole="button"
-          accessibilityLabel={Strings.venue.tradeShowNfc.cta}
-          style={{
-            marginTop: spacing["3"],
-            borderWidth: 1,
-            borderColor: palette.amber,
-            borderRadius: 10,
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-          }}
-        >
-          <Text style={[typography.bodyMedium, { color: palette.amber }]}>
-            {Strings.venue.tradeShowNfc.cta}
-          </Text>
-          <Text
-            style={[
-              typography.caption,
-              { color: palette.textSecondary, marginTop: 2 },
-            ]}
+        {canManageBusinessCardNfc(role) ? (
+          <Pressable
+            onPress={() => router.push(href('/business-card-nfc') as never)}
+            accessibilityRole="button"
+            accessibilityLabel={Strings.businessCards.cta}
+            style={{
+              marginTop: spacing['3'],
+              borderWidth: 1,
+              borderColor: palette.amber,
+              borderRadius: 10,
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+            }}
           >
-            Writes www.nexcortiq.us or /demo/ for booth visitors
-          </Text>
-        </Pressable>
+            <Text style={[typography.bodyMedium, { color: palette.amber }]}>
+              {Strings.businessCards.cta}
+            </Text>
+            <Text
+              style={[
+                typography.caption,
+                { color: palette.textSecondary, marginTop: 2 },
+              ]}
+            >
+              {Strings.businessCards.ctaBlurb}
+            </Text>
+          </Pressable>
+        ) : null}
+
+        {isRcInternalRole(role) ? (
+          <Pressable
+            onPress={() => router.push(href('/trade-show-nfc') as never)}
+            accessibilityRole="button"
+            accessibilityLabel={Strings.venue.tradeShowNfc.cta}
+            style={{
+              marginTop: spacing['3'],
+              borderWidth: 1,
+              borderColor: palette.amber,
+              borderRadius: 10,
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+            }}
+          >
+            <Text style={[typography.bodyMedium, { color: palette.amber }]}>
+              {Strings.venue.tradeShowNfc.cta}
+            </Text>
+            <Text
+              style={[
+                typography.caption,
+                { color: palette.textSecondary, marginTop: 2 },
+              ]}
+            >
+              Writes www.nexcortiq.us or /demo/ for booth visitors
+            </Text>
+          </Pressable>
         ) : null}
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: spacing['3'] }}>

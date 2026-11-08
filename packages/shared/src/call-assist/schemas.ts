@@ -243,6 +243,12 @@ export const callAssistDidClaimSchema = z.object({
   phoneNumber: z.string().min(8).max(20),
 });
 
+/** RC-internal: map a Connect DID → tenant without a redeploy. */
+export const callAssistDidMappingSchema = z.object({
+  phoneNumber: z.string().min(8).max(20),
+  agencyId: z.string().trim().min(1).max(128),
+});
+
 export const callAssistVoiceConfigPatchSchema = z.object({
   agencyDisplayName: z.string().trim().min(1).max(200).optional(),
   agencyShortName: z.string().trim().min(1).max(80).optional(),

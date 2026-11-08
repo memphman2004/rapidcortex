@@ -60,7 +60,7 @@ describe("Nexiq identity on every voice engine", () => {
     const sessionStart = events[0]?.event.sessionStart as {
       turnDetectionConfiguration?: { endpointingSensitivity?: string };
     };
-    expect(sessionStart?.turnDetectionConfiguration?.endpointingSensitivity).toBe("MEDIUM");
+    expect(sessionStart?.turnDetectionConfiguration?.endpointingSensitivity).toBe("LOW");
     expect(events.some((row) => "promptStart" in row.event)).toBe(true);
   });
 

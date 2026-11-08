@@ -99,6 +99,10 @@ Parameters:
     Type: String
     Default: ""
     Description: When set, reuse this Lambda (skip CREATE — avoids EarlyValidation AlreadyExists on orphan surgical deploys).
+  ExistingCallAssistDisconnectFunctionName:
+    Type: String
+    Default: ""
+    Description: When set, reuse disconnect closer Lambda (skip CREATE).
   ManagedPolicyNamePrefix:
     Type: String
     Default: rapid-cortex
@@ -129,6 +133,7 @@ Conditions:
   CreateAgencyKeywordTable: !Equals [!Ref ExistingAgencyKeywordTableName, ""]
   CreateNovaSessionStartFunction: !Equals [!Ref ExistingNovaSessionStartFunctionName, ""]
   CreateNovaSessionAwaitFunction: !Equals [!Ref ExistingNovaSessionAwaitFunctionName, ""]
+  CreateCallAssistDisconnectFunction: !Equals [!Ref ExistingCallAssistDisconnectFunctionName, ""]
   HasConnectWebhookSecret: !Not [!Equals [!Ref CallAssistConnectWebhookSecretArn, ""]]
   HasRapidSosSecret: !Not [!Equals [!Ref CallAssistRapidSosSecretArn, ""]]
   HasLexBotRole: !Not [!Equals [!Ref CallAssistLexBotRoleArn, ""]]
@@ -488,8 +493,38 @@ Resources:
             - CreateNovaSessionAwaitFunction
             - !GetAtt NovaSessionAwaitFunction.Arn
             - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingNovaSessionAwaitFunctionName}"
+          CALL_ASSIST_DISCONNECT_LAMBDA_ARN: !If
+            - CreateCallAssistDisconnectFunction
+            - !GetAtt CallAssistDisconnectFunction.Arn
+            - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingCallAssistDisconnectFunctionName}"
       Policies:
         - !Ref AppManagedPolicyCallAssistDynamo
+
+  CallAssistDisconnectFunction:
+    Type: AWS::Serverless::Function
+    Condition: CreateCallAssistDisconnectFunction
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      FunctionName: !Sub "${ManagedPolicyNamePrefix}-call-assist-disconnect-${DeploymentStage}"
+      CodeUri: ../../apps/api/
+      Handler: dist/call-assist/disconnect-handler.handler
+      Timeout: 15
+      MemorySize: 256
+      Policies:
+        - !Ref AppManagedPolicyCallAssistDynamo
+
+  ConnectCallAssistDisconnectPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !If
+        - CreateCallAssistDisconnectFunction
+        - !Ref CallAssistDisconnectFunction
+        - !Ref ExistingCallAssistDisconnectFunctionName
+      Action: lambda:InvokeFunction
+      Principal: connect.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
 
   CallAssistConnectWebhookFunction:
     Type: AWS::Serverless::Function
@@ -967,6 +1002,12 @@ Outputs:
       - CreateNovaSessionAwaitFunction
       - !GetAtt NovaSessionAwaitFunction.Arn
       - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingNovaSessionAwaitFunctionName}"
+  CallAssistDisconnectFunctionArn:
+    Description: Connect InvokeLambda ARN — closes OPEN Lex/Nova sessions on disconnect
+    Value: !If
+      - CreateCallAssistDisconnectFunction
+      - !GetAtt CallAssistDisconnectFunction.Arn
+      - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingCallAssistDisconnectFunctionName}"
   NovaSonicGatewayClusterName:
     Condition: CreateNovaSonicGateway
     Value: !Ref NovaSonicGatewayCluster

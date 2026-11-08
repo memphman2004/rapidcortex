@@ -23,9 +23,10 @@ export default async function RcAdminEmailListPage() {
       <div>
         <h1 className="text-2xl font-semibold text-white">Email List</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Monthly Inside iQ subscribers by product vertical. Add addresses here or via{" "}
-          <span className="text-slate-300">Subscribe to monthly email</span> on PSAP Prospects.
-          Export CSV for campaigns; unsubscribes are honored automatically.
+          Marketing email list by vertical (PSAP, Law Enforcement, Fire/EMS, Campus, Venue, Hospital,
+          Transit). Pick a vertical tab to export or campaign just that audience. Campaign emails include
+          an automatic unsubscribe link; unsubscribed addresses stay on the list as inactive (greyed out)
+          and are never sent to. SES-suppressed addresses are never re-added.
         </p>
       </div>
       <EmailListClient canRemove={canRemove} />

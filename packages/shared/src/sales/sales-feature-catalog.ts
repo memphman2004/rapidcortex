@@ -438,10 +438,14 @@ export function getSalesFeatureById(id: string): SalesFeatureCatalogItem | undef
   return SALES_FEATURE_CATALOG.find((f) => f.id === id);
 }
 
-export function verticalLabelForSales(v: SalesFeatureVertical): string {
+export function verticalLabelForSales(v: SalesFeatureVertical | string): string {
   switch (v) {
     case "rc911":
       return "911 Centers / PSAPs";
+    case "law_enforcement":
+      return "Law Enforcement";
+    case "fire_ems":
+      return "Fire / EMS";
     case "campus":
       return "Campus";
     case "venue":

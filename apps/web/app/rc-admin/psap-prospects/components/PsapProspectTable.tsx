@@ -118,7 +118,7 @@ export function PsapProspectTable({
   onStatusChange,
 }: Props) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const colSpan = showStudentCount ? 11 : 10;
+  const colSpan = showStudentCount ? 12 : 11;
 
   return (
     <div className="overflow-hidden rounded-lg border border-[#1e2130] bg-[#0f1117]">
@@ -171,6 +171,9 @@ export function PsapProspectTable({
               </th>
               <th className="w-[150px] px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                 Contact
+              </th>
+              <th className="w-[200px] px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                Email
               </th>
               <th className="w-[80px] px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                 Addr
@@ -239,6 +242,12 @@ export function PsapProspectTable({
                     <td className="px-3 py-2 font-mono text-xs text-slate-400">{p.phone}</td>
                     <td className="truncate px-3 py-2 text-slate-400">
                       {p.primaryContactName ?? "—"}
+                    </td>
+                    <td
+                      className="max-w-[200px] truncate px-3 py-2 font-mono text-xs text-slate-400"
+                      title={p.primaryContactEmail?.trim() || undefined}
+                    >
+                      {p.primaryContactEmail?.trim() || "—"}
                     </td>
                     <td className="px-3 py-2 text-center text-sm">
                       {hasAddr ? (

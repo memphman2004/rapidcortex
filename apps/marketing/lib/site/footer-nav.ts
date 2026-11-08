@@ -23,6 +23,7 @@ export const footerNav: FooterNavItem[] = [
       { label: "911 Centers/PSAPs", href: "/product/core" },
       { label: "NexCort iQ Venue", href: "/product/venue" },
       { label: "NexCort iQ Campus", href: "/product/campus" },
+      { label: "NexCort iQ Transit", href: "/product/transit" },
       { label: "Grant Success Program", href: "/grants" },
       { label: "Campus safety software", href: "/campus-safety-software" },
       { label: "Venue safety software", href: "/venue-safety-software" },

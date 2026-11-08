@@ -2509,6 +2509,11 @@ Resources:
         ManagedPolicyNamePrefix: !Ref AWS::StackName
         RapidIqHunterApiKeySecretArn: !Ref RapidIqHunterApiKeySecretArn
         RapidIqApolloApiKeySecretArn: !Ref RapidIqApolloApiKeySecretArn
+        RapidIqPipelineSignalsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.RapidIqPipelineSignalsTable
+            - !Sub "${DynamoTableNamePrefix}-rapid-iq-pipeline-signals-${DeploymentStage}"
 
   # Civic-IQ → Claude NexiQ Signals ingest (POST IAM + GET/PATCH JWT) on AppSam3 HttpApi.
   AppSamNexiQSignalsStack:

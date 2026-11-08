@@ -88,16 +88,19 @@ function TranslateScreenContent({
     const body =
       vertical === 'campus'
         ? {
+            agencyId,
             subjectLanguage,
             vertical: 'campus' as const,
             campusContext: { campusCode: codeLabel },
           }
         : vertical === 'law_enforcement'
           ? {
+              agencyId,
               subjectLanguage,
               vertical: 'law_enforcement' as const,
             }
           : {
+              agencyId,
               subjectLanguage,
               vertical: 'venue' as const,
               venueContext: { venueCode: codeLabel },

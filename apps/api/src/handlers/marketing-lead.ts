@@ -138,6 +138,26 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     return json({ error: "Failed to capture lead" }, 500);
   }
 
+  // Dual-write into email-list vertical store (non-fatal; default PSAP for Inside iQ).
+  try {
+    const { upsertMarketingContact } = await import("../lib/rapid-iq/marketing-contacts-upsert.js");
+    await upsertMarketingContact({
+      email: emailLower,
+      vertical: "rc911",
+      firstName,
+      lastName,
+      state,
+      source: "inbound_form",
+    });
+  } catch (err) {
+    console.warn(
+      JSON.stringify({
+        msg: "marketing_lead_email_list_dual_write_failed",
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+  }
+
   // [CR-5] Dual-write into SalesLeads CRM (non-fatal; MarketingLeads remains SoT for unsubscribe).
   try {
     const salesRepo = new SalesLeadRepository();

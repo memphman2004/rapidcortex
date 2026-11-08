@@ -105,7 +105,29 @@ export async function checkSuppression(
 export const SEQUENCE_OPT_OUT_MESSAGE =
   "If you don't want to hear from me again, please <%let me know%>.";
 
-const UNSUBSCRIBE_URL = "https://www.nexcortiq.us/unsubscribe";
+export const UNSUBSCRIBE_BASE_URL = "https://www.nexcortiq.us/unsubscribe";
+
+export function unsubscribeUrl(token?: string | null): string {
+  const t = token?.trim();
+  return t ? `${UNSUBSCRIBE_BASE_URL}?token=${encodeURIComponent(t)}` : UNSUBSCRIBE_BASE_URL;
+}
+
+/** Rewrite bare unsubscribe URLs to a per-recipient token link (SES / Outlook send path). */
+export function applyUnsubscribeTokenToEmailBodies(
+  bodies: { text: string; html?: string },
+  token: string | undefined | null,
+): { text: string; html?: string } {
+  const t = token?.trim();
+  if (!t) return bodies;
+  const withToken = unsubscribeUrl(t);
+  const bare = UNSUBSCRIBE_BASE_URL;
+  return {
+    text: bodies.text.split(bare).join(withToken),
+    html: bodies.html
+      ? bodies.html.split(bare).join(withToken).split(encodeURI(bare)).join(withToken)
+      : undefined,
+  };
+}
 
 function escapeHtml(s: string): string {
   return s
@@ -116,7 +138,7 @@ function escapeHtml(s: string): string {
 }
 
 /** Turn Instantly `<%label%>` markers into unsubscribe anchors (Outlook / HTML sends). */
-function expandOptOutMarkersForHtml(bodyText: string): string {
+function expandOptOutMarkersForHtml(bodyText: string, unsubHref: string): string {
   const tokenPrefix = "\u0000OPT:";
   const tokenSuffix = "\u0000";
   const withTokens = bodyText.replace(/<%\s*([^%]+?)\s*%>/g, (_m, label: string) => {
@@ -127,17 +149,25 @@ function expandOptOutMarkersForHtml(bodyText: string): string {
     .replace(
       new RegExp(`${tokenPrefix}(.*?)${tokenSuffix}`, "g"),
       (_m, label: string) =>
-        `<a href="${UNSUBSCRIBE_URL}" style="color:#555;text-decoration:underline;">${label}</a>`,
+        `<a href="${unsubHref}" style="color:#555;text-decoration:underline;">${label}</a>`,
     );
 }
 
-export function buildHtmlEmail(subject: string, bodyText: string): string {
+export function buildHtmlEmail(
+  subject: string,
+  bodyText: string,
+  opts?: { unsubscribeToken?: string | null },
+): string {
   const cleanSubject = scrubSalesBrand(subject);
+  const unsubHref = unsubscribeUrl(opts?.unsubscribeToken);
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>${escapeHtml(cleanSubject)}</title></head>
 <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;max-width:560px;margin:40px auto;padding:0 20px;">
-${expandOptOutMarkersForHtml(scrubSalesBrand(bodyText))}
-<p style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e5e5;color:#555;font-size:13px;">NexCort iQ · nexcortiq.us</p>
+${expandOptOutMarkersForHtml(scrubSalesBrand(bodyText), unsubHref)}
+<p style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e5e5;color:#555;font-size:12px;line-height:1.5;">
+NexCort iQ · nexcortiq.us<br>
+<a href="${unsubHref}" style="color:#555;text-decoration:underline;">Unsubscribe from these emails</a>
+</p>
 </body></html>`;
 }
 
@@ -751,6 +781,22 @@ export function listCampaignCards(
       status: "active",
     },
     {
+      id: "law-enforcement-2026",
+      name: "Law Enforcement outbound",
+      description:
+        "Chief / sheriff / IT director track — scene intelligence and camera observations without new hardware.",
+      next: "Approve then send · SES open/click tracked",
+      status: "pending",
+    },
+    {
+      id: "fire-ems-2026",
+      name: "Fire / EMS outbound",
+      description:
+        "Fire chief / EMS director track — pre-arrival intelligence into the dispatch console.",
+      next: "Approve then send · SES open/click tracked",
+      status: "pending",
+    },
+    {
       id: "campus-safety-2026",
       name: "Campus Safety outbound",
       description:
@@ -827,6 +873,7 @@ export function applyCampaignControls(
       status: control?.approved ? "active" : card.status,
       subject: control?.subject ?? card.subject,
       bodyText: control?.bodyText ?? card.bodyText,
+      stats: control?.stats,
     });
   }
   return visible;

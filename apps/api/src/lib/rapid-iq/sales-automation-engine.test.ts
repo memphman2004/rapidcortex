@@ -30,6 +30,7 @@ describe("sales automation engine", () => {
     );
     expect(steps[0]?.email.bodyHtml).toContain("https://www.nexcortiq.us/unsubscribe");
     expect(steps[0]?.email.bodyHtml).toContain(">let me know</a>");
+    expect(steps[0]?.email.bodyHtml).toContain("Unsubscribe from these emails");
     expect(steps[0]?.email.bodyText).not.toMatch(/Jeff Coleman/i);
     expect(steps[0]?.email.subject).toMatch(/less typing while the call is still live/i);
     expect(steps[0]?.email.bodyText).toMatch(/does not replace CAD/i);

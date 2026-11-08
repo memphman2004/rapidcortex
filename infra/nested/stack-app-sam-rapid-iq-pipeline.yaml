@@ -181,6 +181,7 @@ Globals:
         COGNITO_REGION: !Ref AWS::Region
         APPROVED_CORS_ORIGINS: !Ref ApprovedCorsOrigins
         SES_FROM_EMAIL: noreply@nexcortiq.us
+        SES_MARKETING_CONFIGURATION_SET_NAME: nexcortiq-marketing
         RAPID_IQ_ALERT_TO_EMAIL: ""
         EXTERNAL_API_ENCRYPTION_KEY_ARN: !Ref ExternalApiEncryptionKeyArn
         OUTLOOK_OAUTH_CLIENT_ID: !Ref OutlookOAuthClientId
@@ -306,14 +307,21 @@ Resources:
               - - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConferencesTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConferencesTable}/index/*
               - - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-unused-riq-conferences
-          - Sid: MarketingLeadsUnsubRead
+          - Sid: MarketingLeadsCrud
             Effect: Allow
             Action:
               - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:DescribeTable
             Resource: !If
               - HasMarketingLeadsTable
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MarketingLeadsTable}
-              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-unused-riq-mkt-leads
+              - - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MarketingLeadsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MarketingLeadsTable}/index/*
+              - - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-unused-riq-mkt-leads
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/rapid-cortex-unused-riq-mkt-leads/index/*
           - Sid: AuditWrite
             Effect: Allow
             Action:
@@ -409,8 +417,19 @@ Resources:
               - ses:SendEmail
             Resource:
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/noreply@nexcortiq.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/jeff@nexcortiq.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/nexcortiq.us
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/rapidcortex.us
               - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@nexcortiq.us
+          - Sid: SesMarketingSuppression
+            Effect: Allow
+            Action:
+              - ses:GetSuppressedDestination
+              - sesv2:GetSuppressedDestination
+              - ses:PutSuppressedDestination
+              - sesv2:PutSuppressedDestination
+            # Account-level SES suppression API does not support resource ARNs.
+            Resource: "*"
           - Sid: ReadOutlookOAuthSecret
             Effect: Allow
             Action:
@@ -988,6 +1007,76 @@ Resources:
             Schedule: rate(15 minutes)
             Enabled: true
             Description: NexiQ send approved scheduled outreach steps
+
+  # ── SES marketing config set (open/click/bounce/complaint) — not transactional ──
+  SesMarketingConfigurationSet:
+    Type: AWS::SES::ConfigurationSet
+    Properties:
+      Name: nexcortiq-marketing
+
+  # No KmsMasterKeyId: SES cannot publish open/click events to topics encrypted
+  # with the AWS-managed SNS key (alias/aws/sns key policy is not editable).
+  SesMarketingNotificationsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "rapid-cortex-ses-marketing-${DeploymentStage}"
+      DisplayName: !Sub "NexCort iQ SES marketing events (${DeploymentStage})"
+
+  SesMarketingNotificationsTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - !Ref SesMarketingNotificationsTopic
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowSesPublishMarketingEvents
+            Effect: Allow
+            Principal:
+              Service: ses.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref SesMarketingNotificationsTopic
+            Condition:
+              StringEquals:
+                AWS:SourceAccount: !Ref AWS::AccountId
+
+  SesMarketingEventDestination:
+    Type: AWS::SES::ConfigurationSetEventDestination
+    DependsOn: SesMarketingNotificationsTopicPolicy
+    Properties:
+      ConfigurationSetName: !Ref SesMarketingConfigurationSet
+      EventDestination:
+        Name: ses-marketing-events-sns
+        Enabled: true
+        MatchingEventTypes:
+          - send
+          - delivery
+          - bounce
+          - complaint
+          - open
+          - click
+          - reject
+        SnsDestination:
+          TopicARN: !Ref SesMarketingNotificationsTopic
+
+  SesMarketingEventsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/sesMarketingEvents.handler
+      Timeout: 60
+      MemorySize: 256
+      Description: SES marketing open/click/bounce/complaint → marketing-leads + campaign stats
+      Policies:
+        - !Ref AppManagedPolicyNexiQPipeline
+      Events:
+        SesMarketingSns:
+          Type: SNS
+          Properties:
+            Topic: !Ref SesMarketingNotificationsTopic
 
   SignalHttpFunction:
     Type: AWS::Serverless::Function
