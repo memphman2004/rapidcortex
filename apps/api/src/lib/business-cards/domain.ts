@@ -19,6 +19,7 @@ export const NEXCORT_EMPLOYEE_ROLES = new Set([
   "salescontractor",
 ]);
 
+/** Create / assign / revoke NFC tags and manage every employee card. */
 export const BUSINESS_CARD_ADMIN_ROLES = new Set(["rcsuperadmin", "rcadmin"]);
 
 /** Cognito `custom:agencyId` for NexCort iQ staff. Customer agencies never receive cards. */
@@ -54,6 +55,11 @@ export function isNexCortEmployee(role: string): boolean {
 
 export function isBusinessCardAdmin(role: string): boolean {
   return BUSINESS_CARD_ADMIN_ROLES.has(role.trim());
+}
+
+/** Any NexCort iQ staff login may program the NFC tag assigned to their own card. */
+export function canProgramBusinessCardNfc(role: string): boolean {
+  return isNexCortEmployee(role);
 }
 
 /**

@@ -22,11 +22,9 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.business</string>
-	<key>UIRequiresFullScreen</key>
+	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NFCReaderUsageDescription</key>
 	<string>NexCort iQ Mobile uses NFC to program location reporting tags and NexCort iQ site signs.</string>
@@ -34,22 +32,22 @@
 	<string>NexCort iQ Mobile uses your location while in use so field staff can register QR and NFC installation coordinates on site.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>NexCort iQ Mobile uses the microphone for live language translation between staff and individuals.</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>NexCort iQ Mobile uses speech recognition for live language translation in the field.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>NexCort iQ Mobile saves QR code images to your photo library when you choose Save.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>NexCort iQ Mobile uses speech recognition for live language translation in the field.</string>
 	<key>RC_API_BASE_URL</key>
 	<string>https://api.rapidcortex.us</string>
-	<key>RC_TEST_AGENCY_ID</key>
-	<string>test-agency</string>
-	<key>RC_TEST_AGENCY_VERTICAL</key>
-	<string>pilot</string>
 	<key>RC_COGNITO_CLIENT_ID</key>
 	<string>$(RC_COGNITO_CLIENT_ID)</string>
 	<key>RC_COGNITO_REGION</key>
 	<string>$(RC_COGNITO_REGION)</string>
 	<key>RC_COGNITO_USER_POOL_ID</key>
 	<string>$(RC_COGNITO_USER_POOL_ID)</string>
+	<key>RC_TEST_AGENCY_ID</key>
+	<string>test-agency</string>
+	<key>RC_TEST_AGENCY_VERTICAL</key>
+	<string>pilot</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>
@@ -60,16 +58,16 @@
 		<string>armv7</string>
 		<string>nfc</string>
 	</array>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-	</array>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleLightContent</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 </dict>

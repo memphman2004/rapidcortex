@@ -38,6 +38,8 @@ export interface ConsentRequestParams {
   providerDeviceId: string;
   ownerId: string;
   ownerContactInfo: string;
+  /** Plain consent token already stored by the Vision handler — must match public approve URLs. */
+  consentToken?: string;
 }
 
 export interface ConsentRequestResult {

@@ -118,20 +118,26 @@ export function canonicalizeMobileRole(role: string | undefined | null): string 
         return lower;
     }
   }
-  if (lower === 'rcsuperadmin' || lower === 'rcadmin' || lower === 'rcitadmin') return lower;
+  if (
+    lower === 'rcsuperadmin' ||
+    lower === 'rcadmin' ||
+    lower === 'rcitadmin' ||
+    lower === 'salescontractor'
+  ) {
+    return lower;
+  }
 
   return lower;
 }
 
 export function isRcInternalRole(role: string): boolean {
   const c = canonicalizeMobileRole(role);
-  return c === 'rcadmin' || c === 'rcsuperadmin' || c === 'rcitadmin';
+  return c === 'rcadmin' || c === 'rcsuperadmin' || c === 'rcitadmin' || c === 'salescontractor';
 }
 
-/** Business-card NFC admin API: rcadmin / rcsuperadmin only — not rcitadmin, not VENUE_*/CAMPUS_*. */
+/** NexCort iQ staff (RC + sales) may program the NFC tag assigned to their own business card. */
 export function canManageBusinessCardNfc(role: string): boolean {
-  const c = canonicalizeMobileRole(role);
-  return c === 'rcadmin' || c === 'rcsuperadmin';
+  return isRcInternalRole(role);
 }
 
 export function isVenueRole(role: string): boolean {

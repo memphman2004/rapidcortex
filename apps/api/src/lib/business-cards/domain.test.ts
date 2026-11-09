@@ -5,6 +5,7 @@ import {
   BizCardError,
   consumeRateLimit,
   counterAttribute,
+  canProgramBusinessCardNfc,
   isBusinessCardAdmin,
   isNexCortEmployee,
   isPlatformCardAgency,
@@ -76,6 +77,12 @@ describe("business card permissions", () => {
     expect(isBusinessCardAdmin("rcsuperadmin")).toBe(true);
     expect(isBusinessCardAdmin("rcadmin")).toBe(true);
     expect(isBusinessCardAdmin("salescontractor")).toBe(false);
+    expect(isBusinessCardAdmin("rcitadmin")).toBe(false);
+    expect(canProgramBusinessCardNfc("rcsuperadmin")).toBe(true);
+    expect(canProgramBusinessCardNfc("rcadmin")).toBe(true);
+    expect(canProgramBusinessCardNfc("rcitadmin")).toBe(true);
+    expect(canProgramBusinessCardNfc("salescontractor")).toBe(true);
+    expect(canProgramBusinessCardNfc("dispatcher")).toBe(false);
     expect(isPlatformCardAgency("__platform__")).toBe(true);
     expect(isPlatformCardAgency("kcpd")).toBe(false);
     expect(isBusinessCardAdmin("agencyadmin")).toBe(false);

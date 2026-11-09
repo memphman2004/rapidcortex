@@ -11,6 +11,7 @@
  *   GET  /api/cameras/providers/wyze/available-cameras
  *   POST /api/cameras/providers/wyze/request-camera-access
  *   POST /api/cameras/providers/wyze/answer-stream
+ *   POST /api/cameras/providers/wyze/unregister
  *
  * @module handlers/cameras-providers-wyze
  */
@@ -49,6 +50,11 @@ import {
   registerWyzeHomeowner,
   resolveWyzeConsentToken,
 } from "../integrations/cameras/wyze-camera-service.js";
+import {
+  deactivateRegistration,
+  deactivateWyzeCamerasForOwner,
+  getRegistration,
+} from "../integrations/cameras/wyze-tables.js";
 
 const agencyRepo = new AgencyRepository();
 const auditRepo = new AuditRepository();
@@ -399,6 +405,41 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           streamMode: "webrtc-kvs",
           expiresAt: streamInfo.expiresAt,
         },
+        200,
+      );
+    }
+
+    if (method === "POST" && segments[0] === "wyze" && segments[1] === "unregister") {
+      let ownerId = "";
+      try {
+        const body = JSON.parse(parseBody(event)) as { ownerId?: string };
+        ownerId = String(body.ownerId ?? "").trim();
+      } catch {
+        return jsonStatus({ error: "Invalid JSON body." }, 400);
+      }
+      if (!ownerId) return jsonStatus({ error: "ownerId is required" }, 400);
+
+      const registration = await getRegistration(ownerId);
+      if (!registration || registration.agencyId !== user.agencyId) {
+        return jsonStatus({ error: "Registration not found for this agency." }, 404);
+      }
+
+      const camerasDeactivated = await deactivateWyzeCamerasForOwner(user.agencyId, ownerId);
+      const okDeactivate = await deactivateRegistration(ownerId, user.agencyId);
+      if (!okDeactivate) {
+        return jsonStatus({ error: "Registration not found for this agency." }, 404);
+      }
+
+      await auditWyze({
+        type: AUDIT_EVENT_TYPES.WYZE_HOMEOWNER_UNREGISTERED,
+        agencyId: user.agencyId,
+        actorId: user.userId,
+        details: { ownerId, camerasDeactivated },
+        resourceId: ownerId,
+      });
+
+      return jsonStatus(
+        { success: true, ownerId, camerasDeactivated, active: false },
         200,
       );
     }

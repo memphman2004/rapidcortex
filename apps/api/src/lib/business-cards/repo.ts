@@ -19,6 +19,8 @@ export type BizCardRepo = {
   getProfileBySlug(slug: string): Promise<BusinessCardProfile | null>;
   getProfileByPublicId(publicProfileId: string): Promise<BusinessCardProfile | null>;
   saveProfile(profile: BusinessCardProfile, expectedVersion: number | null): Promise<"ok" | "conflict" | "slug_taken">;
+  /** Hard-delete profile row plus slug/public pointers. Caller handles linked NFC tags. */
+  deleteProfile(profile: BusinessCardProfile): Promise<"ok" | "conflict">;
   listProfiles(tenantId: string, limit: number, cursor?: string): Promise<ProfilePage>;
   incrementCounter(
     profileId: string,
@@ -28,6 +30,8 @@ export type BizCardRepo = {
   ): Promise<void>;
   getCard(cardId: string): Promise<NFCCard | null>;
   saveCard(card: NFCCard, expectedVersion: number | null): Promise<"ok" | "conflict">;
+  /** Hard-delete an NFC tag record. Physical taps then resolve as revoked. */
+  deleteCard(card: NFCCard): Promise<"ok" | "conflict">;
   listCards(tenantId: string): Promise<NFCCard[]>;
   putEvent(event: BusinessCardEvent): Promise<void>;
   putAudit(entry: BusinessCardAuditLog): Promise<void>;

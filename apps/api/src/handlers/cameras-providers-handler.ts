@@ -584,18 +584,25 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (method === "GET" && tail.length === 0) {
-      return jsonStatus(
-        {
-          providers: [
-            {
-              id: "nest",
-              label: "Google Nest",
-              connectPath: "/api/cameras/providers/nest/connect",
-            },
-          ],
-        },
-        200,
-      );
+      const providers: Array<{ id: string; label: string; connectPath: string; enabled: boolean }> =
+        [];
+      if (nestEnabled()) {
+        providers.push({
+          id: "nest",
+          label: "Google Nest",
+          connectPath: "/api/cameras/providers/nest/connect",
+          enabled: true,
+        });
+      }
+      if (env.enableConnectWyze !== false) {
+        providers.push({
+          id: "wyze",
+          label: "Wyze",
+          connectPath: "/api/cameras/providers/wyze/register",
+          enabled: true,
+        });
+      }
+      return jsonStatus({ providers }, 200);
     }
 
     return jsonStatus({ error: "Not found" }, 404);

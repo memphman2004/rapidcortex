@@ -603,6 +603,7 @@ export const AUDIT_EVENT_TYPES = {
   VISION_CONSENT_GRANTED: "vision.consent.granted",
   VISION_CONSENT_DECLINED: "vision.consent.declined",
   VISION_SESSION_STARTED: "vision.session.started",
+  VISION_ACCESS_REVOKED: "vision.access.revoked",
   VISION_OBSERVATION_CREATED: "vision.observation.created",
   VISION_OBSERVATION_VERIFIED: "vision.observation.verified",
   VISION_OBSERVATION_REJECTED: "vision.observation.rejected",

@@ -92,6 +92,13 @@ function resolveAccessState(
   return "AVAILABLE";
 }
 
+function demoKvsChannelName(agencyId: string, cameraId: string): string {
+  const configured = process.env.VISION_DEMO_KVS_CHANNEL_NAME?.trim();
+  if (configured) return configured;
+  const agencySlug = agencyId.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 24) || "agency";
+  return `rc-vision-demo-${agencySlug}-${cameraId}`;
+}
+
 function seedDemoCameras(agencyId: string, lat: number, lng: number): VisionCamera[] {
   const offsets = [
     [0.0012, 0.0008],
@@ -117,8 +124,11 @@ function seedDemoCameras(agencyId: string, lat: number, lng: number): VisionCame
     isPublic: false,
     isIndoor: false,
     capabilities: ["live_stream" as const],
-    consentPolicy: "preauthorized_emergency" as const,
+    // Device 0 exercises the owner-consent path; others auto-authorize for dispatcher smoke.
+    consentPolicy: idx === 0 ? ("ask_every_time" as const) : ("preauthorized_emergency" as const),
     connectionStatus: idx === 2 ? ("offline" as const) : ("online" as const),
+    kvsChannelName: demoKvsChannelName(agencyId, id),
+    kvsStreamArn: null,
     lastHealthCheck: new Date().toISOString(),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -289,7 +299,7 @@ async function handleIncidentVision(
         sessionId,
         expiresAt,
       });
-      await demoProvider.requestConsent({
+      const consent = await demoProvider.requestConsent({
         incidentId,
         agencyId: user.agencyId,
         agencyDisplayName: "Agency",
@@ -299,6 +309,7 @@ async function handleIncidentVision(
         providerDeviceId: camera.providerDeviceId,
         ownerId: camera.ownerId ?? "demo",
         ownerContactInfo: "",
+        consentToken: token,
       });
       await auditRepo.create({
         eventId: makeId("audit"),
@@ -319,6 +330,8 @@ async function handleIncidentVision(
             status: "CONSENT_REQUIRED",
             message: "Consent request created. Owner will be notified.",
             expiresAt,
+            approveUrl: consent.supported ? consent.approveUrl : undefined,
+            declineUrl: consent.supported ? consent.declineUrl : undefined,
           },
         },
         202,
@@ -389,6 +402,41 @@ async function handleIncidentVision(
 
   if (method === "GET" && rest[0] === "transcript" && rest.length === 1) {
     return handleTranscriptGet(withVisionPathParams(event, { id: incidentId }));
+  }
+
+  if (
+    method === "POST" &&
+    rest[0] === "sessions" &&
+    rest[2] === "revoke" &&
+    rest.length === 3
+  ) {
+    const gated = await gate(event, "vision.request_access");
+    if ("response" in gated) return gated.response;
+    const { user } = gated;
+    if (!canRequestVisionAccess(user, user.agencyId)) return forbidden();
+
+    const sessionId = decodeURIComponent(rest[1] ?? "").trim();
+    if (!sessionId) return badRequest("sessionId required");
+
+    const session = await visionStore.getSession(incidentId, sessionId, user.agencyId);
+    if (!session) return notFound("Session not found");
+    if (session.status === "revoked" || session.status === "expired" || session.status === "declined") {
+      return ok({ success: true, data: { sessionId, status: session.status } });
+    }
+
+    await visionStore.revokeSession(incidentId, sessionId, user.agencyId);
+    await auditRepo.create({
+      eventId: makeId("audit"),
+      agencyId: user.agencyId,
+      incidentId,
+      actorId: user.userId,
+      type: AUDIT_EVENT_TYPES.VISION_ACCESS_REVOKED,
+      details: { sessionId, cameraId: session.cameraId, previousStatus: session.status },
+      createdAt: new Date().toISOString(),
+      resourceType: "incident",
+      resourceId: sessionId,
+    });
+    return ok({ success: true, data: { sessionId, status: "revoked" } });
   }
 
   if (

@@ -45,6 +45,10 @@ enum RCRouter {
             }
             return .agencySelect
 
+        case "salescontractor":
+            // Sales uses Settings → Business Card NFC (and Translator); no agency ops console.
+            return .noAccess
+
         default:
             return .noAccess
         }

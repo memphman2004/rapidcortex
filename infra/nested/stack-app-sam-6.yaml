@@ -107,7 +107,8 @@ Globals:
         DEPLOYMENT_STAGE: !Ref DeploymentStage
         ALLOW_UNAUTHENTICATED_API: "false"
         ENABLE_RAPID_VISION: "true"
-        ENABLE_RAPID_VISION_RING: "true"
+        # Ring camera OAuth/gateway removed — keep false so deploy env does not imply a live provider.
+        ENABLE_RAPID_VISION_RING: "false"
         ENABLE_RAPID_VISION_NEST: !Ref EnableRapidVisionNest
         ENABLE_RAPID_VISION_CALLER_VIDEO: "true"
         ENABLE_RAPID_VISION_DEMO: "true"

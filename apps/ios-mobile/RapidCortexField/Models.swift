@@ -159,10 +159,12 @@ struct RCUserClaims {
         ["rcsuperadmin", "rcadmin", "rcitadmin"].contains(canonicalRole)
     }
 
-    /// Business-card NFC admin API allows rcadmin / rcsuperadmin only (not rcitadmin).
+    /// NexCort iQ staff (RC + sales) may program the NFC tag on their own business card.
     var canManageBusinessCardNfc: Bool {
-        ["rcsuperadmin", "rcadmin"].contains(canonicalRole)
+        ["rcsuperadmin", "rcadmin", "rcitadmin", "salescontractor"].contains(canonicalRole)
     }
+
+    var isNexCortEmployee: Bool { canManageBusinessCardNfc }
 
     var isAgencyAdmin: Bool {
         [

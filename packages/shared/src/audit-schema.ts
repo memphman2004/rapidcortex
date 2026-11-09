@@ -16,6 +16,7 @@ export {
 /** Wyze Connect — consent-gated homeowner cameras. Merged into security AUDIT_EVENT_TYPES. */
 export const WYZE_AUDIT_EVENT_TYPES = {
   WYZE_HOMEOWNER_REGISTERED: "wyze.homeowner.registered",
+  WYZE_HOMEOWNER_UNREGISTERED: "wyze.homeowner.unregistered",
   WYZE_CAMERA_REQUEST_CREATED: "wyze.camera.request_created",
   WYZE_CAMERA_REQUEST_SENT: "wyze.camera.request_sent",
   WYZE_CAMERA_REQUEST_APPROVED: "wyze.camera.request_approved",

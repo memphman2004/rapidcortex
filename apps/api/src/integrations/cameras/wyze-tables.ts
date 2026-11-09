@@ -109,6 +109,45 @@ export async function getRegistration(ownerId: string): Promise<WyzeRegistration
   return (res.Item as WyzeRegistration | undefined) ?? null;
 }
 
+/** Soft-deactivate a homeowner registration (keeps row for audit / re-register). */
+export async function deactivateRegistration(ownerId: string, agencyId: string): Promise<boolean> {
+  const existing = await getRegistration(ownerId);
+  if (!existing || existing.agencyId !== agencyId) return false;
+  await ddb.send(
+    new UpdateCommand({
+      TableName: registrationsTable(),
+      Key: { ownerId },
+      UpdateExpression: "SET active = :f",
+      ConditionExpression: "agencyId = :a",
+      ExpressionAttributeValues: { ":f": false, ":a": agencyId },
+    }),
+  );
+  return true;
+}
+
+/** Soft-deactivate all Wyze cameras for an owner within an agency. */
+export async function deactivateWyzeCamerasForOwner(
+  agencyId: string,
+  ownerId: string,
+): Promise<number> {
+  const cameras = await listWyzeCamerasForAgency(agencyId);
+  let count = 0;
+  for (const cam of cameras) {
+    if (cam.ownerId !== ownerId) continue;
+    await ddb.send(
+      new UpdateCommand({
+        TableName: camerasTable(),
+        Key: { agencyId, cameraId: cam.cameraId },
+        UpdateExpression: "SET active = :f",
+        ConditionExpression: "agencyId = :a AND ownerId = :o",
+        ExpressionAttributeValues: { ":f": false, ":a": agencyId, ":o": ownerId },
+      }),
+    );
+    count += 1;
+  }
+  return count;
+}
+
 export async function getRegistrationByPhone(
   phone: string,
   agencyId: string,

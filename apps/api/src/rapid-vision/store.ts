@@ -246,6 +246,23 @@ export const visionStore = {
         },
       }),
     );
+  }
+
+  async revokeSession(incidentId: string, sessionId: string, agencyId: string): Promise<void> {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: sessionsTable(),
+        Key: { pk: `INCIDENT#${incidentId}`, sk: `SESSION#${sessionId}` },
+        UpdateExpression: "SET #s = :revoked, aiAnalysisStatus = :stopped",
+        ConditionExpression: "agencyId = :a",
+        ExpressionAttributeNames: { "#s": "status" },
+        ExpressionAttributeValues: {
+          ":revoked": "revoked",
+          ":stopped": "stopped",
+          ":a": agencyId,
+        },
+      }),
+    );
   },
 
   async putConsentToken(params: {

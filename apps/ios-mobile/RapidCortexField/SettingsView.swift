@@ -91,17 +91,34 @@ struct SettingsView: View {
                         }
                         .listRowBackground(RCTheme.surface1)
                         .listRowSeparatorTint(RCTheme.border)
+                    }
 
+                    if claims?.isPlatformAdmin == true || claims?.canManageBusinessCardNfc == true {
                         Section {
-                            NavigationLink {
-                                SiteQrNfcView()
-                            } label: {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Label("NexCort iQ site QR & NFC", systemImage: "globe")
-                                        .foregroundColor(RCTheme.textPrimary)
-                                    Text("www.rapidcortex.us — booth and marketing signs")
-                                        .font(.system(size: 11))
-                                        .foregroundColor(RCTheme.textMuted)
+                            if claims?.isPlatformAdmin == true {
+                                NavigationLink {
+                                    SiteQrNfcView()
+                                } label: {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Label("NexCort iQ site QR & NFC", systemImage: "globe")
+                                            .foregroundColor(RCTheme.textPrimary)
+                                        Text("www.rapidcortex.us — booth and marketing signs")
+                                            .font(.system(size: 11))
+                                            .foregroundColor(RCTheme.textMuted)
+                                    }
+                                }
+                            }
+                            if claims?.canManageBusinessCardNfc == true {
+                                NavigationLink {
+                                    BusinessCardNfcListView()
+                                } label: {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Label("Business Card NFC", systemImage: "person.text.rectangle")
+                                            .foregroundColor(RCTheme.textPrimary)
+                                        Text("Write your NexCort iQ NFC business card")
+                                            .font(.system(size: 11))
+                                            .foregroundColor(RCTheme.textMuted)
+                                    }
                                 }
                             }
                         } header: {

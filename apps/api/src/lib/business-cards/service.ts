@@ -8,6 +8,7 @@ import {
   auditTtlSeconds,
   changedFieldNames,
   counterAttribute,
+  canProgramBusinessCardNfc,
   isBusinessCardAdmin,
   isNexCortEmployee,
   isPlatformCardAgency,
@@ -178,6 +179,21 @@ export class BusinessCardService {
     this.requirePlatformAgency(actor);
   }
 
+  private requireNfcProgrammer(actor: Actor): void {
+    if (!canProgramBusinessCardNfc(actor.role)) {
+      throw new BizCardError(403, "nexcort_only", "Business card NFC is for NexCort iQ employees.");
+    }
+    this.requirePlatformAgency(actor);
+  }
+
+  private async assertCanAccessNfcCard(actor: Actor, card: NFCCard): Promise<void> {
+    if (isBusinessCardAdmin(actor.role)) return;
+    const mine = await this.repo.getProfileByUser(actor.tenantId, actor.userId);
+    if (!mine || card.assignedProfileId !== mine.profileId) {
+      throw new BizCardError(403, "not_owner", "You can only program the NFC tag assigned to your card.");
+    }
+  }
+
   private async loadOwn(actor: Actor, profileId: string): Promise<BusinessCardProfile> {
     const profile = await this.repo.getProfile(profileId);
     if (!profile || profile.tenantId !== actor.tenantId) {
@@ -278,6 +294,38 @@ export class BusinessCardService {
     return this.setStatus(actor, profileId, status, reason, version);
   }
 
+  /**
+   * Permanently remove a contact card (not archive).
+   * Linked NFC tags are revoked so physical taps stop resolving to the person.
+   */
+  async adminDeleteProfile(actor: Actor, profileId: string, version: number): Promise<{ deleted: true; profileId: string }> {
+    this.requireAdmin(actor);
+    await this.requireEnabled(actor);
+    const profile = await this.repo.getProfile(profileId);
+    if (!profile || profile.tenantId !== actor.tenantId) {
+      throw new BizCardError(404, "not_found", "Profile not found.");
+    }
+    if (profile.version !== version) {
+      throw new BizCardError(409, "version_conflict", "The card changed. Reload and try again.");
+    }
+
+    const linked = (await this.repo.listCards(actor.tenantId)).filter(
+      (card) => card.assignedProfileId === profile.profileId && card.status !== "revoked",
+    );
+    for (const card of linked) {
+      const fresh = await this.repo.getCard(card.cardId);
+      if (!fresh || fresh.tenantId !== actor.tenantId || fresh.status === "revoked") continue;
+      await this.revokeCard(actor, fresh.cardId, "Profile deleted", fresh.version);
+    }
+
+    const deleted = await this.repo.deleteProfile(profile);
+    if (deleted === "conflict") {
+      throw new BizCardError(409, "version_conflict", "The card changed. Reload and try again.");
+    }
+    await this.audit(actor, profile.profileId, "profile.delete", ["*"]);
+    return { deleted: true, profileId: profile.profileId };
+  }
+
   async adminSetLocks(actor: Actor, profileId: string, lockedFields: string[]): Promise<BusinessCardProfile> {
     this.requireAdmin(actor);
     await this.requireEnabled(actor);
@@ -370,23 +418,29 @@ export class BusinessCardService {
   }
 
   async listCards(actor: Actor): Promise<NFCCard[]> {
-    this.requireAdmin(actor);
+    this.requireNfcProgrammer(actor);
     await this.requireEnabled(actor);
-    return this.repo.listCards(actor.tenantId);
+    const all = await this.repo.listCards(actor.tenantId);
+    if (isBusinessCardAdmin(actor.role)) return all;
+    const mine = await this.repo.getProfileByUser(actor.tenantId, actor.userId);
+    if (!mine) return [];
+    return all.filter((card) => card.assignedProfileId === mine.profileId);
   }
 
   async getCard(actor: Actor, cardId: string): Promise<NFCCard> {
-    this.requireAdmin(actor);
+    this.requireNfcProgrammer(actor);
     await this.requireEnabled(actor);
     const card = await this.repo.getCard(cardId);
     if (!card || card.tenantId !== actor.tenantId) throw new BizCardError(404, "not_found", "Card not found.");
+    await this.assertCanAccessNfcCard(actor, card);
     return card;
   }
 
   async assignCard(actor: Actor, cardId: string, profileId: string, version: number): Promise<NFCCard> {
     this.requireAdmin(actor);
     await this.requireEnabled(actor);
-    const card = await this.getCard(actor, cardId);
+    const card = await this.repo.getCard(cardId);
+    if (!card || card.tenantId !== actor.tenantId) throw new BizCardError(404, "not_found", "Card not found.");
     if (card.version !== version) throw new BizCardError(409, "version_conflict", "The NFC card changed. Reload and try again.");
     if (card.status === "revoked") throw new BizCardError(400, "revoked", "A revoked tag cannot be assigned. Issue a new card.");
     const profile = await this.repo.getProfile(profileId);
@@ -409,11 +463,10 @@ export class BusinessCardService {
   }
 
   async setCardStatus(actor: Actor, cardId: string, status: NfcStatus, version: number): Promise<NFCCard> {
-    this.requireAdmin(actor);
-    await this.requireEnabled(actor);
     if (status === "revoked") {
       throw new BizCardError(400, "use_revoke", "Revocation requires a reason.");
     }
+    // Admins or the employee assigned to this tag (getCard enforces ownership).
     const card = await this.getCard(actor, cardId);
     if (card.version !== version) throw new BizCardError(409, "version_conflict", "The NFC card changed. Reload and try again.");
     const now = this.now();
@@ -436,7 +489,8 @@ export class BusinessCardService {
     this.requireAdmin(actor);
     await this.requireEnabled(actor);
     if (!reason.trim()) throw new BizCardError(400, "reason_required", "A revocation reason is required.");
-    const card = await this.getCard(actor, cardId);
+    const card = await this.repo.getCard(cardId);
+    if (!card || card.tenantId !== actor.tenantId) throw new BizCardError(404, "not_found", "Card not found.");
     if (card.version !== version) throw new BizCardError(409, "version_conflict", "The NFC card changed. Reload and try again.");
     const now = this.now();
     const next: NFCCard = {
@@ -453,6 +507,21 @@ export class BusinessCardService {
     if (saved === "conflict") throw new BizCardError(409, "version_conflict", "The NFC card changed. Reload and try again.");
     await this.audit(actor, card.assignedProfileId ?? card.cardId, "card.revoke", ["status"]);
     return next;
+  }
+
+  /** Permanently remove an NFC tag inventory row (not revoke). Missing tags resolve as revoked. */
+  async deleteCard(actor: Actor, cardId: string, version: number): Promise<{ deleted: true; cardId: string }> {
+    this.requireAdmin(actor);
+    await this.requireEnabled(actor);
+    const card = await this.repo.getCard(cardId);
+    if (!card || card.tenantId !== actor.tenantId) throw new BizCardError(404, "not_found", "Card not found.");
+    if (card.version !== version) throw new BizCardError(409, "version_conflict", "The NFC card changed. Reload and try again.");
+    const deleted = await this.repo.deleteCard(card);
+    if (deleted === "conflict") {
+      throw new BizCardError(409, "version_conflict", "The NFC card changed. Reload and try again.");
+    }
+    await this.audit(actor, card.assignedProfileId ?? card.cardId, "card.delete", ["*"]);
+    return { deleted: true, cardId: card.cardId };
   }
 
   async publicBySlug(slug: string): Promise<PublicBusinessCard> {

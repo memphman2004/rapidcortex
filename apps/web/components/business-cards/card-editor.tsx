@@ -683,8 +683,11 @@ function NfcPanel({ profileUrl, nfcUrl, owner, published, card }: { profileUrl: 
       {tagQr ? <img alt="QR code for the NFC address" className="h-40 w-40 rounded-2xl border border-slate-200 bg-white p-2" src={tagQr} /> : null}
       <ol className="list-decimal space-y-1 pl-5">
         <li>Publish the card so the address shows the current contact details.</li>
-        <li>An administrator writes the URL above to an NTAG213, NTAG215, or NTAG216 sticker from NFC Card Management.</li>
-        <li>Tap the tag with a phone. It should open this same profile.</li>
+        <li>
+          On Chrome for Android, tap <strong>Write to tag</strong> and hold your mailed NFC card to the upper back of
+          the phone (NTAG213 / 215 / 216). iPhone can open the tag after it is written but cannot write it from Safari.
+        </li>
+        <li>Tap the card with any phone. It should open this same profile. You can edit details later without rewriting the chip.</li>
       </ol>
     </div>
   );

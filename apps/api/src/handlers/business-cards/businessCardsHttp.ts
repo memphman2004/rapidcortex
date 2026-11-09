@@ -200,6 +200,17 @@ async function route(method: string, path: string, actor: Actor, body: unknown, 
         ),
       );
     }
+    if (!action && method === "DELETE") {
+      const versionRaw = (body as { version?: unknown } | null)?.version;
+      const version =
+        typeof versionRaw === "number"
+          ? versionRaw
+          : typeof versionRaw === "string"
+            ? Number(versionRaw)
+            : NaN;
+      if (!Number.isFinite(version)) return jsonStatus({ error: "version_required" }, 400);
+      return ok(await svc.adminDeleteProfile(actor, profileId, version));
+    }
     if (action === "locks" && method === "PATCH") {
       const parsed = LocksSchema.safeParse(body);
       if (!parsed.success) return zodFailure(parsed.error);
@@ -214,6 +225,17 @@ async function route(method: string, path: string, actor: Actor, body: unknown, 
     const cardId = cardAction[1];
     const action = cardAction[2];
     if (!action && method === "GET") return ok(presentCard(await svc.getCard(actor, cardId)));
+    if (!action && method === "DELETE") {
+      const versionRaw = (body as { version?: unknown } | null)?.version;
+      const version =
+        typeof versionRaw === "number"
+          ? versionRaw
+          : typeof versionRaw === "string"
+            ? Number(versionRaw)
+            : NaN;
+      if (!Number.isFinite(version)) return jsonStatus({ error: "version_required" }, 400);
+      return ok(await svc.deleteCard(actor, cardId, version));
+    }
     if (action === "assign" && method === "PATCH") {
       const parsed = AssignCardSchema.safeParse(body);
       if (!parsed.success) return zodFailure(parsed.error);

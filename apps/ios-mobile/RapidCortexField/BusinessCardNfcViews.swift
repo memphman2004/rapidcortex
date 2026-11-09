@@ -53,7 +53,7 @@ struct BusinessCardNfcListView: View {
             RCTheme.bg.ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 0) {
-                Text("Pick an assigned NTAG, then write its permanent /c/… URL. Do not write the public /card/… profile link.")
+                Text("Select your assigned card, then hold the blank NFC sticker to the phone. This writes your permanent tap link (nexcortiq.us/c/…), not the share-page link (/card/…).")
                     .font(.system(size: 13))
                     .foregroundColor(RCTheme.textSecondary)
                     .padding(.horizontal, 20)

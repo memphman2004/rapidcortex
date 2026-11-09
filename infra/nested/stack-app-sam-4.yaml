@@ -1673,7 +1673,8 @@ Resources:
               AggregateKeyType: IP
               ScopeDownStatement:
                 ByteMatchStatement:
-                  SearchString: "/api/public/ring/homeowner"
+                  # Ring homeowner enroll removed; rate-limit live Wyze public register instead.
+                  SearchString: "/api/cameras/providers/wyze/register"
                   FieldToMatch: { UriPath: {} }
                   TextTransformations: [{ Priority: 0, Type: LOWERCASE }]
                   PositionalConstraint: STARTS_WITH

@@ -201,6 +201,45 @@ describe("business card service", () => {
     expect((await svc.publicBySlug("jeffcoleman")).displayName).toBe("Jeff Coleman");
   });
 
+  it("lets admins hard-delete a profile and linked NFC tags stop resolving", async () => {
+    const repo = new MemoryBizCardRepo();
+    const svc = service(repo);
+    await enable(repo, svc, admin);
+    const profile = await svc.saveMine(employee, {
+      firstName: "Jeff",
+      lastName: "Coleman",
+      displayName: "Jeff Coleman",
+      title: "Director",
+    });
+    await svc.publishMine(employee);
+    const card = await svc.createCard(admin, "NTAG213");
+    const assigned = await svc.assignCard(admin, card.cardId, profile.profileId, card.version);
+    const result = await svc.adminDeleteProfile(admin, profile.profileId, (await svc.getAdmin(admin, profile.profileId)).version);
+    expect(result.deleted).toBe(true);
+    await expect(svc.getAdmin(admin, profile.profileId)).rejects.toMatchObject({ status: 404 });
+    await expect(svc.publicBySlug("jeffcoleman")).rejects.toMatchObject({ status: 404 });
+    expect((await svc.resolveNfc(assigned.cardId)).location).toBe("/c/revoked");
+    await expect(svc.adminDeleteProfile(employee, profile.profileId, 1)).rejects.toMatchObject({
+      status: 403,
+      code: "admin_required",
+    });
+  });
+
+  it("lets admins permanently delete an NFC tag from inventory", async () => {
+    const repo = new MemoryBizCardRepo();
+    const svc = service(repo);
+    await enable(repo, svc, admin);
+    const card = await svc.createCard(admin, "NTAG213");
+    const deleted = await svc.deleteCard(admin, card.cardId, card.version);
+    expect(deleted).toEqual({ deleted: true, cardId: card.cardId });
+    expect(await svc.listCards(admin)).toEqual([]);
+    expect((await svc.resolveNfc(card.cardId)).location).toBe("/c/revoked");
+    await expect(svc.deleteCard(employee, card.cardId, 1)).rejects.toMatchObject({
+      status: 403,
+      code: "admin_required",
+    });
+  });
+
   it("denies an employee who targets someone else's card in the same agency", async () => {
     const repo = new MemoryBizCardRepo();
     const svc = service(repo);

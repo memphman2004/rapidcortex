@@ -55,6 +55,24 @@ export function AdminDirectory() {
     setItems(page.items);
   }
 
+  async function deleteCard(item: ApiProfile) {
+    const confirmed = window.confirm(
+      `Permanently delete ${item.displayName}'s business card? This cannot be undone. Linked NFC tags will be revoked.`,
+    );
+    if (!confirmed) return;
+    try {
+      await bizCardFetch(`/api/admin/business-cards/${item.profileId}`, {
+        method: "DELETE",
+        body: JSON.stringify({ version: item.version }),
+      });
+      setMessage(`${item.displayName} deleted.`);
+      const page = await bizCardFetch<{ items: ApiProfile[] }>("/api/admin/business-cards");
+      setItems(page.items);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Delete failed.");
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
@@ -82,6 +100,7 @@ export function AdminDirectory() {
                   <button type="button" className="underline" onClick={() => void navigator.clipboard.writeText(`https://www.nexcortiq.us/card/${item.slug}`)}>Copy URL</button>
                   <button type="button" className="underline" onClick={() => void setStatus(item, "inactive")}>Deactivate</button>
                   <button type="button" className="underline" onClick={() => void setStatus(item, "archived")}>Archive</button>
+                  <button type="button" className="underline text-rose-300" onClick={() => void deleteCard(item)}>Delete</button>
                 </td>
               </tr>
             ))}
@@ -348,7 +367,17 @@ export function NfcAdmin() {
                   <a className="block underline" href={`${tool}?programUrl=${encodeURIComponent(item.permanentUrl)}`}>Open QR/NFC instructions</a>
                   <button type="button" className="block underline" onClick={() => void bizCardFetch(`/api/admin/nfc-cards/${item.cardId}/status`, { method: "PATCH", body: JSON.stringify({ status: "programmed", version: item.version }) }).then(reload)}>Mark programmed</button>
                   <button type="button" className="block underline" onClick={() => void bizCardFetch(`/api/admin/nfc-cards/${item.cardId}/status`, { method: "PATCH", body: JSON.stringify({ status: "verified", version: item.version }) }).then(reload)}>Mark verified</button>
-                  <button type="button" className="block underline" onClick={() => void bizCardFetch(`/api/admin/nfc-cards/${item.cardId}/revoke`, { method: "PATCH", body: JSON.stringify({ reason, version: item.version }) }).then(reload).catch((error: Error) => setMessage(error.message))}>Revoke</button>
+                  <button type="button" className="block underline" onClick={() => {
+                    if (!reason.trim()) {
+                      setMessage("Enter a revoke reason below before revoking.");
+                      return;
+                    }
+                    void bizCardFetch(`/api/admin/nfc-cards/${item.cardId}/revoke`, { method: "PATCH", body: JSON.stringify({ reason, version: item.version }) }).then(reload).catch((error: Error) => setMessage(error.message));
+                  }}>Revoke</button>
+                  <button type="button" className="block underline text-rose-300" onClick={() => {
+                    if (!window.confirm(`Permanently delete NFC tag ${item.cardId.slice(0, 8)}…? This removes it from inventory. Physical taps will show revoked.`)) return;
+                    void bizCardFetch(`/api/admin/nfc-cards/${item.cardId}`, { method: "DELETE", body: JSON.stringify({ version: item.version }) }).then(reload).catch((error: Error) => setMessage(error.message));
+                  }}>Delete</button>
                 </td>
               </tr>
             ))}

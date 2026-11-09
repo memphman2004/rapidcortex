@@ -57,6 +57,15 @@ export class MemoryBizCardRepo implements BizCardRepo {
     return "ok";
   }
 
+  async deleteProfile(profile: BusinessCardProfile): Promise<"ok" | "conflict"> {
+    const current = this.profiles.get(profile.profileId);
+    if (!current || current.version !== profile.version || current.tenantId !== profile.tenantId) {
+      return "conflict";
+    }
+    this.profiles.delete(profile.profileId);
+    return "ok";
+  }
+
   async listProfiles(tenantId: string, limit: number, cursor?: string): Promise<ProfilePage> {
     const items = [...this.profiles.values()]
       .filter((profile) => profile.tenantId === tenantId)
@@ -88,6 +97,15 @@ export class MemoryBizCardRepo implements BizCardRepo {
     if (expectedVersion === null && current) return "conflict";
     if (expectedVersion !== null && (!current || current.version !== expectedVersion)) return "conflict";
     this.cards.set(card.cardId, card);
+    return "ok";
+  }
+
+  async deleteCard(card: NFCCard): Promise<"ok" | "conflict"> {
+    const current = this.cards.get(card.cardId);
+    if (!current || current.version !== card.version || current.tenantId !== card.tenantId) {
+      return "conflict";
+    }
+    this.cards.delete(card.cardId);
     return "ok";
   }
 

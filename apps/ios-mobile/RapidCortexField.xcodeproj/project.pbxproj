@@ -48,7 +48,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		057FE9DD183AB56F2B705B77 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		057FE9DD183AB56F2B705B77 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		19837D545796E0FFCAA37A0D /* CodeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeDetailView.swift; sourceTree = "<group>"; };
 		19DC816E5E5EEF1C0889A61E /* RapidCortexField.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RapidCortexField.entitlements; sourceTree = "<group>"; };
 		1C7EF1CC5076A69563443CFC /* RCTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCTheme.swift; sourceTree = "<group>"; };
@@ -74,7 +74,7 @@
 		B252404851C891A2616CAD4E /* CodesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodesListView.swift; sourceTree = "<group>"; };
 		B435077A0EF9220C61909040 /* EnterTheCortexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnterTheCortexView.swift; sourceTree = "<group>"; };
 		B8538AB9AA07AFFCE1B642AE /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
-		BACB5C6D2D31F61953AE2040 /* RapidCortexField.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = RapidCortexField.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BACB5C6D2D31F61953AE2040 /* NexCort iQ Mobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NexCort iQ Mobile.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C12969E7845CE799C2566491 /* CommandHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandHomeView.swift; sourceTree = "<group>"; };
 		C2AACB12525FDDC372A48FD3 /* NFCWriterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCWriterView.swift; sourceTree = "<group>"; };
 		C5C594B26BB40C001A7B6CB8 /* RCAPIClient+BusinessCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RCAPIClient+BusinessCards.swift"; sourceTree = "<group>"; };
@@ -107,7 +107,7 @@
 		0CF5771E1ACE154F17F24AE3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				BACB5C6D2D31F61953AE2040 /* RapidCortexField.app */,
+				BACB5C6D2D31F61953AE2040 /* NexCort iQ Mobile.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -203,7 +203,7 @@
 				F9A46F04A315A71390FF0FF5 /* BigInt */,
 			);
 			productName = RapidCortexField;
-			productReference = BACB5C6D2D31F61953AE2040 /* RapidCortexField.app */;
+			productReference = BACB5C6D2D31F61953AE2040 /* NexCort iQ Mobile.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -213,7 +213,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2630;
 				TargetAttributes = {
 					1346BB3F4F3B40C973C763BC = {
 						DevelopmentTeam = 6D7D94PU3M;
@@ -336,7 +336,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 6D7D94PU3M;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -357,6 +357,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = us.rapidcortex.field;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
@@ -377,10 +378,12 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "NexCort iQ Mobile";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.1;
 				PRODUCT_NAME = "NexCort iQ Mobile";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -424,7 +427,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 6D7D94PU3M;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -452,6 +455,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = us.rapidcortex.field;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -472,10 +476,12 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "NexCort iQ Mobile";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.1;
 				PRODUCT_NAME = "NexCort iQ Mobile";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;

@@ -1,5 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
+  DeleteCommand,
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
@@ -151,6 +152,48 @@ export class DynamoBizCardRepo implements BizCardRepo {
     }
   }
 
+  async deleteProfile(profile: BusinessCardProfile): Promise<"ok" | "conflict"> {
+    try {
+      await this.doc.send(
+        new TransactWriteCommand({
+          TransactItems: [
+            {
+              Delete: {
+                TableName: this.tableName,
+                Key: { pk: `PROFILE#${profile.profileId}`, sk: `PROFILE#${profile.profileId}` },
+                ConditionExpression: "attribute_exists(pk) AND version = :version AND tenantId = :tenantId",
+                ExpressionAttributeValues: { ":version": profile.version, ":tenantId": profile.tenantId },
+              },
+            },
+            {
+              Delete: {
+                TableName: this.tableName,
+                Key: { pk: `SLUG#${profile.slug}`, sk: "POINTER" },
+                ConditionExpression: "attribute_not_exists(pk) OR profileId = :profileId",
+                ExpressionAttributeValues: { ":profileId": profile.profileId },
+              },
+            },
+            {
+              Delete: {
+                TableName: this.tableName,
+                Key: { pk: `PUBLIC#${profile.publicProfileId}`, sk: "POINTER" },
+                ConditionExpression: "attribute_not_exists(pk) OR profileId = :profileId",
+                ExpressionAttributeValues: { ":profileId": profile.profileId },
+              },
+            },
+          ],
+        }),
+      );
+      return "ok";
+    } catch (error) {
+      const name = error instanceof Error ? error.name : "";
+      if (name === "TransactionCanceledException" || name === "ConditionalCheckFailedException") {
+        return "conflict";
+      }
+      throw error;
+    }
+  }
+
   async listProfiles(tenantId: string, limit: number, cursor?: string): Promise<ProfilePage> {
     const res = await this.doc.send(
       new QueryCommand({
@@ -208,6 +251,23 @@ export class DynamoBizCardRepo implements BizCardRepo {
             expectedVersion === null
               ? undefined
               : { ":version": expectedVersion, ":tenantId": card.tenantId },
+        }),
+      );
+      return "ok";
+    } catch (error) {
+      if (error instanceof Error && error.name === "ConditionalCheckFailedException") return "conflict";
+      throw error;
+    }
+  }
+
+  async deleteCard(card: NFCCard): Promise<"ok" | "conflict"> {
+    try {
+      await this.doc.send(
+        new DeleteCommand({
+          TableName: this.tableName,
+          Key: { pk: `NFC#${card.cardId}`, sk: `NFC#${card.cardId}` },
+          ConditionExpression: "attribute_exists(pk) AND version = :version AND tenantId = :tenantId",
+          ExpressionAttributeValues: { ":version": card.version, ":tenantId": card.tenantId },
         }),
       );
       return "ok";

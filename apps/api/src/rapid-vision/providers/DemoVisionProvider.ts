@@ -84,17 +84,18 @@ export class DemoVisionProvider implements CameraProvider {
   }
 
   async requestConsent(
-    _params: ConsentRequestParams,
+    params: ConsentRequestParams,
   ): Promise<ProviderResult<ConsentRequestResult>> {
-    const requestId = `demo-request-${randomUUID()}`;
+    // Prefer the handler-stored plain token so public approve/decline URLs resolve in Dynamo.
+    const requestId = params.consentToken?.trim() || `demo-request-${randomUUID()}`;
     const baseUrl = process.env.APP_PUBLIC_BASE_URL ?? "https://app.rapidcortex.us";
     const expiresAt = new Date(Date.now() + 15 * 60_000).toISOString();
     return {
       supported: true,
       requestId,
       tokenHash: `demo-hash-${requestId}`,
-      approveUrl: `${baseUrl}/api/public/vision/consent/${requestId}/approve`,
-      declineUrl: `${baseUrl}/api/public/vision/consent/${requestId}/decline`,
+      approveUrl: `${baseUrl}/api/public/vision/consent/${encodeURIComponent(requestId)}/approve`,
+      declineUrl: `${baseUrl}/api/public/vision/consent/${encodeURIComponent(requestId)}/decline`,
       deliveryMethod: "sms",
       expiresAt,
     };
@@ -102,10 +103,13 @@ export class DemoVisionProvider implements CameraProvider {
 
   async openLiveStream(params: OpenStreamParams): Promise<ProviderResult<OpenStreamResult>> {
     const expiresAt = new Date(Date.now() + params.durationMinutes * 60_000).toISOString();
+    const configured =
+      process.env.VISION_DEMO_KVS_CHANNEL_NAME?.trim() ||
+      `rc-vision-demo-${params.agencyId.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 24)}-${params.cameraId}`;
     return {
       supported: true,
       providerSessionId: `demo-session-${params.sessionId}`,
-      kvsChannelName: null,
+      kvsChannelName: configured,
       kvsStreamArn: null,
       expiresAt,
     };

@@ -187,6 +187,10 @@ const config: ExpoConfig = {
             '# NFC + BLE native bridges (Play v1 blocks BLE perms; keep class names)',
             '-keep class com.reactnativenfc.** { *; }',
             '-keep class com.bleplx.** { *; }',
+            // Stripe RN references optional push-provisioning classes not in the
+            // default Android SDK — R8 fails minifyRelease without these.
+            '-dontwarn com.stripe.android.pushProvisioning.**',
+            '-dontwarn com.reactnativestripesdk.pushprovisioning.**',
           ].join('\n'),
         },
       },
