@@ -72,6 +72,23 @@ export async function enableStorageForChannel(channelArn: string, streamArn: str
   );
 }
 
+/** Required before DeleteSignalingChannel / DeleteStream when storage was attached. */
+export async function disableStorageForChannel(channelArn: string | undefined | null): Promise<void> {
+  if (!channelArn) return;
+  try {
+    await kv.send(
+      new UpdateMediaStorageConfigurationCommand({
+        ChannelARN: channelArn,
+        MediaStorageConfiguration: {
+          Status: "DISABLED",
+        },
+      }),
+    );
+  } catch {
+    /* best-effort — channel may already be detached or deleted */
+  }
+}
+
 export async function describeChannelStorage(channelArn: string) {
   return kv.send(
     new DescribeMediaStorageConfigurationCommand({

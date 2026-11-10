@@ -3,6 +3,7 @@ import {
   DeleteSignalingChannelCommand,
   GetSignalingChannelEndpointCommand,
   KinesisVideoClient,
+  UpdateMediaStorageConfigurationCommand,
 } from "@aws-sdk/client-kinesis-video";
 import { GetIceServerConfigCommand, KinesisVideoSignalingClient } from "@aws-sdk/client-kinesis-video-signaling";
 import { AssumeRoleCommand, STSClient } from "@aws-sdk/client-sts";
@@ -90,6 +91,17 @@ export async function createKinesisSignalingChannel(sessionId: string): Promise<
 
 export async function deleteKinesisSignalingChannel(channelArn: string | undefined | null): Promise<void> {
   if (!channelArn) return;
+  try {
+    // Storage attach blocks DeleteSignalingChannel until DISABLED.
+    await kvClient.send(
+      new UpdateMediaStorageConfigurationCommand({
+        ChannelARN: channelArn,
+        MediaStorageConfiguration: { Status: "DISABLED" },
+      }),
+    );
+  } catch {
+    /* detach best-effort */
+  }
   try {
     await kvClient.send(new DeleteSignalingChannelCommand({ ChannelARN: channelArn }));
   } catch {

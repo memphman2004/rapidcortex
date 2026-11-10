@@ -122,6 +122,7 @@ export class KvsChannelService {
                 "kinesisvideo:GetSignalingChannelEndpoint",
                 "kinesisvideo:ConnectAsViewer",
                 "kinesisvideo:DescribeSignalingChannel",
+                "kinesisvideo:GetIceServerConfig",
               ],
               Resource: channelArn,
             },

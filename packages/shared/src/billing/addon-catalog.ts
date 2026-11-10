@@ -717,6 +717,30 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     featureFlag: "live_video",
   }),
   withLegacyIncludedInPlans({
+    key: "caller_media.video_assist",
+    name: "Video Assist (SMS P2P)",
+    category: "Caller Media",
+    description:
+      "Standalone SMS → browser P2P WebRTC share: caller opens a link, consents, and streams camera to the dispatcher. Distinct from KVS Live Video recording.",
+    billingType: "monthly",
+    monthlyPrice: 2500,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+    featureFlag: "video_assist",
+  }),
+  withLegacyIncludedInPlans({
+    key: "caller_media.live_video_kvs",
+    name: "Live Video (KVS)",
+    category: "Caller Media",
+    description:
+      "Standalone Caller Mobile live video over Amazon KVS WebRTC with optional storage attach and GetClip export. Product path distinct from Video Assist P2P.",
+    billingType: "monthly",
+    monthlyPrice: 5000,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+    featureFlag: "live_video",
+  }),
+  withLegacyIncludedInPlans({
     key: "caller_media.media_audit_trail",
     name: "Media Audit Trail",
     category: "Caller Media",
@@ -1447,10 +1471,10 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.rc_connect_standard",
-    name: "iQ Vision™ - Standard",
+    name: "Facility cameras — Standard",
     category: "Feature Add-Ons",
     description:
-      "ONVIF/RTSP camera integration linking up to 10 existing facility cameras to active incidents in the dispatcher or venue console.",
+      "ONVIF/RTSP facility camera pack (up to 10 cameras) for campus/venue/transit registries and video wall tiles. Not Nest/Wyze Connect and not iQ Vision™ scene AI.",
     billingType: "monthly",
     monthlyPrice: 500,
     oneTimePrice: 0,
@@ -1458,10 +1482,10 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.rc_connect_professional",
-    name: "iQ Vision™ - Professional",
+    name: "Facility cameras — Professional",
     category: "Feature Add-Ons",
     description:
-      "Multi-zone camera management for larger facilities, up to 50 cameras. Feeds are surfaced contextually when an incident is created in the associated zone.",
+      "Multi-zone facility camera pack (up to 50 cameras) for larger sites. Registry + wall routing when an incident is tied to a zone. Distinct from iQ Vision™ AI.",
     billingType: "monthly",
     monthlyPrice: 1500,
     oneTimePrice: 0,
@@ -1469,10 +1493,10 @@ export const ADDON_CATALOG: AddonDefinition[] = [
   }),
   withLegacyIncludedInPlans({
     key: "feature_addons.rc_connect_enterprise",
-    name: "iQ Vision™ - Enterprise",
+    name: "Facility cameras — Enterprise",
     category: "Feature Add-Ons",
     description:
-      "Unlimited camera deployments with dedicated KVS streaming infrastructure and advanced camera routing for large multi-site deployments.",
+      "Large multi-site facility camera deployments with dedicated KVS streaming capacity. Distinct from Nest/Wyze Connect and iQ Vision™ scene AI.",
     billingType: "monthly",
     monthlyPrice: 4000,
     oneTimePrice: 0,
@@ -1488,6 +1512,78 @@ export const ADDON_CATALOG: AddonDefinition[] = [
     monthlyPrice: 0,
     oneTimePrice: 2500,
     planAvailability: professionalPlus,
+  }),
+  withLegacyIncludedInPlans({
+    key: "vision.iq_vision",
+    name: "iQ Vision™",
+    category: "Vision & Cameras",
+    description:
+      "Scene intelligence over authorized live cameras — observations, LIVE transcripts, and dispatcher review. Standalone from Nest/Wyze Connect and facility camera packs.",
+    billingType: "monthly",
+    monthlyPrice: 3500,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+    featureFlag: "rapid_vision",
+  }),
+  withLegacyIncludedInPlans({
+    key: "connect.nest",
+    name: "Nest Connect",
+    category: "Vision & Cameras",
+    description:
+      "Citizen/agency Google Nest SDM share: OAuth, consent, and live WebRTC into the incident console. Sold separately from Wyze Connect.",
+    billingType: "monthly",
+    monthlyPrice: 750,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+    featureFlag: "connect_nest",
+  }),
+  withLegacyIncludedInPlans({
+    key: "connect.wyze",
+    name: "Wyze Connect",
+    category: "Vision & Cameras",
+    description:
+      "Citizen Wyze camera enroll, consent, and live WebRTC share. Sold separately from Nest Connect. Ring cameras remain suspended.",
+    billingType: "monthly",
+    monthlyPrice: 750,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+    featureFlag: "connect_wyze",
+  }),
+  withLegacyIncludedInPlans({
+    key: "rc_video.wall",
+    name: "NexCort iQ Video Wall",
+    category: "Vision & Cameras",
+    description:
+      "SOC video wall layouts and tile streams for campus, venue, and transit registries (viewer-token / KVS).",
+    billingType: "monthly",
+    monthlyPrice: 2000,
+    oneTimePrice: 0,
+    planAvailability: professionalPlus,
+    featureFlag: "rc_video",
+  }),
+  withLegacyIncludedInPlans({
+    key: "rc_video.ptz_gateway",
+    name: "Video Gateway PTZ / DVR",
+    category: "Vision & Cameras",
+    description:
+      "On-prem video gateway sidecar for live PTZ control and DVR fragment/clip relay (HMAC). Requires agency gateway URL/secret.",
+    billingType: "monthly",
+    monthlyPrice: 1500,
+    oneTimePrice: 5000,
+    planAvailability: commandPlus,
+    featureFlag: "rc_video",
+  }),
+  withLegacyIncludedInPlans({
+    key: "milestone.xprotect",
+    name: "Milestone XProtect Bridge",
+    category: "Vision & Cameras",
+    description:
+      "On-prem Milestone XProtect bridge: camera sync into facility registries and live HLS / KVS viewer-token tickets.",
+    billingType: "monthly",
+    monthlyPrice: 2500,
+    oneTimePrice: 7500,
+    planAvailability: commandPlus,
+    featureFlag: "milestone_xprotect",
   }),
 
   // Communications Intelligence

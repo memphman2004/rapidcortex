@@ -8,6 +8,7 @@ import { operationalPasswordBlock } from "../lib/operationalPasswordGate.js";
 import { consentActionForm, consentPage, escapeHtml } from "../lib/consentPage.js";
 import { env } from "../lib/env.js";
 import { jsonStatus, unauthorized } from "../lib/response.js";
+import { requireAddon } from "../middleware/requireAddon.js";
 import { AgencyRepository } from "../repositories/agencyRepository.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import {
@@ -110,6 +111,8 @@ const NEST_AUDIT_EVENT_TYPES = {
 function nestEnabled(): boolean {
   return env.enableConnectNest !== false;
 }
+
+const requireNestConnectAddon = requireAddon("connect.nest");
 
 function canLinkNestAgency(user: UserContext): boolean {
   if (canAdminVision(user, user.agencyId)) return true;
@@ -388,6 +391,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   if (!nestEnabled()) {
     return jsonStatus({ error: "Nest camera connect is not enabled" }, 403);
   }
+
+  const nestAddonGate = await requireNestConnectAddon(event, user);
+  if (nestAddonGate) return nestAddonGate;
 
   try {
     if (method === "POST" && tail[0] === "nest" && tail[1] === "connect") {

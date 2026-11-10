@@ -71,6 +71,9 @@ export function IncidentContextMap({
           airports: true,
           activeIncidents: true,
           psaps: true,
+          // Caller track layer: toolbar toggle; default off per Dispatcher Intelligence Expansion.
+          callerPin: false,
+          callerTrail: false,
         }}
         incidents={mapIncidents}
         selectedIncidentId={incidentId ?? mapIncidents[0]?.id}

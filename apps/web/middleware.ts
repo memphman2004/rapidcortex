@@ -226,6 +226,10 @@ function isCallAssistDashboardPath(pathname: string): boolean {
   return pathname === "/app/call-assist" || pathname.startsWith("/app/call-assist/");
 }
 
+function isResponderDashboardPath(pathname: string): boolean {
+  return pathname === "/responder" || pathname.startsWith("/responder/");
+}
+
 function isAppVerticalDashboardPath(pathname: string): boolean {
   return (
     isCampusDashboardPath(pathname) ||
@@ -233,6 +237,7 @@ function isAppVerticalDashboardPath(pathname: string): boolean {
     isHospitalDashboardPath(pathname) ||
     isTransitDashboardPath(pathname) ||
     isCallAssistDashboardPath(pathname) ||
+    isResponderDashboardPath(pathname) ||
     pathname === "/app/dashboard" ||
     pathname.startsWith("/app/dashboard/")
   );
@@ -259,6 +264,10 @@ function isCallAssistRole(role: string | undefined): boolean {
   return verticalFromRole(role ?? "dispatcher") === "call_assist";
 }
 
+function isResponderRole(role: string | undefined): boolean {
+  return verticalFromRole(role ?? "dispatcher") === "responder";
+}
+
 function isProductRole(role: string | undefined): boolean {
   const vertical = verticalFromRole(role ?? "dispatcher");
   return (
@@ -266,7 +275,8 @@ function isProductRole(role: string | undefined): boolean {
     vertical === "venue" ||
     vertical === "hospital" ||
     vertical === "transit" ||
-    vertical === "call_assist"
+    vertical === "call_assist" ||
+    vertical === "responder"
   );
 }
 
@@ -961,6 +971,55 @@ async function guardCallAssistDashboard(request: NextRequest): Promise<NextRespo
   return NextResponse.next();
 }
 
+async function guardResponderDashboard(request: NextRequest): Promise<NextResponse> {
+  if (!isAuthConfigured()) {
+    return NextResponse.next();
+  }
+  const pathname = request.nextUrl.pathname;
+  const loginUrl = resolveRedirectUrl(marketingLoginPath(), request);
+  loginUrl.searchParams.set("from", `${pathname}${request.nextUrl.search}`);
+
+  const token = request.cookies.get(COOKIE_ID_TOKEN)?.value;
+  const refresh = request.cookies.get(COOKIE_REFRESH_TOKEN)?.value;
+  if (!token && !refresh) {
+    return nextOrRedirect(request, loginUrl);
+  }
+
+  const user = token ? await verifyCognitoIdToken(token) : null;
+  if (!user && refresh) {
+    const bounce = resolveRedirectUrl("/api/auth/refresh-cookies", request);
+    bounce.searchParams.set("redirect_to", `${pathname}${request.nextUrl.search}`);
+    return nextOrRedirect(request, bounce);
+  }
+
+  if (!user) {
+    return nextOrRedirect(request, loginUrl);
+  }
+
+  const renewal = handleOperationalPasswordRenewalGate(
+    request,
+    user,
+    resolveRedirectUrl("/change-password", request),
+  );
+  if (renewal) return renewal;
+
+  if (!isResponderRole(user.role) && !isRcInternalOperator(user.role)) {
+    return redirectToRoleAwareHome(request, user, defaultJurisdictionSlug());
+  }
+
+  if (pathname === "/responder" || pathname === "/responder/") {
+    return redirectPublic(request, "/responder");
+  }
+
+  const route = ensureRoleDashboardPath(request, user);
+  if (route) return route;
+
+  const network = await maybeBlockNetworkAccess(request, user);
+  if (network) return network;
+
+  return NextResponse.next();
+}
+
 export async function middleware(request: NextRequest) {
   try {
     return await runMiddleware(request);
@@ -1095,6 +1154,9 @@ async function runMiddleware(request: NextRequest) {
   }
   if (isCallAssistDashboardPath(pathname)) {
     return guardCallAssistDashboard(request);
+  }
+  if (isResponderDashboardPath(pathname)) {
+    return guardResponderDashboard(request);
   }
   if (pathname === "/sales" || pathname.startsWith("/sales/")) {
     return guardSalesPortal(request);

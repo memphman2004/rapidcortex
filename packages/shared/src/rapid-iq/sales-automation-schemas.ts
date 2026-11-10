@@ -4,6 +4,7 @@
  */
 
 import { z } from "zod";
+import { isNewsletterCampaignId } from "./signal-editions.js";
 
 export const RAPID_IQ_SALES_VERTICALS = [
   "PSAP",
@@ -167,6 +168,10 @@ export const rapidIqSalesContentDraftSchema = z.object({
   updatedAt: z.string(),
   generatedBy: z.string(),
   tokenCount: z.number().optional(),
+  /** Marketing Signal edition slug when draft was synced from a published issue. */
+  newsletterSlug: z.string().trim().max(120).optional(),
+  editionUrl: z.string().trim().max(500).optional(),
+  pdfUrl: z.string().trim().max(500).optional(),
 });
 export type RapidIqSalesContentDraft = z.infer<typeof rapidIqSalesContentDraftSchema>;
 
@@ -269,10 +274,46 @@ export const createRapidIqSalesBulkCampaignBodySchema = z.object({
 });
 export type CreateRapidIqSalesBulkCampaignBody = z.infer<typeof createRapidIqSalesBulkCampaignBodySchema>;
 
-export const approveRapidIqSalesBulkBodySchema = z.object({
-  campaignId: z.string().min(1).max(120),
-});
+/** Bulk approve. Newsletter (The NexCortiQ Signal) requires explicit confirmNewsletterSend. */
+export const approveRapidIqSalesBulkBodySchema = z
+  .object({
+    campaignId: z.string().min(1).max(120),
+    /** Required for newsletter / newsletter:{slug} campaigns — blocks accidental mass send. */
+    confirmNewsletterSend: z.literal(true).optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (isNewsletterCampaignId(val.campaignId) && val.confirmNewsletterSend !== true) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Newsletter sends require confirmNewsletterSend: true (RC admin explicit approval).",
+        path: ["confirmNewsletterSend"],
+      });
+    }
+  });
 export type ApproveRapidIqSalesBulkBody = z.infer<typeof approveRapidIqSalesBulkBodySchema>;
+
+/** Campaign id used for legacy The NexCortiQ Signal monthly list blast. Prefer newsletter:{slug}. */
+export const NEXCORTIQ_SIGNAL_NEWSLETTER_CAMPAIGN_ID = "newsletter" as const;
+
+/** Add selected Email List addresses to an approved (or draft) Signal newsletter campaign. */
+export const addNewsletterRecipientsBodySchema = z
+  .object({
+    draftId: z.string().trim().min(1).max(160).optional(),
+    newsletterSlug: z.string().trim().min(1).max(120).optional(),
+    emails: z.array(z.string().trim().email().max(200)).min(1).max(500),
+  })
+  .strict()
+  .superRefine((val, ctx) => {
+    if (!val.draftId && !val.newsletterSlug) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "draftId or newsletterSlug is required",
+        path: ["draftId"],
+      });
+    }
+  });
+export type AddNewsletterRecipientsBody = z.infer<typeof addNewsletterRecipientsBodySchema>;
 
 export const rapidIqSalesBulkBatchSchema = z.object({
   campaignId: z.string(),

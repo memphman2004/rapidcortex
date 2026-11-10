@@ -587,15 +587,17 @@ Resources:
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
+          # Do not use aws:SourceAccount — same-account Lambda AssumeRole omits it and
+          # would deny Vision viewer STS tokens (see Live Video KvsWebRtcBrowserTokenRole).
           - Effect: Allow
             Action: sts:AssumeRole
             Principal:
               AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
             Condition:
-              StringEquals:
-                aws:SourceAccount: !Ref AWS::AccountId
-              StringLike:
-                aws:PrincipalArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/*VisionHttpFunction*"
+              ArnLike:
+                aws:PrincipalArn:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/*VisionHttpFunction*"
+                  - !Sub "arn:aws:sts::${AWS::AccountId}:assumed-role/*VisionHttpFunction*/*"
       Policies:
         - PolicyName: VisionKvsWebrtcDataPlane
           PolicyDocument:
@@ -637,6 +639,8 @@ Resources:
       Environment:
         Variables:
           KVS_BROWSER_TOKEN_ROLE_ARN: !GetAtt VisionKvsBrowserTokenRole.Arn
+          # Shared demo signaling channel (provisioned in-account; viewer-token ensures if missing).
+          VISION_DEMO_KVS_CHANNEL_NAME: rc-vision-demo-shared
       Policies:
         - !Ref AppManagedPolicyVision
         - !Ref AppManagedPolicyVisionLiveTranscript
@@ -649,6 +653,15 @@ Resources:
               Action:
                 - kinesisvideo:DescribeSignalingChannel
                 - kinesisvideo:GetSignalingChannelEndpoint
+              Resource: "*"
+              Condition:
+                StringEquals:
+                  aws:RequestedRegion: !Ref AWS::Region
+            - Sid: VisionKvsEnsureDemoChannel
+              Effect: Allow
+              Action:
+                - kinesisvideo:CreateSignalingChannel
+                - kinesisvideo:TagResource
               Resource: "*"
               Condition:
                 StringEquals:

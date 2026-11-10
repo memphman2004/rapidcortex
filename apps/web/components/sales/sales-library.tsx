@@ -162,10 +162,10 @@ export function SalesLibrary() {
           </div>
           <div className="flex flex-wrap gap-2 text-xs">
             <Link
-              href="/sales/pricing-catalog"
+              href="/sales/features-catalog"
               className="rounded-lg border border-slate-700 px-3 py-1.5 font-semibold text-sky-300 hover:border-sky-500"
             >
-              Open Pricing Catalog
+              Open Features Catalog
             </Link>
             <Link
               href="/sales/document-library"

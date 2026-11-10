@@ -26,8 +26,8 @@ Wildcard `*` is blocked by SAM assertions for staged production-like environment
 Replace `API` and origins:
 
 ```bash
-API=https://REPLACE.execute-api.region.amazonaws.com
-ORIG_OK=https://app.customer.example.com
+API=https://api.rapidcortex.us
+ORIG_OK=https://app.rapidcortex.us
 ORIG_BAD=https://evil.example.com
 
 curl -si -X OPTIONS "$API/api/billing/square/webhook" \

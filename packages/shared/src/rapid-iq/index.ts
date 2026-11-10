@@ -14,6 +14,7 @@ export * from "./transit-watches.js";
 export * from "./intel-watch-seeds.js";
 export * from "./rfp-unified-count.js";
 export * from "./sales-automation-schemas.js";
+export * from "./signal-editions.js";
 export * from "./email-list-schemas.js";
 export * from "./marketing-vertical.js";
 export * from "./nexiq-aliases.js";

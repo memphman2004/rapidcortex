@@ -7,8 +7,15 @@ import { randomBytes } from "node:crypto";
 import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import {
   EMAIL_LIST_VERTICALS,
+  buildSignalEditionEmailBody,
+  buildSignalEditionSubject,
   emailListVerticalsForCampaign,
+  getPublishedSignalEditions,
   normalizeSalesAutomationVertical,
+  signalEditionAbsolutePdfUrl,
+  signalEditionCampaignId,
+  signalEditionDraftId,
+  signalEditionUrl,
   type CreateNexiQSalesBulkCampaignBody,
   type CreateNexiQSalesSequenceBody,
   type EmailListEntry,
@@ -25,7 +32,7 @@ import {
   type UpdateNexiQSalesDraftBody,
   type UpdateNexiQSalesSequenceBody,
 } from "rapid-cortex-shared";
-import { listActiveEmailListRecipients } from "./email-list-db.js";
+import { getEmailListEntry, listActiveEmailListRecipients } from "./email-list-db.js";
 import { isCollectorsMockEnabled } from "./agenda-finder.js";
 import { scrubSalesBrand } from "./blog-article.js";
 import { findContactsViaHunter } from "./hunter-enrichment.js";
@@ -822,10 +829,10 @@ export function listCampaignCards(
     },
     {
       id: "newsletter",
-      name: "Weekly Newsletter",
+      name: "The NexCortiQ Signal (Monthly)",
       description:
-        "Inside iQ draft every Monday 08:00 UTC. Recipients come from the vertical Email List (minus unsubs). Approval required before any send.",
-      next: "Mondays 08:00 UTC",
+        "Monthly Signal draft on the 2nd Monday at 08:00 UTC. Two RC admin steps: (1) approve copy → queue drafts, (2) Approve & send Signal with confirmNewsletterSend. Never auto-sends. Paste edition preview + https://nexcortiq.us/newsletter/{slug}.",
+      next: "2nd Monday · 08:00 UTC · dual approval",
       status: "active",
     },
     {
@@ -897,24 +904,58 @@ export async function resolveNewsletterRecipients(
   return out;
 }
 
-/**
- * On newsletter draft approve: queue one-touch draft sequences for each active list recipient.
- * Still requires per-sequence approve before send (never auto-send).
- */
-export async function queueNewsletterFromEmailList(draft: RapidIqSalesContentDraft): Promise<{
-  queued: number;
-  suppressed: number;
-  recipients: number;
-}> {
-  const subject = (draft.subject ?? "Inside iQ").trim() || "Inside iQ";
+function newsletterCampaignMeta(draft: RapidIqSalesContentDraft): {
+  campaignId: string;
+  campaignName: string;
+} {
+  const slug = draft.newsletterSlug?.trim();
+  if (slug) {
+    return {
+      campaignId: signalEditionCampaignId(slug),
+      campaignName: (draft.subject ?? `The NexCortiQ Signal — ${slug}`).trim(),
+    };
+  }
+  return {
+    campaignId: "newsletter",
+    campaignName: "The NexCortiQ Signal (Monthly)",
+  };
+}
+
+async function existingNewsletterRecipientEmails(
+  draftId: string,
+  campaignId: string,
+): Promise<Set<string>> {
+  const sequences = await listSalesSequences(500);
+  const emails = new Set<string>();
+  for (const seq of sequences) {
+    if (seq.triggerType !== "newsletter") continue;
+    if (seq.triggerId !== draftId && seq.attribution.campaignId !== campaignId) continue;
+    emails.add(seq.recipientEmail.trim().toLowerCase());
+  }
+  return emails;
+}
+
+async function queueNewsletterRows(
+  draft: RapidIqSalesContentDraft,
+  recipients: EmailListEntry[],
+): Promise<{ queued: number; suppressed: number; skipped: number; recipients: number }> {
+  const subject = (draft.subject ?? "The NexCortiQ Signal").trim() || "The NexCortiQ Signal";
   const bodyText = draft.bodyText.trim();
-  const recipients = await resolveNewsletterRecipients(draft.vertical);
+  const { campaignId, campaignName } = newsletterCampaignMeta(draft);
+  const already = await existingNewsletterRecipientEmails(draft.draftId, campaignId);
   let queued = 0;
   let suppressed = 0;
+  let skipped = 0;
   const now = new Date().toISOString();
 
   for (const row of recipients) {
-    const suppression = await checkSuppression(row.email);
+    const email = row.email.trim().toLowerCase();
+    if (already.has(email)) {
+      skipped += 1;
+      continue;
+    }
+    already.add(email);
+    const suppression = await checkSuppression(email);
     const firstName = row.name?.trim().split(/\s+/)[0];
     const body = wrapBody(firstName, bodyText);
     const step: RapidIqSalesOutreachStep = {
@@ -925,31 +966,184 @@ export async function queueNewsletterFromEmailList(draft: RapidIqSalesContentDra
       status: "pending",
       email: { subject, bodyText: body, bodyHtml: buildHtmlEmail(subject, body) },
     };
+    const agencyName =
+      row.agencyName?.trim() || row.name?.trim() || email.split("@")[1] || "Subscriber";
     const seq: RapidIqSalesSequence = {
       sequenceId: newId("seq"),
       triggerId: draft.draftId,
       triggerType: "newsletter",
       vertical: row.vertical,
-      recipientEmail: row.email,
+      recipientEmail: email,
       recipientName: row.name,
-      agencyName: row.name?.trim() || row.email.split("@")[1] || "Subscriber",
+      agencyName,
+      // Always draft — send worker ignores non-active; autoApprove never true for Signal.
       status: suppression.suppressed ? "suppressed" : "draft",
       autoApprove: false,
       steps: [step],
       createdAt: now,
       updatedAt: now,
       suppressedReason: suppression.reason,
-      attribution: {
-        campaignId: "newsletter",
-        campaignName: "Weekly Newsletter",
-      },
+      attribution: { campaignId, campaignName },
     };
     await putSalesSequence(seq);
     if (suppression.suppressed) suppressed += 1;
     else queued += 1;
   }
 
-  return { queued, suppressed, recipients: recipients.length };
+  return { queued, suppressed, skipped, recipients: recipients.length };
+}
+
+/**
+ * On newsletter draft approve: queue one-touch **draft** sequences for each active list recipient.
+ * Fail-closed: never sets autoApprove; never sends. A second RC admin approval
+ * (per-sequence or bulk with confirmNewsletterSend) is required before SES/Outlook delivery.
+ */
+export async function queueNewsletterFromEmailList(draft: RapidIqSalesContentDraft): Promise<{
+  queued: number;
+  suppressed: number;
+  skipped: number;
+  recipients: number;
+}> {
+  if (draft.contentType !== "newsletter") {
+    throw new Error("queueNewsletterFromEmailList only accepts newsletter drafts");
+  }
+  const recipients = await resolveNewsletterRecipients(draft.vertical);
+  return queueNewsletterRows(draft, recipients);
+}
+
+/**
+ * Upsert Sales Automation newsletter drafts for every published Signal edition.
+ * Does not overwrite approved/sent/archived drafts. Refreshes draft copy for status=draft.
+ */
+export async function syncPublishedSignalDrafts(): Promise<{
+  created: number;
+  refreshed: number;
+  skipped: number;
+}> {
+  const editions = getPublishedSignalEditions();
+  let created = 0;
+  let refreshed = 0;
+  let skipped = 0;
+  const now = new Date().toISOString();
+
+  for (const edition of editions) {
+    const draftId = signalEditionDraftId(edition.slug);
+    const existing = await getSalesDraft(draftId);
+    const subject = buildSignalEditionSubject(edition);
+    const bodyText = buildSignalEditionEmailBody(edition);
+    const editionUrl = signalEditionUrl(edition.slug);
+    const pdfUrl = signalEditionAbsolutePdfUrl(edition.pdfUrl);
+
+    if (!existing) {
+      await putSalesDraft({
+        draftId,
+        contentType: "newsletter",
+        vertical: "ALL",
+        weekOf: edition.publishDate,
+        campaignType: "newsletter",
+        subject,
+        bodyText,
+        status: "draft",
+        createdAt: now,
+        updatedAt: now,
+        generatedBy: "signal-edition-sync",
+        newsletterSlug: edition.slug,
+        editionUrl,
+        pdfUrl,
+      });
+      created += 1;
+      continue;
+    }
+
+    if (existing.contentType !== "newsletter") {
+      skipped += 1;
+      continue;
+    }
+    if (existing.status !== "draft") {
+      skipped += 1;
+      continue;
+    }
+
+    await putSalesDraft({
+      ...existing,
+      subject: existing.subject?.trim() ? existing.subject : subject,
+      bodyText: existing.bodyText.trim() ? existing.bodyText : bodyText,
+      weekOf: edition.publishDate,
+      campaignType: "newsletter",
+      newsletterSlug: edition.slug,
+      editionUrl,
+      pdfUrl,
+      updatedAt: now,
+      generatedBy: existing.generatedBy || "signal-edition-sync",
+    });
+    refreshed += 1;
+  }
+
+  return { created, refreshed, skipped };
+}
+
+/**
+ * Add selected Email List addresses to a Signal newsletter campaign as draft sequences.
+ * Skips addresses already queued for the same draft/campaign.
+ */
+export async function addNewsletterRecipientsFromEmailList(opts: {
+  draftId?: string;
+  newsletterSlug?: string;
+  emails: string[];
+}): Promise<{
+  draftId: string;
+  campaignId: string;
+  queued: number;
+  suppressed: number;
+  skipped: number;
+  notFound: number;
+  recipients: number;
+}> {
+  let draft: RapidIqSalesContentDraft | null = null;
+  if (opts.draftId?.trim()) {
+    draft = await getSalesDraft(opts.draftId.trim());
+  } else if (opts.newsletterSlug?.trim()) {
+    draft = await getSalesDraft(signalEditionDraftId(opts.newsletterSlug.trim()));
+  }
+  if (!draft || draft.contentType !== "newsletter") {
+    throw new Error("Newsletter draft not found");
+  }
+  if (draft.status === "archived") {
+    throw new Error("Cannot add recipients to an archived newsletter draft");
+  }
+
+  const wanted = [...new Set(opts.emails.map((e) => e.trim().toLowerCase()).filter(Boolean))];
+  const parts = emailListVerticalsForCampaign(draft.vertical);
+  const found: EmailListEntry[] = [];
+  let notFound = 0;
+
+  for (const email of wanted) {
+    let hit: EmailListEntry | null = null;
+    for (const vertical of parts) {
+      const row = await getEmailListEntry(vertical, email);
+      if (row && row.unsubscribed !== true) {
+        hit = row;
+        break;
+      }
+    }
+    if (!hit) {
+      notFound += 1;
+      continue;
+    }
+    found.push(hit);
+  }
+
+  const result = await queueNewsletterRows(draft, found);
+  const { campaignId } = newsletterCampaignMeta(draft);
+  return {
+    draftId: draft.draftId,
+    campaignId,
+    queued: result.queued,
+    suppressed: result.suppressed,
+    skipped: result.skipped,
+    notFound,
+    recipients: wanted.length,
+  };
 }
 
 /** Count of subscribed addresses across product verticals (for campaign cards / UI). */

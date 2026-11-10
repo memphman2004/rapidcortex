@@ -35,8 +35,10 @@ const nextConfig = {
       "@/lib/site": marketingLib("site.ts"),
       "@/lib/seo": marketingLib("seo.ts"),
       "@/lib/blog": path.join(marketingRoot, "lib/blog"),
+      "@/lib/newsletter": path.join(marketingRoot, "lib/newsletter"),
       "@/lib/site/footer-nav": marketingLib("site/footer-nav.ts"),
       "@/components/blog": path.join(marketingRoot, "components/blog"),
+      "@/components/newsletter": path.join(marketingRoot, "components/newsletter"),
       "@/lib/marketing-links": marketingLib("marketing-links.ts"),
       "@/lib/deployment-environment": marketingLib("deployment-environment.ts"),
       "@/components/auth/session-context": path.join(

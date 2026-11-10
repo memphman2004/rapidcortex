@@ -7,6 +7,7 @@ import type { AIAnalysis, AggregateConfidence, ConfidenceAnalysis, Incident, Tra
 import { SlaStatusBar } from "@/components/dashboards/sla-status-bar";
 import { DispatcherIncidentWorkstationBody, DispatcherIncidentMapPanel } from "@/components/dispatch/dispatcher-incident-panel-grid";
 import { DispatcherQueueTable } from "@/components/dispatch/dispatcher-queue-table";
+import { IncidentIntelligencePanel } from "@/components/incident/IncidentIntelligencePanel";
 import { WorkstationPanel } from "@/components/dispatch/workstation-panel";
 import {
   startHorizontalResize,
@@ -848,6 +849,13 @@ export function CadDispatcherWorkspaceLayout({
           >
             <DispatcherIncidentMapPanel incidentId={selectedIdForPanels} incident={incidentForUi} />
           </WorkstationPanel>
+          )}
+          {popout ? null : (
+            <IncidentIntelligencePanel
+              incidentId={selectedIdForPanels}
+              incident={incidentForUi}
+              transcriptSegments={transcriptSegments}
+            />
           )}
           {popout === "context" ? null : (
           <div className="shrink-0 border-b p-2" style={{ borderColor: "var(--rc-border)" }}>

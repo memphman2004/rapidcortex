@@ -213,6 +213,78 @@ export const FEATURE_NARRATIVES: Record<string, RapidCortexFeatureExplanations> 
     salesExplanation:
       "A premium capability for special teams when governance can keep up with the evidence load.",
   },
+  video_assist: {
+    shortDescription: "SMS → browser P2P WebRTC caller camera share (Video Assist).",
+    operatorExplanation:
+      "Create a Video Assist session so the caller can open an SMS link and stream live video without installing an app.",
+    adminExplanation:
+      "Requires TURN/ICE configuration and the Video Assist table; keep distinct from Live Video KVS entitlements.",
+    salesExplanation:
+      "Fast live eyes from the caller when you do not need KVS archival — sold as its own add-on.",
+  },
+  live_video_kvs: {
+    shortDescription: "Caller Mobile live video over Amazon KVS with optional recording export.",
+    operatorExplanation:
+      "Request Live Video so the caller joins as KVS master and dispatchers join as viewers; hang-up can export a clip when storage is attached.",
+    adminExplanation:
+      "Needs AppSam5 live-video resources, KVS token role, and region alignment; gate separately from Video Assist.",
+    salesExplanation:
+      "Premium live path when evidence retention or JoinStorageSession matters — standalone SKU.",
+  },
+  iq_vision: {
+    shortDescription: "iQ Vision™ scene intelligence over authorized cameras.",
+    operatorExplanation:
+      "Discover cameras, request access, review AI observations and LIVE captions with human verification.",
+    adminExplanation:
+      "Enable the vision.iq_vision add-on; Nest/Wyze remain Connect products; transcript mock stays on until LIVE smoke.",
+    salesExplanation:
+      "Sell scene AI separately from citizen Connect and facility camera packs.",
+  },
+  nest_connect: {
+    shortDescription: "Google Nest SDM consent-based live camera share.",
+    operatorExplanation:
+      "Search nearby Nest devices, request access, and play live WebRTC after owner consent.",
+    adminExplanation:
+      "Requires Nest SDM secrets, OAuth redirect, and the connect.nest add-on entitlement.",
+    salesExplanation:
+      "Standalone Nest Connect — not bundled with Wyze or iQ Vision.",
+  },
+  wyze_connect: {
+    shortDescription: "Wyze citizen enroll and consent-based live share.",
+    operatorExplanation:
+      "Request access to enrolled Wyze cameras and play live WebRTC after owner approval.",
+    adminExplanation:
+      "Requires Wyze secrets and connect.wyze entitlement; keep fail-closed until rotation is complete.",
+    salesExplanation:
+      "Standalone Wyze Connect SKU — Ring camera OAuth stays suspended.",
+  },
+  rc_video_wall: {
+    shortDescription: "SOC video wall for campus, venue, and transit facility cameras.",
+    operatorExplanation:
+      "Open the Video Wall to arrange live tiles from the agency camera registry.",
+    adminExplanation:
+      "Populate registries with KVS channels; enable rc_video.wall; transit has dedicated /cameras and /video-wall pages.",
+    salesExplanation:
+      "Facility SOC surface — distinct from citizen Connect and iQ Vision AI.",
+  },
+  rc_video_ptz_gateway: {
+    shortDescription: "On-prem video gateway for PTZ and DVR into the cloud console.",
+    operatorExplanation:
+      "Move PTZ and pull DVR fragments when the agency gateway is online (otherwise mock acknowledgements).",
+    adminExplanation:
+      "Set VIDEO_GATEWAY_URL and secret; entitle rc_video.ptz_gateway; never claim live PTZ when mock is on.",
+    salesExplanation:
+      "Requires on-prem readiness — sell with Video Wall for camera-heavy campuses and venues.",
+  },
+  milestone_xprotect: {
+    shortDescription: "Milestone XProtect on-prem bridge for sync and live tickets.",
+    operatorExplanation:
+      "Use Milestone-synced cameras and live tickets when the bridge is healthy.",
+    adminExplanation:
+      "Deploy the on-prem bridge, set HMAC secrets, entitle milestone.xprotect; mock must not invent cameras.",
+    salesExplanation:
+      "Protects existing Milestone investment — pilot-scoped with real bridge validation.",
+  },
   media_audit_trail: {
     shortDescription: "Who accessed, exported, or changed media and when.",
     operatorExplanation:

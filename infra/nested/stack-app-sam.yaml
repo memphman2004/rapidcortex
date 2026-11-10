@@ -649,6 +649,21 @@ Parameters:
   NonEmergencyQueueTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (NonEmergencyQueueTable).
+  WebSocketConnectionsTable:
+    Type: String
+    Default: ""
+    Description: WebSocket connections table (optional for caller-location fan-out).
+  WebSocketApiEndpoint:
+    Type: String
+    Default: ""
+    Description: API Gateway management endpoint for WebSocket postToConnection.
+  CallerLocationsTable:
+    Type: String
+    Description: Physical DynamoDB table name from data layer (CallerLocationsTable).
+  ResponderConnectionsTable:
+    Type: String
+    Default: ""
+    Description: Physical DynamoDB table name from data layer (ResponderConnectionsTable). Optional until data layer deploys.
   StaffingForecastTable:
     Type: String
     Description: Physical DynamoDB table name from data layer (StaffingForecastTable).
@@ -2723,6 +2738,12 @@ Resources:
             ApiId: !Ref Api
             Path: /api/staffing/forecast
             Method: GET
+        GetSurgeForecast:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/staffing/forecast/surge
+            Method: GET
         PostGenerateForecast:
           Type: HttpApi
           Properties:
@@ -2734,6 +2755,105 @@ Resources:
           Properties:
             Schedule: cron(0 2 ? * SUN *)
             Input: '{"source":"aws.events","action":"generate"}'
+
+
+  CallerLocationsHttpFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Handler: dist/handlers/callerLocationsHttp.handler
+      Timeout: 30
+      MemorySize: 512
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          CALLER_LOCATIONS_TABLE: !Ref CallerLocationsTable
+          INCIDENTS_TABLE: !Ref IncidentsTable
+          WEBSOCKET_CONNECTIONS_TABLE: !Ref WebSocketConnectionsTable
+          WEBSOCKET_API_ENDPOINT: !Ref WebSocketApiEndpoint
+      CodeUri: ../../apps/api/
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+                - dynamodb:DescribeTable
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CallerLocationsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CallerLocationsTable}/index/*
+        - Statement:
+            - Effect: Allow
+              Action:
+                - execute-api:ManageConnections
+              Resource: "*"
+      Events:
+        GetCallerLocations:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/caller-locations
+            Method: GET
+        PostCallerLocation:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/caller-location
+            Method: POST
+
+  ResponderAudioAuthorizeFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      Handler: dist/handlers/responderAudioAuthorizeHttp.handler
+      Timeout: 30
+      MemorySize: 512
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          RESPONDER_CONNECTIONS_TABLE: !Ref ResponderConnectionsTable
+          INCIDENTS_TABLE: !Ref IncidentsTable
+          WEBSOCKET_API_ENDPOINT: !Ref WebSocketApiEndpoint
+          INCIDENT_AUDIO_STREAM_ARN: ""
+      CodeUri: ../../apps/api/
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+                - dynamodb:DescribeTable
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ResponderConnectionsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ResponderConnectionsTable}/index/*
+        - Statement:
+            - Effect: Allow
+              Action:
+                - execute-api:ManageConnections
+              Resource: "*"
+      Events:
+        AuthorizeAudio:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/incidents/{incidentId}/responders/{connectionId}/audio-authorize
+            Method: POST
 
   PostCadWritebackBlockedFunction:
     Type: AWS::Serverless::Function
@@ -3322,6 +3442,13 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+          # Explicit (not only RC_RUNTIME short keys) — decoy handler avoids importing env.ts.
+          DECEPTION_SHIELD_ENABLED: !If [PilotTestFeaturesOn, "true", "true"]
+          DECEPTION_ALERTS_ENABLED: "true"
+          DECEPTION_EVENTS_TABLE: !Ref DeceptionEventsTable
+          OPS_ALERTS_TOPIC_ARN: !Ref OpsAlertsTopic
+          # Dual-publish HIGH/CRITICAL decoy alerts (OpsAlerts + dedicated security topic).
+          SECURITY_ALERTS_TOPIC_ARN: !Sub arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:rapid-cortex-security-alerts-${DeploymentStage}
       Timeout: 10
       MemorySize: 256
       CodeUri: ../../apps/api/
@@ -3337,6 +3464,12 @@ Resources:
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeceptionEventsTable}/index/*
         - !Ref AppManagedPolicyOpsAlertsSnsPublishOnly
+        - Statement:
+            Sid: DeceptionSecurityAlertsPublish
+            Effect: Allow
+            Action:
+              - sns:Publish
+            Resource: !Sub arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:rapid-cortex-security-alerts-${DeploymentStage}
 
       Events:
         DecoyCadSyncGet:

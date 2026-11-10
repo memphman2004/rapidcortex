@@ -26,6 +26,30 @@ export function useLiveCallerLocations(incidentId: string | null): RCLiveCaller[
   const configured = isApiConfigured();
   const [smsCaller, setSmsCaller] = useState<RCLiveCaller | null>(null);
 
+  const persistedQ = useQuery({
+    queryKey: ["caller-locations", incidentId],
+    enabled: Boolean(incidentId) && configured,
+    queryFn: async () => {
+      const res = await fetch(`/api/incidents/${encodeURIComponent(incidentId!)}/caller-locations`, {
+        credentials: "same-origin",
+      });
+      if (res.status === 404 || res.status === 503) return [] as Array<{
+        lat: number;
+        lng: number;
+        accuracy: number;
+        timestamp: string;
+        source: string;
+      }>;
+      if (!res.ok) throw new Error(`caller-locations ${res.status}`);
+      const body = (await res.json()) as {
+        items?: Array<{ lat: number; lng: number; accuracy: number; timestamp: string; source: string }>;
+      };
+      return body.items ?? [];
+    },
+    refetchInterval: 15_000,
+    staleTime: 5_000,
+  });
+
   const linksQ = useQuery({
     queryKey: ["pinpoint-links", incidentId],
     enabled: Boolean(incidentId) && configured && pinpointOn,
@@ -90,6 +114,25 @@ export function useLiveCallerLocations(incidentId: string | null): RCLiveCaller[
       if (converted) out.push(converted);
     }
     if (smsCaller && smsCaller.incidentId === incidentId) out.push(smsCaller);
+    const persisted = persistedQ.data ?? [];
+    if (persisted.length > 0 && incidentId) {
+      const latest = persisted[0]!;
+      const trail = [...persisted]
+        .reverse()
+        .map((p) => ({ lat: p.lat, lng: p.lng, at: p.timestamp }))
+        .slice(-MAX_TRAIL);
+      out.push({
+        id: `track:${incidentId}`,
+        lat: latest.lat,
+        lng: latest.lng,
+        updatedAt: latest.timestamp,
+        accuracyMeters: latest.accuracy,
+        incidentId,
+        source: latest.source === "cell" ? "sms" : "gps",
+        trail,
+        label: "Caller track",
+      });
+    }
     return out;
-  }, [detailQ.data, smsCaller, incidentId]);
+  }, [detailQ.data, smsCaller, incidentId, persistedQ.data]);
 }

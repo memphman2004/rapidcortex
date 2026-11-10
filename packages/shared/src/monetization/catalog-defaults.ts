@@ -172,8 +172,8 @@ export function defaultAddOnSeed(now: string): Record<MonetizationAddOnId, impor
     ),
     rapid_vision: mk(
       "rapid_vision",
-      "NexIQ Vision™",
-      "Live camera assist and scene intelligence for authorized roles.",
+      "iQ Vision™",
+      "Scene intelligence over authorized cameras — observations and LIVE transcripts.",
     ),
     rc_translate: mk(
       "rc_translate",
@@ -189,8 +189,35 @@ export function defaultAddOnSeed(now: string): Record<MonetizationAddOnId, impor
     ng911_assist: mk("ng911_assist", "NG911 Assist", "Diversion, EIDO, Additional Data, and NG911 metrics."),
     connect_nest_wyze: mk(
       "connect_nest_wyze",
-      "Nest / Wyze Connect",
-      "Citizen Nest and Wyze camera share flows alongside Ring Connect.",
+      "Nest / Wyze Connect (legacy bundle)",
+      "Legacy combined Nest+Wyze SKU — prefer connect_nest and connect_wyze.",
+    ),
+    connect_nest: mk("connect_nest", "Nest Connect", "Citizen/agency Google Nest SDM consent and live share."),
+    connect_wyze: mk("connect_wyze", "Wyze Connect", "Citizen Wyze enroll, consent, and live share."),
+    video_assist: mk(
+      "video_assist",
+      "Video Assist (SMS P2P)",
+      "SMS → browser P2P WebRTC caller camera share.",
+    ),
+    live_video_kvs: mk(
+      "live_video_kvs",
+      "Live Video (KVS)",
+      "Caller Mobile live video over Amazon KVS with optional export.",
+    ),
+    rc_video_wall: mk(
+      "rc_video_wall",
+      "NexCort iQ Video Wall",
+      "SOC video wall layouts for facility camera registries.",
+    ),
+    rc_video_ptz_gateway: mk(
+      "rc_video_ptz_gateway",
+      "Video Gateway PTZ / DVR",
+      "On-prem video gateway for PTZ control and DVR clips.",
+    ),
+    milestone_xprotect: mk(
+      "milestone_xprotect",
+      "Milestone XProtect Bridge",
+      "On-prem Milestone bridge for camera sync and live tickets.",
     ),
   };
 }

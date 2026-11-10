@@ -7,16 +7,16 @@ NexiQ cannot pull from a ChatGPT conversation. Watches (or any approved HTTPS se
 ## Endpoint
 
 ```
-POST https://tbr4zvjlk5.execute-api.us-east-1.amazonaws.com/api/watch/ingest
+POST https://api.rapidcortex.us/api/watch/ingest
 ```
 
 Legacy (still supported):
 
 ```
-POST …/api/rapid-iq/pipeline/watch-ingest
+POST https://api.rapidcortex.us/api/rapid-iq/pipeline/watch-ingest
 ```
 
-`api.rapidcortex.us` maps to HttpApi1 only — Watch ingest lives on **HttpApi3** (`API_UPSTREAM_BASE_3`).
+Public edge is **`https://api.rapidcortex.us`** only (CloudFront). Do not publish `*.execute-api.*.amazonaws.com` hostnames to agencies or ChatGPT Actions.
 
 ## Authentication
 
@@ -144,7 +144,7 @@ Placing an API URL in a ChatGPT prompt does **not** grant network access. The se
 
 ```bash
 export RAPID_IQ_WATCH_INGEST_API_KEY='…'   # from scripts/create-watch-ingest-secret.sh
-export API_BASE='https://tbr4zvjlk5.execute-api.us-east-1.amazonaws.com'
+export API_BASE='https://api.rapidcortex.us'
 bash scripts/smoke-watch-ingest.sh
 # Canonical path:
 # curl -X POST "$API_BASE/api/watch/ingest" -H "Authorization: Bearer $RAPID_IQ_WATCH_INGEST_API_KEY" …

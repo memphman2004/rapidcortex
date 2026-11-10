@@ -63,6 +63,10 @@ export const ADDON_KEYS = [
   "caller_media.live_stream.standard",
   "caller_media.live_stream.premium",
   "caller_media.live_stream.enterprise",
+  /** Standalone product SKU — SMS P2P Video Assist (distinct from KVS Live Video). */
+  "caller_media.video_assist",
+  /** Standalone product SKU — Live Video over KVS (Caller Mobile). */
+  "caller_media.live_video_kvs",
   "caller_media.media_audit_trail",
   "caller_media.evidence_retention",
   "caller_media.redaction",
@@ -132,6 +136,18 @@ export const ADDON_KEYS = [
   "feature_addons.rc_connect_professional",
   "feature_addons.rc_connect_enterprise",
   "feature_addons.grant_success_package",
+  /** iQ Vision™ scene AI (Rapid Vision) — not facility camera packs. */
+  "vision.iq_vision",
+  /** Citizen Nest Connect (SDM) — standalone from Wyze. */
+  "connect.nest",
+  /** Citizen Wyze Connect — standalone from Nest. */
+  "connect.wyze",
+  /** Facility / SOC video wall (campus, venue, transit). */
+  "rc_video.wall",
+  /** On-prem video gateway PTZ / DVR relay. */
+  "rc_video.ptz_gateway",
+  /** Milestone XProtect on-prem bridge. */
+  "milestone.xprotect",
   "comms_intel.context_cards",
   "comms_intel.command_intelligence",
   "comms_intel.nexiq_vault",

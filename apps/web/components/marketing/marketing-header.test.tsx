@@ -48,6 +48,9 @@ describe("marketing mobile drawer link definitions", () => {
     expect(links.some((l) => l.label === "Features")).toBe(true);
     expect(links.some((l) => l.label === "Grants")).toBe(true);
     expect(links.some((l) => l.label === "Pricing")).toBe(true);
+    expect(links.some((l) => l.label === "Blog")).toBe(true);
+    expect(links.some((l) => l.label === "Newsletter")).toBe(true);
+    expect(hrefs).toContain("/newsletter");
     expect(links.some((l) => l.label === "Demo")).toBe(true);
     expect(links.some((l) => l.label === "Contact")).toBe(true);
     expect(hrefs).not.toContain("/login");

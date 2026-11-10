@@ -260,6 +260,11 @@ export function MarketingFooter() {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/newsletter" className={FOOTER_FOCUS_LINK_CLASS}>
+                    The NexCortiQ Signal
+                  </Link>
+                </li>
+                <li>
                   <details className="group [&_summary::-webkit-details-marker]:hidden">
                     <summary
                       className={`${FOOTER_FOCUS_LINK_CLASS} cursor-pointer list-none marker:content-none`}

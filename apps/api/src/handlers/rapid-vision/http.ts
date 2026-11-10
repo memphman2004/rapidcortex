@@ -37,6 +37,7 @@ import {
   incidentCoordinates,
   requireActiveIncident,
 } from "../../integrations/incidents/require-active-incident.js";
+import { requireAddon } from "../../middleware/requireAddon.js";
 import { visionStore } from "../../rapid-vision/store.js";
 import { DemoVisionProvider } from "../../rapid-vision/providers/DemoVisionProvider.js";
 import { resolveVisionSessionKvsRef } from "../../rapid-vision/kvs-media-ref.js";
@@ -47,6 +48,7 @@ import { handleSceneIntelRoutes } from "./scene-events.js";
 const auditRepo = new AuditRepository();
 const authz = new AuthorizationService();
 const demoProvider = new DemoVisionProvider();
+const requireIqVisionAddon = requireAddon("vision.iq_vision");
 
 function parseBody(raw: string | undefined): unknown {
   try {
@@ -230,6 +232,8 @@ async function handleIncidentVision(
     if ("response" in gated) return gated.response;
     const { user } = gated;
     if (!canRequestVisionAccess(user, user.agencyId)) return forbidden();
+    const addonGate = await requireIqVisionAddon(event, user);
+    if (addonGate) return addonGate;
 
     const cameraId = decodeURIComponent(rest[1] ?? "").trim();
     const incidentResult = await requireActiveIncident(incidentId, user);
@@ -414,6 +418,8 @@ async function handleIncidentVision(
     if ("response" in gated) return gated.response;
     const { user } = gated;
     if (!canRequestVisionAccess(user, user.agencyId)) return forbidden();
+    const addonGate = await requireIqVisionAddon(event, user);
+    if (addonGate) return addonGate;
 
     const sessionId = decodeURIComponent(rest[1] ?? "").trim();
     if (!sessionId) return badRequest("sessionId required");

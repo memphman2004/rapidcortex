@@ -279,6 +279,10 @@ export const env = {
   qaScorecardsTable: process.env.QA_SCORECARDS_TABLE?.trim() ?? "",
   coachingNotesTable: process.env.COACHING_NOTES_TABLE?.trim() ?? "",
   incidentTimelineTable: process.env.INCIDENT_TIMELINE_TABLE?.trim() ?? "",
+  callerLocationsTable: process.env.CALLER_LOCATIONS_TABLE?.trim() ?? "",
+  responderConnectionsTable: process.env.RESPONDER_CONNECTIONS_TABLE?.trim() ?? "",
+  /** KVS ARN for authorized responder listen-in (fail-soft when unset). */
+  incidentAudioStreamArn: process.env.INCIDENT_AUDIO_STREAM_ARN?.trim() ?? "",
   /** Emergency Connect — hospital pre-arrival alerts (optional tables). */
   enableEmergencyConnect: featureEnabled("ENABLE_EMERGENCY_CONNECT"),
   hospitalPreAlertsTable: process.env.HOSPITAL_PREALERTS_TABLE?.trim() ?? "",

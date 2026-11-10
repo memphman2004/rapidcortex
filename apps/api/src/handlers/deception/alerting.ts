@@ -58,22 +58,32 @@ export async function sendSecurityAlert(event: DeceptionEvent): Promise<void> {
 
   if (!alertsOn) return;
 
-  if (topicArn && (event.riskLevel === "HIGH" || event.riskLevel === "CRITICAL")) {
-    try {
-      const subject =
-        event.riskLevel === "CRITICAL"
-          ? "CRITICAL: Deception Shield Alert"
-          : "HIGH: Deception Shield Alert";
-      const message = JSON.stringify(safePayload);
-      await sns.send(
-        new PublishCommand({
-          TopicArn: topicArn,
-          Subject: subject,
-          Message: message,
-        }),
-      );
-    } catch {
-      logDeceptionStructured("deception.sns_publish_failed", { correlationId: event.correlationId });
+  if (event.riskLevel === "HIGH" || event.riskLevel === "CRITICAL") {
+    const subject =
+      event.riskLevel === "CRITICAL"
+        ? "CRITICAL: Deception Shield Alert"
+        : "HIGH: Deception Shield Alert";
+    const message = JSON.stringify(safePayload);
+    const securityTopic =
+      process.env.SECURITY_ALERTS_TOPIC_ARN?.trim() ||
+      process.env.SECURITY_ALERTS_SNS_TOPIC_ARN?.trim() ||
+      "";
+    const topics = [topicArn, securityTopic].filter(Boolean);
+    for (const arn of topics) {
+      try {
+        await sns.send(
+          new PublishCommand({
+            TopicArn: arn,
+            Subject: subject,
+            Message: message,
+          }),
+        );
+      } catch {
+        logDeceptionStructured("deception.sns_publish_failed", {
+          correlationId: event.correlationId,
+          topicArn: arn.slice(-24),
+        });
+      }
     }
   }
 

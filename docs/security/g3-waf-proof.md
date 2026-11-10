@@ -2,7 +2,7 @@
 
 > **G3 customer gate:** **[`customer-readiness-gate.md`](../customer-readiness-gate.md)** — **YELLOW**: code and IaC controls have advanced; **environment-specific PASS evidence** and **reviewer signoffs** are still required in the **target** environment. **Code + IaC progress does not replace environment-specific proof.** **Do not** mark G3 GREEN from code, IaC, local tests, or intended configuration alone. Master rollup: [`g3-security-controls-platform.md`](./g3-security-controls-platform.md).
 
-**Status:** **API edge LIVE (2026-07-29).** CloudFront distribution `E22OK65GJG6A2C` fronts `api.rapidcortex.us` with CLOUDFRONT-scope WebACL `rapid-cortex-httpapi-cdn-waf-dev` (`7f68bde8-cc59-4b9d-bed7-dd1f66e7eeef`) attached (`WebACLId` on the distribution). Origin = regional API custom-domain target `d-zp1gcdowhi.execute-api.us-east-1.amazonaws.com`. Verify: `curl https://api.rapidcortex.us/api/health` → 200 + `via: …cloudfront.net`.  
+**Status:** **API edge LIVE (2026-07-29).** CloudFront distribution `E22OK65GJG6A2C` fronts `api.rapidcortex.us` with CLOUDFRONT-scope WebACL `rapid-cortex-httpapi-cdn-waf-dev` (`7f68bde8-cc59-4b9d-bed7-dd1f66e7eeef`) attached (`WebACLId` on the distribution). Origin = regional API Gateway custom-domain target (CloudFront-internal; do not publish). Verify: browser/`User-Agent` Mozilla to `https://api.rapidcortex.us/api/health` → 200 + `via: …cloudfront.net`. Bot Control COMMON = Block; AnonymousIp = Block with `HostingProviderIPList` → Count.  
 
 HttpApi stage associate remains **unsupported** (expected). REGIONAL ACL `rapid-cortex-httpapi-waf-dev` may still exist for inventory/ALB. Root `EnableApiWaf` / nested association: do **not** reintroduce `ApiWebAclAssociation` on HTTP API stages. Infra: `infra/api-edge-cloudfront.yaml` + `scripts/deploy-api-edge.sh`.
 
@@ -10,11 +10,14 @@ HttpApi stage associate remains **unsupported** (expected). REGIONAL ACL `rapid-
 
 - Conditional resource **`ApiWebAcl`** (`AWS::WAFv2::WebACL`, `Scope: REGIONAL`) when `EnableApiWaf=true`.
 - **No** `ApiWebAclAssociation` on the HttpApi stage (unsupported by AWS WAF).
-- **Managed rule groups:**
+- **Managed rule groups (API CDN ACL `rapid-cortex-httpapi-cdn-waf-dev`):**
   - `AWSManagedRulesCommonRuleSet`
   - `AWSManagedRulesKnownBadInputsRuleSet`
   - `AWSManagedRulesAmazonIpReputationList`
+  - `AWSManagedRulesBotControlRuleSet` (COMMON; COUNT then BLOCK — OverrideAction `None`)
+  - `AWSManagedRulesAnonymousIpList` (COUNT then BLOCK)
 - **Rate limit:** rule `PerIpRateLimit` using `WafRateLimitPer5Min` (requests / 5 min / IP).
+- **Agency-facing URL:** always `https://api.rapidcortex.us` / `https://app.rapidcortex.us`. Origin `*.execute-api.*` hostnames are CloudFront-internal only — do not publish to agencies.
 - **CloudTrail bucket:** use `ObjectLockEnabled: true` (not CLI-only `ObjectLockEnabledForBucket`).
 
 ## Enable for pilot/production

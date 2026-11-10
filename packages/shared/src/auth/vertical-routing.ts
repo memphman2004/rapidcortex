@@ -5,7 +5,15 @@ import {
 } from "./rapid-cortex-roles.js";
 import { salesContractorMayAccessPath } from "./sales-contractor-paths.js";
 
-export type RCVertical = "platform" | "911" | "campus" | "venue" | "hospital" | "transit" | "call_assist";
+export type RCVertical =
+  | "platform"
+  | "911"
+  | "campus"
+  | "venue"
+  | "hospital"
+  | "transit"
+  | "call_assist"
+  | "responder";
 
 const LEGACY_ROLE_MAP: Record<string, UserRole> = {
   admin: "agencyadmin",
@@ -43,6 +51,7 @@ export function verticalFromRole(role: UserRole | string): RCVertical {
   if (r.startsWith("hospital_") || r === "hospitaladmin" || r === "hospitalstaff") return "hospital";
   if (r.startsWith("transit_")) return "transit";
   if (r.startsWith("call_assist_")) return "call_assist";
+  if (r === "field_responder") return "responder";
   return "911";
 }
 
@@ -148,6 +157,8 @@ export function dashboardRouteFromRole(role: UserRole | string, agencyId: string
       return "/app/call-assist/supervisor";
     case "call_assist_operator":
       return "/app/call-assist/operator";
+    case "field_responder":
+      return "/responder";
     default:
       return "/not-authorized";
   }
@@ -167,6 +178,7 @@ export function allowedRoutePrefixesForRole(rawRole: string): string[] {
   }
   if (role.startsWith("transit_")) return ["/app/transit", "/transit"];
   if (role.startsWith("call_assist_")) return ["/app/call-assist"];
+  if (role === "field_responder") return ["/responder"];
   return ["/"];
 }
 
@@ -261,6 +273,9 @@ export function pathMatchesRoleDashboard(
   if (vertical === "call_assist") {
     if (path === "/app/call-assist" || path === "/app/call-assist/") return false;
     return path.startsWith("/app/call-assist/");
+  }
+  if (vertical === "responder") {
+    return path === "/responder" || path.startsWith("/responder/");
   }
 
   return path === home || path.startsWith(`${home}/`);

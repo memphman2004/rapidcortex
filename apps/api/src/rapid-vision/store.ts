@@ -246,7 +246,7 @@ export const visionStore = {
         },
       }),
     );
-  }
+  },
 
   async revokeSession(incidentId: string, sessionId: string, agencyId: string): Promise<void> {
     await ddb.send(

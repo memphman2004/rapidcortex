@@ -64,6 +64,10 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       return jsonError("Stream bridge not yet ready — retry shortly.", 409);
     }
 
+    // Demo / registry cameras store a channel name without always provisioning it first.
+    // Ensure the SINGLE_MASTER signaling channel exists before STS viewer credentials.
+    await kvs.ensureRegistryChannel(channelRef, user.agencyId);
+
     const token = await kvs.issueViewerToken(channelRef);
 
     return jsonOk({

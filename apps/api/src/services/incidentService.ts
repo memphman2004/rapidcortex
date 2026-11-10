@@ -400,7 +400,53 @@ export class IncidentService {
       }
     }
 
-    return incidentRepo.get(incidentId);
+    const updated = await incidentRepo.get(incidentId);
+    if (updated) {
+      try {
+        const { ResponderConnectionsRepository } = await import(
+          "../repositories/responderConnectionsRepository.js"
+        );
+        const { WebSocketNotificationService } = await import(
+          "./websocketNotificationService.js"
+        );
+        const responders = new ResponderConnectionsRepository();
+        const connections = await responders.listByIncident(incidentId, updated.agencyId);
+        if (connections.length > 0) {
+          const ws = new WebSocketNotificationService();
+          const units = (updated as { unitAssignments?: unknown[] }).unitAssignments;
+          await ws.broadcastResponderIncidentUpdate({
+            agencyId: updated.agencyId,
+            incidentId,
+            priority:
+              updated.cadPriority != null
+                ? String(updated.cadPriority)
+                : updated.urgency != null
+                  ? String(updated.urgency)
+                  : undefined,
+            incidentType:
+              updated.cadNatureCode != null
+                ? String(updated.cadNatureCode)
+                : updated.category != null
+                  ? String(updated.category)
+                  : undefined,
+            address: updated.cadLocation ?? updated.callerAddressLine ?? undefined,
+            unitAssignments: Array.isArray(units) ? units : undefined,
+            updatedAt: updated.updatedAt,
+            connectionIds: connections.map((c) => c.connectionId),
+          });
+        }
+      } catch (err) {
+        console.warn(
+          JSON.stringify({
+            type: "responder.incident_fanout_skipped",
+            incidentId,
+            agencyId: updated.agencyId,
+            error: String(err),
+          }),
+        );
+      }
+    }
+    return updated;
   }
 
   async patchLegalHold(

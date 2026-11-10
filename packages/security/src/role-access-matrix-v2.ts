@@ -1066,6 +1066,8 @@ const VERTICAL_ROLE_MATRIX_BASE: Record<Exclude<MatrixRole, CoreMatrixRole>, Cor
   call_assist_admin: "agencyadmin",
   call_assist_supervisor: "supervisor",
   call_assist_operator: "dispatcher",
+  /** Least-privilege field unit — grants overridden in ROLE_ACCESS_MATRIX_V2. */
+  field_responder: "auditor",
 };
 
 function inheritVerticalMatrix(
@@ -1095,6 +1097,8 @@ export const ROLE_ACCESS_MATRIX_V2: Record<MatrixRole, readonly Permission[]> = 
   call_assist_admin: CALL_ASSIST_ADMIN,
   call_assist_supervisor: CALL_ASSIST_SUPERVISOR,
   call_assist_operator: CALL_ASSIST_OPERATOR,
+  /** Field units: assigned-incident view only — never inherit auditor grants. */
+  field_responder: ["incidents.view", "field.command.view"] as const,
 };
 
 /** rcsuperadmin-only immutable permissions (matrix `o` column). */

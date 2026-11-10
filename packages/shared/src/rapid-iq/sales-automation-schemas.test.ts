@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  addNewsletterRecipientsBodySchema,
+  approveRapidIqSalesBulkBodySchema,
   normalizeSalesAutomationVertical,
   RAPID_IQ_SALES_BULK_MAX_RECIPIENTS,
   rapidIqOutlookCallbackBodySchema,
@@ -75,6 +77,34 @@ describe("outlook campaign-send schemas", () => {
     });
     expect(parsed.steps?.[0]?.email.subject).toBe("New subject");
     expect(updateRapidIqSalesSequenceBodySchema.safeParse({}).success).toBe(false);
+  });
+
+  it("requires confirmNewsletterSend for newsletter:{slug} bulk approve", () => {
+    expect(
+      approveRapidIqSalesBulkBodySchema.safeParse({
+        campaignId: "newsletter:vol1-no1-introduction",
+      }).success,
+    ).toBe(false);
+    expect(
+      approveRapidIqSalesBulkBodySchema.parse({
+        campaignId: "newsletter:vol1-no1-introduction",
+        confirmNewsletterSend: true,
+      }).campaignId,
+    ).toBe("newsletter:vol1-no1-introduction");
+  });
+
+  it("requires draftId or newsletterSlug when adding Signal recipients", () => {
+    expect(
+      addNewsletterRecipientsBodySchema.safeParse({
+        emails: ["a@example.gov"],
+      }).success,
+    ).toBe(false);
+    expect(
+      addNewsletterRecipientsBodySchema.parse({
+        newsletterSlug: "vol1-no1-introduction",
+        emails: ["a@example.gov"],
+      }).emails,
+    ).toEqual(["a@example.gov"]);
   });
 
   it("accepts a content draft edit body", () => {

@@ -314,7 +314,7 @@ describe("getRoleNav", () => {
         "/rc-admin/contacts",
         "/rc-admin/rapid-iq",
         "/rc-admin/conferences",
-        "/sales/pricing-catalog",
+        "/sales/features-catalog",
         "/sales/service-catalog",
         "/rc-admin/support",
         "/rc-admin/grants",
@@ -322,9 +322,9 @@ describe("getRoleNav", () => {
         "/rc-admin/system-health",
       ]),
     );
-    expect(items.find((i) => i.id === "pricing-catalog")?.badge).toEqual({
+    expect(items.find((i) => i.id === "features-catalog")?.badge).toEqual({
       type: "label",
-      text: "FEATURES",
+      text: "ADD-ONS",
       color: "slate",
     });
   });

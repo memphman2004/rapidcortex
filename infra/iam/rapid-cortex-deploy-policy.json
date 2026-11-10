@@ -109,6 +109,26 @@
         "cloudformation:DescribeStackResources"
       ],
       "Resource": "arn:aws:cloudformation:REPLACE_REGION:REPLACE_ACCOUNT_ID:stack/rapid-cortex-*/*"
+    },
+    {
+      "Sid": "KvsOpsListAndBootstrap",
+      "Effect": "Allow",
+      "Action": [
+        "kinesisvideo:ListSignalingChannels",
+        "kinesisvideo:ListStreams",
+        "kinesisvideo:DescribeSignalingChannel",
+        "kinesisvideo:DescribeStream",
+        "kinesisvideo:CreateSignalingChannel",
+        "kinesisvideo:CreateStream",
+        "kinesisvideo:TagResource",
+        "kinesisvideo:TagStream"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "REPLACE_REGION"
+        }
+      }
     }
   ]
 }

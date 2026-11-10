@@ -51,6 +51,13 @@ export async function broadcastToAgency(params: {
   );
 }
 
+export async function postToConnection(params: {
+  connectionId: string;
+  message: WebSocketOutboundMessage;
+}): Promise<void> {
+  await sendToConnection(params.connectionId, params.message);
+}
+
 async function sendToConnection(
   connectionId: string,
   message: WebSocketOutboundMessage,

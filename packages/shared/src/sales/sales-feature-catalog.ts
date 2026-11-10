@@ -13,7 +13,7 @@ export type SalesFeatureCatalogItem = {
   name: string;
   /** Short card summary (1–2 sentences). */
   explanation: string;
-  /** In-depth definition for sales enablement / Pricing Catalog detail. */
+  /** In-depth definition for sales enablement / Features Catalog detail. */
   detail: string;
   /** Buyer-value line — what to emphasize on a call. */
   buyerValue: string;
@@ -316,16 +316,90 @@ export const SALES_FEATURE_CATALOG: readonly SalesFeatureCatalogItem[] = [
     category: "Nexiq",
   },
   {
-    id: "rapid_vision",
-    name: "NexIQ Vision™",
+    id: "video_assist",
+    name: "Video Assist (SMS P2P)",
     explanation:
-      "Live camera assist (Ring, Nest, Wyze, Milestone), scene intelligence, and vision transcripts for authorized roles.",
+      "Caller opens an SMS link, consents, and shares live camera over browser WebRTC to the dispatcher — no app install.",
     detail:
-      "AI scene intelligence over live camera feeds — observations and vision transcripts delivered to authorized dispatcher/security roles. Supports agency cameras and citizen share paths (Ring/Nest/Wyze). Never free. Emphasize human-in-the-loop review and role gates; do not imply autonomous enforcement or facial-recognition promises unless product docs explicitly support the claim.",
+      "Standalone caller-share product: SMS → consent → P2P WebRTC. Distinct from Live Video (KVS) recording/export. Requires TURN for cellular callers. Sell when the need is immediate live view without archival KVS storage. Never free on production deals.",
+    buyerValue: "Live eyes from the caller in under a minute — no app, no KVS project required.",
+    compatibleVerticals: ["rc911", "campus", "venue", "transit"],
+    isFree: false,
+    neverFree: true,
+    category: "Vision & Cameras",
+  },
+  {
+    id: "live_video_kvs",
+    name: "Live Video (KVS)",
+    explanation:
+      "Caller Mobile live video over Amazon KVS with optional recording/export — distinct from Video Assist P2P.",
+    detail:
+      "Production caller live path using KVS WebRTC (JoinStorageSession) with optional GetClip export to agency storage. Stack separately from Video Assist. Emphasize evidence retention when storage attach is on. Never free.",
+    buyerValue: "Live caller video that can become a retained clip for the incident record.",
+    compatibleVerticals: ["rc911", "campus", "venue", "transit"],
+    isFree: false,
+    neverFree: true,
+    category: "Vision & Cameras",
+  },
+  {
+    id: "rapid_vision",
+    name: "iQ Vision™",
+    explanation:
+      "Scene intelligence over authorized cameras — AI observations and LIVE transcripts for gated roles.",
+    detail:
+      "Standalone scene-AI product (observations, transcript LIVE tab, viewer-token). Nest/Wyze stay Connect SKUs; facility ONVIF packs and video wall are separate. Emphasize human-in-the-loop review; do not imply autonomous enforcement.",
     buyerValue: "The console sees what the camera sees — with AI observations, not a separate RTCC detour.",
     compatibleVerticals: ["rc911", "campus", "venue", "transit"],
     isFree: false,
     neverFree: true,
+    category: "Vision & Cameras",
+  },
+  {
+    id: "rc_video_wall",
+    name: "NexCort iQ Video Wall",
+    explanation:
+      "SOC video wall layouts and live tiles for campus, venue, and transit facility cameras.",
+    detail:
+      "Wall layouts fed by agency camera registries (KVS viewer-token). Complements facility camera packs and PTZ gateway. Not citizen Nest/Wyze Connect and not iQ Vision scene AI.",
+    buyerValue: "One wall for the SOC — tiles tied to the same registry as campus/venue ops.",
+    compatibleVerticals: ["campus", "venue", "transit"],
+    isFree: false,
+    category: "Vision & Cameras",
+  },
+  {
+    id: "rc_video_ptz_gateway",
+    name: "Video Gateway PTZ / DVR",
+    explanation:
+      "On-prem video gateway for live PTZ control and DVR clips into the cloud console.",
+    detail:
+      "Requires an agency-hosted video gateway sidecar with shared HMAC secret. Cloud accepts mock when unset — sell only with on-prem readiness. Stacks with Video Wall.",
+    buyerValue: "Operators move PTZ and pull DVR without leaving the NexCort console.",
+    compatibleVerticals: ["campus", "venue", "transit"],
+    isFree: false,
+    category: "Vision & Cameras",
+  },
+  {
+    id: "milestone_xprotect",
+    name: "Milestone XProtect Bridge",
+    explanation:
+      "On-prem Milestone XProtect bridge for camera sync and live tickets into facility registries.",
+    detail:
+      "Bridge Protocol next to XProtect; syncs cameras and issues live HLS / KVS fallback tickets. Pilot-scoped — confirm bridge deploy before promising go-live.",
+    buyerValue: "Existing Milestone investments surface in the same wall and incident flows.",
+    compatibleVerticals: ["campus", "venue", "transit"],
+    isFree: false,
+    category: "Vision & Cameras",
+  },
+  {
+    id: "facility_cameras",
+    name: "Facility cameras (ONVIF/RTSP packs)",
+    explanation:
+      "Agency-owned ONVIF/RTSP camera capacity packs for registries and wall tiles — Standard / Professional / Enterprise.",
+    detail:
+      "Capacity SKUs for facility cameras (not Nest/Wyze, not iQ Vision AI). Pair with Video Wall and optional Milestone or PTZ gateway.",
+    buyerValue: "Bring existing cameras into the console without a citizen-share product.",
+    compatibleVerticals: ["campus", "venue", "transit", "rc911"],
+    isFree: false,
     category: "Vision & Cameras",
   },
   {
@@ -378,13 +452,25 @@ export const SALES_FEATURE_CATALOG: readonly SalesFeatureCatalogItem[] = [
     category: "Command",
   },
   {
-    id: "connect_nest_wyze",
-    name: "Nest / Wyze Connect",
+    id: "connect_nest",
+    name: "Nest Connect",
     explanation:
-      "Citizen Nest and Wyze camera share flows alongside Ring Connect into the incident console.",
+      "Citizen/agency Google Nest SDM share with consent and live WebRTC into the incident console.",
     detail:
-      "Citizen camera share for Nest and Wyze (alongside Ring) so callers or residents can grant time-limited live view into the incident. Complements agency NC Connect camera integration. Strong for residential 911 and campus residential life scenarios. Keep privacy/consent language accurate — temporary share, not permanent surveillance takeover.",
-    buyerValue: "Home and campus cameras join the incident when the citizen consents — no truck roll first.",
+      "Standalone Nest Connect SKU — OAuth, citizen consent, and live view. Sold separately from Wyze. Ring camera OAuth remains suspended. Keep consent language accurate: temporary share, not permanent surveillance.",
+    buyerValue: "Nest cameras join the incident when the citizen consents — no truck roll first.",
+    compatibleVerticals: ["rc911", "campus", "venue"],
+    isFree: false,
+    category: "Vision & Cameras",
+  },
+  {
+    id: "connect_wyze",
+    name: "Wyze Connect",
+    explanation:
+      "Citizen Wyze enroll, consent, and live WebRTC share into the incident console.",
+    detail:
+      "Standalone Wyze Connect SKU — API-key enroll, consent, live share. Sold separately from Nest. Fail-closed until secrets are rotated on controlled stages.",
+    buyerValue: "Wyze doorbells and cams can grant time-limited live view during the call.",
     compatibleVerticals: ["rc911", "campus", "venue"],
     isFree: false,
     category: "Vision & Cameras",

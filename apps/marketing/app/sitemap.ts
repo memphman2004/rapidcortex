@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getPublishedPosts } from "@/lib/blog/utils";
+import { NEWSLETTER_ISSUES } from "@/lib/newsletter/newsletter-data";
 import { absoluteUrl } from "@/lib/seo";
 
 export const dynamic = "force-static";
@@ -23,6 +24,7 @@ const PUBLIC_ROUTES: RouteEntry[] = [
   { path: "/", changeFrequency: "weekly", priority: 1 },
   { path: "/rapid-cortex", changeFrequency: "monthly", priority: 0.85 },
   { path: "/blog", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/newsletter", changeFrequency: "monthly", priority: 0.75 },
   { path: "/about", changeFrequency: "monthly", priority: 0.65 },
   { path: "/careers", changeFrequency: "weekly", priority: 0.7 },
   { path: "/pricing", changeFrequency: "weekly", priority: 0.9 },
@@ -112,5 +114,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticEntries, ...blogEntries];
+  const newsletterEntries: MetadataRoute.Sitemap = NEWSLETTER_ISSUES.filter(
+    (issue) => issue.status === "published",
+  ).map((issue) => ({
+    url: absoluteUrl(`/newsletter/${issue.slug}`),
+    lastModified: issue.publishDate,
+    changeFrequency: "monthly" as const,
+    priority: 0.65,
+  }));
+
+  return [...staticEntries, ...blogEntries, ...newsletterEntries];
 }

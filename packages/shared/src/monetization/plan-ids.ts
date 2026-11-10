@@ -23,7 +23,14 @@ export type MonetizationAddOnId =
   | "cad_mesh"
   | "mutual_aid_mci"
   | "ng911_assist"
-  | "connect_nest_wyze";
+  | "connect_nest_wyze"
+  | "connect_nest"
+  | "connect_wyze"
+  | "video_assist"
+  | "live_video_kvs"
+  | "rc_video_wall"
+  | "rc_video_ptz_gateway"
+  | "milestone_xprotect";
 
 export type MonetizationBillingType = "monthly" | "annual" | "custom" | "pilot";
 

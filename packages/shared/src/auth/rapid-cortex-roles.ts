@@ -51,6 +51,7 @@ export const RAPID_CORTEX_ROLES = [
   "call_assist_admin",
   "call_assist_supervisor",
   "call_assist_operator",
+  "field_responder",
 ] as const;
 
 export type RapidCortexRole = (typeof RAPID_CORTEX_ROLES)[number];
@@ -330,6 +331,7 @@ export const ROLE_LABELS: Record<string, string> = {
   call_assist_admin: "Nexiq Admin",
   call_assist_supervisor: "Nexiq Supervisor",
   call_assist_operator: "Nexiq Operator",
+  field_responder: "Field Responder",
   platform_superadmin: "Platform Owner",
   rc_admin: "NexCort Operations",
   admin: "Agency Admin",
@@ -430,6 +432,8 @@ export const ROLE_DESCRIPTIONS: Record<string, string> = {
     "Nexiq supervisor. Live non-emergency sessions, QA, analytics, and human takeover — no CAD queue or dispatcher dashboard.",
   call_assist_operator:
     "Nexiq operator. Live non-emergency monitor, session intake, and transfer — not a 911 telecommunicator console.",
+  field_responder:
+    "Field responder. Assigned-incident dashboard, live updates, and audio authorize — not a 911 dispatcher workspace.",
 };
 
 export const ROLE_DISPLAY_LABELS: Record<RapidCortexRole, string> = {
@@ -473,6 +477,7 @@ export const ROLE_DISPLAY_LABELS: Record<RapidCortexRole, string> = {
   call_assist_admin: ROLE_LABELS.call_assist_admin,
   call_assist_supervisor: ROLE_LABELS.call_assist_supervisor,
   call_assist_operator: ROLE_LABELS.call_assist_operator,
+  field_responder: ROLE_LABELS.field_responder,
 };
 
 /** UI label for JWT snake_case or Cognito-group tokens (`CALL_ASSIST_ADMIN`, `CAMPUS_ADMIN`, …). */
@@ -543,11 +548,14 @@ export function isProductVerticalRoleToken(raw: string | undefined | null): bool
     lower.startsWith("hospital_") ||
     lower.startsWith("transit_") ||
     lower.startsWith("call_assist_") ||
+    lower === "field_responder" ||
+    lower.startsWith("field_responder") ||
     upper.startsWith("VENUE_") ||
     upper.startsWith("CAMPUS_") ||
     upper.startsWith("HOSPITAL_") ||
     upper.startsWith("TRANSIT_") ||
-    upper.startsWith("CALL_ASSIST_")
+    upper.startsWith("CALL_ASSIST_") ||
+    upper === "FIELD_RESPONDER"
   );
 }
 
@@ -601,6 +609,8 @@ export const VERTICAL_ROLE_TOKEN_ALIASES: Record<string, RapidCortexRole> = {
   "call-assist-admin": "call_assist_admin",
   "call-assist-supervisor": "call_assist_supervisor",
   "call-assist-operator": "call_assist_operator",
+  fieldresponder: "field_responder",
+  "field-responder": "field_responder",
 };
 
 export function resolveVerticalRoleTokenAlias(raw: string | undefined | null): RapidCortexRole | undefined {
@@ -675,6 +685,7 @@ export function migrateLegacyRapidCortexRoleTokenValue(raw: string | undefined):
   if (t === "CALL_ASSIST_ADMIN") return "call_assist_admin";
   if (t === "CALL_ASSIST_SUPERVISOR") return "call_assist_supervisor";
   if (t === "CALL_ASSIST_OPERATOR") return "call_assist_operator";
+  if (t === "FIELD_RESPONDER") return "field_responder";
   const lower = t.toLowerCase().replace(/-/g, "_");
   if (lower === "commsupervisor") return "supervisor";
   if (
@@ -705,4 +716,10 @@ export function isRapidCortexRole(value: string): value is RapidCortexRole {
 export function isCallAssistProductRole(role: string | undefined | null): boolean {
   const e = (migrateLegacyRapidCortexRoleTokenValue(role ?? "") ?? role ?? "").trim().toLowerCase();
   return e === "call_assist_admin" || e === "call_assist_supervisor" || e === "call_assist_operator";
+}
+
+/** iQ Responder field dashboard (not PSAP dispatcher console). */
+export function isFieldResponderProductRole(role: string | undefined | null): boolean {
+  const e = (migrateLegacyRapidCortexRoleTokenValue(role ?? "") ?? role ?? "").trim().toLowerCase();
+  return e === "field_responder";
 }

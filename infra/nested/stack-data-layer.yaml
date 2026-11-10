@@ -4421,6 +4421,94 @@
         ]
       }
     },
+    "CallerLocationsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-caller-locations-${DeploymentStage}"
+            },
+            {
+              "Fn::Sub": "rapid-cortex-caller-locations-${DeploymentStage}"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        },
+        "AttributeDefinitions": [
+          { "AttributeName": "incidentId", "AttributeType": "S" },
+          { "AttributeName": "timestamp", "AttributeType": "S" }
+        ],
+        "KeySchema": [
+          { "AttributeName": "incidentId", "KeyType": "HASH" },
+          { "AttributeName": "timestamp", "KeyType": "RANGE" }
+        ]
+      }
+    },
+    "ResponderConnectionsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "TableName": {
+          "Fn::If": [
+            "HasDynamoTablePrefix",
+            {
+              "Fn::Sub": "${DynamoTableNamePrefix}-responder-connections-${DeploymentStage}"
+            },
+            {
+              "Fn::Sub": "rapid-cortex-responder-connections-${DeploymentStage}"
+            }
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": {
+            "Fn::If": [
+              "DynamoPitrOn",
+              true,
+              false
+            ]
+          }
+        },
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        },
+        "AttributeDefinitions": [
+          { "AttributeName": "connectionId", "AttributeType": "S" },
+          { "AttributeName": "incidentId", "AttributeType": "S" }
+        ],
+        "KeySchema": [
+          { "AttributeName": "connectionId", "KeyType": "HASH" }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "incidentId-index",
+            "KeySchema": [
+              { "AttributeName": "incidentId", "KeyType": "HASH" }
+            ],
+            "Projection": { "ProjectionType": "ALL" }
+          }
+        ]
+      }
+    },
     "PreArrivalSessionsTable": {
       "Type": "AWS::DynamoDB::Table",
       "DeletionPolicy": "Retain",
@@ -6997,6 +7085,18 @@
       "Description": "Physical table name for SilentTextSessionsTable",
       "Value": {
         "Ref": "SilentTextSessionsTable"
+      }
+    },
+    "CallerLocationsTable": {
+      "Description": "Physical table name for CallerLocationsTable",
+      "Value": {
+        "Ref": "CallerLocationsTable"
+      }
+    },
+    "ResponderConnectionsTable": {
+      "Description": "Physical table name for ResponderConnectionsTable",
+      "Value": {
+        "Ref": "ResponderConnectionsTable"
       }
     },
     "PreArrivalSessionsTable": {

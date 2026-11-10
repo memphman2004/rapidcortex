@@ -34,6 +34,7 @@ import { makeId } from "../lib/ids.js";
 import { operationalPasswordBlock } from "../lib/operationalPasswordGate.js";
 import { consentActionForm, consentPage, escapeHtml } from "../lib/consentPage.js";
 import { forbidden, jsonStatus, unauthorized } from "../lib/response.js";
+import { requireAddon } from "../middleware/requireAddon.js";
 import { AgencyRepository } from "../repositories/agencyRepository.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
 import {
@@ -63,6 +64,8 @@ const INVALID_LINK = "This link is no longer valid.";
 function wyzeEnabled(): boolean {
   return env.enableConnectWyze !== false;
 }
+
+const requireWyzeConnectAddon = requireAddon("connect.wyze");
 
 function tail(rawPath: string): string[] {
   const clean = rawPath.split("?")[0] ?? "";
@@ -294,6 +297,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   if (!canRequestVisionAccess(user, user.agencyId)) {
     return forbidden("Forbidden");
   }
+
+  const wyzeAddonGate = await requireWyzeConnectAddon(event, user);
+  if (wyzeAddonGate) return wyzeAddonGate;
 
   try {
     if (method === "GET" && segments[0] === "wyze" && segments[1] === "status") {

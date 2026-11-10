@@ -18,10 +18,16 @@ import {
   removeEmailListEntry,
   syncEmailListFromApollo,
 } from "@/lib/rapid-iq/email-list-api";
+import {
+  addNewsletterRecipients,
+  listSalesDrafts,
+} from "@/lib/rapid-iq/sales-automation-api";
 
 type Props = {
   /** RC admins may remove / suppress; contractors may add and export. */
   canRemove: boolean;
+  /** When true, selected rows can be added to the latest Signal newsletter campaign. */
+  canAddToSignal?: boolean;
 };
 
 const TABS: Array<EmailListVertical | "ALL"> = ["ALL", ...EMAIL_LIST_UI_VERTICALS];
@@ -97,7 +103,11 @@ function isInactive(row: EmailListEntry): boolean {
   return row.unsubscribed === true;
 }
 
-export function EmailListClient({ canRemove }: Props) {
+function rowKey(row: Pick<EmailListEntry, "vertical" | "email">): string {
+  return `${row.vertical}:${row.email}`;
+}
+
+export function EmailListClient({ canRemove, canAddToSignal = false }: Props) {
   const [vertical, setVertical] = useState<EmailListVertical | "ALL">("PSAP");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("active");
   const [search, setSearch] = useState("");
@@ -109,7 +119,9 @@ export function EmailListClient({ canRemove }: Props) {
   const [name, setName] = useState("");
   const [addVertical, setAddVertical] = useState<EmailListVertical>("PSAP");
   const [busy, setBusy] = useState(false);
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(() => new Set());
   const fileRef = useRef<HTMLInputElement>(null);
+  const selectAllRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -147,6 +159,37 @@ export function EmailListClient({ canRemove }: Props) {
     });
   }, [entries, tabPartitions, statusFilter, search]);
 
+  const filteredKeys = useMemo(() => filtered.map(rowKey), [filtered]);
+
+  const selectedVisibleCount = useMemo(
+    () => filteredKeys.filter((k) => selectedKeys.has(k)).length,
+    [filteredKeys, selectedKeys],
+  );
+
+  const allVisibleSelected =
+    filteredKeys.length > 0 && selectedVisibleCount === filteredKeys.length;
+  const someVisibleSelected = selectedVisibleCount > 0 && !allVisibleSelected;
+
+  useEffect(() => {
+    const el = selectAllRef.current;
+    if (el) el.indeterminate = someVisibleSelected;
+  }, [someVisibleSelected]);
+
+  // Drop selections that are no longer in the current filtered view.
+  useEffect(() => {
+    setSelectedKeys((prev) => {
+      if (prev.size === 0) return prev;
+      const visible = new Set(filteredKeys);
+      let changed = false;
+      const next = new Set<string>();
+      for (const key of prev) {
+        if (visible.has(key)) next.add(key);
+        else changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [filteredKeys]);
+
   const counts = useMemo(() => {
     const scoped =
       tabPartitions == null
@@ -159,6 +202,32 @@ export function EmailListClient({ canRemove }: Props) {
       inactive,
     };
   }, [entries, tabPartitions]);
+
+  function toggleRow(key: string) {
+    setSelectedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
+  function toggleSelectAllVisible() {
+    setSelectedKeys((prev) => {
+      if (allVisibleSelected) {
+        const next = new Set(prev);
+        for (const key of filteredKeys) next.delete(key);
+        return next;
+      }
+      const next = new Set(prev);
+      for (const key of filteredKeys) next.add(key);
+      return next;
+    });
+  }
+
+  function clearSelection() {
+    setSelectedKeys(new Set());
+  }
 
   async function onAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -196,9 +265,110 @@ export function EmailListClient({ canRemove }: Props) {
     setError(null);
     try {
       await removeEmailListEntry({ email: row.email, vertical: row.vertical });
+      setSelectedKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(rowKey(row));
+        return next;
+      });
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Deactivate failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onDeactivateSelected() {
+    if (!canRemove || selectedKeys.size === 0) return;
+    const targets = filtered.filter(
+      (row) => selectedKeys.has(rowKey(row)) && !isInactive(row),
+    );
+    if (targets.length === 0) {
+      setToast("No active addresses in the current selection.");
+      return;
+    }
+    if (
+      !confirm(
+        `Deactivate ${targets.length} selected address(es)? They stay on this list (greyed out) and will not receive campaigns.`,
+      )
+    ) {
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setToast(null);
+    let ok = 0;
+    const failures: string[] = [];
+    try {
+      for (const row of targets) {
+        try {
+          await removeEmailListEntry({ email: row.email, vertical: row.vertical });
+          ok += 1;
+        } catch (err) {
+          failures.push(
+            `${row.email}: ${err instanceof Error ? err.message : "failed"}`,
+          );
+        }
+      }
+      clearSelection();
+      await load();
+      if (failures.length) {
+        setError(`Deactivated ${ok}; ${failures.length} failed. ${failures[0]}`);
+      } else {
+        setToast(`Deactivated ${ok} address(es).`);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onAddSelectedToSignal() {
+    if (!canAddToSignal || selectedKeys.size === 0) return;
+    const targets = filtered.filter(
+      (row) => selectedKeys.has(rowKey(row)) && !isInactive(row),
+    );
+    if (targets.length === 0) {
+      setToast("No active addresses in the current selection.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setToast(null);
+    try {
+      const drafts = await listSalesDrafts();
+      const signalDrafts = drafts
+        .filter((d) => d.contentType === "newsletter" && d.status !== "archived")
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+      const draft = signalDrafts[0];
+      if (!draft) {
+        setError(
+          "No Signal newsletter draft found. Publish an edition (or open Sales Automation → Content) so it can sync, then try again.",
+        );
+        return;
+      }
+      const label = draft.subject?.trim() || draft.newsletterSlug || draft.draftId;
+      if (
+        !confirm(
+          `Add ${targets.length} selected address(es) to “${label}” as draft recipients?\n\n` +
+            "They will not be emailed until you Approve & send Signal in Sales Automation.",
+        )
+      ) {
+        return;
+      }
+      const result = await addNewsletterRecipients({
+        draftId: draft.draftId,
+        emails: targets.map((t) => t.email),
+      });
+      clearSelection();
+      setToast(
+        `Added ${result.queued} to Signal` +
+          (result.skipped ? ` · ${result.skipped} already queued` : "") +
+          (result.suppressed ? ` · ${result.suppressed} suppressed` : "") +
+          (result.notFound ? ` · ${result.notFound} not on list` : "") +
+          ". Finish send from Sales Automation → Campaigns.",
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Add to Signal failed");
     } finally {
       setBusy(false);
     }
@@ -510,10 +680,59 @@ export function EmailListClient({ canRemove }: Props) {
         </button>
       </form>
 
+      {selectedVisibleCount > 0 ? (
+        <div className="flex flex-wrap items-center gap-2 rounded border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-sm text-sky-100">
+          <span>
+            {selectedVisibleCount} selected
+            {filteredKeys.length !== selectedVisibleCount
+              ? ` of ${filteredKeys.length} shown`
+              : ""}
+          </span>
+          <button
+            type="button"
+            onClick={clearSelection}
+            className="text-xs text-sky-200/90 underline hover:text-white"
+          >
+            Clear
+          </button>
+          {canAddToSignal ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void onAddSelectedToSignal()}
+              className="rounded border border-violet-500/40 bg-violet-500/10 px-2.5 py-1 text-xs font-semibold text-violet-200 disabled:opacity-50"
+            >
+              Add selected to Signal campaign
+            </button>
+          ) : null}
+          {canRemove ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void onDeactivateSelected()}
+              className="rounded border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-200 disabled:opacity-50"
+            >
+              Deactivate selected
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="overflow-hidden rounded border border-[#1e2130]">
         <table className="w-full text-left text-sm">
           <thead className="bg-[#12141c] text-[10px] uppercase tracking-wide text-slate-500">
             <tr>
+              <th className="w-10 px-3 py-2">
+                <input
+                  ref={selectAllRef}
+                  type="checkbox"
+                  checked={allVisibleSelected}
+                  disabled={loading || filteredKeys.length === 0}
+                  onChange={toggleSelectAllVisible}
+                  aria-label="Select all visible emails"
+                  className="h-3.5 w-3.5 rounded border-slate-600 bg-[#0a0b0f] text-sky-500 focus:ring-sky-500/40"
+                />
+              </th>
               <th className="px-3 py-2">Email</th>
               <th className="px-3 py-2">Name</th>
               <th className="px-3 py-2">Company</th>
@@ -527,24 +746,35 @@ export function EmailListClient({ canRemove }: Props) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={canRemove ? 8 : 7} className="px-3 py-6 text-center text-slate-500">
+                <td colSpan={canRemove ? 9 : 8} className="px-3 py-6 text-center text-slate-500">
                   Loading…
                 </td>
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={canRemove ? 8 : 7} className="px-3 py-6 text-center text-slate-500">
+                <td colSpan={canRemove ? 9 : 8} className="px-3 py-6 text-center text-slate-500">
                   No addresses match this filter.
                 </td>
               </tr>
             ) : (
               filtered.map((row) => {
                 const inactive = isInactive(row);
+                const key = rowKey(row);
+                const checked = selectedKeys.has(key);
                 return (
                   <tr
-                    key={`${row.vertical}:${row.email}`}
-                    className={`border-t border-[#1e2130] ${inactive ? "bg-slate-950/40 opacity-55" : ""}`}
+                    key={key}
+                    className={`border-t border-[#1e2130] ${inactive ? "bg-slate-950/40 opacity-55" : ""} ${checked && !inactive ? "bg-sky-950/20" : ""}`}
                   >
+                    <td className="px-3 py-2">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleRow(key)}
+                        aria-label={`Select ${row.email}`}
+                        className="h-3.5 w-3.5 rounded border-slate-600 bg-[#0a0b0f] text-sky-500 focus:ring-sky-500/40"
+                      />
+                    </td>
                     <td
                       className={`px-3 py-2 ${inactive ? "text-slate-500 line-through decoration-slate-600" : "text-slate-200"}`}
                     >

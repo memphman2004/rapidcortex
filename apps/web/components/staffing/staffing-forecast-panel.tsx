@@ -3,6 +3,7 @@
 import type { WeeklyStaffingForecast } from "rapid-cortex-shared/staffing";
 import { useStaffingForecast } from "./use-staffing-forecast";
 import { ShiftAlertBadge } from "./shift-alert-badge";
+import { SurgeForecastStrip } from "./surge-forecast-strip";
 
 function riskCellClass(level: string): string {
   switch (level) {
@@ -108,6 +109,7 @@ export function StaffingForecastPanel({ enabled }: { enabled: boolean }) {
           </div>
         </>
       )}
+      <SurgeForecastStrip enabled={enabled} />
     </section>
   );
 }

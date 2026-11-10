@@ -1,8 +1,12 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import { hydrateLambdaEnvFromJson } from "../../lib/hydrateLambdaEnv.js";
 import { assertDeceptionModuleIsolation } from "./assertDeceptionIsolation.js";
 import { DECOY_RESPONSES } from "./fakeData.js";
 import { persistDecoyRouteHit } from "./deceptionPersist.js";
 
+// Decoy handlers must not import env.ts (isolation), but still need RC_RUNTIME_CONFIG_JSON
+// short-key expansion so DECEPTION_SHIELD_ENABLED / DECEPTION_EVENTS_TABLE / OPS_ALERTS_TOPIC_ARN resolve.
+hydrateLambdaEnvFromJson();
 assertDeceptionModuleIsolation();
 
 const ROUTES = new Set([

@@ -24,6 +24,21 @@ const ADDON_KEY_FEATURE_IDS: Partial<Record<AddonKey, string[]>> = {
   "ai.triage.standard": ["call_triage_workflows", "non_emergency_intake_queue"],
   "ai.triage.premium": ["call_triage_workflows", "non_emergency_intake_queue"],
   "reliability.slo_dashboards": ["backlog_sla_tracking"],
+  "caller_media.live_stream.basic": ["live_caller_media_streaming"],
+  "caller_media.live_stream.standard": ["live_caller_media_streaming"],
+  "caller_media.live_stream.premium": ["live_caller_media_streaming"],
+  "caller_media.live_stream.enterprise": ["live_caller_media_streaming"],
+  "caller_media.video_assist": ["video_assist", "live_caller_media_streaming"],
+  "caller_media.live_video_kvs": ["live_video_kvs", "live_caller_media_streaming"],
+  "vision.iq_vision": ["iq_vision"],
+  "connect.nest": ["nest_connect"],
+  "connect.wyze": ["wyze_connect"],
+  "rc_video.wall": ["rc_video_wall"],
+  "rc_video.ptz_gateway": ["rc_video_ptz_gateway", "rc_video_wall"],
+  "milestone.xprotect": ["milestone_xprotect"],
+  "feature_addons.rc_connect_standard": ["rc_video_wall"],
+  "feature_addons.rc_connect_professional": ["rc_video_wall"],
+  "feature_addons.rc_connect_enterprise": ["rc_video_wall"],
 };
 
 function mapAddonKeyToFeatureIds(key: AddonKey): string[] {
@@ -38,6 +53,12 @@ function mapAddonKeyToFeatureIds(key: AddonKey): string[] {
   }
   if (key.startsWith("reliability.")) {
     return ["backlog_sla_tracking"];
+  }
+  if (key.startsWith("caller_media.live_stream.")) {
+    return ["live_caller_media_streaming"];
+  }
+  if (key.startsWith("feature_addons.rc_connect_")) {
+    return ["rc_video_wall"];
   }
   return [];
 }

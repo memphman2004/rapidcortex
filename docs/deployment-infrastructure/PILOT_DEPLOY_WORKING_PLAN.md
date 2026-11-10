@@ -72,7 +72,7 @@ Run **one deploy at a time**. Web packaging and SAM lean deploy both mutate `app
 | --- | --- | --- |
 | AppSam4 deploy | `UPDATE_COMPLETE` | 2026-06-28 |
 | Public oauth start → 302 | `GET …/api/public/ring/oauth/start?agencyId=test-agency` → 302 to Ring authorize URL | execute-api + stack-4 |
-| **`ring-citizen-owner-isolation-test.ts`** | **5/5 PASS** | **Re-run 2026-06-28** against `API_URL_4=https://7c70vqd1p5.execute-api.us-east-1.amazonaws.com`, `API_URL=https://api.rapidcortex.us` |
+| **`ring-citizen-owner-isolation-test.ts`** | **5/5 PASS** | **Re-run 2026-06-28** against stack-4 internal API base + `API_URL=https://api.rapidcortex.us` |
 
 Command to re-verify after api4 DNS:
 

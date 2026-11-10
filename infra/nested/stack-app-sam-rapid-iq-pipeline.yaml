@@ -962,9 +962,10 @@ Resources:
         Newsletter:
           Type: Schedule
           Properties:
+            # Every Monday 08:00 UTC; Lambda keeps only the 2nd Monday of each month.
             Schedule: cron(0 8 ? * MON *)
             Enabled: true
-            Description: NexiQ Inside iQ newsletter draft
+            Description: NexCortiQ Signal monthly newsletter draft (2nd Monday)
             Input: '{"job":"newsletter"}'
         BudgetSeason:
           Type: Schedule

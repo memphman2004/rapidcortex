@@ -7,6 +7,7 @@
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
 import {
   addEmailListEntryBodySchema,
+  addNewsletterRecipientsBodySchema,
   approveRapidIqSalesBulkBodySchema as approveNexiQSalesBulkBodySchema,
   canAccessSalesAutomation,
   canManageSalesAutomation,
@@ -57,6 +58,7 @@ import {
   type SalesOutlookConnection,
 } from "../../../lib/rapid-iq/outlook-graph.js";
 import {
+  addNewsletterRecipientsFromEmailList,
   applyCampaignControls,
   approveBulkCampaign,
   approveSequence,
@@ -68,6 +70,7 @@ import {
   queueNewsletterFromEmailList,
   summarizeBulkBatches,
   suppressSequence,
+  syncPublishedSignalDrafts,
   updateBulkCampaignCopy,
   updateDraftCopy,
   updateSequenceCopy,
@@ -268,8 +271,39 @@ export async function handleSalesAutomationHttp(
   }
 
   if (method === "GET" && (path.endsWith("/sales-automation/drafts") || path.endsWith("/sales-automation/drafts/"))) {
+    // Published marketing Signal editions → Content drafts for approval (1A).
+    let signalSync: Awaited<ReturnType<typeof syncPublishedSignalDrafts>> | undefined;
+    try {
+      signalSync = await syncPublishedSignalDrafts();
+    } catch (err) {
+      console.warn(
+        JSON.stringify({
+          msg: "rapid_iq_signal_edition_sync_failed",
+          error: err instanceof Error ? err.message : String(err),
+        }),
+      );
+    }
     const drafts = await listSalesDrafts(50);
-    return ok({ drafts });
+    return ok({ drafts, signalSync });
+  }
+
+  if (method === "POST" && (path.endsWith("/sales-automation/newsletter/recipients") || path.endsWith("/sales-automation/newsletter/recipients/"))) {
+    const denied = denyUnlessManage(user);
+    if (denied) return denied;
+    const body = parseBody(event);
+    if (body === null) return badRequest("Invalid JSON");
+    const parsed = addNewsletterRecipientsBodySchema.safeParse(body);
+    if (!parsed.success) return badRequestFromZod(parsed.error);
+    try {
+      const result = await addNewsletterRecipientsFromEmailList(parsed.data);
+      await audit(user, AUDIT_EVENT_TYPES.RAPID_IQ_SALES_BULK_CREATED, result.draftId, {
+        action: "newsletter_add_recipients",
+        ...result,
+      });
+      return ok({ result });
+    } catch (err) {
+      return badRequest(err instanceof Error ? err.message : "Add newsletter recipients failed");
+    }
   }
 
   if (draftId && path.includes("/sales-automation/drafts/")) {
@@ -301,10 +335,21 @@ export async function handleSalesAutomationHttp(
               newsletterQueued: newsletterQueue.queued,
               newsletterSuppressed: newsletterQueue.suppressed,
               newsletterRecipients: newsletterQueue.recipients,
+              // Queued as draft only — no SES until sequence/bulk approve.
+              newsletterSendPendingSecondApproval: true,
             }
           : {}),
       });
-      return ok({ draft: next, newsletterQueue });
+      return ok({
+        draft: next,
+        newsletterQueue,
+        ...(draft.contentType === "newsletter"
+          ? {
+              notice:
+                "Newsletter copy approved. Recipients are queued as drafts — RC admin must approve the newsletter batch (confirmNewsletterSend) before any email goes out.",
+            }
+          : {}),
+      });
     }
     if ((method === "PATCH" || method === "PUT") && !path.endsWith("/approve")) {
       const denied = denyUnlessManage(user);

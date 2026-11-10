@@ -26,6 +26,14 @@ function salesAutomationEnabled(): boolean {
   return true;
 }
 
+/** True when `date` (UTC) is the second Monday of its calendar month. */
+export function isSecondMondayOfMonthUtc(date: Date = new Date()): boolean {
+  if (date.getUTCDay() !== 1) return false; // Monday
+  const day = date.getUTCDate();
+  // 2nd Monday falls on calendar days 8–14.
+  return day >= 8 && day <= 14;
+}
+
 function conferenceVerticalToSales(v: string | undefined): RapidIqSalesVertical {
   return normalizeSalesAutomationVertical(v ?? "PSAP");
 }
@@ -37,36 +45,44 @@ async function savedCampaignCopy(campaignId: string): Promise<{ subject?: string
   return { subject: control.subject, bodyText: control.bodyText };
 }
 
-async function composeNewsletter(weekOf: string) {
+async function composeNewsletter(issueDate: string) {
   const control = await getSalesCampaignControl("newsletter");
   if (control?.deleted) return null;
   const intel = await listIntelOpportunities(80);
-  const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
+  // Monthly lookback (~35 days) for The NexCortiQ Signal draft.
+  const since = new Date(Date.now() - 35 * 86_400_000).toISOString();
   const top = intel
     .filter((r) => r.discoveredAt >= since && (r.userFitScore ?? r.fitScore) >= 7)
     .sort((a, b) => (b.userFitScore ?? b.fitScore) - (a.userFitScore ?? a.fitScore))
     .slice(0, 6);
   const signalLines = top.length
     ? top.map((r) => `- [${r.market}] ${r.title} — ${r.agency}`).join("\n")
-    : "No high-fit intel this week. Write a short industry pulse.";
+    : "No high-fit intel this month. Write a short industry pulse.";
+
+  const monthLabel = new Date(`${issueDate}T12:00:00.000Z`).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+  const archiveUrl = "https://nexcortiq.us/newsletter";
 
   const saved = await savedCampaignCopy("newsletter");
   const article = saved?.bodyText ? null : await fetchLatestBlogArticle();
   let bodyText = saved?.bodyText
     ? saved.bodyText
     : article
-    ? `${article.text}\n\nRead the full article: ${article.url}\n\n— The NexCort iQ team`
-    : `Inside iQ — week of ${weekOf}\n\n${signalLines}\n\nNexCort iQ continues to watch procurement and board activity across 911, campus, and venue. We'll send a fuller brief when the feed warrants it.\n\n— The NexCort iQ team`;
+    ? `${article.text}\n\nRead the full article: ${article.url}\n\nThis month’s NexCortiQ Signal (full edition, free to read):\n${archiveUrl}\n\n— The NexCort iQ team`
+    : `The NexCortiQ Signal — ${monthLabel}\n\n${signalLines}\n\nRead the full monthly edition (no login required):\n${archiveUrl}\n\n— The NexCort iQ team`;
   let linkedinText = article
     ? article.text.split("\n\n").slice(0, 2).join("\n\n").slice(0, 600)
     : undefined;
-  let subject = saved?.subject ?? article?.title ?? `Inside iQ — ${weekOf}`;
+  let subject = saved?.subject ?? `The NexCortiQ Signal — ${monthLabel}`;
 
   if (!saved?.bodyText && !article && isNexiQAiEnabled() && !isCollectorsMockEnabled()) {
     const raw = await createJsonResponse({
       model: rapidIqModelStrategy(),
       system:
-        'You write "Inside iQ", a weekly note for 911 directors and campus/venue safety leaders. Practitioner tone, not ads. 350–450 words. Sign off as The NexCort iQ team. Never write Rapid Cortex. Return JSON.',
+        'You write "The NexCortiQ Signal", a monthly email preview for 911 directors and campus/venue safety leaders. Practitioner tone, not ads. 250–350 words. End with a clear link to https://nexcortiq.us/newsletter for the full public edition. Sign off as The NexCort iQ team. Never write Rapid Cortex. Return JSON.',
       jsonSchemaName: "rapid_iq_newsletter",
       jsonSchema: {
         type: "object",
@@ -78,7 +94,7 @@ async function composeNewsletter(weekOf: string) {
         },
         required: ["subject", "bodyText", "linkedinText"],
       },
-      user: `Week of ${weekOf}\n\nSignals:\n${signalLines}`,
+      user: `Month: ${monthLabel}\nIssue date: ${issueDate}\n\nSignals:\n${signalLines}`,
     });
     if (raw) {
       try {
@@ -99,7 +115,7 @@ async function composeNewsletter(weekOf: string) {
   const draft = emptyDraft({
     contentType: "newsletter",
     vertical: "ALL",
-    weekOf,
+    weekOf: issueDate,
     subject: scrubSalesBrand(subject),
     bodyText: scrubSalesBrand(bodyText),
     linkedinText: linkedinText ? scrubSalesBrand(linkedinText) : undefined,
@@ -161,7 +177,12 @@ async function queueLeadSequences(
   return queued;
 }
 
-export async function handler(event: { job?: string; weekOf?: string }): Promise<Record<string, unknown>> {
+export async function handler(event: {
+  job?: string;
+  weekOf?: string;
+  /** Bypass 2nd-Monday gate for manual/test invokes. */
+  force?: boolean;
+}): Promise<Record<string, unknown>> {
   if (!salesAutomationEnabled()) {
     return { skipped: true, reason: "ENABLE_SALES_AUTOMATION" };
   }
@@ -170,6 +191,9 @@ export async function handler(event: { job?: string; weekOf?: string }): Promise
 
   switch (job) {
     case "newsletter": {
+      if (!event.force && !isSecondMondayOfMonthUtc()) {
+        return { job, skipped: true, reason: "not_second_monday" };
+      }
       const weekOf = event.weekOf ?? new Date().toISOString().slice(0, 10);
       const draft = await composeNewsletter(weekOf);
       if (!draft) return { job, skipped: true, reason: "campaign_deleted" };

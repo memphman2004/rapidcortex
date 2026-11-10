@@ -12,6 +12,7 @@ import type {
   RapidIqSalesStepStatus,
   RapidIqSalesVertical,
 } from "rapid-cortex-shared";
+import { isNewsletterCampaignId } from "rapid-cortex-shared";
 import {
   SALES_AUTOMATION_CAMPAIGNS_QUERY_KEY,
   SALES_AUTOMATION_DRAFTS_QUERY_KEY,
@@ -228,10 +229,18 @@ function SequenceCard({
               <button
                 type="button"
                 disabled={busy}
-                onClick={() => onApprove(seq.sequenceId)}
+                onClick={() => {
+                  if (seq.triggerType === "newsletter") {
+                    const ok = window.confirm(
+                      `Approve send of The NexCortiQ Signal to ${seq.recipientEmail}?\n\nThis is a final admin approval for this recipient.`,
+                    );
+                    if (!ok) return;
+                  }
+                  onApprove(seq.sequenceId);
+                }}
                 className="rounded bg-sky-600 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
               >
-                {busy ? "…" : "Approve"}
+                {busy ? "…" : seq.triggerType === "newsletter" ? "Approve send" : "Approve"}
               </button>
               <button
                 type="button"
@@ -392,10 +401,27 @@ function ContentDraftCard({
             <button
               type="button"
               disabled={busy}
-              onClick={() => onApprove(draft.draftId)}
+              onClick={() => {
+                if (draft.contentType === "newsletter") {
+                  const ok = window.confirm(
+                    "Approve this NexCortiQ Signal copy and queue recipients as DRAFTS?\n\nNo email will send until you approve the newsletter batch (second admin step).",
+                  );
+                  if (!ok) return;
+                }
+                onApprove(draft.draftId);
+              }}
               className="rounded bg-emerald-700 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-50"
+              title={
+                draft.contentType === "newsletter"
+                  ? "Approves copy only — does not send email"
+                  : undefined
+              }
             >
-              {busy ? "…" : "Approve draft"}
+              {busy
+                ? "…"
+                : draft.contentType === "newsletter"
+                  ? "Approve copy (queue drafts)"
+                  : "Approve draft"}
             </button>
           ) : null}
           {canManage ? (
@@ -692,7 +718,7 @@ function BulkBatchCard({
           <div className="mt-1 truncate text-sm font-semibold text-slate-100">{name}</div>
           <div className="mt-0.5 text-[11px] text-slate-500">
             {canManage
-              ? "One approval sends email 1 from Outlook for the whole list. Follow-ups stay on days 5 and 12."
+              ? "One approval sends email 1 via SES (open/click tracked). Follow-ups stay on days 5 and 12."
               : "Awaiting RC admin approval. Sales contractors cannot approve or edit."}
           </div>
         </div>
@@ -1074,7 +1100,7 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
     if (q.get("outlook") !== "connected") return;
-    showToast("Outlook connected — campaign emails will send from that mailbox");
+    showToast("Outlook connected — 1:1 outreach uses that mailbox; bulk/Signal still send via SES");
     window.history.replaceState({}, "", "/rc-admin/sales-automation");
     void qc.invalidateQueries({ queryKey: SALES_AUTOMATION_OUTLOOK_QUERY_KEY });
   }, [qc]);
@@ -1091,7 +1117,7 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
       showToast(
         seq.status === "suppressed"
           ? `Held: ${seq.suppressedReason ?? "suppressed"}`
-          : "Campaign approved — email 1 sends from Outlook now; follow-ups stay scheduled",
+          : "Campaign approved — email 1 sends via SES now (open/click tracked); follow-ups stay scheduled",
       );
     },
     onError: (err: Error) => setError(err.message),
@@ -1207,9 +1233,21 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
       setBusyId(id);
       setError(null);
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       invalidate();
-      showToast("Draft marked approved. Newsletter list send is not wired — copy from the draft if needed.");
+      const q = result.newsletterQueue;
+      if (result.draft.contentType === "newsletter" && q) {
+        showToast(
+          `Signal copy approved. Queued ${q.queued} Email List recipient(s) as drafts` +
+            (q.skipped ? ` · ${q.skipped} already queued` : "") +
+            (q.suppressed ? ` · ${q.suppressed} suppressed` : "") +
+            ". Approve the Signal batch to send.",
+        );
+      } else if (result.notice) {
+        showToast(result.notice);
+      } else {
+        showToast("Draft marked approved.");
+      }
     },
     onError: (err: Error) => setError(err.message),
     onSettled: () => setBusyId(null),
@@ -1300,7 +1338,7 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
     onMutate: () => setError(null),
     onSuccess: () => {
       invalidate();
-      showToast("Outlook disconnected — campaign emails will not send from that mailbox");
+      showToast("Outlook disconnected — 1:1 outreach will use SES until reconnected");
     },
     onError: (err: Error) => setError(err.message),
   });
@@ -1336,7 +1374,11 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
   });
 
   const approveBulk = useMutation({
-    mutationFn: approveSalesBulkCampaign,
+    mutationFn: (campaignId: string) =>
+      approveSalesBulkCampaign(
+        campaignId,
+        isNewsletterCampaignId(campaignId) ? { confirmNewsletterSend: true } : undefined,
+      ),
     onMutate: (id) => {
       setBusyId(id);
       setError(null);
@@ -1353,6 +1395,21 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
     onError: (err: Error) => setError(err.message),
     onSettled: () => setBusyId(null),
   });
+
+  function requestBulkApprove(campaignId: string, draftCount: number, campaignName: string) {
+    if (isNewsletterCampaignId(campaignId)) {
+      const ok = window.confirm(
+        `Send The NexCortiQ Signal to ${draftCount} Active email-list recipient(s)?\n\n` +
+          "This is the final admin approval. Mail will go out immediately for due steps.\n\n" +
+          "Click OK only if you have reviewed the copy.",
+      );
+      if (!ok) return;
+    } else {
+      const ok = window.confirm(`Approve ${draftCount} draft(s) in “${campaignName}” and send due mail now?`);
+      if (!ok) return;
+    }
+    approveBulk.mutate(campaignId);
+  }
 
   const sequences = sequencesQ.data ?? [];
   const drafts = draftsQ.data ?? [];
@@ -1394,19 +1451,20 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-6 py-4">
         <div className="min-w-0">
           <p className="text-[11px] text-slate-500">
-            Campaigns send from <span className="text-slate-300">jeff@nexcortiq.us</span>. Queue up
-            to 100 addresses, edit copy, and pick a send time for each email. Approval sends due mail
-            immediately (100 at a time).
+            Bulk campaigns and The NexCortiQ Signal send via{" "}
+            <span className="text-slate-300">SES</span> from{" "}
+            <span className="text-slate-300">jeff@nexcortiq.us</span> so open/click rates show like
+            Apollo. Queue up to 100 addresses, edit copy, and pick a send time. Approval sends due
+            mail immediately (100 at a time).
           </p>
           {outlookQ.data?.connected ? (
             <p className="mt-1 text-[11px] text-emerald-400">
-              Sending from {outlookQ.data.mailbox}
+              Outlook connected as {outlookQ.data.mailbox} for 1:1 RFP/lead mail
               {outlookQ.data.mock ? " (mock — Graph send is off)" : ""}
             </p>
           ) : (
-            <p className="mt-1 text-[11px] text-amber-400">
-              Connect Outlook as jeff@nexcortiq.us. Until then, approved mail is logged only or
-              sent via SES fallback.
+            <p className="mt-1 text-[11px] text-slate-500">
+              Optional: connect Outlook for 1:1 outreach. Bulk/Signal always use SES tracking.
             </p>
           )}
           {campaignsQ.data?.apollo?.connected ? (
@@ -1533,7 +1591,13 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
                       count={seqs.length}
                       busy={busyId === campaignId}
                       canManage={canManage}
-                      onApprove={(id) => approveBulk.mutate(id)}
+                      onApprove={(id) =>
+                        requestBulkApprove(
+                          id,
+                          seqs.length,
+                          seqs[0]?.attribution.campaignName ?? id,
+                        )
+                      }
                       onEditCopy={() => {
                         if (seqs[0]) setBulkEdit(seqs[0]);
                       }}
@@ -1654,7 +1718,7 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
             ))}
             {drafts.length === 0 ? (
               <div className="py-16 text-center text-sm text-slate-600">
-                No drafts yet. The Monday composer writes Inside iQ here.
+                No drafts yet. The monthly Signal composer writes The NexCortiQ Signal here (2nd Monday).
               </div>
             ) : null}
           </div>
@@ -1704,10 +1768,14 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
                           <button
                             type="button"
                             disabled={busyId === batch.campaignId}
-                            onClick={() => approveBulk.mutate(batch.campaignId)}
+                            onClick={() =>
+                              requestBulkApprove(batch.campaignId, batch.draftCount, batch.campaignName)
+                            }
                             className="rounded bg-sky-600 px-3 py-1.5 text-[10px] font-semibold text-white disabled:opacity-50"
                           >
-                            Approve {batch.draftCount}
+                            {isNewsletterCampaignId(batch.campaignId)
+                              ? `Approve & send Signal (${batch.draftCount})`
+                              : `Approve ${batch.draftCount}`}
                           </button>
                         ) : batch.draftCount > 0 ? (
                           <div className="text-[10px] font-bold text-amber-400">AWAITING APPROVAL</div>

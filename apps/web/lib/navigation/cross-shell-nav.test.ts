@@ -9,6 +9,7 @@ describe("workspaceShellFromPath", () => {
     expect(workspaceShellFromPath("/rc-admin/dashboard")).toBe("rc-admin");
     expect(workspaceShellFromPath("/rc-admin")).toBe("rc-admin");
     expect(workspaceShellFromPath("/sales")).toBe("sales");
+    expect(workspaceShellFromPath("/sales/features-catalog")).toBe("sales");
     expect(workspaceShellFromPath("/sales/pricing-catalog")).toBe("sales");
     expect(workspaceShellFromPath("/login")).toBe("other");
   });

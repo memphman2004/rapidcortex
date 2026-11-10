@@ -1390,6 +1390,16 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.StaffingForecastTable
             - !Sub "${DynamoTableNamePrefix}-staffing-forecast-${DeploymentStage}"
+        CallerLocationsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.CallerLocationsTable
+            - !Sub "${DynamoTableNamePrefix}-caller-locations-${DeploymentStage}"
+        ResponderConnectionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ResponderConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-responder-connections-${DeploymentStage}"
         QASessionsTable:
           Fn::If:
             - HasDataLayerNestedStack
@@ -1585,6 +1595,9 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
             - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        WebSocketApiEndpoint: !Sub
+          - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+          - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
         WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
         # Retain orphans after DELETE_SKIPPED — skip CREATE when physical tables already exist.
         # Lean deploy auto-detects; root passes names so nested updates do not recreate them.
@@ -4853,6 +4866,16 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
             - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        ResponderConnectionsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.ResponderConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-responder-connections-${DeploymentStage}"
+        IncidentsTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.IncidentsTable
+            - !Sub "${DynamoTableNamePrefix}-incidents-${DeploymentStage}"
         AuditTable:
           Fn::If:
             - HasDataLayerNestedStack

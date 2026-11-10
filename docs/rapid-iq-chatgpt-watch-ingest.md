@@ -18,8 +18,8 @@ x-nexcort-watch-key: <api-key>
 ```
 
 - **Auth:** API key from Secrets Manager (`RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN`), not Cognito JWT.
-- **Host (live):** `https://tbr4zvjlk5.execute-api.us-east-1.amazonaws.com` (HttpApi3).  
-  `api.rapidcortex.us` maps to HttpApi1 only — do **not** use it for watch-ingest until a mapping exists.
+- **Host (live):** `https://api.rapidcortex.us` only.  
+  Do **not** distribute `*.execute-api.*.amazonaws.com` URLs to agencies or ChatGPT Actions (CloudFront path rules route `/api/watch*` and `/api/rapid-iq*` correctly).
 - **Body:** one object or an array (max 25) matching `rapidIqWatchIngestBodySchema` in `packages/shared`.
 
 Route is live on HttpApi3 (`POST /api/rapid-iq/pipeline/watch-ingest`, auth `NONE` at API Gateway; key checked in Lambda). CFN still needs an **import** of orphan signal/credits routes before the next `EnableNexiQNewHttpRoutes=true` nested deploy (otherwise AlreadyExists rollback).
@@ -49,7 +49,7 @@ bash scripts/deploy-rapid-iq-pipeline-api-dev.sh
 ## Smoke test
 
 ```bash
-API_BASE=https://tbr4zvjlk5.execute-api.us-east-1.amazonaws.com
+API_BASE=https://api.rapidcortex.us
 # or: bash scripts/smoke-watch-ingest.sh (after exporting RAPID_IQ_WATCH_INGEST_API_KEY)
 KEY='…'
 

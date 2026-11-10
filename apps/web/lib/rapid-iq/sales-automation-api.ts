@@ -75,12 +75,16 @@ export async function createSalesBulkCampaign(
 
 export async function approveSalesBulkCampaign(
   campaignId: string,
+  opts?: { confirmNewsletterSend?: true },
 ): Promise<NexiQSalesBulkApproveResult> {
   const res = await fetch(`${BASE}/bulk/approve`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ campaignId }),
+    body: JSON.stringify({
+      campaignId,
+      ...(opts?.confirmNewsletterSend ? { confirmNewsletterSend: true } : {}),
+    }),
   });
   const parsed = await parseJson<{ result: NexiQSalesBulkApproveResult }>(res);
   return parsed.result;
@@ -197,13 +201,48 @@ export async function suppressSalesSequence(sequenceId: string): Promise<NexiQSa
   return body.sequence;
 }
 
-export async function approveSalesDraft(draftId: string): Promise<NexiQSalesContentDraft> {
+export type ApproveSalesDraftResult = {
+  draft: NexiQSalesContentDraft;
+  newsletterQueue?: {
+    queued: number;
+    suppressed: number;
+    skipped?: number;
+    recipients: number;
+  };
+  notice?: string;
+};
+
+export async function approveSalesDraft(draftId: string): Promise<ApproveSalesDraftResult> {
   const res = await fetch(`${BASE}/drafts/${encodeURIComponent(draftId)}/approve`, {
     method: "POST",
     credentials: "include",
   });
-  const body = await parseJson<{ draft: NexiQSalesContentDraft }>(res);
-  return body.draft;
+  return parseJson<ApproveSalesDraftResult>(res);
+}
+
+export type AddNewsletterRecipientsResult = {
+  draftId: string;
+  campaignId: string;
+  queued: number;
+  suppressed: number;
+  skipped: number;
+  notFound: number;
+  recipients: number;
+};
+
+export async function addNewsletterRecipients(body: {
+  draftId?: string;
+  newsletterSlug?: string;
+  emails: string[];
+}): Promise<AddNewsletterRecipientsResult> {
+  const res = await fetch(`${BASE}/newsletter/recipients`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const parsed = await parseJson<{ result: AddNewsletterRecipientsResult }>(res);
+  return parsed.result;
 }
 
 export async function createSalesSequence(

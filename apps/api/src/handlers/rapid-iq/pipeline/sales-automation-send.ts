@@ -1,7 +1,11 @@
 /**
  * Send approved, scheduled campaign emails to potential clients.
- * Prefer the connected Outlook mailbox (Graph sendMail, Sent Items).
- * Fall back to SES, then log-only when SES_MOCK / missing from-address.
+ *
+ * Newsletter + bulk campaign sequences always use SES (nexcortiq-marketing
+ * config set) so open/click/bounce stats match Apollo-style campaign metrics.
+ * 1:1 outreach (RFP / new lead / stage) prefers connected Outlook Graph,
+ * then SES, then log-only when SES_MOCK / missing from-address.
+ *
  * Fail-closed: missing recipient skips live send. 30-day contact window is
  * re-checked at send time.
  */
@@ -46,7 +50,17 @@ function salesAutomationEnabled(): boolean {
 }
 
 function fromAddress(): string {
-  return process.env.SES_FROM_EMAIL?.trim() || env.sesFromEmail || "noreply@nexcortiq.us";
+  return (
+    process.env.SES_FROM_EMAIL?.trim() ||
+    env.sesFromEmail ||
+    env.outlookSalesMailbox ||
+    "jeff@nexcortiq.us"
+  );
+}
+
+/** Bulk / Signal mail needs SES event publishing (open, click, bounce). */
+export function prefersSesTracking(seq: RapidIqSalesSequence): boolean {
+  return seq.triggerType === "newsletter" || seq.triggerType === "campaign";
 }
 
 async function lookupUnsubscribeToken(email: string): Promise<string> {
@@ -69,6 +83,56 @@ async function lookupUnsubscribeToken(email: string): Promise<string> {
 
 export type CampaignSendChannel = "outlook" | "outlook_mock" | "ses" | "log";
 
+async function deliverViaSes(
+  seq: RapidIqSalesSequence,
+  step: RapidIqSalesOutreachStep,
+  bodies: { text: string; html?: string },
+  unsubscribeToken: string,
+): Promise<{ live: boolean; channel: CampaignSendChannel }> {
+  const from = fromAddress();
+  const live = !env.sesMock && from.includes("@") && seq.recipientEmail.includes("@");
+  if (!live) {
+    console.log(
+      JSON.stringify({
+        msg: "rapid_iq_sales_send_log_only",
+        sequenceId: seq.sequenceId,
+        stepId: step.stepId,
+        to: seq.recipientEmail,
+        reason: env.sesMock ? "ses_mock" : "missing_from_or_to",
+      }),
+    );
+    return { live: false, channel: "log" };
+  }
+
+  const campaignId = seq.attribution.campaignId?.trim() || seq.sequenceId;
+  await ses.send(
+    new SendEmailCommand({
+      Source: from,
+      Destination: { ToAddresses: [seq.recipientEmail] },
+      Message: {
+        Subject: { Data: step.email.subject, Charset: "UTF-8" },
+        Body: {
+          Text: { Data: bodies.text, Charset: "UTF-8" },
+          ...(bodies.html ? { Html: { Data: bodies.html, Charset: "UTF-8" } } : {}),
+        },
+      },
+      Tags: [
+        { Name: "campaignId", Value: campaignId.slice(0, 256) },
+        ...(unsubscribeToken
+          ? [{ Name: "unsubscribeToken", Value: unsubscribeToken.slice(0, 256) }]
+          : []),
+      ],
+      ...sesMarketingConfigurationSetFields(),
+    }),
+  );
+  try {
+    await incrementSalesCampaignStat(campaignId, "sent");
+  } catch {
+    /* stats must not block send */
+  }
+  return { live: true, channel: "ses" };
+}
+
 export async function deliverCampaignStep(
   seq: RapidIqSalesSequence,
   step: RapidIqSalesOutreachStep,
@@ -79,6 +143,11 @@ export async function deliverCampaignStep(
     { text: step.email.bodyText, html: step.email.bodyHtml },
     unsubscribeToken || null,
   );
+
+  // Signal + bulk campaigns: SES only (open/click via nexcortiq-marketing).
+  if (prefersSesTracking(seq)) {
+    return deliverViaSes(seq, step, bodies, unsubscribeToken);
+  }
 
   if (outlook) {
     if (outlook.mock || isOutlookGraphMock()) {
@@ -104,47 +173,7 @@ export async function deliverCampaignStep(
     return { live: true, channel: "outlook", outlook: ensured.next };
   }
 
-  const from = fromAddress();
-  const live = !env.sesMock && from.includes("@") && seq.recipientEmail.includes("@");
-  if (live) {
-    const campaignId = seq.attribution.campaignId?.trim() || seq.sequenceId;
-    await ses.send(
-      new SendEmailCommand({
-        Source: from,
-        Destination: { ToAddresses: [seq.recipientEmail] },
-        Message: {
-          Subject: { Data: step.email.subject, Charset: "UTF-8" },
-          Body: {
-            Text: { Data: bodies.text, Charset: "UTF-8" },
-            ...(bodies.html ? { Html: { Data: bodies.html, Charset: "UTF-8" } } : {}),
-          },
-        },
-        Tags: [
-          { Name: "campaignId", Value: campaignId.slice(0, 256) },
-          ...(unsubscribeToken
-            ? [{ Name: "unsubscribeToken", Value: unsubscribeToken.slice(0, 256) }]
-            : []),
-        ],
-        ...sesMarketingConfigurationSetFields(),
-      }),
-    );
-    try {
-      await incrementSalesCampaignStat(campaignId, "sent");
-    } catch {
-      /* stats must not block send */
-    }
-    return { live: true, channel: "ses" };
-  }
-
-  console.log(
-    JSON.stringify({
-      msg: "rapid_iq_sales_send_log_only",
-      sequenceId: seq.sequenceId,
-      stepId: step.stepId,
-      to: seq.recipientEmail,
-    }),
-  );
-  return { live: false, channel: "log" };
+  return deliverViaSes(seq, step, bodies, unsubscribeToken);
 }
 
 export async function handler(): Promise<{ scanned: number; sent: number; skipped: number }> {
@@ -160,6 +189,27 @@ export async function handler(): Promise<{ scanned: number; sent: number; skippe
 
   for (const seq of sequences) {
     if (seq.status !== "active") continue;
+    // Newsletter (The NexCortiQ Signal): never deliver without recorded admin approval.
+    if (seq.triggerType === "newsletter" && (!seq.approvedBy || !seq.approvedAt)) {
+      skipped += 1;
+      console.warn(
+        JSON.stringify({
+          msg: "rapid_iq_newsletter_send_blocked_missing_approval",
+          sequenceId: seq.sequenceId,
+        }),
+      );
+      continue;
+    }
+    if (seq.triggerType === "newsletter" && seq.autoApprove) {
+      skipped += 1;
+      console.warn(
+        JSON.stringify({
+          msg: "rapid_iq_newsletter_send_blocked_auto_approve",
+          sequenceId: seq.sequenceId,
+        }),
+      );
+      continue;
+    }
     scanned += 1;
     let dirty = false;
     for (const step of seq.steps) {
@@ -258,6 +308,17 @@ export async function handler(): Promise<{ scanned: number; sent: number; skippe
 export async function sendDueStepsNow(sequenceId: string): Promise<{ sent: number; skipped: number }> {
   const seq = await getSalesSequence(sequenceId);
   if (!seq || seq.status !== "active") return { sent: 0, skipped: 0 };
+  if (seq.triggerType === "newsletter" && (!seq.approvedBy || !seq.approvedAt || seq.autoApprove)) {
+    console.warn(
+      JSON.stringify({
+        msg: "rapid_iq_newsletter_immediate_send_blocked",
+        sequenceId,
+        hasApprover: Boolean(seq.approvedBy),
+        autoApprove: seq.autoApprove,
+      }),
+    );
+    return { sent: 0, skipped: 1 };
+  }
   let outlook = await getOutlookConnection();
   const now = Date.now();
   let sent = 0;

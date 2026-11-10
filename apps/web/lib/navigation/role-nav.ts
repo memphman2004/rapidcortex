@@ -486,11 +486,11 @@ export const SALES_CONTRACTOR_NAV: RoleNav = {
       label: "CATALOGS",
       items: [
         {
-          id: "pricing-catalog",
-          label: "Pricing Catalog",
-          href: "/sales/pricing-catalog",
+          id: "features-catalog",
+          label: "Features Catalog",
+          href: "/sales/features-catalog",
           icon: "Tag",
-          badge: { type: "label", text: "FEATURES", color: "slate" },
+          badge: { type: "label", text: "ADD-ONS", color: "slate" },
         },
         {
           id: "service-catalog",

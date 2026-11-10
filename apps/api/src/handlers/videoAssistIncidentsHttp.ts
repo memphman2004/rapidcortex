@@ -11,10 +11,12 @@ import {
   serviceUnavailable,
   unauthorized,
 } from "../lib/response.js";
+import { requireAddon } from "../middleware/requireAddon.js";
 import { VideoAssistService } from "../services/videoAssistService.js";
 
 const service = new VideoAssistService();
 const authz = new AuthorizationService();
+const requireVideoAssistAddon = requireAddon("caller_media.video_assist");
 
 function mapErr(e: unknown) {
   const msg = e instanceof Error ? e.message : String(e);
@@ -55,6 +57,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (!authz.canDispatch(user) || user.role === "auditor") {
       return forbidden("Role cannot use video assist");
     }
+
+    const addonGate = await requireVideoAssistAddon(event, user);
+    if (addonGate) return addonGate;
 
     const incidentId = event.pathParameters?.id;
     const sessionId = event.pathParameters?.sessionId;

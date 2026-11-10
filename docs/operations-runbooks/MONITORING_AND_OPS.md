@@ -85,7 +85,7 @@ For **EventBridge**: schedule `synthetic-api-health.sh` every 1–5 minutes from
 [`scripts/pilot-load-smoke.sh`](../scripts/pilot-load-smoke.sh) runs parallel `GET /api/health` (not authenticated). Use after deploy or scaling changes:
 
 ```bash
-API_BASE_URL="https://xxxx.execute-api....amazonaws.com" CONCURRENCY=30 REQUESTS=300 ./scripts/pilot-load-smoke.sh
+API_BASE_URL="https://api.rapidcortex.us" CONCURRENCY=30 REQUESTS=300 ./scripts/pilot-load-smoke.sh
 ```
 
 This is **not** a substitute for formal load testing; pair with your expected dispatcher concurrency and multilingual audio volume.

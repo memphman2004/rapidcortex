@@ -101,6 +101,51 @@ export class WebSocketNotificationService {
     });
   }
 
+  /**
+   * Fan-out sanitized incident updates to field responders subscribed to an incident.
+   * Never include caller PII, narrative notes, or CJIS fields.
+   */
+  async broadcastResponderIncidentUpdate(params: {
+    agencyId: string;
+    incidentId: string;
+    priority?: string;
+    incidentType?: string;
+    address?: string;
+    unitAssignments?: unknown[];
+    updatedAt?: string;
+    connectionIds: string[];
+  }): Promise<void> {
+    const { postToConnection } = await import("../lib/websocket/send-message.js");
+    const payload = {
+      type: "incident_update" as const,
+      data: {
+        incidentId: params.incidentId,
+        priority: params.priority,
+        incidentType: params.incidentType,
+        address: params.address,
+        unitAssignments: params.unitAssignments,
+        updatedAt: params.updatedAt ?? new Date().toISOString(),
+      },
+    };
+    await Promise.all(
+      params.connectionIds.map(async (connectionId) => {
+        try {
+          await postToConnection({ connectionId, message: payload });
+        } catch (err) {
+          console.warn(
+            JSON.stringify({
+              type: "responder.fanout_failed",
+              incidentId: params.incidentId,
+              agencyId: params.agencyId,
+              connectionId,
+              error: String(err),
+            }),
+          );
+        }
+      }),
+    );
+  }
+
   async broadcastLocationReceived(params: {
     agencyId: string;
     incidentId: string;

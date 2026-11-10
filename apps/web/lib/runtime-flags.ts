@@ -126,6 +126,8 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_ESCORT_IQ: process.env.NEXT_PUBLIC_ENABLE_ESCORT_IQ,
   NEXT_PUBLIC_ENABLE_BUSINESS_CARDS: process.env.NEXT_PUBLIC_ENABLE_BUSINESS_CARDS,
   NEXT_PUBLIC_ENABLE_CAMPUS_ALERTS: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_ALERTS,
+  NEXT_PUBLIC_ENABLE_INCIDENT_INTELLIGENCE: process.env.NEXT_PUBLIC_ENABLE_INCIDENT_INTELLIGENCE,
+  NEXT_PUBLIC_ENABLE_IQ_RESPONDER: process.env.NEXT_PUBLIC_ENABLE_IQ_RESPONDER,
 };
 
 const CAD_WRITEBACK_FLAG = "NEXT_PUBLIC_ENABLE_CAD_WRITEBACK";
@@ -883,4 +885,14 @@ export function isContentProtectionEnabled(): boolean {
 /** NexCortiQ Loadout — agency-facing portal (dashboard, catalog, invoices, API keys). Default on when unset. */
 export function isLoadoutPortalEnabled(): boolean {
   return isLoadoutEnabled() && envFlag("NEXT_PUBLIC_ENABLE_LOADOUT_PORTAL");
+}
+
+/** Live Incident Intelligence 2×2 panel on the dispatch console. Default on when unset. */
+export function isIncidentIntelligenceEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_INCIDENT_INTELLIGENCE");
+}
+
+/** iQ Responder field dashboard (`/responder/*`). Default on when unset. */
+export function isIqResponderEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_IQ_RESPONDER");
 }

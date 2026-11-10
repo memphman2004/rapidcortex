@@ -42,6 +42,9 @@ import {
   syncMilestoneCameras,
 } from "../../integrations/milestone/milestone-service.js";
 import { getCampusIncident } from "../../campus/campus-incident-service.js";
+import { requireAddon } from "../../middleware/requireAddon.js";
+
+const requireMilestoneAddon = requireAddon("milestone.xprotect");
 
 function pathOf(event: Parameters<APIGatewayProxyHandlerV2>[0]): string {
   return event.rawPath ?? event.requestContext?.http?.path ?? "";
@@ -104,6 +107,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
     const agencyId = user.agencyId?.trim();
     if (!agencyId) return withCorrelationHeaders(event, forbidden("Agency context required"));
+
+    const milestoneAddon = await requireMilestoneAddon(event, user);
+    if (milestoneAddon) return withCorrelationHeaders(event, milestoneAddon);
 
     if (method === "GET" && /\/api\/milestone\/status\/?$/.test(path)) {
       if (!canViewVision(user, agencyId)) {

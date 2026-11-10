@@ -204,11 +204,11 @@ export default function UnsubscribePage() {
               >
                 <span style={{ fontSize: "22px" }}>✕</span>
               </div>
-              <h1 style={S.title}>Unsubscribe from Inside iQ?</h1>
+              <h1 style={S.title}>Unsubscribe from NexCort iQ emails?</h1>
               <p style={S.sub}>
-                We&apos;ll stop sending you marketing emails. Your address stays on file as inactive
-                so we don&apos;t contact you again by mistake. You can always sign up again at
-                nexcortiq.us if you change your mind.
+                We&apos;ll stop sending marketing and The NexCortiQ Signal preview emails. Your address
+                stays on file as inactive so we don&apos;t contact you again by mistake. Full Signal
+                editions stay free to read at nexcortiq.us/newsletter — no subscription required.
               </p>
               <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
                 <a href="https://www.nexcortiq.us" style={{ textDecoration: "none" }}>

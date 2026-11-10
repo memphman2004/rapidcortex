@@ -36,8 +36,7 @@ x-nexcort-watch-key: <api-key>
 ```
 
 - **Auth:** API key from Secrets Manager (`RAPID_IQ_WATCH_INGEST_API_KEY_SECRET_ARN`), not Cognito JWT.
-- **Host (live):** HttpApi3 execute-api URL (see OpenAPI / smoke script).  
-  `api.rapidcortex.us` maps to HttpApi1 — do **not** use it for watch-ingest until a mapping exists.
+- **Host (live):** `https://api.rapidcortex.us` only. Do not publish `*.execute-api.*` hostnames.
 - **Body:** one object or an array (max 25).
 
 ### Success (single finding)
@@ -112,7 +111,7 @@ bash scripts/deploy-rapid-iq-pipeline-api-dev.sh
 
 ```bash
 export RAPID_IQ_WATCH_INGEST_API_KEY='…'
-export API_BASE='https://tbr4zvjlk5.execute-api.us-east-1.amazonaws.com'
+export API_BASE='https://api.rapidcortex.us'
 bash scripts/smoke-watch-ingest.sh
 ```
 

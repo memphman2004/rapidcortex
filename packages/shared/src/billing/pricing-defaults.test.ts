@@ -20,6 +20,10 @@ describe("PRICING_DEFAULTS vs RC_Pricing_Master_Guide_v4 (Oct 2026)", () => {
     expect(PRICING_DEFAULTS["media.stream.hi"]).toBe(20000);
     expect(PRICING_DEFAULTS["media.sms.lo"]).toBe(1500);
     expect(PRICING_DEFAULTS["media.sms.hi"]).toBe(5000);
+    expect(PRICING_DEFAULTS["caller_media.video_assist"]).toBe(2500);
+    expect(PRICING_DEFAULTS["vision.iq_vision"]).toBe(3500);
+    expect(PRICING_DEFAULTS["connect.nest"]).toBe(750);
+    expect(PRICING_DEFAULTS["connect.wyze"]).toBe(750);
     expect(PRICING_DEFAULTS["support.priority.sm"]).toBe(2500);
     expect(PRICING_DEFAULTS["support.priority.md"]).toBe(5000);
     expect(PRICING_DEFAULTS["support.priority.lg"]).toBe(7500);

@@ -10,11 +10,13 @@ import {
   unauthorized,
 } from "../../lib/response.js";
 import { env } from "../../lib/env.js";
+import { aggregateCallVolumeHistory } from "../../lib/staffing/aggregator.js";
 import { getStaffingForecast } from "../../lib/staffing/forecast-store.js";
 import {
   generateStaffingForecastForAgency,
   generateStaffingForecastsScheduled,
 } from "../../lib/staffing/generate-service.js";
+import { statisticalSurgeForecast } from "../../lib/staffing/surge-forecast.js";
 import { makeId } from "../../lib/ids.js";
 
 function isApiGatewayEvent(
@@ -56,6 +58,21 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     const method = event.requestContext.http.method.toUpperCase();
     const path = event.rawPath ?? event.requestContext.http.path ?? "";
+
+    if (method === "GET" && path.endsWith("/api/staffing/forecast/surge")) {
+      if (!isSupervisorOrAdmin(user.role)) return forbidden();
+      const windowMinutes = Number(event.queryStringParameters?.windowMinutes ?? "120");
+      const unitsAvailable = Number(event.queryStringParameters?.unitsAvailable ?? "4");
+      const aggregated = await aggregateCallVolumeHistory(user.agencyId, 90);
+      const surge = statisticalSurgeForecast({
+        agencyId: user.agencyId,
+        buckets: aggregated.buckets,
+        windowMinutes: Number.isFinite(windowMinutes) ? windowMinutes : 120,
+        unitsAvailable: Number.isFinite(unitsAvailable) ? unitsAvailable : 4,
+        historyDays: aggregated.lookbackDays,
+      });
+      return ok(surge);
+    }
 
     if (method === "GET" && path.endsWith("/api/staffing/forecast")) {
       if (!isSupervisorOrAdmin(user.role)) return forbidden();

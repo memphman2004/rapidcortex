@@ -6,10 +6,8 @@ info:
     Upsert ChatGPT Watch findings into the NexiQ Inbox.
     Does not create CRM Leads — operators use + Pipeline in the UI.
 servers:
-  - url: https://tbr4zvjlk5.execute-api.us-east-1.amazonaws.com
-    description: Live HttpApi3 (NexiQ SignalHttp) — required for watch-ingest
   - url: https://api.rapidcortex.us
-    description: HttpApi1 custom domain (does not serve watch-ingest as of 2026-09-25)
+    description: Public API edge only (CloudFront). Do not publish execute-api hostnames.
 paths:
   /api/rapid-iq/pipeline/watch-ingest:
     post:

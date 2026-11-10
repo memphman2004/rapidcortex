@@ -18,6 +18,7 @@ import { salesContractorMayAccessPath } from "./sales-contractor-paths.js";
 describe("salesContractorMayAccessPath", () => {
   it("allows /sales and allowlisted /rc-admin tools", () => {
     expect(salesContractorMayAccessPath("/sales")).toBe(true);
+    expect(salesContractorMayAccessPath("/sales/features-catalog")).toBe(true);
     expect(salesContractorMayAccessPath("/sales/pricing-catalog")).toBe(true);
     expect(salesContractorMayAccessPath("/rc-admin/psap-prospects")).toBe(true);
     expect(salesContractorMayAccessPath("/rc-admin/contacts")).toBe(true);

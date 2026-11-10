@@ -25,8 +25,10 @@ Concise runbook for **911-agency pilot** hardening. Infra is defined in `infra/t
   - Stack: `rapid-cortex-api-edge-dev`
   - Distribution: `E22OK65GJG6A2C` (`d2nmlvfqle5i0g.cloudfront.net`)
   - WebACL: `arn:aws:wafv2:us-east-1:158961537080:global/webacl/rapid-cortex-httpapi-cdn-waf-dev/7f68bde8-cc59-4b9d-bed7-dd1f66e7eeef` (attached on the distribution)
-  - Origin: API Gateway regional custom-domain target `d-zp1gcdowhi.execute-api.us-east-1.amazonaws.com` with **AllViewer** (forwards `Host: api.rapidcortex.us`)
-  - Verify: `curl -sS https://api.rapidcortex.us/api/health` → `{"status":"ok",...}`
+  - Origin: API Gateway regional custom-domain target (CloudFront-internal; **do not publish** `*.execute-api.*` hostnames to agencies)
+  - Public hosts only: `https://api.rapidcortex.us` and `https://app.rapidcortex.us`
+  - Verify: browser UA to `https://api.rapidcortex.us/api/health` → `{"status":"ok",...}` (raw `curl` is blocked by Bot Control `CategoryHttpLibrary`)
+  - Bot Control COMMON = **Block**; AnonymousIp = **Block** with `HostingProviderIPList` → **Count** (agency VPN / cloud ops)
   - DNS ownership: cut over Route53 A/AAAA to CloudFront; set AppSam `ManageApiDomainDns=false` then `CREATE_ROUTE53_ALIAS_RECORDS=true` so the edge stack owns DNS in CFN.
 - **Not replaced:** **API Gateway stage throttling** (`DefaultRouteSettings` on the `Serverless::HttpApi` resource: burst **200** / rate **100** RPS) remains in effect.
 - **Cost:** WAF is billed per web ACL, rules, and requests — enable for **pilot/prod**; leave `false` in pure local/dev if unused.
@@ -38,10 +40,18 @@ Concise runbook for **911-agency pilot** hardening. Infra is defined in `infra/t
 
 ## 2. CloudWatch → SNS → email (and SMS)
 
-- **SNS topic:** `OpsAlertsTopic` — many Lambda and API **5xx / latency** alarms use `AlarmActions: !Ref OpsAlertsTopic`.
-- **Email:** set **parameter** `SnsEmailSubscription` to an operations mailbox (e.g. via `SNS_EMAIL_SUBSCRIPTION` in `./scripts/deploy.sh`). **Confirm the subscription** in the inbox after deploy (AWS sends a confirm link).
+- **SNS topic:** `OpsAlertsTopic` — many Lambda and API **5xx / latency** alarms use `AlarmActions: !Ref OpsAlertsTopic`. Deception Shield HIGH/CRITICAL decoy hits also publish here.
+- **Security topic:** `rapid-cortex-security-alerts-{stage}` — dual-publish target for Deception Shield + GuardDuty HIGH/CRITICAL (EventBridge rule `rapid-cortex-guardduty-high-critical-dev` → SNS).
+- **GuardDuty:** detector `7ed0e07082b39d1dfc6cc32c6ee10ec2` **ENABLED** (manage via CareTally iQ IAM; `rapid-cortex-deploy` lacks GuardDuty APIs). Finding publish frequency FIFTEEN_MINUTES.
+- **Email:** subscribe ops mailboxes and **Confirm** the AWS SNS email (pending until confirmed). Targets: `Jwcoleman@rapidcortex.us`, `support@nexcortiq.us`.
 - **SMS (optional):** `SnsSmsSubscription` for E.164 numbers where your account/region allows SMS.
 - There is no automatic “paging” policy in-repo — connect SNS to PagerDuty/Opsgenie in the AWS console if required.
+
+## 2b. Deception Shield
+
+- Lambda `DeceptionDecoyHttpFunction` with `DECEPTION_SHIELD_ENABLED=true`, `DECEPTION_ALERTS_ENABLED=true`.
+- Decoy hits → DynamoDB `rapid-cortex-deception-events-{stage}` + (HIGH/CRITICAL) SNS → OpsAlerts + security-alerts.
+- Agency-facing host remains `https://api.rapidcortex.us` only — see [PUBLIC_API_HOSTNAMES.md](../security/PUBLIC_API_HOSTNAMES.md).
 
 ## 3. CORS and production domains
 

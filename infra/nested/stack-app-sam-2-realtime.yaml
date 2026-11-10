@@ -14,6 +14,13 @@ Parameters:
     Type: String
   WebSocketConnectionsTable:
     Type: String
+  ResponderConnectionsTable:
+    Type: String
+    Description: Field-responder WebSocket subscription table
+  IncidentsTable:
+    Type: String
+    Default: ""
+    Description: Incidents table for responder-subscribe agency checks
   AuditTable:
     Type: String
   AgenciesTable:
@@ -45,6 +52,8 @@ Globals:
         ACTIVE_CALLS_TABLE: !Ref ActiveCallsTable
         CALL_TRANSFERS_TABLE: !Ref CallTransfersTable
         WEBSOCKET_CONNECTIONS_TABLE: !Ref WebSocketConnectionsTable
+        RESPONDER_CONNECTIONS_TABLE: !Ref ResponderConnectionsTable
+        INCIDENTS_TABLE: !Ref IncidentsTable
         AUDIT_TABLE: !Ref AuditTable
         AGENCIES_TABLE: !Ref AgenciesTable
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
@@ -85,6 +94,10 @@ Resources:
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}/index/*
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ResponderConnectionsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ResponderConnectionsTable}/index/*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentsTable}
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IncidentsTable}/index/*
 
   WebSocketApi:
     Type: AWS::ApiGatewayV2::Api
@@ -510,6 +523,42 @@ Resources:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/supervisor/watching"
       Target: !Sub "integrations/${SupervisorWatchingHttpIntegration}"
+
+  WebSocketResponderSubscribeFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/websocket/responder-subscribe.handler
+      Timeout: 10
+      Policies:
+        - !Ref AppManagedPolicyRealtimeDynamo
+
+  WebSocketResponderSubscribePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WebSocketResponderSubscribeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*
+
+  WebSocketResponderSubscribeIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref WebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebSocketResponderSubscribeFunction.Arn}/invocations
+
+  WebSocketResponderSubscribeRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref WebSocketApi
+      RouteKey: responder-subscribe
+      AuthorizationType: NONE
+      Target: !Sub integrations/${WebSocketResponderSubscribeIntegration}
+
 
 Outputs:
   WebSocketApiUrl:

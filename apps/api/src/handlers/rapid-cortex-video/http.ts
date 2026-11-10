@@ -20,6 +20,7 @@ import {
   serviceUnavailable,
 } from "../../lib/response.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
+import { requireAddon } from "../../middleware/requireAddon.js";
 import { CampusCameraRegistryRepository } from "../../repositories/campusCameraRegistryRepository.js";
 import { TransitCameraRegistryRepository } from "../../repositories/transitCameraRegistryRepository.js";
 import { VenueCameraRegistryRepository } from "../../repositories/venueCameraRegistryRepository.js";
@@ -30,6 +31,8 @@ import { handleVideoPtz } from "./ptz.js";
 
 const auditRepo = new AuditRepository();
 const wallRepo = new VideoWallConfigRepository();
+const requireVideoWallAddon = requireAddon("rc_video.wall");
+const requirePtzGatewayAddon = requireAddon("rc_video.ptz_gateway");
 
 type VideoErrorCode =
   | "STREAM_LIMIT_EXCEEDED"
@@ -150,6 +153,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (parts[0] === "wall" && parts[1] === "config" && parts.length === 2) {
       const ctx = await requireAgencyRoute(event, "video.wall.view");
       if ("response" in ctx) return ctx.response;
+      const wallAddon = await requireVideoWallAddon(event, ctx.user);
+      if (wallAddon) return withCorrelationHeaders(event, wallAddon);
 
       if (method === "GET") {
         const config = await wallRepo.get(ctx.agencyId, ctx.user.userId);
@@ -226,8 +231,28 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (parts[0] === "cameras" && parts[1] === "health" && parts.length === 2 && method === "GET") {
       const ctx = await requireAgencyRoute(event, "video.wall.view");
       if ("response" in ctx) return ctx.response;
+      const wallAddon = await requireVideoWallAddon(event, ctx.user);
+      if (wallAddon) return withCorrelationHeaders(event, wallAddon);
       const cameras = await listAgencyCameras(ctx.agencyId);
       return withCorrelationHeaders(event, ok(healthForCameras(cameras)));
+    }
+
+    // PTZ/DVR live under cameras/{id}/… and /clips — gate create/control paths.
+    const isPtzOrDvr =
+      parts[0] === "clips" ||
+      (parts[0] === "cameras" &&
+        (parts[2] === "ptz" ||
+          parts[2] === "dvr" ||
+          parts[2] === "playback-session" ||
+          parts[2] === "fragments" ||
+          parts[2] === "recording" ||
+          parts[2] === "recording-status" ||
+          parts[2] === "clips"));
+    if (isPtzOrDvr) {
+      const gateCtx = await requireAgencyRoute(event, "video.wall.view");
+      if ("response" in gateCtx) return gateCtx.response;
+      const ptzAddon = await requirePtzGatewayAddon(event, gateCtx.user);
+      if (ptzAddon) return withCorrelationHeaders(event, ptzAddon);
     }
 
     const dvr = await handleVideoDvr(event, parts, method);

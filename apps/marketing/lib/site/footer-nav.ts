@@ -34,6 +34,7 @@ export const footerNav: FooterNavItem[] = [
   { label: "Careers", href: "/careers" },
   { label: "Contact", href: "/contact-sales?interest=demo" },
   { label: "Insights & Resources", href: "/blog" },
+  { label: "The NexCortiQ Signal", href: "/newsletter" },
   {
     label: "Legal",
     links: [

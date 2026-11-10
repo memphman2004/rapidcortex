@@ -46,3 +46,29 @@ export const staffingScheduledEventSchema = z.object({
   expectedVolumeMultiplier: z.number().positive().optional(),
 });
 export type StaffingScheduledEvent = z.infer<typeof staffingScheduledEventSchema>;
+
+/** 15-minute surge forecast bucket for the predictive dispatch strip. */
+export const surgeForecastConfidenceSchema = z.enum(["high", "medium", "low"]);
+export type SurgeForecastConfidence = z.infer<typeof surgeForecastConfidenceSchema>;
+
+export const surgeForecastBucketSchema = z.object({
+  startAt: z.string(),
+  endAt: z.string(),
+  forecastedCalls: z.number().nonnegative(),
+  historicalAvg: z.number().nonnegative(),
+  confidenceLevel: surgeForecastConfidenceSchema,
+  pressureIndex: z.number().min(0).max(1),
+});
+export type SurgeForecastBucket = z.infer<typeof surgeForecastBucketSchema>;
+
+export const surgeForecastResponseSchema = z.object({
+  agencyId: z.string(),
+  generatedAt: z.string(),
+  windowMinutes: z.number().int().positive(),
+  buckets: z.array(surgeForecastBucketSchema),
+  staffingAlert: z.boolean(),
+  staffingAlertReason: z.string().nullable(),
+  historyDays: z.number().int().nonnegative(),
+  unitsAvailable: z.number().nonnegative().optional(),
+});
+export type SurgeForecastResponse = z.infer<typeof surgeForecastResponseSchema>;

@@ -1,10 +1,11 @@
-import { SalesPricingCatalogClient } from "@/components/sales/sales-pricing-catalog-client";
+import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Pricing Catalog",
+  title: "Features Catalog",
   robots: { index: false, follow: false },
 };
 
-export default function SalesPricingCatalogPage() {
-  return <SalesPricingCatalogClient />;
+/** Legacy path — Features Catalog is canonical at /sales/features-catalog. */
+export default function SalesPricingCatalogRedirectPage() {
+  redirect("/sales/features-catalog");
 }

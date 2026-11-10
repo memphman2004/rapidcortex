@@ -144,16 +144,22 @@ export const PRICING_DEFAULTS = {
   "media.sms.lo": 1500,
   "media.sms.hi": 5000,
 
-  "connect.std.lo": 500,
-  "connect.std.hi": 1500,
-  "connect.pro.lo": 1500,
-  "connect.pro.hi": 4000,
-  "connect.ent.lo": 4000,
-  "connect.ent.hi": 12000,
-  "connect.ring.lo": 500,
-  "connect.ring.hi": 2000,
-  "connect.setup.lo": 5000,
-  "connect.setup.hi": 20000,
+  /** Facility camera packs (legacy sales keys → ADDON feature_addons.rc_connect_*). */
+  "feature_addons.rc_connect_standard": 500,
+  "feature_addons.rc_connect_professional": 1500,
+  "feature_addons.rc_connect_enterprise": 4000,
+
+  /** Standalone video / media / Connect SKUs (Features Catalog). */
+  "caller_media.video_assist": 2500,
+  "caller_media.live_video_kvs": 5000,
+  "vision.iq_vision": 3500,
+  "connect.nest": 750,
+  "connect.wyze": 750,
+  "rc_video.wall": 2000,
+  "rc_video.ptz_gateway": 1500,
+  "rc_video.ptz_gateway.setup": 5000,
+  "milestone.xprotect": 2500,
+  "milestone.xprotect.setup": 7500,
 
   "support.priority.sm": 2500,
   "support.priority.md": 5000,

@@ -310,6 +310,12 @@ export const ROLE_DASHBOARD_PALETTE_BY_ROLE: Record<UserRole, RoleDashboardIdent
     "Non-emergency monitor",
     "#0D9488",
   ),
+  field_responder: verticalRolePalette(
+    "field_responder",
+    "iQ Responder",
+    "Assigned incident view",
+    "#0284C7",
+  ),
 };
 
 /** Vertical product palettes (venue / campus) when surfaced in agency contexts. */

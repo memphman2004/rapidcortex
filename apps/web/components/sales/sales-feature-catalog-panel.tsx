@@ -57,16 +57,16 @@ export function SalesFeatureCatalogPanel({ embedded = false }: Props) {
     <div className="space-y-6">
       {!embedded ? (
         <div>
-          <h1 className="text-2xl font-semibold text-white">Pricing Catalog</h1>
+          <h1 className="text-2xl font-semibold text-white">Features Catalog</h1>
           <p className="mt-2 max-w-3xl text-sm text-slate-400">
-            Features by vertical for sales conversations. No list prices — use Quote Builder for
-            proposal math.
+            Standalone offerable features by vertical for sales conversations. No list prices — use
+            Quote Builder for proposal math.
           </p>
         </div>
       ) : (
         <p className="max-w-3xl text-sm text-slate-400">
           In-depth feature definitions for demos and discovery. No list prices — use Quote Builder
-          for proposal math. Same catalog as Pricing Catalog in the left nav.
+          for proposal math. Same catalog as Features Catalog in the left nav.
         </p>
       )}
 
