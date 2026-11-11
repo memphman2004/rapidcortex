@@ -36,10 +36,22 @@ export async function listSalesSequences(): Promise<NexiQSalesSequence[]> {
   return body.sequences ?? [];
 }
 
-export async function listSalesDrafts(): Promise<NexiQSalesContentDraft[]> {
+export type SignalDraftSyncResult = {
+  created: number;
+  refreshed: number;
+  skipped: number;
+};
+
+export async function listSalesDrafts(): Promise<{
+  drafts: NexiQSalesContentDraft[];
+  signalSync?: SignalDraftSyncResult;
+}> {
   const res = await fetch(`${BASE}/drafts`, { credentials: "include" });
-  const body = await parseJson<{ drafts: NexiQSalesContentDraft[] }>(res);
-  return body.drafts ?? [];
+  const body = await parseJson<{
+    drafts: NexiQSalesContentDraft[];
+    signalSync?: SignalDraftSyncResult;
+  }>(res);
+  return { drafts: body.drafts ?? [], signalSync: body.signalSync };
 }
 
 export async function listSalesCampaigns(): Promise<{

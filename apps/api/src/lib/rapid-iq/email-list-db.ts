@@ -40,6 +40,7 @@ function parseEntry(item: Record<string, unknown>): EmailListEntry | null {
     vertical: item.vertical,
     name: item.name,
     agencyName: item.agencyName,
+    state: item.state,
     source: item.source,
     psapId: item.psapId,
     createdAt: item.createdAt,
@@ -47,15 +48,19 @@ function parseEntry(item: Record<string, unknown>): EmailListEntry | null {
     unsubscribed: item.unsubscribed,
   });
   if (!parsed.success) return null;
-  // Preserve agencyName even if an older shared schema strip it on parse.
+  // Preserve agencyName/state even if an older shared schema strips them on parse.
   const rawAgency =
     typeof item.agencyName === "string" && item.agencyName.trim()
       ? item.agencyName.trim().slice(0, 300)
       : undefined;
-  if (rawAgency && !parsed.data.agencyName) {
-    return { ...parsed.data, agencyName: rawAgency };
-  }
-  return parsed.data;
+  const rawState =
+    typeof item.state === "string" && item.state.trim()
+      ? item.state.trim().slice(0, 80)
+      : undefined;
+  let entry = parsed.data;
+  if (rawAgency && !entry.agencyName) entry = { ...entry, agencyName: rawAgency };
+  if (rawState && !entry.state) entry = { ...entry, state: rawState };
+  return entry;
 }
 
 export async function getEmailListEntry(
@@ -185,6 +190,7 @@ export async function subscribeEmailList(
     vertical,
     name: opts.body.name?.trim() || existing?.name,
     agencyName: opts.body.agencyName?.trim() || existing?.agencyName,
+    state: opts.body.state?.trim() || existing?.state,
     source: opts.body.source ?? "manual",
     psapId: opts.body.psapId?.trim() || existing?.psapId,
     createdAt: existing?.createdAt ?? now,
@@ -338,12 +344,13 @@ export async function listActiveEmailListRecipients(
 }
 
 export function emailListEntriesToCsv(entries: EmailListEntry[]): string {
-  const header = "email,name,agencyName,vertical,source,status,createdAt,psapId";
+  const header = "email,name,agencyName,state,vertical,source,status,createdAt,psapId";
   const lines = entries.map((e) =>
     [
       e.email,
       csvEscape(e.name ?? ""),
       csvEscape(e.agencyName ?? ""),
+      csvEscape(e.state ?? ""),
       e.vertical,
       e.source,
       e.unsubscribed ? "unsubscribed" : "active",

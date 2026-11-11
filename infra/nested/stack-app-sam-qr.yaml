@@ -841,7 +841,7 @@ Resources:
         Variables:
           ENABLE_CAMPUS_ALERTS: "false"
           SMS_PROVIDER: mock
-          MOCK_SMS_PROVIDER: "true"
+          MOCK_SMS_PROVIDER: "false"
       Policies:
         - !Ref AppManagedPolicyQrNfcDynamo
         - !Ref AppManagedPolicyQrLocationDynamo

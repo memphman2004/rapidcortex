@@ -25,9 +25,15 @@ type ApolloPerson = {
   name?: string;
   title?: string;
   email?: string;
-  organization?: { name?: string };
+  state?: string;
+  organization?: { name?: string; state?: string };
   organization_name?: string;
 };
+
+function apolloPersonState(person: ApolloPerson): string | undefined {
+  const raw = person.state?.trim() || person.organization?.state?.trim() || "";
+  return raw ? raw.slice(0, 80) : undefined;
+}
 
 export type ApolloMarketingSyncResult = {
   vertical: EmailListVertical;
@@ -122,6 +128,7 @@ export async function syncApolloMarketingVertical(
           name: person.name,
           title: person.title,
           agencyName: person.organization?.name ?? person.organization_name,
+          state: apolloPersonState(person),
           source: "apollo",
           sourceId: person.id,
         });

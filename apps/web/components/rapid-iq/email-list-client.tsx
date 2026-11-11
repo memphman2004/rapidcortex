@@ -8,6 +8,7 @@ import {
   normalizeEmailListVertical,
   type EmailListEntry,
   type EmailListVertical,
+  type NexiQSalesContentDraft,
 } from "rapid-cortex-shared";
 import {
   addEmailListEntry,
@@ -120,6 +121,9 @@ export function EmailListClient({ canRemove, canAddToSignal = false }: Props) {
   const [addVertical, setAddVertical] = useState<EmailListVertical>("PSAP");
   const [busy, setBusy] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(() => new Set());
+  const [signalDrafts, setSignalDrafts] = useState<NexiQSalesContentDraft[]>([]);
+  const [selectedSignalDraftId, setSelectedSignalDraftId] = useState("");
+  const [signalCampaignId, setSignalCampaignId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const selectAllRef = useRef<HTMLInputElement>(null);
 
@@ -141,6 +145,43 @@ export function EmailListClient({ canRemove, canAddToSignal = false }: Props) {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const draftId = params.get("signalDraftId")?.trim() ?? "";
+    const campaignId = params.get("signalCampaignId")?.trim() ?? "";
+    if (draftId) setSelectedSignalDraftId(draftId);
+    if (campaignId) setSignalCampaignId(campaignId);
+  }, []);
+
+  useEffect(() => {
+    if (!canAddToSignal) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const { drafts } = await listSalesDrafts();
+        if (cancelled) return;
+        const next = drafts
+          .filter((d) => d.contentType === "newsletter" && d.status !== "archived")
+          .sort((a, b) => (a.weekOf ?? "").localeCompare(b.weekOf ?? ""));
+        setSignalDrafts(next);
+        setSelectedSignalDraftId((prev) => {
+          if (prev && next.some((d) => d.draftId === prev)) return prev;
+          if (signalCampaignId) {
+            const hit = next.find((d) => `newsletter:${d.newsletterSlug ?? ""}` === signalCampaignId);
+            if (hit) return hit.draftId;
+          }
+          return next[0]?.draftId ?? "";
+        });
+      } catch {
+        /* drafts optional for list browsing */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [canAddToSignal, signalCampaignId]);
+
   const tabPartitions = useMemo(() => {
     if (vertical === "ALL") return null;
     return new Set(emailListPartitionsForVertical(vertical));
@@ -154,7 +195,7 @@ export function EmailListClient({ canRemove, canAddToSignal = false }: Props) {
       if (statusFilter === "active" && isInactive(e)) return false;
       if (statusFilter === "inactive" && !isInactive(e)) return false;
       if (!q) return true;
-      const hay = `${e.email} ${e.name ?? ""} ${e.agencyName ?? ""} ${e.source}`.toLowerCase();
+      const hay = `${e.email} ${e.name ?? ""} ${e.agencyName ?? ""} ${e.state ?? ""} ${e.source}`.toLowerCase();
       return hay.includes(q);
     });
   }, [entries, tabPartitions, statusFilter, search]);
@@ -335,14 +376,26 @@ export function EmailListClient({ canRemove, canAddToSignal = false }: Props) {
     setError(null);
     setToast(null);
     try {
-      const drafts = await listSalesDrafts();
+      const { drafts } = await listSalesDrafts();
       const signalDrafts = drafts
         .filter((d) => d.contentType === "newsletter" && d.status !== "archived")
         .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-      const draft = signalDrafts[0];
+      const preferredId =
+        selectedSignalDraftId ||
+        (typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search).get("signalDraftId")
+          : null);
+      const draft =
+        (preferredId
+          ? signalDrafts.find((d) => d.draftId === preferredId)
+          : null) ??
+        (signalCampaignId
+          ? signalDrafts.find((d) => `newsletter:${d.newsletterSlug ?? ""}` === signalCampaignId)
+          : null) ??
+        signalDrafts[0];
       if (!draft) {
         setError(
-          "No Signal newsletter draft found. Publish an edition (or open Sales Automation → Content) so it can sync, then try again.",
+          "No Signal newsletter draft found. Open Sales Automation → Content so editions can sync, then try again.",
         );
         return;
       }
@@ -623,7 +676,7 @@ export function EmailListClient({ canRemove, canAddToSignal = false }: Props) {
         </div>
         <input
           type="search"
-          placeholder="Search email, name, company…"
+          placeholder="Search email, name, company, state…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="min-w-[14rem] flex-1 rounded border border-[#1e2130] bg-[#12141c] px-2.5 py-1.5 text-sm text-slate-200 placeholder:text-slate-600"
@@ -680,6 +733,29 @@ export function EmailListClient({ canRemove, canAddToSignal = false }: Props) {
         </button>
       </form>
 
+      {canAddToSignal && signalDrafts.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2 rounded border border-violet-500/25 bg-violet-500/5 px-3 py-2 text-sm text-violet-100">
+          <span className="text-xs font-semibold uppercase tracking-wide text-violet-300">
+            Signal campaign
+          </span>
+          <select
+            value={selectedSignalDraftId}
+            onChange={(e) => setSelectedSignalDraftId(e.target.value)}
+            className="min-w-[16rem] flex-1 rounded border border-violet-500/30 bg-[#12141c] px-2.5 py-1.5 text-sm text-slate-100"
+          >
+            {signalDrafts.map((d) => (
+              <option key={d.draftId} value={d.draftId}>
+                {(d.subject?.trim() || d.newsletterSlug || d.draftId) +
+                  (d.status === "draft" ? " · needs copy approval" : ` · ${d.status}`)}
+              </option>
+            ))}
+          </select>
+          <span className="text-[11px] text-violet-200/70">
+            Select addresses, then add them as draft recipients (no send until Approve &amp; send).
+          </span>
+        </div>
+      ) : null}
+
       {selectedVisibleCount > 0 ? (
         <div className="flex flex-wrap items-center gap-2 rounded border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-sm text-sky-100">
           <span>
@@ -698,7 +774,7 @@ export function EmailListClient({ canRemove, canAddToSignal = false }: Props) {
           {canAddToSignal ? (
             <button
               type="button"
-              disabled={busy}
+              disabled={busy || !selectedSignalDraftId}
               onClick={() => void onAddSelectedToSignal()}
               className="rounded border border-violet-500/40 bg-violet-500/10 px-2.5 py-1 text-xs font-semibold text-violet-200 disabled:opacity-50"
             >
@@ -736,6 +812,7 @@ export function EmailListClient({ canRemove, canAddToSignal = false }: Props) {
               <th className="px-3 py-2">Email</th>
               <th className="px-3 py-2">Name</th>
               <th className="px-3 py-2">Company</th>
+              <th className="px-3 py-2">State</th>
               <th className="px-3 py-2">Vertical</th>
               <th className="px-3 py-2">Status</th>
               <th className="px-3 py-2">Source</th>
@@ -746,13 +823,13 @@ export function EmailListClient({ canRemove, canAddToSignal = false }: Props) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={canRemove ? 9 : 8} className="px-3 py-6 text-center text-slate-500">
+                <td colSpan={canRemove ? 10 : 9} className="px-3 py-6 text-center text-slate-500">
                   Loading…
                 </td>
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={canRemove ? 9 : 8} className="px-3 py-6 text-center text-slate-500">
+                <td colSpan={canRemove ? 10 : 9} className="px-3 py-6 text-center text-slate-500">
                   No addresses match this filter.
                 </td>
               </tr>
@@ -785,6 +862,9 @@ export function EmailListClient({ canRemove, canAddToSignal = false }: Props) {
                     </td>
                     <td className={`px-3 py-2 ${inactive ? "text-slate-600" : "text-slate-400"}`}>
                       {row.agencyName ?? "—"}
+                    </td>
+                    <td className={`px-3 py-2 ${inactive ? "text-slate-600" : "text-slate-400"}`}>
+                      {row.state ?? "—"}
                     </td>
                     <td className="px-3 py-2">
                       <select

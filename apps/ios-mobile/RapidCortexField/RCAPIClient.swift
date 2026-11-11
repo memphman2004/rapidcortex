@@ -133,6 +133,10 @@ final class RCAPIClient: ObservableObject {
         case 401:
             throw RCAPIError.unauthorized
         case 403:
+            // Prefer API `message` (e.g. feature_not_enabled) over a generic forbidden string.
+            if let msg = decodeErrorMessage(data), !msg.isEmpty {
+                throw RCAPIError.serverError(403, msg)
+            }
             throw RCAPIError.forbidden
         case 404:
             throw RCAPIError.notFound
@@ -146,8 +150,8 @@ final class RCAPIClient: ObservableObject {
 
     private func decodeErrorMessage(_ data: Data) -> String? {
         if let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-            if let error = obj["error"] as? String { return error }
-            if let message = obj["message"] as? String { return message }
+            if let message = obj["message"] as? String, !message.isEmpty { return message }
+            if let error = obj["error"] as? String, !error.isEmpty { return error }
         }
         return nil
     }

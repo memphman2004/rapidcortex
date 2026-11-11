@@ -31,6 +31,13 @@ async function main() {
     monetizationPlanId: "command",
     subscriptionStatus: "active" as const,
     planId: "command",
+    /** CAD required for Responder nav; includes NEXCORT_RESPONDER for field_responder QA. */
+    productLicenses: {
+      products: ["NEXCORT_CORE", "NEXCORT_CAD", "NEXCORT_RESPONDER"],
+      enabledAt: now,
+      lastModifiedBy: "seed-test-agency",
+      lastModifiedAt: now,
+    },
     config: {
       agencyId,
       protocolPackId: "default",

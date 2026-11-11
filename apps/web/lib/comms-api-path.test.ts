@@ -93,6 +93,17 @@ describe("resolveUpstreamApiBase", () => {
     expect(resolveUpstreamApiBase("/api/triage/queue")).toBe("https://stack1.example.com");
     expect(isStack2ApiPath("/api/triage/queue")).toBe(false);
   });
+
+  it("routes business-card analytics to stack 1 (not AppSam2 admin analytics)", () => {
+    process.env.API_UPSTREAM_BASE = "https://stack1.example.com";
+    process.env.API_UPSTREAM_BASE_2 = "https://stack2.example.com";
+    expect(isStack2ApiPath("/api/admin/analytics/business-cards")).toBe(false);
+    expect(isStack2ApiPath("/api/admin/analytics/summary")).toBe(true);
+    expect(resolveUpstreamApiBase("/api/admin/analytics/business-cards")).toBe(
+      "https://stack1.example.com",
+    );
+    expect(resolveUpstreamApiBase("/api/admin/analytics/summary")).toBe("https://stack2.example.com");
+  });
 });
 
 describe("isCommsPlatformApiPath", () => {

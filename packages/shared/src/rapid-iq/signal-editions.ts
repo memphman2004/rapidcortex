@@ -1,9 +1,9 @@
 /**
  * Canonical NexCortiQ Signal edition catalog for Sales Automation sync.
- * When an edition is `published` here, Sales Automation upserts a newsletter
- * content draft for RC admin approval (marketing site publish = source of truth).
+ * Keep statuses / slugs aligned with apps/marketing/lib/newsletter/newsletter-data.ts.
  *
- * Keep in sync with apps/marketing/lib/newsletter/newsletter-data.ts statuses.
+ * Sales Automation upserts a newsletter content draft for every edition here
+ * (published + upcoming) so RC admin can approve copy before send.
  */
 
 export type SignalEditionStatus = "published" | "upcoming";
@@ -22,7 +22,7 @@ export type SignalEdition = {
 
 export const SIGNAL_SITE_ORIGIN = "https://www.nexcortiq.us";
 
-/** Published editions appear automatically in Sales Automation Content for approval. */
+/** All Vol. 1 Signal editions — appear in Sales Automation Content for approval. */
 export const SIGNAL_EDITIONS: readonly SignalEdition[] = [
   {
     slug: "vol1-no1-introduction",
@@ -43,6 +43,7 @@ export const SIGNAL_EDITIONS: readonly SignalEdition[] = [
     subtitle: "High-Volume Season. The Same Urgency.",
     publishDate: "2026-12-01",
     status: "upcoming",
+    coverTagline: "More calls. Thinner staffing. This is where NexCortiQ earns its place.",
   },
   {
     slug: "vol1-no3-pre-arrival-iq",
@@ -52,6 +53,7 @@ export const SIGNAL_EDITIONS: readonly SignalEdition[] = [
     subtitle: "What If Responders Knew Before They Arrived?",
     publishDate: "2027-01-01",
     status: "upcoming",
+    coverTagline: "Closing the gap between dispatch and arrival.",
   },
   {
     slug: "vol1-no4-ng911-radio-intelligence",
@@ -61,12 +63,100 @@ export const SIGNAL_EDITIONS: readonly SignalEdition[] = [
     subtitle: "Command Clarity in Real Time",
     publishDate: "2027-02-01",
     status: "upcoming",
+    coverTagline: "Every transmission. Every unit. Every incident. In real time.",
+  },
+  {
+    slug: "vol1-no5-iq-vision",
+    volume: 1,
+    issue: 5,
+    title: "iQ Vision — Scene Intelligence",
+    subtitle: "See the Scene Before Units Arrive",
+    publishDate: "2027-03-01",
+    status: "upcoming",
+    coverTagline: "Visual intelligence, delivered to dispatch in real time.",
+  },
+  {
+    slug: "vol1-no6-ai-call-assist",
+    volume: 1,
+    issue: 6,
+    title: "AI Call Assist — Nova Sonic",
+    subtitle: "Every Call. Handled with Intelligence.",
+    publishDate: "2027-04-01",
+    status: "upcoming",
+    coverTagline: "Augmenting every call — not replacing the dispatcher.",
+  },
+  {
+    slug: "vol1-no7-audio-intelligence",
+    volume: 1,
+    issue: 7,
+    title: "Audio Intelligence",
+    subtitle: "Hear What Your Dispatchers Can't",
+    publishDate: "2027-05-01",
+    status: "upcoming",
+    coverTagline: "The sounds behind the call — analyzed and surfaced automatically.",
+  },
+  {
+    slug: "vol1-no8-cad-integration",
+    volume: 1,
+    issue: 8,
+    title: "CAD Integration Layer",
+    subtitle: "One Platform. Every CAD System.",
+    publishDate: "2027-06-01",
+    status: "upcoming",
+    coverTagline: "NexCortiQ works with your CAD — not instead of it.",
+  },
+  {
+    slug: "vol1-no9-campus-safety",
+    volume: 1,
+    issue: 9,
+    title: "Campus Safety Intelligence",
+    subtitle: "Every Student. Every Building. Every Second.",
+    publishDate: "2027-07-01",
+    status: "upcoming",
+    coverTagline: "Protecting every campus — before the first unit arrives.",
+  },
+  {
+    slug: "vol1-no10-transit-safety",
+    volume: 1,
+    issue: 10,
+    title: "Transit Safety Intelligence",
+    subtitle: "Every Route. Every Station. Every Passenger.",
+    publishDate: "2027-08-01",
+    status: "upcoming",
+    coverTagline: "Safety intelligence across every route, station, and vehicle.",
+  },
+  {
+    slug: "vol1-no11-nexiq-signal",
+    volume: 1,
+    issue: 11,
+    title: "NexiQ Signal Intelligence",
+    subtitle: "The Procurement Layer No One Else Has",
+    publishDate: "2027-09-01",
+    status: "upcoming",
+    coverTagline: "We track the signals so your agency never misses an opportunity.",
+  },
+  {
+    slug: "vol1-no12-year-in-review",
+    volume: 1,
+    issue: 12,
+    title: "Year One in Review",
+    subtitle: "What We Built. What Changed. What's Next.",
+    publishDate: "2027-10-01",
+    status: "upcoming",
+    coverTagline: "One year. Four verticals. One platform. What comes next is bigger.",
   },
 ] as const;
 
 export function getPublishedSignalEditions(): SignalEdition[] {
   return SIGNAL_EDITIONS.filter((e) => e.status === "published").sort((a, b) =>
     b.publishDate.localeCompare(a.publishDate),
+  );
+}
+
+/** Editions that should appear in Sales Automation for copy approval (all statuses). */
+export function getSignalEditionsForSalesSync(): SignalEdition[] {
+  return [...SIGNAL_EDITIONS].sort(
+    (a, b) => a.volume - b.volume || a.issue - b.issue || a.publishDate.localeCompare(b.publishDate),
   );
 }
 

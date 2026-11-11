@@ -67,10 +67,12 @@ describe("email list schemas", () => {
       vertical: "PSAP",
       name: "Jane Chief",
       agencyName: "Example County PSAP",
+      state: "GA",
       source: "psap_prospect",
       psapId: "psap-1",
     });
     expect(parsed.agencyName).toBe("Example County PSAP");
+    expect(parsed.state).toBe("GA");
     expect(parsed.name).toBe("Jane Chief");
   });
 

@@ -60,6 +60,8 @@ export const emailListEntrySchema = z.object({
   name: z.string().trim().max(200).optional(),
   /** Agency / company / PSAP name for campaign export and list UI. */
   agencyName: z.string().trim().max(300).optional(),
+  /** US state / region (often from Apollo or CSV import). */
+  state: z.string().trim().max(80).optional(),
   source: z.enum(EMAIL_LIST_SOURCES),
   psapId: z.string().trim().max(128).optional(),
   createdAt: z.string().min(1),
@@ -74,6 +76,7 @@ export const addEmailListEntryBodySchema = z
     vertical: emailListVerticalSchema,
     name: z.string().trim().max(200).optional(),
     agencyName: z.string().trim().max(300).optional(),
+    state: z.string().trim().max(80).optional(),
     source: z.enum(EMAIL_LIST_SOURCES).optional().default("manual"),
     psapId: z.string().trim().max(128).optional(),
   })

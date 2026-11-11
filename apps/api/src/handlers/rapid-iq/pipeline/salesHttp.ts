@@ -96,7 +96,10 @@ import {
   subscribeEmailList,
   unsubscribeEmailEverywhere,
 } from "../../../lib/rapid-iq/email-list-db.js";
-import { upsertMarketingContact } from "../../../lib/rapid-iq/marketing-contacts-upsert.js";
+import {
+  enrichEmailListEntriesWithLeadState,
+  upsertMarketingContact,
+} from "../../../lib/rapid-iq/marketing-contacts-upsert.js";
 import { syncApolloMarketingVertical } from "../../../lib/rapid-iq/apollo-marketing-sync.js";
 import { isSuppressedInSES } from "../../../lib/ses/sesSuppression.js";
 
@@ -237,6 +240,18 @@ export async function handleSalesAutomationHttp(
   }
 
   if (method === "GET" && path.includes("/sales-automation/campaigns")) {
+    // Keep Signal content drafts in sync whenever Campaigns is opened.
+    try {
+      await syncPublishedSignalDrafts();
+    } catch (err) {
+      console.warn(
+        JSON.stringify({
+          msg: "rapid_iq_signal_edition_sync_failed",
+          via: "campaigns",
+          error: err instanceof Error ? err.message : String(err),
+        }),
+      );
+    }
     let conferences: Awaited<ReturnType<ConferenceRepository["listByAgency"]>> = [];
     if (env.conferencesTable) {
       try {
@@ -271,7 +286,7 @@ export async function handleSalesAutomationHttp(
   }
 
   if (method === "GET" && (path.endsWith("/sales-automation/drafts") || path.endsWith("/sales-automation/drafts/"))) {
-    // Published marketing Signal editions → Content drafts for approval (1A).
+    // Signal editions (published + upcoming) → Content drafts for approval.
     let signalSync: Awaited<ReturnType<typeof syncPublishedSignalDrafts>> | undefined;
     try {
       signalSync = await syncPublishedSignalDrafts();
@@ -279,11 +294,12 @@ export async function handleSalesAutomationHttp(
       console.warn(
         JSON.stringify({
           msg: "rapid_iq_signal_edition_sync_failed",
+          via: "drafts",
           error: err instanceof Error ? err.message : String(err),
         }),
       );
     }
-    const drafts = await listSalesDrafts(50);
+    const drafts = await listSalesDrafts(100);
     return ok({ drafts, signalSync });
   }
 
@@ -509,13 +525,13 @@ async function handleEmailList(
     if (verticalRaw) {
       const upper = verticalRaw.toUpperCase();
       if (upper === "ALL") {
-        const entries = await listAllEmailListEntries();
+        const entries = await enrichEmailListEntriesWithLeadState(await listAllEmailListEntries());
         return ok({ csv: emailListEntriesToCsv(entries), count: entries.length, vertical: "ALL" });
       }
       const v = emailListVerticalSchema.safeParse(upper);
       if (!v.success) return badRequestFromZod(v.error);
       const uiVertical = normalizeEmailListVertical(v.data);
-      const entries = await listEmailListEntries(uiVertical);
+      const entries = await enrichEmailListEntriesWithLeadState(await listEmailListEntries(uiVertical));
       const csv = emailListEntriesToCsv(entries);
       return ok({
         csv,
@@ -524,7 +540,7 @@ async function handleEmailList(
         partitions: emailListPartitionsForVertical(uiVertical),
       });
     }
-    const entries = await listAllEmailListEntries();
+    const entries = await enrichEmailListEntriesWithLeadState(await listAllEmailListEntries());
     return ok({ csv: emailListEntriesToCsv(entries), count: entries.length, vertical: "ALL" });
   }
 
@@ -536,14 +552,14 @@ async function handleEmailList(
       const v = emailListVerticalSchema.safeParse(verticalRaw);
       if (!v.success) return badRequestFromZod(v.error);
       const uiVertical = normalizeEmailListVertical(v.data);
-      const entries = await listEmailListEntries(uiVertical);
+      const entries = await enrichEmailListEntriesWithLeadState(await listEmailListEntries(uiVertical));
       return ok({
         entries,
         vertical: uiVertical,
         partitions: emailListPartitionsForVertical(uiVertical),
       });
     }
-    const entries = await listAllEmailListEntries();
+    const entries = await enrichEmailListEntriesWithLeadState(await listAllEmailListEntries());
     return ok({ entries, vertical: "ALL" });
   }
 

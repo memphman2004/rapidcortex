@@ -179,6 +179,8 @@ export function isSam3ApiPath(path: string): boolean {
 
 export function isStack2ApiPath(path: string): boolean {
   const p = path.startsWith("/") ? path : `/${path}`;
+  // Card analytics is on AppSamBusinessCards (primary HttpApi), not AppSam2 analytics.
+  if (/^\/api\/admin\/analytics\/business-cards(\/|$)/.test(p)) return false;
   return STACK2_PATH_TESTS.some((re) => re.test(p));
 }
 

@@ -80,7 +80,17 @@ export function AdminDirectory() {
         <Link className="text-sm underline" href={`${base}/admin/business-cards?status=archived`}>Archived</Link>
         <Link className="text-sm underline" href={`${base}/admin/business-cards/new`}>Create</Link>
       </div>
-      {message ? <p className="text-sm text-slate-300">{message}</p> : null}
+      {message ? (
+        <p
+          className={`text-sm ${
+            /html|json|failed|unauthorized|forbidden|not found|misrouted|blocked/i.test(message)
+              ? "text-rose-300"
+              : "text-slate-300"
+          }`}
+        >
+          {message}
+        </p>
+      ) : null}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="text-slate-400">

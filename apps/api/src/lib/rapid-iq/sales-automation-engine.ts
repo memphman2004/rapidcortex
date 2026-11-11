@@ -10,7 +10,7 @@ import {
   buildSignalEditionEmailBody,
   buildSignalEditionSubject,
   emailListVerticalsForCampaign,
-  getPublishedSignalEditions,
+  getSignalEditionsForSalesSync,
   normalizeSalesAutomationVertical,
   signalEditionAbsolutePdfUrl,
   signalEditionCampaignId,
@@ -1012,7 +1012,7 @@ export async function queueNewsletterFromEmailList(draft: RapidIqSalesContentDra
 }
 
 /**
- * Upsert Sales Automation newsletter drafts for every published Signal edition.
+ * Upsert Sales Automation newsletter drafts for every Signal edition (published + upcoming).
  * Does not overwrite approved/sent/archived drafts. Refreshes draft copy for status=draft.
  */
 export async function syncPublishedSignalDrafts(): Promise<{
@@ -1020,7 +1020,7 @@ export async function syncPublishedSignalDrafts(): Promise<{
   refreshed: number;
   skipped: number;
 }> {
-  const editions = getPublishedSignalEditions();
+  const editions = getSignalEditionsForSalesSync();
   let created = 0;
   let refreshed = 0;
   let skipped = 0;

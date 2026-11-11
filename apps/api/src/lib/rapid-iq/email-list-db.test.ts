@@ -98,7 +98,7 @@ describe("email-list-db", () => {
         createdAt: "2026-11-05T00:00:00.000Z",
       },
     ]);
-    expect(csv).toContain("email,name,agencyName,vertical,source,status,createdAt,psapId");
+    expect(csv).toContain("email,name,agencyName,state,vertical,source,status,createdAt,psapId");
     expect(csv).toContain("a@b.com");
     expect(csv).toContain("active");
   });

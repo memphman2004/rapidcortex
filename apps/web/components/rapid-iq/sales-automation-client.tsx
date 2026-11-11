@@ -44,6 +44,10 @@ import {
 } from "@/lib/rapid-iq/sales-automation-api";
 import { parseCampaignCsv } from "@/lib/rapid-iq/parse-campaign-csv";
 
+function emailListHrefForSignalDraft(draftId: string): string {
+  return `/rc-admin/email-list?signalDraftId=${encodeURIComponent(draftId)}`;
+}
+
 type Tab = "queue" | "active" | "content" | "campaigns";
 
 function apolloRate(part: number, whole: number): string {
@@ -290,19 +294,37 @@ function ContentDraftCard({
   const [linkedinText, setLinkedinText] = useState(draft.linkedinText ?? "");
   const busy = busyId === draft.draftId;
   const canEdit = canManage && draft.status === "draft";
+  const isSignal = draft.contentType === "newsletter";
+  const canAddRecipients =
+    canManage && isSignal && (draft.status === "approved" || draft.status === "draft");
 
   return (
-    <div className="rounded-lg border border-white/[0.06] bg-[#071224] p-3">
+    <div
+      className={`rounded-lg border p-3 ${
+        isSignal ? "border-violet-500/25 bg-[#0b1220]" : "border-white/[0.06] bg-[#071224]"
+      }`}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <span className="rounded bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-violet-300">
-              {draft.contentType.replace(/_/g, " ").toUpperCase()}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span
+              className={`rounded px-1.5 py-0.5 text-[9px] font-semibold ${
+                isSignal
+                  ? "bg-violet-500/20 text-violet-200"
+                  : "bg-violet-500/10 text-violet-300"
+              }`}
+            >
+              {isSignal ? "SIGNAL" : draft.contentType.replace(/_/g, " ").toUpperCase()}
             </span>
+            {draft.newsletterSlug ? (
+              <span className="text-[10px] text-slate-500">{draft.newsletterSlug}</span>
+            ) : null}
             {draft.weekOf ? <span className="text-[10px] text-slate-500">Week of {draft.weekOf}</span> : null}
             {draft.status !== "draft" ? (
               <span className="text-[9px] font-bold uppercase text-emerald-400">{draft.status}</span>
-            ) : null}
+            ) : (
+              <span className="text-[9px] font-bold uppercase text-amber-400">needs approval</span>
+            )}
           </div>
           {editing ? (
             <div className="mt-2 space-y-2">
@@ -404,7 +426,7 @@ function ContentDraftCard({
               onClick={() => {
                 if (draft.contentType === "newsletter") {
                   const ok = window.confirm(
-                    "Approve this NexCortiQ Signal copy and queue recipients as DRAFTS?\n\nNo email will send until you approve the newsletter batch (second admin step).",
+                    "Approve this NexCortiQ Signal copy and queue Email List recipients as DRAFTS?\n\nNo email will send until you Approve & send Signal (second admin step). You can also add more addresses from Email List after this.",
                   );
                   if (!ok) return;
                 }
@@ -423,6 +445,14 @@ function ContentDraftCard({
                   ? "Approve copy (queue drafts)"
                   : "Approve draft"}
             </button>
+          ) : null}
+          {canAddRecipients ? (
+            <a
+              href={emailListHrefForSignalDraft(draft.draftId)}
+              className="rounded border border-violet-500/40 px-2.5 py-1 text-center text-[10px] font-semibold text-violet-200 hover:bg-violet-500/10"
+            >
+              Add from Email List
+            </a>
           ) : null}
           {canManage ? (
             <button
@@ -1412,7 +1442,18 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
   }
 
   const sequences = sequencesQ.data ?? [];
-  const drafts = draftsQ.data ?? [];
+  const drafts = draftsQ.data?.drafts ?? [];
+  const signalDrafts = useMemo(
+    () =>
+      drafts
+        .filter((d) => d.contentType === "newsletter")
+        .sort((a, b) => (a.weekOf ?? "").localeCompare(b.weekOf ?? "") || a.draftId.localeCompare(b.draftId)),
+    [drafts],
+  );
+  const otherDrafts = useMemo(
+    () => drafts.filter((d) => d.contentType !== "newsletter"),
+    [drafts],
+  );
   const pendingSeqs = sequences.filter((s) => s.status === "draft");
   const activeSeqs = sequences.filter((s) => s.status === "active");
   const pendingDrafts = drafts.filter((d) => d.status === "draft");
@@ -1699,27 +1740,63 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
         ) : null}
 
         {!loading && tab === "content" ? (
-          <div className="space-y-3">
-            <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-              Content library
-            </h2>
-            {drafts.map((d) => (
-              <ContentDraftCard
-                key={d.draftId}
-                draft={d}
-                busyId={busyId}
-                canManage={canManage}
-                onApprove={(id) => approveDraft.mutate(id)}
-                onSave={(id, patch) => saveDraft.mutate({ draftId: id, patch })}
-                onDelete={(id) => {
-                  if (window.confirm("Delete this draft?")) deleteDraft.mutate(id);
-                }}
-              />
-            ))}
-            {drafts.length === 0 ? (
-              <div className="py-16 text-center text-sm text-slate-600">
-                No drafts yet. The monthly Signal composer writes The NexCortiQ Signal here (2nd Monday).
+          <div className="space-y-6">
+            <section className="space-y-3">
+              <div>
+                <h2 className="text-[10px] font-bold uppercase tracking-widest text-violet-300/80">
+                  The NexCortiQ Signal
+                </h2>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Editions sync automatically from the marketing catalog. Approve copy first, add
+                  recipients from Email List if needed, then Approve &amp; send on Campaigns.
+                </p>
+                {draftsQ.data?.signalSync ? (
+                  <p className="mt-1 text-[10px] text-slate-600">
+                    Last sync: {draftsQ.data.signalSync.created} new ·{" "}
+                    {draftsQ.data.signalSync.refreshed} refreshed · {draftsQ.data.signalSync.skipped}{" "}
+                    skipped
+                  </p>
+                ) : null}
               </div>
+              {signalDrafts.map((d) => (
+                <ContentDraftCard
+                  key={d.draftId}
+                  draft={d}
+                  busyId={busyId}
+                  canManage={canManage}
+                  onApprove={(id) => approveDraft.mutate(id)}
+                  onSave={(id, patch) => saveDraft.mutate({ draftId: id, patch })}
+                  onDelete={(id) => {
+                    if (window.confirm("Delete this draft?")) deleteDraft.mutate(id);
+                  }}
+                />
+              ))}
+              {signalDrafts.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-violet-500/20 px-4 py-8 text-center text-sm text-slate-600">
+                  No Signal editions yet. Open this tab again to sync, or publish an issue on
+                  nexcortiq.us/newsletter.
+                </div>
+              ) : null}
+            </section>
+            {otherDrafts.length > 0 ? (
+              <section className="space-y-3">
+                <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                  Other content
+                </h2>
+                {otherDrafts.map((d) => (
+                  <ContentDraftCard
+                    key={d.draftId}
+                    draft={d}
+                    busyId={busyId}
+                    canManage={canManage}
+                    onApprove={(id) => approveDraft.mutate(id)}
+                    onSave={(id, patch) => saveDraft.mutate({ draftId: id, patch })}
+                    onDelete={(id) => {
+                      if (window.confirm("Delete this draft?")) deleteDraft.mutate(id);
+                    }}
+                  />
+                ))}
+              </section>
             ) : null}
           </div>
         ) : null}
@@ -1763,7 +1840,15 @@ export function SalesAutomationClient({ canManage = false }: { canManage?: boole
                           {batch.completedCount} done · {batch.suppressedCount} held
                         </div>
                       </div>
-                      <div className="flex shrink-0 items-center gap-2">
+                      <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                        {canManage && isNewsletterCampaignId(batch.campaignId) ? (
+                          <a
+                            href={`/rc-admin/email-list?signalCampaignId=${encodeURIComponent(batch.campaignId)}`}
+                            className="rounded border border-violet-500/40 px-3 py-1.5 text-[10px] font-semibold text-violet-200 hover:bg-violet-500/10"
+                          >
+                            Add from Email List
+                          </a>
+                        ) : null}
                         {canManage && batch.draftCount > 0 ? (
                           <button
                             type="button"

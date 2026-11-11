@@ -8,9 +8,10 @@
  */
 
 import { randomUUID } from "node:crypto";
-import { GetCommand, PutCommand, UpdateCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { BatchGetCommand, GetCommand, PutCommand, UpdateCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import {
   leadVerticalToEmailListVertical,
+  type EmailListEntry,
   type EmailListSource,
   type EmailListVertical,
   type LeadVertical,
@@ -240,6 +241,11 @@ export async function upsertMarketingContact(
         expr += ", agencyName = if_not_exists(agencyName, :agencyName)";
         values[":agencyName"] = input.agencyName.trim();
       }
+      if (input.state?.trim()) {
+        expr += ", #st = if_not_exists(#st, :state)";
+        names["#st"] = "state";
+        values[":state"] = input.state.trim();
+      }
       await ddb.send(
         new UpdateCommand({
           TableName: table,
@@ -263,6 +269,7 @@ export async function upsertMarketingContact(
         vertical: emailListVertical,
         name: displayName(input),
         agencyName: input.agencyName?.trim() || undefined,
+        state: input.state?.trim() || undefined,
         source: source as EmailListSource,
       },
       createdBy: `system:${source}`,
@@ -356,6 +363,58 @@ export async function updateMarketingLeadEngagementByToken(
     }),
   );
   return { email };
+}
+
+/**
+ * Fill missing `state` on email-list rows from MARKETING_LEADS PROFILE (Apollo/CSV already
+ * store state there). Keeps the Email List UI accurate without a full re-sync.
+ */
+export async function enrichEmailListEntriesWithLeadState(
+  entries: EmailListEntry[],
+): Promise<EmailListEntry[]> {
+  const table = marketingTable();
+  if (!table || entries.length === 0) return entries;
+
+  const need = entries.filter((e) => !e.state?.trim()).map((e) => e.email.trim().toLowerCase());
+  if (need.length === 0) return entries;
+
+  const stateByEmail = new Map<string, string>();
+  for (let i = 0; i < need.length; i += 100) {
+    const chunk = need.slice(i, i + 100);
+    try {
+      const res = await ddb.send(
+        new BatchGetCommand({
+          RequestItems: {
+            [table]: {
+              Keys: chunk.map((email) => ({ pk: `LEAD#${email}`, sk: "PROFILE" })),
+              ProjectionExpression: "email, #s",
+              ExpressionAttributeNames: { "#s": "state" },
+            },
+          },
+        }),
+      );
+      for (const item of res.Responses?.[table] ?? []) {
+        const email = typeof item.email === "string" ? item.email.trim().toLowerCase() : "";
+        const state = typeof item.state === "string" ? item.state.trim().slice(0, 80) : "";
+        if (email && state) stateByEmail.set(email, state);
+      }
+    } catch (err) {
+      console.warn(
+        JSON.stringify({
+          msg: "email_list_state_enrich_failed",
+          error: err instanceof Error ? err.message : String(err),
+        }),
+      );
+      break;
+    }
+  }
+
+  if (stateByEmail.size === 0) return entries;
+  return entries.map((entry) => {
+    if (entry.state?.trim()) return entry;
+    const state = stateByEmail.get(entry.email.trim().toLowerCase());
+    return state ? { ...entry, state } : entry;
+  });
 }
 
 /** Query marketing leads by vertical via GSI (falls back to empty if GSI missing). */

@@ -3,7 +3,7 @@
  *
  * Priority:
  *   1. Safe ?next= query param
- *   2. Vertical workspace URL for campus / venue / hospital / transit users
+ *   2. Vertical workspace URL for campus / venue / hospital / transit / call_assist / responder
  *   3. /rc-admin for platform staff
  *   4. /dashboard for 911 Centers/PSAPs agency users
  */
@@ -18,7 +18,15 @@ export interface AuthenticatedUser {
   email?: string;
 }
 
-const VERTICAL_WORKSPACES = new Set(["campus", "venue", "hospital", "transit", "call_assist"]);
+/** Product verticals with their own home (not the PSAP `/dashboard` hub). */
+const VERTICAL_WORKSPACES = new Set([
+  "campus",
+  "venue",
+  "hospital",
+  "transit",
+  "call_assist",
+  "responder",
+]);
 
 const PLATFORM_ROLES = new Set(["rcsuperadmin", "rcadmin", "rcitadmin", "platform_owner"]);
 
@@ -38,6 +46,7 @@ export function getPostAuthRedirect(
 
   const vertical = user.vertical?.trim() || inferVerticalFromRole(role);
   if (vertical && VERTICAL_WORKSPACES.has(vertical)) {
+    // field_responder → vertical "responder" → buildWorkspaceUrl → /responder
     return buildWorkspaceUrl(vertical, role, user.agencyId ?? "");
   }
 

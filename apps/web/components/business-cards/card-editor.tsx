@@ -88,9 +88,19 @@ export function CardEditor({ mode, profileId }: Props) {
         setSaveState(profile.status === "active" ? "published" : "saved");
         setReady(true);
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         setReady(true);
-        if (mode === "self") setMessage("Save creates your card. It stays private until you publish.");
+        const detail = error instanceof Error ? error.message : "Request failed";
+        if (mode === "self") {
+          setMessage(
+            detail.toLowerCase().includes("not found") || (error as { status?: number })?.status === 404
+              ? "Save creates your card. It stays private until you publish."
+              : `Could not load your card: ${detail}`,
+          );
+          return;
+        }
+        setMessage(`Could not load card: ${detail}`);
+        setSaveState("error");
       });
   }, [mode, profileId]);
 

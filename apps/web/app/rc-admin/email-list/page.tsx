@@ -23,10 +23,11 @@ export default async function RcAdminEmailListPage() {
       <div>
         <h1 className="text-2xl font-semibold text-white">Email List</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Marketing email list by vertical (PSAP, Campus, Venue, Transit). Approving a Signal draft in
-          Sales Automation queues all active subscribers automatically; use checkboxes here to add more
-          selected addresses to the latest Signal campaign. Campaign emails include an automatic
-          unsubscribe link; inactive and SES-suppressed addresses are never sent to.
+          Marketing email list by vertical (PSAP, Campus, Venue, Transit). Signal editions appear in
+          Sales Automation → Content for approval. After you approve copy, pick a Signal campaign here,
+          select addresses, and add them as draft recipients — then Approve &amp; send from Campaigns.
+          Campaign emails include an unsubscribe link; inactive and SES-suppressed addresses are never
+          sent to.
         </p>
       </div>
       <EmailListClient canRemove={canRemove} canAddToSignal={canRemove} />

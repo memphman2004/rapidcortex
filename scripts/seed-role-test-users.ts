@@ -35,6 +35,8 @@ type TestRow = {
   cognitoGroup?: string;
   /** Optional `custom:agencyVertical` (campus / venue / transit / pilot). */
   agencyVertical?: string;
+  /** Optional `custom:responder_role` (officer | firefighter | ems | unit_commander). */
+  responderRole?: string;
   /**
    * Clear per-user TOTP preference. The pool `MfaConfiguration` is `ON`, so Cognito
    * still issues `MFA_SETUP` until a token is enrolled. NexCort iQ Mobile
@@ -191,6 +193,34 @@ const ACCOUNTS: TestRow[] = [
     cognitoGroup: "TRANSIT_OPERATOR",
   },
   {
+    email: "responder-officer@appsondemand.net",
+    customRole: "field_responder",
+    agencyId: TEST_AGENCY,
+    cognitoGroup: "field-responder",
+    responderRole: "officer",
+  },
+  {
+    email: "responder-firefighter@appsondemand.net",
+    customRole: "field_responder",
+    agencyId: TEST_AGENCY,
+    cognitoGroup: "field-responder",
+    responderRole: "firefighter",
+  },
+  {
+    email: "responder-ems@appsondemand.net",
+    customRole: "field_responder",
+    agencyId: TEST_AGENCY,
+    cognitoGroup: "field-responder",
+    responderRole: "ems",
+  },
+  {
+    email: "responder-commander@appsondemand.net",
+    customRole: "field_responder",
+    agencyId: TEST_AGENCY,
+    cognitoGroup: "field-responder",
+    responderRole: "unit_commander",
+  },
+  {
     email: "CallAssist@appsondemand.net",
     customRole: "call_assist_admin",
     agencyId: "kcpd",
@@ -251,6 +281,9 @@ function desiredAttributes(row: TestRow) {
   if (row.agencyVertical) {
     base.push({ Name: "custom:agencyVertical", Value: row.agencyVertical });
   }
+  if (row.responderRole) {
+    base.push({ Name: "custom:responder_role", Value: row.responderRole });
+  }
   return base;
 }
 
@@ -297,6 +330,7 @@ const POOL_CUSTOM_ATTRS: { addName: string; poolName: string }[] = [
   { addName: "planId", poolName: "custom:planId" },
   { addName: "subStatus", poolName: "custom:subStatus" },
   { addName: "agencyVertical", poolName: "custom:agencyVertical" },
+  { addName: "responder_role", poolName: "custom:responder_role" },
 ];
 
 const VERTICAL_COGNITO_GROUPS: { name: string; description: string }[] = [
@@ -309,6 +343,10 @@ const VERTICAL_COGNITO_GROUPS: { name: string; description: string }[] = [
   { name: "CALL_ASSIST_ADMIN", description: "Call Assist administrator — non-emergency AI config" },
   { name: "CALL_ASSIST_SUPERVISOR", description: "Call Assist supervisor — live sessions, QA, analytics" },
   { name: "CALL_ASSIST_OPERATOR", description: "Call Assist operator — live non-emergency monitor" },
+  {
+    name: "field-responder",
+    description: "iQ Responder field unit dashboard (officer / firefighter / ems / unit_commander)",
+  },
   ...Object.entries(COGNITO_VERTICAL_GROUP_DESCRIPTIONS).map(([name, description]) => ({
     name,
     description,

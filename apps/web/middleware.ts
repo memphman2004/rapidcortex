@@ -1007,7 +1007,8 @@ async function guardResponderDashboard(request: NextRequest): Promise<NextRespon
     return redirectToRoleAwareHome(request, user, defaultJurisdictionSlug());
   }
 
-  if (pathname === "/responder" || pathname === "/responder/") {
+  // Normalize trailing slash only — `/responder` is the home, not an empty shell.
+  if (pathname === "/responder/") {
     return redirectPublic(request, "/responder");
   }
 

@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   buildSignalEditionSubject,
   getPublishedSignalEditions,
+  getSignalEditionsForSalesSync,
   isNewsletterCampaignId,
+  SIGNAL_EDITIONS,
   signalEditionCampaignId,
   signalEditionDraftId,
   signalEditionUrl,
@@ -14,6 +16,13 @@ describe("signal editions catalog", () => {
     expect(published.length).toBeGreaterThanOrEqual(1);
     expect(published.some((e) => e.slug === "vol1-no1-introduction")).toBe(true);
     expect(published.every((e) => e.status === "published")).toBe(true);
+  });
+
+  it("syncs all Vol. 1 editions into Sales Automation for approval", () => {
+    const forSales = getSignalEditionsForSalesSync();
+    expect(forSales.length).toBe(SIGNAL_EDITIONS.length);
+    expect(forSales.length).toBe(12);
+    expect(forSales.map((e) => e.slug)).toContain("vol1-no12-year-in-review");
   });
 
   it("builds stable draft and campaign ids", () => {

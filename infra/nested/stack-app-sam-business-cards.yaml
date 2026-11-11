@@ -43,7 +43,7 @@ Globals:
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
         COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
         COGNITO_ISSUER: !Ref ImportedCognitoIssuer
-        ENABLE_BUSINESS_CARDS: "false"
+        ENABLE_BUSINESS_CARDS: "true"
         BIZCARD_TABLE_NAME: !Ref BusinessCardsTable
         BIZCARD_PHOTO_BUCKET: !Ref BusinessCardPhotoBucket
         BIZCARD_PUBLIC_BASE_URL: https://www.nexcortiq.us

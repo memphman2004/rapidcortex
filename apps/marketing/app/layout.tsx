@@ -16,6 +16,8 @@ const inter = Inter({
 const siteUrl = getSiteUrl();
 const defaultOgImage = buildOgShareImage(`${SITE_NAME} — branded preview`);
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-NGT17QK1LW";
+/** Google Tag Manager — remove direct GA gtag below once GA4 Configuration tag is published in GTM. */
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID ?? "GTM-M33PD9HM";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -93,6 +95,15 @@ export default function RootLayout({
         <Script id="marketing-splash-gate" strategy="beforeInteractive">
           {`(function(){try{var p=location.pathname;if(p!=='/'&&p!=='/index.html')return;if(document.cookie.indexOf('cortex_entered=1')!==-1)return;if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))return;var h=location.hostname;if(h!=='nexcortiq.us'&&h!=='www.nexcortiq.us'&&h!=='rapidcortex.us'&&h!=='www.rapidcortex.us'&&!h.startsWith('localhost'))return;location.replace('/enter');}catch(e){}})();`}
         </Script>
+        {/* Google Tag Manager — classic snippet (head). */}
+        <Script id="google-tag-manager" strategy="afterInteractive">
+          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${GTM_ID}');`}
+        </Script>
+        {/* Direct GA4 — keep until GA4 Configuration tag is live in GTM, then delete these two scripts. */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="lazyOnload"
@@ -111,6 +122,15 @@ export default function RootLayout({
         </Script>
       </head>
       <body className="min-h-full min-h-dvh font-sans text-slate-100 antialiased">
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+            title="Google Tag Manager"
+          />
+        </noscript>
         <Providers>{children}</Providers>
         <DeferredInsideTheCortex />
       </body>
