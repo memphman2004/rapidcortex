@@ -1,14 +1,20 @@
 import { z } from "zod";
 
-/** 9-stage CRM pipeline [CR-3]. */
+/**
+ * Sales CRM pipeline stages — aligned to the sales playbook entry-criteria table.
+ * Stored as uppercase tokens on SalesLead.pipelineStage.
+ */
 export const PIPELINE_STAGES = [
   "NEW",
   "CONTACTED",
+  "ENGAGED",
   "QUALIFIED",
   "DISCOVERY",
+  "DEMO_SCHEDULED",
+  "DEMO_COMPLETED",
   "PROPOSAL",
-  "NEGOTIATION",
-  "PILOT",
+  "PROCUREMENT",
+  "CONTRACTING",
   "WON",
   "LOST",
 ] as const;
@@ -17,44 +23,84 @@ export type PipelineStage = (typeof PIPELINE_STAGES)[number];
 
 export const PipelineStageSchema = z.enum(PIPELINE_STAGES);
 
-/** Board columns — outcomes stay as counters [CR]. */
+const PIPELINE_STAGE_SET = new Set<string>(PIPELINE_STAGES);
+
+/** Board columns — outcomes stay as counters. */
 export const ACTIVE_PIPELINE_STAGES: PipelineStage[] = [
   "NEW",
   "CONTACTED",
+  "ENGAGED",
   "QUALIFIED",
   "DISCOVERY",
+  "DEMO_SCHEDULED",
+  "DEMO_COMPLETED",
   "PROPOSAL",
-  "NEGOTIATION",
-  "PILOT",
+  "PROCUREMENT",
+  "CONTRACTING",
 ];
 
 export const OUTCOME_PIPELINE_STAGES: PipelineStage[] = ["WON", "LOST"];
 
+/**
+ * Retired stage tokens → current stage (read-path + durable migrate).
+ * NEGOTIATION / PILOT were the prior 9-stage board columns.
+ */
+export const LEGACY_PIPELINE_STAGE_ALIASES: Record<string, PipelineStage> = {
+  NEGOTIATION: "CONTRACTING",
+  NEGOTIATING: "CONTRACTING",
+  PILOT: "DEMO_COMPLETED",
+};
+
 /** Maps legacy lowercase `status` → PipelineStage [CR-2]. */
 export const LEGACY_STATUS_TO_STAGE: Record<string, PipelineStage> = {
   new: "NEW",
+  new_lead: "NEW",
   contacted: "CONTACTED",
+  engaged: "ENGAGED",
   qualified: "QUALIFIED",
   discovery: "DISCOVERY",
+  demo_scheduled: "DEMO_SCHEDULED",
+  demo_completed: "DEMO_COMPLETED",
   proposal: "PROPOSAL",
-  negotiation: "NEGOTIATION",
-  pilot: "PILOT",
+  proposal_quote: "PROPOSAL",
+  procurement: "PROCUREMENT",
+  funding: "PROCUREMENT",
+  contracting: "CONTRACTING",
+  negotiation: "CONTRACTING",
+  negotiating: "CONTRACTING",
+  pilot: "DEMO_COMPLETED",
   won: "WON",
+  closed_won: "WON",
   lost: "LOST",
+  closed_lost: "LOST",
 };
 
 /** Maps PipelineStage → legacy lowercase `status` [CR-2]. */
 export const STAGE_TO_LEGACY_STATUS: Record<PipelineStage, string> = {
   NEW: "new",
   CONTACTED: "contacted",
+  ENGAGED: "engaged",
   QUALIFIED: "qualified",
   DISCOVERY: "discovery",
+  DEMO_SCHEDULED: "demo_scheduled",
+  DEMO_COMPLETED: "demo_completed",
   PROPOSAL: "proposal",
-  NEGOTIATION: "negotiation",
-  PILOT: "pilot",
+  PROCUREMENT: "procurement",
+  CONTRACTING: "contracting",
   WON: "won",
   LOST: "lost",
 };
+
+/** Normalize any stored/raw stage token onto the current pipeline. */
+export function normalizePipelineStage(raw: unknown): PipelineStage {
+  const token = String(raw ?? "").trim();
+  if (!token) return "NEW";
+  const upper = token.toUpperCase().replace(/[\s/-]+/g, "_");
+  if (PIPELINE_STAGE_SET.has(upper)) return upper as PipelineStage;
+  if (LEGACY_PIPELINE_STAGE_ALIASES[upper]) return LEGACY_PIPELINE_STAGE_ALIASES[upper]!;
+  const lower = token.toLowerCase().replace(/[\s/-]+/g, "_");
+  return LEGACY_STATUS_TO_STAGE[lower] ?? "NEW";
+}
 
 export function stageToPipelineStageAndStatus(stage: PipelineStage): {
   pipelineStage: PipelineStage;
@@ -64,8 +110,7 @@ export function stageToPipelineStageAndStatus(stage: PipelineStage): {
 }
 
 export function legacyStatusToStage(status: string | undefined | null): PipelineStage {
-  const key = String(status ?? "new").toLowerCase();
-  return LEGACY_STATUS_TO_STAGE[key] ?? "NEW";
+  return normalizePipelineStage(status ?? "new");
 }
 
 export const LeadNoteSchema = z.object({
@@ -228,7 +273,7 @@ export const STAGE_CONFIG: Record<
   { label: string; bgClass: string; textClass: string; borderClass: string }
 > = {
   NEW: {
-    label: "New",
+    label: "New Lead",
     bgClass: "bg-blue-950",
     textClass: "text-blue-300",
     borderClass: "border-l-blue-400",
@@ -238,6 +283,12 @@ export const STAGE_CONFIG: Record<
     bgClass: "bg-cyan-950",
     textClass: "text-cyan-300",
     borderClass: "border-l-cyan-400",
+  },
+  ENGAGED: {
+    label: "Engaged",
+    bgClass: "bg-sky-950",
+    textClass: "text-sky-300",
+    borderClass: "border-l-sky-400",
   },
   QUALIFIED: {
     label: "Qualified",
@@ -251,36 +302,64 @@ export const STAGE_CONFIG: Record<
     textClass: "text-yellow-300",
     borderClass: "border-l-yellow-400",
   },
+  DEMO_SCHEDULED: {
+    label: "Demo Scheduled",
+    bgClass: "bg-amber-950",
+    textClass: "text-amber-300",
+    borderClass: "border-l-amber-400",
+  },
+  DEMO_COMPLETED: {
+    label: "Demo Completed",
+    bgClass: "bg-orange-950",
+    textClass: "text-orange-300",
+    borderClass: "border-l-orange-400",
+  },
   PROPOSAL: {
-    label: "Proposal",
+    label: "Proposal / Quote",
     bgClass: "bg-purple-950",
     textClass: "text-purple-300",
     borderClass: "border-l-purple-400",
   },
-  NEGOTIATION: {
-    label: "Negotiating",
+  PROCUREMENT: {
+    label: "Procurement / Funding",
+    bgClass: "bg-fuchsia-950",
+    textClass: "text-fuchsia-300",
+    borderClass: "border-l-fuchsia-400",
+  },
+  CONTRACTING: {
+    label: "Contracting",
     bgClass: "bg-pink-950",
     textClass: "text-pink-300",
     borderClass: "border-l-pink-400",
   },
-  PILOT: {
-    label: "Pilot",
-    bgClass: "bg-green-950",
-    textClass: "text-green-300",
-    borderClass: "border-l-green-400",
-  },
   WON: {
-    label: "Won",
+    label: "Closed Won",
     bgClass: "bg-green-950",
     textClass: "text-green-400",
     borderClass: "border-l-green-500",
   },
   LOST: {
-    label: "Lost",
+    label: "Closed Lost",
     bgClass: "bg-red-950",
     textClass: "text-red-400",
     borderClass: "border-l-red-500",
   },
+};
+
+/** Playbook entry criteria shown in stage tooltips / docs. */
+export const STAGE_ENTRY_CRITERIA: Record<PipelineStage, string> = {
+  NEW: "Agency identified, no outreach initiated.",
+  CONTACTED: "First email, phone call, or LinkedIn message sent.",
+  ENGAGED: "Someone responds or requests information.",
+  QUALIFIED: "Confirmed relevant need, appropriate contact, and potential opportunity.",
+  DISCOVERY: "Meeting to understand CAD, call volumes, challenges, funding, and buying process.",
+  DEMO_SCHEDULED: "Agency accepts a product demonstration and date is confirmed.",
+  DEMO_COMPLETED: "Demonstration delivered; next steps or objections documented.",
+  PROPOSAL: "Agency receives formal pricing, scope, and timeline.",
+  PROCUREMENT: "Agency is pursuing budget approval, grant reimbursement, RFP, or purchase authorization.",
+  CONTRACTING: "Legal, security, purchasing, or contract negotiations are underway.",
+  WON: "Signed agreement or binding purchase order obtained.",
+  LOST: "Opportunity definitively declined, awarded elsewhere, or canceled.",
 };
 
 /** CRM field patch body (does not move pipeline stage). */
@@ -391,19 +470,17 @@ export const sendProspectToLeadBodySchema = z
 
 export type SendProspectToLeadBody = z.infer<typeof sendProspectToLeadBodySchema>;
 
-/** Engaged or later starts as Qualified; earlier outreach starts as Contacted. */
+/** Map prospect outreach status onto the current CRM pipeline stage. */
 export function leadStageForProspectOutreach(
   status: SendProspectToLeadBody["outreachStatus"],
-): "CONTACTED" | "QUALIFIED" {
-  if (
-    status === "ENGAGED" ||
-    status === "DEMO_SCHEDULED" ||
-    status === "PILOT" ||
-    status === "CUSTOMER"
-  ) {
-    return "QUALIFIED";
-  }
-  return "CONTACTED";
+): PipelineStage {
+  if (status === "CUSTOMER") return "WON";
+  if (status === "PILOT") return "DEMO_COMPLETED";
+  if (status === "DEMO_SCHEDULED") return "DEMO_SCHEDULED";
+  if (status === "ENGAGED") return "ENGAGED";
+  if (status === "NOT_INTERESTED" || status === "DO_NOT_CONTACT") return "LOST";
+  if (status === "MAILED" || status === "CALLED" || status === "EMAILED") return "CONTACTED";
+  return "NEW";
 }
 
 /** Full CRM lead shape returned to the UI (existing fields + extensions). */

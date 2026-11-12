@@ -156,9 +156,9 @@ function RepList({ insight }: { insight: PipelineInsight }) {
 function PilotList({ insight, onSelect }: { insight: PipelineInsight; onSelect: (id: string) => void }) {
   return (
     <section className="rounded-2xl border border-white/[0.06] bg-[#0a1628] p-4">
-      <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Pilots</h2>
+      <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Demo completed</h2>
       {insight.pilots.length === 0 ? (
-        <p className="mt-3 text-xs text-slate-500">No deal is in Pilot.</p>
+        <p className="mt-3 text-xs text-slate-500">No deal is in Demo Completed.</p>
       ) : (
         <ul className="mt-3 divide-y divide-white/[0.04]">
           {insight.pilots.map((pilot) => (

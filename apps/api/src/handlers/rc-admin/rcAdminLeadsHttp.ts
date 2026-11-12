@@ -19,6 +19,13 @@ import {
   patchSalesLeadStageBodySchema,
   sendProspectToLeadBodySchema,
   type LeadVertical,
+  MarketingDashboardFilterSchema,
+  resolveMarketingProductMarket,
+  resolveSalesZoneForState,
+  verticalsForProductMarket,
+  type MarketingDashboardFilter,
+  type ProductMarket,
+  type MarketingZoneId,
 } from "rapid-cortex-shared";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
@@ -465,6 +472,169 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       const updated = await repo.deleteNote(leadId, noteId);
       if (!updated) return ok({ error: "Lead not found" }, 404);
       return ok({ success: true, data: updated, item: updated });
+    }
+
+    // ── Marketing dashboard endpoints ────────────────────────────────────────
+    if (m === "GET" && path.endsWith("/marketing/overview")) {
+      const q = event.queryStringParameters ?? {};
+      const filterResult = MarketingDashboardFilterSchema.safeParse(q);
+      const filter: MarketingDashboardFilter = filterResult.success ? filterResult.data : {};
+
+      // salescontractor scoped to their own leads only
+      const isSalesContractor = String(user.role ?? "").toLowerCase() === "salescontractor";
+      const effectiveAssignedTo = isSalesContractor ? (user.email ?? user.userId) : (filter.assignedTo ?? undefined);
+
+      const allLeads = await repo.listNormalized(500);
+      const leads = allLeads.filter((lead) => {
+        if (effectiveAssignedTo && lead.assignedTo !== effectiveAssignedTo && lead.assignee !== effectiveAssignedTo) return false;
+        if (filter.productMarket) {
+          const verticals = verticalsForProductMarket(filter.productMarket);
+          if (!lead.vertical || !(verticals as string[]).includes(lead.vertical)) return false;
+        }
+        if (filter.zoneId) {
+          const leadState = lead.requestedState ?? lead.attribution?.ipRegion ?? null;
+          if (resolveSalesZoneForState(leadState) !== filter.zoneId) return false;
+        }
+        if (filter.state) {
+          const leadState = (lead.requestedState ?? lead.attribution?.ipRegion ?? "").toUpperCase();
+          if (leadState !== filter.state.toUpperCase()) return false;
+        }
+        if (filter.agencyType && lead.agencyType !== filter.agencyType) return false;
+        if (filter.campaign) {
+          const utmCampaign = lead.attribution?.utmCampaign ?? "";
+          if (!utmCampaign.toLowerCase().includes(filter.campaign.toLowerCase())) return false;
+        }
+        if (filter.product) {
+          const interested = (lead.interestedIn ?? []).join(" ").toLowerCase();
+          const selected = (lead.selectedFeatureIds ?? []).join(" ").toLowerCase();
+          if (!interested.includes(filter.product.toLowerCase()) && !selected.includes(filter.product.toLowerCase())) return false;
+        }
+        return true;
+      });
+
+      // KPI totals
+      const total = leads.length;
+      const qualified = leads.filter((l) => !["NEW", "CONTACTED", "WON", "LOST"].includes(l.pipelineStage)).length;
+      const demos = leads.filter((l) => l.pipelineStage === "DEMO_SCHEDULED" || l.pipelineStage === "DEMO_COMPLETED").length;
+      const won = leads.filter((l) => l.pipelineStage === "WON").length;
+      const attributedPipeline = leads
+        .filter((l) => l.pipelineStage !== "LOST")
+        .reduce((acc, l) => acc + (l.estimatedValue ?? 0), 0);
+
+      // By product market
+      const byMarket: Record<ProductMarket, number> = { psap: 0, campus: 0, venue: 0, transit: 0 };
+      for (const lead of leads) {
+        const market = resolveMarketingProductMarket(lead.vertical as LeadVertical | undefined);
+        if (market) byMarket[market] += 1;
+      }
+
+      // By zone (all 6)
+      const byZone: Record<string, number> = {};
+      for (const lead of leads) {
+        const state = lead.requestedState ?? lead.attribution?.ipRegion ?? null;
+        const zone = resolveSalesZoneForState(state) ?? "unknown";
+        byZone[zone] = (byZone[zone] ?? 0) + 1;
+      }
+
+      // Channel mix
+      const channelSummary = repo.buildAttributionSummary(leads);
+
+      return ok({
+        success: true,
+        data: {
+          totals: { total, qualified, demos, won, attributedPipeline },
+          byMarket,
+          byZone,
+          channelMix: channelSummary.byChannel,
+          topReferrers: channelSummary.topReferrers,
+          filter,
+        },
+      });
+    }
+
+    if (m === "GET" && path.endsWith("/marketing/lead-intelligence")) {
+      const q = event.queryStringParameters ?? {};
+      const filterResult = MarketingDashboardFilterSchema.safeParse(q);
+      const filter: MarketingDashboardFilter = filterResult.success ? filterResult.data : {};
+
+      const isSalesContractor = String(user.role ?? "").toLowerCase() === "salescontractor";
+      const effectiveAssignedTo = isSalesContractor ? (user.email ?? user.userId) : (filter.assignedTo ?? undefined);
+
+      const allLeads = await repo.listNormalized(500);
+      const leads = allLeads.filter((lead) => {
+        if (effectiveAssignedTo && lead.assignedTo !== effectiveAssignedTo && lead.assignee !== effectiveAssignedTo) return false;
+        if (filter.productMarket) {
+          const verticals = verticalsForProductMarket(filter.productMarket);
+          if (!lead.vertical || !(verticals as string[]).includes(lead.vertical)) return false;
+        }
+        if (filter.zoneId) {
+          const leadState = lead.requestedState ?? lead.attribution?.ipRegion ?? null;
+          if (resolveSalesZoneForState(leadState) !== filter.zoneId) return false;
+        }
+        if (filter.state) {
+          const leadState = (lead.requestedState ?? lead.attribution?.ipRegion ?? "").toUpperCase();
+          if (leadState !== filter.state.toUpperCase()) return false;
+        }
+        if (filter.agencyType && lead.agencyType !== filter.agencyType) return false;
+        if (filter.campaign) {
+          const utmCampaign = lead.attribution?.utmCampaign ?? "";
+          if (!utmCampaign.toLowerCase().includes(filter.campaign.toLowerCase())) return false;
+        }
+        if (filter.product) {
+          const interested = (lead.interestedIn ?? []).join(" ").toLowerCase();
+          const selected = (lead.selectedFeatureIds ?? []).join(" ").toLowerCase();
+          if (!interested.includes(filter.product.toLowerCase()) && !selected.includes(filter.product.toLowerCase())) return false;
+        }
+        return true;
+      });
+
+      // Shape each lead as a Lead Intelligence card
+      const cards = leads
+        .filter((l) => l.pipelineStage !== "LOST")
+        .sort((a, b) => (b.hotScore ?? 0) - (a.hotScore ?? 0))
+        .slice(0, 100)
+        .map((lead) => {
+          const market = resolveMarketingProductMarket(lead.vertical as LeadVertical | undefined);
+          const state = lead.requestedState ?? lead.attribution?.ipRegion ?? null;
+          const zone = resolveSalesZoneForState(state);
+          const recentActivities = (lead.activities ?? []).slice(-3).reverse();
+          return {
+            leadId: lead.leadId,
+            displayName: [lead.firstName, lead.lastName].filter(Boolean).join(" ") || lead.name || lead.email,
+            agencyName: lead.agencyName ?? lead.agencyCompany ?? null,
+            agencyType: lead.agencyType ?? null,
+            state,
+            zone,
+            market,
+            vertical: lead.vertical ?? null,
+            pipelineStage: lead.pipelineStage,
+            hotScore: lead.hotScore ?? null,
+            signalCount: lead.signalCount ?? 0,
+            engagementCount: (lead.activities ?? []).length,
+            buyingSignalCount: (lead.signals ?? []).filter((s) =>
+              s.type === "GRANT_SIGNAL" ||
+              s.type === "RFP_SIGNAL" ||
+              s.type === "BUDGET_SIGNAL" ||
+              s.type === "GRANT_AWARD",
+            ).length,
+            recentActivities: recentActivities.map((a) => ({
+              type: a.type,
+              description: a.description,
+              createdAt: a.createdAt,
+            })),
+            // Confirmed nextAction only — label AI suggestions separately
+            nextAction: lead.nextAction ?? null,
+            nextActionDate: lead.nextActionDate ?? null,
+            assignedTo: lead.assignedTo ?? lead.assignee ?? null,
+            assignedToName: lead.assignedToName ?? null,
+            attribution: lead.attribution
+              ? { channel: lead.attribution.channel, utmCampaign: lead.attribution.utmCampaign ?? null }
+              : null,
+            interestedIn: lead.interestedIn ?? [],
+          };
+        });
+
+      return ok({ success: true, data: { cards, total: cards.length, filter } });
     }
 
     return ok({ error: "Not found" }, 404);

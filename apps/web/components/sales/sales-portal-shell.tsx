@@ -72,6 +72,8 @@ type Props = {
   assigneeFilter?: string;
   /** Approve/edit/Outlook — RC admins only; sales contractors queue drafts. */
   canManageCampaigns?: boolean;
+  /** Override heading — defaults to "Sales Dashboard". */
+  pageTitle?: string;
 };
 
 const TAB_IDS = new Set<SalesPortalTab>(TABS.map((t) => t.id));
@@ -86,6 +88,7 @@ export function SalesPortalShell({
   contractorName,
   assigneeFilter,
   canManageCampaigns = false,
+  pageTitle = "Sales Dashboard",
 }: Props) {
   const search = useSearchParams();
   const [tab, setTab] = useState<SalesPortalTab>(() =>
@@ -111,7 +114,7 @@ export function SalesPortalShell({
       <div className="flex min-h-[calc(100vh-4rem)] flex-col overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#050c1a]">
         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[rgba(255,255,255,0.06)] bg-[#0a1628] px-5 py-4">
           <div className="min-w-0">
-            <h1 className="text-xl font-semibold text-white">Sales Portal</h1>
+            <h1 className="text-xl font-semibold text-white">{pageTitle}</h1>
             <p className="mt-1 max-w-3xl text-sm text-slate-400">
               Pipeline, campaigns, quotes with free offerings, news intel, and territory coverage —
               built for NexCort iQ contractors.

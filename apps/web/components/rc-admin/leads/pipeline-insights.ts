@@ -9,12 +9,15 @@ import { leadAgency, leadDisplayName, staleLevel } from "./leads-utils";
 /** Default close chance when a lead has no probability of its own. */
 export const STAGE_WIN_PROBABILITY: Record<PipelineStage, number> = {
   NEW: 5,
-  CONTACTED: 10,
+  CONTACTED: 8,
+  ENGAGED: 12,
   QUALIFIED: 20,
-  DISCOVERY: 35,
-  PROPOSAL: 50,
-  NEGOTIATION: 70,
-  PILOT: 85,
+  DISCOVERY: 30,
+  DEMO_SCHEDULED: 40,
+  DEMO_COMPLETED: 50,
+  PROPOSAL: 55,
+  PROCUREMENT: 65,
+  CONTRACTING: 75,
   WON: 100,
   LOST: 0,
 };
@@ -22,9 +25,11 @@ export const STAGE_WIN_PROBABILITY: Record<PipelineStage, number> = {
 const LATER_STAGES = new Set<PipelineStage>([
   "QUALIFIED",
   "DISCOVERY",
+  "DEMO_SCHEDULED",
+  "DEMO_COMPLETED",
   "PROPOSAL",
-  "NEGOTIATION",
-  "PILOT",
+  "PROCUREMENT",
+  "CONTRACTING",
 ]);
 
 const SOURCE_POINTS: Record<string, number> = {
@@ -111,8 +116,8 @@ export function suggestedNextStep(lead: SalesLeadCrmRecord, now = Date.now()): s
   if (!(lead.assignedTo || lead.assignedToName || lead.assignee)) {
     return "Assign an owner before the next touch.";
   }
-  if (lead.pipelineStage === "PILOT" && !lead.pilotStartDate) {
-    return "Set the pilot start date.";
+  if (lead.pipelineStage === "DEMO_COMPLETED" && !lead.pilotStartDate) {
+    return "Record the demo date.";
   }
   if ((lead.estimatedValue ?? 0) <= 0 && LATER_STAGES.has(lead.pipelineStage)) {
     return "Add an estimated value so this deal is in the forecast.";
@@ -125,7 +130,11 @@ export function suggestedNextStep(lead: SalesLeadCrmRecord, now = Date.now()): s
     }
   }
   if (staleLevel(lead) === 2) {
-    if (lead.pipelineStage === "PROPOSAL" || lead.pipelineStage === "NEGOTIATION") {
+    if (
+      lead.pipelineStage === "PROPOSAL" ||
+      lead.pipelineStage === "PROCUREMENT" ||
+      lead.pipelineStage === "CONTRACTING"
+    ) {
       return "No recent contact. Ask who still has to approve.";
     }
     return "No contact in 14 days. Log a follow-up or move the stage.";
@@ -231,7 +240,7 @@ export function buildPipelineInsight(leads: SalesLeadCrmRecord[], now = Date.now
   }
 
   const pilots: PilotRow[] = leads
-    .filter((lead) => lead.pipelineStage === "PILOT")
+    .filter((lead) => lead.pipelineStage === "DEMO_COMPLETED")
     .map((lead) => ({
       leadId: lead.leadId,
       title: leadDisplayName(lead),

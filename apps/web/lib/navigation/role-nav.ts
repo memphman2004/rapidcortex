@@ -44,6 +44,8 @@ export type NavSection = {
   id: string;
   label?: string;                     // omit for unlabeled top section
   items: NavItem[];
+  /** When set, the entire section is hidden if this feature flag is off */
+  feature?: string;
 };
 
 export type RoleNav = {
@@ -245,11 +247,10 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       id: "sales-crm",
       label: "SALES & CRM",
       items: [
-        { id: "sales-portal", label: "Sales Portal", href: "/sales", icon: "Briefcase" },
-        { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
-        { id: "signal-feed", label: "Signal Feed", href: "/rc-admin/signal-feed", icon: "Activity", feature: "salesLeads" },
-        { id: "psap-prospects", label: "Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
-        { id: "contacts", label: "Contacts", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
+        { id: "sales-portal", label: "Sales Dashboard", href: "/sales", icon: "Briefcase" },
+        { id: "leads",     label: "Leads & Opportunities", href: "/rc-admin/leads",     icon: "Inbox", feature: "salesLeads" },
+        { id: "psap-prospects", label: "Prospects & Intent", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
+        { id: "contacts", label: "Contacts & Agencies", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
         { id: "rapid-iq", label: "NexiQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
         {
           id: "nexiq-signals",
@@ -268,9 +269,30 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
         },
         { id: "nexiq-intel-sources", label: "Intel Sources", href: "/rc-admin/nexiq/intel/sources", icon: "Radar", feature: "nexiqIntel" },
         { id: "nexiq-intel-coverage", label: "Intel Coverage", href: "/rc-admin/nexiq/intel/coverage", icon: "Activity", feature: "nexiqIntel" },
-        { id: "sales-automation", label: "Email Campaigns", href: "/rc-admin/sales-automation", icon: "Mail", feature: "salesAutomation" },
-        { id: "email-list", label: "Email List", href: "/rc-admin/email-list", icon: "MailPlus", feature: "salesAutomation" },
-        { id: "conferences", label: "Conferences", href: "/rc-admin/conferences", icon: "CalendarDays", feature: "conferences" },
+        {
+          id: "deployments-map-sales",
+          label: "Deployments Map",
+          href: "/rc-admin/deployments-map",
+          icon: "Map",
+          feature: "deploymentsMap",
+        },
+        { id: "grants-sales",  label: "Procurement & Grants", href: "/rc-admin/grants", icon: "ShieldCheck" },
+      ],
+    },
+    {
+      id: "marketing",
+      label: "MARKETING",
+      feature: "marketingDashboard",
+      items: [
+        { id: "marketing-dashboard", label: "Marketing Dashboard", href: "/rc-admin/marketing", icon: "LayoutDashboard", feature: "marketingDashboard" },
+        { id: "marketing-campaigns", label: "Campaign Manager", href: "/rc-admin/marketing/campaigns", icon: "Megaphone", feature: "marketingDashboard" },
+        { id: "marketing-email", label: "Email & Newsletters", href: "/rc-admin/marketing/email", icon: "Mail", feature: "marketingDashboard" },
+        { id: "marketing-lead-intel", label: "Lead Intelligence", href: "/rc-admin/marketing/leads", icon: "Target", feature: "marketingDashboard" },
+        { id: "marketing-website", label: "Website & SEO", href: "/rc-admin/marketing/website", icon: "Globe", feature: "marketingDashboard" },
+        { id: "marketing-social", label: "Social & Content", href: "/rc-admin/marketing/social", icon: "Share2", feature: "marketingDashboard" },
+        { id: "marketing-events", label: "Events & Outreach", href: "/rc-admin/marketing/events", icon: "CalendarDays", feature: "marketingDashboard" },
+        { id: "marketing-attribution", label: "Marketing Attribution", href: "/rc-admin/marketing/attribution", icon: "TrendingUp", feature: "marketingDashboard" },
+        { id: "marketing-integrations", label: "Integrations", href: "/rc-admin/marketing/integrations", icon: "Plug", feature: "marketingDashboard" },
       ],
     },
     {
@@ -308,7 +330,6 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
           icon: "Flag",
           badge: { type: "label", text: "IMMUTABLE", color: "slate" },
         },
-        { id: "grants",     label: "Grants",           href: "/rc-admin/grants",        icon: "ShieldCheck" },
         { id: "dev-portal",label: "Developer Portal",  href: "/rc-admin/api-clients",   icon: "Code2" },
       ],
     },
@@ -389,7 +410,7 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
   ],
 };
 
-/** Mirrors RC Admin SALES & CRM + shared catalogs/ops — same destinations RC operators use. */
+/** Mirrors RC Admin SALES & CRM + MARKETING — same destinations RC operators use. */
 export const SALES_CONTRACTOR_NAV: RoleNav = {
   accent: "sky",
   roleBadge: "SALES",
@@ -398,15 +419,8 @@ export const SALES_CONTRACTOR_NAV: RoleNav = {
       id: "sales-crm",
       label: "SALES & CRM",
       items: [
-        { id: "sales-portal", label: "Sales Portal", href: "/sales", icon: "Briefcase", exact: true },
-        {
-          id: "deployments-map",
-          label: "Deployments map",
-          href: "/rc-admin/deployments-map",
-          icon: "Map",
-          feature: "deploymentsMap",
-        },
-        { id: "leads", label: "Leads", href: "/rc-admin/leads", icon: "Inbox", feature: "salesLeads" },
+        { id: "sales-portal", label: "Sales Dashboard", href: "/sales", icon: "Briefcase", exact: true },
+        { id: "leads", label: "Leads & Opportunities", href: "/rc-admin/leads", icon: "Inbox", feature: "salesLeads" },
         {
           id: "signal-feed",
           label: "Signal Feed",
@@ -416,14 +430,14 @@ export const SALES_CONTRACTOR_NAV: RoleNav = {
         },
         {
           id: "psap-prospects",
-          label: "Prospects",
+          label: "Prospects & Intent",
           href: "/rc-admin/psap-prospects",
           icon: "RadioTower",
           feature: "psapProspects",
         },
         {
           id: "contacts",
-          label: "Contacts",
+          label: "Contacts & Agencies",
           href: "/rc-admin/contacts",
           icon: "Users",
           feature: "contactsModule",
@@ -459,31 +473,29 @@ export const SALES_CONTRACTOR_NAV: RoleNav = {
           feature: "nexiqIntel",
         },
         {
-          id: "sales-automation",
-          label: "Email Campaigns",
-          href: "/rc-admin/sales-automation",
-          icon: "Mail",
-          feature: "salesAutomation",
+          id: "deployments-map",
+          label: "Deployments Map",
+          href: "/rc-admin/deployments-map",
+          icon: "Map",
+          feature: "deploymentsMap",
         },
-        {
-          id: "email-list",
-          label: "Email List",
-          href: "/rc-admin/email-list",
-          icon: "MailPlus",
-          feature: "salesAutomation",
-        },
-        {
-          id: "conferences",
-          label: "Conferences",
-          href: "/rc-admin/conferences",
-          icon: "CalendarDays",
-          feature: "conferences",
-        },
+        { id: "grants", label: "Procurement & Grants", href: "/rc-admin/grants", icon: "ShieldCheck" },
+      ],
+    },
+    {
+      id: "marketing",
+      label: "MARKETING",
+      items: [
+        { id: "marketing-dashboard", label: "Marketing Dashboard", href: "/rc-admin/marketing", icon: "LayoutDashboard", feature: "marketingDashboard" },
+        { id: "marketing-campaigns", label: "Campaign Manager", href: "/rc-admin/marketing/campaigns", icon: "Megaphone", feature: "marketingDashboard" },
+        { id: "marketing-email", label: "Email & Newsletters", href: "/rc-admin/marketing/email", icon: "Mail", feature: "marketingDashboard" },
+        { id: "marketing-lead-intel", label: "Lead Intelligence", href: "/rc-admin/marketing/leads", icon: "Target", feature: "marketingDashboard" },
+        { id: "marketing-events", label: "Events & Outreach", href: "/rc-admin/marketing/events", icon: "CalendarDays", feature: "marketingDashboard" },
       ],
     },
     {
       id: "catalog",
-      label: "CATALOGS",
+      label: "SHARED TOOLS",
       items: [
         {
           id: "features-catalog",
@@ -505,21 +517,14 @@ export const SALES_CONTRACTOR_NAV: RoleNav = {
           href: "/sales/document-library",
           icon: "BookOpen",
         },
-      ],
-    },
-    {
-      id: "ops",
-      label: "PLATFORM OPS",
-      items: [
-        { id: "notices", label: "Platform Notices", href: "/rc-admin/support", icon: "Megaphone" },
-        { id: "grants", label: "Grant Writer", href: "/rc-admin/grants", icon: "ShieldCheck" },
         {
           id: "onboarding-packets",
-          label: "Onboarding packets",
+          label: "Onboarding Packets",
           href: "/rc-admin/onboarding/packets",
           icon: "FolderOpen",
           feature: "verticalOnboarding",
         },
+        { id: "notices", label: "Platform Notices", href: "/rc-admin/support", icon: "Megaphone" },
         { id: "system-health", label: "System Health", href: "/rc-admin/system-health", icon: "Activity" },
       ],
     },
@@ -576,11 +581,10 @@ export const RC_ADMIN_NAV: RoleNav = {
       id: "sales-crm",
       label: "SALES & CRM",
       items: [
-        { id: "sales-portal", label: "Sales Portal", href: "/sales", icon: "Briefcase" },
-        { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
-        { id: "signal-feed", label: "Signal Feed", href: "/rc-admin/signal-feed", icon: "Activity", feature: "salesLeads" },
-        { id: "psap-prospects", label: "Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
-        { id: "contacts", label: "Contacts", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
+        { id: "sales-portal", label: "Sales Dashboard", href: "/sales", icon: "Briefcase" },
+        { id: "leads",     label: "Leads & Opportunities", href: "/rc-admin/leads",     icon: "Inbox", feature: "salesLeads" },
+        { id: "psap-prospects", label: "Prospects & Intent", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
+        { id: "contacts", label: "Contacts & Agencies", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
         { id: "rapid-iq", label: "NexiQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
         {
           id: "nexiq-signals",
@@ -599,9 +603,22 @@ export const RC_ADMIN_NAV: RoleNav = {
         },
         { id: "nexiq-intel-sources", label: "Intel Sources", href: "/rc-admin/nexiq/intel/sources", icon: "Radar", feature: "nexiqIntel" },
         { id: "nexiq-intel-coverage", label: "Intel Coverage", href: "/rc-admin/nexiq/intel/coverage", icon: "Activity", feature: "nexiqIntel" },
-        { id: "sales-automation", label: "Email Campaigns", href: "/rc-admin/sales-automation", icon: "Mail", feature: "salesAutomation" },
-        { id: "email-list", label: "Email List", href: "/rc-admin/email-list", icon: "MailPlus", feature: "salesAutomation" },
-        { id: "conferences", label: "Conferences", href: "/rc-admin/conferences", icon: "CalendarDays", feature: "conferences" },
+        { id: "grants-sales",  label: "Procurement & Grants", href: "/rc-admin/grants", icon: "ShieldCheck" },
+      ],
+    },
+    {
+      id: "marketing",
+      label: "MARKETING",
+      items: [
+        { id: "marketing-dashboard", label: "Marketing Dashboard", href: "/rc-admin/marketing", icon: "LayoutDashboard", feature: "marketingDashboard" },
+        { id: "marketing-campaigns", label: "Campaign Manager", href: "/rc-admin/marketing/campaigns", icon: "Megaphone", feature: "marketingDashboard" },
+        { id: "marketing-email", label: "Email & Newsletters", href: "/rc-admin/marketing/email", icon: "Mail", feature: "marketingDashboard" },
+        { id: "marketing-lead-intel", label: "Lead Intelligence", href: "/rc-admin/marketing/leads", icon: "Target", feature: "marketingDashboard" },
+        { id: "marketing-website", label: "Website & SEO", href: "/rc-admin/marketing/website", icon: "Globe", feature: "marketingDashboard" },
+        { id: "marketing-social", label: "Social & Content", href: "/rc-admin/marketing/social", icon: "Share2", feature: "marketingDashboard" },
+        { id: "marketing-events", label: "Events & Outreach", href: "/rc-admin/marketing/events", icon: "CalendarDays", feature: "marketingDashboard" },
+        { id: "marketing-attribution", label: "Marketing Attribution", href: "/rc-admin/marketing/attribution", icon: "TrendingUp", feature: "marketingDashboard" },
+        { id: "marketing-integrations", label: "Integrations", href: "/rc-admin/marketing/integrations", icon: "Plug", feature: "marketingDashboard" },
       ],
     },
     {
@@ -638,7 +655,6 @@ export const RC_ADMIN_NAV: RoleNav = {
       items: [
         { id: "notices",   label: "Platform Notices",  href: "/rc-admin/support",       icon: "Megaphone" },
         { id: "support-tickets", label: "Support Tickets", href: "/rc-admin/support-tickets", icon: "LifeBuoy", feature: "supportForm" },
-        { id: "grants",    label: "Grants",            href: "/rc-admin/grants",        icon: "ShieldCheck" },
         { id: "dev-portal",label: "Developer Portal",  href: "/rc-admin/api-clients",   icon: "Code2" },
         { id: "reports",   label: "Reports",           href: "/rc-admin/usage",         icon: "BarChart3" },
         // Feature flags: superadmin only (see RC_SUPERADMIN_NAV)
@@ -767,7 +783,7 @@ export const RC_IT_ADMIN_NAV: RoleNav = {
       id: "sales-crm",
       label: "SALES & CRM",
       items: [
-        { id: "leads",     label: "Leads",             href: "/rc-admin/leads",         icon: "Inbox", feature: "salesLeads" },
+        { id: "leads",     label: "Leads & Opportunities", href: "/rc-admin/leads", icon: "Inbox", feature: "salesLeads" },
         { id: "psap-prospects", label: "Prospects", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
         { id: "rapid-iq", label: "NexiQ", href: "/rc-admin/rapid-iq", icon: "Zap", feature: "rapidIq" },
         {
@@ -929,6 +945,8 @@ export function getSupervisorNav(jurisdiction: string): RoleNav {
           cameraAiNavItem(`${j}/supervisor/vision-ai`),
           { id: "ng911-metrics", label: "NG9-1-1 Metrics", href: `${j}/admin/ng911/metrics`, icon: "BarChart3",
             feature: "ng911Assist" },
+          { id: "iq-reporting",  label: "iQ Reporting",    href: `${j}/supervisor/iq-reporting`, icon: "BarChart3",
+            feature: "iqReporting" },
           { id: "learning",      label: "Learning Engine", href: `${j}/supervisor/learning`, icon: "Activity",
             feature: "featuresSuite" },
           { id: "event-prep",    label: "Event Prep",      href: `${j}/supervisor/events`, icon: "Calendar",
@@ -1527,6 +1545,8 @@ export function getCampusSupervisorNav(code: string): RoleNav {
         label: "REPORTS",
         items: [
           { id: "reports",     label: "Reports",           href: `${base}/reports`,         icon: "FileBarChart" },
+          { id: "iq-reporting", label: "iQ Reporting",     href: `${base}/analytics`,       icon: "BarChart3",
+            feature: "iqReporting" },
           {
             id: "clery",
             label: "Clery Report",

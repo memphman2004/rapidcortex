@@ -113,7 +113,8 @@ describe("getRoleNav", () => {
       const nav = getRoleNav(role, {});
       const leads = nav.sections.flatMap((s) => s.items).find((i) => i.id === "leads");
       expect(leads?.href).toBe("/rc-admin/leads");
-      expect(leads?.label).toBe("Leads");
+      // Label updated to "Leads & Opportunities" in Growth Command Center nav
+      expect(leads?.label).toBe("Leads & Opportunities");
     }
   });
 
@@ -146,6 +147,7 @@ describe("getRoleNav", () => {
       "training",
       "tenants",
       "sales-crm",
+      "marketing",
       "business",
       "talent",
       "ops",
@@ -168,6 +170,7 @@ describe("getRoleNav", () => {
       "training",
       "tenants",
       "sales-crm",
+      "marketing",
       "business",
       "talent",
       "ops",
@@ -301,10 +304,11 @@ describe("getRoleNav", () => {
     ).toBe(false);
   });
 
-  it("sales contractor nav includes CRM tools and feature-only catalogs", () => {
+  it("sales contractor nav includes CRM tools, Marketing section, and shared catalogs", () => {
     const nav = getRoleNav("salescontractor", {});
     const items = nav.sections.flatMap((s) => s.items);
     const hrefs = items.map((i) => i.href);
+    // SALES & CRM destinations
     expect(hrefs).toEqual(
       expect.arrayContaining([
         "/sales",
@@ -313,23 +317,33 @@ describe("getRoleNav", () => {
         "/rc-admin/psap-prospects",
         "/rc-admin/contacts",
         "/rc-admin/rapid-iq",
-        "/rc-admin/conferences",
+        "/rc-admin/grants",
+        // MARKETING section
+        "/rc-admin/marketing",
+        "/rc-admin/marketing/campaigns",
+        "/rc-admin/marketing/leads",
+        "/rc-admin/marketing/email",
+        "/rc-admin/marketing/events",
+        // SHARED TOOLS
         "/sales/features-catalog",
         "/sales/service-catalog",
         "/rc-admin/support",
-        "/rc-admin/grants",
         "/rc-admin/onboarding/packets",
         "/rc-admin/system-health",
       ]),
     );
+    // Conferences accessible via Events & Outreach deep-link, not as its own sidebar item
+    expect(hrefs).not.toContain("/rc-admin/conferences");
     expect(items.find((i) => i.id === "features-catalog")?.badge).toEqual({
       type: "label",
       text: "ADD-ONS",
       color: "slate",
     });
+    // Sales Portal renamed to Sales Dashboard
+    expect(items.find((i) => i.id === "sales-portal")?.label).toBe("Sales Dashboard");
   });
 
-  it("keeps NexiQ in SALES & CRM and does not expose a separate Pipeline nav item", () => {
+  it("keeps NexiQ in SALES & CRM; Email Campaigns and Conferences move to MARKETING section", () => {
     for (const role of ["rcsuperadmin", "rcadmin"] as const) {
       const nav = getRoleNav(role, {});
       const items = nav.sections.flatMap((s) => s.items);
@@ -339,9 +353,12 @@ describe("getRoleNav", () => {
       expect(nexiqSignals?.href).toBe("/rc-admin/rapid-iq#nexiq-signals");
       expect(nexiqSignals?.label).toBe("NexiQ Signals");
       expect(nexiqSignals?.feature).toBe("nexiqSignals");
-      expect(items.find((i) => i.id === "conferences")?.href).toBe("/rc-admin/conferences");
-      expect(items.find((i) => i.id === "sales-automation")?.href).toBe("/rc-admin/sales-automation");
-      expect(items.find((i) => i.id === "sales-automation")?.label).toBe("Email Campaigns");
+      // Conferences and Email Campaigns are now in the MARKETING section
+      expect(items.find((i) => i.id === "conferences")).toBeUndefined();
+      expect(items.find((i) => i.id === "sales-automation")).toBeUndefined();
+      // But MARKETING section provides campaign hub
+      const mktSection = nav.sections.find((s) => s.id === "marketing");
+      expect(mktSection?.items.find((i) => i.id === "marketing-campaigns")?.href).toBe("/rc-admin/marketing/campaigns");
       expect(items.find((i) => i.id === "rapid-iq-pipeline")).toBeUndefined();
     }
     const salesNav = getRoleNav("salescontractor", {});
@@ -720,5 +737,61 @@ describe("getRoleNav", () => {
       .sections.flatMap((s) => s.items)
       .find((i) => i.id === "iq-reporting");
     expect(venueOps).toBeUndefined();
+  });
+
+  // ── Growth Command Center — Marketing section ──────────────────────────────
+
+  it("includes MARKETING section for rcsuperadmin, rcadmin, and salescontractor", () => {
+    for (const role of ["rcsuperadmin", "rcadmin", "salescontractor"] as const) {
+      const nav = getRoleNav(role, {});
+      const mktSection = nav.sections.find((s) => s.id === "marketing");
+      expect(mktSection, `${role} should have MARKETING section`).toBeDefined();
+      const items = mktSection?.items ?? [];
+      expect(items.find((i) => i.id === "marketing-dashboard")?.href).toBe("/rc-admin/marketing");
+      expect(items.find((i) => i.id === "marketing-lead-intel")?.href).toBe("/rc-admin/marketing/leads");
+      expect(items.find((i) => i.id === "marketing-campaigns")?.href).toBe("/rc-admin/marketing/campaigns");
+    }
+  });
+
+  it("all MARKETING nav items are gated with marketingDashboard feature", () => {
+    for (const role of ["rcsuperadmin", "rcadmin", "salescontractor"] as const) {
+      const nav = getRoleNav(role, {});
+      const mktItems = nav.sections.find((s) => s.id === "marketing")?.items ?? [];
+      for (const item of mktItems) {
+        expect(item.feature, `${role}/${item.id} should have marketingDashboard feature`).toBe(
+          "marketingDashboard",
+        );
+      }
+    }
+  });
+
+  it("renames Sales Portal to Sales Dashboard in SALES & CRM", () => {
+    for (const role of ["rcsuperadmin", "rcadmin", "salescontractor"] as const) {
+      const nav = getRoleNav(role, {});
+      const salesItem = nav.sections
+        .flatMap((s) => s.items)
+        .find((i) => i.id === "sales-portal");
+      expect(salesItem, `${role} should have sales-portal nav item`).toBeDefined();
+      expect(salesItem?.label).toBe("Sales Dashboard");
+      expect(salesItem?.href).toBe("/sales");
+    }
+  });
+
+  it("dispatcher does not get a MARKETING section", () => {
+    const nav = getRoleNav("dispatcher", { jurisdiction: "test" });
+    const mktSection = nav.sections.find((s) => s.id === "marketing");
+    expect(mktSection).toBeUndefined();
+  });
+
+  it("Email Campaigns primary nav entry is under MARKETING for rcadmin and salescontractor", () => {
+    for (const role of ["rcadmin", "salescontractor"] as const) {
+      const nav = getRoleNav(role, {});
+      const mktItems = nav.sections.find((s) => s.id === "marketing")?.items ?? [];
+      const campaignsItem = mktItems.find((i) => i.id === "marketing-campaigns");
+      expect(campaignsItem?.href).toBe("/rc-admin/marketing/campaigns");
+      // sales-automation should NOT appear as a top-level SALES & CRM item anymore
+      const crmItems = nav.sections.find((s) => s.id === "sales-crm")?.items ?? [];
+      expect(crmItems.find((i) => i.id === "sales-automation")).toBeUndefined();
+    }
   });
 });

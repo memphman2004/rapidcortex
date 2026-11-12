@@ -41,17 +41,10 @@ type ViewMode = "board" | "list" | "insights";
 type ListSortKey = "name" | "agency" | "stage" | "vertical" | "value" | "next" | "updated";
 
 function emptyStages(): Record<PipelineStage, SalesLeadCrmRecord[]> {
-  return {
-    NEW: [],
-    CONTACTED: [],
-    QUALIFIED: [],
-    DISCOVERY: [],
-    PROPOSAL: [],
-    NEGOTIATION: [],
-    PILOT: [],
-    WON: [],
-    LOST: [],
-  };
+  return Object.fromEntries(PIPELINE_STAGES.map((s) => [s, [] as SalesLeadCrmRecord[]])) as Record<
+    PipelineStage,
+    SalesLeadCrmRecord[]
+  >;
 }
 
 function filterStages(
@@ -160,10 +153,10 @@ function StageChangeModal({
             </div>
           )}
 
-          {stage === "PILOT" && (
+          {stage === "DEMO_COMPLETED" && (
             <div>
               <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-slate-600">
-                Pilot Start Date
+                Demo date
               </label>
               <input
                 type="date"
@@ -204,7 +197,7 @@ function StageChangeModal({
                 stage,
                 note: note.trim() || undefined,
                 lostReason: stage === "LOST" ? lostReason || undefined : undefined,
-                pilotStartDate: stage === "PILOT" ? pilotStartDate || undefined : undefined,
+                pilotStartDate: stage === "DEMO_COMPLETED" ? pilotStartDate || undefined : undefined,
               })
             }
             className="rounded-lg bg-sky-600 px-5 py-2 text-xs font-bold text-white transition hover:bg-sky-500 disabled:opacity-40"

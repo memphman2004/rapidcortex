@@ -19,8 +19,8 @@ function lead(partial: Partial<SalesLeadCrmRecord> & Pick<SalesLeadCrmRecord, "l
 describe("pipeline insights", () => {
   it("uses the stage chance when a lead has no probability", () => {
     const row = lead({ leadId: "a", pipelineStage: "PROPOSAL", estimatedValue: 10000 });
-    expect(dealProbability(row)).toBe(50);
-    expect(weightedDealValue(row)).toBe(5000);
+    expect(dealProbability(row)).toBe(55);
+    expect(weightedDealValue(row)).toBe(5500);
   });
 
   it("keeps a rep-entered probability", () => {
@@ -31,11 +31,11 @@ describe("pipeline insights", () => {
 
   it("drops lost deals from the weighted forecast and groups the reason", () => {
     const insight = buildPipelineInsight([
-      lead({ leadId: "open", pipelineStage: "NEGOTIATION", estimatedValue: 20000, assignedToName: "Ada" }),
+      lead({ leadId: "open", pipelineStage: "CONTRACTING", estimatedValue: 20000, assignedToName: "Ada" }),
       lead({ leadId: "lost", pipelineStage: "LOST", estimatedValue: 9000, lostReason: "Budget" }),
     ]);
     expect(insight.openCount).toBe(1);
-    expect(insight.weightedOpenValue).toBe(14000);
+    expect(insight.weightedOpenValue).toBe(15000);
     expect(insight.lossReasons).toEqual([{ reason: "Budget", count: 1 }]);
     expect(insight.reps[0]?.name).toBe("Ada");
   });
@@ -53,11 +53,11 @@ describe("pipeline insights", () => {
   it("keeps the fit score inside 1–100", () => {
     const row = lead({
       leadId: "d",
-      pipelineStage: "PILOT",
+      pipelineStage: "DEMO_COMPLETED",
       estimatedValue: 40000,
       assignedToName: "Ada",
       vertical: "rc911",
-      nextAction: "Send the pilot plan",
+      nextAction: "Send the proposal",
       lastContactedAt: new Date().toISOString(),
       source: "contact_sales",
       pilotStartDate: "2026-11-01",

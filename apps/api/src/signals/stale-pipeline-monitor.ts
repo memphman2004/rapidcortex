@@ -21,9 +21,15 @@ function rule(
   days: number,
 ): { fire: boolean; strength: "moderate" | "strong" } | null {
   if (stage === "PROPOSAL" && days >= 14) return { fire: true, strength: "strong" };
-  if (stage === "NEGOTIATION" && days >= 7) return { fire: true, strength: "strong" };
+  if ((stage === "PROCUREMENT" || stage === "CONTRACTING") && days >= 7) {
+    return { fire: true, strength: "strong" };
+  }
   if (
-    (stage === "QUALIFIED" || stage === "DISCOVERY") &&
+    (stage === "QUALIFIED" ||
+      stage === "DISCOVERY" ||
+      stage === "DEMO_SCHEDULED" ||
+      stage === "DEMO_COMPLETED" ||
+      stage === "ENGAGED") &&
     days >= 30
   ) {
     return { fire: true, strength: "moderate" };

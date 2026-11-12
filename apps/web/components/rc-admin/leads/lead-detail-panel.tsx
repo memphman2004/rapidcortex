@@ -126,7 +126,7 @@ function StageProgress({ stage }: { stage: PipelineStage }) {
         <span className={`text-[9px] font-bold ${STAGE_CONFIG[stage].textClass}`}>
           {STAGE_CONFIG[stage].label.toUpperCase()}
         </span>
-        <span className="text-[9px] text-[#1e3a5f]">PILOT</span>
+        <span className="text-[9px] text-[#1e3a5f]">CONTRACTING</span>
       </div>
     </div>
   );

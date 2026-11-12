@@ -16,10 +16,11 @@ import {
   emailListApolloSyncBodySchema,
   emailListImportBodySchema,
   emailListImportRowSchema,
-  emailListPartitionsForVertical,
+  emailListPartitionsForVertical as emailListPartitionsForVerticalImport,
   emailListVerticalSchema,
   moveEmailListEntryBodySchema,
   normalizeEmailListVertical,
+  type EmailListVertical,
   rapidIqOutlookCallbackBodySchema,
   updateRapidIqSalesBulkCopyBodySchema as updateNexiQSalesBulkCopyBodySchema,
   updateRapidIqSalesDraftBodySchema as updateNexiQSalesDraftBodySchema,
@@ -104,6 +105,31 @@ import { syncApolloMarketingVertical } from "../../../lib/rapid-iq/apollo-market
 import { isSuppressedInSES } from "../../../lib/ses/sesSuppression.js";
 
 const auditRepo = new AuditRepository();
+
+/**
+ * Layer/shared skew can leave emailListPartitionsForVertical undefined at runtime.
+ * Keep a local fallback so Email List GET never 500s on a stale NodeDepsLayer.
+ */
+function emailListPartitionsForVertical(
+  vertical: EmailListVertical | "ALL",
+): EmailListVertical[] {
+  if (typeof emailListPartitionsForVerticalImport === "function") {
+    return emailListPartitionsForVerticalImport(vertical);
+  }
+  if (vertical === "ALL") {
+    return [
+      "PSAP",
+      "LAW_ENFORCEMENT",
+      "FIRE_EMS",
+      "CAMPUS",
+      "VENUE",
+      "HOSPITAL",
+      "TRANSIT",
+    ];
+  }
+  if (vertical === "PSAP") return ["PSAP", "LAW_ENFORCEMENT", "FIRE_EMS"];
+  return [vertical];
+}
 
 function denyUnlessManage(user: UserContext): ReturnType<typeof forbidden> | null {
   if (!canManageSalesAutomation(user.role)) return forbidden();

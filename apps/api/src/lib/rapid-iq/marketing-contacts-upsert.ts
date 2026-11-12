@@ -8,7 +8,7 @@
  */
 
 import { randomUUID } from "node:crypto";
-import { BatchGetCommand, GetCommand, PutCommand, UpdateCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand, UpdateCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import {
   leadVerticalToEmailListVertical,
   type EmailListEntry,
@@ -367,7 +367,7 @@ export async function updateMarketingLeadEngagementByToken(
 
 /**
  * Fill missing `state` on email-list rows from MARKETING_LEADS PROFILE (Apollo/CSV already
- * store state there). Keeps the Email List UI accurate without a full re-sync.
+ * store state there). Uses GetItem (already on SignalHttp IAM) — not BatchGetItem.
  */
 export async function enrichEmailListEntriesWithLeadState(
   entries: EmailListEntry[],
@@ -375,37 +375,43 @@ export async function enrichEmailListEntriesWithLeadState(
   const table = marketingTable();
   if (!table || entries.length === 0) return entries;
 
-  const need = entries.filter((e) => !e.state?.trim()).map((e) => e.email.trim().toLowerCase());
+  const need = [
+    ...new Set(entries.filter((e) => !e.state?.trim()).map((e) => e.email.trim().toLowerCase())),
+  ];
   if (need.length === 0) return entries;
 
   const stateByEmail = new Map<string, string>();
-  for (let i = 0; i < need.length; i += 100) {
-    const chunk = need.slice(i, i + 100);
-    try {
-      const res = await ddb.send(
-        new BatchGetCommand({
-          RequestItems: {
-            [table]: {
-              Keys: chunk.map((email) => ({ pk: `LEAD#${email}`, sk: "PROFILE" })),
+  const concurrency = 25;
+  for (let i = 0; i < need.length; i += concurrency) {
+    const chunk = need.slice(i, i + concurrency);
+    const results = await Promise.all(
+      chunk.map(async (email) => {
+        try {
+          const res = await ddb.send(
+            new GetCommand({
+              TableName: table,
+              Key: { pk: `LEAD#${email}`, sk: "PROFILE" },
               ProjectionExpression: "email, #s",
               ExpressionAttributeNames: { "#s": "state" },
-            },
-          },
-        }),
-      );
-      for (const item of res.Responses?.[table] ?? []) {
-        const email = typeof item.email === "string" ? item.email.trim().toLowerCase() : "";
-        const state = typeof item.state === "string" ? item.state.trim().slice(0, 80) : "";
-        if (email && state) stateByEmail.set(email, state);
-      }
-    } catch (err) {
-      console.warn(
-        JSON.stringify({
-          msg: "email_list_state_enrich_failed",
-          error: err instanceof Error ? err.message : String(err),
-        }),
-      );
-      break;
+            }),
+          );
+          const state =
+            typeof res.Item?.state === "string" ? res.Item.state.trim().slice(0, 80) : "";
+          return state ? ([email, state] as const) : null;
+        } catch (err) {
+          console.warn(
+            JSON.stringify({
+              msg: "email_list_state_enrich_failed",
+              email,
+              error: err instanceof Error ? err.message : String(err),
+            }),
+          );
+          return null;
+        }
+      }),
+    );
+    for (const row of results) {
+      if (row) stateByEmail.set(row[0], row[1]);
     }
   }
 

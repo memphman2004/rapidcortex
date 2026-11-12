@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { STAGE_CONFIG, type PipelineStage, type SalesLeadCrmRecord } from "rapid-cortex-shared";
+import {
+  STAGE_CONFIG,
+  STAGE_ENTRY_CRITERIA,
+  type PipelineStage,
+  type SalesLeadCrmRecord,
+} from "rapid-cortex-shared";
 import { LeadCard } from "./lead-card";
 import { formatCurrency } from "./leads-utils";
 
@@ -33,7 +38,10 @@ export function PipelineColumn({
         <div className={`h-[3px] w-full ${topBarBg}`} />
         <div className="flex items-start justify-between px-3 py-2.5">
           <div>
-            <div className={`text-[11px] font-bold uppercase tracking-widest ${cfg.textClass}`}>
+            <div
+              className={`text-[11px] font-bold uppercase tracking-widest ${cfg.textClass}`}
+              title={STAGE_ENTRY_CRITERIA[stage]}
+            >
               {cfg.label}
             </div>
             {totalValue > 0 && (

@@ -78,7 +78,7 @@ function SalesWorkspaceShellInner({
             />
             <DemoModeBanner />
             <ActiveNoticesBanner />
-            <main className="flex-1 bg-[var(--rc-bg)] p-4 md:p-6">{children}</main>
+            <main className="min-w-0 flex-1 bg-[var(--rc-bg)] p-2 md:p-3 lg:p-4">{children}</main>
           </div>
         </div>
       </div>

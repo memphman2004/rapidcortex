@@ -370,9 +370,9 @@ export class SalesLeadRepository {
     };
     const names: Record<string, string> = { "#status": "status" };
 
-    if (to === "PILOT") {
+    if (to === "DEMO_COMPLETED" && opts.pilotStartDate) {
       sets.push("pilotStartDate = :pilotStartDate");
-      values[":pilotStartDate"] = opts.pilotStartDate ?? now.slice(0, 10);
+      values[":pilotStartDate"] = opts.pilotStartDate;
     }
     if (to === "WON") {
       sets.push("wonDate = :wonDate");
@@ -508,17 +508,10 @@ export class SalesLeadRepository {
   }
 
   buildPipelinePayload(leads: SalesLeadCrmRecord[]) {
-    const stages: Record<PipelineStage, SalesLeadCrmRecord[]> = {
-      NEW: [],
-      CONTACTED: [],
-      QUALIFIED: [],
-      DISCOVERY: [],
-      PROPOSAL: [],
-      NEGOTIATION: [],
-      PILOT: [],
-      WON: [],
-      LOST: [],
-    };
+    const stages = Object.fromEntries(PIPELINE_STAGES.map((s) => [s, [] as SalesLeadCrmRecord[]])) as Record<
+      PipelineStage,
+      SalesLeadCrmRecord[]
+    >;
     for (const lead of leads) {
       const s = lead.pipelineStage;
       if (stages[s]) stages[s].push(lead);

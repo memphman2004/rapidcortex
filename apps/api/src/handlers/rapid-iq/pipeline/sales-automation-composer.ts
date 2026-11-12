@@ -134,7 +134,7 @@ async function queueLeadSequences(
   const leads = await new SalesLeadRepository().listNormalized(200);
   const now = Date.now();
   const ninety = now - 90 * 86_400_000;
-  const terminal = new Set(["WON", "LOST", "PILOT"]);
+  const terminal = new Set(["WON", "LOST"]);
   let queued = 0;
 
   for (const lead of leads) {

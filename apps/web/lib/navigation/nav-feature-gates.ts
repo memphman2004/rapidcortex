@@ -1,5 +1,6 @@
 import {
   isCadWritebackUiEnabled,
+  isMarketingDashboardEnabled,
   isCadConnectorUiEnabled,
   isCadBridgeUiEnabled,
   isC2cHubUiEnabled,
@@ -163,6 +164,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isCampusAlertsEnabled();
     case "businessCards":
       return isBusinessCardsUiEnabled();
+    case "marketingDashboard":
+      return isMarketingDashboardEnabled();
     default:
       return true;
   }

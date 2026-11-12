@@ -7,7 +7,7 @@ import { DeleteCommand, GetCommand, PutCommand, QueryCommand } from "@aws-sdk/li
 import {
   EMAIL_LIST_VERTICALS,
   emailListEntrySchema,
-  emailListPartitionsForVertical,
+  emailListPartitionsForVertical as emailListPartitionsForVerticalImport,
   normalizeEmailListVertical,
   type AddEmailListEntryBody,
   type EmailListEntry,
@@ -24,6 +24,22 @@ function table(): string {
   const t = process.env.RAPID_IQ_PIPELINE_SIGNALS_TABLE?.trim();
   if (!t) throw new Error("RAPID_IQ_PIPELINE_SIGNALS_TABLE_NOT_CONFIGURED");
   return t;
+}
+
+/** Stale NodeDepsLayer may omit emailListPartitionsForVertical — keep a local fallback. */
+function emailListPartitionsForVertical(
+  vertical: EmailListVertical | "ALL",
+): EmailListVertical[] {
+  if (typeof emailListPartitionsForVerticalImport === "function") {
+    return emailListPartitionsForVerticalImport(vertical);
+  }
+  if (vertical === "ALL") {
+    return Array.isArray(EMAIL_LIST_VERTICALS)
+      ? [...EMAIL_LIST_VERTICALS]
+      : ["PSAP", "LAW_ENFORCEMENT", "FIRE_EMS", "CAMPUS", "VENUE", "HOSPITAL", "TRANSIT"];
+  }
+  if (vertical === "PSAP") return ["PSAP", "LAW_ENFORCEMENT", "FIRE_EMS"];
+  return [vertical];
 }
 
 function listPk(vertical: EmailListVertical): string {

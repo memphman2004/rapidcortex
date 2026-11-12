@@ -4,12 +4,11 @@
  */
 import {
   CHANNEL_CONFIG,
-  legacyStatusToStage,
+  normalizePipelineStage,
   type LeadActivity,
   type LeadAttribution,
   type LeadChannel,
   type LeadNote,
-  type PipelineStage,
   type SalesLeadCrmRecord,
 } from "rapid-cortex-shared";
 import { promoteProspectMessageToNotes } from "./prospect-notes-carryover.js";
@@ -36,23 +35,9 @@ export function normalizeLead(item: Record<string, unknown> | SalesLeadCrmRecord
   const createdAt = String(raw.createdAt ?? new Date().toISOString());
   const source = typeof raw.source === "string" ? raw.source : undefined;
 
-  let pipelineStage: PipelineStage = legacyStatusToStage(
-    typeof raw.status === "string" ? raw.status : "new",
+  const pipelineStage = normalizePipelineStage(
+    raw.pipelineStage ?? (typeof raw.status === "string" ? raw.status : "new"),
   );
-  const rawStage = String(raw.pipelineStage ?? "").toUpperCase();
-  if (
-    rawStage === "NEW" ||
-    rawStage === "CONTACTED" ||
-    rawStage === "QUALIFIED" ||
-    rawStage === "DISCOVERY" ||
-    rawStage === "PROPOSAL" ||
-    rawStage === "NEGOTIATION" ||
-    rawStage === "PILOT" ||
-    rawStage === "WON" ||
-    rawStage === "LOST"
-  ) {
-    pipelineStage = rawStage as PipelineStage;
-  }
 
   let notes: LeadNote[];
   if (typeof raw.notes === "string" && raw.notes.trim()) {

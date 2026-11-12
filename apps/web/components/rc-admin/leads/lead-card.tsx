@@ -26,11 +26,14 @@ import {
 const STAGE_BORDER: Record<PipelineStage, string> = {
   NEW: "border-l-sky-400",
   CONTACTED: "border-l-cyan-400",
+  ENGAGED: "border-l-sky-300",
   QUALIFIED: "border-l-emerald-400",
   DISCOVERY: "border-l-yellow-400",
+  DEMO_SCHEDULED: "border-l-amber-400",
+  DEMO_COMPLETED: "border-l-orange-400",
   PROPOSAL: "border-l-violet-400",
-  NEGOTIATION: "border-l-pink-400",
-  PILOT: "border-l-green-400",
+  PROCUREMENT: "border-l-fuchsia-400",
+  CONTRACTING: "border-l-pink-400",
   WON: "border-l-green-500",
   LOST: "border-l-red-500",
 };

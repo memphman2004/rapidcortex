@@ -24,9 +24,11 @@ import { SalesLeadRepository } from "../repositories/salesLeadRepository.js";
 const MATCH_STAGES = new Set<PipelineStage>([
   "QUALIFIED",
   "DISCOVERY",
+  "DEMO_SCHEDULED",
+  "DEMO_COMPLETED",
   "PROPOSAL",
-  "NEGOTIATION",
-  "PILOT",
+  "PROCUREMENT",
+  "CONTRACTING",
 ]);
 
 const repo = new GrantRepository();

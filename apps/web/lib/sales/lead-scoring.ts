@@ -63,12 +63,15 @@ export function scoreLead(lead: SalesLeadCrmRecord): LeadScore {
   const stage = lead.pipelineStage;
   const stagePts: Record<string, number> = {
     NEW: 5,
-    CONTACTED: 12,
+    CONTACTED: 10,
+    ENGAGED: 14,
     QUALIFIED: 22,
     DISCOVERY: 28,
-    PROPOSAL: 35,
-    NEGOTIATION: 42,
-    PILOT: 48,
+    DEMO_SCHEDULED: 32,
+    DEMO_COMPLETED: 36,
+    PROPOSAL: 40,
+    PROCUREMENT: 44,
+    CONTRACTING: 48,
     WON: 60,
     LOST: 0,
   };

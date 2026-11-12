@@ -7,7 +7,7 @@ import { marketingLoginPath } from "@/lib/marketing-links";
 import { canViewPipeline, earningsScopedToSelf } from "@/lib/sales/sales-authz";
 
 export const metadata = {
-  title: "Sales Portal",
+  title: "Sales Dashboard",
   robots: { index: false, follow: false },
 };
 
@@ -25,13 +25,14 @@ export default async function SalesPortalPage() {
   const canManageCampaigns = canManageSalesAutomation(user.role);
 
   return (
-    <div className="mx-auto max-w-[1600px] px-3 py-4 md:px-6">
+    <div className="mx-auto w-full max-w-[2200px] px-2 py-3 md:px-3 lg:px-4">
       <Suspense fallback={<p className="text-sm text-slate-400">Loading Sales Portal…</p>}>
         <SalesPortalShell
           contractorEmail={email}
           contractorName={name}
           assigneeFilter={assigneeFilter}
           canManageCampaigns={canManageCampaigns}
+          pageTitle="Sales Dashboard"
         />
       </Suspense>
     </div>
