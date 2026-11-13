@@ -12,6 +12,7 @@ import {
 } from "rapid-cortex-shared";
 import type { UserContext } from "rapid-cortex-shared";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
+import { requireAddon } from "../../middleware/requireAddon.js";
 import { env } from "../../lib/env.js";
 import { getCadParser } from "../../lib/cad/parsers/index.js";
 import type { CadIntegrationSetupContext } from "../../lib/cad/types.js";
@@ -41,6 +42,7 @@ import { pollCadIntegration } from "../../lib/cad/poll/cad-poller-service.js";
 import type { CadPollHistoryPoint } from "../../repositories/cadIntegrationRepository.js";
 
 const authz = new AuthorizationService();
+const requireCadAddon = requireAddon("cad.");
 const integrationRepo = new CadIntegrationRepository();
 const rawIncidentRepo = new CadIncidentRawRepository();
 const capIncidentsRepo = new CadCapIncidentsRepository();
@@ -149,6 +151,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const user = await getUserContext(event);
     if (!user) return unauthorized();
     if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
+
+    // Addon gate: agency must hold an active "cad." entitlement (JWT claim,
+    // agency.addons, or plan SKU catalog).  rcsuperadmin bypasses via plan
+    // catalog.  Applied at router level — covers all routes in this handler:
+    // integration CRUD, approval queue, raw incident list, CAP incidents,
+    // force-poll, and test-connection.
+    //
+    // Both /api/admin/cad-incidents and /api/admin/cad-cap-incidents query
+    // addon-specific tables (cadIncidentsRawTable, cadCapIncidentsTable) that
+    // are only populated when a CAD integration is active, so no analyst/
+    // auditor bypass is needed — a non-addon agency returns [] regardless.
+    const addonGate = await requireCadAddon(event, user);
+    if (addonGate) return addonGate;
 
     const rawPath = event.rawPath ?? "";
     const pathCadIncidents = "/api/admin/cad-incidents";

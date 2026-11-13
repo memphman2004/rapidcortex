@@ -27,11 +27,17 @@ function isCadWritebackPostRoute(segments: string[]): boolean {
 export async function GET(_request: Request, ctx: Ctx) {
   const { segments = [] } = await ctx.params;
 
+  // Health is intentionally unauthenticated — monitors and load balancers poll it.
   if (segments[0] === "health") {
     const adapter = resolveCadAdapter();
     const health = await adapter.healthCheck();
     return NextResponse.json({ health });
   }
+
+  // All other CAD read paths are authenticated. Anonymous callers get 401, not
+  // an empty feature-disabled response — same contract as the POST write paths.
+  const auth = await requireCadApiUser();
+  if (!auth.ok) return auth.response;
 
   const readProvider = resolveCadReadProvider();
 

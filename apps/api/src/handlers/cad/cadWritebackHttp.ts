@@ -6,16 +6,20 @@ import {
   cadWritebackApprovalBodySchema,
   cadWritebackBodySchema,
   isCadPushBlockedByPictureStatus,
-  isRcsuperadmin,
   type CadWritebackAuditRecord,
   type CadWritebackBody,
   type PictureStatus,
   type UserContext,
 } from "rapid-cortex-shared";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
-import { getCadWriteAdapter } from "../../lib/cad/adapters/index.js";
+import { getCadWriteAdapter, UnknownCadVendorError } from "../../lib/cad/adapters/index.js";
+import {
+  assertAutomatedWritebackAllowed,
+  assertHumanWritebackAllowed,
+} from "../../lib/cad/writeback-agency-gates.js";
 import { env } from "../../lib/env.js";
 import { makeId } from "../../lib/ids.js";
+import { AgencyRepository } from "../../repositories/agencyRepository.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { CadIntegrationRepository, type CadIntegrationRecord } from "../../repositories/cadIntegrationRepository.js";
 import { CadWritebackAuditRepository } from "../../repositories/cadWritebackAuditRepository.js";
@@ -36,6 +40,7 @@ import {
 import { ulid } from "ulid";
 
 const authz = new AuthorizationService();
+const agenciesRepo = new AgencyRepository();
 const incidentsRepo = new IncidentRepository();
 const integrationRepo = new CadIntegrationRepository();
 const writebackAuditRepo = new CadWritebackAuditRepository();
@@ -85,18 +90,20 @@ function cors204() {
 }
 
 function canSubmitCadWriteback(user: UserContext): boolean {
-  if (isRcsuperadmin(user)) return true;
+  // Prefer AuthorizationService matrix (cad.writeback.submit); keep legacy cad.submit as alias.
   return (
-    user.role === "dispatcher" ||
-    user.role === "supervisor" ||
-    user.role === "agencyadmin" ||
-    user.role === "agencyit"
+    authz.canPerform(user, "cad.writeback.submit") ||
+    authz.canPerform(user, "cad.submit")
   );
 }
 
 function canReviewCadWriteback(user: UserContext): boolean {
-  if (isRcsuperadmin(user)) return true;
-  return authz.canAccessSupervisorRoutes(user) || user.role === "agencyadmin" || user.role === "agencyit";
+  return (
+    authz.canPerform(user, "cad.writeback.approve") ||
+    authz.canPerform(user, "cad.writeback.reject") ||
+    authz.canPerform(user, "cad.approve") ||
+    authz.canPerform(user, "cad.reject")
+  );
 }
 
 function integrationConfigStrings(config: Record<string, unknown>): Record<string, string> {
@@ -183,6 +190,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         return jsonStatus({ error: "CAD integrations are not configured." }, 503);
       }
 
+      const agency = await agenciesRepo.get(user.agencyId);
+      const humanGate = assertHumanWritebackAllowed(agency?.config);
+      if (!humanGate.ok) return badRequest(humanGate.error);
+
       const incidentId = decodeURIComponent(writebackMatch[1]);
       const parsed = cadWritebackBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
       if (!parsed.success) return badRequestFromZod(parsed.error);
@@ -241,7 +252,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }
 
       const now = new Date().toISOString();
-      const ttl = Math.floor(Date.now() / 1000) + 90 * 86400;
+      // 7-year retention — required for CJIS-covered CAD audit records.
+      const ttl = Math.floor(Date.now() / 1000) + 7 * 365 * 86400;
       const approvalId = ulid();
       const cfg = integrationConfigStrings(integration.config);
 
@@ -272,7 +284,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         return jsonStatus({ ok: true, status: "pending_approval", approvalId }, 202);
       }
 
-      const adapter = getCadWriteAdapter(integration.vendor);
+      const automatedGate = assertAutomatedWritebackAllowed(agency?.config);
+      if (!automatedGate.ok) return badRequest(automatedGate.error);
+
+      let adapter;
+      try {
+        adapter = getCadWriteAdapter(integration.vendor);
+      } catch (err) {
+        if (err instanceof UnknownCadVendorError) {
+          return badRequest(err.message);
+        }
+        throw err;
+      }
       const result = await adapter.submit({
         incident,
         payload: parsed.data,
@@ -414,7 +437,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         );
       }
 
-      const adapter = getCadWriteAdapter(integration.vendor);
+      let adapter;
+      try {
+        adapter = getCadWriteAdapter(integration.vendor);
+      } catch (err) {
+        if (err instanceof UnknownCadVendorError) {
+          return badRequest(err.message);
+        }
+        throw err;
+      }
       const cfg = integrationConfigStrings(integration.config);
       const result = await adapter.submit({
         incident,
@@ -425,11 +456,28 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
       const now = new Date().toISOString();
       if (!result.success) {
-        await writebackAuditRepo.update(id, {
-          status: "failed",
-          errorMessage: result.errorMessage,
-          cadResponse: result.cadResponse?.slice(0, 8000),
-        });
+        try {
+          await writebackAuditRepo.update(id, {
+            status: "failed",
+            errorMessage: result.errorMessage,
+            cadResponse: result.cadResponse?.slice(0, 8000),
+          });
+        } catch (updateErr: unknown) {
+          // A concurrent approval succeeded between our status check and this
+          // failure update.  The record is in a good terminal state — log and
+          // let the 502 response still reflect this invocation's adapter failure.
+          if (updateErr instanceof Error && updateErr.message === "ALREADY_PROCESSED") {
+            console.warn(
+              JSON.stringify({
+                type: "cad.writeback.concurrent_resolution",
+                writebackId: id,
+                note: "failure update skipped — record already processed by concurrent request",
+              }),
+            );
+          } else {
+            throw updateErr;
+          }
+        }
         await auditRepo.create({
           eventId: makeId("aud"),
           agencyId: user.agencyId,
@@ -444,12 +492,22 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         return jsonStatus({ ok: false, error: result.errorMessage ?? "CAD write-back failed" }, 502);
       }
 
-      await writebackAuditRepo.update(id, {
-        status: "approved",
-        approvedBy: user.userId,
-        approvedAt: now,
-        cadResponse: result.cadResponse?.slice(0, 8000),
-      });
+      try {
+        await writebackAuditRepo.update(id, {
+          status: "approved",
+          approvedBy: user.userId,
+          approvedAt: now,
+          cadResponse: result.cadResponse?.slice(0, 8000),
+        });
+      } catch (updateErr: unknown) {
+        if (updateErr instanceof Error && updateErr.message === "ALREADY_PROCESSED") {
+          return jsonStatus(
+            { ok: false, error: "Record has already been processed — cannot approve" },
+            409,
+          );
+        }
+        throw updateErr;
+      }
 
       await auditRepo.create({
         eventId: makeId("aud"),
@@ -490,12 +548,22 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
       const now = new Date().toISOString();
       const notes = parsed.data.notes?.trim() ?? "";
-      await writebackAuditRepo.update(id, {
-        status: "rejected",
-        rejectedBy: user.userId,
-        rejectedAt: now,
-        rejectionReason: notes || "rejected",
-      });
+      try {
+        await writebackAuditRepo.update(id, {
+          status: "rejected",
+          rejectedBy: user.userId,
+          rejectedAt: now,
+          rejectionReason: notes || "rejected",
+        });
+      } catch (updateErr: unknown) {
+        if (updateErr instanceof Error && updateErr.message === "ALREADY_PROCESSED") {
+          return jsonStatus(
+            { ok: false, error: "Record has already been processed — cannot reject" },
+            409,
+          );
+        }
+        throw updateErr;
+      }
 
       await auditRepo.create({
         eventId: makeId("aud"),
