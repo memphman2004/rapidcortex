@@ -155,4 +155,10 @@ export type CadWritebackAuditRecord = {
   errorMessage?: string;
   createdAt: string;
   ttl: number;
+  /** F7: role of the user who last mutated this record. */
+  actorRole: string;
+  /** F7: IP of the actor at time of last mutation (`unknown` if not extractable). */
+  ipAddress: string;
+  /** F7: CAD vendor incident ID if resolved; null if not yet matched. */
+  cadIncidentId: string | null;
 };

@@ -396,6 +396,10 @@ export const AUDIT_EVENT_TYPES = {
   CAD_WRITEBACK_APPROVED: "cad.writeback.approved",
   CAD_WRITEBACK_REJECTED: "cad.writeback.rejected",
   CAD_WRITEBACK_FAILED: "cad.writeback.failed",
+  /** F8: GET /api/admin/cad-incidents list read. */
+  CAD_INCIDENT_READ: "cad.incident.read",
+  /** F9: forbidden/unauthorized on CAD routes (not addon config gaps). */
+  CAD_UNAUTHORIZED_ACCESS: "cad.unauthorized_access",
   CAD_BRIDGE_CONFIG_UPDATED: "cad.bridge.config.updated",
   CAD_BRIDGE_EVENT: "cad.bridge.event",
   CAD_BRIDGE_TRANSFER: "cad.bridge.transfer",

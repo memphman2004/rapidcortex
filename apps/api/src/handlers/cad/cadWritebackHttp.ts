@@ -2,6 +2,7 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
 import { AUDIT_EVENT_TYPES, AuthorizationService } from "rapid-cortex-security";
 import {
+  cadAvlListQuerySchema,
   cadPushGateMessage,
   cadWritebackApprovalBodySchema,
   cadWritebackBodySchema,
@@ -12,15 +13,15 @@ import {
   type UserContext,
 } from "rapid-cortex-shared";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
+import { emitAuditEvent, emitCadUnauthorizedAccess, extractIp } from "../../lib/audit.js";
 import { getCadWriteAdapter, UnknownCadVendorError } from "../../lib/cad/adapters/index.js";
+import { canViewCadAvl, filterAvlUnitsForAgency } from "../../lib/cad/avl/avl-units.js";
 import {
   assertAutomatedWritebackAllowed,
   assertHumanWritebackAllowed,
 } from "../../lib/cad/writeback-agency-gates.js";
 import { env } from "../../lib/env.js";
-import { makeId } from "../../lib/ids.js";
 import { AgencyRepository } from "../../repositories/agencyRepository.js";
-import { AuditRepository } from "../../repositories/auditRepository.js";
 import { CadIntegrationRepository, type CadIntegrationRecord } from "../../repositories/cadIntegrationRepository.js";
 import { CadWritebackAuditRepository } from "../../repositories/cadWritebackAuditRepository.js";
 import { IncidentRepository } from "../../repositories/incidentRepository.js";
@@ -44,7 +45,6 @@ const agenciesRepo = new AgencyRepository();
 const incidentsRepo = new IncidentRepository();
 const integrationRepo = new CadIntegrationRepository();
 const writebackAuditRepo = new CadWritebackAuditRepository();
-const auditRepo = new AuditRepository();
 const fieldConfidenceService = new FieldConfidenceService();
 const sns = new SNSClient({ region: env.region });
 const requireCadAddon = requireAddon("cad.");
@@ -168,21 +168,76 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const method = event.requestContext.http.method;
     if (method === "OPTIONS") return cors204();
 
-    if (!env.cadWritebackAuditTable) {
-      return jsonStatus({ error: "CAD write-back audit storage is not configured." }, 503);
-    }
-
     const user = await getUserContext(event);
-    if (!user) return unauthorized();
-    if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
+    if (!user) {
+      emitCadUnauthorizedAccess({ event, reason: "unauthenticated" });
+      return unauthorized();
+    }
+    if (!isUserAccountActive(user)) {
+      emitCadUnauthorizedAccess({
+        event,
+        agencyId: user.agencyId,
+        actorUserId: user.userId,
+        actorRole: user.role,
+        reason: "account_inactive",
+      });
+      return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
+    }
     const addonGate = await requireCadAddon(event, user);
     if (addonGate) return addonGate;
 
     const rawPath = event.rawPath ?? "";
+    const actorIp = extractIp(event);
+
+    // #62 AVL overlays — dispatcher/supervisor only; agency-scoped; empty until CAD_AVL_UNITS_TABLE lands.
+    if (rawPath === "/api/cad/avl/units" && method === "GET") {
+      if (!canViewCadAvl(user.role)) {
+        emitCadUnauthorizedAccess({
+          event,
+          agencyId: user.agencyId,
+          actorUserId: user.userId,
+          actorRole: user.role,
+          reason: "avl_rbac_denied",
+        });
+        return forbidden();
+      }
+      const q = cadAvlListQuerySchema.safeParse(event.queryStringParameters ?? {});
+      if (!q.success) return badRequestFromZod(q.error);
+      const table = process.env.CAD_AVL_UNITS_TABLE?.trim() ?? "";
+      if (!table) {
+        return ok({
+          units: [],
+          feedStatus: "unavailable" as const,
+          mapProvider: "amazon_location" as const,
+          detail: "CAD_AVL_UNITS_TABLE not configured — AVL ingest not yet deployed",
+        });
+      }
+      // Ingest path will populate this table; until then keep response shape stable.
+      const units = filterAvlUnitsForAgency([], user.agencyId, {
+        staleAfterSeconds: q.data.staleAfterSeconds,
+      });
+      return ok({
+        units: units.slice(0, q.data.limit ?? 500),
+        feedStatus: "ok" as const,
+        mapProvider: "amazon_location" as const,
+      });
+    }
+
+    if (!env.cadWritebackAuditTable) {
+      return jsonStatus({ error: "CAD write-back audit storage is not configured." }, 503);
+    }
 
     const writebackMatch = /^\/api\/cad\/writeback\/([^/]+)$/.exec(rawPath);
     if (writebackMatch && method === "POST") {
-      if (!canSubmitCadWriteback(user)) return forbidden();
+      if (!canSubmitCadWriteback(user)) {
+        emitCadUnauthorizedAccess({
+          event,
+          agencyId: user.agencyId,
+          actorUserId: user.userId,
+          actorRole: user.role,
+        });
+        return forbidden();
+      }
       if (!env.cadWritebackEnabled) {
         return badRequest("CAD write-back is not enabled for this environment");
       }
@@ -200,6 +255,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
       const incident = await incidentsRepo.get(incidentId);
       if (!incident || incident.agencyId !== user.agencyId) {
+        emitCadUnauthorizedAccess({
+          event,
+          agencyId: user.agencyId,
+          actorUserId: user.userId,
+          actorRole: user.role,
+          reason: "incident_access_denied",
+        });
         return forbidden("Incident not found or access denied");
       }
       if (incident.isDemoIncident === true || incident.dispatchBlocked === true) {
@@ -218,21 +280,21 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
       const confidenceGate = await assertCadConfidenceGate(incidentId, user);
       if (confidenceGate.blocked) {
-        const now = new Date().toISOString();
-        await auditRepo.create({
-          eventId: makeId("aud"),
+        emitAuditEvent({
+          eventType: AUDIT_EVENT_TYPES.CAD_WRITEBACK_BLOCKED,
           agencyId: user.agencyId,
-          actorId: user.userId,
+          actorUserId: user.userId,
+          actorRole: user.role,
+          ipAddress: actorIp,
           incidentId,
-          type: AUDIT_EVENT_TYPES.CAD_WRITEBACK_BLOCKED,
-          details: {
+          cadIncidentId,
+          resourceType: "incident",
+          resourceId: incidentId,
+          payload: {
             reason: "picture_status",
             pictureStatus: confidenceGate.pictureStatus,
             message: confidenceGate.message,
           },
-          createdAt: now,
-          resourceType: "incident",
-          resourceId: incidentId,
         });
         return jsonStatus(
           {
@@ -271,6 +333,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           status: "pending_approval",
           createdAt: now,
           ttl,
+          actorRole: user.role,
+          ipAddress: actorIp,
+          cadIncidentId: cadIncidentId ?? null,
         };
         await writebackAuditRepo.create(row);
         const preview = redactForAudit(parsed.data.narrative, 100);
@@ -318,25 +383,31 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         errorMessage: result.errorMessage,
         createdAt: now,
         ttl,
+        actorRole: user.role,
+        ipAddress: actorIp,
+        cadIncidentId: cadIncidentId ?? null,
       };
       await writebackAuditRepo.create(auditRow);
 
-      await auditRepo.create({
-        eventId: makeId("aud"),
+      emitAuditEvent({
+        eventType: result.success
+          ? AUDIT_EVENT_TYPES.CAD_WRITEBACK_SUBMITTED
+          : AUDIT_EVENT_TYPES.CAD_WRITEBACK_FAILED,
         agencyId: user.agencyId,
-        actorId: user.userId,
+        actorUserId: user.userId,
+        actorRole: user.role,
+        ipAddress: actorIp,
         incidentId,
-        type: result.success ? AUDIT_EVENT_TYPES.CAD_WRITEBACK_SUBMITTED : AUDIT_EVENT_TYPES.CAD_WRITEBACK_FAILED,
-        details: {
+        cadIncidentId,
+        resourceType: "incident",
+        resourceId: incidentId,
+        payload: {
           writebackId: approvalId,
           integrationId: integration.id,
           vendor: integration.vendor,
           success: result.success,
           errorMessage: result.errorMessage,
         },
-        createdAt: now,
-        resourceType: "incident",
-        resourceId: incidentId,
       });
 
       if (!result.success) {
@@ -365,7 +436,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (rawPath === "/api/admin/cad-writeback-approvals" && method === "GET") {
-      if (!canReviewCadWriteback(user)) return forbidden();
+      if (!canReviewCadWriteback(user)) {
+        emitCadUnauthorizedAccess({
+          event,
+          agencyId: user.agencyId,
+          actorUserId: user.userId,
+          actorRole: user.role,
+        });
+        return forbidden();
+      }
       const qs = event.queryStringParameters ?? {};
       const status = qs.status?.trim();
       const sinceIso = parseSinceParam(qs.since);
@@ -375,7 +454,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     const approveMatch = /^\/api\/admin\/cad-writeback-approvals\/([^/]+)\/approve$/.exec(rawPath);
     if (approveMatch && method === "POST") {
-      if (!canReviewCadWriteback(user)) return forbidden();
+      if (!canReviewCadWriteback(user)) {
+        emitCadUnauthorizedAccess({
+          event,
+          agencyId: user.agencyId,
+          actorUserId: user.userId,
+          actorRole: user.role,
+        });
+        return forbidden();
+      }
       const id = decodeURIComponent(approveMatch[1]);
       const record = await writebackAuditRepo.getById(id);
       if (!record || record.agencyId !== user.agencyId) return notFound();
@@ -383,6 +470,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         return badRequest("Record is not pending approval");
       }
       if (record.userId === user.userId) {
+        emitCadUnauthorizedAccess({
+          event,
+          agencyId: user.agencyId,
+          actorUserId: user.userId,
+          actorRole: user.role,
+          reason: "self_approval_forbidden",
+        });
         return forbidden("You cannot approve your own CAD write-back submission");
       }
 
@@ -408,23 +502,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
       const confidenceGate = await assertCadConfidenceGate(record.incidentId, user);
       if (confidenceGate.blocked) {
-        const blockedAt = new Date().toISOString();
-        await auditRepo.create({
-          eventId: makeId("aud"),
+        emitAuditEvent({
+          eventType: AUDIT_EVENT_TYPES.CAD_WRITEBACK_BLOCKED,
           agencyId: user.agencyId,
-          actorId: user.userId,
+          actorUserId: user.userId,
+          actorRole: user.role,
+          ipAddress: actorIp,
           incidentId: record.incidentId,
-          type: AUDIT_EVENT_TYPES.CAD_WRITEBACK_BLOCKED,
-          details: {
+          cadIncidentId: record.cadIncidentId ?? cadIncidentId,
+          resourceType: "incident",
+          resourceId: record.incidentId,
+          payload: {
             reason: "picture_status",
             phase: "approve",
             writebackId: id,
             pictureStatus: confidenceGate.pictureStatus,
             message: confidenceGate.message,
           },
-          createdAt: blockedAt,
-          resourceType: "incident",
-          resourceId: record.incidentId,
         });
         return jsonStatus(
           {
@@ -461,6 +555,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             status: "failed",
             errorMessage: result.errorMessage,
             cadResponse: result.cadResponse?.slice(0, 8000),
+            actorRole: user.role,
+            ipAddress: actorIp,
           });
         } catch (updateErr: unknown) {
           // A concurrent approval succeeded between our status check and this
@@ -478,16 +574,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             throw updateErr;
           }
         }
-        await auditRepo.create({
-          eventId: makeId("aud"),
+        emitAuditEvent({
+          eventType: AUDIT_EVENT_TYPES.CAD_WRITEBACK_FAILED,
           agencyId: user.agencyId,
-          actorId: user.userId,
+          actorUserId: user.userId,
+          actorRole: user.role,
+          ipAddress: actorIp,
           incidentId: record.incidentId,
-          type: AUDIT_EVENT_TYPES.CAD_WRITEBACK_FAILED,
-          details: { writebackId: id, phase: "approve", errorMessage: result.errorMessage },
-          createdAt: now,
+          cadIncidentId: record.cadIncidentId ?? cadIncidentId,
           resourceType: "incident",
           resourceId: record.incidentId,
+          payload: { writebackId: id, phase: "approve", errorMessage: result.errorMessage },
         });
         return jsonStatus({ ok: false, error: result.errorMessage ?? "CAD write-back failed" }, 502);
       }
@@ -498,6 +595,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           approvedBy: user.userId,
           approvedAt: now,
           cadResponse: result.cadResponse?.slice(0, 8000),
+          actorRole: user.role,
+          ipAddress: actorIp,
+          // cadIncidentId already set at submit — do not overwrite
         });
       } catch (updateErr: unknown) {
         if (updateErr instanceof Error && updateErr.message === "ALREADY_PROCESSED") {
@@ -509,16 +609,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         throw updateErr;
       }
 
-      await auditRepo.create({
-        eventId: makeId("aud"),
+      emitAuditEvent({
+        eventType: AUDIT_EVENT_TYPES.CAD_WRITEBACK_APPROVED,
         agencyId: user.agencyId,
-        actorId: user.userId,
+        actorUserId: user.userId,
+        actorRole: user.role,
+        ipAddress: actorIp,
         incidentId: record.incidentId,
-        type: AUDIT_EVENT_TYPES.CAD_WRITEBACK_APPROVED,
-        details: { writebackId: id, integrationId: integration.id },
-        createdAt: now,
+        cadIncidentId: record.cadIncidentId,
         resourceType: "incident",
         resourceId: record.incidentId,
+        payload: { writebackId: id, integrationId: integration.id },
       });
 
       await publishOps("Your CAD write-back was approved", {
@@ -535,7 +636,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     const rejectMatch = /^\/api\/admin\/cad-writeback-approvals\/([^/]+)\/reject$/.exec(rawPath);
     if (rejectMatch && method === "POST") {
-      if (!canReviewCadWriteback(user)) return forbidden();
+      if (!canReviewCadWriteback(user)) {
+        emitCadUnauthorizedAccess({
+          event,
+          agencyId: user.agencyId,
+          actorUserId: user.userId,
+          actorRole: user.role,
+        });
+        return forbidden();
+      }
       const id = decodeURIComponent(rejectMatch[1]);
       const parsed = cadWritebackApprovalBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
       if (!parsed.success) return badRequestFromZod(parsed.error);
@@ -554,6 +663,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           rejectedBy: user.userId,
           rejectedAt: now,
           rejectionReason: notes || "rejected",
+          actorRole: user.role,
+          ipAddress: actorIp,
         });
       } catch (updateErr: unknown) {
         if (updateErr instanceof Error && updateErr.message === "ALREADY_PROCESSED") {
@@ -565,16 +676,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         throw updateErr;
       }
 
-      await auditRepo.create({
-        eventId: makeId("aud"),
+      emitAuditEvent({
+        eventType: AUDIT_EVENT_TYPES.CAD_WRITEBACK_REJECTED,
         agencyId: user.agencyId,
-        actorId: user.userId,
+        actorUserId: user.userId,
+        actorRole: user.role,
+        ipAddress: actorIp,
         incidentId: record.incidentId,
-        type: AUDIT_EVENT_TYPES.CAD_WRITEBACK_REJECTED,
-        details: { writebackId: id, notes },
-        createdAt: now,
+        cadIncidentId: record.cadIncidentId,
         resourceType: "incident",
         resourceId: record.incidentId,
+        payload: { writebackId: id, notes },
       });
 
       await publishOps("Your CAD write-back was rejected", {

@@ -12,6 +12,7 @@ import {
 } from "rapid-cortex-shared";
 import type { UserContext } from "rapid-cortex-shared";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
+import { emitAuditEvent, emitCadUnauthorizedAccess, extractIp } from "../../lib/audit.js";
 import { requireAddon } from "../../middleware/requireAddon.js";
 import { env } from "../../lib/env.js";
 import { getCadParser } from "../../lib/cad/parsers/index.js";
@@ -149,8 +150,20 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     const user = await getUserContext(event);
-    if (!user) return unauthorized();
-    if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
+    if (!user) {
+      emitCadUnauthorizedAccess({ event, reason: "unauthenticated" });
+      return unauthorized();
+    }
+    if (!isUserAccountActive(user)) {
+      emitCadUnauthorizedAccess({
+        event,
+        agencyId: user.agencyId,
+        actorUserId: user.userId,
+        actorRole: user.role,
+        reason: "account_inactive",
+      });
+      return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
+    }
 
     // Addon gate: agency must hold an active "cad." entitlement (JWT claim,
     // agency.addons, or plan SKU catalog).  rcsuperadmin bypasses via plan
@@ -162,6 +175,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     // addon-specific tables (cadIncidentsRawTable, cadCapIncidentsTable) that
     // are only populated when a CAD integration is active, so no analyst/
     // auditor bypass is needed — a non-addon agency returns [] regardless.
+    // F9: do not emit CAD_UNAUTHORIZED_ACCESS here — config gap, not authz denial.
     const addonGate = await requireCadAddon(event, user);
     if (addonGate) return addonGate;
 
@@ -170,8 +184,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const pathCadCapIncidents = "/api/admin/cad-cap-incidents";
     const pathIntegrationsRoot = "/api/admin/cad-integrations";
 
+    const deny = (reason = "insufficient_permissions") => {
+      emitCadUnauthorizedAccess({
+        event,
+        agencyId: user.agencyId,
+        actorUserId: user.userId,
+        actorRole: user.role,
+        reason,
+      });
+      return forbidden();
+    };
+
     if (rawPath === pathCadCapIncidents && method === "GET") {
-      if (!canListCadIncidents(user)) return forbidden();
+      if (!canListCadIncidents(user)) return deny();
       if (!env.cadCapIncidentsTable) {
         return serviceUnavailable("CAD CAP incidents storage is not configured.");
       }
@@ -185,7 +210,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (rawPath === pathCadIncidents && method === "GET") {
-      if (!canListCadIncidents(user)) return forbidden();
+      if (!canListCadIncidents(user)) return deny();
       const parsed = cadIncidentsQuerySchema.safeParse(event.queryStringParameters ?? {});
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const { integrationId, ...listOpts } = parsed.data;
@@ -203,11 +228,24 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       } else {
         items = await rawIncidentRepo.listByAgency(user.agencyId, listOpts);
       }
+      // F8: audit — read access to CAD incident list (fire-and-forget)
+      emitAuditEvent({
+        eventType: AUDIT_EVENT_TYPES.CAD_INCIDENT_READ,
+        agencyId: user.agencyId,
+        actorUserId: user.userId,
+        actorRole: user.role,
+        ipAddress: extractIp(event),
+        resourceType: "cad-incidents",
+        payload: {
+          count: items.length,
+          integrationId: integrationId?.trim() || null,
+        },
+      });
       return ok({ items });
     }
 
     if (rawPath === pathIntegrationsRoot && method === "GET") {
-      if (!canViewCadIntegrations(user)) return forbidden();
+      if (!canViewCadIntegrations(user)) return deny();
       const rows = await integrationRepo.listByAgency(user.agencyId);
       const includeMetrics = event.queryStringParameters?.includeMetrics === "true";
       if (includeMetrics) {
@@ -220,7 +258,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (rawPath === pathIntegrationsRoot && method === "POST") {
-      if (!canMutateCadIntegration(user)) return forbidden();
+      if (!canMutateCadIntegration(user)) return deny();
       const parsed = postCadIntegrationBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const salt = env.cadWebhookSecretSalt;
@@ -279,14 +317,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (!id) return notFound();
 
     if (method === "GET") {
-      if (!canViewCadIntegrations(user)) return forbidden();
+      if (!canViewCadIntegrations(user)) return deny();
       const row = await integrationRepo.getById(user.agencyId, id);
       if (!row) return notFound();
       return ok({ integration: toPublicIntegration(row) });
     }
 
     if (method === "PATCH") {
-      if (!canMutateCadIntegration(user)) return forbidden();
+      if (!canMutateCadIntegration(user)) return deny();
       const parsed = patchCadIntegrationBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const existing = await integrationRepo.getById(user.agencyId, id);
@@ -348,7 +386,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (method === "DELETE") {
-      if (!canMutateCadIntegration(user)) return forbidden();
+      if (!canMutateCadIntegration(user)) return deny();
       const existing = await integrationRepo.getById(user.agencyId, id);
       if (!existing) return notFound();
       await integrationRepo.delete(user.agencyId, id);
@@ -367,7 +405,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (method === "POST" && isForcePoll) {
-      if (!canMutateCadIntegration(user)) return forbidden();
+      if (!canMutateCadIntegration(user)) return deny();
       const row = await integrationRepo.getById(user.agencyId, id);
       if (!row) return notFound();
       if (row.connectionType !== "api_poll") {
@@ -415,7 +453,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (method === "POST" && isTestConnection) {
-      if (!canMutateCadIntegration(user)) return forbidden();
+      if (!canMutateCadIntegration(user)) return deny();
       const row = await integrationRepo.getById(user.agencyId, id);
       if (!row) return notFound();
       const parsed = cadPollTestConnectionBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
@@ -456,7 +494,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (method === "POST" && isTest) {
-      if (!canMutateCadIntegration(user)) return forbidden();
+      if (!canMutateCadIntegration(user)) return deny();
       const row = await integrationRepo.getById(user.agencyId, id);
       if (!row) return notFound();
       const t0 = Date.now();

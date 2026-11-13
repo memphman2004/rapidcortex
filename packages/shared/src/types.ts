@@ -479,6 +479,7 @@ export type AuditResourceType =
   | "cad_connector"
   | "cad_unified_incident"
   | "cad_writeback"
+  | "cad-incidents"
   | "cad_bridge"
   | "cad_bridge_incident"
   | "call_assist"
@@ -527,6 +528,15 @@ export interface AuditEvent {
   resourceId?: string;
   /** Optional: client IP for access reviews (omit in dev if unwanted). */
   ip?: string;
+  /**
+   * F7: preferred IP field name for CAD / CJIS writers.
+   * Prefer setting both `ip` and `ipAddress` to the same value for dual-read.
+   */
+  ipAddress?: string;
+  /** F7: canonical role string of the actor (dispatcher, supervisor, …). */
+  actorRole?: string;
+  /** F7: CAD vendor incident ID when the action is tied to a vendor record. */
+  cadIncidentId?: string;
   /** Optional: client user-agent string. */
   userAgent?: string;
 }
