@@ -1749,7 +1749,7 @@ describe('service request creation', () => {
 
     expect(result.department).toBe('Public Works');
     expect(result.status).toBe('OPEN');
-    expect(result.serviceRequestId).toMatch(/^SR-AGEN/);
+    expect(result.serviceRequestId).toMatch(/^RC-AGEN/);
   });
 
   test('throws if 311 not enabled for agency', async () => {
