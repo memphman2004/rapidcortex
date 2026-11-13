@@ -115,6 +115,7 @@ export * from "./campus/counselor-queue.js";
 export * from "./campus/school-safety-report-schemas.js";
 export * from "./campus/place-cameras.js";
 export * from "./campus/info-tab.js";
+export * from "./campus/bluelight/index.js";
 export * from "./campus/escort-iq/index.js";
 export * from "./campus/campus-alerts/index.js";
 export * from "./campus/silent-panic.js";

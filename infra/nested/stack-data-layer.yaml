@@ -425,6 +425,11 @@
       "Default": "rapid-cortex-campus-camera-registry-dev",
       "Description": "Pre-existing table: CampusCameraRegistryTable (managed outside CloudFormation for dev)"
     },
+    "ExistingCampusBlueLightPolesTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-campus-bluelight-poles-dev",
+      "Description": "Pre-existing table: CampusBlueLightPolesTable (managed outside CloudFormation for dev)"
+    },
     "ExistingVenueAssetsTableName": {
       "Type": "String",
       "Default": "rapid-cortex-venue-assets-dev",
@@ -6701,6 +6706,12 @@
       "Description": "Physical table name for CampusCameraRegistryTable",
       "Value": {
         "Ref": "ExistingCampusCameraRegistryTableName"
+      }
+    },
+    "CampusBlueLightPolesTable": {
+      "Description": "Physical table name for CampusBlueLightPolesTable",
+      "Value": {
+        "Ref": "ExistingCampusBlueLightPolesTableName"
       }
     },
     "PlatformNoticesTable": {

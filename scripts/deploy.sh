@@ -830,6 +830,9 @@ fi
 if [[ -n "${CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} CallAssistConnectWebhookSecretArn=${CALL_ASSIST_CONNECT_WEBHOOK_SECRET_ARN}"
 fi
+if [[ -n "${BLUELIGHT_API_KEY_SECRET_ARN:-}" ]]; then
+  PARAMS="${PARAMS} BlueLightApiKeySecretArn=${BLUELIGHT_API_KEY_SECRET_ARN}"
+fi
 
 # Call Assist live Lex/Connect provisioning — resolve from Lex stack + Connect when unset.
 LEX_STACK_NAME="${LEX_STACK_NAME:-${APP_NAME:-rapid-cortex}-lex-${STAGE}}"

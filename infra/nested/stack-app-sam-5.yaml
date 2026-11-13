@@ -505,6 +505,14 @@ Parameters:
     Type: String
     Default: ""
     Description: Campus fixed-camera registry (building/floor coverage, KVS channels, priority rank).
+  CampusBlueLightPolesTable:
+    Type: String
+    Default: ""
+    Description: Campus blue-light pole registry (campus vertical only).
+  BlueLightApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: Secrets Manager ARN for Blue-Light Connect ingest API key (campus vertical only).
   VideoWallConfigsTable:
     Type: String
     Default: ""
@@ -772,6 +780,8 @@ Conditions:
   HasVenueNotificationLogTable: !Not [!Equals [!Ref VenueNotificationLogTable, ""]]
   HasVenueCameraRegistryTable: !Not [!Equals [!Ref VenueCameraRegistryTable, ""]]
   HasCampusCameraRegistryTable: !Not [!Equals [!Ref CampusCameraRegistryTable, ""]]
+  HasCampusBlueLightPolesTable: !Not [!Equals [!Ref CampusBlueLightPolesTable, ""]]
+  HasBlueLightApiKeySecret: !Not [!Equals [!Ref BlueLightApiKeySecretArn, ""]]
   HasVideoWallConfigsTable: !Not [!Equals [!Ref VideoWallConfigsTable, ""]]
   HasVideoClipsTable: !Not [!Equals [!Ref VideoClipsTable, ""]]
   HasVideoGatewaySecretArn: !Not [!Equals [!Ref VideoGatewaySecretArn, ""]]
@@ -1020,6 +1030,15 @@ Globals:
           - HasCampusCameraRegistryTable
           - !Ref CampusCameraRegistryTable
           - ""
+        CAMPUS_BLUELIGHT_POLES_TABLE: !If
+          - HasCampusBlueLightPolesTable
+          - !Ref CampusBlueLightPolesTable
+          - ""
+        BLUELIGHT_API_KEY_SECRET_ARN: !If
+          - HasBlueLightApiKeySecret
+          - !Ref BlueLightApiKeySecretArn
+          - ""
+        BLUELIGHT_ALLOW_SIMULATION: "false"
         WEBSOCKET_CONNECTIONS_TABLE: !If
           - HasWebSocketBroadcast
           - !Ref WebSocketConnectionsTable
@@ -1383,6 +1402,14 @@ Resources:
                 - !If
                   - HasQRLocationsTable
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QRLocationsTable}/index/*
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasCampusBlueLightPolesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusBlueLightPolesTable}
+                  - !Ref AWS::NoValue
+                - !If
+                  - HasCampusBlueLightPolesTable
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusBlueLightPolesTable}/index/*
                   - !Ref AWS::NoValue
 
   AppManagedPolicyWebSocketBroadcast:
@@ -3960,6 +3987,61 @@ Resources:
             ApiId: !Ref Api
             Path: /api/venue/sms/inbound
             Method: POST
+
+  # ── Campus Blue-Light Connect ─────────────────────────────────────────────
+  BlueLightActivateFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusBlueLightPolesTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/bluelight/handlers/activate.handler
+      Timeout: 15
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !If
+          - HasWebSocketBroadcast
+          - !Ref AppManagedPolicyWebSocketBroadcast
+          - !Ref AWS::NoValue
+        - !If
+          - HasBlueLightApiKeySecret
+          - Statement:
+              - Sid: BlueLightApiKeySecretRead
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource:
+                  - !Ref BlueLightApiKeySecretArn
+          - !Ref AWS::NoValue
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/bluelight/activate
+            Method: POST
+
+  BlueLightGetPolesFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusBlueLightPolesTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/bluelight/handlers/get-poles.handler
+      Timeout: 10
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+      Events:
+        Route:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/bluelight/poles
+            Method: GET
 
   GetCampusIncidentsFunction:
     Type: AWS::Serverless::Function

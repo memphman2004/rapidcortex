@@ -92,6 +92,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP: process.env.NEXT_PUBLIC_ENABLE_DEPLOYMENTS_MAP,
   NEXT_PUBLIC_ENABLE_VENUE_OPERATIONAL_AWARENESS: process.env.NEXT_PUBLIC_ENABLE_VENUE_OPERATIONAL_AWARENESS,
   NEXT_PUBLIC_ENABLE_CAMPUS_OPERATIONAL_MAP: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_OPERATIONAL_MAP,
+  NEXT_PUBLIC_ENABLE_CAMPUS_BLUE_LIGHT: process.env.NEXT_PUBLIC_ENABLE_CAMPUS_BLUE_LIGHT,
   NEXT_PUBLIC_ENABLE_RCS: process.env.NEXT_PUBLIC_ENABLE_RCS,
   NEXT_PUBLIC_ENABLE_CONNECT_NEST: process.env.NEXT_PUBLIC_ENABLE_CONNECT_NEST,
   NEXT_PUBLIC_ENABLE_CONNECT_WYZE: process.env.NEXT_PUBLIC_ENABLE_CONNECT_WYZE,
@@ -750,6 +751,11 @@ export function isVenueOperationalAwarenessEnabled(): boolean {
 /** Campus 3D OSM building map on the safety console. Default on when unset. */
 export function isCampusOperationalMapEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_CAMPUS_OPERATIONAL_MAP");
+}
+
+/** Campus Blue-Light Connect panel on the campus safety console. Default on when unset. */
+export function isCampusBlueLightEnabled(): boolean {
+  return envFlag("NEXT_PUBLIC_ENABLE_CAMPUS_BLUE_LIGHT");
 }
 
 /**

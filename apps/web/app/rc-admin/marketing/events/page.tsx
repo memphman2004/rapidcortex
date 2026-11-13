@@ -5,6 +5,19 @@ import { getDashboardSessionUser } from "@/lib/dashboards/get-dashboard-session"
 import { marketingLoginPath } from "@/lib/marketing-links";
 import { isMarketingDashboardEnabled } from "@/lib/runtime-flags";
 
+/** RC admins manage the full NFC directory; sales contractors access only their own card. */
+function nfcCardsHref(role: string): string {
+  return role === "rcsuperadmin" || role === "rcadmin"
+    ? "/rc-admin/admin/nfc-cards"
+    : "/sales/business-card";
+}
+
+function nfcCardsLabel(role: string): string {
+  return role === "rcsuperadmin" || role === "rcadmin"
+    ? "Open NFC Cards →"
+    : "My Contact Card →";
+}
+
 export const metadata = {
   title: "Events & Outreach",
   robots: { index: false, follow: false },
@@ -17,6 +30,7 @@ export default async function EventsOutreachPage() {
   if (!user || !canAccessSalesLeadsCrm(user.role) || !isMarketingDashboardEnabled()) {
     redirect(`${marketingLoginPath()}?from=/rc-admin/marketing/events`);
   }
+  const role = user.role;
 
   return (
     <div className="mx-auto max-w-[1000px] px-3 py-4 md:px-6">
@@ -48,10 +62,10 @@ export default async function EventsOutreachPage() {
             events and contacts.
           </p>
           <Link
-            href="/rc-admin/admin/nfc-cards"
+            href={nfcCardsHref(role)}
             className="inline-flex items-center gap-1.5 rounded-lg bg-sky-700/20 px-4 py-2 text-sm font-medium text-sky-400 hover:bg-sky-700/40"
           >
-            Open NFC Cards →
+            {nfcCardsLabel(role)}
           </Link>
         </div>
       </div>

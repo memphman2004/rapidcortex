@@ -50,7 +50,13 @@ import { IncidentCameraPanel } from "@/components/venue/IncidentCameraPanel";
 import { SiteSquareMark } from "@/components/brand/site-logo-link";
 import { RapidCortexMap } from "@/components/maps/RapidCortexMap";
 import { CampusOperationalMap } from "@/components/campus/operational-map/CampusOperationalMap";
-import { isCampusOperationalMapEnabled, isRcTranslateCampusEnabled } from "@/lib/runtime-flags";
+import {
+  isCampusBlueLightEnabled,
+  isCampusOperationalMapEnabled,
+  isRcTranslateCampusEnabled,
+} from "@/lib/runtime-flags";
+import { BlueLightPanel } from "@/components/campus/bluelight/BlueLightPanel";
+import { useBluelight } from "@/components/campus/bluelight/use-bluelight";
 import { useTranslateAssistanceYtd } from "@/components/translate/use-translate-assistance-ytd";
 import { translateAssistanceKpiCard } from "@/components/translate/TranslateAssistanceStat";
 import { loadMapTheme, saveMapTheme } from "@/lib/maps/persisted-map-prefs";
@@ -606,6 +612,19 @@ function CampusConsoleHomeInner({
   const kpiZones = scopedZones.length > 0 ? scopedZones.length : "—";
 
   const translateEnabled = isRcTranslateCampusEnabled();
+  const blueLightEnabled = isCampusBlueLightEnabled();
+
+  // ── Blue-Light WebSocket message tracking ─────────────────────────────────
+  // The campus console already has a WS connection via useCampusDashboard.
+  // We piggyback on a simple state slot so BlueLightPanel can filter events.
+  const [lastBlueLightWsMsg, setLastBlueLightWsMsg] = useState<import("@/hooks/use-agency-websocket").AgencyWebSocketMessage | null>(null);
+
+  const { poles, polesLoading } = useBluelight({
+    agencyId,
+    campusId: codeUpper,
+    lastWsMessage: lastBlueLightWsMsg,
+    enabled: blueLightEnabled,
+  });
   const { count: assistYtd, loading: assistLoading } = useTranslateAssistanceYtd(
     agencyId,
     translateEnabled,
@@ -2302,6 +2321,18 @@ function CampusConsoleHomeInner({
                       <ArrowRight size={12} strokeWidth={1.7} />
                     </Link>
                   ) : null}
+                </div>
+              ) : null}
+
+              {/* Blue-Light Connect panel (campus vertical only) */}
+              {blueLightEnabled ? (
+                <div style={{ marginTop: 12, padding: "0 4px 4px" }}>
+                  <BlueLightPanel
+                    agencyId={agencyId}
+                    lastWsMessage={lastBlueLightWsMsg}
+                    poles={poles}
+                    polesLoading={polesLoading}
+                  />
                 </div>
               ) : null}
             </div>
