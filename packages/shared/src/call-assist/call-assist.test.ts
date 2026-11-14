@@ -32,6 +32,14 @@ describe("Nexiq Safety Engine", () => {
     expect(Object.keys(evaluateSafety("help me"))).not.toContain("enabled");
     expect(evaluateSafety("help me").action).toBe("TRANSFER_911");
   });
+
+  it("transfers on Spanish fire / shooting / distress phrases", () => {
+    expect(evaluateSafety("hay un fuego en la cocina").action).toBe("TRANSFER_911");
+    expect(evaluateSafety("escuché disparos afuera").action).toBe("TRANSFER_911");
+    expect(evaluateSafety("necesito ayuda").action).toBe("TRANSFER_911");
+    expect(evaluateSafety("no puedo respirar").action).toBe("TRANSFER_911");
+    expect(evaluateSafety("emergencia").action).toBe("TRANSFER_911");
+  });
 });
 
 describe("Nexiq triage", () => {

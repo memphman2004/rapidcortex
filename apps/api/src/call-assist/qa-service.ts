@@ -1,5 +1,6 @@
 import {
   CALL_ASSIST_QA_CHECKLIST,
+  canScoreCallAssistContentWithBedrock,
   compareAiVsHuman,
   detectFalseTransfer,
   scoreCallAssistTranscriptMock,
@@ -12,6 +13,7 @@ import { env } from "../lib/env.js";
 import { makeId } from "../lib/ids.js";
 import { scoreQaWithBedrock } from "../services/qaScoring.js";
 import { AuditRepository } from "../repositories/auditRepository.js";
+import { getLexTenantConfig } from "./lex/runtime-store.js";
 import { callAssistStore, type CallAssistSessionRecord } from "./store.js";
 
 const auditRepo = new AuditRepository();
@@ -54,7 +56,12 @@ export async function scoreCallAssistSession(opts: {
   actorId: string;
 }): Promise<CallAssistQaReview> {
   let scored = scoreCallAssistTranscriptMock(opts.session.utterances);
-  if (env.qaBedrockModelId && !env.callAssistConnectMock) {
+  const tenant = await getLexTenantConfig(opts.session.agencyId).catch(() => null);
+  const allowBedrockContent = canScoreCallAssistContentWithBedrock({
+    cjisAiAuthorized: tenant?.cjisAiAuthorized,
+    callQualityScoringEnabled: tenant?.callQualityScoringEnabled,
+  });
+  if (allowBedrockContent && env.qaBedrockModelId && !env.callAssistConnectMock) {
     try {
       const bedrock = await scoreQaWithBedrock(
         opts.session.utterances.map((u) => `${u.speaker}: ${u.text}`).join("\n"),

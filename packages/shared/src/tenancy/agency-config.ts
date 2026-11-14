@@ -83,6 +83,18 @@ export type RetentionOverrideDays = {
 };
 
 /**
+ * CAD write-back agency gates. Both flags default false (fail-closed) when unset.
+ * - Human-assisted write-back requires `cadAddendumSigned`.
+ * - Automated (no-approval) write-back requires BOTH flags.
+ */
+export type CadWritebackAgencyConfig = {
+  /** Signed CAD write-back addendum on file. Required before any vendor write. */
+  cadAddendumSigned: boolean;
+  /** Separate gate for automated delivery without supervisor approval. */
+  cadAutomatedWritebackEnabled: boolean;
+};
+
+/**
  * Mutable agency operational configuration (embedded on `AgencyTenant` in v1).
  */
 export interface AgencyConfig {
@@ -105,6 +117,8 @@ export interface AgencyConfig {
   platformOnboarding?: PlatformOnboardingState;
   /** CJIS-style retention: days per category; merged with stack defaults. */
   retentionOverrideDays?: RetentionOverrideDays;
+  /** CAD write-back addendum + automated path gates. */
+  cadWriteback?: CadWritebackAgencyConfig;
   /** Free-form JSON-safe rules blob — normalize in a later pass. */
   supervisorEscalationRules: Record<string, unknown>;
   /** Per-priority SLA answer/dispatch targets (defaults apply when unset). */

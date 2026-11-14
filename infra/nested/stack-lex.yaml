@@ -39,6 +39,8 @@ Globals:
         ENABLE_CALL_ASSIST_GREETING_CONFIG: "true"
         ENABLE_CALL_ASSIST_SMS_CONFIRMATION: "true"
         ENABLE_CALL_ASSIST_SMS_CHANNEL: "true"
+        # Live value preserved until dedicated Call Assist SMS DID cutover (ADR-001).
+        # Must not remain Pre-Arrival iQ Pinpoint long-term.
         CALL_ASSIST_SMS_ORIGINATION_NUMBER: "+13198358230"
         SMS_PROVIDER: "aws"
         CAD_WRITEBACK_ENABLED: "false"

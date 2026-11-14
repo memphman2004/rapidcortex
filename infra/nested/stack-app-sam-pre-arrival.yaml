@@ -47,12 +47,16 @@ Parameters:
     Default: "https://app.rapidcortex.us"
   CadEventBusName:
     Type: String
-    Default: "default"
-    Description: EventBridge bus for CAD incident.updated / unit.* events (default bus if empty custom bus)
+    Default: "nexcortiq.cad"
+    Description: Dedicated EventBridge bus for CAD→Intelligence events (never the default bus)
   EnableCadEventRules:
     Type: String
     AllowedValues: ["true", "false"]
     Default: "true"
+  CadSourceAccountId:
+    Type: String
+    Default: "621957412915"
+    Description: NexCortiQ CAD account allowed to PutEvents on nexcortiq.cad
   ApprovedCorsOrigins:
     Type: String
     Default: "https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us"
@@ -60,6 +64,7 @@ Parameters:
 Conditions:
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
   CadEventsOn: !Equals [!Ref EnableCadEventRules, "true"]
+  # Bus + PutEvents policy live in stack-cad-event-bus.yaml (avoids AlreadyExists on nested updates).
 
 Globals:
   Function:
@@ -198,6 +203,31 @@ Resources:
               detail-type:
                 - incident.updated
 
+  CadSessionOpenDLQ:
+    Type: AWS::SQS::Queue
+    Condition: CadEventsOn
+    Properties:
+      QueueName: !Sub "${ManagedPolicyNamePrefix}-cad-session-open-dlq-${DeploymentStage}"
+      MessageRetentionPeriod: 1209600
+
+  CadSessionOpenDLQAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CadEventsOn
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-cad-session-open-dlq-depth-${DeploymentStage}"
+      AlarmDescription: CadSessionOpen DLQ has visible messages — Pre-Arrival auto-open failed
+      MetricName: ApproximateNumberOfMessagesVisible
+      Namespace: AWS/SQS
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt CadSessionOpenDLQ.QueueName
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      Period: 60
+      Statistic: Maximum
+      TreatMissingData: notBreaching
+
   CadSessionOpenFunction:
     Type: AWS::Serverless::Function
     Condition: CadEventsOn
@@ -208,6 +238,9 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/pre-arrival/cad-session-open.handler
       Timeout: 30
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt CadSessionOpenDLQ.Arn
       Policies:
         - !Ref AppManagedPolicyPreArrival
       Events:
@@ -221,7 +254,33 @@ Resources:
                 - nexcortiq.cad
               detail-type:
                 - incident.created
+                - dispatch.unit_assigned
                 - unit.dispatched
+
+  EtaNotificationDLQ:
+    Type: AWS::SQS::Queue
+    Condition: CadEventsOn
+    Properties:
+      QueueName: !Sub "${ManagedPolicyNamePrefix}-eta-notification-dlq-${DeploymentStage}"
+      MessageRetentionPeriod: 1209600
+
+  EtaNotificationDLQAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CadEventsOn
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-eta-notification-dlq-depth-${DeploymentStage}"
+      AlarmDescription: EtaNotification DLQ has visible messages — ETA SMS path failed
+      MetricName: ApproximateNumberOfMessagesVisible
+      Namespace: AWS/SQS
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt EtaNotificationDLQ.QueueName
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      Period: 60
+      Statistic: Maximum
+      TreatMissingData: notBreaching
 
   EtaNotificationFunction:
     Type: AWS::Serverless::Function
@@ -233,6 +292,9 @@ Resources:
       CodeUri: ../../apps/api/
       Handler: dist/pre-arrival/eta/eta-notification-handler.eventHandler
       Timeout: 15
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt EtaNotificationDLQ.Arn
       Policies:
         - !Ref AppManagedPolicyPreArrival
       Events:
@@ -404,3 +466,7 @@ Outputs:
     Value: !GetAtt PreArrivalIncidentsHttpFunction.Arn
   PreArrivalPublicHttpFunctionArn:
     Value: !GetAtt PreArrivalPublicHttpFunction.Arn
+  CadEventBusName:
+    Value: !Ref CadEventBusName
+  CadSourceAccountId:
+    Value: !Ref CadSourceAccountId

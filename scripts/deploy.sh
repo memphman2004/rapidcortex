@@ -224,6 +224,9 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-4.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-5.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-pre-arrival.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-cad-event-bus.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-cad-session-open.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-cad-writeback-alarms.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-milestone.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-physical-security.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-location.yaml"
@@ -1134,6 +1137,16 @@ fi
 
 echo ""
 echo "✅ SAM deploy finished (stack: ${STACK_NAME})."
+
+# Permanent CAD inbound path: dedicated bus + CadSessionOpen rules on nexcortiq.cad
+# (kept as sidecar stacks to avoid AlreadyExists when nesting the bus under the parent).
+if [[ "${SKIP_CAD_INBOUND_DEPLOY:-0}" != "1" ]]; then
+  echo "==> CAD inbound EventBridge (nexcortiq.cad + CadSessionOpen)"
+  bash "${ROOT}/scripts/deploy-cad-inbound.sh" "${STAGE}"
+else
+  echo "SKIP_CAD_INBOUND_DEPLOY=1 — skipping cad-event-bus / CadSessionOpen sidecar deploy"
+fi
+
 echo "   Web app (ECS):   ./scripts/deploy-web-ecs.sh ${STAGE}"
 echo "   Marketing (S3): npm run deploy:marketing  (or ./scripts/deploy-marketing.sh)"
 echo "   Desktop uploads: ./scripts/upload-desktop-downloads.sh ${STAGE} …"

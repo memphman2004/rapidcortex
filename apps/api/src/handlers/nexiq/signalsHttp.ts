@@ -6,6 +6,7 @@ import {
   nexiqSignalListQuerySchema,
   nexiqSignalPatchBodySchema,
   NEXIQ_SIGNAL_MIN_CONFIDENCE,
+  NEXIQ_SIGNAL_TTL_DAYS,
   type NexiqSignalRecord,
   type UserContext,
 } from "rapid-cortex-shared";
@@ -43,6 +44,18 @@ const auditRepo = new AuditRepository();
 
 let summaryCache: { at: number; body: unknown } | null = null;
 const SUMMARY_TTL_MS = 60_000;
+
+/** Strip HTML tags / collapse whitespace before Dynamo write. */
+function stripHtml(raw: string): string {
+  return raw
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 function isIamAuthorized(event: APIGatewayProxyEventV2): boolean {
   // APIGatewayEventRequestContextV2 omits authorizer; IAM/JWT payloads attach it at runtime.
@@ -140,15 +153,16 @@ async function handlePost(event: APIGatewayProxyEventV2) {
 
   const signalId = randomUUID();
   const createdAt = new Date().toISOString();
+  const ttl = Math.floor(Date.now() / 1000) + NEXIQ_SIGNAL_TTL_DAYS * 86_400;
   const record: NexiqSignalRecord = {
     pk: nexiqSignalPk(signalId),
     sk: NEXIQ_SIGNAL_SK,
     signalId,
-    title: data.title,
-    summary: data.summary,
+    title: data.title.slice(0, 500),
+    summary: stripHtml(data.summary).slice(0, 4000),
     sourceUrl: data.sourceUrl,
     vertical: data.vertical,
-    agencyName: data.agencyName,
+    agencyName: data.agencyName.slice(0, 300),
     agencyType: data.agencyType,
     geography: data.geography,
     estimatedValue: data.estimatedValue,
@@ -162,6 +176,7 @@ async function handlePost(event: APIGatewayProxyEventV2) {
     apolloAccountId: null,
     createdAt,
     dedupeHash: data.dedupeHash,
+    ttl,
   };
 
   try {

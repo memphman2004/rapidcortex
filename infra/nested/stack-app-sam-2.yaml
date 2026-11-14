@@ -2774,6 +2774,12 @@ Resources:
             ApiId: !Ref Api
             Path: /api/admin/cad-writeback-approvals/{id}/reject
             Method: POST
+        GetCadAvlUnits:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/cad/avl/units
+            Method: GET
 
   RcAdminGetUsageFunction:
     Type: AWS::Serverless::Function

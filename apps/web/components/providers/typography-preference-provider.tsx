@@ -117,10 +117,42 @@ export function TypographyPreferenceProvider({ children }: { children: ReactNode
     applyTextPrefs(colors);
   }, [userId]);
 
+  useEffect(() => {
+    const resync = () => {
+      const scale = readFontScale(userId);
+      const colors = readTextPrefs(userId);
+      setFontScaleState(scale);
+      setTextColorsState(colors);
+      applyFontScale(scale);
+      applyTextPrefs(colors);
+    };
+    const onStorage = (event: StorageEvent) => {
+      if (!event.key) return;
+      const scaleKey = scopedKey(RC_UI_FONT_SCALE_STORAGE_KEY, userId);
+      const colorKey = scopedKey(RC_USER_TEXT_COLORS_STORAGE_KEY, userId);
+      if (
+        event.key !== RC_UI_FONT_SCALE_STORAGE_KEY &&
+        event.key !== RC_USER_TEXT_COLORS_STORAGE_KEY &&
+        event.key !== scaleKey &&
+        event.key !== colorKey
+      ) {
+        return;
+      }
+      resync();
+    };
+    window.addEventListener("pageshow", resync);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("pageshow", resync);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [userId]);
+
   const persistScale = useCallback(
     (next: FontScaleStep) => {
       try {
         window.localStorage.setItem(scopedKey(RC_UI_FONT_SCALE_STORAGE_KEY, userId), String(next));
+        window.localStorage.setItem(RC_UI_FONT_SCALE_STORAGE_KEY, String(next));
       } catch {
         /* ignore quota / private mode */
       }
@@ -133,7 +165,9 @@ export function TypographyPreferenceProvider({ children }: { children: ReactNode
   const persistColors = useCallback(
     (next: UserTextColorPrefs) => {
       try {
-        window.localStorage.setItem(scopedKey(RC_USER_TEXT_COLORS_STORAGE_KEY, userId), JSON.stringify(next));
+        const payload = JSON.stringify(next);
+        window.localStorage.setItem(scopedKey(RC_USER_TEXT_COLORS_STORAGE_KEY, userId), payload);
+        window.localStorage.setItem(RC_USER_TEXT_COLORS_STORAGE_KEY, payload);
       } catch {
         /* ignore quota / private mode */
       }

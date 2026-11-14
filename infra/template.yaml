@@ -69,6 +69,21 @@ Parameters:
     Default: "true"
     AllowedValues: ["true", "false"]
     Description: Enable NexiQ Intelligence Pipeline (collector/processor/API nested stack)
+  CadEventBusName:
+    Type: String
+    Default: "nexcortiq.cad"
+    Description: >-
+      Dedicated EventBridge bus in this account for inbound CAD events from account 621957412915.
+      Do not use the default bus.
+  EnableCadEventRules:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: Enable Pre-Arrival CadSessionOpen / reconciliation / ETA EventBridge rules on CadEventBusName
+  CadSourceAccountId:
+    Type: String
+    Default: "621957412915"
+    Description: NexCortiQ CAD AWS account allowed to PutEvents on nexcortiq.cad
 
   EnableNexiQNestedExpansion:
     Type: String
@@ -647,7 +662,9 @@ Parameters:
   CallAssistSmsOriginationNumber:
     Type: String
     Default: "+13198358230"
-    Description: Two-way SMS DID for Call Assist (same number can handle voice).
+    Description: >-
+      Two-way SMS DID for Call Assist. Keep live value until dedicated DID cutover;
+      must not remain Pre-Arrival iQ +13198358230 long-term (ADR-001).
   CallAssistSmsDefaultAgencyId:
     Type: String
     Default: ""
@@ -4668,6 +4685,8 @@ Resources:
         ExistingCleryActTableName: !Ref ExistingCleryActTableName
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
+  # CAD inbound bus nexcortiq.cad is owned by stack-cad-event-bus.yaml
+  # (deployed as rapid-cortex-cad-event-bus-{stage}). PreArrival rules use CadEventBusName.
   AppSamPreArrivalStack:
     Type: AWS::CloudFormation::Stack
     Metadata:
@@ -4742,6 +4761,9 @@ Resources:
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ManagedPolicyNamePrefix: !Ref AWS::StackName
         PreArrivalPublicBaseUrl: !Ref AppPublicBaseUrl
+        CadEventBusName: !Ref CadEventBusName
+        EnableCadEventRules: !Ref EnableCadEventRules
+        CadSourceAccountId: !Ref CadSourceAccountId
 
   AppSamPhysicalSecurityStack5:
     Type: AWS::CloudFormation::Stack

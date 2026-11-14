@@ -82,7 +82,11 @@ Parameters:
   CallAssistSmsOriginationNumber:
     Type: String
     Default: "+13198358230"
-    Description: E.164 DID that receives two-way SMS (same number can handle voice).
+    Description: >-
+      E.164 DID for Call Assist two-way SMS. Live may temporarily share a number;
+      must not remain Pre-Arrival iQ Pinpoint +13198358230 after SMS cutover
+      (see ADR-001). Changing this value is an explicit ops cutover — do not flip
+      silently.
   CallAssistSmsDefaultAgencyId:
     Type: String
     Default: ""
@@ -193,6 +197,7 @@ Globals:
         CALL_ASSIST_REKOGNITION_MOCK: "false"
         AWS_SMS_CONFIGURATION_SET_NAME: !Ref AwsSmsConfigurationSetName
         SMS_PROVIDER: "aws"
+        CALL_ASSIST_EVENT_BUS_NAME: !Sub "nexcortiq-call-assist-${DeploymentStage}"
         AUDIT_TABLE: !Ref AuditTable
         AGENCIES_TABLE: !Ref AgenciesTable
         COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
@@ -473,6 +478,12 @@ Resources:
               - kinesisvideo:GetClip
             Resource:
               - !Sub "arn:aws:kinesisvideo:${AWS::Region}:${AWS::AccountId}:stream/*"
+          - Sid: CallAssistOpsEventBus
+            Effect: Allow
+            Action:
+              - events:PutEvents
+            Resource:
+              - !Sub "arn:aws:events:${AWS::Region}:${AWS::AccountId}:event-bus/nexcortiq-call-assist-${DeploymentStage}"
 
   CallAssistHttpFunction:
     Type: AWS::Serverless::Function
@@ -969,6 +980,72 @@ Resources:
       Target: !Sub "integrations/${CallAssistConnectWebhookIntegration}"
       AuthorizationType: NONE
 
+  # Additive ops bus — does not alter Connect/Lex voice path. Publishers no-op until this deploys.
+  CallAssistOpsEventBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: !Sub "nexcortiq-call-assist-${DeploymentStage}"
+
+  CallAssistOpsAlarmTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "rapid-cortex-call-assist-ops-${DeploymentStage}"
+      DisplayName: Call Assist ops alarms (subscribe supervisors manually)
+
+  CallAssistHttpErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "rapid-cortex-call-assist-http-errors-${DeploymentStage}"
+      AlarmDescription: Call Assist HTTP Lambda errors (>5 in 5 minutes)
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref CallAssistHttpFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref CallAssistOpsAlarmTopic
+
+  # Any EmergencyEscalation → SNS (subscribe supervisors). Does not change Connect transfer path.
+  CallAssistEmergencyEscalationRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub "call-assist-emergency-escalation-${DeploymentStage}"
+      Description: Notify ops SNS on EmergencyEscalation
+      EventBusName: !Ref CallAssistOpsEventBus
+      EventPattern:
+        source:
+          - nexcortiq.call-assist
+        detail-type:
+          - EmergencyEscalation
+      State: ENABLED
+      Targets:
+        - Id: OpsSns
+          Arn: !Ref CallAssistOpsAlarmTopic
+
+  CallAssistOpsAlarmTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - !Ref CallAssistOpsAlarmTopic
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowEventBridgePublish
+            Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref CallAssistOpsAlarmTopic
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !GetAtt CallAssistEmergencyEscalationRule.Arn
+
 Outputs:
   CallAssistTableName:
     Description: Call Assist DynamoDB table
@@ -980,8 +1057,14 @@ Outputs:
   InboundCallAssistSmsTopicArn:
     Description: >-
       Configure this ARN as the two-way SMS destination in AWS End User Messaging
-      for the Call Assist DID (default +13198358230). Voice and SMS share that number.
+      for the Call Assist DID. Do not use Pre-Arrival iQ +13198358230 after SMS cutover (ADR-001).
     Value: !Ref InboundCallAssistSmsTopic
+  CallAssistOpsEventBusName:
+    Description: Optional ops EventBridge bus (nexcortiq-call-assist-{stage})
+    Value: !Ref CallAssistOpsEventBus
+  CallAssistOpsAlarmTopicArn:
+    Description: SNS topic for Call Assist ops alarms — subscribe supervisors before go-live
+    Value: !Ref CallAssistOpsAlarmTopic
   CallAssistSmsChannelFunctionArn:
     Value: !GetAtt CallAssistSmsChannelFunction.Arn
   CallAssistSmsMediaBucketName:

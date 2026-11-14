@@ -1,7 +1,14 @@
+import { unsupportedHealthCheck, unsupportedRead } from "./adapterProbe.js";
 import type { CadWriteAdapter } from "./writeTypes.js";
 
 export const hexagonWriteAdapter: CadWriteAdapter = {
   vendor: "hexagon",
+  async healthCheck() {
+    return unsupportedHealthCheck("hexagon");
+  },
+  async read() {
+    return unsupportedRead("hexagon");
+  },
   async submit({ payload, config, cadIncidentId }) {
     const apiUrl = (config.apiUrl ?? "").trim();
     if (!apiUrl) {

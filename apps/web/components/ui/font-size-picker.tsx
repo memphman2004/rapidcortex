@@ -27,7 +27,7 @@ export function FontSizePicker() {
         onClick={resetFontScale}
         aria-label={`Text size ${percent} percent. Click to reset.`}
         title="Reset text size"
-        className="min-w-[2.4rem] rounded border border-[color:var(--rc-border)] bg-[color:var(--rc-surface)] px-1.5 py-1 text-[11px] font-medium tabular-nums text-[color:var(--rc-text-secondary)] outline-none transition hover:border-[color:var(--rc-border-hover)] hover:text-[color:var(--rc-text-primary)]"
+        className="rc-theme-mode-chip min-w-[2.4rem] rounded border px-1.5 py-1 text-[11px] font-medium tabular-nums outline-none transition"
       >
         {percent}%
       </button>

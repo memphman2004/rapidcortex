@@ -129,10 +129,36 @@ export function FontPreferenceProvider({ children }: { children: ReactNode }) {
     applyFontToDocument(font);
   }, [font]);
 
+  useEffect(() => {
+    const resync = () => {
+      const next = readStoredFont(userId);
+      setFontState(next);
+      applyFontToDocument(next);
+    };
+    const onStorage = (event: StorageEvent) => {
+      if (!event.key) return;
+      if (
+        event.key !== RC_PREFERRED_FONT_STORAGE_KEY &&
+        event.key !== preferredFontStorageKey(userId)
+      ) {
+        return;
+      }
+      resync();
+    };
+    window.addEventListener("pageshow", resync);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("pageshow", resync);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [userId]);
+
   const setFont = useCallback(
     (next: PreferredDashboardFont) => {
       try {
         window.localStorage.setItem(preferredFontStorageKey(userId), next);
+        // Unscoped mirror for soft navigations before session hydrates.
+        window.localStorage.setItem(RC_PREFERRED_FONT_STORAGE_KEY, next);
       } catch {
         /* ignore quota / private mode */
       }

@@ -12,6 +12,9 @@ export type NexiqSignalTier = (typeof NEXIQ_SIGNAL_TIERS)[number];
 
 export const NEXIQ_SIGNAL_MIN_CONFIDENCE = 40;
 
+/** DynamoDB TTL window for ingested signals (business-intel freshness). */
+export const NEXIQ_SIGNAL_TTL_DAYS = 90;
+
 export const nexiqSignalGeographySchema = z.object({
   state: z.string().trim().min(1).max(64),
   county: z.string().trim().max(128).optional(),
@@ -84,6 +87,8 @@ export type NexiqSignalRecord = {
   apolloAccountId: string | null;
   createdAt: string;
   dedupeHash: string;
+  /** Epoch seconds — DynamoDB TTL attribute (90-day default). */
+  ttl?: number;
 };
 
 export type NexiqSignalListResponse = {

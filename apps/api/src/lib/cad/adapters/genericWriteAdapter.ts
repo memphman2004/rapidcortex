@@ -23,6 +23,53 @@ function applyFieldMapping(
 
 export const genericWriteAdapter: CadWriteAdapter = {
   vendor: "generic_webhook",
+  async healthCheck({ config }) {
+    const writebackUrl = (config.writebackUrl ?? "").trim();
+    if (!writebackUrl) {
+      return { ok: false, detail: "writebackUrl not configured" };
+    }
+    const started = Date.now();
+    try {
+      const res = await fetch(writebackUrl, { method: "HEAD" });
+      return {
+        ok: res.ok || res.status === 405,
+        detail: `HTTP ${res.status}`,
+        latencyMs: Date.now() - started,
+      };
+    } catch (e) {
+      return {
+        ok: false,
+        detail: e instanceof Error ? e.message : "health_check_failed",
+        latencyMs: Date.now() - started,
+      };
+    }
+  },
+  async read({ config, cadIncidentId }) {
+    const readUrl = (config.readUrl ?? config.writebackUrl ?? "").trim();
+    if (!readUrl) {
+      return { ok: false, errorMessage: "readUrl not configured" };
+    }
+    const token = (config.webhookToken ?? "").trim();
+    try {
+      const url = new URL(readUrl);
+      url.searchParams.set("cadIncidentId", cadIncidentId);
+      const res = await fetch(url.toString(), {
+        method: "GET",
+        headers: token ? { "X-RC-Token": token } : {},
+      });
+      const text = await res.text();
+      if (!res.ok) {
+        return { ok: false, errorMessage: `${res.status} ${res.statusText}` };
+      }
+      try {
+        return { ok: true, incident: JSON.parse(text) as Record<string, unknown> };
+      } catch {
+        return { ok: true, incident: { raw: text.slice(0, 4000) } };
+      }
+    } catch (e) {
+      return { ok: false, errorMessage: e instanceof Error ? e.message : "read_failed" };
+    }
+  },
   async submit({ payload, config, cadIncidentId }) {
     const writebackUrl = (config.writebackUrl ?? "").trim();
     if (!writebackUrl) {

@@ -135,6 +135,42 @@ html {
   color: var(--rc-text-transcript) !important;
 }
 
+/*
+ * Theme / appearance control chips — always primary text on a solid surface so
+ * labels stay readable after dark ↔ light (including hover, focus, and active).
+ */
+.rc-theme-toggle,
+.rc-theme-mode-chip {
+  border-color: var(--rc-border-strong) !important;
+  background: var(--rc-surface-alt) !important;
+  color: var(--rc-text-primary) !important;
+  -webkit-text-fill-color: var(--rc-text-primary);
+}
+.rc-theme-toggle svg,
+.rc-theme-mode-chip svg {
+  color: inherit;
+  stroke: currentColor;
+}
+.rc-theme-toggle:hover,
+.rc-theme-toggle:focus-visible,
+.rc-theme-toggle:active,
+.rc-theme-mode-chip:hover,
+.rc-theme-mode-chip:focus-visible,
+.rc-theme-mode-chip:active {
+  border-color: var(--rc-border-hover) !important;
+  background: var(--rc-surface-hover) !important;
+  color: var(--rc-text-primary) !important;
+  -webkit-text-fill-color: var(--rc-text-primary);
+}
+.rc-theme-mode-chip[aria-pressed="true"],
+.rc-theme-mode-chip[data-selected="true"] {
+  border-color: var(--rc-border-strong) !important;
+  background: var(--rc-surface-hover) !important;
+  color: var(--rc-text-primary) !important;
+  -webkit-text-fill-color: var(--rc-text-primary);
+  box-shadow: inset 0 0 0 1px var(--rc-border-strong);
+}
+
 /* Light theme — white surfaces, dark text, dark separators */
 [data-theme="light"] {
   --rc-bg-deep: #f4f5f9;

@@ -93,11 +93,15 @@ export async function buildNovaSessionStartResult(
   });
 
   if (decision.voiceEngine !== "NOVA_SONIC") {
+    const reason = decision.reason ?? "not_enabled";
+    void import("../ops-events.js").then(({ publishNovaSonicFallback }) =>
+      publishNovaSonicFallback({ agencyId, sessionId: contactId, reason }),
+    );
     return {
       novaSessionId: novaSonicSessionId(contactId),
       novaSessionStatus: "FALLBACK",
       novaSonicFallbackToLex: "true",
-      novaFallbackReason: decision.reason ?? "not_enabled",
+      novaFallbackReason: reason,
       voiceEngine: "LEX_POLLY",
       agencyVoiceName,
       callerDone: "false",
@@ -131,6 +135,9 @@ export async function buildNovaSessionStartResult(
     await putNovaSonicSession(row);
   } catch (err) {
     const message = err instanceof Error ? err.message : "session_put_failed";
+    void import("../ops-events.js").then(({ publishNovaSonicFallback }) =>
+      publishNovaSonicFallback({ agencyId, sessionId: contactId, reason: message.slice(0, 180) }),
+    );
     return {
       novaSessionId: row.sessionId,
       novaSessionStatus: "ERROR",

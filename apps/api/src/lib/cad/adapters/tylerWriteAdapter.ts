@@ -1,7 +1,14 @@
+import { unsupportedHealthCheck, unsupportedRead } from "./adapterProbe.js";
 import type { CadWriteAdapter } from "./writeTypes.js";
 
 export const tylerWriteAdapter: CadWriteAdapter = {
   vendor: "tyler_new_world",
+  async healthCheck() {
+    return unsupportedHealthCheck("tyler_new_world");
+  },
+  async read() {
+    return unsupportedRead("tyler_new_world");
+  },
   async submit({ payload, config, cadIncidentId }) {
     const apiUrl = (config.apiUrl ?? "").trim();
     if (!apiUrl) {

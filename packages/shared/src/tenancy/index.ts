@@ -23,6 +23,7 @@ export { AGENCY_TYPE_VALUES, AGENCY_TYPE_LABELS, formatAgencyType, resolveAgency
 export type {
   AgencyIntegrationMode,
   AgencyConfig,
+  CadWritebackAgencyConfig,
   BrandingConfig,
   EnvironmentFlags,
   PlatformOnboardingState,

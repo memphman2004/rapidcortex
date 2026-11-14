@@ -5,7 +5,7 @@ import { genericWriteAdapter } from "./genericWriteAdapter.js";
 import { hexagonWriteAdapter } from "./hexagonWriteAdapter.js";
 import { motorolaWriteAdapter } from "./motorolaWriteAdapter.js";
 import { tylerWriteAdapter } from "./tylerWriteAdapter.js";
-import type { CadWriteAdapter } from "./writeTypes.js";
+import { UnknownCadVendorError, type CadWriteAdapter } from "./writeTypes.js";
 
 const adapters: Record<CadVendor, CadWriteAdapter> = {
   motorola_premier_one: motorolaWriteAdapter,
@@ -18,8 +18,19 @@ const adapters: Record<CadVendor, CadWriteAdapter> = {
   generic_webhook: genericWriteAdapter,
 };
 
+function isKnownCadVendor(vendor: string): vendor is CadVendor {
+  return Object.prototype.hasOwnProperty.call(adapters, vendor);
+}
+
+/**
+ * Resolve a write adapter. Unknown vendors throw — never silently fall back
+ * to the generic webhook adapter (misconfiguration must surface clearly).
+ */
 export function getCadWriteAdapter(vendor: string): CadWriteAdapter {
-  const inner = adapters[vendor as CadVendor] ?? genericWriteAdapter;
+  if (!isKnownCadVendor(vendor)) {
+    throw new UnknownCadVendorError(vendor);
+  }
+  const inner = adapters[vendor];
   return {
     vendor: inner.vendor,
     async submit(params) {
@@ -32,7 +43,10 @@ export function getCadWriteAdapter(vendor: string): CadWriteAdapter {
       }
       return inner.submit(params);
     },
+    read: inner.read.bind(inner),
+    healthCheck: inner.healthCheck.bind(inner),
   };
 }
 
-export type { CadWriteAdapter } from "./writeTypes.js";
+export type { CadWriteAdapter, CadAdapterHealth, CadAdapterReadResult } from "./writeTypes.js";
+export { UnknownCadVendorError } from "./writeTypes.js";

@@ -13,7 +13,32 @@ import {
   canAccessRapidIqWorkspace,
 } from "./sales-contractor-access.js";
 import { canAccessNexiqSignals } from "../nexiq-signals/schemas.js";
-import { salesContractorMayAccessPath } from "./sales-contractor-paths.js";
+import { salesContractorMayAccessApiPath, salesContractorMayAccessPath } from "./sales-contractor-paths.js";
+
+describe("salesContractorMayAccessApiPath", () => {
+  it("allows NFC-cards and personal business-card API paths", () => {
+    expect(salesContractorMayAccessApiPath("/api/admin/nfc-cards")).toBe(true);
+    expect(salesContractorMayAccessApiPath("/api/admin/nfc-cards/abc123")).toBe(true);
+    expect(salesContractorMayAccessApiPath("/api/admin/nfc-cards/abc123/status")).toBe(true);
+    expect(salesContractorMayAccessApiPath("/api/business-cards/me")).toBe(true);
+    expect(salesContractorMayAccessApiPath("/api/business-cards/me/photo")).toBe(true);
+    expect(salesContractorMayAccessApiPath("/api/business-cards/me/publish")).toBe(true);
+    expect(salesContractorMayAccessApiPath("/api/business-cards/me/qr")).toBe(true);
+    expect(salesContractorMayAccessApiPath("/api/business-cards/status")).toBe(true);
+  });
+  it("blocks /api/admin/business-cards (requireAdmin rejects salescontractor)", () => {
+    // listAdmin / archiveProfile / updateSettings all require BUSINESS_CARD_ADMIN_ROLES
+    // which is {rcsuperadmin, rcadmin} — salescontractor is not included.
+    expect(salesContractorMayAccessApiPath("/api/admin/business-cards")).toBe(false);
+    expect(salesContractorMayAccessApiPath("/api/admin/business-cards/settings")).toBe(false);
+    expect(salesContractorMayAccessApiPath("/api/admin/business-cards/staff")).toBe(false);
+  });
+  it("blocks unrelated API paths", () => {
+    expect(salesContractorMayAccessApiPath("/api/incidents")).toBe(false);
+    expect(salesContractorMayAccessApiPath("/api/admin/users")).toBe(false);
+    expect(salesContractorMayAccessApiPath("/api/admin/cad-incidents")).toBe(false);
+  });
+});
 
 describe("salesContractorMayAccessPath", () => {
   it("allows /sales and allowlisted /rc-admin tools", () => {

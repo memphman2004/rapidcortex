@@ -391,7 +391,7 @@ export function buildGreeting(config: CallAssistGreetingConfig, locale = "en-US"
   return withNexiqOpening(interpolateGreeting(GREETING_TEMPLATES[templateMode], config));
 }
 
-/** Format +13198358230 → (319) 835-8230 for spoken/welcome copy. */
+/** Format E.164 → US national for spoken/welcome copy (e.g. +18165550199 → (816) 555-0199). */
 export function formatE164AsUsNational(e164: string | null | undefined): string | null {
   const digits = (e164 ?? "").replace(/\D/g, "");
   const ten =

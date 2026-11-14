@@ -237,7 +237,16 @@ async function main() {
     console.log(
       "SKIP — cad_writeback_e2e: set PILOT_CAD_WRITEBACK_E2E=1 to exercise supervisor approval queue.",
     );
-    results.push({ id: "cad_writeback_e2e", pass: true, detail: "SKIP_DISABLED" });
+    // Do not count as pass in CI — skipped suites must fail the aggregate unless explicitly waived.
+    const waiveSkip = process.env.PILOT_ALLOW_SKIP_DISABLED === "1";
+    results.push(
+      waiveSkip
+        ? { id: "cad_writeback_e2e", pass: true, detail: "SKIP_DISABLED (waived)" }
+        : fail(
+            "cad_writeback_e2e",
+            "SKIP_DISABLED — set PILOT_CAD_WRITEBACK_E2E=1 or PILOT_ALLOW_SKIP_DISABLED=1",
+          ),
+    );
   } else if (!API_BASE || !DISPATCHER_BEARER || !SUPERVISOR_BEARER || !WRITEBACK_INCIDENT_ID) {
     results.push(
       fail(

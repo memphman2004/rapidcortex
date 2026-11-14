@@ -227,6 +227,17 @@ describe("CAD Connector permissions", () => {
       expect(auth.canPerform(it, "cad.connector.delete")).toBe(true);
       expect(auth.canPerform(it, "cad.routing.manage")).toBe(true);
     });
+
+    it("denies agencyadmin write-back submit; grants agencyit and supervisor submit", () => {
+      const agencyAdmin = makeUser("agencyadmin");
+      const agencyIt = makeUser("agencyit");
+      const supervisor = makeUser("supervisor");
+      expect(auth.canPerform(agencyAdmin, "cad.writeback.submit")).toBe(false);
+      expect(auth.canPerform(agencyAdmin, "cad.submit")).toBe(false);
+      expect(auth.canPerform(agencyAdmin, "cad.writeback.approve")).toBe(true);
+      expect(auth.canPerform(agencyIt, "cad.writeback.submit")).toBe(true);
+      expect(auth.canPerform(supervisor, "cad.writeback.submit")).toBe(true);
+    });
   });
 });
 

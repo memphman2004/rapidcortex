@@ -1,7 +1,14 @@
+import { unsupportedHealthCheck, unsupportedRead } from "./adapterProbe.js";
 import type { CadWriteAdapter } from "./writeTypes.js";
 
 export const centralSquareWriteAdapter: CadWriteAdapter = {
   vendor: "central_square",
+  async healthCheck() {
+    return unsupportedHealthCheck("central_square");
+  },
+  async read() {
+    return unsupportedRead("central_square");
+  },
   async submit({ payload, config, cadIncidentId }) {
     const apiUrl = (config.apiUrl ?? "").trim();
     if (!apiUrl) {

@@ -5,6 +5,10 @@ import {
   salesContractorMayAccessPath,
 } from "./sales-contractor-paths.js";
 
+// Re-export path helpers that live in sales-contractor-paths.ts.
+// The new API-path exports (SALES_CONTRACTOR_API_PATH_PREFIXES, salesContractorMayAccessApiPath)
+// are intentionally NOT re-exported here — index.ts already exports * from paths, so
+// re-exporting them here would cause a "has already exported" TS ambiguity error.
 export {
   SALES_CONTRACTOR_RC_ADMIN_PATH_PREFIXES,
   normalizeAppPathname,

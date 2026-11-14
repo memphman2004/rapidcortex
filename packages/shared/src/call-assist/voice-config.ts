@@ -49,6 +49,13 @@ export const callAssistAgencyVoiceConfigSchema = z.object({
   aiDisclosureRequired: z.boolean().optional(),
   /** When true, English and Spanish use Nova 2 Sonic. Other locales stay on Lex/Polly. */
   novaSonicEnabled: z.boolean().optional(),
+  /**
+   * When explicitly false, block Bedrock calls that process call content (QA/summary).
+   * Unset preserves live behavior. Does not gate Nova Sonic / Lex voice.
+   */
+  cjisAiAuthorized: z.boolean().optional(),
+  /** When explicitly false, disable AI call-quality scoring. Unset preserves live behavior. */
+  callQualityScoringEnabled: z.boolean().optional(),
   disclosureText: z.string().trim().min(1).max(2000),
   openingGreeting: z.string().trim().max(2000).optional(),
   afterHoursMessage: z.string().trim().max(2000).optional(),

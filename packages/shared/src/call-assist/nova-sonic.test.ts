@@ -194,6 +194,8 @@ describe("emergency detection stays additive", () => {
     "I'm having a heart attack",
     "bomb",
     "gas leak",
+    "fuego",
+    "disparos",
   ];
 
   for (const phrase of phrases) {

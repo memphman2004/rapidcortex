@@ -2,6 +2,9 @@
 
 Non-emergency AI call management (Lex V2 ↔ Amazon Connect). Does **not** replace 911/PSAP CAD or live emergency dispatch.
 
+**Architecture acceptance:** see [`docs/call-assist/ADR-001-live-architecture-acceptance.md`](./call-assist/ADR-001-live-architecture-acceptance.md)  
+**Layer audit:** see [`apps/call-assist/PRODUCTION_AUDIT.md`](../apps/call-assist/PRODUCTION_AUDIT.md)
+
 ## Go-live checklist
 
 ### Telephony (required for live DID)

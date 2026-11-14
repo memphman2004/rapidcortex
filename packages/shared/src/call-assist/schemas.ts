@@ -217,6 +217,10 @@ export const callAssistAdminConfigPatchSchema = z.object({
   onboardingComplete: z.boolean().optional(),
   onboardingCompletedAt: z.string().max(40).nullable().optional(),
   callAssistGreeting: callAssistGreetingConfigPatchSchema.optional(),
+  /** Explicit false blocks Bedrock content QA. Unset = preserve live (authorized). */
+  cjisAiAuthorized: z.boolean().optional(),
+  /** Explicit false disables AI quality scoring. Unset = preserve live (enabled). */
+  callQualityScoringEnabled: z.boolean().optional(),
 });
 
 export const callAssistShiftPatchSchema = z.object({

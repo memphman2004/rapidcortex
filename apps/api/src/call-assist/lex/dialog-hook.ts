@@ -322,6 +322,14 @@ async function handleDialogTurn(
   if (utterance) {
     const safety = runSafetyGate(callerTextForSafety(transcript, utterance));
     if (safety.isEmergency) {
+      // Optional ops bus — no-op when CALL_ASSIST_EVENT_BUS_NAME unset (live today).
+      void import("../ops-events.js").then(({ publishEmergencyEscalation }) =>
+        publishEmergencyEscalation({
+          agencyId,
+          sessionId: callId,
+          matchedPhrases: safety.triggerWord ? [safety.triggerWord] : [],
+        }),
+      );
       return emergencyClose(deps, event, config, shortName, emergencySpoken, {
         ...sessionAttrs,
         agencyId,

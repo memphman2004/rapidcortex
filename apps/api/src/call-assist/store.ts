@@ -149,6 +149,13 @@ export type CallAssistTenantConfig = {
   /** Off until an admin turns Nova 2.5 Sonic on. Unset stays on Lex/Polly. */
   novaSonicEnabled?: boolean;
   novaSonicVoiceId?: string;
+  /**
+   * Explicit false blocks Bedrock call-content QA. Unset = authorized (preserve live).
+   * Does not gate Nova Sonic / Lex voice.
+   */
+  cjisAiAuthorized?: boolean;
+  /** Explicit false disables AI quality scoring. Unset = enabled (preserve live). */
+  callQualityScoringEnabled?: boolean;
   /** Always true. Lex remains available when Nova cannot take the audio. */
   novaSonicFallbackToLex?: true;
   /** Appended under the Nexiq identity block. Cannot rename the assistant. */

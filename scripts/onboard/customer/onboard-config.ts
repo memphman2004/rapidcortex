@@ -3,7 +3,7 @@
  * No AWS calls — unit-tested.
  */
 
-export const ONBOARD_VERTICALS = ["campus", "venue", "transit", "hospital", "psap"] as const;
+export const ONBOARD_VERTICALS = ["campus", "venue", "transit", "hospital", "psap", "call_assist"] as const;
 export type OnboardVertical = (typeof ONBOARD_VERTICALS)[number];
 
 const US_STATES = new Set([
@@ -27,9 +27,29 @@ const AGENCY_TYPES = [
 
 export type AgencyTypeValue = (typeof AGENCY_TYPES)[number];
 
+export type CampusInstitutionType = "k12" | "highered";
+
 export type ExtraOnboardUser = {
   email: string;
   role: string;
+};
+
+/**
+ * Optional seat emails for the ordered day-one seat pack.
+ * Each key corresponds to an env var (e.g. SUPERVISOR_EMAIL).
+ * Empty string = that seat is not provisioned today.
+ */
+export type SeatEmails = {
+  supervisorEmail: string;
+  agencyItEmail: string;
+  dispatcherEmail: string;
+  analystEmail: string;
+  auditorEmail: string;
+  securityEmail: string;
+  operatorEmail: string;
+  guestEmail: string;
+  coordinatorEmail: string;
+  staffEmail: string;
 };
 
 export type OnboardPlan = {
@@ -49,12 +69,26 @@ export type OnboardPlan = {
   adminGroups: string[];
   orgCode: string;
   hospitalId?: string;
+  institutionType: CampusInstitutionType;
+  seatEmails: SeatEmails;
   integrationMode: "none" | "demo_only" | "mock_adapters" | "live_transcript" | "cad_read_only";
   planId: string;
   dryRun: boolean;
   seedBilling: boolean;
   seedPlaceholderQr: boolean;
   extraUsers: ExtraOnboardUser[];
+};
+
+/** A single ordered day-one Cognito seat. */
+export type DayOneSeat = {
+  /** Name of the env var that holds this seat's email (for diagnostics). */
+  emailEnvKey: string;
+  /** Resolved email address. Empty string means skip this seat. */
+  email: string;
+  /** JWT custom:role value. */
+  role: string;
+  /** Cognito groups to add this user to. */
+  groups: string[];
 };
 
 export function isOnboardVertical(raw: string): raw is OnboardVertical {
@@ -79,6 +113,12 @@ function requireEnv(env: NodeJS.Dict<string>, name: string): string {
 function optionalEnv(env: NodeJS.Dict<string>, name: string, fallback: string): string {
   const v = env[name]?.trim();
   return v || fallback;
+}
+
+function optionalEmail(env: NodeJS.Dict<string>, name: string): string {
+  const v = env[name]?.trim().toLowerCase() ?? "";
+  if (v && !v.includes("@")) throw new Error(`${name} must be an email address`);
+  return v;
 }
 
 function flag(env: NodeJS.Dict<string>, name: string): boolean {
@@ -107,21 +147,28 @@ export function defaultAgencyType(vertical: OnboardVertical): AgencyTypeValue {
       return "municipality";
     case "psap":
       return "city";
+    case "call_assist":
+      return "municipality";
   }
 }
 
 export function productVertical(vertical: OnboardVertical): OnboardPlan["agencyVertical"] {
-  return vertical === "psap" ? "core" : vertical;
+  if (vertical === "psap" || vertical === "call_assist") return "core";
+  return vertical as "campus" | "venue" | "hospital" | "transit";
 }
 
-export function adminProvisioning(vertical: OnboardVertical): { role: string; groups: string[] } {
+export function adminProvisioning(
+  vertical: OnboardVertical,
+  institutionType: CampusInstitutionType = "highered",
+): { role: string; groups: string[] } {
   switch (vertical) {
-    case "campus":
-      // Default onboard admin is higher-ed; K-12 orgs should use CAMPUS_ADMIN_K12 via remap script.
+    case "campus": {
+      const suffix = institutionType.toUpperCase();
       return {
-        role: "campus_admin_highered",
-        groups: ["CAMPUS_ADMIN_HIGHERED", "vertical_campus"],
+        role: `campus_admin_${institutionType}`,
+        groups: [`CAMPUS_ADMIN_${suffix}`, "vertical_campus"],
       };
+    }
     case "venue":
       return { role: "venue_admin", groups: ["venue_admin", "vertical_venue"] };
     case "transit":
@@ -130,6 +177,8 @@ export function adminProvisioning(vertical: OnboardVertical): { role: string; gr
       return { role: "hospitaladmin", groups: ["hospitaladmin", "vertical_hospital"] };
     case "psap":
       return { role: "agencyadmin", groups: ["agencyadmin", "vertical_911"] };
+    case "call_assist":
+      return { role: "call_assist_admin", groups: ["CALL_ASSIST_ADMIN", "vertical_call_assist"] };
   }
 }
 
@@ -175,6 +224,7 @@ export function groupsToEnsure(vertical: OnboardVertical): { name: string; descr
     case "hospital":
       return [
         { name: "hospitaladmin", description: "Hospital facility administrator" },
+        { name: "hospital_coord", description: "Hospital emergency coordinator" },
         { name: "hospitalstaff", description: "Hospital staff capacity updates" },
         { name: "vertical_hospital", description: "Hospital routing vertical" },
       ];
@@ -187,6 +237,75 @@ export function groupsToEnsure(vertical: OnboardVertical): { name: string; descr
         { name: "analyst", description: "Analyst" },
         { name: "auditor", description: "Auditor" },
         { name: "vertical_911", description: "911 PSAP vertical" },
+      ];
+    case "call_assist":
+      return [
+        { name: "CALL_ASSIST_ADMIN", description: "Nexiq administrator" },
+        { name: "CALL_ASSIST_SUPERVISOR", description: "Nexiq supervisor" },
+        { name: "CALL_ASSIST_OPERATOR", description: "Nexiq operator" },
+        { name: "vertical_call_assist", description: "Nexiq non-emergency vertical" },
+      ];
+  }
+}
+
+/**
+ * Ordered day-one seat pack for the given plan.
+ * Admin is always seat #1. Floor roles follow admin → supervisor → floor.
+ * Seats with an empty email are skipped — they can be added later via EXTRA_USERS_JSON.
+ */
+export function dayOneSeats(plan: OnboardPlan): DayOneSeat[] {
+  const { seatEmails: se, institutionType: inst } = plan;
+
+  switch (plan.vertical) {
+    case "psap":
+      return [
+        { emailEnvKey: "ADMIN_EMAIL", email: plan.adminEmail, role: "agencyadmin", groups: ["agencyadmin", "vertical_911"] },
+        { emailEnvKey: "AGENCY_IT_EMAIL", email: se.agencyItEmail, role: "agencyit", groups: ["agencyit", "vertical_911"] },
+        { emailEnvKey: "SUPERVISOR_EMAIL", email: se.supervisorEmail, role: "supervisor", groups: ["supervisor", "vertical_911"] },
+        { emailEnvKey: "DISPATCHER_EMAIL", email: se.dispatcherEmail, role: "dispatcher", groups: ["dispatcher", "vertical_911"] },
+        { emailEnvKey: "ANALYST_EMAIL", email: se.analystEmail, role: "analyst", groups: ["analyst", "vertical_911"] },
+        { emailEnvKey: "AUDITOR_EMAIL", email: se.auditorEmail, role: "auditor", groups: ["auditor", "vertical_911"] },
+      ];
+
+    case "campus": {
+      const sfx = inst.toUpperCase();
+      return [
+        { emailEnvKey: "ADMIN_EMAIL", email: plan.adminEmail, role: `campus_admin_${inst}`, groups: [`CAMPUS_ADMIN_${sfx}`, "vertical_campus"] },
+        { emailEnvKey: "SUPERVISOR_EMAIL", email: se.supervisorEmail, role: `campus_supervisor_${inst}`, groups: [`CAMPUS_SUPERVISOR_${sfx}`, "vertical_campus"] },
+        { emailEnvKey: "SECURITY_EMAIL", email: se.securityEmail, role: `campus_security_${inst}`, groups: [`CAMPUS_SECURITY_${sfx}`, "vertical_campus"] },
+        { emailEnvKey: "DISPATCH_EMAIL", email: se.dispatcherEmail, role: `campus_dispatch_${inst}`, groups: [`CAMPUS_DISPATCH_${sfx}`, "vertical_campus"] },
+      ];
+    }
+
+    case "venue":
+      return [
+        { emailEnvKey: "ADMIN_EMAIL", email: plan.adminEmail, role: "venue_admin", groups: ["venue_admin", "vertical_venue"] },
+        { emailEnvKey: "SUPERVISOR_EMAIL", email: se.supervisorEmail, role: "venue_supervisor", groups: ["venue_supervisor", "vertical_venue"] },
+        { emailEnvKey: "SECURITY_EMAIL", email: se.securityEmail, role: "venue_security", groups: ["venue_security", "vertical_venue"] },
+        { emailEnvKey: "OPERATOR_EMAIL", email: se.operatorEmail, role: "venue_operator", groups: ["venue_operator", "vertical_venue"] },
+        { emailEnvKey: "GUEST_EMAIL", email: se.guestEmail, role: "venue_guest", groups: ["venue_guest_services", "vertical_venue"] },
+      ];
+
+    case "transit":
+      return [
+        { emailEnvKey: "ADMIN_EMAIL", email: plan.adminEmail, role: "transit_admin", groups: ["TRANSIT_ADMIN", "vertical_transit"] },
+        { emailEnvKey: "SUPERVISOR_EMAIL", email: se.supervisorEmail, role: "transit_supervisor", groups: ["TRANSIT_SUPERVISOR", "vertical_transit"] },
+        { emailEnvKey: "SECURITY_EMAIL", email: se.securityEmail, role: "transit_security", groups: ["TRANSIT_SECURITY", "vertical_transit"] },
+        { emailEnvKey: "OPERATOR_EMAIL", email: se.operatorEmail, role: "transit_operator", groups: ["TRANSIT_OPERATOR", "vertical_transit"] },
+      ];
+
+    case "hospital":
+      return [
+        { emailEnvKey: "ADMIN_EMAIL", email: plan.adminEmail, role: "hospitaladmin", groups: ["hospitaladmin", "vertical_hospital"] },
+        { emailEnvKey: "COORDINATOR_EMAIL", email: se.coordinatorEmail, role: "hospital_coord", groups: ["hospital_coord", "vertical_hospital"] },
+        { emailEnvKey: "STAFF_EMAIL", email: se.staffEmail, role: "hospitalstaff", groups: ["hospitalstaff", "vertical_hospital"] },
+      ];
+
+    case "call_assist":
+      return [
+        { emailEnvKey: "ADMIN_EMAIL", email: plan.adminEmail, role: "call_assist_admin", groups: ["CALL_ASSIST_ADMIN", "vertical_call_assist"] },
+        { emailEnvKey: "SUPERVISOR_EMAIL", email: se.supervisorEmail, role: "call_assist_supervisor", groups: ["CALL_ASSIST_SUPERVISOR", "vertical_call_assist"] },
+        { emailEnvKey: "OPERATOR_EMAIL", email: se.operatorEmail, role: "call_assist_operator", groups: ["CALL_ASSIST_OPERATOR", "vertical_call_assist"] },
       ];
   }
 }
@@ -216,7 +335,7 @@ function parseExtraUsers(raw: string | undefined): ExtraOnboardUser[] {
 }
 
 export function parseOnboardEnv(env: NodeJS.Dict<string> = process.env): OnboardPlan {
-  const verticalRaw = requireEnv(env, "VERTICAL").toLowerCase();
+  const verticalRaw = requireEnv(env, "VERTICAL").toLowerCase().replace(/-/g, "_");
   if (!isOnboardVertical(verticalRaw)) {
     throw new Error(`VERTICAL must be one of ${ONBOARD_VERTICALS.join(", ")}`);
   }
@@ -253,12 +372,36 @@ export function parseOnboardEnv(env: NodeJS.Dict<string> = process.env): Onboard
   const agencyId = optionalEnv(
     env,
     "AGENCY_ID",
-    vertical === "psap" ? `${state.toLowerCase()}-${slugPart(city)}-${slugPart(agencyName)}`.slice(0, 60) : `test-${vertical}-${orgCode.toLowerCase()}`,
+    vertical === "psap"
+      ? `${state.toLowerCase()}-${slugPart(city)}-${slugPart(agencyName)}`.slice(0, 60)
+      : `test-${vertical.replace(/_/g, "-")}-${orgCode.toLowerCase()}`,
   );
 
-  const admin = adminProvisioning(vertical);
+  // Campus institution type — determines role suffix (k12 / highered)
+  const rawInst = optionalEnv(env, "CAMPUS_INSTITUTION_TYPE", "highered").toLowerCase();
+  if (rawInst !== "k12" && rawInst !== "highered") {
+    throw new Error("CAMPUS_INSTITUTION_TYPE must be k12 or highered");
+  }
+  const institutionType: CampusInstitutionType = rawInst as CampusInstitutionType;
+
+  const admin = adminProvisioning(vertical, institutionType);
   const hospitalId =
-    vertical === "hospital" ? optionalEnv(env, "HOSPITAL_ID", `hosp-${orgCode.toLowerCase()}`) : undefined;
+    vertical === "hospital"
+      ? optionalEnv(env, "HOSPITAL_ID", `hosp-${orgCode.toLowerCase()}`)
+      : undefined;
+
+  const seatEmails: SeatEmails = {
+    supervisorEmail: optionalEmail(env, "SUPERVISOR_EMAIL"),
+    agencyItEmail: optionalEmail(env, "AGENCY_IT_EMAIL"),
+    dispatcherEmail: optionalEmail(env, "DISPATCHER_EMAIL"),
+    analystEmail: optionalEmail(env, "ANALYST_EMAIL"),
+    auditorEmail: optionalEmail(env, "AUDITOR_EMAIL"),
+    securityEmail: optionalEmail(env, "SECURITY_EMAIL"),
+    operatorEmail: optionalEmail(env, "OPERATOR_EMAIL"),
+    guestEmail: optionalEmail(env, "GUEST_EMAIL"),
+    coordinatorEmail: optionalEmail(env, "COORDINATOR_EMAIL"),
+    staffEmail: optionalEmail(env, "STAFF_EMAIL"),
+  };
 
   return {
     vertical,
@@ -277,6 +420,8 @@ export function parseOnboardEnv(env: NodeJS.Dict<string> = process.env): Onboard
     adminGroups: admin.groups,
     orgCode,
     hospitalId,
+    institutionType,
+    seatEmails,
     integrationMode: integrationRaw as OnboardPlan["integrationMode"],
     planId: optionalEnv(env, "PLAN_ID", "command"),
     dryRun: flag(env, "DRY_RUN"),

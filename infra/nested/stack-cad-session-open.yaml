@@ -1,0 +1,216 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  CadSessionOpen Lambda + DLQ/alarm + EventBridge rules on nexcortiq.cad.
+  Moves ProtocolReconciliation and EtaNotification listeners onto the dedicated bus
+  without rebuilding the PreArrival nested SAM stack.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    Default: dev
+  CadEventBusName:
+    Type: String
+    Default: nexcortiq.cad
+  ExistingNodeDepsLayerArn:
+    Type: String
+  ExistingProtocolFunctionArn:
+    Type: String
+  ExistingEtaFunctionArn:
+    Type: String
+  LambdaExecutionRoleArn:
+    Type: String
+  LambdaExecutionRoleName:
+    Type: String
+    Description: IAM role name (not ARN) for attaching DLQ SendMessage policy
+  CodeS3Bucket:
+    Type: String
+  CodeS3Key:
+    Type: String
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex-dev
+
+Resources:
+  CadSessionOpenDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${ManagedPolicyNamePrefix}-cad-session-open-dlq-${DeploymentStage}"
+      MessageRetentionPeriod: 1209600
+
+  CadSessionOpenDLQAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-cad-session-open-dlq-depth-${DeploymentStage}"
+      AlarmDescription: CadSessionOpen DLQ has visible messages
+      MetricName: ApproximateNumberOfMessagesVisible
+      Namespace: AWS/SQS
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt CadSessionOpenDLQ.QueueName
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      Period: 60
+      Statistic: Maximum
+      TreatMissingData: notBreaching
+
+  EtaNotificationDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${ManagedPolicyNamePrefix}-eta-notification-dlq-${DeploymentStage}"
+      MessageRetentionPeriod: 1209600
+
+  EtaNotificationDLQAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ManagedPolicyNamePrefix}-eta-notification-dlq-depth-${DeploymentStage}"
+      AlarmDescription: EtaNotification DLQ has visible messages
+      MetricName: ApproximateNumberOfMessagesVisible
+      Namespace: AWS/SQS
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt EtaNotificationDLQ.QueueName
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      Period: 60
+      Statistic: Maximum
+      TreatMissingData: notBreaching
+
+  CadSessionOpenFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${ManagedPolicyNamePrefix}-CadSessionOpen-${DeploymentStage}"
+      Runtime: nodejs22.x
+      Handler: dist/pre-arrival/cad-session-open.handler
+      Role: !Ref LambdaExecutionRoleArn
+      Timeout: 30
+      MemorySize: 512
+      Layers:
+        - !Ref ExistingNodeDepsLayerArn
+      Code:
+        S3Bucket: !Ref CodeS3Bucket
+        S3Key: !Ref CodeS3Key
+      DeadLetterConfig:
+        TargetArn: !GetAtt CadSessionOpenDLQ.Arn
+      Environment:
+        Variables:
+          DEPLOYMENT_STAGE: !Ref DeploymentStage
+          ALLOW_UNAUTHENTICATED_API: "false"
+          ENABLE_PRE_ARRIVAL_IQ: "true"
+          PRE_ARRIVAL_SESSIONS_TABLE: !Sub "rapid-cortex-pre-arrival-sessions-${DeploymentStage}"
+          PRE_ARRIVAL_INSTRUCTION_LIBRARY_TABLE: !Sub "rapid-cortex-pre-arrival-instruction-library-${DeploymentStage}"
+          PROTOCOL_COMPATIBILITY_TABLE: !Sub "rapid-cortex-protocol-compatibility-${DeploymentStage}"
+          RECONCILIATION_AUDIT_TABLE: !Sub "rapid-cortex-reconciliation-audit-${DeploymentStage}"
+          PRE_ARRIVAL_PUBLIC_BASE_URL: "https://app.rapidcortex.us"
+          AGENCIES_TABLE: !Sub "rapid-cortex-agencies-${DeploymentStage}"
+          AUDIT_TABLE: !Sub "rapid-cortex-audit-${DeploymentStage}"
+          INCIDENTS_TABLE: !Sub "rapid-cortex-incidents-${DeploymentStage}"
+          TRANSCRIPTS_TABLE: !Sub "rapid-cortex-transcripts-${DeploymentStage}"
+          ANALYSES_TABLE: !Sub "rapid-cortex-analyses-${DeploymentStage}"
+          INVITES_TABLE: !Sub "rapid-cortex-invites-${DeploymentStage}"
+          ASSETS_BUCKET: !Sub "rapid-cortex-assets-${DeploymentStage}-158961537080"
+          COGNITO_USER_POOL_ID: us-east-1_0z6tA6WBs
+          COGNITO_CLIENT_ID: 7moi6sgc2uf4o31omgvo77h3v5
+          COGNITO_REGION: us-east-1
+          APPROVED_CORS_ORIGINS: "https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us"
+          SMS_PROVIDER: aws
+
+  CadSessionOpenRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub "nexcortiq-cad-session-open-${DeploymentStage}"
+      Description: Open Pre-Arrival session on CAD incident.created / unit.dispatched / dispatch.unit_assigned
+      EventBusName: !Ref CadEventBusName
+      State: ENABLED
+      EventPattern:
+        source:
+          - nexcortiq.cad
+          - rapidcortex.cad
+        detail-type:
+          - incident.created
+          - dispatch.unit_assigned
+          - unit.dispatched
+      Targets:
+        - Id: CadSessionOpen
+          Arn: !GetAtt CadSessionOpenFunction.Arn
+
+  CadSessionOpenInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref CadSessionOpenFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CadSessionOpenRule.Arn
+
+  ProtocolReconciliationOnCadBusRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub "nexcortiq-protocol-reconciliation-${DeploymentStage}"
+      EventBusName: !Ref CadEventBusName
+      State: ENABLED
+      EventPattern:
+        source:
+          - nexcortiq.cad
+          - rapidcortex.cad
+        detail-type:
+          - incident.updated
+      Targets:
+        - Id: ProtocolReconciliation
+          Arn: !Ref ExistingProtocolFunctionArn
+
+  ProtocolReconciliationInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ExistingProtocolFunctionArn
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt ProtocolReconciliationOnCadBusRule.Arn
+
+  EtaNotificationOnCadBusRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub "nexcortiq-eta-notification-${DeploymentStage}"
+      EventBusName: !Ref CadEventBusName
+      State: ENABLED
+      EventPattern:
+        source:
+          - nexcortiq.cad
+          - rapidcortex.cad
+        detail-type:
+          - unit.dispatched
+          - unit.eta_updated
+          - unit.on_scene
+      Targets:
+        - Id: EtaNotification
+          Arn: !Ref ExistingEtaFunctionArn
+
+  EtaNotificationInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ExistingEtaFunctionArn
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt EtaNotificationOnCadBusRule.Arn
+
+  CadSessionOpenRoleDlqPermission:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "cad-session-open-dlq-${DeploymentStage}"
+      Roles:
+        - !Ref LambdaExecutionRoleName
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - sqs:SendMessage
+            Resource:
+              - !GetAtt CadSessionOpenDLQ.Arn
+              - !GetAtt EtaNotificationDLQ.Arn
+
+Outputs:
+  CadSessionOpenFunctionName:
+    Value: !Ref CadSessionOpenFunction
+  CadSessionOpenFunctionArn:
+    Value: !GetAtt CadSessionOpenFunction.Arn

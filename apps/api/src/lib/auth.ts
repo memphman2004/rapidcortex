@@ -6,6 +6,7 @@ import {
   isRapidCortexRole,
   migrateLegacyRapidCortexRoleTokenValue,
 } from "rapid-cortex-shared";
+import { isRcInternalOperator } from "rapid-cortex-shared/dist/tenancy/principal";
 import { persistAuthContextTouch } from "../handlers/deception/deceptionPersist.js";
 import { detectHoneytokenBlock } from "../handlers/deception/honeytokenGate.js";
 import { networkAccessMiddleware } from "../middleware/network-access.js";
@@ -84,7 +85,10 @@ function mapPayload(payload: JWTPayload): UserContext | null {
   if (!sub) return null;
   const role = normalizeRole(resolveRoleFromJwtPayload(payload));
   let agencyId = String(payload["custom:agencyId"] ?? "").trim();
-  if (role === "rcsuperadmin") {
+  // All RC platform staff — ops roles (rcsuperadmin/rcadmin/rcitadmin) AND sales contractors —
+  // belong to the platform tenant.  Default their agencyId so they can authenticate even when
+  // custom:agencyId is not explicitly set on the Cognito user record.
+  if (isRcInternalOperator(role) || role === "salescontractor") {
     agencyId = agencyId || PLATFORM_AGENCY_ID;
   }
   if (!agencyId) return null;

@@ -522,18 +522,28 @@ const CAD_CONNECTOR_SUPERVISOR: readonly Permission[] = [
   "cad.audit.view",
 ] as const;
 
-/** Agency admin: connector + mapping + routing (no delete). */
+/**
+ * Agency admin: connector + mapping + routing + approve/reject + queue.
+ * Intentionally omits cad.writeback.submit — floor write-back is Dispatcher /
+ * Supervisor / Agency IT only (Role Access Matrix v2).
+ */
 const CAD_CONNECTOR_ADMIN: readonly Permission[] = [
-  ...CAD_CONNECTOR_SUPERVISOR,
+  "cad.incidents.view",
+  "cad.writeback.view_queue",
+  "cad.writeback.approve",
+  "cad.writeback.reject",
+  "cad.health.view",
+  "cad.audit.view",
   "cad.connector.view",
   "cad.connector.manage",
   "cad.fieldmapping.manage",
   "cad.routing.manage",
 ] as const;
 
-/** Agency IT: admin + connector delete. */
+/** Agency IT: admin + submit + connector delete. */
 const CAD_CONNECTOR_IT: readonly Permission[] = [
   ...CAD_CONNECTOR_ADMIN,
+  "cad.writeback.submit",
   "cad.connector.delete",
 ] as const;
 
@@ -808,7 +818,6 @@ const CORE_ROLE_ACCESS_MATRIX_V2 = {
     "analysis.export",
     "analysis.delete",
     "analysis.override",
-    "cad.submit",
     "cad.approve",
     "cad.reject",
     "cad.queue_view",

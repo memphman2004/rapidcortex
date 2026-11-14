@@ -1,7 +1,14 @@
+import { unsupportedHealthCheck, unsupportedRead } from "./adapterProbe.js";
 import type { CadWriteAdapter } from "./writeTypes.js";
 
 export const motorolaWriteAdapter: CadWriteAdapter = {
   vendor: "motorola_premier_one",
+  async healthCheck() {
+    return unsupportedHealthCheck("motorola_premier_one");
+  },
+  async read() {
+    return unsupportedRead("motorola_premier_one");
+  },
   async submit({ payload, config, cadIncidentId }) {
     const apiUrl = (config.apiUrl ?? "").trim();
     if (!apiUrl) {

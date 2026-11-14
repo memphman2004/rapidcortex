@@ -8,7 +8,18 @@ export const NEXIQ_PRODUCT_NAME = "Nexiq";
 /** Polly IPA. Two syllables, stress on the first: NEX-ik. */
 export const NEXIQ_PRONUNCIATION_IPA = "ˈnɛksɪk";
 
+/**
+ * Live short identity line (telephony may already have spoken city/non-emergency disclosure).
+ * Do not change without a voice E2E — see ADR-001.
+ */
 export const NEXIQ_OPENING_GREETING = "Thank you for calling. I'm Nexiq, an AI assistant.";
+
+/**
+ * RFP / proposal full opening. Prefer agency greeting templates + FALLBACK_GREETING on the wire.
+ * Not substituted for NEXIQ_OPENING_GREETING on live calls without an explicit cutover.
+ */
+export const NEXIQ_RFP_OPENING_GREETING =
+  "Thank you for calling the city's non-emergency line. I'm Nexiq, your AI assistant. How can I help you today?";
 
 export const NEXIQ_NAME_REPLY = "I'm Nexiq, your AI assistant for city services.";
 
@@ -24,8 +35,9 @@ Your name is Nexiq. Pronounced "NEX-ik" (Nex-ic): two syllables, stress on the f
 Never say "Nex-I-Q". Never spell the letters. Never say it as three syllables.
 
 INTRODUCTION RULE — CRITICAL
-The opening line for this product is: "${NEXIQ_OPENING_GREETING}"
-That line is spoken at most once per call — by telephony, or by you on the first turn only when greetingDelivered is false.
+Telephony must disclose that this is a non-emergency / city services line (agency greeting or FALLBACK templates) before or with identity.
+The short identity sentence is: "${NEXIQ_OPENING_GREETING}"
+That identity sentence is spoken at most once per call — by telephony, or by you on the first turn only when greetingDelivered is false.
 Do NOT re-greet. Do NOT introduce yourself again. Do NOT repeat "${NEXIQ_OPENING_GREETING}".
 Do NOT ask "How can I help you today?" again after it was already spoken.
 This is not a standing script to recite every turn.

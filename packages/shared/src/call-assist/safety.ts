@@ -42,7 +42,7 @@ const TRIGGER_PATTERNS: ReadonlyArray<{ id: SafetyTriggerId; re: RegExp; phrase:
   },
   {
     id: "ACTIVE_VIOLENCE",
-    re: /\b(shooting|shot|stabbed|stabbing|active shooter|beating (him|her|them)|being attacked)\b/i,
+    re: /\b(shooting|shot|disparos|disparo|stabbed|stabbing|active shooter|beating (him|her|them)|being attacked)\b/i,
     phrase: "active violence",
   },
   {
@@ -52,7 +52,7 @@ const TRIGGER_PATTERNS: ReadonlyArray<{ id: SafetyTriggerId; re: RegExp; phrase:
   },
   {
     id: "FIRE_EXPLOSION",
-    re: /\b(on fire|house fire|building fire|explosion|exploded|smoke filling|sunog|cháy nhà|chay nha|incendie)\b|着火|著火|火燭|حريق/i,
+    re: /\b(on fire|house fire|building fire|fuego|explosion|exploded|smoke filling|sunog|cháy nhà|chay nha|incendie)\b|着火|著火|火燭|حريق/i,
     phrase: "fire/explosion",
   },
   {
@@ -67,7 +67,7 @@ const TRIGGER_PATTERNS: ReadonlyArray<{ id: SafetyTriggerId; re: RegExp; phrase:
   },
   {
     id: "DISTRESS_KEYWORD",
-    re: /\b(help me|auxilio|ayúdame|ayudame|au secours|tulong|cứu tôi|cuu toi|he's going to kill me|she's going to kill me|they're going to kill me)\b|救命|救我|幫我|帮我|ساعدني/i,
+    re: /\b(help me|auxilio|ayúdame|ayudame|necesito ayuda|au secours|tulong|cứu tôi|cuu toi|he's going to kill me|she's going to kill me|they're going to kill me)\b|救命|救我|幫我|帮我|ساعدني/i,
     phrase: "distress",
   },
 ];

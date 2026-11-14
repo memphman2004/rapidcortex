@@ -1,14 +1,14 @@
 /**
  * Day-0 tenant provision for one NexCort iQ vertical.
  *
- * Copy scripts/onboard/vars/<vertical>.env.example → <vertical>.env, fill agency
+ * Copy scripts/onboard/customer/vars/<vertical>.env.example → <vertical>.env, fill agency
  * fields, then:
  *
  *   source scripts/env-api-dev.sh
- *   bash scripts/onboard/campus.sh scripts/onboard/vars/campus.env
+ *   bash scripts/onboard/customer/campus.sh scripts/onboard/customer/vars/campus.env
  *
- * Does not enable CAD write-back, SSO, SMS origination, or load buildings/fleet.
- * Those are later loaders / human gates (see scripts/onboard/README.md).
+ * Does not enable CAD write-back, SSO, SMS origination, or load buildings/fleet/routes.
+ * Those are later loaders / human gates (see scripts/onboard/customer/README.md).
  */
 import {
   CognitoIdentityProviderClient,
@@ -24,9 +24,11 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { defaultAgencyNetworkPolicy, defaultCampusSites } from "rapid-cortex-shared";
 import {
+  dayOneSeats,
   groupsToEnsure,
   isValidOnboardPassword,
   parseOnboardEnv,
+  type DayOneSeat,
   type ExtraOnboardUser,
   type OnboardPlan,
 } from "./onboard-config.js";
@@ -70,7 +72,7 @@ async function upsertUser(
     password: string;
     groups: string[];
     hospitalId?: string;
-    vertical: string;
+    agencyVertical: string;
   },
 ): Promise<void> {
   const attrs = [
@@ -127,8 +129,8 @@ async function upsertUser(
   );
 
   for (const optional of [
-    { Name: "custom:vertical", Value: opts.vertical },
-    { Name: "custom:agencyVertical", Value: opts.vertical },
+    { Name: "custom:vertical", Value: opts.agencyVertical },
+    { Name: "custom:agencyVertical", Value: opts.agencyVertical },
   ]) {
     try {
       await cognito.send(
@@ -255,6 +257,7 @@ async function writeVerticalStub(ddb: DynamoDBDocumentClient, plan: OnboardPlan,
           agencyId: plan.agencyId,
           campusCode: plan.orgCode,
           campusName: plan.agencyName,
+          institutionType: plan.institutionType,
           smsEnabled: false,
           qrEnabled: true,
           active: true,
@@ -277,7 +280,7 @@ async function writeVerticalStub(ddb: DynamoDBDocumentClient, plan: OnboardPlan,
         },
       }),
     );
-    log(`Campus config stub ${plan.orgCode} → ${tableName} (no buildings yet)`);
+    log(`Campus config stub ${plan.orgCode} (${plan.institutionType}) → ${tableName} (no buildings yet)`);
   }
 
   if (plan.vertical === "venue") {
@@ -323,6 +326,40 @@ async function writeVerticalStub(ddb: DynamoDBDocumentClient, plan: OnboardPlan,
       }),
     );
     log(`Transit config stub → ${tableName} (no fleet/routes yet)`);
+  }
+
+  if (plan.vertical === "call_assist") {
+    const tableName = table("CALL_ASSIST_TABLE", "call-assist");
+    const shortName = process.env.AGENCY_SHORT_NAME?.trim() || plan.orgCode;
+    await ddb.send(
+      new PutCommand({
+        TableName: tableName,
+        Item: {
+          agencyId: plan.agencyId,
+          sk: "CONFIG#tenant",
+          entityType: "call_assist_config",
+          agencyName: plan.agencyName,
+          agencyDisplayName: plan.agencyName,
+          agencyShortName: shortName,
+          emergencyLine: "911",
+          defaultLocale: "en_US",
+          supportedLocales: ["en_US"],
+          disclosureEnabled: true,
+          disclosureText:
+            "This call may be recorded and assisted by AI. This is not a 911 emergency line. For emergencies call 911.",
+          aiDisclosureRequired: true,
+          onboardingStatus: "PENDING_LEX",
+          onboardingSteps: [],
+          createdAt: now,
+          updatedAt: now,
+        },
+        ConditionExpression: "attribute_not_exists(agencyId) AND attribute_not_exists(sk)",
+      }),
+    );
+    log(
+      `Call Assist config stub → ${tableName}` +
+        ` (Lex/Connect provision via POST /api/call-assist/onboarding after day-0)`,
+    );
   }
 }
 
@@ -390,32 +427,57 @@ async function seedPlaceholderQr(ddb: DynamoDBDocumentClient, plan: OnboardPlan,
 }
 
 function laterSteps(plan: OnboardPlan): string[] {
-  const steps = [
+  const steps: string[] = [
+    "Rotate all day-one passwords and enforce MFA enroll before go-live",
     "Invite remaining staff (or EXTRA_USERS_JSON) — do not share the admin password in git",
     "SSO / IdP metadata is a human gate — not part of this script",
     "SMS origination: only after a dedicated 10DLC/TFN exists. Never reuse another agency number. bash scripts/seed-sms-routing-dev.sh",
     "CAD write-back stays off until a signed addendum",
   ];
-  if (plan.vertical === "campus") {
-    steps.unshift(
-      `Load buildings: npx tsx scripts/onboard/load-campus-buildings.ts --file scripts/onboard/templates/campus-buildings.csv (set CAMPUS_CODE=${plan.orgCode} AGENCY_ID=${plan.agencyId})`,
-      "Complete Campus Onboarding Intake + Integration Questionnaire in the app",
-    );
-  }
-  if (plan.vertical === "venue") {
-    steps.unshift(
-      `Load zones: npx tsx scripts/onboard/load-venue-zones.ts --file scripts/onboard/templates/venue-zones.csv (set VENUE_CODE=${plan.orgCode} AGENCY_ID=${plan.agencyId})`,
-      "Complete Venue Onboarding Intake in the app",
-    );
-  }
-  if (plan.vertical === "transit") {
-    steps.unshift("Load fleet/routes later (do not copy Hoover Valley demo vehicles onto a real tenant)");
-  }
-  if (plan.vertical === "hospital") {
-    steps.unshift("Capacity board owners train in Hospital Admin; no EHR/HL7 in this script");
-  }
-  if (plan.vertical === "psap") {
-    steps.unshift("PSAP workbook: privacy, protocol pack, ALI source, Transcribe vocab — see docs/operations-runbooks/AGENCY_ONBOARDING_RUNBOOK.md");
+  switch (plan.vertical) {
+    case "campus":
+      steps.unshift(
+        `Load buildings: npx tsx scripts/onboard/customer/load-campus-buildings.ts --file scripts/onboard/customer/templates/campus-buildings.csv (set CAMPUS_CODE=${plan.orgCode} AGENCY_ID=${plan.agencyId})`,
+        `Load QR codes: npx tsx scripts/onboard/customer/load-qr-codes.ts --file scripts/onboard/customer/templates/qr-codes.csv (set AGENCY_ID=${plan.agencyId})`,
+        "Complete Campus Onboarding Intake + Integration Questionnaire in the app",
+        `Sign in: https://app.rapidcortex.us/campus/${plan.orgCode.toLowerCase()} · Staff Guide at STAFF RESOURCES`,
+      );
+      break;
+    case "venue":
+      steps.unshift(
+        `Load zones: npx tsx scripts/onboard/customer/load-venue-zones.ts --file scripts/onboard/customer/templates/venue-zones.csv (set VENUE_CODE=${plan.orgCode} AGENCY_ID=${plan.agencyId})`,
+        `Load QR codes: npx tsx scripts/onboard/customer/load-qr-codes.ts --file scripts/onboard/customer/templates/qr-codes.csv (set AGENCY_ID=${plan.agencyId})`,
+        "Complete Venue Onboarding Intake in the app",
+        `Sign in: https://app.rapidcortex.us/venue/${plan.orgCode.toLowerCase()} · Staff Guide at STAFF RESOURCES`,
+      );
+      break;
+    case "transit":
+      steps.unshift(
+        "Load fleet / stations after the customer spreadsheet is complete (CSV loader TBD — do not copy Hoover Valley demo vehicles)",
+        `Load QR codes for vehicles and stations: npx tsx scripts/onboard/customer/load-qr-codes.ts --file scripts/onboard/customer/templates/qr-codes.csv (set AGENCY_ID=${plan.agencyId})`,
+        `Sign in: https://app.rapidcortex.us/app/transit/admin · Staff Guide at STAFF RESOURCES`,
+      );
+      break;
+    case "hospital":
+      steps.unshift(
+        "Capacity board owners train in Hospital Admin — no EHR/HL7 in this script",
+        `Sign in: https://app.rapidcortex.us/hospital-admin/dashboard (admin) or /hospital-staff/dashboard (staff)`,
+      );
+      break;
+    case "psap":
+      steps.unshift(
+        "PSAP workbook: privacy decision, protocol pack, ALI source, Transcribe vocab — see docs/operations-runbooks/AGENCY_ONBOARDING_RUNBOOK.md",
+        `Sign in: https://app.rapidcortex.us/${plan.agencyId}/dashboard`,
+        "Admin Pilot hub: https://app.rapidcortex.us/" + plan.agencyId + "/admin/pilot",
+      );
+      break;
+    case "call_assist":
+      steps.unshift(
+        `Complete Lex/Connect/Transcribe provision: POST /api/call-assist/onboarding for agencyId=${plan.agencyId}`,
+        "Configure DID routing via POST /api/call-assist/did after the dedicated non-emergency number is registered",
+        `Sign in: https://app.rapidcortex.us/app/call-assist/admin`,
+      );
+      break;
   }
   return steps;
 }
@@ -431,11 +493,25 @@ async function main(): Promise<void> {
   const pool = process.env.COGNITO_USER_POOL_ID?.trim();
   if (!pool) throw new Error("COGNITO_USER_POOL_ID is required (source scripts/env-api-dev.sh)");
 
+  const seats = dayOneSeats(plan);
+  const activeSeatCount = seats.filter((s) => s.email).length;
+
   log(`vertical=${plan.vertical} agencyId=${plan.agencyId} orgCode=${plan.orgCode} dryRun=${plan.dryRun}`);
   log(`admin=${plan.adminEmail} role=${plan.adminRole} integrationMode=${plan.integrationMode}`);
+  log(`day-one seats: ${activeSeatCount} of ${seats.length} (blank seats are skipped)`);
 
   if (plan.dryRun) {
     log("DRY_RUN — no writes");
+    for (const seat of seats) {
+      if (seat.email) {
+        log(`  seat: ${seat.email} → ${seat.role} groups=${seat.groups.join(",")}`);
+      } else {
+        log(`  skip: ${seat.emailEnvKey} (not set)`);
+      }
+    }
+    for (const user of plan.extraUsers) {
+      log(`  extra: ${user.email} → ${user.role}`);
+    }
     for (const step of laterSteps(plan)) log(`later: ${step}`);
     return;
   }
@@ -445,26 +521,38 @@ async function main(): Promise<void> {
   const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: REGION }));
   const agenciesTable = table("AGENCIES_TABLE", "agencies");
 
+  // 1. Cognito groups
   for (const group of groupsToEnsure(plan.vertical)) {
     await ensureGroup(cognito, pool, group.name, group.description);
   }
 
+  // 2. Agency row
   const agencyResult = await upsertAgency(ddb, agenciesTable, plan, now);
   log(`Agency ${agencyResult}: ${plan.agencyId} in ${agenciesTable}`);
 
+  // 3. Vertical config stub
   await writeVerticalStub(ddb, plan, now);
 
-  await upsertUser(cognito, {
-    pool,
-    email: plan.adminEmail,
-    role: plan.adminRole,
-    agencyId: plan.agencyId,
-    password,
-    groups: plan.adminGroups,
-    hospitalId: plan.hospitalId,
-    vertical: plan.agencyVertical,
-  });
+  // 4. Ordered day-one seat pack (admin first, then others in role order)
+  for (const seat of seats) {
+    if (!seat.email) {
+      log(`skip seat ${seat.emailEnvKey} (not set — add via EXTRA_USERS_JSON later)`);
+      continue;
+    }
+    await upsertUser(cognito, {
+      pool,
+      email: seat.email,
+      role: seat.role,
+      agencyId: plan.agencyId,
+      password,
+      groups: seat.groups,
+      hospitalId: plan.hospitalId,
+      agencyVertical: plan.agencyVertical,
+    });
+  }
 
+  // 5. Extra users from EXTRA_USERS_JSON (always after ordered seats)
+  const verticalGroup = plan.adminGroups.find((g) => g.startsWith("vertical_")) ?? "";
   const extra: ExtraOnboardUser[] = plan.extraUsers;
   for (const user of extra) {
     await upsertUser(cognito, {
@@ -473,16 +561,20 @@ async function main(): Promise<void> {
       role: user.role,
       agencyId: plan.agencyId,
       password,
-      groups: [user.role, ...plan.adminGroups.filter((g) => g.startsWith("vertical_"))],
+      // Extra users get their own role group + the vertical marker; they do not join admin groups.
+      groups: [user.role, ...(verticalGroup ? [verticalGroup] : [])],
       hospitalId: plan.hospitalId,
-      vertical: plan.agencyVertical,
+      agencyVertical: plan.agencyVertical,
     });
   }
 
+  // 6. Optional billing stub
   if (plan.seedBilling) await seedBilling(ddb, plan, now);
+
+  // 7. Optional placeholder QR
   if (plan.seedPlaceholderQr) await seedPlaceholderQr(ddb, plan, now);
 
-  log("Day-0 complete. Password not logged.");
+  log("Day-0 complete. Passwords not logged.");
   for (const step of laterSteps(plan)) log(`later: ${step}`);
 }
 

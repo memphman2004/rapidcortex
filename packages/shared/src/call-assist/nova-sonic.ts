@@ -42,6 +42,17 @@ export function novaSonicLexVoiceId(locale: string): "tiffany" | "lupe" | null {
   return null;
 }
 
+/**
+ * Polly Neural voice ids for Lex/Polly path (accepted live mapping).
+ * en-US → Matthew, es-US → Lupe, pt-BR → Camila.
+ */
+export function callAssistPollyNeuralVoiceId(locale: string): "Matthew" | "Lupe" | "Camila" {
+  const n = locale.replace("_", "-");
+  if (n === "es-US" || n.startsWith("es-")) return "Lupe";
+  if (n === "pt-BR" || n.startsWith("pt-")) return "Camila";
+  return "Matthew";
+}
+
 export type CallAssistVoiceEngine = "NOVA_SONIC" | "LEX_POLLY";
 
 /** Phrases the Safety engine does not already catch. Detection is the union, never a replacement. */
@@ -52,6 +63,8 @@ export const NOVA_SONIC_EXTRA_EMERGENCY_PHRASES = [
   "chest pain",
   "flood",
   "fire",
+  "fuego",
+  "disparos",
 ] as const;
 
 export function checkEmergencyKeywords(

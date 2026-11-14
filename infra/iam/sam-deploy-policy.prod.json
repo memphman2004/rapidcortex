@@ -276,12 +276,6 @@
         "geo:ListPlaceIndexes"
       ],
       "Resource": "*"
-    },
-    {
-      "Sid": "AssumeCadRmsOrgAccess",
-      "Effect": "Allow",
-      "Action": "sts:AssumeRole",
-      "Resource": "arn:aws:iam::991260941851:role/OrganizationAccountAccessRole"
     }
   ]
 }

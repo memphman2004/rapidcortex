@@ -74,7 +74,8 @@ function snsEvent(body: string): SNSEvent {
           MessageAttributes: {},
           Message: JSON.stringify({
             originationNumber: "+18165550123",
-            destinationNumber: "+13198358230",
+            // Call Assist test DID — never Pre-Arrival iQ +13198358230
+            destinationNumber: "+18165550199",
             messageBody: body,
             inboundMessageId: "in-1",
           }),

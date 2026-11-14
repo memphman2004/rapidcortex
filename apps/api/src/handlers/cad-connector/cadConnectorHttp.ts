@@ -29,6 +29,10 @@ import {
 } from "rapid-cortex-integrations/cad";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { withCorrelationHeaders } from "../../lib/correlation.js";
+import {
+  assertAutomatedWritebackAllowed,
+  assertHumanWritebackAllowed,
+} from "../../lib/cad/writeback-agency-gates.js";
 import { env } from "../../lib/env.js";
 import { makeId } from "../../lib/ids.js";
 import {
@@ -43,10 +47,12 @@ import {
   unauthorized,
 } from "../../lib/response.js";
 import { requireAddon } from "../../middleware/requireAddon.js";
+import { AgencyRepository } from "../../repositories/agencyRepository.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { cadConnectorEnabled } from "./cadConnectorFlag.js";
 
 const authz = new AuthorizationService();
+const agenciesRepo = new AgencyRepository();
 const auditRepo = new AuditRepository();
 const requireCadConnectorAddon = requireAddon("cad.connector");
 const writeBackWindow = new Map<string, number[]>();
@@ -94,9 +100,9 @@ function rateLimitWriteBack(connectorId: string): boolean {
 
 function canSkipWriteBackApproval(user: UserContext): boolean {
   const role = String(user.role ?? "");
+  // Agency Admin configures connectors but does not skip approval / auto-deliver.
   return (
     role === "agencyit" ||
-    role === "agencyadmin" ||
     role === "rcadmin" ||
     role === "rcsuperadmin" ||
     role === "rcitadmin"
@@ -573,6 +579,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (match(event, "POST", /^\/api\/cad-connector\/write-back\/?$/)) {
       const denied = deny(event, user, "cad.writeback.submit");
       if (denied) return denied;
+      const agency = await agenciesRepo.get(agencyId);
+      const humanGate = assertHumanWritebackAllowed(agency?.config);
+      if (!humanGate.ok) return withCorrelationHeaders(event, badRequest(humanGate.error));
       const body = parseBody(event);
       if (body === null) return withCorrelationHeaders(event, badRequest("Invalid JSON body"));
       const parsed = cadWriteBackSubmitBodySchema.safeParse(body);
@@ -608,7 +617,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       if (!rateLimitWriteBack(routed.connectorId)) {
         return withCorrelationHeaders(event, jsonStatus({ error: "rate_limited", code: "WRITEBACK_RATE_LIMIT" }, 429));
       }
-      const requiresApproval = routed.rule.requireSupervisorApproval || !canSkipWriteBackApproval(user);
+      let requiresApproval = routed.rule.requireSupervisorApproval || !canSkipWriteBackApproval(user);
+      if (!requiresApproval) {
+        const automatedGate = assertAutomatedWritebackAllowed(agency?.config);
+        if (!automatedGate.ok) {
+          // Fall back to supervisor approval when automated path is not authorized.
+          requiresApproval = true;
+        }
+      }
       const pending: CadWriteBackRequest = {
         ...draft,
         resolvedConnectorId: routed.connectorId,
@@ -667,6 +683,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       if (!existing) return withCorrelationHeaders(event, notFound("Write-back not found"));
       if (existing.status !== "pending_approval") {
         return withCorrelationHeaders(event, badRequest("Write-back is not pending approval"));
+      }
+      if (existing.requestedByUserId === user.userId) {
+        return withCorrelationHeaders(
+          event,
+          forbidden("You cannot approve your own CAD write-back submission"),
+        );
       }
       const approved: CadWriteBackRequest = {
         ...existing,

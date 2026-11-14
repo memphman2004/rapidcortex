@@ -79,15 +79,17 @@ function RoleRow({
         <button
           type="button"
           onClick={() => onEdit(open ? null : role)}
-          className="flex items-center gap-2 rounded-md border border-[color:var(--rc-border)] bg-[color:var(--rc-surface)] px-2 py-1.5"
+          className="rc-theme-mode-chip flex items-center gap-2 rounded-md border px-2 py-1.5"
           aria-expanded={open}
+          aria-pressed={open}
+          data-selected={open ? "true" : "false"}
           aria-label={`Choose ${USER_TEXT_ROLE_LABELS[role]} color`}
         >
           <span
             className="h-5 w-5 rounded-full border border-[color:var(--rc-border-hard)]"
             style={{ background: current }}
           />
-          <span className="font-mono text-[10px] text-[color:var(--rc-text-secondary)]">{current}</span>
+          <span className="font-mono text-[10px] font-semibold">{current}</span>
         </button>
       </div>
       {open ? (
@@ -198,23 +200,24 @@ export function TextAppearancePanel({ onClose }: { onClose?: () => void }) {
         </p>
       </div>
       <div className="flex gap-1 border-b border-[color:var(--rc-border)] px-3 py-2">
-        {(["dark", "light"] as const).map((item) => (
-          <button
-            key={item}
-            type="button"
-            onClick={() => {
-              setMode(item);
-              setEditingRole(null);
-            }}
-            className={`rounded-md px-2.5 py-1 text-[11px] font-semibold ${
-              mode === item
-                ? "bg-[color:var(--rc-surface-hover)] text-[color:var(--rc-text-primary)]"
-                : "text-[color:var(--rc-text-muted)] hover:text-[color:var(--rc-text-primary)]"
-            }`}
-          >
-            {item === "dark" ? "Dark mode" : "Light mode"}
-          </button>
-        ))}
+        {(["dark", "light"] as const).map((item) => {
+          const selected = mode === item;
+          return (
+            <button
+              key={item}
+              type="button"
+              onClick={() => {
+                setMode(item);
+                setEditingRole(null);
+              }}
+              aria-pressed={selected}
+              data-selected={selected ? "true" : "false"}
+              className="rc-theme-mode-chip rounded-md border px-2.5 py-1 text-[11px] font-semibold tracking-wide transition-colors"
+            >
+              {item === "dark" ? "Dark mode" : "Light mode"}
+            </button>
+          );
+        })}
       </div>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3">
         <LivePreview mode={mode} />

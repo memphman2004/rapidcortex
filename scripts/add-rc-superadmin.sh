@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Back-compat wrapper — full pool migration lives in migrate-cognito-roles.sh
+# Back-compat shim — provisions the rcsuperadmin principal.
+# For the full RC staff set (rcsuperadmin + rcadmin + rcitadmin) use:
+#   npm run seed:rc-staff
 set -euo pipefail
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-exec "${SCRIPT_DIR}/migrate-cognito-roles.sh"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec npx tsx "${ROOT}/onboard/employee/provision-rc-staff.ts"

@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Dedicated nexcortiq.cad EventBridge bus in the Intelligence account.
+  Allows PutEvents only from CAD account 621957412915 (source-account condition).
+  Detail-type filtering belongs on rules, not this bus policy.
+
+Parameters:
+  CadSourceAccountId:
+    Type: String
+    Default: "621957412915"
+
+Resources:
+  NexCortiQCadEventBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: nexcortiq.cad
+      Tags:
+        - Key: App
+          Value: NexCortiQ
+        - Key: Purpose
+          Value: cad-inbound
+
+  NexCortiQCadEventBusPolicy:
+    Type: AWS::Events::EventBusPolicy
+    Properties:
+      EventBusName: !Ref NexCortiQCadEventBus
+      StatementId: AllowCadAccountPutEvents
+      Statement:
+        Effect: Allow
+        Principal:
+          AWS: !Sub "arn:aws:iam::${CadSourceAccountId}:root"
+        Action: events:PutEvents
+        Resource: !GetAtt NexCortiQCadEventBus.Arn
+        Condition:
+          StringEquals:
+            aws:SourceAccount: !Ref CadSourceAccountId
+
+Outputs:
+  CadEventBusName:
+    Value: !Ref NexCortiQCadEventBus
+  CadEventBusArn:
+    Value: !GetAtt NexCortiQCadEventBus.Arn

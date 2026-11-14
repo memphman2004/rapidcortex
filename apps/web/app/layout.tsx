@@ -103,8 +103,12 @@ export default function RootLayout({
 }>) {
   void getWorkspaceBuildProbe();
   return (
-    <html lang="en" className="dark h-full antialiased">
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <head>
+        {/* Apply saved dark/light before paint so every dashboard page matches. */}
+        <Script id="rc-theme-init" strategy="beforeInteractive">
+          {`(function(){try{var t=localStorage.getItem("rc-theme");if(t!=="light"&&t!=="dark"){for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(!k)continue;if(k.indexOf("rc-theme")!==0)continue;var v=localStorage.getItem(k);if(v==="light"||v==="dark"){t=v;break;}}}if(t!=="light"&&t!=="dark")t="dark";var r=document.documentElement;r.setAttribute("data-theme",t);r.style.colorScheme=t;r.classList.add(t==="dark"?"dark":"light");r.classList.remove(t==="dark"?"light":"dark");}catch(e){document.documentElement.classList.add("dark");document.documentElement.setAttribute("data-theme","dark");}})();`}
+        </Script>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href={DASHBOARD_GOOGLE_FONTS_HREF} rel="stylesheet" />

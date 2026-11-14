@@ -23,9 +23,9 @@ const springfield = {
 
 describe("Nexiq greeting builders", () => {
   it("formats SMS DID for the voice welcome tip", () => {
-    expect(formatE164AsUsNational("+13198358230")).toBe("(319) 835-8230");
-    expect(appendVoiceSmsChannelTip("Stay on the line.", "+13198358230")).toBe(
-      "Stay on the line. You can also text us at (319) 835-8230.",
+    expect(formatE164AsUsNational("+18165550199")).toBe("(816) 555-0199");
+    expect(appendVoiceSmsChannelTip("Stay on the line.", "+18165550199")).toBe(
+      "Stay on the line. You can also text us at (816) 555-0199.",
     );
   });
 

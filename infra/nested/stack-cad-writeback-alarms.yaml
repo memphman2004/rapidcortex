@@ -1,0 +1,114 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  CloudWatch alarms for CAD write-back kill-switch / ops (#66).
+  Wire CadWritebackHttp and CadConnectorHttp physical names as parameters
+  so this can deploy as a sidecar without nesting into size-constrained SAM stacks.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    Default: dev
+  OpsAlertsTopicArn:
+    Type: String
+    Description: SNS topic for alarm actions (OpsAlerts)
+  CadWritebackHttpFunctionName:
+    Type: String
+    Description: Physical Lambda name for CadWritebackHttpFunction
+  CadConnectorHttpFunctionName:
+    Type: String
+    Default: ""
+    Description: Optional physical Lambda name for CadConnectorHttpFunction
+  CadIngestionPollingFunctionName:
+    Type: String
+    Default: ""
+    Description: Optional physical Lambda name for CadIngestionPollingFunction
+  AlarmNamePrefix:
+    Type: String
+    Default: rapid-cortex
+
+Conditions:
+  HasConnectorFn: !Not [!Equals [!Ref CadConnectorHttpFunctionName, ""]]
+  HasPollingFn: !Not [!Equals [!Ref CadIngestionPollingFunctionName, ""]]
+
+Resources:
+  CadWritebackHttpErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AlarmNamePrefix}-cad-writeback-http-errors-${DeploymentStage}"
+      AlarmDescription: CadWritebackHttp Lambda errors — consider write-back kill switch
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref CadWritebackHttpFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+
+  CadWritebackHttpThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AlarmNamePrefix}-cad-writeback-http-throttles-${DeploymentStage}"
+      AlarmDescription: CadWritebackHttp throttles
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref CadWritebackHttpFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+
+  CadConnectorHttpErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: HasConnectorFn
+    Properties:
+      AlarmName: !Sub "${AlarmNamePrefix}-cad-connector-http-errors-${DeploymentStage}"
+      AlarmDescription: CadConnectorHttp Lambda errors
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref CadConnectorHttpFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+
+  CadIngestionPollingErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: HasPollingFn
+    Properties:
+      AlarmName: !Sub "${AlarmNamePrefix}-cad-ingestion-poll-errors-${DeploymentStage}"
+      AlarmDescription: CAD poller Lambda errors (gap risk vs 2x poll interval)
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref CadIngestionPollingFunctionName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopicArn
+
+Outputs:
+  CadWritebackHttpErrorsAlarmName:
+    Value: !Ref CadWritebackHttpErrorsAlarm
