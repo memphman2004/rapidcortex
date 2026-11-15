@@ -8,15 +8,42 @@ export const contactSalesLeadBodySchema = z
     phone: z.string().max(40).optional(),
     agencyCompany: z.string().min(1).max(300),
     role: z.string().max(200).optional(),
-    customerType: z.enum(["agency", "city", "county", "state", "venue", "campus", "vendor", "other"]),
+    customerType: z.enum([
+      // Contact-sales form legacy tokens (kept for back-compat)
+      "agency",
+      "city",
+      "county",
+      "state",
+      "venue",
+      "campus",
+      "vendor",
+      "other",
+      // Pricing-quote form agency types (superset added when quote form launched)
+      "city_psap",
+      "county_psap",
+      "municipal_psap",
+      "regional_psap",
+      "hospital",
+      "transit",
+      "state_agency",
+    ]),
     interestedIn: z
       .array(
         z.enum([
+          // Contact-sales form interest tokens
           "dashboard_platform",
           "api_access",
           "cad_integration",
           "pilot_program",
           "enterprise_statewide",
+          // Pricing-quote form product IDs (stored verbatim; source="pricing_quote" identifies them)
+          "call_assist_ai",
+          "iq_vision",
+          "nexiq_intelligence",
+          "pre_arrival_iq",
+          "ai_311",
+          "qa_coaching",
+          "incident_command",
         ]),
       )
       .min(1),
@@ -33,7 +60,7 @@ export const contactSalesLeadBodySchema = z
     /** Must match {@link BUSINESS_SMS_DISCLOSURE_VERSION} when opting in. */
     smsConsentDisclosureVersion: z.string().max(64).optional(),
     /** Which public form collected the SMS consent decision. */
-    formSource: z.enum(["contact-sales", "demo", "sms-consent"]).optional(),
+    formSource: z.enum(["contact-sales", "demo", "sms-consent", "pricing_quote_request"]).optional(),
   })
   .strict()
   .superRefine((v, ctx) => {

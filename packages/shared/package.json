@@ -152,6 +152,21 @@
       "types": "./dist/nexiq-intel/types.d.ts",
       "import": "./dist/nexiq-intel/types.js",
       "require": "./dist/nexiq-intel/types.js"
+    },
+    "./dist/tenancy/principal": {
+      "types": "./dist/tenancy/principal.d.ts",
+      "import": "./dist/tenancy/principal.js",
+      "require": "./dist/tenancy/principal.js"
+    },
+    "./dist/tenancy/constants": {
+      "types": "./dist/tenancy/constants.d.ts",
+      "import": "./dist/tenancy/constants.js",
+      "require": "./dist/tenancy/constants.js"
+    },
+    "./dist/guest-assist/token": {
+      "types": "./dist/guest-assist/token.d.ts",
+      "import": "./dist/guest-assist/token.js",
+      "require": "./dist/guest-assist/token.js"
     }
   },
   "scripts": {

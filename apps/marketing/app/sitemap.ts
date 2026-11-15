@@ -6,7 +6,7 @@ import { absoluteUrl } from "@/lib/seo";
 export const dynamic = "force-static";
 
 /** Bumped when the public route set changes (forces crawlers to re-fetch). */
-const STABLE_LAST_MODIFIED = new Date("2026-09-25T00:00:00.000Z");
+const STABLE_LAST_MODIFIED = new Date("2026-11-12T00:00:00.000Z");
 
 type RouteEntry = {
   path: string;
@@ -61,17 +61,42 @@ const PUBLIC_ROUTES: RouteEntry[] = [
   { path: "/connect/nest", changeFrequency: "weekly", priority: 0.7 },
   { path: "/connect/wyze/start", changeFrequency: "weekly", priority: 0.7 },
 
-  // SEO keyword landings
-  { path: "/911-dispatch-software", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/911-call-transcription", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/ng911-software", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/psap-software", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/public-safety-intelligence", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/campus-safety-software", changeFrequency: "weekly", priority: 0.85 },
+  // SEO keyword landings — primary target queries (highest-priority head terms)
+  { path: "/ai-public-safety-software", changeFrequency: "weekly", priority: 0.95 },
+  { path: "/public-safety-intelligence", changeFrequency: "weekly", priority: 0.9 },
+
+  // SEO keyword landings — 911 / PSAP
+  { path: "/911-dispatch-software", changeFrequency: "monthly", priority: 0.75 },
+  { path: "/911-call-transcription", changeFrequency: "monthly", priority: 0.75 },
+  { path: "/ng911-software", changeFrequency: "monthly", priority: 0.75 },
+  { path: "/psap-software", changeFrequency: "monthly", priority: 0.75 },
+
+  // SEO keyword landings — NEXiQ / non-emergency
+  { path: "/nexiq", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/ai-311", changeFrequency: "weekly", priority: 0.85 },
+  { path: "/nexiq/savings-calculator", changeFrequency: "monthly", priority: 0.75 },
+
+  // SEO keyword landings — CAD interoperability
+  { path: "/cad-interoperability", changeFrequency: "monthly", priority: 0.85 },
+
+  // SEO keyword landings — campus
+  { path: "/campus-safety-software", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/campus-safety-without-app", changeFrequency: "weekly", priority: 0.85 },
+  { path: "/campus-safety-integrations", changeFrequency: "weekly", priority: 0.8 },
+
+  // SEO keyword landings — venue
   { path: "/venue-safety-software", changeFrequency: "weekly", priority: 0.85 },
   { path: "/stadium-security-software", changeFrequency: "weekly", priority: 0.8 },
-  { path: "/campus-safety-integrations", changeFrequency: "weekly", priority: 0.8 },
   { path: "/venue-safety-integrations", changeFrequency: "weekly", priority: 0.8 },
+
+  // SEO keyword landings — transit
+  { path: "/transit-safety-software", changeFrequency: "weekly", priority: 0.85 },
+
+  // SEO keyword landings — AI Vision / security intelligence
+  { path: "/iq-vision", changeFrequency: "weekly", priority: 0.85 },
+
+  // Conversion tools
+  { path: "/modernization-assessment", changeFrequency: "monthly", priority: 0.8 },
 
   // Developers (public docs surface)
   { path: "/developers", changeFrequency: "weekly", priority: 0.7 },

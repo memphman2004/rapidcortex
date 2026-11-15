@@ -50,6 +50,9 @@ const nextConfig = {
         "components/InsideTheCortexPopup.tsx",
       ),
       "@/components/sections": path.join(marketingRoot, "components/sections"),
+      // Marketing-local interactive components (not in apps/web)
+      "@/components/nexiq": path.join(marketingRoot, "components/nexiq"),
+      "@/components/assessment": path.join(marketingRoot, "components/assessment"),
       "@/app/providers": path.join(marketingRoot, "app/providers.tsx"),
       "@": webRoot,
     };

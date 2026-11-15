@@ -164,6 +164,7 @@ export const LeadChannelSchema = z.enum([
   "linkedin",
   "referral",
   "direct",
+  "pricing_page",
   "other",
 ]);
 export type LeadChannel = z.infer<typeof LeadChannelSchema>;
@@ -259,6 +260,12 @@ export const CHANNEL_CONFIG: Record<
     label: "Direct",
     color: "#eab308",
     description: "Direct URL visit, no referrer",
+  },
+  pricing_page: {
+    icon: "💵",
+    label: "Pricing page",
+    color: "#10b981",
+    description: "Quote estimator on the pricing page",
   },
   other: {
     icon: "❓",

@@ -7,6 +7,8 @@
 
 This document is the canonical index of how Google Analytics is wired in the monorepo, which hosts it covers, which public pages should appear in reports, and recommended GA4 admin settings after the **nexcortiq.us** rebrand. Host cutover sequence: [NEXCORTIQ_CUTOVER.md](./NEXCORTIQ_CUTOVER.md).
 
+**CLI (Search Console + GA4 APIs):** [GSC_GA4_CLI.md](./GSC_GA4_CLI.md) — `gsc` / `ga4` via `tools/gsc-ga4-cli`.
+
 ---
 
 ## 1. Property snapshot
@@ -14,7 +16,7 @@ This document is the canonical index of how Google Analytics is wired in the mon
 | Field | Value |
 |---|---|
 | **Platform** | Google Analytics 4 (gtag.js via Google Tag Manager loader) |
-| **Measurement ID** | `G-S83NHMBHRD` |
+| **Measurement ID** | `G-NGT17QK1LW` (live via GTM `GTM-M33PD9HM`; legacy `G-S83NHMBHRD` retired — do not recreate) |
 | **Env override** | `NEXT_PUBLIC_GA_MEASUREMENT_ID` (if set, replaces default) |
 | **Canonical marketing origin** | `https://www.nexcortiq.us` |
 | **Former marketing origin** | `https://www.rapidcortex.us` (301 continuity; still allowlisted in splash gate) |
@@ -24,8 +26,8 @@ This document is the canonical index of how Google Analytics is wired in the mon
 
 | App | File | Load strategy | Notes |
 |---|---|---|---|
-| **Marketing** | `apps/marketing/app/layout.tsx` | `lazyOnload` | Default ID `G-S83NHMBHRD` |
-| **Web (app)** | `apps/web/app/layout.tsx` | `afterInteractive` | Same default ID; enabled whenever ID is non-empty |
+| **Marketing** | `apps/marketing/app/layout.tsx` | `lazyOnload` | Default ID `G-NGT17QK1LW` (+ GTM `GTM-M33PD9HM`) |
+| **Web (app)** | `apps/web/app/layout.tsx` | `afterInteractive` | Prefer env; keep CJIS/ops traffic out of marketing property |
 | Shared helper (unused by layouts) | `apps/web/src/components/analytics/GoogleAnalytics.tsx` | — | Re-exported from `apps/web/components/analytics/`; layouts embed gtag inline today |
 
 Snippet pattern (both apps):

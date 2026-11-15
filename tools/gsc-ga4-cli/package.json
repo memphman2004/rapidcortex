@@ -1,0 +1,14 @@
+{
+  "name": "nexcortiq-gsc-ga4-cli-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Local install of gsc-ga4-cli for Search Console + GA4 (see docs/seo/GSC_GA4_CLI.md)",
+  "license": "UNLICENSED",
+  "scripts": {
+    "gsc": "gsc",
+    "ga4": "ga4"
+  },
+  "dependencies": {
+    "gsc-ga4-cli": "^0.1.0"
+  }
+}

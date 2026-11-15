@@ -49,6 +49,7 @@ import {
   prospectHandoffMessage,
   trimProspectNotes,
 } from "../../features/leads/prospect-notes-carryover.js";
+import { fetchMarketingSeoMetrics } from "../../lib/marketing/google-seo-client.js";
 
 const repo = new SalesLeadRepository();
 const auditRepo = new AuditRepository();
@@ -550,6 +551,67 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           filter,
         },
       });
+    }
+
+    if (m === "GET" && path.endsWith("/marketing/seo-metrics")) {
+      const q = event.queryStringParameters ?? {};
+      const rangeDays = Math.min(Math.max(Number(q.days ?? 90) || 90, 1), 90);
+
+      const isSalesContractor = String(user.role ?? "").toLowerCase() === "salescontractor";
+      const allLeads = await repo.listNormalized(500);
+      const leads = isSalesContractor
+        ? allLeads.filter(
+            (lead) =>
+              lead.assignedTo === (user.email ?? user.userId) ||
+              lead.assignee === (user.email ?? user.userId),
+          )
+        : allLeads;
+      const totalLeads = leads.length;
+      const qualifiedLeads = leads.filter(
+        (l) => !["NEW", "CONTACTED", "WON", "LOST"].includes(l.pipelineStage),
+      ).length;
+      const demoRequests = leads.filter(
+        (l) => l.pipelineStage === "DEMO_SCHEDULED" || l.pipelineStage === "DEMO_COMPLETED",
+      ).length;
+      const conversionRate = totalLeads > 0 ? qualifiedLeads / totalLeads : undefined;
+
+      try {
+        const data = await fetchMarketingSeoMetrics({
+          rangeDays,
+          crm: { demoRequests, qualifiedLeads, totalLeads, conversionRate },
+        });
+        return ok({ success: true, data });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "SEO metrics sync failed";
+        return ok({
+          success: true,
+          data: {
+            syncedAt: new Date().toISOString(),
+            website: "https://www.nexcortiq.us",
+            measurementId: "G-NGT17QK1LW",
+            search: {
+              status: "error",
+              error: message,
+              rangeDays,
+              topQueries: [],
+              monitoredQueries: [],
+              lowCtrPages: [],
+              sitemaps: [],
+            },
+            analytics: {
+              status: "error",
+              error: message,
+              rangeDays,
+              landingPages: [],
+              aiReferrals: [],
+              leadEvents: [],
+              keyEventsConfigured: [],
+              streams: [],
+            },
+            crm: { demoRequests, qualifiedLeads, totalLeads, conversionRate },
+          },
+        });
+      }
     }
 
     if (m === "GET" && path.endsWith("/marketing/lead-intelligence")) {

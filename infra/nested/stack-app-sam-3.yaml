@@ -128,6 +128,12 @@ Parameters:
   QaBedrockModelId:
     Type: String
     Default: anthropic.claude-haiku-4-5-20251001-v1:0
+  RapidIqApolloApiKeySecretArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Secrets Manager ARN for the Apollo.io API key used by PostQuoteRequestFunction.
+      Leave empty to disable Apollo contact creation on quote submissions.
   AiBedrockFoundationModelId:
     Type: String
     Default: anthropic.claude-haiku-4-5-20251001-v1:0
@@ -479,6 +485,7 @@ Conditions:
   HasAdminCnameTarget: !Not [!Equals [!Ref AdminCnameTarget, ""]]
   HasWwwCnameTarget: !Not [!Equals [!Ref WwwCnameTarget, ""]]
   HasPlatformNoticesTable: !Not [!Equals [!Ref PlatformNoticesTable, ""]]
+  HasApolloApiKeySecretArn: !Not [!Equals [!Ref RapidIqApolloApiKeySecretArn, ""]]
   UseManagedMultilingualSecrets: !Equals [!Ref MultilingualSecretProvisioning, "managed"]
   MultilingualSecretsBroadPolicy: !Equals [!Ref MultilingualSecretsPolicyMode, "broad"]
   # Live production is DeploymentStage=dev (app.rapidcortex.us). PITR must stay on.
@@ -1730,6 +1737,13 @@ Resources:
               Resource:
                 - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LeadSignalsTable}
                 - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LeadSignalsTable}/index/*
+            - Sid: MarketingGa4ServiceAccountRead
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+              Resource:
+                - !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/marketing/ga4-service-account-*
       Events:
         SignalFeedGet:
           Type: HttpApi
@@ -1748,6 +1762,24 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/rc-admin/leads/attribution-summary
+            Method: GET
+        MarketingOverviewGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/leads/marketing/overview
+            Method: GET
+        MarketingLeadIntelligenceGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/leads/marketing/lead-intelligence
+            Method: GET
+        MarketingSeoMetricsGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/rc-admin/leads/marketing/seo-metrics
             Method: GET
         LeadGet:
           Type: HttpApi
@@ -2259,6 +2291,83 @@ Resources:
           Properties:
             ApiId: !Ref Api
             Path: /api/marketing/lead
+            Method: OPTIONS
+            Auth:
+              Authorizer: NONE
+
+  PostQuoteRequestFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/handlers/post-quote-request.handler
+      Environment:
+        Variables:
+          SALES_LEADS_TABLE: !Ref SalesLeadsTable
+          CONTACT_FROM_EMAIL: support@nexcortiq.us
+          RC_TEAM_NOTIFY_EMAIL: team@nexcortiq.us
+          OPS_ALERTS_TOPIC_ARN:
+            Fn::If:
+              - HasImportedOpsAlertsTopicArn
+              - !Ref ImportedOpsAlertsTopicArn
+              - !Ref OpsAlertsTopic
+          RAPID_IQ_APOLLO_API_KEY_SECRET_ARN:
+            Fn::If:
+              - HasApolloApiKeySecretArn
+              - !Ref RapidIqApolloApiKeySecretArn
+              - ""
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardB
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - Fn::If:
+            - HasImportedOpsAlertsTopicArn
+            - Statement:
+                Sid: SnsPublishImportedOpsAlertsTopicQuote
+                Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !Ref ImportedOpsAlertsTopicArn
+            - Statement:
+                Sid: SnsPublishLocalOpsAlertsTopicQuote
+                Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !GetAtt OpsAlertsTopic.TopicArn
+        - Statement:
+            Sid: SesQuoteRequestFromSupportIdentity
+            Effect: Allow
+            Action:
+              - ses:SendEmail
+            Resource:
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/support@nexcortiq.us
+              - !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/nexcortiq.us
+        # Statement-level !If keeps Resource list non-empty when ARN is absent (see iam-novalue-statements rule)
+        - !If
+          - HasApolloApiKeySecretArn
+          - Statement:
+              Sid: ApolloApiKeySecretRead
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Ref RapidIqApolloApiKeySecretArn
+          - !Ref AWS::NoValue
+      Events:
+        QuoteRequestPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/quote-request
+            Method: POST
+            Auth:
+              Authorizer: NONE
+        QuoteRequestOptions:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/quote-request
             Method: OPTIONS
             Auth:
               Authorizer: NONE

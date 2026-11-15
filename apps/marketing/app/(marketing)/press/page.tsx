@@ -36,14 +36,14 @@ const mediaAssets: PressAssetItem[] = [
     id: "logo-light",
     title: "NexCort iQ Logo (Light)",
     formats: "PNG, SVG — white / light backgrounds",
-    href: "/press/assets/rapid-cortex-logo-light.png",
+    href: "/press/assets/nexcort-iq-logo-light.png",
     secondaryLabel: "SVG",
   },
   {
     id: "logo-dark",
     title: "NexCort iQ Logo (Dark)",
     formats: "PNG, SVG — dark backgrounds",
-    href: "/press/assets/rapid-cortex-logo-dark.png",
+    href: "/press/assets/nexcort-iq-logo-dark.png",
     secondaryLabel: "SVG",
   },
   {

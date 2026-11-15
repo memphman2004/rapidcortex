@@ -1,0 +1,155 @@
+# NexCort iQ
+
+> NexCort iQ is a real-time public safety intelligence platform that enhances — and does not replace — existing emergency communications infrastructure, CAD software, dispatch workflows, and human personnel.
+
+## About
+
+**Company:** Apps on Demand LLC, doing business as NexCort iQ
+**Website:** https://www.nexcortiq.us
+**Formerly known as:** Rapid Cortex (brand updated 2026)
+**Sector:** Public safety technology, emergency communications, security operations
+
+NexCort iQ deploys as an intelligence and decision-support layer alongside the systems agencies already use. It is not a CAD replacement, telephony replacement, or autonomous dispatch system. Human dispatchers remain in control of all critical decisions.
+
+## Products
+
+### NexCort iQ Core — 911 / PSAP Intelligence Platform
+Real-time AI assistance for 911 dispatch centers and PSAPs (Public Safety Answering Points).
+
+Capabilities include:
+- Live call transcription with speaker identification
+- Multilingual communication support (English/Spanish standard; additional languages agency-configured)
+- Two-Way Text / NG911 caller messaging (SMS, photo, video, location)
+- Supervisor situational awareness dashboard
+- SOP compliance monitoring and discrepancy detection
+- CAD-complementary incident intelligence (does not write to CAD without dispatcher approval)
+- Pre-Arrival iQ: real-time caller tracking and responder coordination via SMS
+- Secure audio/video assist for active callers (Rapid Vision integration available)
+
+Deployment: Works alongside existing CAD (Motorola PremierOne, Tyler New World, Console1, and others). Does not require CAD replacement or telephony replacement.
+
+### NEXiQ — Non-Emergency Call Automation
+Conversational AI for police non-emergency lines, 311 city services, and municipal call centers.
+
+Built on: Amazon Connect, Amazon Lex V2, Amazon Bedrock, Amazon Polly.
+
+Capabilities:
+- Automated intake for non-emergency caller requests
+- Intelligent triage and routing to correct departments
+- Multilingual non-emergency call handling
+- Reduction in non-emergency call volume handled by human dispatchers
+- Self-service options for callers with common non-emergency needs
+
+**Important:** NEXiQ handles non-emergency calls only. Emergency (911) calls are never intercepted or delayed.
+
+### iQ Vision — AI Scene Intelligence
+AI-powered video analysis and incident detection for security operations centers, campus safety teams, and venue security.
+
+Capabilities:
+- Real-time AI observation generation from camera streams
+- Incident detection and structured observation notifications
+- Live transcript intelligence from video streams
+- Integration with existing camera infrastructure (does not require camera replacement)
+- Viewer access for authorized security personnel
+
+### NexCort iQ Campus
+Campus safety platform for universities, colleges, K-12 institutions, and educational facilities.
+
+Capabilities:
+- QR code emergency reporting — no mobile app required
+- NFC tap-to-report for Blue Light poles and campus infrastructure
+- Campus incident tracking and coordination
+- Campus dispatch support with AI assistance
+- Blue Light Connect integration for activated emergency poles
+- Clery Act-aware incident logging support
+
+### NexCort iQ Venue
+Venue security and safety operations platform for stadiums, arenas, convention centers, and entertainment venues.
+
+Capabilities:
+- QR/NFC incident reporting for guests and staff
+- Security staff coordination and dispatch
+- Venue incident intelligence and operations visibility
+- Real-time situational awareness for large-event security operations
+
+### NexCort iQ Transit
+Transit safety management software for transit agencies, bus networks, and rail operations.
+
+Capabilities:
+- Incident reporting for distributed transit operations
+- Security and operations coordination across routes and facilities
+- Real-time safety visibility for transit operations centers
+
+### CAD Interoperability — CAD-to-CAD Hub
+Multi-agency CAD interoperability solution that connects agencies using different CAD platforms.
+
+Capabilities:
+- Bidirectional incident sharing across heterogeneous CAD systems
+- Multi-agency coordination without replacing existing CAD software
+- Border or mutual-aid scenario support
+
+## Deployment Model
+
+NexCort iQ is a SaaS platform deployed on AWS (us-east-1).
+
+- Cloud-hosted: no on-premise hardware required
+- API-based CAD integration: connects to existing CAD systems without replacing them
+- 60-Day Free Pilot available for qualified agencies
+
+## Qualified Buyer Profiles
+
+NexCort iQ serves:
+- 911 centers and PSAPs (Public Safety Answering Points)
+- Emergency communications centers (ECCs)
+- Law enforcement agencies
+- Fire departments
+- EMS providers
+- Emergency management agencies
+- University and college campus safety / campus police
+- Stadium and arena security operations
+- Transit agency security and operations
+- Municipal 311 / non-emergency call centers
+
+## Key Pages
+
+- Product overview: https://www.nexcortiq.us/product
+- 911 / PSAP core platform: https://www.nexcortiq.us/product/core
+- Campus safety: https://www.nexcortiq.us/product/campus
+- Venue security: https://www.nexcortiq.us/product/venue
+- Transit safety: https://www.nexcortiq.us/product/transit
+- NEXiQ non-emergency automation: https://www.nexcortiq.us/nexiq
+- CAD integration: https://www.nexcortiq.us/cad-integration
+- CAD-to-CAD interoperability: https://www.nexcortiq.us/cad-interoperability
+- iQ Vision AI scene intelligence: https://www.nexcortiq.us/iq-vision
+- NG911 modernization: https://www.nexcortiq.us/ng911-software
+- Campus safety without an app: https://www.nexcortiq.us/campus-safety-without-app
+- AI 311 and municipal call handling: https://www.nexcortiq.us/ai-311
+- Transit safety software: https://www.nexcortiq.us/transit-safety-software
+- 911 dispatch software: https://www.nexcortiq.us/911-dispatch-software
+- 911 call transcription: https://www.nexcortiq.us/911-call-transcription
+- Free 60-day pilot program: https://www.nexcortiq.us/free-60-day-pilot
+- Pricing: https://www.nexcortiq.us/pricing
+- Security and data protection: https://www.nexcortiq.us/security
+- Blog: https://www.nexcortiq.us/blog
+- Contact sales: https://www.nexcortiq.us/contact-sales
+- Request a demo: https://www.nexcortiq.us/request-demo
+
+## Accurate Claims Only
+
+This document describes production capabilities of NexCort iQ as of its current deployment. NexCort iQ:
+
+- DOES complement existing CAD systems
+- DOES require dispatchers to approve CAD data submissions (CAD writeback is not automatic)
+- DOES NOT replace emergency telephony systems
+- DOES NOT replace CAD systems
+- DOES NOT replace human dispatchers
+- DOES NOT guarantee full compatibility with all CAD vendors (ask about specific CAD integration scope)
+- DOES NOT automatically certify agencies as CJIS compliant or NG911 certified simply by deployment
+
+## Related Resources
+
+- Technical blog: https://www.nexcortiq.us/blog
+- Developer documentation: https://www.nexcortiq.us/developers
+- Trust and security: https://www.nexcortiq.us/trust
+- Privacy policy: https://www.nexcortiq.us/legal/privacy
+- Terms of service: https://www.nexcortiq.us/legal/terms

@@ -265,6 +265,80 @@ Resources:
       Target: !Sub "integrations/${MarketingOgShareIntegration}"
       AuthorizationType: NONE
 
+  # ── Phase 2: AI Visibility Tests ─────────────────────────────────────────────
+  # Table schema is IaC-ready. Lambda + route wiring deferred to Phase 2.
+  # Stores manual spot-test results for AI platform visibility monitoring.
+  # Phase 2 will add:
+  #   - POST /api/marketing/ai-visibility/tests  (write result, agencyId-scoped)
+  #   - GET  /api/marketing/ai-visibility/tests  (list by agencyId + date range)
+  #
+  # Key design:
+  #   PK: agencyId (partition by tenant)
+  #   SK: testId   (UUID, unique per test)
+  #   GSI ByAgencyDate: agencyId (hash) + testedAt (range) — for date-window queries
+  #
+  # Attribute names intentionally match the Phase 1 localStorage TestResult shape
+  # so migration from client storage to this backend is a drop-in swap.
+  AiVisibilityTestsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "rapid-cortex-ai-visibility-tests-${DeploymentStage}"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: agencyId
+          AttributeType: S
+        - AttributeName: testId
+          AttributeType: S
+        - AttributeName: testedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agencyId
+          KeyType: HASH
+        - AttributeName: testId
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: ByAgencyDate
+          KeySchema:
+            - AttributeName: agencyId
+              KeyType: HASH
+            - AttributeName: testedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: service
+          Value: ai-visibility
+        - Key: stage
+          Value: !Ref DeploymentStage
+
+  # IAM grant pre-wired — attaches to future AiVisibilityFunction in Phase 2.
+  # Referenced from managed policy so it only needs uncommenting + Role attach.
+  AppManagedPolicyAiVisibility:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${ManagedPolicyNamePrefix}-sam3-ai-visibility-ddb-${DeploymentStage}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AiVisibilityTestsCrud
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+              - dynamodb:DescribeTable
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AiVisibilityTestsTable}
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AiVisibilityTestsTable}/index/ByAgencyDate
+
 Outputs:
   MarketingLeadFunctionArn:
     Value: !GetAtt MarketingLeadFunction.Arn
@@ -276,3 +350,7 @@ Outputs:
     Value: !Ref HttpApiId
   MarketingOgShareUrl:
     Value: !Sub "https://${HttpApiId}.execute-api.${AWS::Region}.amazonaws.com/api/marketing/og-share"
+  # Phase 2 wiring reference — pass to AiVisibilityFunction env when Lambda is added
+  AiVisibilityTestsTableName:
+    Value: !Ref AiVisibilityTestsTable
+    Description: DynamoDB table for AI visibility test results (Phase 2 — table ready, Lambda pending)

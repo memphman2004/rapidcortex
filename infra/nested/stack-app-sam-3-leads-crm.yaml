@@ -137,6 +137,12 @@ Resources:
               - secretsmanager:GetSecretValue
               - secretsmanager:DescribeSecret
             Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/sales/hubspot-*
+          - Sid: MarketingGa4ServiceAccountRead
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+            Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/marketing/ga4-service-account-*
           - !If
             - HasLeadSignalsTable
             - Sid: LeadSignalsQuery
@@ -254,6 +260,33 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/leads/attribution-summary"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsMarketingOverviewGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/leads/marketing/overview"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsMarketingLeadIntelligenceGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/leads/marketing/lead-intelligence"
+      Target: !Sub "integrations/${LeadsCrmIntegration}"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiJwtAuthorizerId
+
+  RouteLeadsMarketingSeoMetricsGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/leads/marketing/seo-metrics"
       Target: !Sub "integrations/${LeadsCrmIntegration}"
       AuthorizationType: JWT
       AuthorizerId: !Ref HttpApiJwtAuthorizerId

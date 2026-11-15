@@ -168,3 +168,7 @@ infra/lex/RCCallAssistBot-import.zip
 vocabs/generated/
 vocabs/.cache/
 
+
+# GSC/GA4 CLI local secrets (never commit keys)
+tools/gsc-ga4-cli/config.json
+**/*gsc-ga4*sa*.json

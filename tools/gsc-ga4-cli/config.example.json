@@ -1,0 +1,5 @@
+{
+  "key_file": "/ABSOLUTE/PATH/TO/nexcortiq-gsc-ga4-sa.json",
+  "default_site": "sc-domain:nexcortiq.us",
+  "default_property": "REPLACE_WITH_GA4_PROPERTY_ID"
+}

@@ -39,15 +39,29 @@ const INTEGRATIONS = [
   },
   {
     name: "Google Analytics 4",
-    description: "Website visitors, events, and conversion tracking via GA4 Data API.",
-    status: "phase2",
-    configHref: null,
+    description:
+      "Website visitors, events, and conversion tracking via GA4 Data API. Property G-NGT17QK1LW active via GTM-M33PD9HM. Dashboard pull uses Secrets Manager SA rapid-cortex/marketing/ga4-service-account.",
+    status: "setup-required",
+    configHref: "/rc-admin/marketing/website",
+    setupNote:
+      "SA nexcortiq-gsc-ga4@rapidcortex-prod.iam.gserviceaccount.com is created and stored in AWS. Grant Viewer on the existing GA4 property for G-NGT17QK1LW — do not create a duplicate property or stream.",
   },
   {
     name: "Google Search Console",
-    description: "Organic search clicks, impressions, and keyword rankings.",
-    status: "phase2",
-    configHref: null,
+    description:
+      "Organic search clicks, impressions, keyword rankings, and indexed page coverage. Must be verified for nexcortiq.us (not rapidcortex.us).",
+    status: "setup-required",
+    configHref: "https://search.google.com/search-console",
+    setupNote:
+      "Add nexcortiq-gsc-ga4@rapidcortex-prod.iam.gserviceaccount.com to the nexcortiq.us Search Console property, confirm /sitemap.xml, then open Website & SEO for live metrics.",
+  },
+  {
+    name: "Bing Webmaster Tools",
+    description:
+      "Bing search impressions, clicks, and some Copilot/chat-search referral data. Provides additional evidence of AI-sourced traffic beyond what GA4 captures.",
+    status: "setup-required",
+    configHref: "https://www.bing.com/webmasters",
+    setupNote: "Verify nexcortiq.us in Bing Webmaster Tools, submit /sitemap.xml, then configure Bing Webmaster Tools API key in Secrets Manager at rapid-cortex/marketing/bing-webmaster-api-key.",
   },
   {
     name: "LinkedIn Marketing API",
@@ -62,6 +76,14 @@ const STATUS_CONFIG = {
   "setup-required": { label: "Setup required", color: "text-amber-400 bg-amber-950/50 border-amber-500/30" },
   phase2: { label: "Phase 2", color: "text-slate-500 bg-slate-800/50 border-slate-700/30" },
 } as const;
+
+type Integration = {
+  name: string;
+  description: string;
+  status: keyof typeof STATUS_CONFIG;
+  configHref: string | null;
+  setupNote?: string;
+};
 
 export default async function MarketingIntegrationsPage() {
   const user = await getDashboardSessionUser();
@@ -78,32 +100,51 @@ export default async function MarketingIntegrationsPage() {
         </p>
       </div>
       <div className="space-y-3">
-        {INTEGRATIONS.map((integration) => {
+        {(INTEGRATIONS as readonly Integration[]).map((integration) => {
           const cfg = STATUS_CONFIG[integration.status];
+          const isExternal = integration.configHref?.startsWith("http");
           return (
             <div
               key={integration.name}
-              className="flex items-center justify-between gap-4 rounded-xl border border-white/[0.06] bg-[#0a1628] px-5 py-4"
+              className="rounded-xl border border-white/[0.06] bg-[#0a1628] px-5 py-4"
             >
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-white">{integration.name}</h3>
-                  <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${cfg.color}`}>
-                    {cfg.label}
-                  </span>
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-semibold text-white">{integration.name}</h3>
+                    <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${cfg.color}`}>
+                      {cfg.label}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-slate-400">{integration.description}</p>
+                  {integration.setupNote && (
+                    <p className="mt-1.5 rounded bg-amber-950/20 px-2 py-1 text-xs text-amber-200/70">
+                      Setup: {integration.setupNote}
+                    </p>
+                  )}
                 </div>
-                <p className="mt-0.5 text-xs text-slate-400">{integration.description}</p>
+                {integration.configHref ? (
+                  isExternal ? (
+                    <a
+                      href={integration.configHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 rounded-lg bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-white/[0.08]"
+                    >
+                      Open ↗
+                    </a>
+                  ) : (
+                    <Link
+                      href={integration.configHref}
+                      className="shrink-0 rounded-lg bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-white/[0.08]"
+                    >
+                      Configure →
+                    </Link>
+                  )
+                ) : (
+                  <span className="shrink-0 text-xs text-slate-600">Coming Phase 2</span>
+                )}
               </div>
-              {integration.configHref ? (
-                <Link
-                  href={integration.configHref}
-                  className="shrink-0 rounded-lg bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-white/[0.08]"
-                >
-                  Configure →
-                </Link>
-              ) : (
-                <span className="shrink-0 text-xs text-slate-600">Coming Phase 2</span>
-              )}
             </div>
           );
         })}

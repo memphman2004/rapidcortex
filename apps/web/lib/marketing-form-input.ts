@@ -20,6 +20,29 @@ export function scrollMarketingFieldIntoViewOnFocus(event: FocusEvent<HTMLElemen
  * Static marketing (www) has no Next BFF — post to app origin (same pattern as Inside iQ).
  * On app.rapidcortex.us, same-origin `/api/contact-sales` is the BFF.
  */
+/**
+ * Quote-request form on the pricing page → BFF on app origin.
+ * Same routing logic as contactSalesSubmitUrl.
+ */
+export function quoteRequestSubmitUrl(): string {
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    const isMarketingStatic =
+      host === "www.rapidcortex.us" ||
+      host === "rapidcortex.us" ||
+      host === "www.nexcortiq.us" ||
+      host === "nexcortiq.us";
+    if (isMarketingStatic) {
+      const appOrigin = (process.env.NEXT_PUBLIC_APP_ORIGIN ?? "https://app.rapidcortex.us").replace(
+        /\/$/,
+        "",
+      );
+      return `${appOrigin}/api/quote-request`;
+    }
+  }
+  return "/api/quote-request";
+}
+
 export function contactSalesSubmitUrl(): string {
   if (typeof window !== "undefined") {
     const host = window.location.hostname;

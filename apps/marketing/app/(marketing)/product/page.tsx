@@ -84,6 +84,49 @@ export default function ProductOverviewPage() {
           </Link>
         </section>
       </section>
+
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold text-white">Feature deep-dives</h2>
+        <p className="mt-2 text-sm text-slate-400">
+          Detailed pages for specific capabilities, buyer personas, and use cases.
+        </p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            { href: "/nexiq", label: "NEXiQ — Non-emergency call automation" },
+            { href: "/iq-vision", label: "iQ Vision — AI scene intelligence" },
+            { href: "/cad-interoperability", label: "CAD-to-CAD interoperability hub" },
+            { href: "/transit-safety-software", label: "Transit safety software" },
+            { href: "/ai-311", label: "AI 311 and city services" },
+            { href: "/campus-safety-without-app", label: "Campus safety without an app" },
+          ].map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="rounded-md border border-slate-700 bg-slate-900/40 px-4 py-3 text-sm font-medium text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-8 rounded-lg border border-sky-800/40 bg-sky-950/20 p-5">
+        <h2 className="text-base font-semibold text-white">Free tools for your agency</h2>
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <Link
+            href="/nexiq/savings-calculator"
+            className="text-sm font-medium text-sky-300 hover:text-sky-200"
+          >
+            NEXiQ workload savings calculator →
+          </Link>
+          <Link
+            href="/modernization-assessment"
+            className="text-sm font-medium text-slate-300 hover:text-slate-200"
+          >
+            911 modernization readiness assessment →
+          </Link>
+        </div>
+      </section>
     </article>
   );
 }
