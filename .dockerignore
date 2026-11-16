@@ -1,6 +1,12 @@
 **/node_modules
 **/.next
-**/coverage
+# Test / Istanbul coverage reports only — do NOT use **/coverage (excludes App Router
+# route apps/web/app/rc-admin/nexiq/intel/coverage → production 404).
+**/coverage/lcov-report
+**/coverage/lcov.info
+**/coverage/coverage-final.json
+**/coverage/clover.xml
+**/coverage/index.html
 .git
 .gitignore
 .env

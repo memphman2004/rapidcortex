@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Play, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import {
   type RefObject,
@@ -13,17 +13,15 @@ import {
   useState,
 } from "react";
 import { SiteLogoMark } from "@/components/brand/site-logo-link";
-import { isPublicSignupUiEnabled } from "@/lib/auth/public-signup";
+import { MARKETING_EVENTS, trackMarketingEvent } from "@/lib/marketing-site-analytics";
 import {
   marketingBookAppointmentUrl,
   marketingContactPath,
-  marketingDemoPath,
+  marketingDemoRequestPath,
   marketingHomePath,
   marketingLoginPath,
   marketingPricingPath,
   marketingGrantsPath,
-  marketingSignupPath,
-  marketingSolutionsAgenciesPath,
 } from "@/lib/marketing-links";
 
 const DRAWER_TITLE = "NexCort iQ";
@@ -31,18 +29,63 @@ const DRAWER_SLOGAN = "Intelligence at the speed of response.";
 const MOBILE_BOOKING_NOTE =
   "Request a demo — tell us about your agency and we’ll follow up to schedule a walkthrough.";
 
+type NavLink = { label: string; href: string };
+type NavGroup = { label: string; items: readonly NavLink[] };
+
+const SOLUTIONS: NavGroup = {
+  label: "Solutions",
+  items: [
+    { label: "911 & Dispatch", href: "/product/core" },
+    { label: "NEXiQ", href: "/nexiq" },
+    { label: "Campus Safety", href: "/product/campus" },
+    { label: "iQ Vision", href: "/iq-vision" },
+    { label: "Venue Safety", href: "/product/venue" },
+    { label: "Transit Safety", href: "/product/transit" },
+  ],
+};
+
+const PLATFORM: NavGroup = {
+  label: "Platform",
+  items: [
+    { label: "How It Works", href: "/product" },
+    { label: "Security & Compliance", href: "/security" },
+    { label: "CAD Integration", href: "/cad-integration" },
+    { label: "Implementation", href: "/free-60-day-pilot" },
+  ],
+};
+
+const RESOURCES: NavGroup = {
+  label: "Resources",
+  items: [
+    { label: "Blog", href: "/blog" },
+    { label: "Grants", href: marketingGrantsPath() },
+    { label: "Developer Docs", href: "/developers/docs" },
+    { label: "NexCortiQ Signal", href: "/newsletter" },
+  ],
+};
+
+const ABOUT: NavGroup = {
+  label: "About",
+  items: [
+    { label: "About", href: "/about" },
+    { label: "Careers", href: "/careers" },
+    { label: "Press", href: "/press" },
+    { label: "Contact", href: marketingContactPath() },
+  ],
+};
+
+const DROPDOWN_GROUPS = [SOLUTIONS, PLATFORM, RESOURCES, ABOUT] as const;
+
 /** Primary marketing nav — product depth links live in the footer. */
 export function getMarketingMobileDrawerLinkDefs(): readonly { label: string; href: string }[] {
   return [
-    { label: "Home", href: marketingHomePath() },
-    { label: "Features", href: marketingSolutionsAgenciesPath() },
-    { label: "Grants", href: marketingGrantsPath() },
+    ...SOLUTIONS.items,
+    ...PLATFORM.items,
+    { label: "Integrations", href: "/integrations" },
     { label: "Pricing", href: marketingPricingPath() },
-    { label: "Blog", href: "/blog" },
-    { label: "Newsletter", href: "/newsletter" },
-    { label: "Demo", href: marketingDemoPath() },
-    { label: "Contact", href: marketingContactPath() },
-  ] as const;
+    ...RESOURCES.items,
+    ...ABOUT.items,
+  ];
 }
 
 /** True if `href` is an operational/auth entry excluded from mobile marketing surfaces. */
@@ -52,7 +95,6 @@ export function isOperationalAuthHref(href: string): boolean {
   const keywords = [
     "dashboard",
     "dispatcher",
-    "supervisor",
     "supervisor",
     "agency-admin",
     "admin",
@@ -101,15 +143,75 @@ function useDrawerFocusTrap(containerRef: RefObject<HTMLElement | null>, active:
   }, [active, containerRef]);
 }
 
+function NavDropdown({ group }: { group: NavGroup }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (e: MouseEvent) => {
+      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div
+      ref={wrapRef}
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        className="inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-controls={menuId}
+        onClick={() => setOpen((v) => !v)}
+      >
+        {group.label}
+        <ChevronDown className={`size-3.5 opacity-70 transition ${open ? "rotate-180" : ""}`} aria-hidden />
+      </button>
+      {open ? (
+        <div
+          id={menuId}
+          role="menu"
+          className="absolute left-0 top-full z-50 min-w-[13.5rem] pt-2"
+        >
+          <div className="rounded-xl border border-slate-700/70 bg-slate-950/95 py-2 shadow-[0_20px_50px_-24px_rgba(56,189,248,0.45)] backdrop-blur-xl">
+            {group.items.map((item) => (
+              <Link
+                key={item.href + item.label}
+                href={item.href}
+                role="menuitem"
+                className="block px-3.5 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/80 hover:text-white"
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function MarketingHeader() {
   const login = marketingLoginPath();
   const home = marketingHomePath();
-  const signup = marketingSignupPath();
   const pricing = marketingPricingPath();
-  const grants = marketingGrantsPath();
-  const features = marketingSolutionsAgenciesPath();
-  const demo = marketingDemoPath();
-  const signupEnabled = isPublicSignupUiEnabled();
+  const demoRequest = marketingDemoRequestPath("demo");
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [drawerPortalMounted, setDrawerPortalMounted] = useState(false);
@@ -161,9 +263,8 @@ export function MarketingHeader() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/70 pt-[env(safe-area-inset-top)] backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/55">
-        <div className="mx-auto max-w-6xl px-4 py-2 sm:px-6 lg:px-8">
-          {/* Classic header: logo | centered nav | auth — within a centered page column */}
-          <div className="grid min-h-[56px] grid-cols-[1fr_auto] items-center gap-3 sm:min-h-[64px] md:min-h-[84px] md:grid-cols-[1fr_auto_1fr] md:gap-4">
+        <div className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
+          <div className="grid min-h-[56px] grid-cols-[1fr_auto] items-center gap-3 sm:min-h-[64px] md:min-h-[84px] md:grid-cols-[auto_1fr_auto] md:gap-4">
             <Link
               href={home}
               className="relative z-10 inline-flex max-w-[9.5rem] justify-self-start sm:max-w-[10rem] md:max-w-[11.5rem] lg:max-w-[12.5rem] [-webkit-tap-highlight-color:transparent]"
@@ -174,26 +275,17 @@ export function MarketingHeader() {
 
             <div className="hidden justify-self-center md:block">
               <nav
-                className="flex w-max items-center gap-0.5 whitespace-nowrap rounded-2xl border border-slate-700/60 bg-gradient-to-r from-slate-950/90 via-slate-900/75 to-slate-950/85 px-2 py-2 text-sm shadow-[0_10px_30px_-20px_rgba(56,189,248,0.45)] lg:gap-1.5 lg:px-3 xl:gap-2"
+                className="flex w-max items-center gap-0.5 whitespace-nowrap rounded-2xl border border-slate-700/60 bg-gradient-to-r from-slate-950/90 via-slate-900/75 to-slate-950/85 px-2 py-2 text-sm shadow-[0_10px_30px_-20px_rgba(56,189,248,0.45)] lg:gap-1 lg:px-3"
                 aria-label="Primary"
               >
+                {DROPDOWN_GROUPS.slice(0, 2).map((group) => (
+                  <NavDropdown key={group.label} group={group} />
+                ))}
                 <Link
-                  href={home}
+                  href="/integrations"
                   className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
                 >
-                  Home
-                </Link>
-                <Link
-                  href={features}
-                  className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
-                >
-                  Features
-                </Link>
-                <Link
-                  href={grants}
-                  className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
-                >
-                  Grants
+                  Integrations
                 </Link>
                 <Link
                   href={pricing}
@@ -201,25 +293,9 @@ export function MarketingHeader() {
                 >
                   Pricing
                 </Link>
-                <Link
-                  href="/blog"
-                  className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
-                >
-                  Blog
-                </Link>
-                <Link
-                  href="/newsletter"
-                  className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/70 hover:text-white lg:px-2.5"
-                >
-                  Newsletter
-                </Link>
-                <Link
-                  href={demo}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-sky-500/35 bg-sky-500/10 px-2 py-2 text-sm font-semibold text-sky-200 shadow-[0_0_20px_-8px_rgba(56,189,248,0.55)] transition-colors hover:border-sky-400/50 hover:bg-sky-500/15 hover:text-white lg:px-2.5"
-                >
-                  <Play className="size-3.5 shrink-0 fill-current" aria-hidden />
-                  Demo
-                </Link>
+                {DROPDOWN_GROUPS.slice(2).map((group) => (
+                  <NavDropdown key={group.label} group={group} />
+                ))}
               </nav>
             </div>
 
@@ -238,19 +314,18 @@ export function MarketingHeader() {
               </button>
 
               <Link
-                href={login}
-                className="hidden shrink-0 rounded-lg border border-slate-600/80 px-2.5 py-2 text-sm font-medium text-slate-100 transition-colors hover:border-slate-500 hover:bg-slate-800/80 md:inline-flex lg:px-3"
+                href={demoRequest}
+                className="hidden shrink-0 rounded-lg bg-sky-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm shadow-sky-950/40 transition-colors hover:bg-sky-500 md:inline-flex"
+                onClick={() => trackMarketingEvent(MARKETING_EVENTS.navDemoClick)}
               >
-                Sign in
+                Request Demo
               </Link>
-              {signupEnabled ? (
-                <Link
-                  href={signup}
-                  className="hidden shrink-0 rounded-lg border border-slate-600/80 px-2.5 py-2 text-sm font-medium text-slate-100 transition-colors hover:border-slate-500 hover:bg-slate-800/80 lg:inline-flex lg:px-3"
-                >
-                  Sign up
-                </Link>
-              ) : null}
+              <Link
+                href={login}
+                className="hidden shrink-0 px-2.5 py-2 text-sm font-medium text-slate-400 transition-colors hover:text-slate-200 md:inline-flex lg:px-3"
+              >
+                Agency Sign In
+              </Link>
             </div>
           </div>
         </div>
@@ -294,7 +369,7 @@ export function MarketingHeader() {
                 <nav className="mt-6 flex flex-1 flex-col gap-0.5 overflow-y-auto pb-4" aria-label="Mobile navigation">
                   {mobileLinks.map((item) => (
                     <Link
-                      key={item.href}
+                      key={`${item.label}-${item.href}`}
                       href={item.href}
                       prefetch={false}
                       className="-mx-3 flex min-h-12 items-center rounded-xl px-4 py-3 text-base font-medium tracking-tight text-slate-200 transition-colors hover:bg-slate-800/60 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-500"
@@ -306,10 +381,21 @@ export function MarketingHeader() {
                   <Link
                     href={marketingBookAppointmentUrl()}
                     prefetch={false}
-                    className="-mx-3 mt-3 flex min-h-12 items-center justify-center rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 px-4 py-3 text-center text-base font-semibold tracking-tight text-slate-950 shadow-[0_0_20px_rgba(14,165,233,0.25)] transition hover:from-sky-400 hover:to-cyan-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-500"
+                    className="-mx-3 mt-3 flex min-h-12 items-center justify-center rounded-xl bg-sky-600 px-4 py-3 text-center text-base font-semibold tracking-tight text-white shadow-[0_0_20px_rgba(14,165,233,0.25)] transition hover:bg-sky-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-500"
+                    onClick={() => {
+                      trackMarketingEvent(MARKETING_EVENTS.navDemoClick);
+                      closeMobileMenu();
+                    }}
+                  >
+                    Request Demo
+                  </Link>
+                  <Link
+                    href={login}
+                    prefetch={false}
+                    className="-mx-3 mt-1 flex min-h-12 items-center justify-center rounded-xl px-4 py-3 text-center text-base font-medium tracking-tight text-slate-400 transition-colors hover:text-slate-200"
                     onClick={closeMobileMenu}
                   >
-                    Request a demo
+                    Agency Sign In
                   </Link>
                 </nav>
 

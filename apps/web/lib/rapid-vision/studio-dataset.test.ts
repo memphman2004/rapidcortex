@@ -5,6 +5,7 @@ import {
   planDatasetBatch,
   connectTrainingJob,
   prepareSageMakerTraining,
+  resolveTrainingDatasetVersion,
   submitDatasetForTraining,
   syntheticVarietyFailures,
   type DatasetVersion,
@@ -86,6 +87,69 @@ describe("studio dataset review", () => {
     expect(syntheticVarietyFailures(records, records.map((item) => item.id))).toEqual([]);
     const thin = records.filter((item) => item.id !== "blade_like-2");
     expect(syntheticVarietyFailures(thin, thin.map((item) => item.id)).join(" ")).toContain("knife_visible: only 2 camera angle");
+  });
+
+  it("allows a firearm-only still set when that class has three angles and three lights", () => {
+    const angles = ["overhead", "doorway", "corridor"];
+    const lights = ["day", "night", "low"];
+    const records: StudioReviewRecord[] = angles.flatMap((cameraAngle, index) =>
+      lights.map((lighting, lightIndex) => ({
+        ...commons,
+        id: `firearm-${index}-${lightIndex}`,
+        category: "firearm_like",
+        synthetic: true,
+        cameraAngle,
+        lighting,
+        trainingLabel: true,
+        status: "APPROVED" as const,
+        approved: true,
+        rightsStatus: "synthetic_internal" as const,
+        rightsVerifiedAt: "2026-10-31T00:00:00.000Z",
+        role: lightIndex % 2 === 0 ? ("positive" as const) : ("negative" as const),
+      })),
+    );
+    expect(syntheticVarietyFailures(records, records.map((item) => item.id))).toEqual([]);
+  });
+
+  it("reassembles when verified labels outgrow a stale pilot dataset version", () => {
+    const stale: DatasetVersion = {
+      id: "dataset-pilot-v1",
+      version: 1,
+      createdAt: "2026-10-01T00:00:00.000Z",
+      reviewer: "ada@nexcortiq.us",
+      assetIds: Array.from({ length: 10 }, (_u, i) => `old-${i}`),
+      positiveIds: ["old-0"],
+      negativeIds: ["old-1"],
+      syntheticIds: Array.from({ length: 10 }, (_u, i) => `old-${i}`),
+      realIds: [],
+    };
+    const records: StudioReviewRecord[] = Array.from({ length: 50 }, (_u, i) => ({
+      ...commons,
+      id: `fresh-${i}`,
+      category: "firearm_like",
+      synthetic: true,
+      rightsStatus: "synthetic_internal",
+      rightsVerifiedAt: "2026-10-31T00:00:00.000Z",
+      trainingLabel: true,
+      status: "APPROVED",
+      approved: true,
+      role: i % 2 === 0 ? "positive" : "negative",
+      cameraAngle: ["overhead", "doorway", "corridor"][i % 3],
+      lighting: ["day", "night", "low"][i % 3],
+    }));
+    const resolved = resolveTrainingDatasetVersion(records, [stale], {
+      reviewer: "ada@nexcortiq.us",
+      now: "2026-11-14T00:00:00.000Z",
+    });
+    expect(resolved.shouldPersist).toBe(true);
+    expect(resolved.version?.assetIds).toHaveLength(50);
+    const prepared = prepareSageMakerTraining({
+      version: resolved.version,
+      costApproved: false,
+      records,
+    });
+    expect(prepared.ready).toBe(true);
+    expect(prepared.reason).toMatch(/cost is not approved/i);
   });
 
   it("records a synthetic bypass and still does not launch a job", () => {

@@ -46,17 +46,17 @@ const PHASES: Phase[] = [
 ];
 
 const CAD_VENDORS = [
-  "CentralSquare Technologies",
+  "CentralSquare",
   "Motorola Solutions",
   "Tyler Technologies",
   "Axon",
   "Hexagon",
-  "Harris Computer / Constellation Software",
+  "Harris Computer / Constellation",
   "Versaterm",
   "Mark43",
   "Oracle",
-  "Plus More…",
-];
+  "Plus more via open integration",
+] as const;
 
 const BOX = { w: 88, h: 58 };
 const HUB = { x: 136, y: 100, w: 108, h: 56 };
@@ -195,9 +195,9 @@ function CadFlowDiagram({ phase }: { phase: Phase }) {
       >
         <title>CAD-to-CAD intelligence bridge</title>
         <desc>
-          Diagram showing incident data flowing from four agency CAD systems — PremierOne, New World,
-          CentralSquare, and Hexagon — through the NexCort iQ intelligence bridge. The platform supports
-          up to eight CAD systems on one bridge.
+          Diagram showing incident data flowing from four agency CAD systems, PremierOne, New World,
+          CentralSquare, and Hexagon, through the NexCort iQ intelligence bridge. The platform supports
+          multiple CAD systems simultaneously.
         </desc>
 
         {CAD_NODES.map((node) => (
@@ -272,7 +272,7 @@ function CadFlowDiagram({ phase }: { phase: Phase }) {
         </text>
       </svg>
       <p className="mt-3 text-center text-[11px] text-[#6A7B9D]">
-        Four of up to eight CAD systems on one NexCort iQ bridge
+        Four CAD systems supported on NexCort iQ bridge simultaneously
       </p>
     </div>
   );
@@ -285,10 +285,10 @@ export function FeatureCadInterop() {
   return (
     <section
       id="cad-interop"
-      className="scroll-mt-28 bg-[#060910] px-6 py-20 md:py-28"
+      className="scroll-mt-28 bg-[#060910] px-4 py-16 sm:px-6 md:py-20"
       aria-labelledby="cad-interop-heading"
     >
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         <div className="mb-5 flex items-center gap-2">
           <span
             className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium"
@@ -310,11 +310,27 @@ export function FeatureCadInterop() {
           >
             Incident data crosses jurisdictions when mutual aid activates
           </h2>
-          <p className="text-base leading-relaxed text-[#6A7B9D] md:text-lg">
-            NexCort iQ bridges separate agency CAD environments in real time — so intelligence flows across
-            jurisdictions as fast as the incident itself. One bridge supports up to eight CAD systems. No
-            manual re-entry. No version conflicts. No lag.
+          <p className="mb-3 text-base font-medium leading-relaxed text-[#E8EEF8] md:text-lg">
+            Works with the CAD systems your agency already uses.
           </p>
+          <p className="text-base leading-relaxed text-[#6A7B9D] md:text-lg">
+            NexCort iQ bridges separate agency CAD environments so intelligence can flow across
+            jurisdictions as mutual aid activates. One bridge supports up to eight CAD systems,
+            reducing manual re-entry and version conflicts during multi-agency response. NexCort iQ
+            is a decision-support layer, not a replacement for your CAD, telephony, or records
+            systems.
+          </p>
+          <ul className="mt-5 flex flex-wrap gap-2">
+            {CAD_VENDORS.map((name) => (
+              <li
+                key={name}
+                className="rounded px-2.5 py-1 text-xs text-[#6A7B9D]"
+                style={{ background: "#0B1220", border: "1px solid #1A2940" }}
+              >
+                {name}
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-2 lg:gap-16">
@@ -368,22 +384,6 @@ export function FeatureCadInterop() {
               })}
             </div>
 
-            <div className="mt-8">
-              <p className="mb-3 text-xs font-medium uppercase tracking-widest text-[#3A4F72]">
-                Compatible vendors
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {CAD_VENDORS.map((name) => (
-                  <span
-                    key={name}
-                    className="rounded px-2.5 py-1 text-xs text-[#6A7B9D]"
-                    style={{ background: "#0B1220", border: "1px solid #1A2940" }}
-                  >
-                    {name}
-                  </span>
-                ))}
-              </div>
-            </div>
           </div>
 
           <div>

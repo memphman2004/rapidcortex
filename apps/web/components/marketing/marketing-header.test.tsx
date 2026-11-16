@@ -7,12 +7,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SessionProvider } from "@/components/auth/session-context";
 import {
   marketingContactPath,
-  marketingDemoPath,
   marketingDemoRequestPath,
   marketingGrantsPath,
   marketingHomePath,
   marketingPricingPath,
-  marketingSolutionsAgenciesPath,
 } from "@/lib/marketing-links";
 import { MarketingHeader, getMarketingMobileDrawerLinkDefs, isOperationalAuthHref } from "./marketing-header";
 
@@ -44,15 +42,22 @@ describe("marketing mobile drawer link definitions", () => {
   it("lists public destinations without operational auth URLs", () => {
     const links = [...getMarketingMobileDrawerLinkDefs()];
     const hrefs = links.map((l) => l.href);
-    expect(links.some((l) => l.label === "Home")).toBe(true);
-    expect(links.some((l) => l.label === "Features")).toBe(true);
-    expect(links.some((l) => l.label === "Grants")).toBe(true);
-    expect(links.some((l) => l.label === "Pricing")).toBe(true);
-    expect(links.some((l) => l.label === "Blog")).toBe(true);
-    expect(links.some((l) => l.label === "Newsletter")).toBe(true);
+    const labels = links.map((l) => l.label);
+    expect(labels).toContain("NEXiQ");
+    expect(labels).toContain("Campus Safety");
+    expect(labels).toContain("911 & Dispatch");
+    expect(labels).toContain("Integrations");
+    expect(labels).toContain("Pricing");
+    expect(labels).toContain("Blog");
+    expect(labels).toContain("NexCortiQ Signal");
+    expect(labels).toContain("Grants");
+    expect(labels).toContain("How It Works");
     expect(hrefs).toContain("/newsletter");
-    expect(links.some((l) => l.label === "Demo")).toBe(true);
-    expect(links.some((l) => l.label === "Contact")).toBe(true);
+    expect(hrefs).toContain("/integrations");
+    expect(hrefs).toContain("/product/core");
+    expect(hrefs).toContain(marketingPricingPath());
+    expect(hrefs).toContain(marketingGrantsPath());
+    expect(hrefs).toContain(marketingContactPath());
     expect(hrefs).not.toContain("/login");
     expect(hrefs).not.toContain("/signup");
     for (const href of hrefs) {
@@ -67,7 +72,6 @@ describe("marketing mobile drawer link definitions", () => {
     expect(labels).not.toContain("Downloads");
     expect(labels).not.toContain("Desktop");
     expect(labels).not.toContain("Book Demo");
-    expect(labels).not.toContain("Developers");
   });
 });
 
@@ -108,28 +112,27 @@ describe("MarketingHeader", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("opens drawer, lists marketing links and Book appointment", async () => {
+  it("opens drawer, lists marketing links and Request Demo", async () => {
     render(<MarketingHeaderHarness />);
 
     const openBtn = screen.getByRole("button", { name: /^Open navigation menu$/ });
     fireEvent.click(openBtn);
 
     const dialog = await screen.findByRole("dialog");
-    const book = within(dialog).getByRole("link", { name: /^Request a demo$/ });
+    const book = within(dialog).getByRole("link", { name: /^Request Demo$/ });
     expect(book.getAttribute("href")).toBe(marketingDemoRequestPath("demo"));
     expect(within(dialog).queryByRole("link", { name: /^Sign in$/ })).toBeNull();
     expect(within(dialog).queryByRole("link", { name: /^Open app$/ })).toBeNull();
 
-    expect(within(dialog).getByRole("link", { name: /^Home$/ }).getAttribute("href")).toBe(marketingHomePath());
-    expect(within(dialog).getByRole("link", { name: /^Features$/ }).getAttribute("href")).toBe(
-      marketingSolutionsAgenciesPath(),
+    expect(within(dialog).getByRole("link", { name: /^Pricing$/ }).getAttribute("href")).toBe(
+      marketingPricingPath(),
     );
-    expect(within(dialog).getByRole("link", { name: /^Grants$/ }).getAttribute("href")).toBe(
-      marketingGrantsPath(),
+    expect(within(dialog).getByRole("link", { name: /^Integrations$/ }).getAttribute("href")).toBe(
+      "/integrations",
     );
-    expect(within(dialog).getByRole("link", { name: /^Pricing$/ }).getAttribute("href")).toBe(marketingPricingPath());
-    expect(within(dialog).getByRole("link", { name: /^Demo$/ }).getAttribute("href")).toBe(marketingDemoPath());
-    expect(within(dialog).getByRole("link", { name: /^Contact$/ }).getAttribute("href")).toBe(marketingContactPath());
+    expect(within(dialog).getByRole("link", { name: /^Agency Sign In$/ }).getAttribute("href")).toContain(
+      "/login",
+    );
 
     /** Close via Escape restores focus target */
     fireEvent.keyDown(document, { key: "Escape" });
@@ -142,5 +145,11 @@ describe("MarketingHeader", () => {
 
     expect(await screen.findByText(/Intelligence at the speed of response/i)).toBeTruthy();
     expect(screen.getByText(/tell us about your agency/i)).toBeTruthy();
+  });
+
+  it("exposes home destination via logo", async () => {
+    render(<MarketingHeaderHarness />);
+    const logo = screen.getAllByRole("link").find((el) => el.getAttribute("href") === marketingHomePath());
+    expect(logo).toBeTruthy();
   });
 });

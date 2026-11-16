@@ -59,6 +59,14 @@ export function watchDeadlineBucket(
   return "future";
 }
 
+/** True when a watch due_date calendar day is fully in the past (UTC). */
+export function isWatchDueDatePast(
+  dueDate: string | null | undefined,
+  now = new Date(),
+): boolean {
+  return watchDeadlineBucket(dueDate, now) === "overdue";
+}
+
 export type WatchPriorityInput = {
   fit?: "high" | "medium" | "low" | null;
   strength?: "weak" | "moderate" | "strong" | "confirmed" | null;

@@ -56,8 +56,14 @@ export function StudioReadiness() {
       </div>
       <div className="mt-4 flex items-center justify-between gap-3">
         <p className="text-sm font-medium">Dataset readiness</p>
-        <span className="rounded-full bg-orange-900/60 px-2 py-0.5 text-[11px] font-medium text-orange-200">
-          {ready.training.ready ? "Ready to price" : "Not ready for training"}
+        <span
+          className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+            ready.training.ready
+              ? "bg-emerald-900/60 text-emerald-200"
+              : "bg-orange-900/60 text-orange-200"
+          }`}
+        >
+          {ready.training.ready ? "Ready for training" : "Not ready for training"}
         </span>
       </div>
       <p className="mt-2 text-xs text-slate-400">{ready.training.reason}</p>

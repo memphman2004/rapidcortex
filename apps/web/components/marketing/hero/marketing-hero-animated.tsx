@@ -226,11 +226,23 @@ function useNeuralCanvas(
  *
  * Layout: content-height hero. Canvas fills whatever height the content
  * creates. Sections below render normally in document flow.
+ * `layout="split"` widens the content column for two-column homepage heroes.
  */
-export function MarketingHeroAnimated({ children }: { children: ReactNode }) {
+export function MarketingHeroAnimated({
+  children,
+  layout = "centered",
+}: {
+  children: ReactNode;
+  layout?: "centered" | "split";
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef    = useRef<HTMLCanvasElement>(null);
   useNeuralCanvas(canvasRef, containerRef);
+
+  const contentClass =
+    layout === "split"
+      ? "relative z-10 mx-auto flex w-full max-w-7xl flex-col px-4 py-12 sm:px-6 sm:py-16 md:px-8 md:py-20"
+      : "relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center px-4 py-12 text-center sm:px-6 sm:py-16 md:px-8 md:py-20";
 
   return (
     <div
@@ -238,7 +250,7 @@ export function MarketingHeroAnimated({ children }: { children: ReactNode }) {
       className="relative isolate w-full overflow-hidden bg-[#020818]"
     >
       {/* Content — drives the hero height. Canvas and layers fill via absolute. */}
-      <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center px-4 py-12 text-center sm:px-6 sm:py-16 md:px-8 md:py-20">
+      <div className={contentClass}>
         {children}
       </div>
 

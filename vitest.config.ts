@@ -19,6 +19,10 @@ export default defineConfig({
         repoRoot,
         "packages/shared/src/tenancy/principal.ts",
       ),
+      "rapid-cortex-shared/dist/tenancy/principal": path.resolve(
+        repoRoot,
+        "packages/shared/src/tenancy/principal.ts",
+      ),
       "rapid-cortex-shared/types": path.resolve(repoRoot, "packages/shared/src/types.ts"),
       "rapid-cortex-shared/pinpoint-surge": path.resolve(
         repoRoot,

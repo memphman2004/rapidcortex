@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { rapidIqWatchIngestRequestSchema } from "./pipeline-schemas.js";
 import {
+  isWatchDueDatePast,
   normalizeWatchExternalKey,
   watchDeadlineBucket,
   watchPayloadHash,
@@ -112,5 +113,14 @@ describe("watch ingest utils", () => {
     expect(watchDeadlineBucket("2026-10-14", now)).toBe("due_within_14_days");
     expect(watchDeadlineBucket("2026-12-01", now)).toBe("future");
     expect(watchDeadlineBucket(null, now)).toBe("unknown");
+  });
+
+  it("isWatchDueDatePast is true only after the due calendar day", () => {
+    const now = new Date("2026-11-14T12:00:00.000Z");
+    expect(isWatchDueDatePast("2026-11-13", now)).toBe(true);
+    expect(isWatchDueDatePast("2026-11-14", now)).toBe(false);
+    expect(isWatchDueDatePast("2026-11-15", now)).toBe(false);
+    expect(isWatchDueDatePast(null, now)).toBe(false);
+    expect(isWatchDueDatePast("not-a-date", now)).toBe(false);
   });
 });

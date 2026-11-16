@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, type ReactNode } from "react";
+import { isWatchDueDatePast } from "rapid-cortex-shared";
 import { safeHttpUrl } from "@/lib/rapid-iq/safe-http-url";
 
 type WatchContact = {
@@ -225,14 +226,20 @@ export function WatchInboxClient() {
   const listQ = useQuery({
     queryKey: [...QUERY_KEY, params.toString()],
     queryFn: () => fetchWatchSignals(params),
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
   });
 
   const signals = useMemo(() => {
     const rows = listQ.data ?? [];
+    const keepPastDue = tab === "dismissed" || tab === "qualified";
+    const active = keepPastDue
+      ? rows
+      : rows.filter((s) => !isWatchDueDatePast(s.due_date));
     if (tab === "inbox") {
-      return rows.filter((s) => s.status !== "dismissed" && s.status !== "pushed");
+      return active.filter((s) => s.status !== "dismissed" && s.status !== "pushed");
     }
-    return rows;
+    return active;
   }, [listQ.data, tab]);
 
   const action = useMutation({

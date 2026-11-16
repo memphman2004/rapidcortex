@@ -1,41 +1,43 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
-import { Activity, GraduationCap, LayoutGrid, Map, MapPin, Play, Shield } from "lucide-react";
-import { MarketingHeroAnimated } from "@/components/marketing/hero/marketing-hero-animated";
+import { HomepageAnalytics } from "@/components/sections/homepage/HomepageAnalytics";
+import { HomepageHero } from "@/components/sections/homepage/HomepageHero";
+import { SocialProofBar } from "@/components/sections/homepage/SocialProofBar";
+import { ProblemStatement } from "@/components/sections/homepage/ProblemStatement";
+import { ProductSolutionCards } from "@/components/sections/homepage/ProductSolutionCards";
+import { WhyAgenciesChoose } from "@/components/sections/homepage/WhyAgenciesChoose";
+import { EducationalResources } from "@/components/sections/homepage/EducationalResources";
 import { MarketingSplashGate } from "@/components/marketing/marketing-splash-gate";
-import { isPublicSignupUiEnabled } from "@/lib/auth/public-signup";
-import {
-  marketingDashboardPath,
-  marketingDemoPath,
-  marketingLoginPath,
-  marketingPricingPath,
-  marketingSignupPath,
-  marketingWyzeConnectPath,
-} from "@/lib/marketing-links";
 import { MarketingPilotResourcesStrip } from "@/components/marketing/pilot-resources-strip";
 import { NewFeaturesSection } from "@/components/sections/NewFeaturesSection";
-import { SITE_MISSION, SITE_NAME, SITE_SLOGAN } from "@/lib/site";
+import { SITE_NAME } from "@/lib/site";
 import { absoluteUrl, buildOrganizationJsonLd, buildWebsiteJsonLd, buildOgShareImage } from "@/lib/seo";
+
+/** Document title segment — root layout `title.template` appends `| NexCort iQ`. */
+const HOME_TITLE = "AI Public Safety Software for 911 & Emergency Operations";
+const HOME_TITLE_FULL = `${HOME_TITLE} | ${SITE_NAME}`;
+const HOME_DESCRIPTION =
+  "NexCort iQ is an AI public safety software platform for 911 centers, law enforcement, campus safety, and emergency operations. Enhance dispatcher workflows, connect CAD systems, and automate non-emergency calls — without replacing the systems your agency already trusts.";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: `AI Public Safety Software for 911 & Emergency Operations | ${SITE_NAME}`,
-    description: `${SITE_NAME} is AI public safety software for 911 centers, PSAPs, campus safety, and venue teams — real-time transcription, incident intelligence, and command coordination built for emergency communications.`,
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
     keywords: [
       "AI public safety software",
       "public safety software",
-      "911 dispatch software",
-      "PSAP software",
-      "emergency communications software",
-      "nexcort iq",
-      "911 dispatch intelligence",
+      "public safety intelligence",
+      "AI 911 dispatcher software",
+      "CAD interoperability",
+      "AI non-emergency call automation",
+      "campus safety technology",
       "public safety intelligence platform",
-      "incident command platform",
+      "venue security software",
+      "transit safety software",
+      "nexcort iq",
     ],
     openGraph: {
-      title: `AI Public Safety Software for 911 & Emergency Operations | ${SITE_NAME}`,
-      description: `AI public safety software for 911 centers, PSAPs, campus, and venue operations — real-time transcription, incident intelligence, and command coordination.`,
+      title: HOME_TITLE_FULL,
+      description: HOME_DESCRIPTION,
       url: absoluteUrl("/"),
       siteName: SITE_NAME,
       images: [buildOgShareImage(`${SITE_NAME} home`)],
@@ -43,8 +45,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: `AI Public Safety Software for 911 & Emergency Operations | ${SITE_NAME}`,
-      description: `AI public safety software for 911 centers, PSAPs, campus, and venue teams — ${SITE_SLOGAN.toLowerCase()}.`,
+      title: HOME_TITLE_FULL,
+      description: HOME_DESCRIPTION,
       images: [{ url: buildOgShareImage().url, alt: buildOgShareImage().alt }],
     },
     alternates: { canonical: absoluteUrl("/") },
@@ -52,13 +54,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function MarketingHomePage() {
-  const login = marketingLoginPath();
-  const app = marketingDashboardPath();
-  const signup = marketingSignupPath();
-  const pricing = marketingPricingPath();
-  const demo = marketingDemoPath();
-  const signupEnabled = isPublicSignupUiEnabled();
-  const organizationJsonLd = buildOrganizationJsonLd();
+  const organizationJsonLd = {
+    ...buildOrganizationJsonLd(),
+    description:
+      "AI public safety software for 911 emergency communications centers, law enforcement, campus safety, and transit operations.",
+  };
   const websiteJsonLd = buildWebsiteJsonLd();
   const softwareApplicationJsonLd = {
     "@context": "https://schema.org",
@@ -69,7 +69,7 @@ export default function MarketingHomePage() {
     operatingSystem: "Web, Windows, macOS",
     url: absoluteUrl("/"),
     description:
-      "Unified public safety intelligence platform with three products: 911 Centers/PSAPs, NexCort iQ Venue for stadium and venue safety coordination, and iQ Vision™ for emergency camera and media sharing.",
+      "AI public safety software platform that enhances 911 communications, connects existing CAD systems, automates non-emergency workflows, and strengthens situational awareness.",
     offers: [
       {
         "@type": "Offer",
@@ -92,6 +92,7 @@ export default function MarketingHomePage() {
 
   return (
     <div>
+      <HomepageAnalytics />
       <MarketingSplashGate />
       <script
         type="application/ld+json"
@@ -105,299 +106,15 @@ export default function MarketingHomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationJsonLd) }}
       />
-      <section className="relative overflow-hidden border-b border-slate-800/80">
-        <MarketingHeroAnimated>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-400/90 drop-shadow-sm">
-            AI Public Safety Intelligence Platform
-          </p>
-          <h1 className="mt-2 text-balance text-3xl font-semibold tracking-tight text-white drop-shadow-sm sm:mt-3 sm:text-4xl md:text-5xl">
-            AI Public Safety Software for 911, Emergency Communications &amp; Security Operations
-          </h1>
-          <p className="mt-2 text-base italic text-sky-300/80 drop-shadow-sm">
-            {SITE_SLOGAN}
-          </p>
-          <p className="mx-auto mt-5 max-w-2xl text-pretty text-lg text-slate-300/95 drop-shadow-sm">
-            {SITE_MISSION}
-          </p>
-          <p className="mx-auto mt-3 max-w-2xl text-pretty text-sm text-slate-400/95 drop-shadow-sm">
-            {SITE_NAME} — public safety intelligence for 911 centers, campuses, and venues.
-          </p>
-          <p className="mx-auto mt-4 max-w-2xl text-pretty text-base text-slate-400/95 drop-shadow-sm">
-            <strong className="font-medium text-slate-200">
-              {SITE_NAME} does not replace CAD — it enhances CAD with AI
-            </strong>{" "}
-            in the loop with your team: a browser co-pilot for incidents, transcripts, translation, and
-            protocol-aligned coaching — built for 24/7 comms floors.
-          </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
-            {signupEnabled ? (
-              <Link
-                href={signup}
-                className="inline-flex min-h-12 w-full max-w-xs items-center justify-center rounded-md bg-sky-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-sky-900/30 hover:bg-sky-500 sm:w-auto sm:text-sm"
-              >
-                Create account
-              </Link>
-            ) : null}
-            <Link
-              href={demo}
-              className="inline-flex min-h-12 w-full max-w-xs items-center justify-center gap-2 rounded-md border border-white/90 bg-transparent px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-white/10 sm:w-auto sm:text-sm"
-            >
-              <Play className="h-4 w-4 shrink-0 fill-current" aria-hidden />
-              Watch Demo
-            </Link>
-            <Link
-              href={pricing}
-              className="inline-flex min-h-12 w-full max-w-xs items-center justify-center rounded-md border border-slate-600/90 bg-slate-950/40 px-6 py-3 text-base font-semibold text-slate-100 backdrop-blur-sm hover:border-slate-500 sm:w-auto sm:text-sm"
-            >
-              View plans
-            </Link>
-            <Link
-              href="#explore-product-lines"
-              className="inline-flex min-h-12 w-full max-w-xs items-center justify-center rounded-md border border-slate-600/90 bg-slate-950/40 px-6 py-3 text-base font-semibold text-slate-100 backdrop-blur-sm hover:border-slate-500 sm:w-auto sm:text-sm"
-            >
-              Explore products
-            </Link>
-            <Link
-              href={login}
-              className="hidden shrink-0 text-sm font-medium text-slate-400 underline-offset-4 hover:text-slate-200 hover:underline md:inline"
-            >
-              Sign in
-            </Link>
-          </div>
-          <p className="mt-8 hidden text-xs text-slate-500 md:block">
-            Already onboarded?{" "}
-            <Link href={app} className="text-sky-400/90 hover:text-sky-300">
-              Open the dispatcher workspace
-            </Link>
-          </p>
-        </MarketingHeroAnimated>
-      </section>
 
+      <HomepageHero />
+      <SocialProofBar />
+      <ProblemStatement />
+      <ProductSolutionCards />
       <NewFeaturesSection />
-
-      <section className="relative z-10 bg-slate-950 mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <h2 className="text-center text-xl font-semibold text-white sm:text-2xl">
-          Built for mission-critical calm
-        </h2>
-        <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {(
-            [
-              {
-                title: "LiveLocation Intelligence",
-                body: "LiveLocation helps dispatchers view caller-shared location, accuracy radius, movement history, and location confidence in real time through a secure caller link.",
-                Icon: MapPin,
-              },
-              {
-                title: "Surge View Analytics",
-                body: "Surge View helps dispatchers and supervisors identify related 911 calls during storms, crashes, shootings, large events, and mass-caller incidents by grouping similar calls by location, time, call type, and caller-reported details.",
-                Icon: Activity,
-              },
-              {
-                title: "Live Command Maps",
-                body: "Amazon Location Service command-center maps align with NexCort iQ workstations—carry caller-shared pins and situational context alongside CAD-driven unit markers when your feed supports them.",
-                Icon: Map,
-              },
-              {
-                title: "Live workspace",
-                body: "Incident queue, transcript, and AI-assisted analysis in one dark-mode surface tuned for long shifts.",
-                Icon: LayoutGrid,
-              },
-              {
-                title: "Protocol respect",
-                body: "Coaching and hints are framed as agency-aligned decision support — not autonomous dispatch.",
-                Icon: Shield,
-              },
-              {
-                title: "Training paths",
-                body: "Scripted demo scenarios for academy and sales walkthroughs, separate from production traffic.",
-                Icon: GraduationCap,
-              },
-            ] satisfies ReadonlyArray<{ title: string; body: string; Icon: LucideIcon }>
-          ).map((item) => (
-            <li
-              key={item.title}
-              className="rounded-lg border border-slate-800 bg-slate-900/30 p-6"
-            >
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-sky-500/25 bg-sky-500/10 text-sky-300">
-                <item.Icon className="h-5 w-5" aria-hidden />
-              </span>
-              <h3 className="mt-4 text-base font-semibold text-sky-200">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-400">{item.body}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="relative z-10 bg-slate-950 mx-auto max-w-6xl px-4 pb-8 sm:px-6">
-        <h2 className="text-center text-xl font-semibold text-white sm:text-2xl">Camera integrations</h2>
-        <p className="mx-auto mt-4 max-w-3xl text-center text-sm text-slate-400">
-          iQ Vision™ requests temporary live video from citizen and facility cameras during
-          active incidents — with owner consent for residential devices.
-        </p>
-        <ul className="mx-auto mt-8 grid max-w-md gap-4">
-          <li className="rounded-lg border border-cyan-500/25 bg-slate-900/40 p-5">
-            <h3 className="text-lg font-semibold text-white">Wyze™</h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-400">
-              Homeowner Wyze™ cameras with encrypted API keys and SMS consent for each emergency
-              live-share request during an active incident.
-            </p>
-            <a
-              href={marketingWyzeConnectPath()}
-              className="mt-4 inline-flex text-sm font-medium text-sky-400 hover:text-sky-300"
-            >
-              Wyze™ Connect →
-            </a>
-          </li>
-        </ul>
-      </section>
-
-      <section
-        id="explore-product-lines"
-        className="relative z-10 scroll-mt-24 bg-slate-950 mx-auto max-w-6xl px-4 pb-8 sm:px-6"
-      >
-        <h2 className="text-center text-xl font-semibold text-white sm:text-2xl">Explore product lines</h2>
-        <nav className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Product pages">
-          <Link
-            href="/product/core"
-            className="flex items-start rounded-md border border-slate-700 bg-slate-900/40 px-4 pt-2 pb-3 text-sm font-medium leading-snug text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
-          >
-            911 Centers/PSAPs
-          </Link>
-          <Link
-            href="/product/campus"
-            className="flex items-start rounded-md border border-slate-700 bg-slate-900/40 px-4 pt-2 pb-3 text-sm font-medium leading-snug text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
-          >
-            Campus
-          </Link>
-          <Link
-            href="/product/venue"
-            className="flex items-start rounded-md border border-slate-700 bg-slate-900/40 px-4 pt-2 pb-3 text-sm font-medium leading-snug text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
-          >
-            Venue
-          </Link>
-          <Link
-            href="/product/transit"
-            className="flex items-start rounded-md border border-slate-700 bg-slate-900/40 px-4 pt-2 pb-3 text-sm font-medium leading-snug text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
-          >
-            Transit
-          </Link>
-        </nav>
-      </section>
-
-      <section className="relative z-10 bg-slate-950 mx-auto max-w-6xl px-4 pb-16 sm:px-6">
-        <h2 className="text-center text-xl font-semibold text-white sm:text-2xl">
-          Explore 911 and NG911 resources
-        </h2>
-        <p className="mx-auto mt-4 max-w-3xl text-center text-sm text-slate-400">
-          NexCort iQ is an intelligence and decision-support layer that works alongside CAD and
-          NG911 systems for emergency communications teams.
-        </p>
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { href: "/ai-public-safety-software", label: "AI public safety software" },
-            { href: "/public-safety-intelligence", label: "Public safety intelligence" },
-            { href: "/ng911-software", label: "NG911 software" },
-            { href: "/911-dispatch-software", label: "911 dispatch software" },
-            { href: "/psap-software", label: "PSAP software" },
-            { href: "/cad-integration", label: "CAD integration" },
-            { href: "/cad-interoperability", label: "CAD-to-CAD interoperability" },
-            { href: "/nexiq", label: "NEXiQ non-emergency automation" },
-            { href: "/ai-311", label: "AI 311 and city services" },
-            { href: "/911-call-transcription", label: "911 call transcription" },
-            { href: "/supervisor-dashboard", label: "Supervisor dashboard" },
-            { href: "/iq-vision", label: "iQ Vision AI camera intelligence" },
-            { href: "/free-60-day-pilot", label: "Free 60-day pilot" },
-          ].map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-md border border-slate-700 bg-slate-900/40 px-4 py-3 text-sm font-medium text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="relative z-10 bg-slate-950 mx-auto max-w-6xl px-4 pb-16 sm:px-6">
-        <h2 className="text-center text-xl font-semibold text-white sm:text-2xl">
-          Campus and venue safety resources
-        </h2>
-        <p className="mx-auto mt-4 max-w-3xl text-center text-sm text-slate-400">
-          QR/SMS reporting and operations dashboards for universities, stadiums, and large events —
-          alongside existing campus police, venue security, and 911.
-        </p>
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            { href: "/campus-safety-software", label: "Campus safety software" },
-            { href: "/campus-safety-without-app", label: "Campus safety without an app" },
-            { href: "/campus-safety-integrations", label: "Campus safety integrations" },
-            { href: "/transit-safety-software", label: "Transit safety software" },
-            { href: "/venue-safety-software", label: "Venue safety software" },
-            { href: "/venue-safety-integrations", label: "Venue safety integrations" },
-            { href: "/stadium-security-software", label: "Stadium security software" },
-            { href: "/integrations", label: "Integrations overview" },
-          ].map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-md border border-slate-700 bg-slate-900/40 px-4 py-3 text-sm font-medium text-slate-200 hover:border-slate-600 hover:bg-slate-900/70"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="relative z-10 bg-slate-950 mx-auto max-w-6xl px-4 pb-16 sm:px-6">
-        <h2 className="text-center text-xl font-semibold text-white sm:text-2xl">
-          Free tools for your agency
-        </h2>
-        <p className="mx-auto mt-4 max-w-3xl text-center text-sm text-slate-400">
-          Use these interactive tools to benchmark your operations and explore where NexCort iQ
-          can reduce workload and accelerate modernization.
-        </p>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          <Link
-            href="/nexiq/savings-calculator"
-            className="group rounded-lg border border-sky-800/40 bg-sky-950/30 p-5 hover:border-sky-700/60 hover:bg-sky-950/50"
-          >
-            <p className="text-xs font-semibold uppercase tracking-widest text-sky-400">
-              NEXiQ Calculator
-            </p>
-            <p className="mt-1 text-base font-semibold text-white group-hover:text-sky-100">
-              Workload savings estimator
-            </p>
-            <p className="mt-2 text-sm text-slate-400">
-              Enter your monthly non-emergency call volume to estimate hours recovered and
-              annual capacity value with AI call automation.
-            </p>
-            <span className="mt-4 inline-block text-sm font-medium text-sky-300 group-hover:text-sky-200">
-              Open calculator →
-            </span>
-          </Link>
-          <Link
-            href="/modernization-assessment"
-            className="group rounded-lg border border-slate-700/60 bg-slate-900/40 p-5 hover:border-slate-600 hover:bg-slate-900/70"
-          >
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
-              Readiness Assessment
-            </p>
-            <p className="mt-1 text-base font-semibold text-white group-hover:text-slate-100">
-              911 modernization assessment
-            </p>
-            <p className="mt-2 text-sm text-slate-400">
-              Answer 8 questions about your current operations and get a personalized
-              modernization roadmap aligned to NexCort iQ capabilities.
-            </p>
-            <span className="mt-4 inline-block text-sm font-medium text-slate-300 group-hover:text-slate-200">
-              Take the assessment →
-            </span>
-          </Link>
-        </div>
-      </section>
-
+      <WhyAgenciesChoose />
       <MarketingPilotResourcesStrip />
+      <EducationalResources />
     </div>
   );
 }

@@ -1458,16 +1458,35 @@ textarea {
   }
 }
 
-/* iOS Safari: background-clip text can render invisible headings on some mobile builds */
+/*
+ * Mobile: keep the patriotic gradient, but freeze animation.
+ * Animated background-position + background-clip:text can paint blank on some
+ * iOS Safari builds; a static clipped gradient remains visible.
+ */
 @media (max-width: 767px) {
   .marketing-site main h1:not(.rc-page-title-plain),
   .marketing-site main .rc-title-gradient {
     animation: none;
-    background: none;
-    background-clip: border-box;
-    -webkit-background-clip: border-box;
-    color: #f8fafc;
-    -webkit-text-fill-color: #f8fafc;
+    background-image: linear-gradient(
+      90deg,
+      #b91c1c 0%,
+      #ef4444 12%,
+      #fecaca 24%,
+      #ffffff 38%,
+      #dbeafe 52%,
+      #2563eb 66%,
+      #fca5a5 82%,
+      #1d4ed8 100%
+    );
+    background-size: 100% auto;
+    background-position: center;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    /* Promote a compositing layer so clipped text paints reliably on WebKit */
+    transform: translateZ(0);
   }
 }
 

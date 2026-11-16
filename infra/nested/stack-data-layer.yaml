@@ -498,7 +498,7 @@
     "ExistingMarketingLeadsTableName": {
       "Type": "String",
       "Default": "rapid-cortex-marketing-leads-dev",
-      "Description": "Pre-existing DynamoDB table name for MarketingLeadsTable (parameter workaround; do not create). Add vertical-createdAt-index via scripts/ensure-marketing-leads-vertical-gsi.sh — CFN cannot alter this retained table in-place."
+      "Description": "Pre-existing DynamoDB table name for MarketingLeadsTable (parameter workaround; do not create). Add vertical-createdAt-index via scripts/ensure-marketing-leads-vertical-gsi.sh \u2014 CFN cannot alter this retained table in-place."
     },
     "ExistingPsapProspectsTableName": {
       "Type": "String",
@@ -578,6 +578,36 @@
       "Type": "String",
       "Default": "rapid-cortex-gis-datasets-dev",
       "Description": "Pre-existing DynamoDB table name for GisDatasetsTable (parameter workaround; do not create)."
+    },
+    "ExistingCallerLocationsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-caller-locations-dev",
+      "Description": "Pre-existing table: CallerLocationsTable (Retain orphan after UPDATE_ROLLBACK; do not create)"
+    },
+    "ExistingResponderConnectionsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-responder-connections-dev",
+      "Description": "Pre-existing table: ResponderConnectionsTable (Retain orphan after UPDATE_ROLLBACK; do not create)"
+    },
+    "ExistingPreArrivalSessionsTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-pre-arrival-sessions-dev",
+      "Description": "Pre-existing table: PreArrivalSessionsTable (Retain orphan after UPDATE_ROLLBACK; do not create)"
+    },
+    "ExistingPreArrivalInstructionLibraryTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-pre-arrival-instruction-library-dev",
+      "Description": "Pre-existing table: PreArrivalInstructionLibraryTable (Retain orphan after UPDATE_ROLLBACK; do not create)"
+    },
+    "ExistingProtocolCompatibilityTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-protocol-compatibility-dev",
+      "Description": "Pre-existing table: ProtocolCompatibilityTable (Retain orphan after UPDATE_ROLLBACK; do not create)"
+    },
+    "ExistingReconciliationAuditTableName": {
+      "Type": "String",
+      "Default": "rapid-cortex-reconciliation-audit-dev",
+      "Description": "Pre-existing table: ReconciliationAuditTable (Retain orphan after UPDATE_ROLLBACK; do not create)"
     }
   },
   "Rules": {
@@ -4426,256 +4456,6 @@
         ]
       }
     },
-    "CallerLocationsTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": "PAY_PER_REQUEST",
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-caller-locations-${DeploymentStage}"
-            },
-            {
-              "Fn::Sub": "rapid-cortex-caller-locations-${DeploymentStage}"
-            }
-          ]
-        },
-        "PointInTimeRecoverySpecification": {
-          "PointInTimeRecoveryEnabled": {
-            "Fn::If": [
-              "DynamoPitrOn",
-              true,
-              false
-            ]
-          }
-        },
-        "TimeToLiveSpecification": {
-          "AttributeName": "ttl",
-          "Enabled": true
-        },
-        "AttributeDefinitions": [
-          { "AttributeName": "incidentId", "AttributeType": "S" },
-          { "AttributeName": "timestamp", "AttributeType": "S" }
-        ],
-        "KeySchema": [
-          { "AttributeName": "incidentId", "KeyType": "HASH" },
-          { "AttributeName": "timestamp", "KeyType": "RANGE" }
-        ]
-      }
-    },
-    "ResponderConnectionsTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": "PAY_PER_REQUEST",
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-responder-connections-${DeploymentStage}"
-            },
-            {
-              "Fn::Sub": "rapid-cortex-responder-connections-${DeploymentStage}"
-            }
-          ]
-        },
-        "PointInTimeRecoverySpecification": {
-          "PointInTimeRecoveryEnabled": {
-            "Fn::If": [
-              "DynamoPitrOn",
-              true,
-              false
-            ]
-          }
-        },
-        "TimeToLiveSpecification": {
-          "AttributeName": "ttl",
-          "Enabled": true
-        },
-        "AttributeDefinitions": [
-          { "AttributeName": "connectionId", "AttributeType": "S" },
-          { "AttributeName": "incidentId", "AttributeType": "S" }
-        ],
-        "KeySchema": [
-          { "AttributeName": "connectionId", "KeyType": "HASH" }
-        ],
-        "GlobalSecondaryIndexes": [
-          {
-            "IndexName": "incidentId-index",
-            "KeySchema": [
-              { "AttributeName": "incidentId", "KeyType": "HASH" }
-            ],
-            "Projection": { "ProjectionType": "ALL" }
-          }
-        ]
-      }
-    },
-    "PreArrivalSessionsTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-pre-arrival-sessions-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "PointInTimeRecoverySpecification": {
-          "PointInTimeRecoveryEnabled": {
-            "Fn::If": [
-              "DynamoPitrOn",
-              true,
-              false
-            ]
-          }
-        },
-        "TimeToLiveSpecification": {
-          "AttributeName": "ttl",
-          "Enabled": true
-        },
-        "AttributeDefinitions": [
-          { "AttributeName": "pk", "AttributeType": "S" },
-          { "AttributeName": "sk", "AttributeType": "S" },
-          { "AttributeName": "gsi1pk", "AttributeType": "S" },
-          { "AttributeName": "gsi1sk", "AttributeType": "S" },
-          { "AttributeName": "sessionToken", "AttributeType": "S" }
-        ],
-        "KeySchema": [
-          { "AttributeName": "pk", "KeyType": "HASH" },
-          { "AttributeName": "sk", "KeyType": "RANGE" }
-        ],
-        "GlobalSecondaryIndexes": [
-          {
-            "IndexName": "ByIncident",
-            "KeySchema": [
-              { "AttributeName": "gsi1pk", "KeyType": "HASH" },
-              { "AttributeName": "gsi1sk", "KeyType": "RANGE" }
-            ],
-            "Projection": { "ProjectionType": "ALL" }
-          },
-          {
-            "IndexName": "ByToken",
-            "KeySchema": [
-              { "AttributeName": "sessionToken", "KeyType": "HASH" }
-            ],
-            "Projection": { "ProjectionType": "ALL" }
-          }
-        ]
-      }
-    },
-    "PreArrivalInstructionLibraryTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-pre-arrival-instruction-library-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "AttributeDefinitions": [
-          { "AttributeName": "pk", "AttributeType": "S" },
-          { "AttributeName": "sk", "AttributeType": "S" }
-        ],
-        "KeySchema": [
-          { "AttributeName": "pk", "KeyType": "HASH" },
-          { "AttributeName": "sk", "KeyType": "RANGE" }
-        ]
-      }
-    },
-    "ProtocolCompatibilityTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-protocol-compatibility-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "AttributeDefinitions": [
-          { "AttributeName": "pk", "AttributeType": "S" },
-          { "AttributeName": "targetNatureCode", "AttributeType": "S" }
-        ],
-        "KeySchema": [
-          { "AttributeName": "pk", "KeyType": "HASH" },
-          { "AttributeName": "targetNatureCode", "KeyType": "RANGE" }
-        ]
-      }
-    },
-    "ReconciliationAuditTable": {
-      "Type": "AWS::DynamoDB::Table",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
-      "Properties": {
-        "BillingMode": {
-          "Ref": "DynamoBillingMode"
-        },
-        "TableName": {
-          "Fn::If": [
-            "HasDynamoTablePrefix",
-            {
-              "Fn::Sub": "${DynamoTableNamePrefix}-reconciliation-audit-${DeploymentStage}"
-            },
-            {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "PointInTimeRecoverySpecification": {
-          "PointInTimeRecoveryEnabled": {
-            "Fn::If": [
-              "DynamoPitrOn",
-              true,
-              false
-            ]
-          }
-        },
-        "TimeToLiveSpecification": {
-          "AttributeName": "ttl",
-          "Enabled": true
-        },
-        "AttributeDefinitions": [
-          { "AttributeName": "pk", "AttributeType": "S" },
-          { "AttributeName": "sk", "AttributeType": "S" }
-        ],
-        "KeySchema": [
-          { "AttributeName": "pk", "KeyType": "HASH" },
-          { "AttributeName": "sk", "KeyType": "RANGE" }
-        ]
-      }
-    },
     "PinpointLinksTable": {
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
@@ -7101,37 +6881,37 @@
     "CallerLocationsTable": {
       "Description": "Physical table name for CallerLocationsTable",
       "Value": {
-        "Ref": "CallerLocationsTable"
+        "Ref": "ExistingCallerLocationsTableName"
       }
     },
     "ResponderConnectionsTable": {
       "Description": "Physical table name for ResponderConnectionsTable",
       "Value": {
-        "Ref": "ResponderConnectionsTable"
+        "Ref": "ExistingResponderConnectionsTableName"
       }
     },
     "PreArrivalSessionsTable": {
       "Description": "Physical table name for PreArrivalSessionsTable",
       "Value": {
-        "Ref": "PreArrivalSessionsTable"
+        "Ref": "ExistingPreArrivalSessionsTableName"
       }
     },
     "PreArrivalInstructionLibraryTable": {
       "Description": "Physical table name for PreArrivalInstructionLibraryTable",
       "Value": {
-        "Ref": "PreArrivalInstructionLibraryTable"
+        "Ref": "ExistingPreArrivalInstructionLibraryTableName"
       }
     },
     "ProtocolCompatibilityTable": {
       "Description": "Physical table name for ProtocolCompatibilityTable",
       "Value": {
-        "Ref": "ProtocolCompatibilityTable"
+        "Ref": "ExistingProtocolCompatibilityTableName"
       }
     },
     "ReconciliationAuditTable": {
       "Description": "Physical table name for ReconciliationAuditTable",
       "Value": {
-        "Ref": "ReconciliationAuditTable"
+        "Ref": "ExistingReconciliationAuditTableName"
       }
     },
     "PinpointLinksTable": {

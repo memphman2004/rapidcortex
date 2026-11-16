@@ -6,6 +6,7 @@
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
 import {
   isCanonicalWatchSignal,
+  isWatchDueDatePast,
   pushRapidIqPipelineToCrmBodySchema,
   rapidIqWatchIngestRequestSchema,
   watchSignalActionBodySchema,
@@ -266,6 +267,43 @@ export async function handleWatchHttp(
   if (method === "GET" && (path.endsWith("/api/watch/signals") || path.endsWith("/api/watch/signals/"))) {
     let signals = (await listSignalsForCommandCenter()).filter(isWatchSource);
     const q = event.queryStringParameters ?? {};
+    const now = new Date();
+    const includeTerminal = q.status === "dismissed" || q.status === "pushed";
+
+    // Past due_date → dismiss (Discovery ≠ Lead). Keep terminal tabs intact.
+    const overdueActive = signals.filter(
+      (s) =>
+        s.status !== "dismissed" &&
+        s.status !== "pushed" &&
+        isWatchDueDatePast(s.deadline, now),
+    );
+    if (overdueActive.length > 0) {
+      await Promise.all(
+        overdueActive.map(async (s) => {
+          try {
+            await updateSignalFields(s.signalId, {
+              status: "dismissed",
+              watched: false,
+              dismissReason: `Auto-removed: due date ${s.deadline} has passed`,
+              dismissedBy: "system:watch-due-date",
+            });
+            await auditWatch("system:watch-due-date", s.signalId, {
+              action: "auto_dismiss_past_due",
+              due_date: s.deadline,
+            });
+          } catch {
+            /* never fail the list on cleanup */
+          }
+        }),
+      );
+      const overdueIds = new Set(overdueActive.map((s) => s.signalId));
+      signals = signals.map((s) =>
+        overdueIds.has(s.signalId)
+          ? { ...s, status: "dismissed" as const, watched: false }
+          : s,
+      );
+    }
+
     if (q.status) signals = signals.filter((s) => s.status === q.status);
     if (q.vertical) {
       signals = signals.filter(
@@ -287,6 +325,10 @@ export async function handleWatchHttp(
           .toLowerCase()
           .includes(needle),
       );
+    }
+    // Inbox / Monitoring: never surface past-due watches (Dismissed / Qualified keep them).
+    if (!includeTerminal) {
+      signals = signals.filter((s) => !isWatchDueDatePast(s.deadline, now));
     }
     signals.sort(
       (a, b) =>

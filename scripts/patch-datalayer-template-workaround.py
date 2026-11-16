@@ -279,6 +279,39 @@ ORPHANED = {
         f"rapid-cortex-rcs-escalation-{STAGE}",
         "table",
     ),
+    # PreArrival / reconciliation tables created then Retain-orphaned on
+    # rapid-cortex-dev UPDATE_ROLLBACK (2026-11-15). Second deploy Validation
+    # failed with 6 errors (AlreadyExists on CREATE). Skip resource create.
+    "CallerLocationsTable": (
+        "ExistingCallerLocationsTableName",
+        f"rapid-cortex-caller-locations-{STAGE}",
+        "table",
+    ),
+    "ResponderConnectionsTable": (
+        "ExistingResponderConnectionsTableName",
+        f"rapid-cortex-responder-connections-{STAGE}",
+        "table",
+    ),
+    "PreArrivalSessionsTable": (
+        "ExistingPreArrivalSessionsTableName",
+        f"rapid-cortex-pre-arrival-sessions-{STAGE}",
+        "table",
+    ),
+    "PreArrivalInstructionLibraryTable": (
+        "ExistingPreArrivalInstructionLibraryTableName",
+        f"rapid-cortex-pre-arrival-instruction-library-{STAGE}",
+        "table",
+    ),
+    "ProtocolCompatibilityTable": (
+        "ExistingProtocolCompatibilityTableName",
+        f"rapid-cortex-protocol-compatibility-{STAGE}",
+        "table",
+    ),
+    "ReconciliationAuditTable": (
+        "ExistingReconciliationAuditTableName",
+        f"rapid-cortex-reconciliation-audit-{STAGE}",
+        "table",
+    ),
 }
 
 

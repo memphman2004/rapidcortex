@@ -2606,7 +2606,8 @@ Resources:
         Variables:
           COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
           COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
-          # Explicit longs so send/PDF never depends only on RC_RUNTIME short-key hydrate.
+          # Stay under Lambda 4KB: invoices/customers/bucket hydrate from Globals
+          # RC_RUNTIME_CONFIG_JSON. Keep Cognito + bpi/scs/sender (omitted from Globals JSON).
           BILLING_SES_SENDER_EMAIL: !If
             - HasBillingSesSenderEmail
             - !Ref BillingSesSenderEmail
@@ -2615,12 +2616,8 @@ Resources:
             - HasBillingSesSenderEmail
             - !Ref BillingSesSenderEmail
             - support@nexcortiq.us
-          BILLING_INVOICES_BUCKET: !Ref BillingInvoicesBucket
           BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN: !Ref BillingPaymentInstructionsSecretArn
           SES_CONFIGURATION_SET_NAME: !Sub "rapid-cortex-transactional-${DeploymentStage}"
-          INVOICES_TABLE: !Ref InvoicesTable
-          INVOICE_ITEMS_TABLE: !Ref InvoiceItemsTable
-          CUSTOMERS_TABLE: !Ref CustomersTable
       CodeUri: ../../apps/api/
       Handler: dist/handlers/billingInvoicesHttp.handler
       Policies:
@@ -3276,20 +3273,17 @@ Resources:
     Properties:
       Environment:
         Variables:
-          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
-          COGNITO_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          # Stay under Lambda 4KB: invoices/customers/catalog/bucket/bse hydrate from
+          # Globals RC_RUNTIME_CONFIG_JSON. Only set keys omitted from Globals (bpi/scs
+          # intentionally excluded there; BILLING_SCHEDULES_TABLE is not packed).
+          # UPDATE_FAILED 2026-11-15: env measured 4143 bytes with Cognito + duplicate tables.
           BILLING_SES_SENDER_EMAIL: !If
             - HasBillingSesSenderEmail
             - !Ref BillingSesSenderEmail
             - support@nexcortiq.us
           BILLING_PAYMENT_INSTRUCTIONS_SECRET_ARN: !Ref BillingPaymentInstructionsSecretArn
           SES_CONFIGURATION_SET_NAME: !Sub "rapid-cortex-transactional-${DeploymentStage}"
-          BILLING_INVOICES_BUCKET: !Ref BillingInvoicesBucket
-          INVOICES_TABLE: !Ref InvoicesTable
-          INVOICE_ITEMS_TABLE: !Ref InvoiceItemsTable
-          CUSTOMERS_TABLE: !Ref CustomersTable
           BILLING_SCHEDULES_TABLE: !Ref BillingSchedulesTable
-          SERVICE_CATALOG_TABLE: !Ref ServiceCatalogTable
       CodeUri: ../../apps/api/
       Handler: dist/handlers/billingScheduler.handler
       Timeout: 300

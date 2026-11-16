@@ -12,6 +12,7 @@ import {
 } from "@/lib/marketing-form-input";
 import { BusinessSmsConsentField } from "@/components/marketing/business-sms-consent-field";
 import { BUSINESS_SMS_DISCLOSURE_VERSION } from "rapid-cortex-shared";
+import { MARKETING_EVENTS, trackMarketingEvent } from "@/lib/marketing-site-analytics";
 
 const CUSTOMER_TYPES = [
   ["agency", "Agency PSAP"],
@@ -133,7 +134,21 @@ export function ContactSalesForm({ interestFromSearch = null, onSuccess }: Conta
 
       form.reset();
       setStatus("idle");
-      onSuccess?.({ leadId: typeof j.leadId === "string" ? j.leadId : null });
+      const leadId = typeof j.leadId === "string" ? j.leadId : null;
+      const interest = (interestFromSearch ?? "").trim().toLowerCase();
+      const isPilot =
+        interest === "pilot_program" ||
+        interest === "pilot" ||
+        body.interestedIn.includes("pilot_program");
+      trackMarketingEvent(
+        isPilot ? MARKETING_EVENTS.pilotRequestSubmit : MARKETING_EVENTS.demoRequestSubmit,
+        {
+          form_source: "contact-sales",
+          interest: interest || "demo",
+          lead_id: leadId ?? undefined,
+        },
+      );
+      onSuccess?.({ leadId });
     } catch (err) {
       setStatus("error");
       const fromServer =

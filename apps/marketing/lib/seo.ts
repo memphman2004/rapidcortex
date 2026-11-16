@@ -102,7 +102,8 @@ export function buildOrganizationJsonLd() {
     alternateName: ["NexCortIQ", "NexCort"],
     url,
     logo: absoluteUrl(SITE_BRAND_MARK_PATH),
-    description: SITE_DESCRIPTION,
+    description:
+      "AI public safety software for 911 emergency communications centers, law enforcement, campus safety, and transit operations.",
     sameAs: [absoluteUrl("/about"), absoluteUrl("/press")],
   };
 }

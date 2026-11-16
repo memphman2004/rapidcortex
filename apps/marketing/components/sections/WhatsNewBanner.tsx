@@ -1,6 +1,6 @@
 /**
  * Thin announcement strip for the top of every marketing page.
- * Lives above the nav and deep-links to the homepage new-features block.
+ * Lives above the nav and deep-links to the homepage demos block.
  * Native <a> (not next/link) so the #new-features hash is preserved on the homepage.
  */
 export function WhatsNewBanner() {
@@ -24,10 +24,12 @@ export function WhatsNewBanner() {
         ·
       </span>
 
-      <span className="text-[#6A7B9D]">CAD-to-CAD interoperability&nbsp; · &nbsp;311 AI call handling</span>
+      <span className="text-[#6A7B9D]">
+        CAD interoperability&nbsp; · &nbsp;NEXiQ automation&nbsp; · &nbsp;Campus Safety
+      </span>
 
       <a href="/#new-features" className="shrink-0 font-medium text-[#1469FF] hover:underline">
-        See the capabilities →
+        See it in action →
       </a>
     </div>
   );

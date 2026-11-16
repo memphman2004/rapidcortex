@@ -40,6 +40,7 @@ const nextConfig = {
       "@/components/blog": path.join(marketingRoot, "components/blog"),
       "@/components/newsletter": path.join(marketingRoot, "components/newsletter"),
       "@/lib/marketing-links": marketingLib("marketing-links.ts"),
+      "@/lib/marketing-analytics": marketingLib("marketing-analytics.ts"),
       "@/lib/deployment-environment": marketingLib("deployment-environment.ts"),
       "@/components/auth/session-context": path.join(
         marketingRoot,

@@ -295,14 +295,18 @@ export function trainingClassLabel(category: string): string {
   return TRAINING_CLASS_LABEL[category] ?? category;
 }
 
-/** Distinct camera angles and lighting per class. Blank values do not count. */
+/** Distinct camera angles and lighting per class. Blank values do not count.
+ *  Only classes present in the asset set are required — a firearm-only still set
+ *  can pass without knife examples (and the reverse). */
 export function syntheticVarietyFailures(records: StudioReviewRecord[], assetIds: readonly string[]): string[] {
   const chosen = new Set(assetIds);
   const rows = records.filter((item) => chosen.has(item.id));
+  if (rows.length === 0) return ["The dataset has no assets. The variety check did not pass."];
+
   const byClass = new Map<string, { angles: Set<string>; lighting: Set<string> }>();
-  for (const label of REQUIRED_SYNTHETIC_CLASSES) byClass.set(label, { angles: new Set(), lighting: new Set() });
   for (const row of rows) {
     const label = trainingClassLabel(row.category);
+    if (!(REQUIRED_SYNTHETIC_CLASSES as readonly string[]).includes(label)) continue;
     const bucket = byClass.get(label) ?? { angles: new Set<string>(), lighting: new Set<string>() };
     const angle = row.cameraAngle?.trim();
     const lighting = row.lighting?.trim();
@@ -310,10 +314,13 @@ export function syntheticVarietyFailures(records: StudioReviewRecord[], assetIds
     if (lighting) bucket.lighting.add(lighting);
     byClass.set(label, bucket);
   }
-  if (rows.length === 0) return ["The dataset has no assets. The variety check did not pass."];
+  if (byClass.size === 0) {
+    return [
+      "The dataset has no required synthetic classes (handgun_visible / knife_visible). The variety check did not pass.",
+    ];
+  }
   const failures: string[] = [];
-  for (const label of REQUIRED_SYNTHETIC_CLASSES) {
-    const bucket = byClass.get(label) ?? { angles: new Set<string>(), lighting: new Set<string>() };
+  for (const [label, bucket] of byClass) {
     if (bucket.angles.size < REQUIRED_CAMERA_ANGLES) {
       failures.push(`${label}: only ${bucket.angles.size} camera angle(s) — need ${REQUIRED_CAMERA_ANGLES}`);
     }
@@ -322,6 +329,32 @@ export function syntheticVarietyFailures(records: StudioReviewRecord[], assetIds
     }
   }
   return failures;
+}
+
+/**
+ * Prefer a freshly assembled version when verified/rights-cleared labels outgrow
+ * the last stored dataset (e.g. stale 10-image pilot after hundreds of verifies).
+ */
+export function resolveTrainingDatasetVersion(
+  records: StudioReviewRecord[],
+  existing: readonly DatasetVersion[],
+  input: { reviewer: string; now: string },
+): { version: DatasetVersion | null; assembled: boolean; shouldPersist: boolean } {
+  const latest = existing.at(-1) ?? null;
+  const built = assembleDatasetVersion(records, {
+    reviewer: input.reviewer,
+    now: input.now,
+    version: (latest?.version ?? 0) + 1,
+  });
+  if (!built.ok) {
+    return { version: latest, assembled: false, shouldPersist: false };
+  }
+  const freshCount = built.version.assetIds.length;
+  const storedCount = latest?.assetIds.length ?? 0;
+  if (!latest || freshCount > storedCount) {
+    return { version: built.version, assembled: true, shouldPersist: true };
+  }
+  return { version: latest, assembled: false, shouldPersist: false };
 }
 
 export function prepareSageMakerTraining(input: {

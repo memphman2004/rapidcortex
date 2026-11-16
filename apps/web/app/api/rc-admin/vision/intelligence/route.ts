@@ -9,6 +9,7 @@ import {
   confirmBatchPlan,
   datasetGapReport,
   prepareSageMakerTraining,
+  resolveTrainingDatasetVersion,
   submitDatasetForTraining,
   applyReviewDecision,
   FIREARM_PILOT_BATCH_ID,
@@ -84,7 +85,21 @@ export async function GET(request: Request) {
   }
   const verified = reviews.filter((item) => item.trainingLabel).length;
   const awaiting = reviews.filter((item) => item.status === "REVIEW_REQUIRED" || item.status === "CORRECTION_REQUESTED").length;
-  const latest = datasets.at(-1) ?? null;
+  const reviewer = reviewerName(user);
+  const now = new Date().toISOString();
+  let trainingVersion = datasets.at(-1) ?? null;
+  if (storage === "dynamodb") {
+    const resolved = resolveTrainingDatasetVersion(reviews, datasets, { reviewer, now });
+    trainingVersion = resolved.version;
+    if (resolved.shouldPersist && resolved.version) {
+      try {
+        await saveDatasetVersion(resolved.version);
+        datasets = [...datasets, resolved.version];
+      } catch {
+        /* readiness still uses the in-memory assemble */
+      }
+    }
+  }
   return NextResponse.json({
     ...intelligenceProviderStatus(readDiagnostic()),
     storage,
@@ -95,7 +110,11 @@ export async function GET(request: Request) {
       candidates: reviews.length,
       labelsVerified: verified,
       awaitingReview: awaiting,
-      training: prepareSageMakerTraining({ version: latest, costApproved: false }),
+      training: prepareSageMakerTraining({
+        version: trainingVersion,
+        costApproved: false,
+        records: reviews,
+      }),
     },
     liveDetection: "disabled",
     batchEnabled: process.env.STUDIO_BATCH_ENABLED === "1",
@@ -216,14 +235,28 @@ export async function POST(request: Request) {
     try {
       const reviews = await listStudioReviews();
       const versions = await listDatasetVersions();
+      const resolved = resolveTrainingDatasetVersion(reviews, versions, { reviewer, now });
+      if (resolved.shouldPersist && resolved.version) {
+        try {
+          await saveDatasetVersion(resolved.version);
+        } catch {
+          /* still evaluate with the in-memory version */
+        }
+      }
       const refusal = submitDatasetForTraining(reviews);
       const prepared = prepareSageMakerTraining({
-        version: versions.at(-1) ?? null,
+        version: resolved.version,
         costApproved: body.costApproved === true,
         records: reviews,
       });
       if (prepared.auditEvent === "SYNTHETIC_ONLY_BYPASS") {
-        console.info(JSON.stringify({ event: "SYNTHETIC_ONLY_BYPASS", datasetVersion: versions.at(-1)?.id ?? null, reviewer }));
+        console.info(
+          JSON.stringify({
+            event: "SYNTHETIC_ONLY_BYPASS",
+            datasetVersion: resolved.version?.id ?? null,
+            reviewer,
+          }),
+        );
       }
       return NextResponse.json({ ...refusal, ...prepared, launched: false, liveDetection: "disabled" });
     } catch {

@@ -201,16 +201,16 @@ const OUTCOMES: Outcome[] = [
 
 const KEY_POINTS: KeyPoint[] = [
   {
-    title: "Zero dispatcher minutes consumed",
-    body: "Service requests, status inquiries, and information lines are handled end-to-end by AI. Your dispatch queue stays clear for what only a human can do.",
+    title: "Dispatcher capacity preserved",
+    body: "Service requests, status inquiries, and information lines can be handled by AI non-emergency automation — so the dispatch queue stays clearer for life-safety work.",
   },
   {
     title: "Escalation is hardwired, not configured",
-    body: "Distress language, silence patterns, or medical terminology trigger immediate live transfer to a dispatcher — every time, no exceptions, no tuning required.",
+    body: "Distress language, silence patterns, or medical terminology trigger live transfer to a dispatcher — designed so urgent callers reach a human without waiting on a tuning exercise.",
   },
   {
     title: "Every call becomes a structured record",
-    body: "Caller ID, issue type, location, timestamp, and AI summary are logged automatically. No manual entry. No gaps in the incident log.",
+    body: "Caller ID, issue type, location, timestamp, and AI summary are logged automatically — reducing manual entry and gaps in the non-emergency record.",
   },
 ];
 
@@ -307,11 +307,11 @@ export function FeatureNonEmergency() {
   return (
     <section
       id="non-emergency-ai"
-      className="scroll-mt-28 bg-[#07090F] px-6 py-20 md:py-28"
+      className="scroll-mt-28 bg-[#07090F] px-4 py-16 sm:px-6 md:py-20"
       aria-labelledby="non-emergency-heading"
     >
-      <div className="mx-auto max-w-6xl">
-        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-20">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
             <CallFlowPanel />
           </div>
@@ -327,7 +327,7 @@ export function FeatureNonEmergency() {
                 }}
               >
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#E8192C]" aria-hidden="true" />
-                311 / AI non-emergency call handling
+                NEXiQ · AI non-emergency call automation
               </span>
             </div>
 
@@ -339,9 +339,9 @@ export function FeatureNonEmergency() {
             </h2>
 
             <p className="mb-10 text-base leading-relaxed text-[#6A7B9D] md:text-lg">
-              NexCort iQ&apos;s AI handler manages non-emergency volume around the clock — classifying,
-              routing, and resolving calls without dispatcher intervention. When urgency signals appear, the
-              call transfers live. No caller falls through.
+              NEXiQ manages non-emergency volume around the clock — classifying, routing, and resolving
+              routine calls so dispatchers can stay focused on 911. When urgency signals appear, the call
+              transfers live to a human.
             </p>
 
             <div className="flex flex-col gap-6">
