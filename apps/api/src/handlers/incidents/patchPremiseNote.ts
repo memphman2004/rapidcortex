@@ -25,7 +25,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const noteId = event.pathParameters?.noteId;
     if (!incidentId || !noteId) return notFound("Incident ID and note ID required");
 
-    const parsed = patchPremiseNoteRequestSchema.safeParse(JSON.parse(event.body ?? "{}"));
+    let rawBody: unknown;
+    try { rawBody = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+    const parsed = patchPremiseNoteRequestSchema.safeParse(rawBody);
     if (!parsed.success) return badRequestFromZod(parsed.error);
 
     const user = await getUserContext(event);

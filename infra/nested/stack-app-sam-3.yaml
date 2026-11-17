@@ -1263,15 +1263,11 @@ Resources:
             MetricName: !Sub "${AppName}WafIpRate"
             SampledRequestsEnabled: true
 
-  ApiWebAclAssociation:
-    Type: AWS::WAFv2::WebACLAssociation
-    Condition: HasApiWaf
-    Properties:
-      WebACLArn: !GetAtt ApiWebAcl.Arn
-      ResourceArn: !Sub
-        - "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${ApiId}/stages/${StageName}"
-        - ApiId: !Ref Api
-          StageName: "$default"
+  # NOTE: AWS WAFv2 does NOT support association with API Gateway HTTP APIs
+  # (Scope REGIONAL association requires REST `/restapis/.../stages/...` ARNs).
+  # Associating `.../apis/${ApiId}/stages/$default` fails with WAFInvalidParameterException.
+  # Keep ApiWebAcl for inventory / future CloudFront|ALB attach — do not reintroduce
+  # ApiWebAclAssociation here.
 
   ApiManagedCertificate:
     Type: AWS::CertificateManager::Certificate

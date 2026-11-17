@@ -30,7 +30,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (!user) return unauthorized();
     if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
 
-    const parsed = bodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+    let rawBody: unknown;
+    try { rawBody = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+    const parsed = bodySchema.safeParse(rawBody);
     if (!parsed.success) return badRequestFromZod(parsed.error);
 
     const created = await service.create(user, parsed.data);

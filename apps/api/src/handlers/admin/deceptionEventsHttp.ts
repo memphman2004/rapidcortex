@@ -2,7 +2,7 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { AuthorizationService } from "rapid-cortex-security";
 import { isRcsuperadmin } from "rapid-cortex-shared";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
-import { forbidden, ok, unauthorized } from "../../lib/response.js";
+import { forbidden, ok, serverError, unauthorized } from "../../lib/response.js";
 import { DeceptionEventsRepository } from "../../repositories/deceptionEventsRepository.js";
 
 const authz = new AuthorizationService();
@@ -42,6 +42,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     if (msg === "DECEPTION_EVENTS_TABLE_NOT_CONFIGURED") return forbidden("Deception events storage is not configured.");
-    throw e;
+    return serverError();
   }
 };

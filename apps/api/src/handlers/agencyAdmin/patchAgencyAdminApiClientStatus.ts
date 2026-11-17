@@ -1,7 +1,7 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { z } from "zod";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
-import { badRequestFromZod, ok, unauthorized } from "../../lib/response.js";
+import { badRequest, badRequestFromZod, forbidden, notFound, ok, serverError, unauthorized } from "../../lib/response.js";
 import { ApiClientsManagementService } from "../../services/apiClientsManagementService.js";
 
 const bodySchema = z.object({
@@ -15,8 +15,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   if (!user) return unauthorized();
   if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
   const clientId = event.pathParameters?.clientId;
-  if (!clientId) return ok({ error: "clientId required" }, 400);
-  const parsed = bodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+  if (!clientId) return badRequest("clientId required");
+  let rawBody: unknown;
+  try { rawBody = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+  const parsed = bodySchema.safeParse(rawBody);
   if (!parsed.success) return badRequestFromZod(parsed.error);
   try {
     await svc.patchStatus(user, clientId, {
@@ -25,8 +27,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     });
     return ok({ ok: true });
   } catch (e: unknown) {
-    if (e instanceof Error && e.message === "FORBIDDEN") return ok({ error: "Forbidden" }, 403);
-    if (e instanceof Error && e.message === "NOT_FOUND") return ok({ error: "Not found" }, 404);
-    throw e;
+    if (e instanceof Error && e.message === "FORBIDDEN") return forbidden();
+    if (e instanceof Error && e.message === "NOT_FOUND") return notFound("API client not found");
+    return serverError();
   }
 };

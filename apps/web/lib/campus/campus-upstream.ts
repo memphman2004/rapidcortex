@@ -28,9 +28,17 @@ export async function campusUpstreamFetch(
     headers.set("content-type", "application/json");
   }
 
-  return fetch(`${base}${path}`, {
-    ...init,
-    headers,
-    cache: "no-store",
-  });
+  try {
+    return await fetch(`${base}${path}`, {
+      ...init,
+      headers,
+      cache: "no-store",
+    });
+  } catch (err) {
+    console.error("[campusUpstreamFetch] network error:", path, err);
+    return new Response(
+      JSON.stringify({ error: "Campus API temporarily unreachable" }),
+      { status: 503, headers: { "content-type": "application/json" } },
+    );
+  }
 }

@@ -20,7 +20,10 @@ export async function GET(_request: Request, ctx: Ctx) {
     );
   }
 
-  const data = (await res.json()) as { items?: AdminUserRow[] };
+  let data: { items?: AdminUserRow[] };
+  try { data = (await res.json()) as { items?: AdminUserRow[] }; } catch {
+    return NextResponse.json({ error: "Invalid response from campus API" }, { status: 502 });
+  }
   const users = (data.items ?? [])
     .filter((row) => row.agencyId === agencyId && isCampusAssignableRole(row.role))
     .map((row) => ({

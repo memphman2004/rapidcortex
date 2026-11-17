@@ -75,12 +75,21 @@ export async function proxyToAuthUpstream(
   const body =
     method === "GET" || method === "HEAD" ? undefined : await request.arrayBuffer();
 
-  const upstream = await fetch(target, {
-    method,
-    headers,
-    body: body && body.byteLength ? body : undefined,
-    cache: "no-store",
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(target, {
+      method,
+      headers,
+      body: body && body.byteLength ? body : undefined,
+      cache: "no-store",
+    });
+  } catch (err) {
+    console.error("[proxyToAuthUpstream] upstream unreachable:", path, err);
+    return NextResponse.json(
+      { error: "Upstream service temporarily unavailable" },
+      { status: 503 },
+    );
+  }
 
   const responseHeaders = new Headers();
   const contentType = upstream.headers.get("content-type");

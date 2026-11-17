@@ -51,7 +51,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (!authz.canDispatch(user)) return forbidden();
 
     if (routeKey === "POST /api/qa/sessions") {
-      const parsed = createQASessionBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b1: unknown; try { _b1 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = createQASessionBodySchema.safeParse(_b1);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const created = await service.createSession(user, parsed.data);
       return ok(created, 201);
@@ -71,7 +72,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     if (routeKey === "PATCH /api/qa/sessions/{id}") {
       if (!sessionId) return notFound();
-      const parsed = patchQASessionBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b2: unknown; try { _b2 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = patchQASessionBodySchema.safeParse(_b2);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const s = await service.patchSession(user, sessionId, parsed.data);
       return ok(s);
@@ -83,7 +85,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (routeKey === "POST /api/qa/templates") {
-      const parsed = createQAProtocolTemplateBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b3: unknown; try { _b3 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = createQAProtocolTemplateBodySchema.safeParse(_b3);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const t = await service.createTemplate(user, parsed.data);
       return ok(t, 201);
@@ -92,7 +95,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const templateId = event.pathParameters?.id;
     if (routeKey === "PATCH /api/qa/templates/{id}") {
       if (!templateId) return notFound();
-      const parsed = patchQAProtocolTemplateBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b4: unknown; try { _b4 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = patchQAProtocolTemplateBodySchema.safeParse(_b4);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const t = await service.patchTemplate(user, templateId, parsed.data);
       return ok(t);

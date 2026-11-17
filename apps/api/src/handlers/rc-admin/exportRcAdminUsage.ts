@@ -1,7 +1,7 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { canAccessRcUsagePortal, isRcsuperadmin } from "rapid-cortex-shared";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
-import { ok, unauthorized } from "../../lib/response.js";
+import { ok, serverError, unauthorized } from "../../lib/response.js";
 import { RcAdminUsageService } from "../../services/rcAdminUsageService.js";
 
 const svc = new RcAdminUsageService();
@@ -22,20 +22,25 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     return ok({ error: "Forbidden" }, 403);
   }
 
-  const customers = await svc.listCustomersForMonth(yearMonth);
-  const body =
-    format === "billing" ? svc.buildBillingCsv(customers) : svc.buildUsageCsv(customers);
-  const filename =
-    format === "billing"
-      ? `rc-lite-billing-${yearMonth}.csv`
-      : `rc-lite-usage-${yearMonth}.csv`;
+  try {
+    const customers = await svc.listCustomersForMonth(yearMonth);
+    const body =
+      format === "billing" ? svc.buildBillingCsv(customers) : svc.buildUsageCsv(customers);
+    const filename =
+      format === "billing"
+        ? `rc-lite-billing-${yearMonth}.csv`
+        : `rc-lite-usage-${yearMonth}.csv`;
 
-  return {
-    statusCode: 200,
-    headers: {
-      "content-type": "text/csv; charset=utf-8",
-      "content-disposition": `attachment; filename="${filename}"`,
-    },
-    body,
-  };
+    return {
+      statusCode: 200,
+      headers: {
+        "content-type": "text/csv; charset=utf-8",
+        "content-disposition": `attachment; filename="${filename}"`,
+      },
+      body,
+    };
+  } catch (e) {
+    console.error("[exportRcAdminUsage]", e);
+    return serverError();
+  }
 };

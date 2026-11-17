@@ -326,14 +326,12 @@ export async function listInvoicesHandler(request: NextRequest, ctx: RouteCtx) {
 
 export async function createInvoiceHandler(request: NextRequest, ctx: RouteCtx) {
   const { agencyId } = await ctx.params;
-  const body = (await request.json()) as {
-    billingPeriod?: string;
-    invoiceDate?: string;
-    dueDate?: string;
-    poNumber?: string;
-    notes?: string;
-    lineItems?: UiLineItem[];
-  };
+  let body: { billingPeriod?: string; invoiceDate?: string; dueDate?: string; poNumber?: string; notes?: string; lineItems?: UiLineItem[] };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return errorResponse(400, "Invalid JSON body");
+  }
 
   const lineItems = body.lineItems ?? [];
   if (lineItems.length === 0) {
@@ -557,7 +555,12 @@ export async function listAddOnsHandler(request: NextRequest, ctx: RouteCtx) {
 
 export async function updateAddOnsHandler(request: NextRequest, ctx: RouteCtx) {
   const { agencyId } = await ctx.params;
-  const body = (await request.json()) as { add?: string[] };
+  let body: { add?: string[] };
+  try {
+    body = (await request.json()) as { add?: string[] };
+  } catch {
+    return errorResponse(400, "Invalid JSON body");
+  }
   const codes = body.add ?? [];
   if (codes.length === 0) {
     return NextResponse.json({ ok: true, added: 0 });

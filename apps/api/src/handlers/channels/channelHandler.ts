@@ -131,7 +131,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }
       if (method === "POST") {
         if (!canManageChannels(user)) return channelError("FORBIDDEN", "Forbidden", 403);
-        const parsed = createChannelBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+        let _b1: unknown; try { _b1 = JSON.parse(event.body ?? "{}"); } catch { return channelError("VALIDATION_ERROR", "Invalid JSON body", 400); }
+        const parsed = createChannelBodySchema.safeParse(_b1);
         if (!parsed.success) return channelBadRequest(parsed.error);
 
         const channel = await createChannel(user, parsed.data);
@@ -155,7 +156,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (channelIdParam && path.includes("/api/channels/")) {
       if (method === "PATCH") {
         if (!canManageChannels(user)) return channelError("FORBIDDEN", "Forbidden", 403);
-        const parsed = patchChannelBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+        let _b2: unknown; try { _b2 = JSON.parse(event.body ?? "{}"); } catch { return channelError("VALIDATION_ERROR", "Invalid JSON body", 400); }
+        const parsed = patchChannelBodySchema.safeParse(_b2);
         if (!parsed.success) return channelBadRequest(parsed.error);
 
         const channel = await patchChannel(user.agencyId, channelIdParam, parsed.data);
@@ -203,7 +205,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
       if (method === "POST" && !channelIdParam) {
         if (!canAssignChannels(user)) return channelError("FORBIDDEN", "Forbidden", 403);
-        const parsed = assignChannelBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+        let _b3: unknown; try { _b3 = JSON.parse(event.body ?? "{}"); } catch { return channelError("VALIDATION_ERROR", "Invalid JSON body", 400); }
+        const parsed = assignChannelBodySchema.safeParse(_b3);
         if (!parsed.success) return channelBadRequest(parsed.error);
 
         const assignment = await assignChannelToIncident(user, incidentIdParam, parsed.data);
@@ -226,7 +229,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
       if (channelIdParam && method === "PATCH") {
         if (!canAssignChannels(user)) return channelError("FORBIDDEN", "Forbidden", 403);
-        const parsed = patchIncidentChannelBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+        let _b4: unknown; try { _b4 = JSON.parse(event.body ?? "{}"); } catch { return channelError("VALIDATION_ERROR", "Invalid JSON body", 400); }
+        const parsed = patchIncidentChannelBodySchema.safeParse(_b4);
         if (!parsed.success) return channelBadRequest(parsed.error);
 
         const assignment = await patchIncidentChannelNotes(

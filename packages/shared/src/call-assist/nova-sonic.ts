@@ -128,7 +128,17 @@ export const NOVA_SONIC_TOOL_NAMES = [
   "request_human",
 ] as const;
 
-export type NovaSonicToolName = (typeof NOVA_SONIC_TOOL_NAMES)[number];
+/** Phase 1 — Confirmation Loop lifecycle tools. Added only when confirmationLoopEnabled = true. */
+export const NOVA_SONIC_LIFECYCLE_TOOL_NAMES = [
+  "lookup_call_record",
+  "reopen_service_request",
+  "escalate_service_request",
+  "add_note_to_service_request",
+] as const;
+
+export type NovaSonicToolName =
+  | (typeof NOVA_SONIC_TOOL_NAMES)[number]
+  | (typeof NOVA_SONIC_LIFECYCLE_TOOL_NAMES)[number];
 
 export type NovaSonicToolSpec = {
   toolSpec: {
@@ -139,10 +149,14 @@ export type NovaSonicToolSpec = {
 };
 
 /** Bedrock promptStart toolConfiguration for Call Assist Nova Sonic. */
-export function novaSonicCallAssistToolConfiguration(): {
+export function novaSonicCallAssistToolConfiguration(opts?: {
+  /** When true, include the Phase 1 lifecycle tools (lookup, reopen, escalate, note). */
+  includeLifecycleTools?: boolean;
+}): {
   tools: NovaSonicToolSpec[];
   toolChoice: { auto: Record<string, never> };
 } {
+  const includeLifecycle = opts?.includeLifecycleTools === true;
   return {
     toolChoice: { auto: {} },
     tools: [
@@ -215,6 +229,90 @@ export function novaSonicCallAssistToolConfiguration(): {
           },
         },
       },
+      // --- Phase 1 lifecycle tools — only included when confirmationLoopEnabled = true ---
+      ...(includeLifecycle
+        ? [
+            {
+              toolSpec: {
+                name: "lookup_call_record" as NovaSonicToolName,
+                description:
+                  "Look up an existing service request by confirmation number. Use when the caller asks for a status update, wants to check on a report, or provides a confirmation number. After calling this tool, read the status back to the caller.",
+                inputSchema: {
+                  json: JSON.stringify({
+                    type: "object",
+                    properties: {
+                      confirmationNumber: {
+                        type: "string",
+                        description: "The confirmation number provided by the caller, e.g. KC-1001-7M4R",
+                      },
+                    },
+                    required: ["confirmationNumber"],
+                  }),
+                },
+              },
+            },
+            {
+              toolSpec: {
+                name: "reopen_service_request" as NovaSonicToolName,
+                description:
+                  "Note a reopen request when the caller says a previously closed issue has returned. ALWAYS require the caller to confirm verbally before calling this tool. Do NOT call without explicit confirmation.",
+                inputSchema: {
+                  json: JSON.stringify({
+                    type: "object",
+                    properties: {
+                      confirmationNumber: { type: "string" },
+                      reason: {
+                        type: "string",
+                        description: "Brief caller-provided reason for the reopen",
+                      },
+                    },
+                    required: ["confirmationNumber", "reason"],
+                  }),
+                },
+              },
+            },
+            {
+              toolSpec: {
+                name: "escalate_service_request" as NovaSonicToolName,
+                description:
+                  "Escalate a service request for priority review when the caller says the issue is urgent or was not addressed. ALWAYS require the caller to confirm verbally before calling this tool. Limited to once per 24 hours per report.",
+                inputSchema: {
+                  json: JSON.stringify({
+                    type: "object",
+                    properties: {
+                      confirmationNumber: { type: "string" },
+                      reason: {
+                        type: "string",
+                        description: "Brief reason for escalation",
+                      },
+                    },
+                    required: ["confirmationNumber", "reason"],
+                  }),
+                },
+              },
+            },
+            {
+              toolSpec: {
+                name: "add_note_to_service_request" as NovaSonicToolName,
+                description:
+                  "Add additional information or a note to an existing service request without changing its status. Use when the caller wants to add details they forgot to mention.",
+                inputSchema: {
+                  json: JSON.stringify({
+                    type: "object",
+                    properties: {
+                      confirmationNumber: { type: "string" },
+                      note: {
+                        type: "string",
+                        description: "The additional information the caller wants to add",
+                      },
+                    },
+                    required: ["confirmationNumber", "note"],
+                  }),
+                },
+              },
+            },
+          ]
+        : []),
     ],
   };
 }
@@ -252,6 +350,8 @@ export function novaSonicOpeningEvents(opts: {
   systemPrompt: string;
   /** Include Call Assist tools on promptStart (default true). */
   includeTools?: boolean;
+  /** When true, include Phase 1 lifecycle tools (confirmationLoopEnabled gate is caller's responsibility). */
+  includeLifecycleTools?: boolean;
 }): NovaSonicSessionEvent[] {
   const voiceId = opts.voiceId?.trim() || "matthew";
   const includeTools = opts.includeTools !== false;
@@ -270,7 +370,9 @@ export function novaSonicOpeningEvents(opts: {
   };
   if (includeTools) {
     promptStart.toolUseOutputConfiguration = { mediaType: "application/json" };
-    promptStart.toolConfiguration = novaSonicCallAssistToolConfiguration();
+    promptStart.toolConfiguration = novaSonicCallAssistToolConfiguration({
+      includeLifecycleTools: opts.includeLifecycleTools === true,
+    });
   }
   return [
     {

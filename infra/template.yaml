@@ -893,6 +893,57 @@ Parameters:
       root stack can deploy an AppSam update first; CloudFormation will remove the alarms nested stack while this is false.
       Re-enable after AppSamStack publishes the required outputs. Staging/pilot/prod must remain true (see Rules).
 
+  IncludeAppSamRapidIqPipelineNestedStack:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      Nested Rapid IQ pipeline under the parent. Keep false on live rapid-cortex-dev:
+      physical nested stack JWN4SGUYZXYF is DELETE_COMPLETE (ghost) while parent still
+      references AppSamRapidIqPipelineStack — UPDATE fails. Surgical stack
+      rapid-cortex-dev-AppSamRapidIqPipelineStack covers HTTP. Re-enable only after
+      importing a healthy nested stack or clearing the ghost reference.
+
+  IncludeLoadoutAppNestedStack:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      Nested Loadout app Lambdas. Keep false on live rapid-cortex-dev — standalone
+      stack rapid-cortex-loadout-app-dev already owns rc-loadout-* functions.
+  IncludeAppSamGisNestedStack:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: Nested GIS stack. Keep false until import/orphan strategy is ready.
+  IncludeAppSamNexiQSignalsNestedStack:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: Nested NexiQ Signals HTTP stack. Keep false until routes/orphans reconciled.
+  IncludeAppSamNexiQIntelNestedStack:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: Nested NexiQ Intel collector stack. Keep false until data-stack ownership is stable.
+  IncludeAppSamIqAnalyticsNestedStack:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: Nested iQ Analytics stack. Keep false until reconciled with live routes.
+  IncludeAppSamCommsIntelNestedStack:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: Nested Comms Intel stack. Keep false until reconciled.
+  IncludeAppSamPreArrivalNestedStack:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      Nested Pre-Arrival stack. Keep false on live until PreArrival tables are imported
+      or Existing* params are wired end-to-end (Retain orphans 2026-11-15).
+
 Conditions:
   HasDataLayerNestedStack: !Equals [!Ref IncludeDataLayerNestedStack, "true"]
   HasAppSamAlarmsNestedStack: !Equals [!Ref IncludeAppSamAlarmsNestedStack, "true"]
@@ -902,6 +953,14 @@ Conditions:
   HasAppSamCadMeshNestedStack: !Equals [!Ref IncludeAppSamCadMeshNestedStack, "true"]
   HasAppSamFeaturesNestedStack: !Equals [!Ref IncludeAppSamFeaturesNestedStack, "true"]
   HasMcpWatchNestedStack: !Equals [!Ref EnableMcpWatch, "true"]
+  HasAppSamRapidIqPipelineNestedStack: !Equals [!Ref IncludeAppSamRapidIqPipelineNestedStack, "true"]
+  HasLoadoutAppNestedStack: !Equals [!Ref IncludeLoadoutAppNestedStack, "true"]
+  HasAppSamGisNestedStack: !Equals [!Ref IncludeAppSamGisNestedStack, "true"]
+  HasAppSamNexiQSignalsNestedStack: !Equals [!Ref IncludeAppSamNexiQSignalsNestedStack, "true"]
+  HasAppSamNexiQIntelNestedStack: !Equals [!Ref IncludeAppSamNexiQIntelNestedStack, "true"]
+  HasAppSamIqAnalyticsNestedStack: !Equals [!Ref IncludeAppSamIqAnalyticsNestedStack, "true"]
+  HasAppSamCommsIntelNestedStack: !Equals [!Ref IncludeAppSamCommsIntelNestedStack, "true"]
+  HasAppSamPreArrivalNestedStack: !Equals [!Ref IncludeAppSamPreArrivalNestedStack, "true"]
   PilotTestFeaturesOn:
     Fn::Or:
       - !Equals [!Ref PilotTestFeaturesEnabled, "true"]
@@ -1051,7 +1110,7 @@ Resources:
         ReuseExistingLoadoutDataResources: "true"
 
 
-  RapidIqIntelDataStack:
+  NexiQIntelDataStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TimeoutInMinutes: 60
@@ -1682,6 +1741,7 @@ Resources:
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
   AppSamGisStack:
+    Condition: HasAppSamGisNestedStack
     Type: AWS::CloudFormation::Stack
     Metadata:
       cfn-lint:
@@ -2547,6 +2607,7 @@ Resources:
 
   # Civic-IQ → Claude NexiQ Signals ingest (POST IAM + GET/PATCH JWT) on AppSam3 HttpApi.
   AppSamNexiQSignalsStack:
+    Condition: HasAppSamNexiQSignalsNestedStack
     Type: AWS::CloudFormation::Stack
     Metadata:
       cfn-lint:
@@ -2609,7 +2670,7 @@ Resources:
 
   # Surgical NexiQ sales intelligence on AppSam3 HttpApi
   # (opportunities/signals/contacts/sources + collectors + EventBridge).
-  AppSamNexiQStack:
+  AppSamRapidIqStack:
     Type: AWS::CloudFormation::Stack
     Metadata:
       cfn-lint:
@@ -2705,13 +2766,14 @@ Resources:
         ManagedPolicyNamePrefix: !Ref AWS::StackName
 
   # NexiQ Signal Intelligence Pipeline (procurement signals → CRM)
-  # Separate from AppSamNexiQStack opportunity feed.
+  # Separate from AppSamRapidIqStack opportunity feed.
   # Live parent still has logical id AppSamRapidIqPipelineStack → deleted nested
   # JWN4SGUYZXYF (2026-10-08 ghost s3r1f5g). Before this resource can CREATE:
   # put DeletionPolicy: Retain on AppSamRapidIqPipelineStack, deploy, then remove
-  # that logical id (template already uses AppSamNexiQPipelineStack). Surgical
+  # that logical id (template already uses AppSamRapidIqPipelineStack). Surgical
   # stack rapid-cortex-dev-AppSamRapidIqPipelineStack + CLI routes cover HTTP.
-  AppSamNexiQPipelineStack:
+  AppSamRapidIqPipelineStack:
+    Condition: HasAppSamRapidIqPipelineNestedStack
     Type: AWS::CloudFormation::Stack
     Metadata:
       cfn-lint:
@@ -2743,7 +2805,7 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
         AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
         RapidIqSamGovApiKeySecretArn: ""
-        # Apollo/Hunter ARNs — same Secrets Manager secrets as AppSamNexiQStack / PsapCrm.
+        # Apollo/Hunter ARNs — same Secrets Manager secrets as AppSamRapidIqStack / PsapCrm.
         RapidIqHunterApiKeySecretArn: !Ref RapidIqHunterApiKeySecretArn
         RapidIqApolloApiKeySecretArn: !Ref RapidIqApolloApiKeySecretArn
         RapidIqOpenstatesApiKeySecretArn: ""
@@ -3996,6 +4058,7 @@ Resources:
         AnthropicApiKeySecretArn: !Ref AnthropicApiKeySecretArn
 
   LoadoutAppStack:
+    Condition: HasLoadoutAppNestedStack
     Type: AWS::CloudFormation::Stack
     Metadata:
       cfn-lint:
@@ -4033,6 +4096,7 @@ Resources:
 
 
   AppSamNexiQIntelStack:
+    Condition: HasAppSamNexiQIntelNestedStack
     Type: AWS::CloudFormation::Stack
     Metadata:
       cfn-lint:
@@ -4040,11 +4104,11 @@ Resources:
           ignore_checks:
             - W3005
     DependsOn:
-      - RapidIqIntelDataStack
+      - NexiQIntelDataStack
       - AppSam3Stack
       - AppSamStackV2
       - DataLayerStack
-      - AppSamNexiQPipelineStack
+      - AppSamRapidIqPipelineStack
     Properties:
       TimeoutInMinutes: 90
       TemplateURL: nested/stack-app-sam-nexiq-intel.yaml
@@ -4055,18 +4119,18 @@ Resources:
         HttpApiJwtAuthorizerId: ""
         EnableNexiQIntel: !Ref EnableNexiQIntel
         CollectorScheduleExpression: "rate(2 hours)"
-        NexiQIntelSourcesTable: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelSourcesTable
-        NexiQIntelSourceRunsTable: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelSourceRunsTable
-        NexiQIntelDocumentsTable: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelDocumentsTable
-        NexiQIntelSignalsTable: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelSignalsTable
-        NexiQIntelGapsTable: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelGapsTable
-        NexiQIntelBenchmarksTable: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelBenchmarksTable
-        NexiQIntelCoverageTable: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelCoverageTable
-        NexiQIntelRawArtifactsBucket: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelRawArtifactsBucketName
-        NexiQIntelCollectionQueueUrl: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelCollectionQueueUrl
-        NexiQIntelCollectionQueueArn: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelCollectionQueueArn
-        NexiQIntelProcessingQueueUrl: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelProcessingQueueUrl
-        NexiQIntelProcessingQueueArn: !GetAtt RapidIqIntelDataStack.Outputs.NexiQIntelProcessingQueueArn
+        NexiQIntelSourcesTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelSourcesTable
+        NexiQIntelSourceRunsTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelSourceRunsTable
+        NexiQIntelDocumentsTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelDocumentsTable
+        NexiQIntelSignalsTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelSignalsTable
+        NexiQIntelGapsTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelGapsTable
+        NexiQIntelBenchmarksTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelBenchmarksTable
+        NexiQIntelCoverageTable: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelCoverageTable
+        NexiQIntelRawArtifactsBucket: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelRawArtifactsBucketName
+        NexiQIntelCollectionQueueUrl: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelCollectionQueueUrl
+        NexiQIntelCollectionQueueArn: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelCollectionQueueArn
+        NexiQIntelProcessingQueueUrl: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelProcessingQueueUrl
+        NexiQIntelProcessingQueueArn: !GetAtt NexiQIntelDataStack.Outputs.NexiQIntelProcessingQueueArn
         LeadsTableName:
           Fn::If:
             - HasDataLayerNestedStack
@@ -4080,7 +4144,7 @@ Resources:
         CognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         CognitoClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         CognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
-        RapidIqRawSignalsQueueUrl: !GetAtt AppSamNexiQPipelineStack.Outputs.RawSignalsQueueUrl
+        RapidIqRawSignalsQueueUrl: !GetAtt AppSamRapidIqPipelineStack.Outputs.RawSignalsQueueUrl
         RapidIqRawSignalsQueueArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:rapid-cortex-${DeploymentStage}-rapid-iq-pipeline-raw-signals-${DeploymentStage}.fifo"
         RapidIqPipelineSignalsTable:
           Fn::If:
@@ -4089,6 +4153,7 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-rapid-iq-pipeline-signals-${DeploymentStage}"
 
   AppSamIqAnalyticsStack:
+    Condition: HasAppSamIqAnalyticsNestedStack
     Type: AWS::CloudFormation::Stack
     Metadata:
       cfn-lint:
@@ -4499,6 +4564,7 @@ Resources:
 
 
   AppSamCommsIntelStack:
+    Condition: HasAppSamCommsIntelNestedStack
     Type: AWS::CloudFormation::Stack
     Metadata:
       cfn-lint:
@@ -4688,6 +4754,7 @@ Resources:
   # CAD inbound bus nexcortiq.cad is owned by stack-cad-event-bus.yaml
   # (deployed as rapid-cortex-cad-event-bus-{stage}). PreArrival rules use CadEventBusName.
   AppSamPreArrivalStack:
+    Condition: HasAppSamPreArrivalNestedStack
     Type: AWS::CloudFormation::Stack
     Metadata:
       cfn-lint:
@@ -4993,23 +5060,29 @@ Outputs:
         - !GetAtt DataLayerStack.Outputs.AnalyticsDailyTable
         - !Sub "${DynamoTableNamePrefix}-analytics-daily-${DeploymentStage}"
   LoadoutApiEndpoint:
+    Condition: HasLoadoutAppNestedStack
     Description: Loadout external REST API base URL (/v1/*)
     Value: !GetAtt LoadoutAppStack.Outputs.LoadoutApiEndpoint
   LoadoutAuthorizerArn:
+    Condition: HasLoadoutAppNestedStack
     Description: Loadout REQUEST authorizer Lambda ARN
     Value: !GetAtt LoadoutAppStack.Outputs.LoadoutAuthorizerArn
   LoadoutInvoiceGeneratorFunctionName:
+    Condition: HasLoadoutAppNestedStack
     Description: Loadout monthly invoice generator function name
     Value: !GetAtt LoadoutAppStack.Outputs.LoadoutInvoiceGeneratorFunctionName
   RapidIqIntelWatchWorkerFunctionName:
+    Condition: HasAppSamRapidIqPipelineNestedStack
     Description: Opportunity Intelligence watch worker (web search + collect)
-    Value: !GetAtt AppSamNexiQPipelineStack.Outputs.IntelWatchWorkerFunctionName
+    Value: !GetAtt AppSamRapidIqPipelineStack.Outputs.IntelWatchWorkerFunctionName
   RapidIqRfpUnifiedCounterFunctionName:
+    Condition: HasAppSamRapidIqPipelineNestedStack
     Description: Unified RFP count snapshot Lambda
-    Value: !GetAtt AppSamNexiQPipelineStack.Outputs.RfpUnifiedCounterFunctionName
+    Value: !GetAtt AppSamRapidIqPipelineStack.Outputs.RfpUnifiedCounterFunctionName
   RapidIqPipelineSignalsTableName:
+    Condition: HasAppSamRapidIqPipelineNestedStack
     Description: Pipeline + intel + watches + RFP snapshot table
-    Value: !GetAtt AppSamNexiQPipelineStack.Outputs.RapidIqPipelineSignalsTableName
+    Value: !GetAtt AppSamRapidIqPipelineStack.Outputs.RapidIqPipelineSignalsTableName
   GenerateGrantPackageFunctionName:
     Description: Grant generate Lambda name (web BFF direct Invoke for ~60s Anthropic budget)
     Value: !GetAtt AppSam3Stack.Outputs.GenerateGrantPackageFunctionName

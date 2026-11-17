@@ -19,6 +19,7 @@ import {
 import {
   emergencyHandoffFromTranscript,
   executeNovaSonicTool,
+  executeNovaSonicLifecycleTool,
   fallbackHandoff,
   initialHandoff,
   mergeHandoff,
@@ -34,6 +35,8 @@ export type NovaSonicStreamDeps = {
   voiceId?: string;
   modelId?: string;
   config?: NovaSonicToolContext["config"];
+  /** ANI from Connect flow for known-caller lookup. Never used as a trust anchor for writes. */
+  ani?: string;
   /** Yields base64 LPCM chunks from Connect/KVS (or mock). */
   audioSource: AsyncIterable<string>;
   onAudioOut?: (base64: string) => void | Promise<void>;
@@ -82,6 +85,7 @@ export async function runNovaSonicStreamMock(deps: NovaSonicStreamDeps): Promise
     contactId: deps.contactId,
     config: deps.config,
     intake,
+    ani: deps.ani,
   };
 
   for await (const chunk of deps.audioSource) {
@@ -187,6 +191,7 @@ export async function runNovaSonicStream(deps: NovaSonicStreamDeps): Promise<Nov
   let transcript = "";
   let intake: NovaSonicIntakeState = {};
   let handoff = initialHandoff();
+  const lifecycleEnabled = deps.config?.confirmationLoopEnabled === true;
   const pendingOut: NovaSonicSessionEvent[] = [
     ...novaSonicOpeningEvents({
       promptName,
@@ -194,6 +199,7 @@ export async function runNovaSonicStream(deps: NovaSonicStreamDeps): Promise<Nov
       voiceId: deps.voiceId,
       systemPrompt: deps.systemPrompt,
       includeTools: true,
+      includeLifecycleTools: lifecycleEnabled,
     }),
     {
       event: {
@@ -327,12 +333,20 @@ export async function runNovaSonicStream(deps: NovaSonicStreamDeps): Promise<Nov
       if (inner) {
         const tool = parseToolUse(inner);
         if (tool) {
-          const result = executeNovaSonicTool(tool.toolName, tool.content, {
+          const toolCtx: NovaSonicToolContext = {
             agencyId: deps.agencyId,
             contactId: deps.contactId,
             config: deps.config,
             intake,
-          });
+            ani: deps.ani,
+          };
+          // Phase 1: try lifecycle tools first; fall back to synchronous intake tools.
+          let result = lifecycleEnabled
+            ? await executeNovaSonicLifecycleTool(tool.toolName, tool.content, toolCtx).catch(() => null)
+            : null;
+          if (!result) {
+            result = executeNovaSonicTool(tool.toolName, tool.content, toolCtx);
+          }
           intake = { ...intake, ...result.intakePatch };
           handoff = mergeHandoff(handoff, result.handoff);
           toolSeq += 1;

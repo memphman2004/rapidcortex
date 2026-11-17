@@ -7,6 +7,7 @@ import {
 } from "rapid-cortex-shared";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import {
+  badRequest,
   badRequestFromZod,
   forbidden,
   notFound,
@@ -41,7 +42,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     if (routeKey === "POST /api/qa/coaching-notes") {
       auth.assertCanPerform(user, "qa.coaching_create");
-      const parsed = createCoachingNoteBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b1: unknown; try { _b1 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = createCoachingNoteBodySchema.safeParse(_b1);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const created = await service.create(user, parsed.data);
       return ok(created, 201);
@@ -58,7 +60,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (routeKey === "PATCH /api/qa/coaching-notes/{noteId}") {
       auth.assertCanPerform(user, "qa.coaching_create");
       if (!noteId) return notFound();
-      const parsed = patchCoachingNoteBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b2: unknown; try { _b2 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = patchCoachingNoteBodySchema.safeParse(_b2);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const updated = await service.patch(user, noteId, parsed.data);
       return ok(updated);

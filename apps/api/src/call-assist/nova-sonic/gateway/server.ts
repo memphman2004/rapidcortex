@@ -23,6 +23,8 @@ type StartBody = {
   modelId?: string;
   /** Pipe-separated mock utterances for smoke without KVS. */
   mockUtterances?: string;
+  /** ANI from Connect flow (Phase 1 — known-caller lifecycle lookup). */
+  ani?: string;
 };
 
 const active = new Map<string, AbortController>();
@@ -105,6 +107,8 @@ async function runSession(body: StartBody): Promise<void> {
       voiceId: body.voiceId || existing?.voiceId || "matthew",
       modelId: body.modelId || existing?.modelId || NOVA_2_SONIC_MODEL_ID,
       config,
+      // Phase 1: forward ANI stored at session-start for known-caller lifecycle lookup.
+      ani: existing?.ani || body.ani,
       audioSource: mockOrIdleAudio(body.mockUtterances),
       onHandoff: async (handoff) => {
         await updateNovaSonicSession(agencyId, contactId, {

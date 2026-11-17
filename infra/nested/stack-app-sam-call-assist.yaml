@@ -138,6 +138,12 @@ Conditions:
   CreateNovaSessionStartFunction: !Equals [!Ref ExistingNovaSessionStartFunctionName, ""]
   CreateNovaSessionAwaitFunction: !Equals [!Ref ExistingNovaSessionAwaitFunctionName, ""]
   CreateCallAssistDisconnectFunction: !Equals [!Ref ExistingCallAssistDisconnectFunctionName, ""]
+  # Inverse conditions — used to guard !Sub ARN constructions against empty-string
+  # parameter values that would produce invalid ARNs (CloudFormation validates all
+  # !If branches regardless of which one resolves at deploy time).
+  HasExistingNovaSessionStartFunctionName: !Not [!Equals [!Ref ExistingNovaSessionStartFunctionName, ""]]
+  HasExistingNovaSessionAwaitFunctionName: !Not [!Equals [!Ref ExistingNovaSessionAwaitFunctionName, ""]]
+  HasExistingCallAssistDisconnectFunctionName: !Not [!Equals [!Ref ExistingCallAssistDisconnectFunctionName, ""]]
   HasConnectWebhookSecret: !Not [!Equals [!Ref CallAssistConnectWebhookSecretArn, ""]]
   HasRapidSosSecret: !Not [!Equals [!Ref CallAssistRapidSosSecretArn, ""]]
   HasLexBotRole: !Not [!Equals [!Ref CallAssistLexBotRoleArn, ""]]
@@ -496,18 +502,21 @@ Resources:
       Timeout: 60
       Environment:
         Variables:
+          # Flip condition to HasExisting* (inverse of Create*) so the !Sub only
+          # executes when the function name is guaranteed non-empty. Both branches
+          # are reachable (cfn-lint W1028 safe; no invalid ARN in either branch).
           NOVA_SESSION_START_LAMBDA_ARN: !If
-            - CreateNovaSessionStartFunction
-            - !GetAtt NovaSessionStartFunction.Arn
+            - HasExistingNovaSessionStartFunctionName
             - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingNovaSessionStartFunctionName}"
+            - !GetAtt NovaSessionStartFunction.Arn
           NOVA_SESSION_AWAIT_LAMBDA_ARN: !If
-            - CreateNovaSessionAwaitFunction
-            - !GetAtt NovaSessionAwaitFunction.Arn
+            - HasExistingNovaSessionAwaitFunctionName
             - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingNovaSessionAwaitFunctionName}"
+            - !GetAtt NovaSessionAwaitFunction.Arn
           CALL_ASSIST_DISCONNECT_LAMBDA_ARN: !If
-            - CreateCallAssistDisconnectFunction
-            - !GetAtt CallAssistDisconnectFunction.Arn
+            - HasExistingCallAssistDisconnectFunctionName
             - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingCallAssistDisconnectFunctionName}"
+            - !GetAtt CallAssistDisconnectFunction.Arn
       Policies:
         - !Ref AppManagedPolicyCallAssistDynamo
 
@@ -530,9 +539,9 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: !If
-        - CreateCallAssistDisconnectFunction
-        - !Ref CallAssistDisconnectFunction
+        - HasExistingCallAssistDisconnectFunctionName
         - !Ref ExistingCallAssistDisconnectFunctionName
+        - !Ref CallAssistDisconnectFunction
       Action: lambda:InvokeFunction
       Principal: connect.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
@@ -740,9 +749,9 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: !If
-        - CreateNovaSessionStartFunction
-        - !Ref NovaSessionStartFunction
+        - HasExistingNovaSessionStartFunctionName
         - !Ref ExistingNovaSessionStartFunctionName
+        - !Ref NovaSessionStartFunction
       Action: lambda:InvokeFunction
       Principal: connect.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
@@ -751,9 +760,9 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: !If
-        - CreateNovaSessionAwaitFunction
-        - !Ref NovaSessionAwaitFunction
+        - HasExistingNovaSessionAwaitFunctionName
         - !Ref ExistingNovaSessionAwaitFunctionName
+        - !Ref NovaSessionAwaitFunction
       Action: lambda:InvokeFunction
       Principal: connect.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
@@ -1076,21 +1085,21 @@ Outputs:
   NovaSessionStartFunctionArn:
     Description: Connect InvokeLambda ARN for Nova Sonic session start
     Value: !If
-      - CreateNovaSessionStartFunction
-      - !GetAtt NovaSessionStartFunction.Arn
+      - HasExistingNovaSessionStartFunctionName
       - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingNovaSessionStartFunctionName}"
+      - !GetAtt NovaSessionStartFunction.Arn
   NovaSessionAwaitFunctionArn:
     Description: Connect InvokeLambda ARN for Nova Sonic session await / stream
     Value: !If
-      - CreateNovaSessionAwaitFunction
-      - !GetAtt NovaSessionAwaitFunction.Arn
+      - HasExistingNovaSessionAwaitFunctionName
       - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingNovaSessionAwaitFunctionName}"
+      - !GetAtt NovaSessionAwaitFunction.Arn
   CallAssistDisconnectFunctionArn:
     Description: Connect InvokeLambda ARN — closes OPEN Lex/Nova sessions on disconnect
     Value: !If
-      - CreateCallAssistDisconnectFunction
-      - !GetAtt CallAssistDisconnectFunction.Arn
+      - HasExistingCallAssistDisconnectFunctionName
       - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingCallAssistDisconnectFunctionName}"
+      - !GetAtt CallAssistDisconnectFunction.Arn
   NovaSonicGatewayClusterName:
     Condition: CreateNovaSonicGateway
     Value: !Ref NovaSonicGatewayCluster

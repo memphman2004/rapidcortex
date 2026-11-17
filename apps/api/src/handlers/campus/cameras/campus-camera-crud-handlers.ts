@@ -240,9 +240,11 @@ export const discover: APIGatewayProxyHandlerV2 = async (event) => {
     );
   } catch (error) {
     console.error("[campus-camera-discover]", error);
+    const msg = error instanceof Error ? error.message : "ONVIF discovery failed";
+    const isOnvifError = typeof msg === "string" && msg.toUpperCase().includes("ONVIF");
     return withCorrelationHeaders(
       event,
-      badRequest(error instanceof Error ? error.message : "ONVIF discovery failed"),
+      isOnvifError ? badRequest(msg) : serverError(),
     );
   }
 };

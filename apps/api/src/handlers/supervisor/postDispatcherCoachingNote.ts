@@ -16,7 +16,9 @@ const service = new DispatcherPerformanceService();
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
-    const parsed = postDispatcherCoachingNoteBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+    let rawBody: unknown;
+    try { rawBody = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+    const parsed = postDispatcherCoachingNoteBodySchema.safeParse(rawBody);
     if (!parsed.success) return badRequestFromZod(parsed.error);
 
     const user = await getUserContext(event);

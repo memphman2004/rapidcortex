@@ -6,6 +6,7 @@ import {
   NOVA_2_SONIC_MODEL_ID,
   decideCallAssistVoiceEngine,
   emptyNovaSonicConnectHandoffAttrs,
+  aniRecognitionGreeting,
 } from "rapid-cortex-shared";
 import { getLexTenantConfig } from "../lex/runtime-store.js";
 import {
@@ -15,6 +16,7 @@ import {
   putNovaSonicSession,
   type NovaSonicSessionRow,
 } from "./session-record.js";
+import { callAssistStore } from "../store.js";
 import { initialHandoff } from "./tools.js";
 
 export type NovaSessionStartEvent = {
@@ -23,6 +25,7 @@ export type NovaSessionStartEvent = {
     ContactData?: {
       ContactId?: string;
       Attributes?: Record<string, string>;
+      CustomerEndpoint?: { Address?: string };
     };
     ContactId?: string;
   };
@@ -57,6 +60,46 @@ function kvsArnFrom(event: NovaSessionStartEvent): string {
   );
 }
 
+/**
+ * Returns the caller ANI from the Connect event.
+ * CustomerEndpoint.Address is the E.164 caller number set by Connect.
+ * SECURITY: this value is used only for read-only lookup suggestions.
+ * agencyId must come from DID context, not from ANI.
+ */
+function aniFrom(event: NovaSessionStartEvent): string {
+  return (
+    event.Details?.ContactData?.CustomerEndpoint?.Address?.trim() ||
+    event.Details?.Parameters?.ani?.trim() ||
+    event.Details?.Parameters?.ANI?.trim() ||
+    ""
+  );
+}
+
+/**
+ * Phase 1 — Build a known-caller prompt addendum when confirmationLoopEnabled is true
+ * and there is a recent open record for the caller's ANI within this agency.
+ * Returns empty string when disabled or no match found.
+ * This is appended to `config.systemPromptAppend` before building the system prompt.
+ * It does NOT modify the assistant identity block.
+ */
+async function knownCallerPromptAddendum(opts: {
+  agencyId: string;
+  ani: string;
+  confirmationLoopEnabled?: boolean;
+}): Promise<string> {
+  if (!opts.confirmationLoopEnabled || !opts.ani || !opts.agencyId) return "";
+  try {
+    const record = await callAssistStore.findLatestRecordByAni(opts.agencyId, opts.ani);
+    if (!record) return "";
+    // Only surface open/active cases — not terminal ones
+    const terminal = new Set(["CLOSED", "CANCELLED", "DUPLICATE"]);
+    if (terminal.has(record.status)) return "";
+    return `\n\nKNOWN CALLER CONTEXT: ${aniRecognitionGreeting(record.confirmationNumber)}`;
+  } catch {
+    return "";
+  }
+}
+
 export async function buildNovaSessionStartResult(
   event: NovaSessionStartEvent,
 ): Promise<NovaSessionStartResult> {
@@ -83,11 +126,22 @@ export async function buildNovaSessionStartResult(
     config?.shortName?.trim() ||
     agencyId;
 
+  // Phase 1 — ANI known-caller addendum (non-blocking, fail-safe)
+  const ani = aniFrom(event);
+  const knownCallerAddendum = await knownCallerPromptAddendum({
+    agencyId,
+    ani,
+    confirmationLoopEnabled: config?.confirmationLoopEnabled,
+  });
+  const agencyPromptWithContext = knownCallerAddendum
+    ? `${config?.systemPromptAppend ?? ""}${knownCallerAddendum}`
+    : config?.systemPromptAppend;
+
   const decision = decideCallAssistVoiceEngine({
     agencyId,
     sessionId: contactId,
     novaSonicEnabled: config?.novaSonicEnabled === true,
-    agencyPrompt: config?.systemPromptAppend,
+    agencyPrompt: agencyPromptWithContext,
     agencyVoiceName,
     voiceId: config?.novaSonicVoiceId,
   });
@@ -121,6 +175,8 @@ export async function buildNovaSessionStartResult(
     agencyVoiceName,
     systemPrompt: decision.systemPrompt ?? "",
     voiceId: config?.novaSonicVoiceId?.trim() || "matthew",
+    // ANI is stored for the gateway server to pass to the stream (Phase 1 lifecycle lookup).
+    ...(ani ? { ani } : {}),
     modelId: decision.modelId ?? NOVA_2_SONIC_MODEL_ID,
     kvsStreamArn: kvsArnFrom(event) || undefined,
     status: "PENDING",

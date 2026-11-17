@@ -4,7 +4,7 @@ import {
   getUserContext,
   isUserAccountActive,
 } from "../../lib/auth.js";
-import { notFound, ok, unauthorized } from "../../lib/response.js";
+import { badRequest, notFound, ok, unauthorized } from "../../lib/response.js";
 import { AccessOverrideService } from "../../services/accessOverrideService.js";
 import { normalizeAccessOverridesError } from "./accessOverridesHttp.shared.js";
 
@@ -17,7 +17,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (!isUserAccountActive(user)) return unauthorized(ACCOUNT_INACTIVE_MESSAGE);
     const overrideId = event.pathParameters?.overrideId;
     if (!overrideId) return notFound("Missing override id");
-    const body = JSON.parse(event.body ?? "{}") as unknown;
+    let body: unknown;
+    try { body = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
     const out = await service.revoke(user, overrideId, body, event, event.queryStringParameters?.agencyId ?? null);
     return ok(out);
   } catch (error) {

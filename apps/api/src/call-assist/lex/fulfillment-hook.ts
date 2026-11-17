@@ -34,6 +34,20 @@ import {
   spokenClosingWithConfirmation,
   spokenClosingWithConfirmationAndRepeatAsk,
 } from "../finalize-intake.js";
+import { callAssistStore } from "../store.js";
+import {
+  isCaseLifecycleEnabled,
+  caseStatusReadout,
+  caseNotFoundVoice,
+  reopenAcknowledgementVoice,
+  escalationAcknowledgementVoice,
+  escalationCapVoice,
+  formatConfirmationForSpeech,
+  isValidConfirmationFormat,
+} from "rapid-cortex-shared";
+
+/** Constant — the Lex intent name for status/lifecycle check-in. */
+const CHECK_STATUS_INTENT = "CheckServiceRequestStatus";
 
 export type FulfillmentAction =
   | { type: "emergency"; reason: Extract<TransferReason, "EMERGENCY" | "INJURY_PRIORITY"> }
@@ -189,6 +203,130 @@ export async function handleFulfillment(event: LexV2Event): Promise<LexV2Respons
       action.reason,
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // Phase 1 — Confirmation Loop: handle CheckServiceRequestStatus as a lookup,
+  // not as a new service-request creation. This block fires ONLY when:
+  //   (a) the tenant has confirmationLoopEnabled = true, AND
+  //   (b) the intent is CheckServiceRequestStatus.
+  // When either condition is false, execution falls through to the existing
+  // finalizeCallAssistIntake path (today's behavior is fully preserved).
+  // ---------------------------------------------------------------------------
+  if (
+    event.sessionState.intent.name === CHECK_STATUS_INTENT &&
+    isCaseLifecycleEnabled(config)
+  ) {
+    const rawConfirmation = (
+      slots.ServiceRequestNumber ??
+      sessionAttrs.caseNumber ??
+      sessionAttrs.confirmationNumber ??
+      ""
+    ).trim().toUpperCase();
+    const subIssue = (slots.ServiceStatusSubIssue ?? "").trim().toLowerCase();
+    const ani = (sessionAttrs.ani ?? sessionAttrs.ANI ?? "").trim();
+    const isReopen = subIssue.includes("reopen") || subIssue.includes("re-open");
+    const isEscalate = subIssue.includes("escalat");
+
+    // --- Resolve the call record ---
+    let record = isValidConfirmationFormat(rawConfirmation) && agencyId
+      ? await callAssistStore.lookupCallRecord(agencyId, rawConfirmation).catch(() => null)
+      : null;
+
+    // ANI fallback: if caller didn't provide a number, check their phone number
+    if (!record && ani && agencyId) {
+      record = await callAssistStore.findLatestRecordByAni(agencyId, ani).catch(() => null);
+    }
+
+    if (!record) {
+      // No record found — tell the caller and don't create a new SR
+      const notFoundText = caseNotFoundVoice(rawConfirmation || "that number");
+      return {
+        sessionState: {
+          sessionAttributes: { ...sessionAttrs, agencyId, callId },
+          dialogAction: { type: "Close", fulfillmentState: "Failed" },
+          intent: { name: CHECK_STATUS_INTENT, state: "Failed" },
+        },
+        messages: [{ contentType: "PlainText", content: notFoundText }],
+      };
+    }
+
+    // --- Route based on sub-issue ---
+    let responseText: string;
+    let sessionEndAttributes = { ...sessionAttrs, agencyId, callId, confirmationNumber: record.confirmationNumber };
+
+    if (isEscalate) {
+      // Escalation requires explicit caller confirmation — the slot collection already
+      // asked the caller to confirm before Lex called fulfillment. Write the escalation.
+      const result = await callAssistStore.requestCaseEscalation({
+        agencyId,
+        confirmationNumber: record.confirmationNumber,
+        note: `Citizen requested escalation via voice. Original transcript: ${(sessionAttrs.transcript ?? "").slice(0, 200)}`,
+        updatedBy: "RESIDENT_VOICE",
+      }).catch(() => null);
+
+      if (!result) {
+        // Store error — degrade gracefully
+        responseText = `I noted your escalation request for report ${formatConfirmationForSpeech(record.confirmationNumber)}. Someone will follow up with you.`;
+      } else if (!result.ok) {
+        responseText =
+          result.error === "ESCALATION_CAP_EXCEEDED"
+            ? escalationCapVoice(formatConfirmationForSpeech(record.confirmationNumber))
+            : result.error === "TERMINAL_STATUS"
+              ? `Your report ${formatConfirmationForSpeech(record.confirmationNumber)} is in a final status and cannot be escalated. If you need help, please call back and we can open a new report.`
+              : `I wasn't able to escalate that report right now. Please try again or call the non-emergency line. This is not 911.`;
+      } else {
+        responseText = escalationAcknowledgementVoice(formatConfirmationForSpeech(result.value.confirmationNumber));
+      }
+    } else if (isReopen) {
+      const result = await callAssistStore.requestCaseReopen({
+        agencyId,
+        confirmationNumber: record.confirmationNumber,
+        note: `Citizen requested reopen via voice.`,
+        updatedBy: "RESIDENT_VOICE",
+      }).catch(() => null);
+
+      if (!result) {
+        responseText = `I noted your reopen request for report ${formatConfirmationForSpeech(record.confirmationNumber)}. Someone will review it.`;
+      } else if (!result.ok) {
+        responseText =
+          result.error === "REOPEN_ALREADY_PENDING"
+            ? `A reopen request is already pending for report ${formatConfirmationForSpeech(record.confirmationNumber)}. The team will review it shortly.`
+            : result.error === "TERMINAL_STATUS"
+              ? `Report ${formatConfirmationForSpeech(record.confirmationNumber)} cannot be reopened. If the issue has returned, please describe it and I'll open a new report.`
+              : `I noted your request but couldn't update the record. Please try again or call the non-emergency line.`;
+      } else {
+        responseText = reopenAcknowledgementVoice(formatConfirmationForSpeech(result.value.confirmationNumber));
+      }
+    } else {
+      // Default: status readout
+      const readout = caseStatusReadout(record);
+      responseText = `${readout.voiceText} Is there anything else I can help you with?`;
+    }
+
+    if (smsChannel) {
+      const smsText = (() => {
+        const readout = caseStatusReadout(record);
+        return isEscalate || isReopen ? responseText : readout.smsText;
+      })();
+      return {
+        sessionState: {
+          sessionAttributes: { ...sessionEndAttributes, transferReason: "COMPLETE" },
+          dialogAction: { type: "Close", fulfillmentState: "Fulfilled" },
+          intent: { name: CHECK_STATUS_INTENT, state: "Fulfilled" },
+        },
+        messages: [{ contentType: "PlainText", content: smsText }],
+      };
+    }
+
+    // Voice: keep session open briefly for follow-up
+    return holdIntentPromptResponse(
+      CHECK_STATUS_INTENT,
+      {},
+      { ...sessionEndAttributes, awaitingAnythingElse: "true", transferReason: "COMPLETE" },
+      [speakForEngine(responseText, sessionAttrs.voiceEngine)],
+    );
+  }
+  // --- end Phase 1 confirmation loop ---
 
   const priorSession = agencyId && callId ? await getLexSession(agencyId, callId).catch(() => null) : null;
   const priorUtterances = priorSession?.utterances ?? [];

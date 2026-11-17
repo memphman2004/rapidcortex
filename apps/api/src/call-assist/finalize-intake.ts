@@ -319,3 +319,59 @@ export async function finalizeCallAssistIntake(opts: {
 
   return { session, callRecord, confirmationNumber, departmentId: route.departmentId };
 }
+
+// ---------------------------------------------------------------------------
+// Phase 1 — Status-transition proactive SMS
+// ---------------------------------------------------------------------------
+
+/**
+ * Send a proactive SMS when a case status changes.
+ * Only sends when `config.threeOneOneStatusSmsEnabled === true`.
+ * Non-fatal: errors are caught and logged; never abort the caller's status update.
+ *
+ * SECURITY: notifyPhone comes from the DynamoDB record (stored with citizen consent),
+ * never from HTTP request parameters.
+ */
+export async function sendStatusTransitionSms(opts: {
+  agencyId: string;
+  sessionId: string;
+  confirmationNumber: string;
+  newStatus: import("rapid-cortex-shared").CallAssistCallStatus;
+  notifyPhone?: string;
+  department?: string;
+  config: CallAssistTenantConfig;
+}): Promise<boolean> {
+  if (!opts.config.threeOneOneStatusSmsEnabled) return false;
+  if (!opts.config.confirmationLoopEnabled) return false;
+  const phone = digitsPhone(opts.notifyPhone);
+  if (!phone) return false;
+
+  const { statusTransitionSms } = await import("rapid-cortex-shared");
+  const message = statusTransitionSms({
+    confirmationNumber: opts.confirmationNumber,
+    newStatus: opts.newStatus,
+    department: opts.department,
+    agencyShortName: opts.config.agencyShortName ?? opts.config.shortName,
+  });
+
+  try {
+    await deliverNotifySms(opts.agencyId, [phone], message, opts.sessionId);
+    try {
+      await auditRepo.create({
+        eventId: makeId("audit"),
+        agencyId: opts.agencyId,
+        actorId: "system:status-sms",
+        type: AUDIT_EVENT_TYPES.CALL_ASSIST_SMS_CONFIRMATION_SENT,
+        details: { confirmationNumber: opts.confirmationNumber, statusTransition: opts.newStatus },
+        createdAt: new Date().toISOString(),
+        resourceType: "call_assist_session",
+        resourceId: opts.sessionId,
+      });
+    } catch {
+      /* non-fatal */
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}

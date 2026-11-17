@@ -82,6 +82,7 @@ import {
 import { handleCallAssistP2 } from "./p2.js";
 import { handleCallAssistP3 } from "./p3.js";
 import { getMediaForConfirmation } from "../../call-assist/sms-channel/media-viewer.js";
+import { sendStatusTransitionSms } from "../../call-assist/finalize-intake.js";
 
 const authz = new AuthorizationService();
 const auditRepo = new AuditRepository();
@@ -1049,6 +1050,59 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         resourceType: "call_assist_session",
         resourceId: updated.sessionId,
       });
+      // Phase 1 — send proactive SMS if tenant has threeOneOneStatusSmsEnabled (non-blocking)
+      if (updated.notifyPhone) {
+        void callAssistStore.getConfig(agencyId).then((tenantConfig) => {
+          if (tenantConfig) {
+            return sendStatusTransitionSms({
+              agencyId,
+              sessionId: updated.sessionId,
+              confirmationNumber: confirmation,
+              newStatus: "ACKNOWLEDGED",
+              notifyPhone: updated.notifyPhone,
+              department: updated.department,
+              config: tenantConfig,
+            });
+          }
+        }).catch(() => undefined);
+      }
+      return withCorrelationHeaders(event, ok({ record: updated }));
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase 1 — Lifecycle endpoints
+    // -------------------------------------------------------------------------
+
+    // GET /call-records/{confirmation}/history — status history for a case
+    if (method === "GET" && parts[0] === "call-records" && parts[2] === "history" && parts[1]) {
+      requirePerm(user, "call_assist.session.view");
+      const confirmation = decodeURIComponent(parts[1]);
+      const history = await callAssistStore.getCaseHistory(agencyId, confirmation);
+      return withCorrelationHeaders(event, ok({ confirmationNumber: confirmation, history }));
+    }
+
+    // POST /call-records/{confirmation}/request-human — flag for human follow-up
+    if (method === "POST" && parts[0] === "call-records" && parts[2] === "request-human" && parts[1]) {
+      requirePerm(user, "call_assist.session.view");
+      const confirmation = decodeURIComponent(parts[1]);
+      const updated = await callAssistStore.requestHumanFollowUp({
+        agencyId,
+        confirmationNumber: confirmation,
+        note: `Flagged by staff: ${user.userId}`,
+        updatedBy: `STAFF_${user.userId}`,
+      });
+      if (!updated) return withCorrelationHeaders(event, notFound("Call record not found"));
+      return withCorrelationHeaders(event, ok({ record: updated }));
+    }
+
+    // POST /call-records/{confirmation}/subscribe-updates — citizen SMS opt-in (staff-initiated)
+    if (method === "POST" && parts[0] === "call-records" && parts[2] === "subscribe-updates" && parts[1]) {
+      requirePerm(user, "call_assist.session.view");
+      const confirmation = decodeURIComponent(parts[1]);
+      const phone = (body as { notifyPhone?: string })?.notifyPhone?.trim();
+      if (!phone) return withCorrelationHeaders(event, badRequest("notifyPhone is required"));
+      const updated = await callAssistStore.subscribeCaseUpdates({ agencyId, confirmationNumber: confirmation, notifyPhone: phone });
+      if (!updated) return withCorrelationHeaders(event, notFound("Call record not found"));
       return withCorrelationHeaders(event, ok({ record: updated }));
     }
 

@@ -25,7 +25,10 @@ export async function GET(_request: Request, ctx: Ctx) {
     );
   }
 
-  const agency = (await res.json()) as AgencyTenant;
+  let agency: AgencyTenant;
+  try { agency = (await res.json()) as AgencyTenant; } catch {
+    return NextResponse.json({ error: "Invalid response from campus API" }, { status: 502 });
+  }
   return NextResponse.json(campusSettingsFromAgency(agency));
 }
 
@@ -59,6 +62,9 @@ export async function PATCH(request: Request, ctx: Ctx) {
     );
   }
 
-  const agency = (await res.json()) as AgencyTenant;
-  return NextResponse.json(campusSettingsFromAgency(agency));
+  let agencyPatched: AgencyTenant;
+  try { agencyPatched = (await res.json()) as AgencyTenant; } catch {
+    return NextResponse.json({ error: "Invalid response from campus API" }, { status: 502 });
+  }
+  return NextResponse.json(campusSettingsFromAgency(agencyPatched));
 }

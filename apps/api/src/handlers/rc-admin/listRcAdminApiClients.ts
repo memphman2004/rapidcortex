@@ -1,7 +1,7 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { isRcsuperadmin } from "rapid-cortex-shared";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
-import { ok, unauthorized } from "../../lib/response.js";
+import { ok, serverError, unauthorized } from "../../lib/response.js";
 import { ApiClientsManagementService } from "../../services/apiClientsManagementService.js";
 
 const svc = new ApiClientsManagementService();
@@ -20,6 +20,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (statusFilter) items = items.filter((r) => r.status.toLowerCase() === statusFilter);
     return ok({ items });
   } catch (e: unknown) {
-    throw e;
+    console.error("[listRcAdminApiClients]", e);
+    return serverError();
   }
 };

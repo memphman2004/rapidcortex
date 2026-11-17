@@ -30,7 +30,15 @@ export async function serverPricingFetch(
   }
   headers.set("authorization", `Bearer ${token}`);
 
-  return fetch(target, { ...init, headers, cache: "no-store" });
+  try {
+    return await fetch(target, { ...init, headers, cache: "no-store" });
+  } catch (err) {
+    console.error("[serverPricingFetch] network error:", path, err);
+    return new Response(
+      JSON.stringify({ error: "Pricing API temporarily unreachable" }),
+      { status: 503, headers: { "content-type": "application/json" } },
+    );
+  }
 }
 
 export async function serverPricingJson<T>(path: string, init?: RequestInit): Promise<T | null> {

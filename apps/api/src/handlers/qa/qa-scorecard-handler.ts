@@ -43,7 +43,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     if (routeKey === "POST /api/qa/scorecards") {
       auth.assertCanPerform(user, "qa.scorecards_create");
-      const parsed = createQaScorecardBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b1: unknown; try { _b1 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = createQaScorecardBodySchema.safeParse(_b1);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const created = await service.create(user, parsed.data);
       return ok(created, 201);
@@ -67,7 +68,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (routeKey === "PATCH /api/qa/scorecards/{scorecardId}") {
       auth.assertCanPerform(user, "qa.scorecards_create");
       if (!scorecardId) return notFound();
-      const parsed = patchQaScorecardBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b2: unknown; try { _b2 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = patchQaScorecardBodySchema.safeParse(_b2);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const updated = await service.patch(user, scorecardId, parsed.data);
       return ok(updated);

@@ -28,7 +28,10 @@ export async function GET(_request: Request, ctx: Ctx) {
     });
   }
 
-  const raw = (await res.json()) as AgencyTenant & { data?: AgencyTenant };
+  let raw: AgencyTenant & { data?: AgencyTenant };
+  try { raw = (await res.json()) as AgencyTenant & { data?: AgencyTenant }; } catch {
+    return NextResponse.json({ institutionType: "higher_ed" as const, agencyId, error: "agency_unavailable" });
+  }
   const agency = (raw.data ?? raw) as AgencyTenant;
   const settings = campusSettingsFromAgency(agency);
   return NextResponse.json({

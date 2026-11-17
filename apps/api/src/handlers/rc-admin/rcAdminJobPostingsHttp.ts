@@ -48,7 +48,7 @@ async function requireRcHiringAdmin(event: Parameters<APIGatewayProxyHandlerV2>[
   const user = await getUserContext(event);
   if (!user) return { error: unauthorized() as ReturnType<typeof unauthorized> };
   if (!isUserAccountActive(user)) {
-    return { error: forbidden(ACCOUNT_INACTIVE_MESSAGE) as ReturnType<typeof forbidden> };
+    return { error: unauthorized(ACCOUNT_INACTIVE_MESSAGE) as ReturnType<typeof unauthorized> };
   }
   if (!canAccessRcFinancePortal(user.role) || !env.enableHiring) {
     return { error: forbidden() as ReturnType<typeof forbidden> };

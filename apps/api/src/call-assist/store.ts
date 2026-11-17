@@ -38,12 +38,19 @@ import type {
   CallAssistLocale,
   CallAssistCallRecord,
   CallAssistCallStatus,
+  StatusHistoryEntry,
+  CaseLifecycleResult,
 } from "rapid-cortex-shared";
 import {
   callAssistAgencyDateGsi,
   callAssistCallerGsi,
   callAssistConfirmSk,
   callAssistSevenYearTtl,
+  validateReopenRequest,
+  validateEscalationRequest,
+  buildHistoryEntry,
+  appendHistory,
+  CASE_LIFECYCLE_UPDATED_BY,
 } from "rapid-cortex-shared";
 import { ddb } from "../repositories/baseRepository.js";
 import { env } from "../lib/env.js";
@@ -169,6 +176,63 @@ export type CallAssistTenantConfig = {
     error?: string;
   }>;
   updatedAt: string;
+  /**
+   * Phase 1 — Confirmation Loop.
+   * When true, the Lex fulfillment hook and Nova Sonic tools handle
+   * CheckServiceRequestStatus as a lookup/lifecycle flow instead of creating a new SR.
+   * Default: false (opt-in per agency).
+   */
+  confirmationLoopEnabled?: boolean;
+  /**
+   * Phase 1 — Status-transition proactive SMS.
+   * When true, outbound SMS is sent whenever a case status changes lifecycle state.
+   * Requires `confirmationLoopEnabled = true`.
+   * Default: false (opt-in per agency).
+   */
+  threeOneOneStatusSmsEnabled?: boolean;
+  /**
+   * Phase 2 — Municipal Service Expansion.
+   * When true, the service execution engine augments Lex routing with structured
+   * department playbooks, intake field guidance, and enriched citizen confirmations.
+   * Requires the department playbooks for this agency's configured departments.
+   * Default: false (opt-in per agency).
+   */
+  municipalServiceExpansionEnabled?: boolean;
+  /**
+   * Phase 3 — Open311 GeoReport v2 adapter.
+   * When true, outbound SR pushes are formatted as Open311 payloads and
+   * inbound Open311 webhooks are accepted and mapped to status history.
+   * Default: false.
+   */
+  open311AdapterEnabled?: boolean;
+  /**
+   * Phase 3 — Duplicate SR detection.
+   * When true, new SR submissions are scored against recent open records
+   * to surface likely duplicates before creating a new record.
+   * Default: false.
+   */
+  duplicateDetectionEnabled?: boolean;
+  /**
+   * Phase 3 — Citizen media/photo upload.
+   * When true, pre-signed S3 URLs are generated for citizen photo attachments
+   * and SMS MMS links are accepted and stored with the SR.
+   * Default: false.
+   */
+  mediaIntakeEnabled?: boolean;
+  /**
+   * Phase 3 — Unified multi-channel inbox.
+   * When true, the supervisor/admin SR list view includes channel metadata,
+   * priority scoring, and inbox filter/sort controls.
+   * Default: false.
+   */
+  unifiedInboxEnabled?: boolean;
+  /**
+   * Phase 3 — SR analytics dashboard.
+   * When true, the analytics suite includes SR-level metrics: volume by
+   * department, SLA adherence, escalation rates, and channel mix.
+   * Default: false.
+   */
+  srAnalyticsEnabled?: boolean;
 };
 
 export const CALL_ASSIST_DID_INDEX_PK = "__did_index__";
@@ -1118,17 +1182,368 @@ export class CallAssistStore {
     status: CallAssistCallStatus;
     department?: string;
     routingEvent?: CallAssistCallRecord["routingLog"][number];
+    /** When set, appended to statusHistory for the lifecycle audit trail. */
+    historyEntry?: StatusHistoryEntry;
+    /** When true, throws ConditionalCheckFailedException on concurrent write instead of silently overwriting. */
+    conditionOnUpdatedAt?: boolean;
   }): Promise<CallAssistCallRecord | null> {
     const existing = await this.getCallRecordByConfirmation(opts.agencyId, opts.confirmationNumber);
     if (!existing) return null;
+    const now = new Date().toISOString();
     const updated: CallAssistCallRecord = {
       ...existing,
       status: opts.status,
       department: opts.department ?? existing.department,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
       routingLog: opts.routingEvent
         ? [...(existing.routingLog ?? []), opts.routingEvent]
         : existing.routingLog,
+      statusHistory: opts.historyEntry
+        ? appendHistory(existing.statusHistory, opts.historyEntry)
+        : existing.statusHistory,
+    };
+    if (opts.conditionOnUpdatedAt) {
+      // Concurrency-safe: only write if no other process changed the record since we read it.
+      await ddb.send(
+        new PutCommand({
+          TableName: table(),
+          Item: {
+            ...updated,
+            sk: callAssistConfirmSk(opts.confirmationNumber),
+            ...callAssistAgencyDateGsi(opts.agencyId, updated.createdAt, opts.confirmationNumber),
+            ...callAssistCallerGsi(updated.callbackNumber || updated.callerNumber, updated.createdAt),
+          },
+          ConditionExpression: "updatedAt = :prev",
+          ExpressionAttributeValues: { ":prev": existing.updatedAt },
+        }),
+      );
+    } else {
+      await this.putCallRecord(updated);
+    }
+    return updated;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phase 1 — Confirmation Loop Lifecycle Operations
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Look up a call record by exact confirmation number (tenant-scoped).
+   * Returns null when not found or agencyId mismatch (cross-tenant guard).
+   */
+  async lookupCallRecord(
+    agencyId: string,
+    confirmationNumber: string,
+  ): Promise<CallAssistCallRecord | null> {
+    return this.getCallRecordByConfirmation(agencyId, confirmationNumber);
+  }
+
+  /**
+   * Find the most recent open/active call record for a caller by ANI (phone number).
+   * Returns the first (most recent) record, or null if none found within this agency.
+   *
+   * SECURITY: agencyId is from the Connect DID context, never from caller-supplied input.
+   * ANI may identify candidates but is never sufficient alone — the returned record is
+   * always re-validated against agencyId before any write operation.
+   */
+  async findLatestRecordByAni(
+    agencyId: string,
+    callerNumber: string,
+    limit = 5,
+  ): Promise<CallAssistCallRecord | null> {
+    const records = await this.listCallRecordsByCaller(callerNumber, limit);
+    // Cross-tenant guard: GSI2 is not agency-scoped — always filter by agencyId.
+    const ours = records.filter((r) => r.agencyId === agencyId);
+    return ours[0] ?? null;
+  }
+
+  /**
+   * Concurrency-safe status update with history entry appended.
+   * Retries up to `maxRetries` times on ConditionalCheckFailedException.
+   */
+  private async updateWithRetry(opts: {
+    agencyId: string;
+    confirmationNumber: string;
+    status: CallAssistCallStatus;
+    updatedBy: string;
+    note?: string;
+    department?: string;
+    extraFields?: Partial<CallAssistCallRecord>;
+    maxRetries?: number;
+  }): Promise<CallAssistCallRecord | null> {
+    const maxRetries = opts.maxRetries ?? 3;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const historyEntry = buildHistoryEntry({
+          status: opts.status,
+          updatedBy: opts.updatedBy,
+          note: opts.note,
+        });
+        const existing = await this.getCallRecordByConfirmation(opts.agencyId, opts.confirmationNumber);
+        if (!existing) return null;
+        // Cross-tenant guard
+        if (existing.agencyId !== opts.agencyId) return null;
+
+        const now = new Date().toISOString();
+        const updated: CallAssistCallRecord = {
+          ...existing,
+          ...opts.extraFields,
+          status: opts.status,
+          department: opts.department ?? existing.department,
+          updatedAt: now,
+          statusHistory: appendHistory(existing.statusHistory, historyEntry),
+        };
+        await ddb.send(
+          new PutCommand({
+            TableName: table(),
+            Item: {
+              ...updated,
+              sk: callAssistConfirmSk(opts.confirmationNumber),
+              ...callAssistAgencyDateGsi(opts.agencyId, updated.createdAt, opts.confirmationNumber),
+              ...callAssistCallerGsi(updated.callbackNumber || updated.callerNumber, updated.createdAt),
+            },
+            ConditionExpression: "updatedAt = :prev",
+            ExpressionAttributeValues: { ":prev": existing.updatedAt },
+          }),
+        );
+        return updated;
+      } catch (e: unknown) {
+        const name =
+          e && typeof e === "object" && "name" in e
+            ? String((e as { name?: string }).name)
+            : "";
+        if (name === "ConditionalCheckFailedException" && attempt < maxRetries) {
+          // Another process updated concurrently — re-read and retry.
+          continue;
+        }
+        throw e;
+      }
+    }
+    return null; // Exhausted retries
+  }
+
+  /**
+   * Note a reopen request from a citizen caller.
+   * Validates that the case is not in a terminal or already-pending-reopen status.
+   * Returns { ok: false, error } on validation failure without writing.
+   *
+   * Does NOT autonomously change department status — only sets PENDING_REOPEN for staff review.
+   */
+  async requestCaseReopen(opts: {
+    agencyId: string;
+    confirmationNumber: string;
+    note?: string;
+    updatedBy?: string;
+  }): Promise<CaseLifecycleResult<CallAssistCallRecord>> {
+    const existing = await this.getCallRecordByConfirmation(opts.agencyId, opts.confirmationNumber);
+    if (!existing) {
+      return { ok: false, error: "NOT_FOUND", detail: "Call record not found" };
+    }
+    if (existing.agencyId !== opts.agencyId) {
+      return { ok: false, error: "CROSS_TENANT", detail: "Agency mismatch" };
+    }
+    const validation = validateReopenRequest(existing);
+    if (!validation.ok) return validation as CaseLifecycleResult<CallAssistCallRecord>;
+
+    const updatedBy = opts.updatedBy ?? CASE_LIFECYCLE_UPDATED_BY.RESIDENT_VOICE;
+    const updated = await this.updateWithRetry({
+      agencyId: opts.agencyId,
+      confirmationNumber: opts.confirmationNumber,
+      status: "PENDING_REOPEN",
+      updatedBy,
+      note: opts.note,
+    });
+    if (!updated) return { ok: false, error: "NOT_FOUND", detail: "Record disappeared during update" };
+    return { ok: true, value: updated };
+  }
+
+  /**
+   * Escalate a case for priority review.
+   * Enforces 1-escalation-per-24h cap per prompt spec.
+   * Requires explicit caller confirmation before writing (caller must confirm verbally — the
+   * calling Lambda/Nova tool is responsible for collecting confirmation before invoking this).
+   */
+  async requestCaseEscalation(opts: {
+    agencyId: string;
+    confirmationNumber: string;
+    note?: string;
+    updatedBy?: string;
+  }): Promise<CaseLifecycleResult<CallAssistCallRecord>> {
+    const existing = await this.getCallRecordByConfirmation(opts.agencyId, opts.confirmationNumber);
+    if (!existing) {
+      return { ok: false, error: "NOT_FOUND", detail: "Call record not found" };
+    }
+    if (existing.agencyId !== opts.agencyId) {
+      return { ok: false, error: "CROSS_TENANT", detail: "Agency mismatch" };
+    }
+    const validation = validateEscalationRequest(existing);
+    if (!validation.ok) return validation as CaseLifecycleResult<CallAssistCallRecord>;
+
+    const now = new Date().toISOString();
+    const updatedBy = opts.updatedBy ?? CASE_LIFECYCLE_UPDATED_BY.RESIDENT_VOICE;
+    const updated = await this.updateWithRetry({
+      agencyId: opts.agencyId,
+      confirmationNumber: opts.confirmationNumber,
+      status: "ESCALATED",
+      updatedBy,
+      note: opts.note,
+      extraFields: {
+        escalationCount: (existing.escalationCount ?? 0) + 1,
+        lastEscalatedAt: now,
+      },
+    });
+    if (!updated) return { ok: false, error: "NOT_FOUND", detail: "Record disappeared during update" };
+    return { ok: true, value: updated };
+  }
+
+  /**
+   * Append an informational note to a call record without changing its status.
+   * Used for citizen add-note requests ("I forgot to mention...").
+   */
+  async appendCaseInformation(opts: {
+    agencyId: string;
+    confirmationNumber: string;
+    note: string;
+    updatedBy?: string;
+  }): Promise<CallAssistCallRecord | null> {
+    const existing = await this.getCallRecordByConfirmation(opts.agencyId, opts.confirmationNumber);
+    if (!existing) return null;
+    if (existing.agencyId !== opts.agencyId) return null;
+
+    const updatedBy = opts.updatedBy ?? CASE_LIFECYCLE_UPDATED_BY.RESIDENT_VOICE;
+    const historyEntry = buildHistoryEntry({
+      status: existing.status,
+      updatedBy,
+      note: opts.note,
+    });
+    const now = new Date().toISOString();
+    const updated: CallAssistCallRecord = {
+      ...existing,
+      updatedAt: now,
+      statusHistory: appendHistory(existing.statusHistory, historyEntry),
+    };
+    await this.putCallRecord(updated);
+    return updated;
+  }
+
+  /**
+   * Correct address information on a case (caller provided wrong address initially).
+   * Writes the corrected `incidentLocation` and normalized `addressLower`.
+   * Does not change status.
+   */
+  async correctCaseInformation(opts: {
+    agencyId: string;
+    confirmationNumber: string;
+    incidentLocation?: string;
+    note?: string;
+    updatedBy?: string;
+  }): Promise<CallAssistCallRecord | null> {
+    const existing = await this.getCallRecordByConfirmation(opts.agencyId, opts.confirmationNumber);
+    if (!existing) return null;
+    if (existing.agencyId !== opts.agencyId) return null;
+
+    const updatedBy = opts.updatedBy ?? CASE_LIFECYCLE_UPDATED_BY.RESIDENT_VOICE;
+    const historyEntry = buildHistoryEntry({
+      status: existing.status,
+      updatedBy,
+      note: opts.note ?? (opts.incidentLocation ? `Address corrected to: ${opts.incidentLocation}` : "Information corrected"),
+    });
+    const now = new Date().toISOString();
+    const updated: CallAssistCallRecord = {
+      ...existing,
+      incidentLocation: opts.incidentLocation ?? existing.incidentLocation,
+      addressLower: opts.incidentLocation?.toLowerCase().trim() ?? existing.addressLower,
+      updatedAt: now,
+      statusHistory: appendHistory(existing.statusHistory, historyEntry),
+    };
+    await this.putCallRecord(updated);
+    return updated;
+  }
+
+  /**
+   * Subscribe a citizen to proactive status-change SMS.
+   * Requires `threeOneOneStatusSmsEnabled = true` on tenant config — that check is the
+   * caller's responsibility. This method only records consent.
+   */
+  async subscribeCaseUpdates(opts: {
+    agencyId: string;
+    confirmationNumber: string;
+    notifyPhone: string;
+  }): Promise<CallAssistCallRecord | null> {
+    const existing = await this.getCallRecordByConfirmation(opts.agencyId, opts.confirmationNumber);
+    if (!existing) return null;
+    if (existing.agencyId !== opts.agencyId) return null;
+
+    const now = new Date().toISOString();
+    const updated: CallAssistCallRecord = {
+      ...existing,
+      notifyOptIn: true,
+      notifyPhone: opts.notifyPhone,
+      notifyChannel: "sms",
+      updatedAt: now,
+      statusHistory: appendHistory(
+        existing.statusHistory,
+        buildHistoryEntry({
+          status: existing.status,
+          updatedBy: CASE_LIFECYCLE_UPDATED_BY.RESIDENT_VOICE,
+          note: "Citizen subscribed to SMS status updates",
+        }),
+      ),
+    };
+    await this.putCallRecord(updated);
+    return updated;
+  }
+
+  /**
+   * Returns the full status history for a case.
+   * Falls back to synthesizing a single entry from the record's current state if no history exists.
+   */
+  async getCaseHistory(
+    agencyId: string,
+    confirmationNumber: string,
+  ): Promise<StatusHistoryEntry[]> {
+    const record = await this.getCallRecordByConfirmation(agencyId, confirmationNumber);
+    if (!record || record.agencyId !== agencyId) return [];
+    if (record.statusHistory && record.statusHistory.length > 0) return record.statusHistory;
+    // Synthetic fallback for records created before Phase 1
+    return [
+      {
+        at: record.createdAt,
+        status: record.status,
+        updatedBy: CASE_LIFECYCLE_UPDATED_BY.SYSTEM,
+        note: "Status at time of import",
+      },
+    ];
+  }
+
+  /**
+   * Flag a case as needing human follow-up from an operator.
+   * Sets `humanFollowUpRequested = true` and appends a history entry.
+   */
+  async requestHumanFollowUp(opts: {
+    agencyId: string;
+    confirmationNumber: string;
+    note?: string;
+    updatedBy?: string;
+  }): Promise<CallAssistCallRecord | null> {
+    const existing = await this.getCallRecordByConfirmation(opts.agencyId, opts.confirmationNumber);
+    if (!existing) return null;
+    if (existing.agencyId !== opts.agencyId) return null;
+
+    const updatedBy = opts.updatedBy ?? CASE_LIFECYCLE_UPDATED_BY.RESIDENT_VOICE;
+    const now = new Date().toISOString();
+    const updated: CallAssistCallRecord = {
+      ...existing,
+      humanFollowUpRequested: true,
+      updatedAt: now,
+      statusHistory: appendHistory(
+        existing.statusHistory,
+        buildHistoryEntry({
+          status: existing.status,
+          updatedBy,
+          note: opts.note ?? "Citizen requested human follow-up",
+        }),
+      ),
     };
     await this.putCallRecord(updated);
     return updated;

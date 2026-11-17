@@ -422,7 +422,8 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
 
     // POST /{psapId}/activities
     if (method === "POST" && psapId && path.includes("/activities")) {
-      const parsed = addPsapActivityRequestSchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b1: unknown; try { _b1 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = addPsapActivityRequestSchema.safeParse(_b1);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const updated = await repo.addActivity(psapId, parsed.data, {
         userId: user.userId,
@@ -462,7 +463,8 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
 
     // PATCH /{psapId}
     if (method === "PATCH" && psapId) {
-      const parsed = patchPsapProspectBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b2: unknown; try { _b2 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = patchPsapProspectBodySchema.safeParse(_b2);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const before = await repo.get(psapId);
       const updated = await repo.patch(psapId, parsed.data, {

@@ -52,6 +52,8 @@ export type NovaSonicSessionRow = {
   legalHold?: boolean;
   utterances?: Array<{ sequence: number; speaker: string; text: string; at: string }>;
   connectContactId?: string;
+  /** Phase 1: ANI from Connect CustomerEndpoint for lifecycle lookup in the gateway. */
+  ani?: string;
 };
 
 export function novaSonicSessionId(contactId: string): string {

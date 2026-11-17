@@ -58,7 +58,10 @@ const BY_INTENT: Record<string, (confirmation: string) => string> = {
   ReportSpecialEventIssue: (n) =>
     `We logged your special-event question. Confirmation ${n}. For permits or street closures, you may also need to call the non-emergency line.`,
   CheckServiceRequestStatus: (n) =>
-    `We logged your status request. Confirmation ${n}. Have your original confirmation number ready if a team member calls you back.`,
+    // Phase 1: when confirmationLoopEnabled=true the fulfillment hook returns the existing
+    // record status directly and never reaches this fallback. This copy is only shown when
+    // the loop is disabled (legacy path) — keep it neutral and avoid creating user confusion.
+    `We noted your status inquiry. Confirmation ${n}. If you have your original report number, reply CHECK followed by that number.`,
 };
 
 export function smsClosingForIntent(intentName: string, confirmationNumber: string): string {

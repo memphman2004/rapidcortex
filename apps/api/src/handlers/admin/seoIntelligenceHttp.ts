@@ -96,7 +96,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (subpath === "/scans" && method === "POST") {
-      const parsed = postSeoScanBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b1: unknown; try { _b1 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = postSeoScanBodySchema.safeParse(_b1);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       if (process.env.SEO_AUTO_SCAN_ENABLED !== "true" && parsed.data.schedule && parsed.data.schedule !== "manual") {
         return badRequest("Automated schedules are disabled (SEO_AUTO_SCAN_ENABLED=false). Use manual scans.");
@@ -151,7 +152,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const issuePatch = subpath.match(/^\/issues\/([^/]+)$/);
     if (issuePatch && method === "PATCH") {
       const issueId = issuePatch[1];
-      const parsed = patchSeoIssueBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b2: unknown; try { _b2 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = patchSeoIssueBodySchema.safeParse(_b2);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const updated = await repo.updateIssueStatus(user.agencyId, issueId, parsed.data.status);
       if (!updated) return notFound();
@@ -169,7 +171,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (subpath === "/keywords/analyze" && method === "POST") {
-      const parsed = keywordIntelBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b3: unknown; try { _b3 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = keywordIntelBodySchema.safeParse(_b3);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const safe = await assertSafeFetchUrl(parsed.data.url);
       const fetched = await fetchHtmlWithLimits(safe.href);
@@ -180,7 +183,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (subpath === "/suggestions" && method === "POST") {
-      const parsed = seoSuggestionsBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b4: unknown; try { _b4 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = seoSuggestionsBodySchema.safeParse(_b4);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const result = await generateSeoSuggestionsAi(parsed.data);
       return ok({
@@ -190,7 +194,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (subpath === "/schema/generate" && method === "POST") {
-      const parsed = schemaGenerateBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b5: unknown; try { _b5 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = schemaGenerateBodySchema.safeParse(_b5);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const jsonLd = generateJsonLd(parsed.data.type, parsed.data.payload as Record<string, unknown>);
       return ok({ jsonLd });
@@ -205,7 +210,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     if (subpath === "/competitor-outline" && method === "POST") {
-      const parsed = competitorOutlineBodySchema.safeParse(JSON.parse(event.body ?? "{}"));
+      let _b6: unknown; try { _b6 = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+      const parsed = competitorOutlineBodySchema.safeParse(_b6);
       if (!parsed.success) return badRequestFromZod(parsed.error);
       const outline = getCompetitorOutline(parsed.data.topicId);
       return ok(outline);

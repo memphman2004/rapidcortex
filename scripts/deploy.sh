@@ -646,6 +646,9 @@ fi
 if [[ "${INCLUDE_APP_SAM_FEATURES_NESTED_STACK:-true}" == "false" ]]; then
   PARAMS="${PARAMS} IncludeAppSamFeaturesNestedStack=false"
 fi
+# Ghost stack on rapid-cortex-dev: nested stack JWN4SGUYZXYF is DELETE_COMPLETE;
+# always pin to false so CloudFormation does not try to UPDATE the ghost resource.
+PARAMS="${PARAMS} IncludeAppSamRapidIqPipelineNestedStack=false"
 if [[ -n "${FEATURES_ACTIVE_AGENCY_IDS:-}" ]]; then
   PARAMS="${PARAMS} FeaturesActiveAgencyIds=${FEATURES_ACTIVE_AGENCY_IDS}"
 fi

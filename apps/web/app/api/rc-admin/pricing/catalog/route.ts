@@ -21,12 +21,12 @@ export async function GET(request: NextRequest) {
   const upstream = await proxyToAuthUpstream(request, "/api/rc-admin/pricing/catalog");
   if (!upstream.ok) return upstream;
 
-  const data = (await upstream.json()) as {
-    items?: unknown;
-    counts?: unknown;
-    version?: number;
-    updatedAt?: string;
-  };
+  let data: { items?: unknown; counts?: unknown; version?: number; updatedAt?: string };
+  try {
+    data = (await upstream.json()) as typeof data;
+  } catch {
+    return NextResponse.json({ error: "Invalid response from pricing catalog API" }, { status: 502 });
+  }
 
   // Prefer Pricing configuration last-change time over catalog META (often epoch when unset).
   const global = await serverPricingJson<{ lastModifiedAt?: string }>("/api/admin/pricing/global");

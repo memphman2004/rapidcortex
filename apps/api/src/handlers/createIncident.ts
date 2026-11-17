@@ -2,7 +2,7 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { AuthorizationService } from "rapid-cortex-security";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../lib/auth.js";
 import { operationalPasswordBlock } from "../lib/operationalPasswordGate.js";
-import { badRequestFromZod, forbidden, ok, serverError, unauthorized } from "../lib/response.js";
+import { badRequest, badRequestFromZod, forbidden, ok, serverError, unauthorized } from "../lib/response.js";
 import { IncidentService } from "../services/incidentService.js";
 import { createIncidentSchema } from "rapid-cortex-shared";
 
@@ -23,7 +23,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return forbidden("Role cannot create incidents");
     }
 
-    const parsed = createIncidentSchema.safeParse(JSON.parse(event.body ?? "{}"));
+    let rawBody: unknown;
+    try { rawBody = JSON.parse(event.body ?? "{}"); } catch { return badRequest("Invalid JSON body"); }
+    const parsed = createIncidentSchema.safeParse(rawBody);
     if (!parsed.success) return badRequestFromZod(parsed.error);
 
     const d = parsed.data;

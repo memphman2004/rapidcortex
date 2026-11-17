@@ -12,7 +12,7 @@ s3_prefix = "rapid-cortex-dev"
 [dev.deploy.parameters]
 stack_name = "rapid-cortex-dev"
 resolve_s3 = true
-parameter_overrides = "DeploymentStage=dev RootDomainName=rapidcortex.us ApiSubdomainPrefix=api CognitoGenerateSecret=false CognitoCallbackUrls=rapidcortex://oauth/callback,rapidcortex-desktop://oauth/callback,rapidcortex-ios://oauth/callback,rapidcortex-windows://oauth/callback CognitoLogoutUrls=rapidcortex://logout/callback,rapidcortex-desktop://logout/callback,rapidcortex-ios://logout/callback,rapidcortex-windows://logout/callback"
+parameter_overrides = "DeploymentStage=dev RootDomainName=rapidcortex.us ApiSubdomainPrefix=api CognitoGenerateSecret=false CognitoCallbackUrls=rapidcortex://oauth/callback,rapidcortex-desktop://oauth/callback,rapidcortex-ios://oauth/callback,rapidcortex-windows://oauth/callback CognitoLogoutUrls=rapidcortex://logout/callback,rapidcortex-desktop://logout/callback,rapidcortex-ios://logout/callback,rapidcortex-windows://logout/callback IncludeAppSamRapidIqPipelineNestedStack=false"
 
 [staging]
 [staging.deploy.parameters]

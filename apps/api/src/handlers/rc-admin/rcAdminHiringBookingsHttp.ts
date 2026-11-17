@@ -37,7 +37,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   const user = await getUserContext(event);
   if (!user) return withCorrelationHeaders(event, unauthorized());
   if (!isUserAccountActive(user)) {
-    return withCorrelationHeaders(event, forbidden(ACCOUNT_INACTIVE_MESSAGE));
+    return withCorrelationHeaders(event, unauthorized(ACCOUNT_INACTIVE_MESSAGE));
   }
   if (!canAccessRcFinancePortal(user.role) || !env.enableHiring) {
     return withCorrelationHeaders(event, forbidden());
