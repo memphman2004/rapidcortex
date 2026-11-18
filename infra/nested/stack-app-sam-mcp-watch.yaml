@@ -95,6 +95,8 @@ Resources:
   McpJwtSigningSecret:
     Type: AWS::SecretsManager::Secret
     Condition: CreateJwtSecret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub "rapid-cortex/mcp-watch/jwt-signing-${DeploymentStage}"
       Description: >-

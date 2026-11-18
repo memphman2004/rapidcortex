@@ -177,6 +177,8 @@ Globals:
 Resources:
   QRNFCCodesTable:
     Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       TableName: !Sub "${AppName}-qr-nfc-codes-${DeploymentStage}"
       BillingMode: PAY_PER_REQUEST

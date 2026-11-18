@@ -281,7 +281,6 @@ const HOSPITAL_WHAT_WE_NEED = `# Hospital — information we need
 - Who updates capacity (admin vs staff vs coordinator)
 - Regional routing partners and any existing pre-alert process
 - SSO / IdP if required
-- HL7 or other ADT interest (planning only until scoped)
 - Implementation lead and go-live window
 `;
 

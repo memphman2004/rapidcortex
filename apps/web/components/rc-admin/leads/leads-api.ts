@@ -1,8 +1,9 @@
-import type {
-  LeadActivityType,
-  PatchSalesLeadCrmBody,
-  PipelineStage,
-  SalesLeadCrmRecord,
+import {
+  normalizePipelineStage,
+  type LeadActivityType,
+  type PatchSalesLeadCrmBody,
+  type PipelineStage,
+  type SalesLeadCrmRecord,
 } from "rapid-cortex-shared";
 
 const BASE = "/api/rc-admin/leads";
@@ -43,13 +44,29 @@ async function parseJson<T>(res: Response): Promise<T> {
   return body as T;
 }
 
+/**
+ * Map any legacy stage token (e.g. "PILOT") back to its current canonical value
+ * ("DEMO_COMPLETED") so the board always places cards in the correct column.
+ * The Lambda bundle may still return legacy tokens until a clean SAM deploy lands.
+ */
+function normalizeLead(lead: SalesLeadCrmRecord): SalesLeadCrmRecord {
+  const stage = normalizePipelineStage(lead.pipelineStage);
+  return stage === lead.pipelineStage ? lead : { ...lead, pipelineStage: stage };
+}
+
 function unwrapLead(body: ApiEnvelope<SalesLeadCrmRecord>): SalesLeadCrmRecord {
   const lead = body.data ?? body.item;
   if (!lead) throw new Error("Missing lead in response");
-  return lead;
+  return normalizeLead(lead);
 }
 
-/** Unwrap `{ success, data }` or a bare `{ stages, metrics }` payload. */
+/** Unwrap `{ success, data }` or a bare `{ stages, metrics }` payload.
+ *
+ * Also normalizes legacy stage bucket keys and individual lead `pipelineStage`
+ * values so that e.g. a "PILOT" bucket (returned by the stale Lambda bundle)
+ * is merged transparently into "DEMO_COMPLETED". Remove once a clean SAM deploy
+ * ships the updated shared schema to the Lambda.
+ */
 export function unwrapPipelinePayload(body: unknown): PipelineData | null {
   if (!body || typeof body !== "object") return null;
   const rec = body as Record<string, unknown>;
@@ -58,7 +75,19 @@ export function unwrapPipelinePayload(body: unknown): PipelineData | null {
   const stages = inner.stages;
   const metrics = inner.metrics;
   if (!stages || typeof stages !== "object") return null;
-  return { stages, metrics } as PipelineData;
+
+  // Normalize legacy stage keys (e.g. PILOT → DEMO_COMPLETED) and each lead's
+  // pipelineStage field so board columns always receive canonical values.
+  const normalized: Partial<Record<PipelineStage, SalesLeadCrmRecord[]>> = {};
+  for (const [rawKey, bucket] of Object.entries(stages as Record<string, unknown>)) {
+    const key = normalizePipelineStage(rawKey);
+    if (!normalized[key]) normalized[key] = [];
+    for (const lead of bucket as SalesLeadCrmRecord[]) {
+      normalized[key]!.push(normalizeLead(lead));
+    }
+  }
+
+  return { stages: normalized, metrics } as PipelineData;
 }
 
 export function flattenPipelineLeads(body: unknown): SalesLeadCrmRecord[] {

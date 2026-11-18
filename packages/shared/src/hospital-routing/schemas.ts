@@ -9,7 +9,6 @@ export const hospitalBedCountSchema = z.object({
 export type HospitalBedCount = z.infer<typeof hospitalBedCountSchema>;
 
 export const hospitalCapacityDataSourceSchema = z.enum([
-  "HL7_FEED",
   "MANUAL_UPDATE",
   "API_INTEGRATION",
   "ESTIMATED",

@@ -1,3 +1,4 @@
+# STATUS: sam validate added to deploy.sh 2026-11-17 (plain validate — W3011 warnings present; upgrade to --lint after adding UpdateReplacePolicy)
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
@@ -202,13 +203,18 @@ Resources:
                 - !Ref RapidIqApolloApiKeySecretArn
                 - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rapid-cortex/unused-psap-apollo-*
 
-  PsapProspectsIntegration:
+  # Logical ID renamed V2 (2026-11-17): prior PsapProspectsIntegration physical id
+  # xbra6h0 was deleted from HttpApi tbr4zvjlk5 (drift). CREATE RouteMapPsaps then failed
+  # with "Unable to find route target … xbra6h0". Rename forces a new Integration CREATE;
+  # CFN DELETE of the missing old id is a no-op success.
+  PsapProspectsIntegrationV2:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PsapProspectsHttpFunction.Arn}/invocations
       PayloadFormatVersion: "2.0"
+      Description: psap-prospects-http-v2
 
   PsapProspectsInvokePermission:
     Type: AWS::Lambda::Permission
@@ -223,7 +229,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/psap-prospects"
-      Target: !Sub "integrations/${PsapProspectsIntegration}"
+      Target: !Sub "integrations/${PsapProspectsIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -232,7 +238,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/psap-prospects/stats"
-      Target: !Sub "integrations/${PsapProspectsIntegration}"
+      Target: !Sub "integrations/${PsapProspectsIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -241,7 +247,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/psap-prospects/export"
-      Target: !Sub "integrations/${PsapProspectsIntegration}"
+      Target: !Sub "integrations/${PsapProspectsIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -250,7 +256,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/psap-prospects/map-pins"
-      Target: !Sub "integrations/${PsapProspectsIntegration}"
+      Target: !Sub "integrations/${PsapProspectsIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -260,7 +266,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/map/psaps"
-      Target: !Sub "integrations/${PsapProspectsIntegration}"
+      Target: !Sub "integrations/${PsapProspectsIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -269,7 +275,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/psap-prospects/{psapId}"
-      Target: !Sub "integrations/${PsapProspectsIntegration}"
+      Target: !Sub "integrations/${PsapProspectsIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -278,7 +284,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/rc-admin/psap-prospects/{psapId}"
-      Target: !Sub "integrations/${PsapProspectsIntegration}"
+      Target: !Sub "integrations/${PsapProspectsIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -287,7 +293,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/psap-prospects/{psapId}/activities"
-      Target: !Sub "integrations/${PsapProspectsIntegration}"
+      Target: !Sub "integrations/${PsapProspectsIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -296,7 +302,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/psap-prospects/{psapId}/enrich-contacts"
-      Target: !Sub "integrations/${PsapProspectsIntegration}"
+      Target: !Sub "integrations/${PsapProspectsIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -305,7 +311,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/psap-prospects/enrich-all"
-      Target: !Sub "integrations/${PsapProspectsIntegration}"
+      Target: !Sub "integrations/${PsapProspectsIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 

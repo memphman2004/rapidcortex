@@ -1,3 +1,4 @@
+# STATUS: sam validate added to deploy.sh 2026-11-17 (plain validate — W3011 warnings present; upgrade to --lint after adding UpdateReplacePolicy)
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: NexCort iQ — WebSocket API + call control HTTP routes (attach to stack 2 HttpApi)

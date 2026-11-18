@@ -1,0 +1,29 @@
+{
+  "Statement": [
+    {
+      "Effect": "Deny",
+      "Action": ["Update:Replace", "Update:Delete"],
+      "Principal": "*",
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "ResourceType": [
+            "AWS::DynamoDB::Table",
+            "AWS::S3::Bucket",
+            "AWS::Cognito::UserPool",
+            "AWS::Cognito::IdentityPool",
+            "AWS::Kinesis::Stream",
+            "AWS::KinesisVideo::Stream",
+            "AWS::SecretsManager::Secret"
+          ]
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": "Update:*",
+      "Principal": "*",
+      "Resource": "*"
+    }
+  ]
+}

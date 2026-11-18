@@ -155,8 +155,8 @@ Resources:
 
   CadBridgeLoopGuardTable:
     Type: AWS::DynamoDB::Table
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       TableName: !Sub "rapid-cortex-cad-bridge-loop-guard-${DeploymentStage}"
       BillingMode: PAY_PER_REQUEST
@@ -179,8 +179,8 @@ Resources:
 
   CadBridgeCircuitBreakerTable:
     Type: AWS::DynamoDB::Table
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       TableName: !Sub "rapid-cortex-cad-bridge-circuit-breaker-${DeploymentStage}"
       BillingMode: PAY_PER_REQUEST

@@ -47,7 +47,6 @@ export * from "./rc-lite/index.js";
 export * from "./adobe-sign/index.js";
 export * from "./emergency-connect/index.js";
 export * from "./hospital-routing/index.js";
-export * from "./hl7/index.js";
 export * from "./video-assist/index.js";
 export * from "./silent-text/index.js";
 export * from "./pre-arrival/index.js";

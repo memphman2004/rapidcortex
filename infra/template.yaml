@@ -546,6 +546,24 @@ Parameters:
     Description: >-
       When set, AppSamCallAssistStack2 skips creating AgencyKeywordTable
       (rapid-cortex-agency-keywords-${stage} already exists).
+  ExistingNovaSessionStartFunctionName:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, AppSamCallAssistStack2 skips creating NovaSessionStartFunction
+      (orphan/retained Lambda already exists — EarlyValidation AlreadyExists).
+  ExistingNovaSessionAwaitFunctionName:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, AppSamCallAssistStack2 skips creating NovaSessionAwaitFunction
+      (orphan/retained Lambda already exists — EarlyValidation AlreadyExists).
+  ExistingCallAssistDisconnectFunctionName:
+    Type: String
+    Default: ""
+    Description: >-
+      When set, AppSamCallAssistStack2 skips creating CallAssistDisconnectFunction
+      (orphan/retained Lambda already exists — EarlyValidation AlreadyExists).
   ExistingFieldCommandTableName:
     Type: String
     Default: ""
@@ -4313,6 +4331,9 @@ Resources:
             - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
         ExistingCallAssistTableName: !Ref ExistingCallAssistTableName
         ExistingAgencyKeywordTableName: !Ref ExistingAgencyKeywordTableName
+        ExistingNovaSessionStartFunctionName: !Ref ExistingNovaSessionStartFunctionName
+        ExistingNovaSessionAwaitFunctionName: !Ref ExistingNovaSessionAwaitFunctionName
+        ExistingCallAssistDisconnectFunctionName: !Ref ExistingCallAssistDisconnectFunctionName
         CallAssistConnectWebhookSecretArn: !Ref CallAssistConnectWebhookSecretArn
         CallAssistRapidSosSecretArn: !Ref CallAssistRapidSosSecretArn
         CallAssistLexBotRoleArn: !Ref CallAssistLexBotRoleArn

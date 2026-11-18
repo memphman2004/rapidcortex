@@ -296,8 +296,22 @@ final class CognitoAuthManager: ObservableObject {
             // Reuse a secret this device already enrolled (App Review or prior scan on this phone).
             guard let secret = storedTotpSecret(), let session = pendingSession else { return false }
             let code = try RCTotp.generateCode(secret: secret)
-            try await respondSoftwareTokenMFA(code: code, session: session)
-            return true
+            do {
+                try await respondSoftwareTokenMFA(code: code, session: session)
+                return true
+            } catch {
+                // The stored TOTP secret is stale — MFA was reset or re-enrolled on the web console.
+                // Cognito also invalidates the session token on a failed challenge response, so we
+                // cannot fall through to the manual MFA sheet with this session. Instead:
+                //   1. Purge the stale secret so the next sign-in attempt goes through the
+                //      normal MFA prompt (requiresMFA = true) cleanly.
+                //   2. Re-throw a user-readable message so the user knows to sign in once more.
+                if let key = totpKeychainKey() { KeychainManager.delete(key: key) }
+                totpSecret = ""
+                throw AuthError.cognitoError(
+                    "Your authenticator has been reset. Please sign in again — you'll be asked to re-link your authenticator app."
+                )
+            }
         default:
             return false
         }

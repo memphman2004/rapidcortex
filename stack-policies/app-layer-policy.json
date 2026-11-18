@@ -1,0 +1,29 @@
+{
+  "Statement": [
+    {
+      "Effect": "Deny",
+      "Action": ["Update:Replace", "Update:Delete"],
+      "Principal": "*",
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "ResourceType": [
+            "AWS::DynamoDB::Table",
+            "AWS::S3::Bucket",
+            "AWS::Cognito::UserPool",
+            "AWS::Connect::Instance",
+            "AWS::Connect::PhoneNumber",
+            "AWS::LexV2::Bot",
+            "AWS::LexV2::BotAlias"
+          ]
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": "Update:*",
+      "Principal": "*",
+      "Resource": "*"
+    }
+  ]
+}

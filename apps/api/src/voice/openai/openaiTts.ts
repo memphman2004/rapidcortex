@@ -1,3 +1,7 @@
+// STATUS: ROADMAP — not deployed as of 2026-11-17.
+// No OPENAI_* environment variables are injected by any active SAM template.
+// This provider exists for future multi-vendor TTS support (OpenAI TTS).
+// Do not add to production Lambda bundles without a corresponding SAM env var + secret ARN.
 import type { SynthesizeTextRequest, SynthesizedUtterance } from "rapid-cortex-shared";
 import { resolvePlainOrSecretArn } from "../../lib/runtimeSecrets.js";
 import type { MultilingualVoiceConfig } from "../multilingualConfig.js";

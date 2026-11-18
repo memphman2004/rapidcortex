@@ -93,6 +93,8 @@ Resources:
   TranslateWsSecret:
     Type: AWS::SecretsManager::Secret
     Condition: CreateTranslateWsSecret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub "rapid-cortex/${DeploymentStage}/translate/ws-signing"
       Description: HS256 signing secret for RC Translate WebSocket tokens

@@ -118,6 +118,11 @@ if [[ -n "${CA_STACK}" && "${CA_STACK}" != "None" && "${CA_STACK}" != "null" ]];
     PARAMS="${PARAMS} ExistingNovaSessionAwaitFunctionName=${NOVA_AWAIT}"
     echo "  ExistingNovaSessionAwaitFunctionName=${NOVA_AWAIT}"
   fi
+  DISCONNECT="${EXISTING_CALL_ASSIST_DISCONNECT_FUNCTION_NAME:-rapid-cortex-dev-call-assist-disconnect-${STAGE}}"
+  if aws lambda get-function --function-name "$DISCONNECT" --region "$AWS_REGION" >/dev/null 2>&1; then
+    PARAMS="${PARAMS} ExistingCallAssistDisconnectFunctionName=${DISCONNECT}"
+    echo "  ExistingCallAssistDisconnectFunctionName=${DISCONNECT}"
+  fi
 
   echo "▶ sam deploy → $CA_STACK"
   # shellcheck disable=SC2086

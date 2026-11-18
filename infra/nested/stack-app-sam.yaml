@@ -4094,6 +4094,8 @@ Resources:
 
   CadWebhookIdempotencyTable:
     Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
@@ -4108,6 +4110,8 @@ Resources:
 
   CadCapIncidentsTable:
     Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BillingMode: PAY_PER_REQUEST
       TableName: !Sub "${AppName}-cad-cap-incidents-${DeploymentStage}"
@@ -4127,6 +4131,8 @@ Resources:
 
   ChannelConfigTable:
     Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BillingMode: PAY_PER_REQUEST
       TableName: !Sub "${AppName}-channel-config-${DeploymentStage}"
@@ -4146,6 +4152,8 @@ Resources:
 
   IncidentChannelAssignmentsTable:
     Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BillingMode: PAY_PER_REQUEST
       TableName: !Sub "${AppName}-incident-channel-assignments-${DeploymentStage}"

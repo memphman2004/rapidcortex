@@ -1887,6 +1887,8 @@ Resources:
 
   CameraProviderOAuthStatesTable:
     Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BillingMode: PAY_PER_REQUEST
       TableName: !Sub "${AppName}-camera-oauth-states-${DeploymentStage}"
@@ -1905,6 +1907,8 @@ Resources:
 
   CameraProviderTokensTable:
     Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BillingMode: PAY_PER_REQUEST
       TableName: !Sub "${AppName}-camera-provider-tokens-${DeploymentStage}"
@@ -1920,6 +1924,8 @@ Resources:
 
   CamerasRegistryTable:
     Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BillingMode: PAY_PER_REQUEST
       TableName: !Sub "${AppName}-cameras-${DeploymentStage}"
@@ -1968,7 +1974,8 @@ Resources:
 
   NestOAuthStateTable:
     Type: AWS::DynamoDB::Table
-    DeletionPolicy: Delete
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       TableName: !Sub "rapid-cortex-nest-oauth-state-${DeploymentStage}"
       BillingMode: PAY_PER_REQUEST
@@ -2091,6 +2098,8 @@ Resources:
   WyzeConsentHmacSecret:
     Type: AWS::SecretsManager::Secret
     Condition: WyzeIntegrationEnabled
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub rapid-cortex/connect/wyze-consent-hmac-${DeploymentStage}
       Description: HMAC key for Wyze consent tokens

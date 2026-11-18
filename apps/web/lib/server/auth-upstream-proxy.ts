@@ -8,6 +8,13 @@ type ProxyOptions = {
   allowAnonymous?: boolean;
   /** Replace the incoming query string when aliasing a legacy path. */
   search?: string;
+  /**
+   * Override the request body sent upstream. When provided, the original
+   * request body is ignored and this value is used instead. The caller is
+   * responsible for setting the correct content-type header on the original
+   * request (or passing an appropriately stringified value).
+   */
+  bodyOverride?: string | null;
 };
 
 export async function proxyToAuthUpstream(
@@ -73,7 +80,13 @@ export async function proxyToAuthUpstream(
 
   const method = request.method;
   const body =
-    method === "GET" || method === "HEAD" ? undefined : await request.arrayBuffer();
+    method === "GET" || method === "HEAD"
+      ? undefined
+      : options.bodyOverride !== undefined
+        ? options.bodyOverride !== null
+          ? new TextEncoder().encode(options.bodyOverride)
+          : undefined
+        : await request.arrayBuffer();
 
   let upstream: Response;
   try {

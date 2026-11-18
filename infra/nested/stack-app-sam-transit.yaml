@@ -223,6 +223,8 @@ Resources:
   TransitCameraProducerSecret:
     Type: AWS::SecretsManager::Secret
     Condition: CreateTransitProducerSecret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub "rapid-cortex/${DeploymentStage}/transit/camera-producer-key"
       Description: Producer-agent key for transit camera heartbeats (not a browser secret)

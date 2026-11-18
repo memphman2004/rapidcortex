@@ -73,25 +73,138 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# ── Deploy mode parsing (Phase 5 — 2026-11-17) ──────────────────────────────
+# Modes:
+#   deploy.sh <stage>                     → full deploy (backward compat)
+#   deploy.sh full <stage>                → full nested-tree deploy
+#   deploy.sh preview <stage>             → changeset preview, no execution
+#   deploy.sh stack <stage> <template>    → standalone stack deploy only
+#
+# Stack mode deploys a single standalone template (templates NOT in template.yaml
+# parent tree). Use for: stack-data-layer, stack-cad-*, stack-lex, stack-app-alarms-2,
+# stack-app-sam-3-contacts, etc.
+#
+# For nested stacks in template.yaml (AppSamCallAssistStack2, etc.), use the full
+# deploy — CloudFormation's incremental changeset skips unchanged nested stacks.
+# ─────────────────────────────────────────────────────────────────────────────
+DEPLOY_MODE="full"
 STAGE=""
 CHANGESET_ONLY=0
 USE_CAD_BRIDGE_VPC=0
+DEPLOY_STACK_TEMPLATE=""
+CONFIRM_STACK_REMOVALS="${CONFIRM_STACK_REMOVALS:-0}"
+
+_first_arg="${1:-}"
+case "$_first_arg" in
+  full)
+    DEPLOY_MODE="full"
+    shift
+    ;;
+  preview)
+    DEPLOY_MODE="preview"
+    CHANGESET_ONLY=1
+    shift
+    ;;
+  stack)
+    DEPLOY_MODE="stack"
+    shift
+    if [[ $# -lt 2 ]]; then
+      echo "Usage: $0 stack <stage> <template-name>" >&2
+      echo "  template-name: basename of infra/nested/*.yaml, e.g. stack-data-layer" >&2
+      exit 1
+    fi
+    ;;
+  dev | staging | prod | pilot) : ;; # fall through — first arg is stage (compat)
+  "")
+    echo "Usage: $0 [full|preview|stack] <stage> [--vpc] [--changeset-only]" >&2
+    exit 1
+    ;;
+esac
+
 for arg in "$@"; do
   case "$arg" in
     dev | staging | prod | pilot) STAGE="$arg" ;;
     --changeset-only | --no-execute-changeset) CHANGESET_ONLY=1 ;;
     --vpc) USE_CAD_BRIDGE_VPC=1 ;;
+    --confirm-stack-removals) CONFIRM_STACK_REMOVALS=1 ;;
     *)
-      echo "Unknown argument: $arg" >&2
-      echo "Usage: $0 [dev|staging|prod|pilot] [--changeset-only|--no-execute-changeset] [--vpc]" >&2
-      exit 1
+      if [[ "$DEPLOY_MODE" == "stack" && -z "$DEPLOY_STACK_TEMPLATE" && "$arg" != -* ]]; then
+        DEPLOY_STACK_TEMPLATE="$arg"
+      else
+        echo "Unknown argument: $arg" >&2
+        echo "Usage: $0 [full|preview|stack] [dev|staging|prod|pilot] [--changeset-only] [--vpc]" >&2
+        exit 1
+      fi
       ;;
   esac
 done
 
 if [[ -z "$STAGE" ]]; then
-  echo "Usage: $0 [dev|staging|prod|pilot] [--changeset-only|--no-execute-changeset] [--vpc]" >&2
+  echo "Usage: $0 [full|preview|stack] [dev|staging|prod|pilot] [--changeset-only] [--vpc]" >&2
   exit 1
+fi
+
+# Stack mode: validate template name and deploy directly
+if [[ "$DEPLOY_MODE" == "stack" ]]; then
+  if [[ -z "$DEPLOY_STACK_TEMPLATE" ]]; then
+    echo "Usage: $0 stack $STAGE <template-name>" >&2
+    echo "  template-name: basename of infra/nested/*.yaml, e.g. stack-data-layer" >&2
+    exit 1
+  fi
+  # Resolve template path
+  STACK_TPL=""
+  if [[ -f "${ROOT}/infra/nested/${DEPLOY_STACK_TEMPLATE}.yaml" ]]; then
+    STACK_TPL="${ROOT}/infra/nested/${DEPLOY_STACK_TEMPLATE}.yaml"
+  elif [[ -f "${ROOT}/infra/nested/${DEPLOY_STACK_TEMPLATE}" ]]; then
+    STACK_TPL="${ROOT}/infra/nested/${DEPLOY_STACK_TEMPLATE}"
+  elif [[ -f "${ROOT}/infra/${DEPLOY_STACK_TEMPLATE}.yaml" ]]; then
+    STACK_TPL="${ROOT}/infra/${DEPLOY_STACK_TEMPLATE}.yaml"
+  else
+    echo "ERROR: Template not found: ${DEPLOY_STACK_TEMPLATE}" >&2
+    echo "  Looked in: infra/nested/${DEPLOY_STACK_TEMPLATE}.yaml" >&2
+    exit 1
+  fi
+  # Derive stack name: strip "stack-" prefix, append stage
+  STACK_BASE="${DEPLOY_STACK_TEMPLATE%.yaml}"
+  STACK_BASE="${STACK_BASE#stack-}"
+  DERIVED_STACK_NAME="rapid-cortex-${STACK_BASE}-${STAGE}"
+  echo "═══════════════════════════════════════════════════════"
+  echo " STACK-SPECIFIC DEPLOY"
+  echo " Template: $STACK_TPL"
+  echo " Stack:    $DERIVED_STACK_NAME"
+  echo " Stage:    $STAGE"
+  echo "═══════════════════════════════════════════════════════"
+  # Validate template (plain validate — not lint — to avoid W3011 blocking infra-only stacks)
+  sam validate --template-file "$STACK_TPL" || {
+    echo "ERROR: sam validate failed for $STACK_TPL" >&2
+    exit 1
+  }
+  NO_EXEC_ARGS=()
+  [[ "$CHANGESET_ONLY" -eq 1 ]] && NO_EXEC_ARGS+=(--no-execute-changeset)
+  # sam deploy --resolve-s3 handles Lambda code packaging automatically.
+  # For Lambda-containing stacks, TypeScript must be compiled first (npm run build -w rapid-cortex-api).
+  sam deploy \
+    --template-file "$STACK_TPL" \
+    --stack-name "$DERIVED_STACK_NAME" \
+    --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
+    --resolve-s3 \
+    --no-confirm-changeset \
+    --no-fail-on-empty-changeset \
+    --parameter-overrides "DeploymentStage=${STAGE}" \
+    "${NO_EXEC_ARGS[@]+"${NO_EXEC_ARGS[@]}"}" || {
+    echo "ERROR: Stack deploy failed: $DERIVED_STACK_NAME" >&2
+    exit 1
+  }
+  echo "✅ Stack deploy complete: $DERIVED_STACK_NAME"
+  exit 0
+fi
+
+# Preview mode message
+if [[ "$DEPLOY_MODE" == "preview" ]]; then
+  echo "═══════════════════════════════════════════════════════"
+  echo " CHANGESET PREVIEW MODE — no changes will be deployed"
+  echo " Review the changeset output, then re-run without 'preview'"
+  echo "═══════════════════════════════════════════════════════"
 fi
 
 if [[ "$STAGE" != "dev" && -z "${HTTP_API_CORS_ORIGINS:-}" && "${SKIP_CORS_CHECK:-}" != "1" ]]; then
@@ -250,6 +363,28 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-nexiq-in
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-nexiq-signals.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-analytics.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-mcp-watch.yaml"
+# Section 5c: templates in root template not previously in validate loop (added 2026-11-17)
+# Using plain `sam validate` (not --lint) because these templates have W3011 warnings
+# (DeletionPolicy without UpdateReplacePolicy) that need a separate fix pass.
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-escalation.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-field.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-rapid-iq.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-rapid-iq-pipeline.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-rms.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-2-rcs.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-2-realtime.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-2-ng911.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-clery-act.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-vertical-alerts.yaml"
+# Section 5a: standalone templates deployed via individual deploy-*.sh scripts (added 2026-11-17)
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-3-contacts.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-3-psap-crm.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-3-hiring.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-3-leads-crm.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-3-marketing.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-3-pricing-catalog.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-3-deployments-map.yaml"
+sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-2-deception.yaml"
 fi
 
 echo "IAM managed policy size preflight (6,144-byte cap)..."
@@ -330,7 +465,17 @@ if [[ "${SKIP_SAM_BUILD:-0}" == "1" ]]; then
   REVERT_API_PKG=0
   sam_build_failed=0
 else
-  rc_prepare_api_vendor_for_sam
+  if [[ "${SKIP_SAM_VENDOR_PREP:-0}" == "1" ]]; then
+    # SKIP_SAM_VENDOR_PREP=1: vendor packs were already refreshed and synced in a prior
+    # rc_prepare_api_vendor_for_sam call. apps/api/package.json must already have
+    # file:vendor-packs/... deps and apps/api/package.json.pre-sam backup must exist.
+    # Use when re-running sam build after a failed/interrupted deploy to avoid the
+    # 25–30 min rm+rsync of packages/*/dist into apps/api/node_modules.
+    echo "SKIP_SAM_VENDOR_PREP=1 — skipping rc_prepare_api_vendor_for_sam (vendor packs already synced)"
+    REVERT_API_PKG=1
+  else
+    rc_prepare_api_vendor_for_sam
+  fi
   npm run build -w rapid-cortex-api
 fi
 if [[ "${BUILD_WEB_BEFORE_SAM:-0}" == "1" ]]; then
@@ -649,6 +794,17 @@ fi
 # Ghost stack on rapid-cortex-dev: nested stack JWN4SGUYZXYF is DELETE_COMPLETE;
 # always pin to false so CloudFormation does not try to UPDATE the ghost resource.
 PARAMS="${PARAMS} IncludeAppSamRapidIqPipelineNestedStack=false"
+# Orphan Nova/Disconnect Lambdas cleanup (Nov 2026):
+# These 3 functions were created manually on Nov 7 before they were added to
+# AppSamCallAssistStack2.  They have been DELETED from AWS Lambda; CloudFormation
+# now creates and manages them directly.  Do NOT re-add ExistingXxx overrides here.
+# If AlreadyExists errors recur, the fix is to delete the orphan from Lambda, not
+# to re-add the bypass parameter.
+#
+# Deleted functions (no longer exist):
+#   rapid-cortex-dev-nova-session-start-dev
+#   rapid-cortex-dev-nova-session-await-dev
+#   rapid-cortex-dev-call-assist-disconnect-dev
 if [[ -n "${FEATURES_ACTIVE_AGENCY_IDS:-}" ]]; then
   PARAMS="${PARAMS} FeaturesActiveAgencyIds=${FEATURES_ACTIVE_AGENCY_IDS}"
 fi
@@ -710,6 +866,21 @@ if [[ -n "${REUSE_EXISTING_SALES_DATA_RESOURCES:-}" ]]; then
 fi
 if [[ -n "${EXISTING_CALL_ASSIST_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingCallAssistTableName=${EXISTING_CALL_ASSIST_TABLE_NAME}"
+fi
+if [[ -n "${EXISTING_AGENCY_KEYWORD_TABLE_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingAgencyKeywordTableName=${EXISTING_AGENCY_KEYWORD_TABLE_NAME}"
+fi
+# Only pass ExistingNova*/Disconnect when the Lambda still exists. Empty Key= is invalid
+# SAM CLI syntax; omitting the override uses the template default "" → CREATE the function.
+# Do not pass stale names after orphans were deleted — Connect*Permission will 404.
+if [[ -n "${EXISTING_NOVA_SESSION_START_FUNCTION_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingNovaSessionStartFunctionName=${EXISTING_NOVA_SESSION_START_FUNCTION_NAME}"
+fi
+if [[ -n "${EXISTING_NOVA_SESSION_AWAIT_FUNCTION_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingNovaSessionAwaitFunctionName=${EXISTING_NOVA_SESSION_AWAIT_FUNCTION_NAME}"
+fi
+if [[ -n "${EXISTING_CALL_ASSIST_DISCONNECT_FUNCTION_NAME:-}" ]]; then
+  PARAMS="${PARAMS} ExistingCallAssistDisconnectFunctionName=${EXISTING_CALL_ASSIST_DISCONNECT_FUNCTION_NAME}"
 fi
 if [[ -n "${EXISTING_FIELD_COMMAND_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingFieldCommandTableName=${EXISTING_FIELD_COMMAND_TABLE_NAME}"
@@ -1114,6 +1285,20 @@ else
   python3 scripts/check-go-no-go-p0.py
 fi
 
+# Phase 6 (2026-11-17): Nested stack removal guard.
+# Diffs template.yaml against deployed root stack to catch accidental stack deletions.
+# To bypass: set CONFIRM_STACK_REMOVALS=1 or pass --confirm-stack-removals flag.
+if [[ "${SKIP_STACK_REMOVAL_CHECK:-0}" != "1" ]]; then
+  _removal_check_flag=""
+  [[ "${CONFIRM_STACK_REMOVALS:-0}" == "1" ]] && _removal_check_flag="--confirm-stack-removals"
+  bash "${ROOT}/scripts/check-stack-removals.sh" ${_removal_check_flag} "${STAGE}" || {
+    echo "" >&2
+    echo "Deploy blocked: nested stack removals detected." >&2
+    echo "Set CONFIRM_STACK_REMOVALS=1 to proceed, or fix template.yaml." >&2
+    exit 1
+  }
+fi
+
 # SAM_DISABLE_ROLLBACK=1 keeps failed stacks for inspection (blocks replacement updates on Cognito groups, etc.).
 DEPLOY_EXTRA_ARGS=()
 if [[ "${SAM_DISABLE_ROLLBACK:-0}" == "1" ]]; then
@@ -1140,6 +1325,14 @@ fi
 
 echo ""
 echo "✅ SAM deploy finished (stack: ${STACK_NAME})."
+
+# Phase 7 (2026-11-17): Post-deploy health check. Reports any stacks NOT in UPDATE_COMPLETE.
+# Skippable with SKIP_POST_DEPLOY_HEALTH_CHECK=1 (useful in CI where the check is redundant).
+if [[ "${SKIP_POST_DEPLOY_HEALTH_CHECK:-0}" != "1" ]] && [[ -f "${ROOT}/scripts/stack-health-check.sh" ]]; then
+  echo ""
+  echo "==> Post-deploy stack health check"
+  bash "${ROOT}/scripts/stack-health-check.sh" "${STAGE}" || true  # never fail the deploy on health check
+fi
 
 # Permanent CAD inbound path: dedicated bus + CadSessionOpen rules on nexcortiq.cad
 # (kept as sidecar stacks to avoid AlreadyExists when nesting the bus under the parent).

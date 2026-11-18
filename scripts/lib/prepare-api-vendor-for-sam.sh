@@ -83,7 +83,13 @@ rc_prepare_api_vendor_for_sam() {
   for _pkg_dir in apps/api/node_modules/rapid-cortex-shared apps/api/node_modules/rapid-cortex-integrations apps/api/node_modules/rapid-cortex-security; do
     if [[ -e "${ROOT}/${_pkg_dir}" ]]; then
       chmod -R u+w "${ROOT}/${_pkg_dir}" 2>/dev/null || true
-      rm -rf "${ROOT}/${_pkg_dir}"
+      # External APFS volumes often return "Directory not empty" on rm -rf of
+      # hardlinked/vendor trees; rename aside first so npm install can proceed.
+      if ! rm -rf "${ROOT}/${_pkg_dir}" 2>/dev/null; then
+        _trash="${ROOT}/${_pkg_dir}.trash.$$"
+        mv "${ROOT}/${_pkg_dir}" "${_trash}" 2>/dev/null || true
+        (rm -rf "${_trash}" >/dev/null 2>&1 &) || true
+      fi
     fi
   done
 
