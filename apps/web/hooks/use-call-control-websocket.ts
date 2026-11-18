@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createDemoWebSocketMock } from "@/src/demo/engine/DemoWebSocketMock";
+import { isDemoModeActive } from "@/src/demo/engine/demo-mode-gate";
 import { isCallControlWebSocketEnabled } from "@/lib/runtime-flags";
 
 export type CallControlWebSocketMessage = {
@@ -18,7 +20,8 @@ function websocketBaseUrl(): string {
 export function useCallControlWebSocket(
   onMessage: (message: CallControlWebSocketMessage) => void,
 ): { connected: boolean } {
-  const enabled = isCallControlWebSocketEnabled();
+  const demoActive = isDemoModeActive();
+  const enabled = isCallControlWebSocketEnabled() || demoActive;
   const [connected, setConnected] = useState(false);
   const onMessageRef = useRef(onMessage);
   useEffect(() => {
@@ -26,6 +29,22 @@ export function useCallControlWebSocket(
   });
 
   const connect = useCallback(async () => {
+    // DEMO MODE integration point B — remove this branch to detach Demo Mode from WebSocket.
+    if (isDemoModeActive()) {
+      const ws = createDemoWebSocketMock();
+      ws.onopen = () => setConnected(true);
+      ws.onmessage = (ev) => {
+        try {
+          const parsed = JSON.parse(String(ev.data)) as CallControlWebSocketMessage;
+          if (parsed?.type) onMessageRef.current(parsed);
+        } catch {
+          /* ignore malformed frames */
+        }
+      };
+      ws.connect();
+      return ws as unknown as WebSocket;
+    }
+
     const base = websocketBaseUrl();
     if (!base) return;
 
@@ -88,7 +107,7 @@ export function useCallControlWebSocket(
       }
       setConnected(false);
     };
-  }, [enabled, connect]);
+  }, [enabled, demoActive, connect]);
 
   return { connected };
 }

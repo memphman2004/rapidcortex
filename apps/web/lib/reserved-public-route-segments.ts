@@ -72,6 +72,8 @@ export const RESERVED_PUBLIC_ROUTE_FIRST_SEGMENTS: readonly string[] = [
   "pre-arrival",
   /** Public escalation viewer (`/e/{token}`). */
   "e",
+  /** Fictional sales demo (`/demo-link` and signed `/demo-link/s/{token}`). Not a jurisdiction. */
+  "demo-link",
   /** Translate officer SMS deep link (`/translate/{sessionId}`) — not a jurisdiction slug. */
   "translate",
 ];

@@ -41,6 +41,7 @@ import {
 } from "../../lib/rapid-iq/email-list-db.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
 import { PsapProspectRepository } from "../../repositories/psapProspectRepository.js";
+import { handleAgencyIntelligence } from "./agencyIntelligenceHttp.js";
 
 const repo = new PsapProspectRepository();
 const auditRepo = new AuditRepository();
@@ -167,6 +168,9 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     const auth = await requireRcAdmin(event);
     if ("error" in auth) return auth.error;
     const { user } = auth;
+
+    const intel = await handleAgencyIntelligence(event, user);
+    if (intel) return intel;
 
     const psapId = event.pathParameters?.psapId?.trim();
 

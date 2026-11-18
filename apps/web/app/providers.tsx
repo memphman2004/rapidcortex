@@ -2,6 +2,7 @@
 
 import { SessionProvider } from "@/components/auth/session-context";
 import { AgencyProvider } from "@/contexts/agency-context";
+import { DemoModeRoot } from "@/src/demo/ui/DemoModeRoot";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -24,9 +25,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
-        <AgencyProvider>
-          <ALSMapProvider>{children}</ALSMapProvider>
-        </AgencyProvider>
+        <DemoModeRoot>
+          <AgencyProvider>
+            <ALSMapProvider>{children}</ALSMapProvider>
+          </AgencyProvider>
+        </DemoModeRoot>
       </SessionProvider>
     </QueryClientProvider>
   );

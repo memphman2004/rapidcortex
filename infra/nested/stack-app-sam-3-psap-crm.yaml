@@ -233,6 +233,51 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
+  RoutePsapAgencyIntelligenceList:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/psap-prospects/agency-intelligence"
+      Target: !Sub "integrations/${PsapProspectsIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RoutePsapAgencyIntelligenceExport:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/psap-prospects/agency-intelligence/export"
+      Target: !Sub "integrations/${PsapProspectsIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RoutePsapAgencyIntelligenceGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/rc-admin/psap-prospects/{psapId}/agency-intelligence"
+      Target: !Sub "integrations/${PsapProspectsIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RoutePsapAgencyIntelligenceEvidence:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rc-admin/psap-prospects/{psapId}/agency-intelligence/evidence"
+      Target: !Sub "integrations/${PsapProspectsIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RoutePsapAgencyIntelligenceDecision:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "POST /api/rc-admin/psap-prospects/{psapId}/agency-intelligence/decisions"
+      Target: !Sub "integrations/${PsapProspectsIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
   RoutePsapStats:
     Type: AWS::ApiGatewayV2::Route
     Properties:

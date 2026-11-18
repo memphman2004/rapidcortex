@@ -312,6 +312,7 @@ describe("getRoleNav", () => {
     expect(hrefs).toEqual(
       expect.arrayContaining([
         "/sales",
+        "/sales/agency-intelligence",
         "/rc-admin/deployments-map",
         "/rc-admin/leads",
         "/rc-admin/psap-prospects",

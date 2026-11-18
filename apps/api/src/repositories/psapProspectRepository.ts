@@ -16,6 +16,7 @@ import type {
   PsapProspectListQuery,
   PsapProspectListResponse,
   PsapProspectStats,
+  type AgencyIntelligenceProfile,
 } from "rapid-cortex-shared";
 import { PSAP_OUTREACH_STATUSES, stampPsapContactFields } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";
@@ -409,5 +410,98 @@ export class PsapProspectRepository {
     });
     await ddb.send(new PutCommand({ TableName: table(), Item: next }));
     return next;
+  }
+
+  /**
+   * Lean rows for Agency Intelligence. Avoids pulling activity and contact blobs.
+   * State uses the existing state index. Nationwide reads still scan; OpenSearch is later.
+   */
+  async listAgencyIntelligenceSources(state?: string): Promise<
+    Array<{
+      psapId: string;
+      psapName?: string;
+      state?: string;
+      county?: string;
+      city?: string;
+      outreachStatus?: string;
+      assignedToName?: string;
+      nextActionNote?: string | null;
+      nextActionDate?: string | null;
+      agencyIntelligence?: unknown;
+    }>
+  > {
+    const projection =
+      "psapId, psapName, #st, county, city, outreachStatus, assignedToName, nextActionNote, nextActionDate, agencyIntelligence";
+    const names = { "#st": "state" };
+    const out: Array<{
+      psapId: string;
+      psapName?: string;
+      state?: string;
+      county?: string;
+      city?: string;
+      outreachStatus?: string;
+      assignedToName?: string;
+      nextActionNote?: string | null;
+      nextActionDate?: string | null;
+      agencyIntelligence?: unknown;
+    }> = [];
+    let ExclusiveStartKey: Record<string, unknown> | undefined;
+    do {
+      const r = state
+        ? await ddb.send(
+            new QueryCommand({
+              TableName: table(),
+              IndexName: "StateUpdatedIndex",
+              KeyConditionExpression: "#st = :st",
+              ExpressionAttributeNames: names,
+              ExpressionAttributeValues: { ":st": state.toUpperCase() },
+              ProjectionExpression: projection,
+              ExclusiveStartKey,
+            }),
+          )
+        : await ddb.send(
+            new ScanCommand({
+              TableName: table(),
+              ProjectionExpression: projection,
+              ExpressionAttributeNames: names,
+              ExclusiveStartKey,
+            }),
+          );
+      out.push(...((r.Items as typeof out) ?? []));
+      ExclusiveStartKey = r.LastEvaluatedKey as Record<string, unknown> | undefined;
+    } while (ExclusiveStartKey);
+    return out;
+  }
+
+  async saveAgencyIntelligence(
+    psapId: string,
+    profile: AgencyIntelligenceProfile,
+    nowIso: string,
+  ): Promise<boolean> {
+    try {
+      await ddb.send(
+        new UpdateCommand({
+          TableName: table(),
+          Key: { psapId },
+          ConditionExpression: "attribute_exists(psapId)",
+          UpdateExpression: "SET agencyIntelligence = :profile, updatedAt = :now",
+          ExpressionAttributeValues: {
+            ":profile": profile,
+            ":now": nowIso,
+          },
+        }),
+      );
+      return true;
+    } catch (err) {
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "name" in err &&
+        (err as { name?: string }).name === "ConditionalCheckFailedException"
+      ) {
+        return false;
+      }
+      throw err;
+    }
   }
 }

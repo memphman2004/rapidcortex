@@ -1,4 +1,6 @@
-@import "tailwindcss";
+/* source("./") restricts Tailwind v4 auto-scan to apps/web/ only — prevents PostCSS IPC
+   timeout when running Next.js dev from an external drive (slow filesystem benchmark). */
+@import "tailwindcss" source("./");
 @import "maplibre-gl/dist/maplibre-gl.css";
 
 :root {

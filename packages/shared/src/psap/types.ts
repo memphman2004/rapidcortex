@@ -190,6 +190,8 @@ export interface PsapProspect {
   createdAt: string;
   updatedAt: string;
   importedFrom: string;
+  /** Field-level Agency Intelligence profile. Absent until a researcher saves evidence. */
+  agencyIntelligence?: import("../agency-intelligence/types.js").AgencyIntelligenceProfile;
 }
 
 export interface PatchPsapProspectBody {

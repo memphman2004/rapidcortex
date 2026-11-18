@@ -40,12 +40,18 @@ trap restore_api_pkg EXIT
 
 RC_API_PKG_BACKUP_SUFFIX=pre-lean rc_prepare_api_vendor_for_sam
 
-if [[ ! -f "${ROOT}/apps/api/dist/handlers/rc-admin/psapProspectsHttp.js" ]]; then
-  echo "── Compiling PSAP CRM handlers ──"
-  npm run build -w rapid-cortex-api || true
+echo "── Compiling PSAP CRM handlers ──"
+if [[ "${SKIP_API_TSC:-}" == "1" ]]; then
+  echo "── Skipping API tsc (SKIP_API_TSC=1); using existing apps/api/dist ──"
+else
+  npm run build -w rapid-cortex-api
 fi
 if [[ ! -f "${ROOT}/apps/api/dist/handlers/rc-admin/psapProspectsHttp.js" ]]; then
   echo "ERROR: psapProspectsHttp dist missing after build" >&2
+  exit 1
+fi
+if [[ ! -f "${ROOT}/apps/api/dist/handlers/rc-admin/agencyIntelligenceHttp.js" ]]; then
+  echo "ERROR: agencyIntelligenceHttp dist missing after build" >&2
   exit 1
 fi
 echo "── Using apps/api/dist/handlers/rc-admin/psapProspectsHttp.js ──"

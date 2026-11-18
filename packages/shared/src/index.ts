@@ -42,6 +42,7 @@ export * from "./billing/index.js";
 export * from "./monetization/index.js";
 export * from "./sales/index.js";
 export * from "./psap/index.js";
+export * from "./agency-intelligence/index.js";
 export * from "./grants/index.js";
 export * from "./rc-lite/index.js";
 export * from "./adobe-sign/index.js";

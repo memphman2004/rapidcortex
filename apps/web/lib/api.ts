@@ -85,6 +85,8 @@ import type {
   ScenarioVertical,
 } from "rapid-cortex-shared";
 import { VIDEO_ASSIST_SMS_NOT_RECEIVED_MESSAGE } from "rapid-cortex-shared";
+import { applyDemoApiInterceptor, type DemoHttpClient } from "@/src/demo/engine/DemoApiInterceptor";
+import { isDemoModeActive } from "@/src/demo/engine/demo-mode-gate";
 
 function normalizeApiOrigin(raw: string | undefined): string {
   const s = raw?.trim();
@@ -284,6 +286,14 @@ function redirectIfPasswordChangeRequired(status: number, body: unknown): boolea
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  // DEMO MODE integration point A — remove this block to detach Demo Mode from the HTTP client.
+  if (isDemoModeActive()) {
+    const httpClient: DemoHttpClient = {
+      request: () => Promise.reject(new Error("Production HTTP must not run during Demo Mode")),
+    };
+    applyDemoApiInterceptor(httpClient);
+    return httpClient.request(path, init) as Promise<T>;
+  }
   const API_BASE = resolveApiBaseForPath(path);
   if (!API_BASE) {
     throw new Error("API base URL not configured");
@@ -332,6 +342,14 @@ function throwIfVideoAssistSmsNotSent(status: number, body: unknown): void {
 }
 
 async function requestVideoAssist<T>(path: string, init?: RequestInit): Promise<T> {
+  // DEMO MODE integration point A — same gate as request(). Demo video calls never leave the browser.
+  if (isDemoModeActive()) {
+    const httpClient: DemoHttpClient = {
+      request: () => Promise.reject(new Error("Production HTTP must not run during Demo Mode")),
+    };
+    applyDemoApiInterceptor(httpClient);
+    return httpClient.request(path, init) as Promise<T>;
+  }
   const API_BASE = resolveApiBaseForPath(path);
   if (!API_BASE) {
     throw new Error("API base URL not configured");

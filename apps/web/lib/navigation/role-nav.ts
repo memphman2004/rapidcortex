@@ -248,6 +248,7 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       label: "SALES & CRM",
       items: [
         { id: "sales-portal", label: "Sales Dashboard", href: "/sales", icon: "Briefcase" },
+        agencyIntelligenceNavItem(),
         { id: "leads",     label: "Leads & Opportunities", href: "/rc-admin/leads",     icon: "Inbox", feature: "salesLeads" },
         { id: "psap-prospects", label: "Prospects & Intent", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
         { id: "contacts", label: "Contacts & Agencies", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },
@@ -412,6 +413,16 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
 };
 
 /** Mirrors RC Admin SALES & CRM + MARKETING — same destinations RC operators use. */
+function agencyIntelligenceNavItem(): NavItem {
+  return {
+    id: "agency-intelligence",
+    label: "Agency Intelligence",
+    href: "/sales/agency-intelligence",
+    icon: "ScanSearch",
+    feature: "psapProspects",
+  };
+}
+
 export const SALES_CONTRACTOR_NAV: RoleNav = {
   accent: "sky",
   roleBadge: "SALES",
@@ -421,6 +432,7 @@ export const SALES_CONTRACTOR_NAV: RoleNav = {
       label: "SALES & CRM",
       items: [
         { id: "sales-portal", label: "Sales Dashboard", href: "/sales", icon: "Briefcase", exact: true },
+        agencyIntelligenceNavItem(),
         { id: "leads", label: "Leads & Opportunities", href: "/rc-admin/leads", icon: "Inbox", feature: "salesLeads" },
         {
           id: "signal-feed",
@@ -583,6 +595,7 @@ export const RC_ADMIN_NAV: RoleNav = {
       label: "SALES & CRM",
       items: [
         { id: "sales-portal", label: "Sales Dashboard", href: "/sales", icon: "Briefcase" },
+        agencyIntelligenceNavItem(),
         { id: "leads",     label: "Leads & Opportunities", href: "/rc-admin/leads",     icon: "Inbox", feature: "salesLeads" },
         { id: "psap-prospects", label: "Prospects & Intent", href: "/rc-admin/psap-prospects", icon: "RadioTower", feature: "psapProspects" },
         { id: "contacts", label: "Contacts & Agencies", href: "/rc-admin/contacts", icon: "Users", feature: "contactsModule" },

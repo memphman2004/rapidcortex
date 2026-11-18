@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Optional Demo Mode token signer. Not attached to the parent stack.
+  Enable only when a sales deployment should mint shareable links.
+  Default posture is off. This stack does not read or write production incident tables.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+  DemoTokenSecretArn:
+    Type: String
+    Description: ARN of the Secrets Manager secret rapid-cortex/demo/token-signing-key.
+
+Resources:
+  DemoTokenFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rapid-cortex-demo-tokens-${DeploymentStage}
+      Runtime: nodejs22.x
+      Handler: demoTokens.handler
+      CodeUri: ../../apps/api/src/handlers/demo/
+      Timeout: 10
+      MemorySize: 256
+      Environment:
+        Variables:
+          DEMO_TOKEN_SECRET_ID: !Ref DemoTokenSecretArn
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !Ref DemoTokenSecretArn
+        - Statement:
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rapid-cortex-demo-tokens-${DeploymentStage}:*
+
+Outputs:
+  DemoTokenFunctionArn:
+    Value: !GetAtt DemoTokenFunction.Arn

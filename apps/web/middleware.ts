@@ -61,6 +61,9 @@ import { publicAbsoluteUrl, resolveRedirectUrl } from "@/lib/request-origin";
 import { requiresOperationalPasswordRenewal } from "rapid-cortex-shared/auth/password-policy";
 import { isHospitalPortalEnabled, isNetworkAccessGateEnabled } from "@/lib/runtime-flags";
 import { isNextFlightOrPrefetchRequest } from "@/lib/middleware/flight-request";
+import { canAuthorDemoSession, demoNeutralPathForReason, demoShareTokenFromPath, isNeutralDemoPath } from "@/src/demo/tokens/demo-link-paths";
+import { verifyDemoToken } from "@/src/demo/tokens/demo-token";
+import { isDemoTokenRevoked } from "@/src/demo/tokens/token-store";
 
 function isHospitalDashboardPrefix(prefix: DashboardPrefix): boolean {
   return prefix === "hospital-admin" || prefix === "hospital-staff";
@@ -1076,6 +1079,44 @@ async function runMiddleware(request: NextRequest) {
 
   // ALB/ECS probes must not load the edge middleware graph (see matcher + node:crypto note below).
   if (pathname === "/api/health" || pathname.startsWith("/api/health/")) {
+    return NextResponse.next();
+  }
+
+  // Shareable Maplewood demos. A bad token never reaches an application page.
+  if (isNeutralDemoPath(pathname)) {
+    return NextResponse.next();
+  }
+  const demoShareToken = demoShareTokenFromPath(pathname);
+  if (demoShareToken) {
+    const demoSecret = process.env.DEMO_TOKEN_SIGNING_SECRET?.trim() ?? "";
+    const verdict = await verifyDemoToken(demoShareToken, demoSecret, { isRevoked: isDemoTokenRevoked });
+    if (!verdict.ok) {
+      const expired = request.nextUrl.clone();
+      expired.pathname = demoNeutralPathForReason(verdict.reason);
+      expired.search = "";
+      return NextResponse.redirect(expired);
+    }
+    const allowed = NextResponse.next();
+    allowed.cookies.set("rc_demo_link", verdict.claims.jti, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/demo-link",
+      maxAge: 60 * 60 * 8,
+    });
+    return allowed;
+  }
+  if (pathname === "/demo-link" || pathname === "/demo-link/") {
+    const demoFlag = (process.env.DEMO_MODE ?? process.env.NEXT_PUBLIC_DEMO_MODE ?? "").trim().toLowerCase();
+    if (demoFlag === "true" || demoFlag === "1" || !isAuthConfigured()) {
+      return NextResponse.next();
+    }
+    const demoCookie = request.cookies.get(COOKIE_ID_TOKEN)?.value;
+    const demoUser = demoCookie ? await verifyCognitoIdToken(demoCookie) : null;
+    if (!demoUser || !canAuthorDemoSession(String(demoUser.role))) {
+      const login = resolveRedirectUrl(marketingLoginPath(), request);
+      login.searchParams.set("from", pathname);
+      return nextOrRedirect(request, login);
+    }
     return NextResponse.next();
   }
 
