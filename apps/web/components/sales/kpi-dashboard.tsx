@@ -61,9 +61,9 @@ export function KpiDashboard({ assigneeFilter }: Props) {
           { label: "Win rate", value: `${conversion}%` },
           { label: "Hot leads", value: String(hot) },
         ].map((c) => (
-          <div key={c.label} className="rounded-xl border border-white/5 bg-[#0a1628] px-4 py-3">
-            <div className="text-[10px] font-bold uppercase text-slate-500">{c.label}</div>
-            <div className="mt-1 text-xl font-semibold text-white">{c.value}</div>
+          <div key={c.label} className="min-w-0 rounded-xl border border-white/5 bg-[#0a1628] px-4 py-3">
+            <div className="text-[10px] font-semibold uppercase leading-tight tracking-wide text-slate-500">{c.label}</div>
+            <div className="mt-1 break-words text-xl font-semibold tabular-nums text-white">{c.value}</div>
           </div>
         ))}
       </div>
@@ -72,17 +72,17 @@ export function KpiDashboard({ assigneeFilter }: Props) {
         <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500">Stage funnel</h3>
         <div className="mt-3 space-y-2">
           {byStage.map(({ stage, count }) => (
-            <div key={stage} className="flex items-center gap-3">
-              <span className={`w-24 text-[11px] ${STAGE_CONFIG[stage].textClass}`}>
+            <div key={stage} className="grid grid-cols-[minmax(8.75rem,11rem)_minmax(0,1fr)_2rem] items-center gap-3">
+              <span className={`text-[11px] leading-tight ${STAGE_CONFIG[stage].textClass}`}>
                 {STAGE_CONFIG[stage].label}
               </span>
-              <div className="h-2 flex-1 overflow-hidden rounded bg-white/5">
+              <div className="h-2 min-w-0 overflow-hidden rounded bg-white/5">
                 <div
                   className="h-full rounded bg-sky-500/60"
                   style={{ width: `${(count / maxCount) * 100}%` }}
                 />
               </div>
-              <span className="w-8 text-right text-[11px] text-slate-400">{count}</span>
+              <span className="text-right text-[11px] tabular-nums text-slate-400">{count}</span>
             </div>
           ))}
         </div>

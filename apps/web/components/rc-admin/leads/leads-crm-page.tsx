@@ -272,7 +272,7 @@ function LeadsListView({
   }
 
   const th = (key: ListSortKey, label: string) => (
-    <th className="px-5 py-3 text-left text-[9px] font-bold uppercase tracking-widest text-slate-600 first:pl-5 last:pr-5">
+    <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5">
       <button
         type="button"
         onClick={() => toggleSort(key)}
@@ -286,7 +286,7 @@ function LeadsListView({
 
   return (
     <div className="flex-1 overflow-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[rgba(255,255,255,0.06)]">
-      <table className="w-full min-w-[700px] border-collapse">
+      <table className="w-max min-w-full border-collapse">
         <thead>
           <tr className="sticky top-0 z-10 border-b border-[rgba(255,255,255,0.06)] bg-[#0a1628]">
             {th("name", "Name / Email")}
@@ -296,7 +296,7 @@ function LeadsListView({
             {th("value", "Est. Value")}
             {th("next", "Next Action")}
             {th("updated", "Updated")}
-            <th className="px-5 py-3 text-left text-[9px] font-bold uppercase tracking-widest text-slate-600">
+            <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500">
               Assigned
             </th>
           </tr>
@@ -504,7 +504,7 @@ export function LeadsCrmPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#050c1a]">
-      <div className="flex flex-wrap items-stretch gap-2 border-b border-[rgba(255,255,255,0.06)] bg-[#0a1628] px-5 py-3">
+      <div className="flex flex-wrap items-stretch gap-2 border-b border-[rgba(255,255,255,0.06)] bg-[#0a1628] px-4 py-3 sm:px-5">
         <Metric
           value={String(metrics?.total ?? 0)}
           label="Total Leads"
@@ -547,12 +547,12 @@ export function LeadsCrmPage() {
           color="text-slate-500"
           icon="◷"
         />
-        <div className="ml-auto flex items-stretch gap-2">
+        <div className="flex shrink-0 items-stretch gap-2">
           <div className="flex flex-col items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] px-4 py-2">
             <span className="text-xl font-extrabold leading-none text-emerald-400">
               {stages.WON?.length ?? 0}
             </span>
-            <span className="mt-1 text-[9px] font-bold uppercase tracking-widest text-emerald-600">
+            <span className="mt-1 text-[10px] font-semibold uppercase leading-tight tracking-wide text-emerald-600">
               Won
             </span>
           </div>
@@ -560,7 +560,7 @@ export function LeadsCrmPage() {
             <span className="text-xl font-extrabold leading-none text-red-400">
               {stages.LOST?.length ?? 0}
             </span>
-            <span className="mt-1 text-[9px] font-bold uppercase tracking-widest text-red-600">
+            <span className="mt-1 text-[10px] font-semibold uppercase leading-tight tracking-wide text-red-600">
               Lost
             </span>
           </div>
@@ -749,16 +749,14 @@ function Metric({
   icon: string;
 }) {
   return (
-    <div className="flex min-w-[110px] flex-col gap-1 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#0d1b35] px-4 py-3">
+    <div className="flex w-max max-w-full shrink-0 flex-col gap-1.5 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#0d1b35] px-3.5 py-3">
       <div className="flex items-baseline gap-1.5">
-        <span className={`text-[12px] opacity-50 ${color}`}>{icon}</span>
-        <span
-          className={`text-2xl font-extrabold leading-none tracking-tight tabular-nums ${color}`}
-        >
-          {value}
-        </span>
+        <span className={`text-xs leading-none opacity-60 ${color}`}>{icon}</span>
+        <span className={`text-xl font-extrabold leading-none tabular-nums ${color}`}>{value}</span>
       </div>
-      <div className="text-[9px] font-bold uppercase tracking-widest text-slate-600">{label}</div>
+      <div className="text-[10px] font-semibold uppercase leading-tight tracking-wide text-slate-500">
+        {label}
+      </div>
     </div>
   );
 }

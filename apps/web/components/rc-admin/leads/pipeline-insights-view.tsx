@@ -43,15 +43,15 @@ export function PipelineInsightsView({ leads, onSelect }: Props) {
         </p>
         <ul className="mt-4 space-y-2.5">
           {insight.stageMix.map((row) => (
-            <li key={row.stage} className="grid grid-cols-[7rem_1fr_auto] items-center gap-3">
-              <span className={`text-[11px] font-semibold ${STAGE_CONFIG[row.stage].textClass}`}>{row.label}</span>
+            <li key={row.stage} className="grid grid-cols-[minmax(8.75rem,11rem)_minmax(0,1fr)_auto] items-center gap-3">
+              <span className={`text-[11px] font-semibold leading-tight ${STAGE_CONFIG[row.stage].textClass}`}>{row.label}</span>
               <span className="h-2 overflow-hidden rounded-full bg-white/[0.04]">
                 <span
                   className="block h-full rounded-full bg-sky-500/80"
                   style={{ width: `${Math.round((row.count / peak) * 100)}%` }}
                 />
               </span>
-              <span className="text-right text-[11px] tabular-nums text-slate-400">
+              <span className="whitespace-nowrap text-right text-[11px] tabular-nums text-slate-400">
                 {row.count} · {formatCurrency(row.weighted)} weighted
               </span>
             </li>
@@ -85,9 +85,9 @@ function Summary({
 }) {
   const color = tone === "warn" ? "text-amber-300" : tone === "ok" ? "text-emerald-300" : "text-slate-100";
   return (
-    <div className="rounded-2xl border border-white/[0.06] bg-[#0d1b35] px-4 py-3">
-      <div className="text-[9px] font-bold uppercase tracking-widest text-slate-500">{label}</div>
-      <div className={`mt-1 text-2xl font-extrabold tabular-nums ${color}`}>{value}</div>
+    <div className="min-w-0 rounded-2xl border border-white/[0.06] bg-[#0d1b35] px-4 py-3">
+      <div className="text-[10px] font-semibold uppercase leading-tight tracking-wide text-slate-500">{label}</div>
+      <div className={`mt-1 break-words text-xl font-extrabold tabular-nums ${color}`}>{value}</div>
       <div className="mt-1 text-[11px] text-slate-500">{hint}</div>
     </div>
   );

@@ -670,7 +670,11 @@ export function CadDispatcherWorkspaceLayout({
       >
         <div
           className={`flex min-h-0 flex-col overflow-hidden ${popout && popout !== "unit_board" && popout !== "queue" ? "hidden" : ""}`}
-          style={{ background: "var(--rc-panel-bg)", borderRight: "1px solid var(--rc-border)" }}
+          style={{
+            gridColumn: "1",
+            background: "var(--rc-panel-bg)",
+            borderRight: "1px solid var(--rc-border)",
+          }}
         >
           {popout === "queue" ? null : (
           <>
@@ -774,16 +778,21 @@ export function CadDispatcherWorkspaceLayout({
         </div>
 
         <div
-          className={`ws-resize-x hidden lg:block ${popout ? "!hidden" : ""}`}
+          className={`ws-resize-x ${popout ? "!hidden" : ""}`}
+          style={{ gridColumn: popout ? "1" : "2" }}
           role="separator"
           aria-orientation="vertical"
           onMouseDown={(e) => startHorizontalResize(e.clientX, prefs.queueWidth, false, prefs.setQueueWidth)}
         />
 
-        <div id="cad-center" className={`relative flex min-h-0 min-w-0 flex-col overflow-hidden ${soloModule ? "" : popout ? "hidden" : ""}`}>
-          <div className="incident-workspace min-h-0 flex-1" style={{ gridTemplateRows: soloModule ? "minmax(0, 1fr)" : "auto minmax(0, 1fr)" }}>
+        <div
+          id="cad-center"
+          className={`relative flex min-h-0 min-w-0 flex-col overflow-hidden ${soloModule ? "" : popout ? "hidden" : ""}`}
+          style={{ gridColumn: popout ? "1" : "3" }}
+        >
+          <div className="incident-workspace min-h-0 flex-1" style={{ gridTemplateRows: soloModule ? "minmax(0, 1fr)" : "minmax(0, auto) minmax(12rem, 1fr)" }}>
             {soloModule ? null : (
-            <div className="shrink-0">
+            <div className="min-h-0 max-h-[38%] overflow-auto">
               <CadActiveIncidentCard
                 incident={incidentForUi}
                 analysis={analysisForUi}
@@ -826,7 +835,8 @@ export function CadDispatcherWorkspaceLayout({
         </div>
 
         <div
-          className={`ws-resize-x hidden lg:block ${popout ? "!hidden" : ""}`}
+          className={`ws-resize-x ${popout ? "!hidden" : ""}`}
+          style={{ gridColumn: popout ? "1" : "4" }}
           role="separator"
           aria-orientation="vertical"
           onMouseDown={(e) => startHorizontalResize(e.clientX, prefs.contextWidth, true, prefs.setContextWidth)}
@@ -834,7 +844,11 @@ export function CadDispatcherWorkspaceLayout({
 
         <div
           className={`flex min-h-0 flex-col overflow-hidden ${popout && popout !== "cad_ready" && popout !== "context" ? "hidden" : ""}`}
-          style={{ background: "var(--rc-panel-bg)", borderLeft: "1px solid var(--rc-border)" }}
+          style={{
+            gridColumn: popout ? "1" : "5",
+            background: "var(--rc-panel-bg)",
+            borderLeft: "1px solid var(--rc-border)",
+          }}
         >
           {popout ? null : (
           <WorkstationPanel

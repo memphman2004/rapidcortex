@@ -36,10 +36,10 @@ export function PipelineColumn({
     <div className="flex w-64 shrink-0 flex-col">
       <div className="mb-2 overflow-hidden rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#0a1628]">
         <div className={`h-[3px] w-full ${topBarBg}`} />
-        <div className="flex items-start justify-between px-3 py-2.5">
-          <div>
+        <div className="flex items-start justify-between gap-2 px-3 py-2.5">
+          <div className="min-w-0">
             <div
-              className={`text-[11px] font-bold uppercase tracking-widest ${cfg.textClass}`}
+              className={`text-[11px] font-bold uppercase leading-tight tracking-wide ${cfg.textClass}`}
               title={STAGE_ENTRY_CRITERIA[stage]}
             >
               {cfg.label}
@@ -51,7 +51,7 @@ export function PipelineColumn({
             )}
           </div>
           <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${cfg.bgClass} ${cfg.textClass}`}
+            className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${cfg.bgClass} ${cfg.textClass}`}
           >
             {leads.length}
           </span>

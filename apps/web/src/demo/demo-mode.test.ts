@@ -13,7 +13,11 @@ import {
   resetDemoModeGateForTests,
   setDemoModeOverrideForTests,
 } from "@/src/demo/engine/demo-mode-gate";
-import { applyDemoApiInterceptor, resolveDemoHttp } from "@/src/demo/engine/DemoApiInterceptor";
+import {
+  applyDemoApiInterceptor,
+  resolveDemoHttp,
+  type DemoHttpClient,
+} from "@/src/demo/engine/DemoApiInterceptor";
 import {
   getDemoPlaybackEngine,
   peekDemoPlaybackEngine,
@@ -75,8 +79,8 @@ describe("Test A — Demo mode activation", () => {
     socket.connect();
     expect(WebSocketSpy).not.toHaveBeenCalled();
 
-    const network = vi.fn(async () => "live-911");
-    const client = { request: network };
+    const network = vi.fn(async (_path: string) => "live-911");
+    const client: DemoHttpClient = { request: network };
     applyDemoApiInterceptor(client);
     const body = (await client.request("/api/incidents")) as { agencyId: string };
     expect(network).not.toHaveBeenCalled();
@@ -249,12 +253,12 @@ describe("Test H — WebSocket mock", () => {
 
 describe("Test I — API interceptor", () => {
   it("returns Maplewood data and does not call the network", async () => {
-    const network = vi.fn(async () => {
+    const network = vi.fn(async (_path: string) => {
       throw new Error("production path");
     });
     activateDemoSession({ source: "presenter" });
     await getDemoPlaybackEngine().load("demo-standard");
-    const client = { request: network };
+    const client: DemoHttpClient = { request: network };
     applyDemoApiInterceptor(client);
     const body = (await client.request("/api/incidents")) as { agencyId: string; demo: boolean };
     expect(body.agencyId).toBe(DEMO_AGENCY_ID);
@@ -413,8 +417,8 @@ describe("Test S — Shareable link requires no account", () => {
 describe("Test T — Production regression guard", () => {
   it("leaves the production client in place while Demo Mode is off", async () => {
     expect(isDemoModeActive()).toBe(false);
-    const original = vi.fn(async () => "production-response");
-    const client = { request: original };
+    const original = vi.fn(async (_path: string) => "production-response");
+    const client: DemoHttpClient = { request: original };
     applyDemoApiInterceptor(client);
     await expect(client.request("/api/incidents")).resolves.toBe("production-response");
     expect(original).toHaveBeenCalledTimes(1);

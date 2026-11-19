@@ -131,17 +131,17 @@ export function AgencyIntelligenceClient() {
       </div>
 
       <form
-        className="grid gap-2 rounded-lg border border-slate-800 bg-slate-950/60 p-3 md:grid-cols-6"
+        className="grid gap-3 rounded-lg border border-slate-800 bg-slate-950/60 p-3 sm:grid-cols-2 lg:grid-cols-3"
         onSubmit={(event) => {
           event.preventDefault();
           setPage(1);
           void load();
         }}
       >
-        <label className="text-xs text-slate-400">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
           View
           <select
-            className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-slate-100"
+            className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-slate-100"
             value={view}
             onChange={(event) => {
               setView(event.target.value as (typeof VIEWS)[number]["id"]);
@@ -155,28 +155,28 @@ export function AgencyIntelligenceClient() {
             ))}
           </select>
         </label>
-        <label className="text-xs text-slate-400">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
           State
           <input
-            className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm uppercase text-slate-100"
+            className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm uppercase text-slate-100"
             maxLength={2}
             value={state}
             placeholder="Any"
             onChange={(event) => setState(event.target.value.toUpperCase())}
           />
         </label>
-        <label className="text-xs text-slate-400">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
           County
           <input
-            className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-slate-100"
+            className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-slate-100"
             value={county}
             onChange={(event) => setCounty(event.target.value)}
           />
         </label>
-        <label className="text-xs text-slate-400">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
           Sales zone
           <select
-            className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-slate-100"
+            className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-slate-100"
             value={salesZone}
             onChange={(event) => setSalesZone(event.target.value)}
           >
@@ -188,18 +188,18 @@ export function AgencyIntelligenceClient() {
             ))}
           </select>
         </label>
-        <label className="text-xs text-slate-400">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
           CAD vendor
           <input
-            className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-slate-100"
+            className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-slate-100"
             value={cadVendor}
             onChange={(event) => setCadVendor(event.target.value)}
           />
         </label>
-        <label className="text-xs text-slate-400">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
           Headcount basis
           <select
-            className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-slate-100"
+            className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-slate-100"
             value={basis}
             onChange={(event) => setBasis(event.target.value)}
           >
@@ -220,7 +220,7 @@ export function AgencyIntelligenceClient() {
       {loading ? <p className="text-sm text-slate-400">Loading prospecting view…</p> : null}
 
       <div className="overflow-x-auto rounded-lg border border-slate-800">
-        <table className="min-w-full text-left text-sm">
+        <table className="w-max min-w-full border-separate border-spacing-0 text-left text-sm">
           <thead className="bg-slate-900 text-xs uppercase tracking-wide text-slate-400">
             <tr>
               {[
@@ -240,7 +240,7 @@ export function AgencyIntelligenceClient() {
                 "Representative",
                 "Last verified",
               ].map((heading) => (
-                <th key={heading} className="px-3 py-2 font-medium">
+                <th key={heading} className="whitespace-nowrap px-3 py-2 font-medium">
                   {heading}
                 </th>
               ))}

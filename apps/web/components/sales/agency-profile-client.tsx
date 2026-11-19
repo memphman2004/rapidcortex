@@ -289,9 +289,9 @@ export function AgencyProfileClient({ psapId, canVerify }: { psapId: string; can
         <p className="text-sm text-slate-400">
           Submissions wait for review. They do not change the qualified list until an RC admin approves them.
         </p>
-        <label className="text-xs text-slate-400">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
           Field
-          <select className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={field} onChange={(event) => setField(event.target.value as (typeof FIELDS)[number])}>
+          <select className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={field} onChange={(event) => setField(event.target.value as (typeof FIELDS)[number])}>
             {FIELDS.map((item) => (
               <option key={item} value={item}>
                 {item}
@@ -299,11 +299,11 @@ export function AgencyProfileClient({ psapId, canVerify }: { psapId: string; can
             ))}
           </select>
         </label>
-        <label className="text-xs text-slate-400">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
           Value
           {field === "primaryReceivingPoint" || field === "activeRfp" ? (
             <select
-              className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm"
+              className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm"
               value={proposedValue}
               onChange={(event) => setProposedValue(event.target.value)}
               required
@@ -314,7 +314,7 @@ export function AgencyProfileClient({ psapId, canVerify }: { psapId: string; can
             </select>
           ) : (
             <input
-              className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm"
+              className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm"
               value={proposedValue}
               onChange={(event) => setProposedValue(event.target.value)}
               required
@@ -322,9 +322,9 @@ export function AgencyProfileClient({ psapId, canVerify }: { psapId: string; can
           )}
         </label>
         {field === "reportedDispatcherHeadcount" ? (
-          <label className="text-xs text-slate-400">
+          <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
             Counting method
-            <select className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={countingMethod} onChange={(event) => setCountingMethod(event.target.value)}>
+            <select className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={countingMethod} onChange={(event) => setCountingMethod(event.target.value)}>
               <option value="DISTINCT_DISPATCH_PERSONNEL">Distinct dispatch personnel</option>
               <option value="AUTHORIZED_POSITIONS">Authorized positions</option>
               <option value="FILLED_POSITIONS">Filled positions</option>
@@ -336,17 +336,17 @@ export function AgencyProfileClient({ psapId, canVerify }: { psapId: string; can
           </label>
         ) : null}
         {field === "cadProvider" ? (
-          <label className="text-xs text-slate-400">
+          <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
             Vendor role
-            <select className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={cadProviderRole} onChange={(event) => setCadProviderRole(event.target.value)}>
+            <select className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={cadProviderRole} onChange={(event) => setCadProviderRole(event.target.value)}>
               <option value="INCUMBENT">Incumbent</option>
               <option value="BIDDER">Bidder only</option>
             </select>
           </label>
         ) : null}
-        <label className="text-xs text-slate-400">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
           Source
-          <select className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={sourceType} onChange={(event) => setSourceType(event.target.value)}>
+          <select className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={sourceType} onChange={(event) => setSourceType(event.target.value)}>
             <option value="OFFICIAL_REPORT">Official report</option>
             <option value="OFFICIAL_BUDGET">Official budget</option>
             <option value="STATE_DIRECTORY">State directory</option>
@@ -356,25 +356,25 @@ export function AgencyProfileClient({ psapId, canVerify }: { psapId: string; can
             <option value="MANUAL_RESEARCH">Manual research</option>
           </select>
         </label>
-        <label className="text-xs text-slate-400">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
           Reporting period
-          <input className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={reportingPeriod} onChange={(event) => setReportingPeriod(event.target.value)} placeholder="FY2026" />
+          <input className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={reportingPeriod} onChange={(event) => setReportingPeriod(event.target.value)} placeholder="FY2026" />
         </label>
-        <label className="text-xs text-slate-400">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
           Source date
-          <input className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={sourcePublishedAt} onChange={(event) => setSourcePublishedAt(event.target.value)} placeholder="2026-06-01" />
+          <input className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={sourcePublishedAt} onChange={(event) => setSourcePublishedAt(event.target.value)} placeholder="2026-06-01" />
         </label>
-        <label className="text-xs text-slate-400">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
           Source URL
-          <input className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} />
+          <input className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} />
         </label>
-        <label className="text-xs text-slate-400">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
           Quoted passage
-          <textarea className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" rows={3} value={quotedPassage} onChange={(event) => setQuotedPassage(event.target.value)} />
+          <textarea className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" rows={3} value={quotedPassage} onChange={(event) => setQuotedPassage(event.target.value)} />
         </label>
-        <label className="text-xs text-slate-400">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-slate-400">
           Contact role, if the agency confirmed it
-          <input className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={contactRole} onChange={(event) => setContactRole(event.target.value)} />
+          <input className="block w-full min-w-0 rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm" value={contactRole} onChange={(event) => setContactRole(event.target.value)} />
         </label>
         <button type="submit" className="w-fit rounded bg-sky-700 px-3 py-2 text-sm font-medium">
           Submit for verification

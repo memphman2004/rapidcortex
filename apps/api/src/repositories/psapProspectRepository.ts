@@ -8,6 +8,7 @@ import {
 import { randomUUID } from "node:crypto";
 import type {
   AddPsapActivityRequest,
+  AgencyIntelligenceProfile,
   PatchPsapProspectBody,
   PsapActivity,
   PsapMapPin,
@@ -16,7 +17,6 @@ import type {
   PsapProspectListQuery,
   PsapProspectListResponse,
   PsapProspectStats,
-  type AgencyIntelligenceProfile,
 } from "rapid-cortex-shared";
 import { PSAP_OUTREACH_STATUSES, stampPsapContactFields } from "rapid-cortex-shared";
 import { env } from "../lib/env.js";

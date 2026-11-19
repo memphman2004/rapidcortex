@@ -38,15 +38,18 @@ function call(partial: DemoCall): DemoCall {
   return partial;
 }
 
-function incident(partial: DemoIncident): DemoIncident {
+type IncidentDefaults = "continuity" | "transcript" | "commandNotes" | "major" | "mci" | "units";
+type IncidentInput = Omit<DemoIncident, IncidentDefaults> & Partial<Pick<DemoIncident, IncidentDefaults>>;
+
+function incident(partial: IncidentInput): DemoIncident {
   return {
-    continuity: [],
-    transcript: [],
-    commandNotes: [],
-    major: false,
-    mci: false,
-    units: [],
     ...partial,
+    continuity: partial.continuity ?? [],
+    transcript: partial.transcript ?? [],
+    commandNotes: partial.commandNotes ?? [],
+    major: partial.major ?? false,
+    mci: partial.mci ?? false,
+    units: partial.units ?? [],
   };
 }
 
