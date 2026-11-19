@@ -72,7 +72,11 @@ export function PipelineColumn({
           if (id) onDropLead(id, stage);
         }}
         className={[
-          "flex min-h-[100px] flex-1 flex-col gap-2 rounded-xl border border-dashed p-2 transition-all duration-150",
+          // overflow-y-auto: each column scrolls independently so tall columns
+          // don't overflow the board container or require page-level scroll.
+          // [&::-webkit-scrollbar] classes keep the thumb subtle (1px wide, dimmed).
+          "flex min-h-[100px] flex-1 flex-col gap-2 overflow-y-auto rounded-xl border border-dashed p-2 transition-all duration-150",
+          "[&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[rgba(255,255,255,0.08)]",
           dragOver
             ? "border-sky-500/60 bg-sky-500/[0.04] shadow-inner"
             : "border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.01)]",

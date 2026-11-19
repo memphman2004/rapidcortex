@@ -20,7 +20,7 @@ export function PipelineBoard({
 }: Props) {
   return (
     <div
-      className="flex gap-3 overflow-x-auto px-5 py-4 pb-8
+      className="flex h-full gap-3 overflow-x-auto px-5 py-4 pb-8
         [&::-webkit-scrollbar]:h-1
         [&::-webkit-scrollbar-thumb]:rounded-full
         [&::-webkit-scrollbar-thumb]:bg-[rgba(255,255,255,0.06)]"
