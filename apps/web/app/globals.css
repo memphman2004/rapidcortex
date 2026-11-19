@@ -1,6 +1,13 @@
-/* source("./") restricts Tailwind v4 auto-scan to apps/web/ only — prevents PostCSS IPC
-   timeout when running Next.js dev from an external drive (slow filesystem benchmark). */
+/* source("./") restricts Tailwind v4 auto-scan to apps/web/app/ only — prevents PostCSS IPC
+   timeout when running Next.js dev from an external drive (slow filesystem benchmark).
+   The @source directives below add the remaining subdirectories so responsive utilities
+   (md:static, md:z-0, md:hidden, -translate-x-full, etc.) from components/ are generated.
+   These are scoped to specific subdirectories to keep the external-drive scan fast. */
 @import "tailwindcss" source("./");
+@source "../components/**/*.{tsx,ts,jsx,js}";
+@source "../hooks/**/*.{tsx,ts,jsx,js}";
+@source "../lib/**/*.{tsx,ts,jsx,js}";
+@source "../contexts/**/*.{tsx,ts,jsx,js}";
 @import "maplibre-gl/dist/maplibre-gl.css";
 
 :root {
