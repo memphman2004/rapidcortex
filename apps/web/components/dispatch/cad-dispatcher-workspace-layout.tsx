@@ -850,6 +850,19 @@ export function CadDispatcherWorkspaceLayout({
             borderLeft: "1px solid var(--rc-border)",
           }}
         >
+          {/* CAD summary is pinned to the top of the right rail — dispatcher
+              sees the payload/submission status immediately on selecting an
+              incident, before scrolling to the map or context cards. */}
+          {popout === "context" ? null : (
+          <div className="shrink-0 border-b p-2" style={{ borderColor: "var(--rc-border)" }}>
+            {popout ? null : (
+              <div className="mb-1 flex justify-end">
+                <SectionPopOutButton label="CAD-ready" onClick={() => popOutSection("cad_ready")} />
+              </div>
+            )}
+            <CadReadyPanel incident={incidentForUi} />
+          </div>
+          )}
           {popout ? null : (
           <WorkstationPanel
             name="map"
@@ -863,23 +876,6 @@ export function CadDispatcherWorkspaceLayout({
           >
             <DispatcherIncidentMapPanel incidentId={selectedIdForPanels} incident={incidentForUi} />
           </WorkstationPanel>
-          )}
-          {popout ? null : (
-            <IncidentIntelligencePanel
-              incidentId={selectedIdForPanels}
-              incident={incidentForUi}
-              transcriptSegments={transcriptSegments}
-            />
-          )}
-          {popout === "context" ? null : (
-          <div className="shrink-0 border-b p-2" style={{ borderColor: "var(--rc-border)" }}>
-            {popout ? null : (
-              <div className="mb-1 flex justify-end">
-                <SectionPopOutButton label="CAD-ready" onClick={() => popOutSection("cad_ready")} />
-              </div>
-            )}
-            <CadReadyPanel incident={incidentForUi} />
-          </div>
           )}
           {popout === "cad_ready" ? null : (
           <div className="min-h-0">
