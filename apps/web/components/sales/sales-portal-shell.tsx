@@ -148,41 +148,47 @@ export function SalesPortalShell({
           ))}
         </div>
 
-        <div className="flex-1 overflow-auto p-4 md:p-5">
-          {tab === "pipeline" && (
-            <div className="space-y-4">
-              <ColdLeadAlerts assigneeFilter={assigneeFilter} />
-              <LeadsCrmPage />
-            </div>
-          )}
-          {tab === "campaigns" && (
-            <SalesAutomationClient canManage={canManageCampaigns} />
-          )}
-          {tab === "quote" && (
-            <QuoteBuilder
-              proposedBy={contractorName ?? contractorEmail ?? "Sales"}
-              defaultLeadAssignee={assigneeFilter}
-            />
-          )}
-          {tab === "news" && <SalesNewsPanel />}
-          {tab === "regions" && <TerritoryRosterPanel />}
-          {tab === "library" && <SalesLibrary />}
-          {tab === "earnings" && <SalesCommissionPanel assigneeFilter={assigneeFilter} />}
-          {tab === "kpi" && <KpiDashboard assigneeFilter={assigneeFilter} />}
-          {tab === "roi" && <RoiGenerator />}
-          {tab === "pre-call" && <PreCallPlanner />}
-          {tab === "templates" && <OutreachTemplatesPanel />}
-          {tab === "sales-tools" && salesToolsEnabled && <SalesTools />}
-          {tab === "rfp" && <RfpTracker defaultAssignee={contractorEmail} />}
-          {tab === "activity" && (
-            <ActivityLog
-              contractorEmail={contractorEmail}
-              contractorName={contractorName}
-            />
-          )}
-          {tab === "accounts" && <AccountClaims />}
-          {tab === "grants" && <GrantSuccessProgram />}
-        </div>
+        {/* Pipeline tab: fill the remaining card height so the kanban board
+            reaches the bottom of the viewport without an extra inner card frame.
+            All other tabs keep the standard padded scroll area. */}
+        {tab === "pipeline" ? (
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            {/* ColdLeadAlerts returns null when empty; mx-5 mt-4 keeps it inset
+                from the outer card border when it does render. */}
+            <ColdLeadAlerts assigneeFilter={assigneeFilter} />
+            <LeadsCrmPage />
+          </div>
+        ) : (
+          <div className="flex-1 overflow-auto p-4 md:p-5">
+            {tab === "campaigns" && (
+              <SalesAutomationClient canManage={canManageCampaigns} />
+            )}
+            {tab === "quote" && (
+              <QuoteBuilder
+                proposedBy={contractorName ?? contractorEmail ?? "Sales"}
+                defaultLeadAssignee={assigneeFilter}
+              />
+            )}
+            {tab === "news" && <SalesNewsPanel />}
+            {tab === "regions" && <TerritoryRosterPanel />}
+            {tab === "library" && <SalesLibrary />}
+            {tab === "earnings" && <SalesCommissionPanel assigneeFilter={assigneeFilter} />}
+            {tab === "kpi" && <KpiDashboard assigneeFilter={assigneeFilter} />}
+            {tab === "roi" && <RoiGenerator />}
+            {tab === "pre-call" && <PreCallPlanner />}
+            {tab === "templates" && <OutreachTemplatesPanel />}
+            {tab === "sales-tools" && salesToolsEnabled && <SalesTools />}
+            {tab === "rfp" && <RfpTracker defaultAssignee={contractorEmail} />}
+            {tab === "activity" && (
+              <ActivityLog
+                contractorEmail={contractorEmail}
+                contractorName={contractorName}
+              />
+            )}
+            {tab === "accounts" && <AccountClaims />}
+            {tab === "grants" && <GrantSuccessProgram />}
+          </div>
+        )}
         <CopyrightBanner />
       </div>
     </ProtectedPage>

@@ -40,7 +40,7 @@ export function ColdLeadAlerts({ assigneeFilter }: Props) {
   if (cold.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3">
+    <div className="mx-5 mt-4 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-xs font-bold uppercase tracking-wide text-amber-300">
           Cold lead alerts
