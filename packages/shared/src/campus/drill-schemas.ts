@@ -82,30 +82,30 @@ export const campusDrillRecordSchema = z
 export type CampusDrillRecord = z.infer<typeof campusDrillRecordSchema>;
 
 /** Body for logging a completed or scheduled drill. */
-export const campusDrillCreateBodySchema = z
-  .object({
-    siteId: z.string().trim().min(1).max(64),
-    type: z.enum(CAMPUS_DRILL_TYPES),
-    status: z.enum(CAMPUS_DRILL_STATUSES).default("completed"),
-    schoolYear: z.string().regex(/^\d{4}-\d{2}$/, "School year must be in format 2026-27"),
-    scheduledAt: z.string().datetime().optional(),
-    conductedAt: z.string().datetime().optional(),
-    durationMinutes: z.number().int().min(1).max(240).optional(),
-    participantCount: z.number().int().min(0).optional(),
-    conductedBy: z.string().trim().min(1).max(120),
-    issues: z.string().trim().max(2000).optional(),
-    notes: z.string().trim().max(2000).optional(),
-  })
-  .refine(
-    (d) =>
-      d.status !== "completed" || d.conductedAt != null,
-    { message: "conductedAt is required when status is 'completed'" },
-  );
+// Keep the raw object separate so .omit() / .partial() work on ZodObject, not ZodEffects.
+const campusDrillCreateBodyObjectSchema = z.object({
+  siteId: z.string().trim().min(1).max(64),
+  type: z.enum(CAMPUS_DRILL_TYPES),
+  status: z.enum(CAMPUS_DRILL_STATUSES).default("completed"),
+  schoolYear: z.string().regex(/^\d{4}-\d{2}$/, "School year must be in format 2026-27"),
+  scheduledAt: z.string().datetime().optional(),
+  conductedAt: z.string().datetime().optional(),
+  durationMinutes: z.number().int().min(1).max(240).optional(),
+  participantCount: z.number().int().min(0).optional(),
+  conductedBy: z.string().trim().min(1).max(120),
+  issues: z.string().trim().max(2000).optional(),
+  notes: z.string().trim().max(2000).optional(),
+});
+
+export const campusDrillCreateBodySchema = campusDrillCreateBodyObjectSchema.refine(
+  (d) => d.status !== "completed" || d.conductedAt != null,
+  { message: "conductedAt is required when status is 'completed'" },
+);
 
 export type CampusDrillCreateBody = z.infer<typeof campusDrillCreateBodySchema>;
 
 /** Partial body for PATCH updates. */
-export const campusDrillPatchBodySchema = campusDrillCreateBodySchema.omit({ siteId: true, schoolYear: true }).partial();
+export const campusDrillPatchBodySchema = campusDrillCreateBodyObjectSchema.omit({ siteId: true, schoolYear: true }).partial();
 
 export type CampusDrillPatchBody = z.infer<typeof campusDrillPatchBodySchema>;
 

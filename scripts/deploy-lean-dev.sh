@@ -437,9 +437,13 @@ if [[ "${DEPLOY_SAM5}" -eq 1 ]]; then
   else
     echo "  AWS SMS: no configuration set — delivery events will not be emitted"
   fi
-  # K-12 visitor / pickup tables (condition HasCampusK12Tables) — not yet on nested stack params.
+  # K-12 visitor / pickup tables (condition HasCampusK12Tables)
   _sam5_extra+=("CampusVisitorsTable=rapid-cortex-campus-visitors-${STAGE}")
   _sam5_extra+=("CampusPickupAuthTable=rapid-cortex-campus-pickup-auth-${STAGE}")
+  # K-12 feature tables (Phase 2 — volunteers, drills, BTAM)
+  _sam5_extra+=("CampusVolunteersTable=rapid-cortex-campus-volunteers-${STAGE}")
+  _sam5_extra+=("CampusDrillsTable=rapid-cortex-campus-drills-${STAGE}")
+  _sam5_extra+=("CampusBtamTable=rapid-cortex-campus-btam-${STAGE}")
   echo "  K-12 tables: CampusVisitorsTable=rapid-cortex-campus-visitors-${STAGE}"
   lean_sam_deploy_nested "${SAM_BUILD_DIR}/sam5/template.yaml" "${SAM5_STACK}" ${_sam5_extra[@]:+"${_sam5_extra[@]}"}
   echo "✅ AppSam5Stack deploy complete"
