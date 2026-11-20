@@ -3574,6 +3574,9 @@ Resources:
             - !Sub "rapid-cortex-campus-config-${DeploymentStage}"
         CampusVisitorsTable: !Sub "rapid-cortex-campus-visitors-${DeploymentStage}"
         CampusPickupAuthTable: !Sub "rapid-cortex-campus-pickup-auth-${DeploymentStage}"
+        CampusVolunteersTable: !Sub "rapid-cortex-campus-volunteers-${DeploymentStage}"
+        CampusDrillsTable: !Sub "rapid-cortex-campus-drills-${DeploymentStage}"
+        CampusBtamTable: !Sub "rapid-cortex-campus-btam-${DeploymentStage}"
         CampusNotificationLogTable:
           Fn::If:
             - HasDataLayerNestedStack

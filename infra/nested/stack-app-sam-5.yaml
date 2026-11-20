@@ -489,6 +489,18 @@ Parameters:
     Type: String
     Default: ""
     Description: K-12 student pickup authorization records (agency-scoped).
+  CampusVolunteersTable:
+    Type: String
+    Default: ""
+    Description: K-12 volunteer and contractor registry with background check status and NSOPW screening.
+  CampusDrillsTable:
+    Type: String
+    Default: ""
+    Description: K-12 safety drill scheduling and compliance tracking (fire evacuation, lockdown, shelter-in-place, etc.).
+  CampusBtamTable:
+    Type: String
+    Default: ""
+    Description: K-12 BTAM (Behavioral Threat Assessment & Management) case management table. FERPA-restricted.
   CampusNotificationLogTable:
     Type: String
     Default: ""
@@ -773,6 +785,9 @@ Conditions:
   HasCampusConfigTable: !Not [!Equals [!Ref CampusConfigTable, ""]]
   HasCampusVisitorsTable: !Not [!Equals [!Ref CampusVisitorsTable, ""]]
   HasCampusPickupAuthTable: !Not [!Equals [!Ref CampusPickupAuthTable, ""]]
+  HasCampusVolunteersTable: !Not [!Equals [!Ref CampusVolunteersTable, ""]]
+  HasCampusDrillsTable: !Not [!Equals [!Ref CampusDrillsTable, ""]]
+  HasCampusBtamTable: !Not [!Equals [!Ref CampusBtamTable, ""]]
   HasCampusK12Tables: !And
     - !Condition HasCampusVisitorsTable
     - !Condition HasCampusPickupAuthTable
@@ -1013,6 +1028,10 @@ Globals:
         CAMPUS_PICKUP_AUTH_TABLE: !If
           - HasCampusPickupAuthTable
           - !Ref CampusPickupAuthTable
+          - ""
+        CAMPUS_VOLUNTEERS_TABLE: !If
+          - HasCampusVolunteersTable
+          - !Ref CampusVolunteersTable
           - ""
         CAMPUS_NOTIFICATION_LOG_TABLE: !If
           - HasCampusNotificationLogTable
@@ -2335,6 +2354,24 @@ Resources:
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusVisitorsTable}
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusVisitorsTable}/index/*
                 - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusPickupAuthTable}
+            - !If
+              - HasCampusVolunteersTable
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:Query
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                Resource:
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusVolunteersTable}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusVolunteersTable}/index/*
+              - !Ref AWS::NoValue
+            # Textract for visitor ID OCR (front-face fallback when barcode fails)
+            - Effect: Allow
+              Action:
+                - textract:AnalyzeDocument
+              Resource: "*"
       Events:
         ListVisitors:
           Type: HttpApi
@@ -2348,6 +2385,27 @@ Resources:
             ApiId: !Ref Api
             Path: /api/campus/{agencyId}/visitors/check-in
             Method: POST
+        ExtractVisitorId:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/visitors/extract-id
+            Method: POST
+        VisitorSignOut:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/visitors/{visitorId}/sign-out
+            Method: POST
+        # Public badge verification — no JWT auth
+        BadgeVerify:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/badge/{badgeToken}
+            Method: GET
+            Auth:
+              Authorizer: NONE
         PickupAuthGet:
           Type: HttpApi
           Properties:
@@ -2360,6 +2418,164 @@ Resources:
             ApiId: !Ref Api
             Path: /api/campus/{agencyId}/pickup-auth
             Method: PUT
+        VolunteersList:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/volunteers
+            Method: GET
+        VolunteersCreate:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/volunteers
+            Method: POST
+        VolunteerGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/volunteers/{volunteerId}
+            Method: GET
+        VolunteerPatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/volunteers/{volunteerId}
+            Method: PATCH
+        VolunteerDelete:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/volunteers/{volunteerId}
+            Method: DELETE
+        VolunteerNsopwCheck:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/volunteers/{volunteerId}/nsopw-check
+            Method: POST
+
+  CampusDrillsFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusDrillsTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/campus-drills-http.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusDrillsTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusDrillsTable}/index/*
+      Environment:
+        Variables:
+          CAMPUS_DRILLS_TABLE: !Ref CampusDrillsTable
+      Events:
+        DrillsList:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/drills
+            Method: GET
+        DrillsCreate:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/drills
+            Method: POST
+        DrillCompliance:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/drills/compliance
+            Method: GET
+        DrillGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/drills/{drillId}
+            Method: GET
+        DrillPatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/drills/{drillId}
+            Method: PATCH
+
+  CampusBtamFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasCampusBtamTable
+    Metadata:
+      BuildMethod: makefile
+      BuildTarget: build-function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: dist/campus/handlers/campus-btam-http.handler
+      Timeout: 30
+      Policies:
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardA
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardC
+        - !Ref AppManagedPolicyDynamoLambdaCrudShardD
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusBtamTable}
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CampusBtamTable}/index/*
+      Environment:
+        Variables:
+          CAMPUS_BTAM_TABLE: !Ref CampusBtamTable
+          AUDIT_TABLE: !Ref AuditTable
+      Events:
+        BtamList:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/btam
+            Method: GET
+        BtamCreate:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/btam
+            Method: POST
+        BtamGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/btam/{caseId}
+            Method: GET
+        BtamPatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/btam/{caseId}
+            Method: PATCH
+        BtamAddAction:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /api/campus/{agencyId}/btam/{caseId}/actions
+            Method: POST
 
   GetCampusZonesFunction:
     Type: AWS::Serverless::Function

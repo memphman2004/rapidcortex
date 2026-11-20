@@ -19,6 +19,22 @@ export async function fetchCampusIncidents(
   return rows;
 }
 
+/** Fetch anonymous QR/SMS tip reports for staff review. */
+export async function fetchAnonymousTips(
+  campusCode: string,
+  opts?: { status?: CampusIncidentStatus[]; source?: CampusIncidentSource },
+): Promise<CampusIncident[]> {
+  const params = new URLSearchParams({ campusCode, anonymous: "true", limit: "100" });
+  if (opts?.status?.length) params.set("status", opts.status.join(","));
+  if (opts?.source) params.set("source", opts.source);
+  const res = await fetch(`/api/campus/incidents?${params}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Failed to load tips (${res.status})`);
+  const data = (await res.json()) as { incidents?: CampusIncident[] };
+  return data.incidents ?? [];
+}
+
+type CampusIncidentSource = CampusIncident["source"];
+
 export async function createCampusIncident(
   body: Record<string, unknown>,
 ): Promise<CampusIncident> {

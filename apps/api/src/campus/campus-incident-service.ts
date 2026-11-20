@@ -27,6 +27,7 @@ import type {
   CampusIncidentStatus,
   CampusIncidentType,
 } from "./campus-types.js";
+import type { CampusIncidentSource } from "./campus-types.js";
 import { CAMPUS_KEYS } from "./campus-types.js";
 import type { createIncidentSchema, updateIncidentSchema } from "./campus-schemas.js";
 import { isConfidentialType, legalStatusTransition } from "./campus-schemas.js";
@@ -391,6 +392,8 @@ export async function listCampusIncidents(opts: {
   campusCode: string;
   status?: CampusIncidentStatus[];
   type?: CampusIncidentType[];
+  source?: CampusIncidentSource;
+  anonymousOnly?: boolean;
   confidentialOnly?: boolean;
   counselorQueue?: boolean;
   limit?: number;
@@ -422,6 +425,12 @@ export async function listCampusIncidents(opts: {
   }
   if (opts.confidentialOnly) {
     items = items.filter((i) => i.confidential);
+  }
+  if (opts.source) {
+    items = items.filter((i) => i.source === opts.source);
+  }
+  if (opts.anonymousOnly) {
+    items = items.filter((i) => i.isAnonymous === true);
   }
   if (opts.counselorQueue) {
     items = items.filter(

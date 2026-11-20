@@ -5,22 +5,46 @@ import {
   badRequest,
   badRequestFromZod,
   forbidden,
+  notFound,
   ok,
   serverError,
+  serviceUnavailable,
+  unauthorized,
 } from "../../lib/response.js";
+import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
+import { operationalPasswordBlock } from "../../lib/operationalPasswordGate.js";
 import { requireAgencyRoute } from "../vertical/agency-route-context.js";
 import {
   handleVisitorCheckIn,
   listVisitors,
+  signOutVisitor,
+  verifyBadge,
   visitorCheckInBodySchema,
 } from "../../campus/campus-visitors-service.js";
+import { extractIdFieldsViaTextract } from "../../campus/campus-visitor-textract-service.js";
+import { extractIdRequestSchema, visitorCheckInBodyV2Schema } from "rapid-cortex-shared";
 import {
   getPickupRecord,
   listPickupRecords,
   studentPickupRecordSchema,
   upsertPickupRecord,
 } from "../../campus/campus-pickup-service.js";
-import { campusRoleFamily, isRcInternalOperator } from "rapid-cortex-shared";
+import {
+  archiveVolunteer,
+  createVolunteer,
+  getVolunteer,
+  isCampusVolunteersTableConfigured,
+  listVolunteers,
+  recheckVolunteerNsopw,
+  updateVolunteer,
+} from "../../campus/campus-volunteers-service.js";
+import {
+  campusRoleFamily,
+  campusVolunteerListQuerySchema,
+  campusVolunteerPatchBodySchema,
+  campusVolunteerUpsertBodySchema,
+  isRcInternalOperator,
+} from "rapid-cortex-shared";
 
 function canManageVisitors(role: string): boolean {
   if (isRcInternalOperator(role)) return true;
@@ -37,6 +61,18 @@ function canReadPickup(role: string): boolean {
 function canWritePickup(role: string): boolean {
   if (isRcInternalOperator(role)) return true;
   return campusRoleFamily(role) === "admin";
+}
+
+function canReadVolunteers(role: string): boolean {
+  if (isRcInternalOperator(role)) return true;
+  const family = campusRoleFamily(role);
+  return family === "admin" || family === "supervisor" || family === "security";
+}
+
+function canWriteVolunteers(role: string): boolean {
+  if (isRcInternalOperator(role)) return true;
+  const family = campusRoleFamily(role);
+  return family === "admin" || family === "supervisor";
 }
 
 function pathTail(event: APIGatewayProxyEventV2): string {
@@ -78,7 +114,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         return withCorrelationHeaders(event, badRequest("Invalid JSON body"));
       }
       try {
-        const parsed = visitorCheckInBodySchema.parse(body);
+        // Try v2 schema first (scan-enriched); fall back to legacy
+        const bodyObj = body as Record<string, unknown>;
+        const isV2 = "captureMethod" in bodyObj;
+        const parsed = isV2
+          ? visitorCheckInBodyV2Schema.parse(body)
+          : visitorCheckInBodySchema.parse(body);
         const result = await handleVisitorCheckIn(
           ctx.agencyId,
           parsed,
@@ -91,6 +132,56 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         }
         throw error;
       }
+    }
+
+    // ── Visitor ID extraction via Textract (OCR fallback) ─────────────────────
+    if (tail === "visitors/extract-id" && method === "POST") {
+      const ctx = await requireAgencyRoute(event, "campus.dashboard.view");
+      if ("response" in ctx) return ctx.response;
+      if (!canManageVisitors(ctx.user.role)) {
+        return withCorrelationHeaders(event, forbidden());
+      }
+      let body: unknown = {};
+      try {
+        body = event.body ? JSON.parse(event.body) : {};
+      } catch {
+        return withCorrelationHeaders(event, badRequest("Invalid JSON body"));
+      }
+      const parsed = extractIdRequestSchema.safeParse(body);
+      if (!parsed.success) {
+        return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      }
+      const extraction = await extractIdFieldsViaTextract(parsed.data.imageBase64);
+      return withCorrelationHeaders(event, ok(extraction));
+    }
+
+    // ── Visitor sign-out ──────────────────────────────────────────────────────
+    // tail format: "visitors/{visitorId}/sign-out"
+    const signOutMatch = tail.match(/^visitors\/([^/]+)\/sign-out$/);
+    if (signOutMatch && method === "POST") {
+      const ctx = await requireAgencyRoute(event, "campus.dashboard.view");
+      if ("response" in ctx) return ctx.response;
+      if (!canManageVisitors(ctx.user.role)) {
+        return withCorrelationHeaders(event, forbidden());
+      }
+      const visitorId = signOutMatch[1];
+      const result = await signOutVisitor(ctx.agencyId, visitorId);
+      if (!result.success) {
+        return withCorrelationHeaders(event, notFound("Visitor not found or already signed out"));
+      }
+      return withCorrelationHeaders(event, ok(result));
+    }
+
+    // ── Badge verification (PUBLIC — no JWT required) ─────────────────────────
+    // Route: GET /api/campus/badge/{badgeToken}
+    // tail format: "badge/{token}"  (note: no agencyId in this path)
+    if (tail.startsWith("badge/") && method === "GET") {
+      const badgeToken = tail.slice("badge/".length);
+      if (!badgeToken || badgeToken.length < 32) {
+        return withCorrelationHeaders(event, badRequest("Invalid badge token"));
+      }
+      const result = await verifyBadge(badgeToken);
+      return withCorrelationHeaders(event, ok(result));
     }
 
     if (tail === "pickup-auth" && method === "GET") {
@@ -138,10 +229,152 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }
     }
 
+    // -----------------------------------------------------------------------
+    // Volunteer Management Routes
+    // -----------------------------------------------------------------------
+
+    if (tail === "volunteers" && method === "GET") {
+      const ctx = await requireAgencyRoute(event, "campus.dashboard.view");
+      if ("response" in ctx) return ctx.response;
+      if (!canReadVolunteers(ctx.user.role)) {
+        return withCorrelationHeaders(event, forbidden());
+      }
+      if (!isCampusVolunteersTableConfigured()) {
+        return withCorrelationHeaders(
+          event,
+          ok({ error: "Volunteer management not provisioned in this environment" }, 503),
+        );
+      }
+      const qParsed = campusVolunteerListQuerySchema.safeParse(
+        event.queryStringParameters ?? {},
+      );
+      const q = qParsed.success ? qParsed.data : {};
+      const volunteers = await listVolunteers(ctx.agencyId, q);
+      return withCorrelationHeaders(event, ok({ volunteers }));
+    }
+
+    if (tail === "volunteers" && method === "POST") {
+      const ctx = await requireAgencyRoute(event, "campus.settings.manage");
+      if ("response" in ctx) return ctx.response;
+      if (!canWriteVolunteers(ctx.user.role)) {
+        return withCorrelationHeaders(event, forbidden());
+      }
+      if (!isCampusVolunteersTableConfigured()) {
+        return withCorrelationHeaders(
+          event,
+          ok({ error: "Volunteer management not provisioned in this environment" }, 503),
+        );
+      }
+      let body: unknown = {};
+      try {
+        body = event.body ? JSON.parse(event.body) : {};
+      } catch {
+        return withCorrelationHeaders(event, badRequest("Invalid JSON body"));
+      }
+      const parsed = campusVolunteerUpsertBodySchema.safeParse(body);
+      if (!parsed.success) {
+        return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+      }
+      const result = await createVolunteer({
+        agencyId: ctx.agencyId,
+        body: parsed.data,
+        createdBy: ctx.user.userId,
+      });
+      return withCorrelationHeaders(event, ok(result));
+    }
+
+    // /volunteers/{volunteerId}
+    const volunteerIdMatch = tail.match(/^volunteers\/([^/]+)$/);
+    if (volunteerIdMatch) {
+      const volunteerId = volunteerIdMatch[1];
+      const ctx = await requireAgencyRoute(event, "campus.dashboard.view");
+      if ("response" in ctx) return ctx.response;
+
+      if (method === "GET") {
+        if (!canReadVolunteers(ctx.user.role)) {
+          return withCorrelationHeaders(event, forbidden());
+        }
+        if (!isCampusVolunteersTableConfigured()) {
+          return withCorrelationHeaders(event, ok({ volunteer: null }));
+        }
+        const volunteer = await getVolunteer(ctx.agencyId, volunteerId);
+        if (!volunteer) {
+          return withCorrelationHeaders(event, ok({ volunteer: null }, 404));
+        }
+        return withCorrelationHeaders(event, ok({ volunteer }));
+      }
+
+      if (method === "PATCH") {
+        if (!canWriteVolunteers(ctx.user.role)) {
+          return withCorrelationHeaders(event, forbidden());
+        }
+        if (!isCampusVolunteersTableConfigured()) {
+          return withCorrelationHeaders(
+            event,
+            ok({ error: "Volunteer management not provisioned in this environment" }, 503),
+          );
+        }
+        let body: unknown = {};
+        try {
+          body = event.body ? JSON.parse(event.body) : {};
+        } catch {
+          return withCorrelationHeaders(event, badRequest("Invalid JSON body"));
+        }
+        const parsed = campusVolunteerPatchBodySchema.safeParse(body);
+        if (!parsed.success) {
+          return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
+        }
+        const updated = await updateVolunteer({
+          agencyId: ctx.agencyId,
+          volunteerId,
+          patch: parsed.data,
+          updatedBy: ctx.user.userId,
+        });
+        return withCorrelationHeaders(event, ok({ volunteer: updated }));
+      }
+
+      if (method === "DELETE") {
+        if (!canWriteVolunteers(ctx.user.role)) {
+          return withCorrelationHeaders(event, forbidden());
+        }
+        if (!isCampusVolunteersTableConfigured()) {
+          return withCorrelationHeaders(event, ok({ archived: true }));
+        }
+        await archiveVolunteer(ctx.agencyId, volunteerId, ctx.user.userId);
+        return withCorrelationHeaders(event, ok({ archived: true }));
+      }
+    }
+
+    // /volunteers/{volunteerId}/nsopw-check
+    const nsopwRecheckMatch = tail.match(/^volunteers\/([^/]+)\/nsopw-check$/);
+    if (nsopwRecheckMatch && method === "POST") {
+      const volunteerId = nsopwRecheckMatch[1];
+      const ctx = await requireAgencyRoute(event, "campus.settings.manage");
+      if ("response" in ctx) return ctx.response;
+      if (!canWriteVolunteers(ctx.user.role)) {
+        return withCorrelationHeaders(event, forbidden());
+      }
+      if (!isCampusVolunteersTableConfigured()) {
+        return withCorrelationHeaders(
+          event,
+          ok({ error: "Volunteer management not provisioned in this environment" }, 503),
+        );
+      }
+      const result = await recheckVolunteerNsopw(
+        ctx.agencyId,
+        volunteerId,
+        ctx.user.userId,
+      );
+      return withCorrelationHeaders(event, ok(result));
+    }
+
     return withCorrelationHeaders(event, badRequest("Not found"));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    if (message.includes("CAMPUS_VISITORS_TABLE") || message.includes("CAMPUS_PICKUP_AUTH_TABLE")) {
+    if (
+      message.includes("CAMPUS_VISITORS_TABLE") ||
+      message.includes("CAMPUS_PICKUP_AUTH_TABLE")
+    ) {
       console.error("[campus-k12] table env missing", message);
       return withCorrelationHeaders(
         event,

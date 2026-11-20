@@ -21,14 +21,18 @@ import {
   CheckCircle2,
   ChevronRight,
   Circle,
+  ClipboardCheck,
+  ClipboardList,
   GraduationCap,
   Headphones,
   Image as ImageIcon,
   Link2,
   MapPin,
+  MessageSquare,
   QrCode,
   Shield,
   Upload,
+  UserCheck,
   Users,
   X,
   type LucideIcon,
@@ -446,6 +450,13 @@ function CampusConsoleHomeInner({
   // Explicit *_K12 / *_HIGHERED seat wins; legacy unsuffixed seats follow the agency record.
   const effectiveInstitutionType = resolveCampusInstitutionType(userRole, institutionType);
   const isK12 = effectiveInstitutionType === "k12";
+  // BTAM is FERPA-restricted — only admin/supervisor/counselor roles may see the case count
+  const roleUpper = (userRole ?? "").toUpperCase();
+  const canViewBtam =
+    roleUpper.includes("ADMIN") ||
+    roleUpper.includes("SUPERVISOR") ||
+    roleUpper.includes("COUNSELOR") ||
+    isRcInternalOperator(userRole ?? "");
 
   // Keep product suffix on the role (`*_HIGHERED` / `*_K12`) so getRoleNav can
   // strip Visitor / Pickup / School Safety for higher-ed. Collapsing to the
@@ -908,6 +919,60 @@ function CampusConsoleHomeInner({
     href: `${pathname.split("/").slice(0, 4).join("/")}/translate`,
   });
   if (assistCard) kpiCards.push(assistCard);
+
+  // K-12 specific stat cards (visitors, tips, BTAM, drills)
+  if (isK12 && stats?.k12) {
+    const k12 = stats.k12;
+    const basePath = pathname.split("/").slice(0, 4).join("/");
+
+    if (k12.activeVisitors !== undefined) {
+      kpiCards.push({
+        label: "ON CAMPUS NOW",
+        value: loading ? "…" : k12.activeVisitors,
+        color: k12.activeVisitors > 0 ? C.text : C.text,
+        icon: <UserCheck size={17} color={C.blue} strokeWidth={1.7} />,
+        iconBg: "var(--rc-vertical-accent-dim)",
+        linkLabel: "View visitors",
+        href: `${basePath}/visitors`,
+      });
+    }
+
+    if (k12.openTips !== undefined) {
+      kpiCards.push({
+        label: "OPEN TIPS",
+        value: loading ? "…" : k12.openTips,
+        color: k12.openTips > 0 ? C.amber : C.text,
+        icon: <MessageSquare size={17} color={C.blue} strokeWidth={1.7} />,
+        iconBg: "var(--rc-vertical-accent-dim)",
+        linkLabel: "Review tips",
+        href: `${basePath}/tips`,
+      });
+    }
+
+    if (k12.openBtamCases !== undefined && canViewBtam) {
+      kpiCards.push({
+        label: "BTAM CASES",
+        value: loading ? "…" : k12.openBtamCases,
+        color: k12.openBtamCases > 0 ? C.red : C.text,
+        icon: <ClipboardCheck size={17} color={C.red} strokeWidth={1.7} />,
+        iconBg: "rgba(239,68,68,0.10)",
+        linkLabel: "Open BTAM",
+        href: `${basePath}/btam`,
+      });
+    }
+
+    if (k12.drillsOverdue !== undefined && k12.drillsOverdue > 0) {
+      kpiCards.push({
+        label: "DRILLS OVERDUE",
+        value: loading ? "…" : k12.drillsOverdue,
+        color: C.amber,
+        icon: <ClipboardList size={17} color={C.amber} strokeWidth={1.7} />,
+        iconBg: "rgba(245,158,11,0.12)",
+        linkLabel: "View drills",
+        href: `${basePath}/drills`,
+      });
+    }
+  }
 
   const zoneLabels = zones.map((z) => z.zoneName);
   const zoneFallbackLabels = getZoneDefaults(institutionType);

@@ -271,8 +271,8 @@ export default function UnsubscribePage() {
               </form>
               <p style={{ ...S.sub, marginTop: 20, marginBottom: 0 }}>
                 Or email{" "}
-                <a href="mailto:hello@nexcortiq.us" style={{ color: "#3b82f6" }}>
-                  hello@nexcortiq.us
+                <a href="mailto:info@nexcortiq.us" style={{ color: "#3b82f6" }}>
+                  info@nexcortiq.us
                 </a>
               </p>
             </>
@@ -342,8 +342,8 @@ export default function UnsubscribePage() {
                   here
                 </button>{" "}
                 or email{" "}
-                <a href="mailto:hello@nexcortiq.us" style={{ color: "#3b82f6" }}>
-                  hello@nexcortiq.us
+                <a href="mailto:info@nexcortiq.us" style={{ color: "#3b82f6" }}>
+                  info@nexcortiq.us
                 </a>
                 .
               </p>

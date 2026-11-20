@@ -629,7 +629,7 @@ export const env = {
   ticketsTable: process.env.TICKETS_TABLE?.trim() ?? "",
   enableSupportForm: featureEnabled("ENABLE_SUPPORT_FORM"),
   supportEmail: process.env.SUPPORT_EMAIL?.trim() || "support@nexcortiq.us",
-  supportFromEmail: process.env.FROM_EMAIL?.trim() || "hello@nexcortiq.us",
+  supportFromEmail: process.env.FROM_EMAIL?.trim() || "info@nexcortiq.us",
   supportPhone: process.env.SUPPORT_PHONE?.trim() || "",
   /** RC Admin Contacts address book (companies + persons). */
   contactCompaniesTable: process.env.CONTACT_COMPANIES_TABLE?.trim() ?? "",

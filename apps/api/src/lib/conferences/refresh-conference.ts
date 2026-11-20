@@ -203,7 +203,7 @@ Return JSON only:
 }
 
 function fromAddress(): string {
-  return process.env.SES_FROM_EMAIL?.trim() || env.sesFromEmail || "noreply@nexcortiq.us";
+  return process.env.SES_FROM_EMAIL?.trim() || env.sesFromEmail || "info@nexcortiq.us";
 }
 
 function alertToAddresses(): string[] {

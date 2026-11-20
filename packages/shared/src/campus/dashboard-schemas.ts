@@ -55,6 +55,14 @@ export type CampusStatsResponse = {
   /** Every campus this tenant operates. Always includes the system campus code. */
   sites: CampusSite[];
   primarySiteCode: string;
+  // K-12 only — undefined on higher-ed / non-K-12 campuses
+  k12?: {
+    activeVisitors: number;
+    openTips: number;
+    openBtamCases: number;
+    pendingVolunteers: number;
+    drillsOverdue: number;
+  };
 };
 
 export type CampusZoneSummary = {

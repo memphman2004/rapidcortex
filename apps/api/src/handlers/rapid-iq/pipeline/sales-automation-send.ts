@@ -111,6 +111,7 @@ async function deliverViaSes(
   await sesv2.send(
     new SendEmailV2Command({
       FromEmailAddress: from,
+      ReplyToAddresses: [from],
       Destination: { ToAddresses: [seq.recipientEmail] },
       Content: {
         Simple: {

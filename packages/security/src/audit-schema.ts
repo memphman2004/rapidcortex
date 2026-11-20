@@ -621,6 +621,20 @@ export const AUDIT_EVENT_TYPES = {
   VISION_SCENE_ALERT_CREATED: "vision.scene.alert.created",
   VISION_SCENE_ALERT_DISMISSED: "vision.scene.alert.dismissed",
   VISION_SCENE_ALERT_INCIDENT_CREATED: "vision.scene.alert.incident_created",
+  // K-12 BTAM (Behavioral Threat Assessment & Management) — FERPA-restricted
+  CAMPUS_BTAM_CASE_OPENED: "campus.btam.case_opened",
+  CAMPUS_BTAM_CASE_VIEWED: "campus.btam.case_viewed",
+  CAMPUS_BTAM_CASES_LISTED: "campus.btam.cases_listed",
+  CAMPUS_BTAM_CASE_UPDATED: "campus.btam.case_updated",
+  CAMPUS_BTAM_ACTION_ADDED: "campus.btam.action_added",
+  // K-12 Volunteers
+  CAMPUS_VOLUNTEER_CREATED: "campus.volunteer.created",
+  CAMPUS_VOLUNTEER_UPDATED: "campus.volunteer.updated",
+  CAMPUS_VOLUNTEER_NSOPW_CHECKED: "campus.volunteer.nsopw_checked",
+  CAMPUS_VOLUNTEER_ARCHIVED: "campus.volunteer.archived",
+  // K-12 Safety Drills
+  CAMPUS_DRILL_CREATED: "campus.drill.created",
+  CAMPUS_DRILL_UPDATED: "campus.drill.updated",
 } as const;
 
 export type AuditEventTypeName = (typeof AUDIT_EVENT_TYPES)[keyof typeof AUDIT_EVENT_TYPES];

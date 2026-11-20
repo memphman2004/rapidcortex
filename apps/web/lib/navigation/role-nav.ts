@@ -2262,6 +2262,10 @@ export type NavContext = {
 const CAMPUS_K12_ONLY_ITEM_IDS = new Set([
   "visitors",
   "pickup-auth",
+  "volunteers",
+  "drills",
+  "tips",
+  "btam",
   "school-safety-report",
   "school-safety",
   "daily-incident-log",
@@ -2356,6 +2360,30 @@ export function applyCampusInstitutionNav(
         label: "Pickup Authorization",
         href: `${base}/pickup-auth`,
         icon: "UserCheck",
+      },
+      {
+        id: "volunteers",
+        label: "Volunteers & Contractors",
+        href: `${base}/volunteers`,
+        icon: "Users",
+      },
+      {
+        id: "drills",
+        label: "Safety Drills",
+        href: `${base}/drills`,
+        icon: "ClipboardList",
+      },
+      {
+        id: "tips",
+        label: "Anonymous Tips",
+        href: `${base}/tips`,
+        icon: "MessageSquare",
+      },
+      {
+        id: "btam",
+        label: "Threat Assessment",
+        href: `${base}/btam`,
+        icon: "ClipboardCheck",
       },
     ],
   };
@@ -2458,11 +2486,21 @@ function buildRoleNav(role: string, ctx: NavContext): RoleNav {
         applyCampusInstitutionNav(getCampusDispatchNav(c), c, campusProduct),
         `/app/campus/${c}/staff-guide`,
       );
-    case "CAMPUS_COUNSELOR":
-      return appendStaffGuideNav(
-        applyCampusInstitutionNav(getCampusCounselorNav(c), c, campusProduct),
-        `/app/campus/${c}/staff-guide`,
-      );
+    case "CAMPUS_COUNSELOR": {
+      let counselorNav = applyCampusInstitutionNav(getCampusCounselorNav(c), c, campusProduct);
+      // Counselor K-12: only Anonymous Tips + Threat Assessment from K-12 Safety (not visitor/volunteer ops).
+      if (campusProduct === "k12") {
+        counselorNav = {
+          ...counselorNav,
+          sections: counselorNav.sections.map((section) =>
+            section.id === "k12-safety"
+              ? { ...section, items: section.items.filter((item) => item.id === "tips" || item.id === "btam") }
+              : section,
+          ),
+        };
+      }
+      return appendStaffGuideNav(counselorNav, `/app/campus/${c}/staff-guide`);
+    }
     case "CAMPUS_FACULTY": {
       let facultyNav = applyCampusInstitutionNav(getCampusFacultyNav(c), c, campusProduct);
       // Faculty K-12: Pickup Authorization only (no Visitor Verification).

@@ -223,7 +223,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
   const siteUrl = "https://www.nexcortiq.us";
   const unsubUrl = `${siteUrl}/unsubscribe?token=${unsubscribeToken}`;
-  const sesFrom = env.sesFromEmail || env.contactFromEmail || "noreply@nexcortiq.us";
+  const sesFrom = env.sesFromEmail || env.contactFromEmail || "info@nexcortiq.us";
   const teamEmail = env.rcTeamNotifyEmail || "team@nexcortiq.us";
 
   if (!env.sesMock && sesFrom) {
@@ -234,6 +234,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         new SendEmailV2Command({
           ...sesConfigurationSetFields(),
           FromEmailAddress: `NexCort iQ <${sesFrom}>`,
+          ReplyToAddresses: ["info@nexcortiq.us"],
           Destination: { ToAddresses: [`${firstName} ${lastName} <${emailLower}>`] },
           Content: {
             Simple: {

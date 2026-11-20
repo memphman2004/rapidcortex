@@ -37,6 +37,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const status = event.queryStringParameters?.status?.split(",") as string[] | undefined;
     const type = event.queryStringParameters?.type?.split(",") as string[] | undefined;
     const confidentialOnly = event.queryStringParameters?.confidential === "true";
+    const anonymousOnly = event.queryStringParameters?.anonymous === "true";
+    const source = event.queryStringParameters?.source as string | undefined;
     const counselorQueue =
       event.queryStringParameters?.queue === "counselor" || (!canViewIncidents && canViewWellness);
     const cursor = event.queryStringParameters?.cursor;
@@ -46,6 +48,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       campusCode,
       status: status as never,
       type: type as never,
+      source: source as never,
+      anonymousOnly,
       confidentialOnly,
       counselorQueue,
       limit: Math.min(limit, 100),

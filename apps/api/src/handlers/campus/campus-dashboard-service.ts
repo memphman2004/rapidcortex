@@ -14,6 +14,11 @@ import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { CAMPUS_KEYS, type CampusIncident } from "../../campus/campus-types.js";
 import { getCampusBuildings } from "../../campus/campus-config-service.js";
 import { getResolvedCampusSites } from "../../campus/campus-sites-service.js";
+import { listVisitors } from "../../campus/campus-visitors-service.js";
+import { isCampusBtamTableConfigured, listBtamCases } from "../../campus/campus-btam-service.js";
+import { isCampusVolunteersTableConfigured, listVolunteers } from "../../campus/campus-volunteers-service.js";
+import { isCampusDrillsTableConfigured, listDrills } from "../../campus/campus-drills-service.js";
+import { listCampusIncidents } from "../../campus/campus-incident-service.js";
 import { campusCodeFromAgencyId, initialsFromName } from "../vertical/agency-id.js";
 import { makeId } from "../../lib/ids.js";
 import { AuditRepository } from "../../repositories/auditRepository.js";
@@ -119,14 +124,95 @@ function buildingStatus(activeIncidents: number, closed?: boolean): CampusBuildi
   return "nominal";
 }
 
+/**
+ * K-12 stat counters — only populated when the K-12 feature tables are present.
+ * Each sub-query is wrapped in its own catch so a single missing table never
+ * kills the whole dashboard stats load.
+ */
+/**
+ * K-12 stat counters — only populated when the K-12 feature tables are present.
+ * Each sub-query is wrapped in its own catch so a single missing table never
+ * kills the whole dashboard stats load.
+ */
+async function getK12Stats(agencyId: string): Promise<CampusStatsResponse["k12"] | undefined> {
+  // Guard: skip entirely if none of the K-12 feature tables are configured
+  if (
+    !process.env.CAMPUS_VISITORS_TABLE?.trim() &&
+    !isCampusBtamTableConfigured() &&
+    !isCampusVolunteersTableConfigured() &&
+    !isCampusDrillsTableConfigured()
+  ) {
+    return undefined;
+  }
+
+  const campusCode = campusCodeFromAgencyId(agencyId);
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [visitorItems, btamCases, volunteers, drills, tipsResult] = await Promise.all([
+    // Active visitors on campus today (listVisitors returns Item[] directly)
+    process.env.CAMPUS_VISITORS_TABLE?.trim()
+      ? listVisitors(agencyId, today).catch(() => [] as Record<string, unknown>[])
+      : Promise.resolve([] as Record<string, unknown>[]),
+
+    // Open BTAM cases
+    isCampusBtamTableConfigured()
+      ? listBtamCases(agencyId).catch(() => [])
+      : Promise.resolve([]),
+
+    // Pending background-check volunteers
+    isCampusVolunteersTableConfigured()
+      ? listVolunteers(agencyId).catch(() => [])
+      : Promise.resolve([]),
+
+    // Overdue drills (scheduled past their dueDate, not yet completed)
+    isCampusDrillsTableConfigured()
+      ? listDrills(agencyId, { status: "scheduled" }).catch(() => [])
+      : Promise.resolve([]),
+
+    // Open anonymous tips
+    listCampusIncidents({
+      campusCode,
+      source: "anonymous_tip",
+      status: ["open", "assigned"],
+      limit: 200,
+    }).catch(() => ({ incidents: [], total: 0 })),
+  ]);
+
+  const activeVisitors = (visitorItems as { checkedOutAt?: string | null }[]).filter(
+    (v) => !v.checkedOutAt,
+  ).length;
+
+  const openBtamCases = (btamCases as { status?: string }[]).filter(
+    (c) => c.status && !["closed", "referred"].includes(c.status),
+  ).length;
+
+  const pendingVolunteers = (volunteers as { backgroundCheckStatus?: string }[]).filter(
+    (v) => v.backgroundCheckStatus === "pending" || v.backgroundCheckStatus === "expired",
+  ).length;
+
+  const nowIso = new Date().toISOString();
+  const drillsOverdue = (drills as { dueDate?: string; status?: string }[]).filter(
+    (d) => d.status === "scheduled" && d.dueDate && d.dueDate < nowIso,
+  ).length;
+
+  return {
+    activeVisitors,
+    openTips: tipsResult.incidents.length,
+    openBtamCases,
+    pendingVolunteers,
+    drillsOverdue,
+  };
+}
+
 export async function getCampusStats(agencyId: string): Promise<CampusStatsResponse> {
   const campusCode = campusCodeFromAgencyId(agencyId);
-  const [incidents, buildings, staff, alertsSentToday, sitesResolved] = await Promise.all([
+  const [incidents, buildings, staff, alertsSentToday, sitesResolved, k12] = await Promise.all([
     listOpenIncidents(campusCode),
     getCampusBuildings(campusCode),
     listOnDutyStaff(campusCode, agencyId),
     countAlertsToday(agencyId),
     getResolvedCampusSites(campusCode, agencyId),
+    getK12Stats(agencyId),
   ]);
 
   return {
@@ -136,6 +222,7 @@ export async function getCampusStats(agencyId: string): Promise<CampusStatsRespo
     alertsSentToday,
     sites: sitesResolved.sites,
     primarySiteCode: sitesResolved.primarySiteCode,
+    ...(k12 !== undefined && { k12 }),
   };
 }
 

@@ -91,6 +91,13 @@ const CAMPUS_NAV_BY_ROLE: Record<string, readonly string[]> = {
     "onboarding-intake",
     "onboarding-integrations",
     "onboarding-checklist",
+    // K-12 items
+    "visitors",
+    "pickup-auth",
+    "volunteers",
+    "drills",
+    "tips",
+    "btam",
   ],
   CAMPUS_SUPERVISOR: [
     "dashboard",
@@ -112,6 +119,13 @@ const CAMPUS_NAV_BY_ROLE: Record<string, readonly string[]> = {
     "clery-dcl",
     "clery-asr",
     "clery-compliance",
+    // K-12 items
+    "visitors",
+    "pickup-auth",
+    "volunteers",
+    "drills",
+    "tips",
+    "btam",
   ],
   CAMPUS_SECURITY: [
     "dashboard",
@@ -124,6 +138,11 @@ const CAMPUS_NAV_BY_ROLE: Record<string, readonly string[]> = {
     "qr-codes",
     "zones",
     "buildings",
+    // K-12 items (read access for security)
+    "visitors",
+    "pickup-auth",
+    "drills",
+    "tips",
   ],
   CAMPUS_DISPATCH: [
     "dashboard",
@@ -136,8 +155,13 @@ const CAMPUS_NAV_BY_ROLE: Record<string, readonly string[]> = {
     "buildings",
     "reports",
     "analytics",
+    // K-12 items (read access for dispatch)
+    "visitors",
+    "pickup-auth",
+    "drills",
+    "tips",
   ],
-  CAMPUS_COUNSELOR: ["dashboard", "incidents", "translate", "reports"],
+  CAMPUS_COUNSELOR: ["dashboard", "incidents", "translate", "reports", "tips", "btam"],
   CAMPUS_FACULTY: ["dashboard", "translate", "reports"],
 };
 
