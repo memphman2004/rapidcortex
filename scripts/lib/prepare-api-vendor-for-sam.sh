@@ -80,39 +80,46 @@ rc_prepare_api_vendor_for_sam() {
     mv "${API_PKG_TMP}" "${ROOT}/apps/api/package.json"
   fi
 
-  for _pkg_dir in apps/api/node_modules/rapid-cortex-shared apps/api/node_modules/rapid-cortex-integrations apps/api/node_modules/rapid-cortex-security; do
-    if [[ -e "${ROOT}/${_pkg_dir}" ]]; then
-      chmod -R u+w "${ROOT}/${_pkg_dir}" 2>/dev/null || true
-      # rm -rf of a hardlinked vendor tree on an external APFS volume can sit
-      # in uninterruptible I/O. Move it aside first so npm install can proceed,
-      # then delete the trash in the background.
-      _trash="${ROOT}/${_pkg_dir}.trash.$$"
-      if mv "${ROOT}/${_pkg_dir}" "${_trash}" 2>/dev/null; then
-        (rm -rf "${_trash}" >/dev/null 2>&1 &) || true
-      else
-        rm -rf "${ROOT}/${_pkg_dir}" 2>/dev/null || true
+  if [[ "${SKIP_API_VENDOR_NPM_INSTALL:-}" == "1" ]]; then
+    # Skip node_modules removal + npm install + dist sync.
+    # Safe when SAM_NODE_MODULES_SRC points to an external pre-installed node_modules
+    # (e.g. NVMe mirror) so apps/api/node_modules is NOT the NodeDepsLayer source.
+    echo "── Skipping apps/api npm install (SKIP_API_VENDOR_NPM_INSTALL=1) ──"
+  else
+    for _pkg_dir in apps/api/node_modules/rapid-cortex-shared apps/api/node_modules/rapid-cortex-integrations apps/api/node_modules/rapid-cortex-security; do
+      if [[ -e "${ROOT}/${_pkg_dir}" ]]; then
+        chmod -R u+w "${ROOT}/${_pkg_dir}" 2>/dev/null || true
+        # rm -rf of a hardlinked vendor tree on an external APFS volume can sit
+        # in uninterruptible I/O. Move it aside first so npm install can proceed,
+        # then delete the trash in the background.
+        _trash="${ROOT}/${_pkg_dir}.trash.$$"
+        if mv "${ROOT}/${_pkg_dir}" "${_trash}" 2>/dev/null; then
+          (rm -rf "${_trash}" >/dev/null 2>&1 &) || true
+        else
+          rm -rf "${ROOT}/${_pkg_dir}" 2>/dev/null || true
+        fi
       fi
+    done
+
+    # Keep apps/api/package-lock.json — refresh-api-vendor-packs.sh updates tarball integrity.
+    cd "${ROOT}/apps/api" && npm_config_prefer_offline=false npm install --no-workspaces && cd "${ROOT}"
+
+    sync_vendor_dist() {
+      local src="$1"
+      local dest_root="$2"
+      rm -rf "${dest_root}/dist"
+      mkdir -p "${dest_root}"
+      rsync -a "${src}/" "${dest_root}/dist/"
+    }
+    if [[ -d apps/api/node_modules/rapid-cortex-shared ]]; then
+      sync_vendor_dist packages/shared/dist apps/api/node_modules/rapid-cortex-shared
     fi
-  done
-
-  # Keep apps/api/package-lock.json — refresh-api-vendor-packs.sh updates tarball integrity.
-  cd "${ROOT}/apps/api" && npm_config_prefer_offline=false npm install --no-workspaces && cd "${ROOT}"
-
-  sync_vendor_dist() {
-    local src="$1"
-    local dest_root="$2"
-    rm -rf "${dest_root}/dist"
-    mkdir -p "${dest_root}"
-    rsync -a "${src}/" "${dest_root}/dist/"
-  }
-  if [[ -d apps/api/node_modules/rapid-cortex-shared ]]; then
-    sync_vendor_dist packages/shared/dist apps/api/node_modules/rapid-cortex-shared
-  fi
-  if [[ -d apps/api/node_modules/rapid-cortex-integrations ]]; then
-    sync_vendor_dist packages/integrations/dist apps/api/node_modules/rapid-cortex-integrations
-  fi
-  if [[ -d apps/api/node_modules/rapid-cortex-security ]]; then
-    sync_vendor_dist packages/security/dist apps/api/node_modules/rapid-cortex-security
+    if [[ -d apps/api/node_modules/rapid-cortex-integrations ]]; then
+      sync_vendor_dist packages/integrations/dist apps/api/node_modules/rapid-cortex-integrations
+    fi
+    if [[ -d apps/api/node_modules/rapid-cortex-security ]]; then
+      sync_vendor_dist packages/security/dist apps/api/node_modules/rapid-cortex-security
+    fi
   fi
 
   echo "── API vendor packs ready: ${T_SHARED}, ${T_INT}, ${T_SEC} ──"

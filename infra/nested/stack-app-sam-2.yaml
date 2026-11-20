@@ -1054,6 +1054,16 @@ Resources:
     Type: AWS::SES::ConfigurationSet
     Properties:
       Name: !Sub "rapid-cortex-transactional-${DeploymentStage}"
+      SendingOptions:
+        SendingEnabled: true
+      DeliveryOptions:
+        TlsPolicy: REQUIRE
+      ReputationOptions:
+        ReputationMetricsEnabled: true
+      SuppressionOptions:
+        SuppressedReasons:
+          - BOUNCE
+          - COMPLAINT
 
   SesNotificationsTopic:
     Type: AWS::SNS::Topic

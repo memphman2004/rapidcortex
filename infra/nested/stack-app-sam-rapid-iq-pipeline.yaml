@@ -1016,6 +1016,16 @@ Resources:
     Type: AWS::SES::ConfigurationSet
     Properties:
       Name: nexcortiq-marketing
+      SendingOptions:
+        SendingEnabled: true
+      DeliveryOptions:
+        TlsPolicy: REQUIRE
+      ReputationOptions:
+        ReputationMetricsEnabled: true
+      SuppressionOptions:
+        SuppressedReasons:
+          - BOUNCE
+          - COMPLAINT
 
   # No KmsMasterKeyId: SES cannot publish open/click events to topics encrypted
   # with the AWS-managed SNS key (alias/aws/sns key policy is not editable).

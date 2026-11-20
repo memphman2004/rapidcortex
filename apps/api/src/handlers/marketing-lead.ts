@@ -7,6 +7,7 @@ import { createHash, randomUUID } from "node:crypto";
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import { SESv2Client, SendEmailCommand as SendEmailV2Command } from "@aws-sdk/client-sesv2";
 import { marketingLeadBodySchema, resolveMarketingLeadSource } from "rapid-cortex-shared";
 import { ddb } from "../repositories/baseRepository.js";
 import { env } from "../lib/env.js";
@@ -15,6 +16,7 @@ import { sesConfigurationSetFields } from "../lib/ses/sesConfigurationSet.js";
 import { SalesLeadRepository } from "../repositories/salesLeadRepository.js";
 
 const ses = new SESClient({});
+const sesv2 = new SESv2Client({});
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -226,21 +228,24 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
   if (!env.sesMock && sesFrom) {
     try {
-      await ses.send(
-        new SendEmailCommand({
+      // SES v2: required for List-Unsubscribe / List-Unsubscribe-Post headers
+      // (Gmail/Yahoo bulk-send requirement since Feb 2024)
+      await sesv2.send(
+        new SendEmailV2Command({
           ...sesConfigurationSetFields(),
-          Source: `NexCort iQ <${sesFrom}>`,
+          FromEmailAddress: `NexCort iQ <${sesFrom}>`,
           Destination: { ToAddresses: [`${firstName} ${lastName} <${emailLower}>`] },
-          Message: {
-            Subject: { Data: `You're on Inside iQ, ${firstName}.` },
-            Body: {
-              Text: {
-                Data: [
-                  `Hey ${firstName},`,
-                  "",
-                  "Signal acquired. You're on Inside iQ.",
-                  "",
-                  "NexCort iQ exists for one reason: the people running toward the emergency",
+          Content: {
+            Simple: {
+              Subject: { Data: `You're on Inside iQ, ${firstName}.`, Charset: "UTF-8" },
+              Body: {
+                Text: {
+                  Data: [
+                    `Hey ${firstName},`,
+                    "",
+                    "Signal acquired. You're on Inside iQ.",
+                    "",
+                    "NexCort iQ exists for one reason: the people running toward the emergency",
 "dispatchers, supervisors, first responders, the whole chain deserves technology",
 "that moves at their speed. Not enterprise software wearing a vest. Not AI that",
 "doesn't understand what's at stake. The actual thing, built for the actual work.",
@@ -259,9 +264,15 @@ siteUrl,
 "---",
 "You're on this frequency because you signed up at rapidcortex.us.",
 `Go dark anytime: ${unsubUrl}`,
-                ].join("\n"),
+                  ].join("\n"),
+                  Charset: "UTF-8",
+                },
+                Html: { Data: buildWelcomeEmail({ firstName, siteUrl, unsubUrl }), Charset: "UTF-8" },
               },
-              Html: { Data: buildWelcomeEmail({ firstName, siteUrl, unsubUrl }) },
+              Headers: [
+                { Name: "List-Unsubscribe", Value: `<${unsubUrl}>` },
+                { Name: "List-Unsubscribe-Post", Value: "List-Unsubscribe=One-Click" },
+              ],
             },
           },
         }),

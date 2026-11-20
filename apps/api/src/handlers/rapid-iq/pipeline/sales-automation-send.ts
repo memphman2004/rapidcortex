@@ -10,7 +10,7 @@
  * re-checked at send time.
  */
 
-import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import { SESv2Client, SendEmailCommand as SendEmailV2Command } from "@aws-sdk/client-sesv2";
 import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { env } from "../../../lib/env.js";
@@ -19,6 +19,7 @@ import { sesMarketingConfigurationSetFields } from "../../../lib/ses/sesMarketin
 import {
   applyUnsubscribeTokenToEmailBodies,
   checkSuppression,
+  unsubscribeUrl,
 } from "../../../lib/rapid-iq/sales-automation-engine.js";
 import {
   getOutlookConnection,
@@ -39,7 +40,7 @@ import {
 import { AuditRepository } from "../../../repositories/auditRepository.js";
 import type { RapidIqSalesOutreachStep, RapidIqSalesSequence } from "rapid-cortex-shared";
 
-const ses = new SESClient({});
+const sesv2 = new SESv2Client({});
 const auditRepo = new AuditRepository();
 const MAX_SENDS_PER_RUN = 100;
 
@@ -105,18 +106,30 @@ async function deliverViaSes(
   }
 
   const campaignId = seq.attribution.campaignId?.trim() || seq.sequenceId;
-  await ses.send(
-    new SendEmailCommand({
-      Source: from,
+  // SES v2: required for List-Unsubscribe / List-Unsubscribe-Post headers
+  // (Gmail/Yahoo bulk-send requirement since Feb 2024; Tags → EmailTags in v2)
+  await sesv2.send(
+    new SendEmailV2Command({
+      FromEmailAddress: from,
       Destination: { ToAddresses: [seq.recipientEmail] },
-      Message: {
-        Subject: { Data: step.email.subject, Charset: "UTF-8" },
-        Body: {
-          Text: { Data: bodies.text, Charset: "UTF-8" },
-          ...(bodies.html ? { Html: { Data: bodies.html, Charset: "UTF-8" } } : {}),
+      Content: {
+        Simple: {
+          Subject: { Data: step.email.subject, Charset: "UTF-8" },
+          Body: {
+            Text: { Data: bodies.text, Charset: "UTF-8" },
+            ...(bodies.html ? { Html: { Data: bodies.html, Charset: "UTF-8" } } : {}),
+          },
+          ...(unsubscribeToken
+            ? {
+                Headers: [
+                  { Name: "List-Unsubscribe", Value: `<${unsubscribeUrl(unsubscribeToken)}>` },
+                  { Name: "List-Unsubscribe-Post", Value: "List-Unsubscribe=One-Click" },
+                ],
+              }
+            : {}),
         },
       },
-      Tags: [
+      EmailTags: [
         { Name: "campaignId", Value: campaignId.slice(0, 256) },
         ...(unsubscribeToken
           ? [{ Name: "unsubscribeToken", Value: unsubscribeToken.slice(0, 256) }]

@@ -116,8 +116,7 @@ export function SalesPortalShell({
           <div className="min-w-0">
             <h1 className="text-xl font-semibold text-white">{pageTitle}</h1>
             <p className="mt-1 max-w-3xl text-sm text-slate-400">
-              Pipeline, campaigns, quotes with free offerings, news intel, and territory coverage —
-              built for NexCort iQ contractors.
+              Pipeline, campaigns, quotes with free offerings, news intel, and territory coverage
             </p>
           </div>
           <SafetySourceLookupLink variant="chip" />
