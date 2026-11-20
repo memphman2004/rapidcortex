@@ -169,10 +169,10 @@ async function getK12Stats(agencyId: string): Promise<CampusStatsResponse["k12"]
       ? listDrills(agencyId, { status: "scheduled" }).catch(() => [])
       : Promise.resolve([]),
 
-    // Open anonymous tips
+    // Open anonymous tips (use anonymousOnly flag — there is no "anonymous_tip" source value)
     listCampusIncidents({
       campusCode,
-      source: "anonymous_tip",
+      anonymousOnly: true,
       status: ["open", "assigned"],
       limit: 200,
     }).catch(() => ({ incidents: [], total: 0 })),

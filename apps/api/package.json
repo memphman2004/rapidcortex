@@ -28,6 +28,7 @@
     "@aws-sdk/client-pinpoint-sms-voice-v2": "^3.1101.0",
     "@aws-sdk/client-polly": "^3.699.0",
     "@aws-sdk/client-rekognition": "^3.699.0",
+    "@aws-sdk/client-textract": "^3.699.0",
     "@aws-sdk/client-s3": "^3.699.0",
     "@aws-sdk/client-scheduler": "^3.699.0",
     "@aws-sdk/client-secrets-manager": "^3.699.0",

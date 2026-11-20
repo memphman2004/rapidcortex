@@ -17,7 +17,7 @@ import {
   ok,
   serverError,
 } from "../../lib/response.js";
-import { requireAgencyRoute } from "../vertical/agency-route-context.js";
+import { requireAgencyRoute } from "../../handlers/vertical/agency-route-context.js";
 import {
   createDrill,
   getDrill,

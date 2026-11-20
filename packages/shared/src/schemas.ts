@@ -343,6 +343,11 @@ export const auditResourceTypeSchema = z.enum([
   "integration",
   "session",
   "unknown",
+  // K-12
+  "btam_case",
+  "volunteer",
+  "drill",
+  "visitor",
 ]);
 
 export const auditEventSchema = z.object({

@@ -20,8 +20,8 @@ import {
   btamListQuerySchema,
   btamOpenCaseBodySchema,
   btamPatchCaseBodySchema,
+  campusRoleFamily,
 } from "rapid-cortex-shared";
-import { campusRoleFamily } from "rapid-cortex-shared/auth/rapid-cortex-roles";
 import { AUDIT_EVENT_TYPES } from "rapid-cortex-security";
 import { ACCOUNT_INACTIVE_MESSAGE, getUserContext, isUserAccountActive } from "../../lib/auth.js";
 import { withCorrelationHeaders } from "../../lib/correlation.js";
@@ -140,7 +140,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       if (!parsed.success) {
         return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
       }
-      const record = await openBtamCase(agencyId, parsed.data, user.userId, user.name);
+      const record = await openBtamCase(agencyId, parsed.data, user.userId, user.displayName ?? user.userId);
 
       const now2 = new Date().toISOString();
       await auditRepo
@@ -196,7 +196,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       if (!parsed.success) {
         return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
       }
-      const record = await patchBtamCase(agencyId, caseId, parsed.data, user.userId, user.name);
+      const record = await patchBtamCase(agencyId, caseId, parsed.data, user.userId, user.displayName ?? user.userId);
       if (!record) return withCorrelationHeaders(event, notFound("BTAM case not found"));
 
       const now4 = new Date().toISOString();
@@ -231,7 +231,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       if (!parsed.success) {
         return withCorrelationHeaders(event, badRequestFromZod(parsed.error));
       }
-      const record = await addBtamCaseAction(agencyId, caseId, parsed.data, user.userId, user.name);
+      const record = await addBtamCaseAction(agencyId, caseId, parsed.data, user.userId, user.displayName ?? user.userId);
       if (!record) return withCorrelationHeaders(event, notFound("BTAM case not found"));
 
       const now5 = new Date().toISOString();
