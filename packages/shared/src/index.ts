@@ -140,6 +140,7 @@ export * from "./sop-intelligence/index.js";
 export * from "./support/index.js";
 export * from "./translate/index.js";
 export * from "./rapid-vision/index.js";
+export * from "./live-assist/index.js";
 export * from "./rapid-cortex-video/index.js";
 export * from "./alerts/index.js";
 export * from "./physical-security/index.js";

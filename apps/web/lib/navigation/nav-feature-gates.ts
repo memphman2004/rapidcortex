@@ -20,6 +20,7 @@ import {
   isRcTranslateHospitalEnabled,
   isRapidVisionEnabled,
   isRapidVisionSceneIntelEnabled,
+  isLiveAssistEnabled,
   isRcTranslateVenueEnabled,
   isVerticalAlertsEnabled,
   isEnsTestProgramEnabled,
@@ -98,6 +99,8 @@ export function isNavFeatureEnabled(feature: string): boolean {
       return isRapidVisionEnabled();
     case "rapidVisionSceneIntel":
       return isRapidVisionSceneIntelEnabled();
+    case "liveAssist":
+      return isLiveAssistEnabled();
     case "verticalAlerts":
       return isVerticalAlertsEnabled();
     case "ensTestProgram":

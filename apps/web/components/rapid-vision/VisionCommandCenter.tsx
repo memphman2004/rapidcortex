@@ -6,6 +6,7 @@ import type { VisionSceneAlert } from "rapid-cortex-shared";
 import { RapidVisionPanel } from "@/components/rapid-vision/RapidVisionPanel";
 import { SceneIncidentDesk } from "@/components/rapid-vision/SceneIncidentDesk";
 import { SceneMonitoringProfiles } from "@/components/rapid-vision/SceneMonitoringProfiles";
+import { LiveAssistCommandCenter } from "@/components/live-assist/LiveAssistCommandCenter";
 import { acknowledgeIqVisionEvent, signalIqVisionNavAlert } from "@/lib/rapid-vision/iq-vision-nav-alert-store";
 import {
   acknowledgeSceneAlert,
@@ -33,6 +34,7 @@ export type VisionSection =
   | "alerts"
   | "incident"
   | "analytics"
+  | "live-assist"
   | "settings";
 
 const SECTIONS: Array<{ id: VisionSection; label: string }> = [
@@ -42,6 +44,7 @@ const SECTIONS: Array<{ id: VisionSection; label: string }> = [
   { id: "alerts", label: "Active Alerts" },
   { id: "incident", label: "Incident Vision" },
   { id: "analytics", label: "Analytics" },
+  { id: "live-assist", label: "Live Assist" },
   { id: "settings", label: "Settings" },
 ];
 
@@ -329,6 +332,8 @@ export function VisionCommandCenter({
 
       {section === "analytics" ? <Analytics alerts={alerts} cameras={cameras.length} /> : null}
 
+      {section === "live-assist" ? <LiveAssistSectionWrapper incidents={incidents} selectedIncidentId={selectedIncidentId} canVerify={canVerify} /> : null}
+
       {section === "settings" ? (
         <div className="space-y-4">
           <SceneMonitoringProfiles vertical="psap" />
@@ -541,6 +546,36 @@ function Analytics({ alerts, cameras }: { alerts: AlertRow[]; cameras: number })
       <p className="sm:col-span-3 text-xs text-slate-500">
         These counts are the records loaded for this agency. They are not a measure of detection accuracy, and they do not include a missed-event rate.
       </p>
+    </div>
+  );
+}
+
+/**
+ * LiveAssistSectionWrapper
+ *
+ * Mounts the full Live Assist Command Center inside the iQ Vision tab shell.
+ * canVerify is reused as canCoach — only supervisors and admins qualify for both.
+ */
+function LiveAssistSectionWrapper({
+  incidents,
+  selectedIncidentId,
+  canVerify,
+}: {
+  incidents: Array<{ incidentId: string; title: string; callerLocationLat?: number | null; callerLocationLng?: number | null }>;
+  selectedIncidentId: string | null;
+  canVerify: boolean;
+}) {
+  const [view, setView] = useState<"operations" | "admin">("operations");
+  return (
+    <div className="-mx-4 -mb-4 h-[calc(100vh-280px)] min-h-[600px] border-t border-slate-800">
+      <LiveAssistCommandCenter
+        view={view}
+        onView={setView}
+        canCoach={canVerify}
+        canAdmin={canVerify}
+        incidents={incidents}
+        selectedIncidentId={selectedIncidentId}
+      />
     </div>
   );
 }

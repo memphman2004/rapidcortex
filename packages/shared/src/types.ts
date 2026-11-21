@@ -495,6 +495,11 @@ export type AuditResourceType =
   | "vision_scene_alert"
   | "clery_entry"
   | "clery_report"
+  | "live_assist"
+  | "live_assist_provider"
+  | "live_assist_device"
+  | "live_assist_session"
+  | "live_assist_coaching"
   | "unknown";
 
 /**

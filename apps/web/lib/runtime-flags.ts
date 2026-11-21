@@ -19,6 +19,7 @@ const NEXT_PUBLIC_FLAG_VALUES: Record<string, string | undefined> = {
   NEXT_PUBLIC_ENABLE_RC_TRANSLATE_CAMPUS: process.env.NEXT_PUBLIC_ENABLE_RC_TRANSLATE_CAMPUS,
   NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL: process.env.NEXT_PUBLIC_ENABLE_RC_TRANSLATE_HOSPITAL,
   NEXT_PUBLIC_ENABLE_RAPID_VISION: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION,
+  NEXT_PUBLIC_ENABLE_LIVE_ASSIST: process.env.NEXT_PUBLIC_ENABLE_LIVE_ASSIST,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_NEST,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_WYZE: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_WYZE,
   NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO: process.env.NEXT_PUBLIC_ENABLE_RAPID_VISION_CALLER_VIDEO,
@@ -911,4 +912,13 @@ export function isIqResponderEnabled(): boolean {
  */
 export function isMarketingDashboardEnabled(): boolean {
   return envFlag("NEXT_PUBLIC_ENABLE_MARKETING_DASHBOARD");
+}
+
+/**
+ * Live Assist — manufacturer-agnostic body-worn camera monitoring and officer coaching.
+ * Sub-feature of iQ Vision. Default on when unset.
+ * Env: NEXT_PUBLIC_ENABLE_LIVE_ASSIST
+ */
+export function isLiveAssistEnabled(): boolean {
+  return isRapidVisionEnabled() && envFlag("NEXT_PUBLIC_ENABLE_LIVE_ASSIST");
 }

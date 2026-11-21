@@ -5032,6 +5032,41 @@ Resources:
         AnalyzeIncidentFunctionName: !GetAtt AppSamStackV2.Outputs.AnalyzeIncidentFunctionName
         PostIncidentAudioChunkFunctionName: !GetAtt AppSamStackV2.Outputs.PostIncidentAudioChunkFunctionName
 
+  # ─────────────────────────────────────────────────────────────────────────
+  # Live Assist — body-worn camera monitoring + officer coaching
+  # Routes attach to stack 1 HttpApi so dispatcher/supervisor auth applies.
+  # ─────────────────────────────────────────────────────────────────────────
+  AppSamLiveAssistStack:
+    Type: AWS::CloudFormation::Stack
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - W3005
+    DependsOn: AppSamStackV2
+    Properties:
+      TimeoutInMinutes: 60
+      TemplateURL: nested/stack-app-sam-live-assist.yaml
+      Parameters:
+        DeploymentStage: !Ref DeploymentStage
+        HttpApiId: !GetAtt AppSamStackV2.Outputs.HttpApiId
+        HttpApiJwtAuthorizerId: "pg3ok4"
+        ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
+        ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
+        ImportedCognitoNativeClientId: !GetAtt AppSamStackV2.Outputs.NativeUserPoolClientId
+        ImportedCognitoIssuer: !GetAtt AppSamStackV2.Outputs.CognitoIssuer
+        AuditTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AuditTable
+            - !Sub "${DynamoTableNamePrefix}-audit-${DeploymentStage}"
+        AgenciesTable:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.AgenciesTable
+            - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
+        ManagedPolicyNamePrefix: !Ref AWS::StackName
+
 Outputs:
   HttpApiUrl:
     Description: HTTP API base URL

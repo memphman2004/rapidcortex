@@ -368,6 +368,7 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-mcp-watc
 # (DeletionPolicy without UpdateReplacePolicy) that need a separate fix pass.
 sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-escalation.yaml"
 sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-field.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-live-assist.yaml"
 sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-rapid-iq.yaml"
 sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-rapid-iq-pipeline.yaml"
 sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-rms.yaml"

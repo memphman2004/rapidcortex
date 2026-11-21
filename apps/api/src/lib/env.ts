@@ -1048,4 +1048,13 @@ export const env = {
   loadoutApiKeysTable: process.env.LOADOUT_API_KEYS_TABLE?.trim() ?? "",
   loadoutUsageTable: process.env.LOADOUT_USAGE_TABLE?.trim() ?? "",
   loadoutInvoicesTable: process.env.LOADOUT_INVOICES_TABLE?.trim() ?? "",
+
+  // ── Live Assist ─────────────────────────────────────────────────────────────
+  /** Default ON when unset — operational flags default on. */
+  enableLiveAssist: featureEnabled("ENABLE_LIVE_ASSIST"),
+  liveAssistProvidersTable: process.env.LIVE_ASSIST_PROVIDERS_TABLE?.trim() ?? "",
+  liveAssistDevicesTable:   process.env.LIVE_ASSIST_DEVICES_TABLE?.trim() ?? "",
+  liveAssistSessionsTable:  process.env.LIVE_ASSIST_SESSIONS_TABLE?.trim() ?? "",
+  liveAssistCoachingTable:  process.env.LIVE_ASSIST_COACHING_TABLE?.trim() ?? "",
+  liveAssistEventsTable:    process.env.LIVE_ASSIST_EVENTS_TABLE?.trim() ?? "",
 };

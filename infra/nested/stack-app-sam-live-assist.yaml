@@ -1,0 +1,313 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  NexCort iQ — Live Assist
+  Manufacturer-agnostic body-worn camera monitoring and real-time officer coaching.
+  Routes attach to the primary HttpApi (stack 1) under /api/live-assist/*.
+
+Parameters:
+  DeploymentStage:
+    Type: String
+    AllowedValues: [dev, staging, prod, pilot]
+  HttpApiId:
+    Type: String
+  ImportedCognitoUserPoolId:
+    Type: String
+  ImportedCognitoWebClientId:
+    Type: String
+  ImportedCognitoNativeClientId:
+    Type: String
+    Default: ""
+  ImportedCognitoIssuer:
+    Type: String
+  AuditTable:
+    Type: String
+  AgenciesTable:
+    Type: String
+  ManagedPolicyNamePrefix:
+    Type: String
+    Default: rapid-cortex
+  DynamoTableNamePrefix:
+    Type: String
+    Default: ""
+  HttpApiJwtAuthorizerId:
+    Type: String
+    Default: ""
+
+Conditions:
+  HasTablePrefix: !Not [!Equals [!Ref DynamoTableNamePrefix, ""]]
+  HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Timeout: 29
+    MemorySize: 256
+    Architectures: [arm64]
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref DeploymentStage
+        NODE_OPTIONS: "--enable-source-maps"
+
+Resources:
+
+  # ── DynamoDB Tables ──────────────────────────────────────────────────────────
+
+  LiveAssistProvidersTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !If
+        - HasTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-live-assist-providers-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  LiveAssistDevicesTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !If
+        - HasTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-live-assist-devices-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gsi1pk
+          AttributeType: S
+        - AttributeName: gsi1sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: BY_PROVIDER
+          KeySchema:
+            - AttributeName: gsi1pk
+              KeyType: HASH
+            - AttributeName: gsi1sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  LiveAssistSessionsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !If
+        - HasTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-live-assist-sessions-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gsi1pk
+          AttributeType: S
+        - AttributeName: gsi1sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: BY_DEVICE
+          KeySchema:
+            - AttributeName: gsi1pk
+              KeyType: HASH
+            - AttributeName: gsi1sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  LiveAssistCoachingTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !If
+        - HasTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-live-assist-coaching-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  LiveAssistEventsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !If
+        - HasTablePrefix
+        - !Sub "${DynamoTableNamePrefix}-live-assist-events-${DeploymentStage}"
+        - !Ref AWS::NoValue
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  # ── IAM Role ─────────────────────────────────────────────────────────────────
+
+  LiveAssistLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: !Sub "${ManagedPolicyNamePrefix}-live-assist-lambda-${DeploymentStage}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:Query
+                Resource:
+                  - !GetAtt LiveAssistProvidersTable.Arn
+                  - !GetAtt LiveAssistDevicesTable.Arn
+                  - !Sub "${LiveAssistDevicesTable.Arn}/index/BY_PROVIDER"
+                  - !GetAtt LiveAssistSessionsTable.Arn
+                  - !Sub "${LiveAssistSessionsTable.Arn}/index/BY_DEVICE"
+                  - !GetAtt LiveAssistCoachingTable.Arn
+                  - !GetAtt LiveAssistEventsTable.Arn
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                Resource:
+                  - !Ref AuditTable
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                Resource:
+                  - !Ref AgenciesTable
+
+  # ── Lambda function ───────────────────────────────────────────────────────────
+
+  LiveAssistHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/api/
+      Handler: src/handlers/live-assist/http.handler
+      Role: !GetAtt LiveAssistLambdaRole.Arn
+      Description: "Live Assist — BWC monitoring and officer coaching control plane"
+      Environment:
+        Variables:
+          LIVE_ASSIST_PROVIDERS_TABLE: !Ref LiveAssistProvidersTable
+          LIVE_ASSIST_DEVICES_TABLE:   !Ref LiveAssistDevicesTable
+          LIVE_ASSIST_SESSIONS_TABLE:  !Ref LiveAssistSessionsTable
+          LIVE_ASSIST_COACHING_TABLE:  !Ref LiveAssistCoachingTable
+          LIVE_ASSIST_EVENTS_TABLE:    !Ref LiveAssistEventsTable
+          AUDIT_TABLE:  !Ref AuditTable
+          AGENCY_TABLE: !Ref AgenciesTable
+          COGNITO_USER_POOL_ID: !Ref ImportedCognitoUserPoolId
+          COGNITO_WEB_CLIENT_ID: !Ref ImportedCognitoWebClientId
+          COGNITO_NATIVE_CLIENT_ID: !Ref ImportedCognitoNativeClientId
+          COGNITO_ISSUER: !Ref ImportedCognitoIssuer
+          ENABLE_LIVE_ASSIST: "true"
+
+  LiveAssistHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LiveAssistHttpFunction.Arn}/invocations"
+      PayloadFormatVersion: "2.0"
+
+  LiveAssistHttpInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LiveAssistHttpFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApiId}/*"
+
+  RouteLiveAssistProxy:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/live-assist/{proxy+}"
+      Target: !Sub "integrations/${LiveAssistHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+Outputs:
+  LiveAssistProvidersTableName:
+    Value: !Ref LiveAssistProvidersTable
+  LiveAssistDevicesTableName:
+    Value: !Ref LiveAssistDevicesTable
+  LiveAssistSessionsTableName:
+    Value: !Ref LiveAssistSessionsTable
+  LiveAssistCoachingTableName:
+    Value: !Ref LiveAssistCoachingTable
+  LiveAssistEventsTableName:
+    Value: !Ref LiveAssistEventsTable
+  LiveAssistHttpFunctionArn:
+    Value: !GetAtt LiveAssistHttpFunction.Arn
