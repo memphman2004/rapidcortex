@@ -500,6 +500,11 @@ export type AuditResourceType =
   | "live_assist_device"
   | "live_assist_session"
   | "live_assist_coaching"
+  // K-12
+  | "btam_case"
+  | "volunteer"
+  | "drill"
+  | "visitor"
   | "unknown";
 
 /**

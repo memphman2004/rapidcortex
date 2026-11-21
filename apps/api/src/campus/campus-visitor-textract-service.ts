@@ -18,6 +18,7 @@ import { createHash } from "node:crypto";
 import {
   TextractClient,
   AnalyzeDocumentCommand,
+  type AnalyzeDocumentCommandOutput,
 } from "@aws-sdk/client-textract";
 import type { ExtractedIdFields } from "rapid-cortex-shared";
 import { parseAamvaDate } from "rapid-cortex-shared";
@@ -89,7 +90,7 @@ export async function extractIdFieldsViaTextract(
     return { success: false, errorReason: "image_too_large" };
   }
 
-  let result: Awaited<ReturnType<typeof textract.send>>;
+  let result: AnalyzeDocumentCommandOutput;
   try {
     result = await textract.send(
       new AnalyzeDocumentCommand({
