@@ -142,7 +142,7 @@ export async function extractIdFieldsViaTextract(
         // Map result IDs
         for (const rel of block.Relationships ?? []) {
           if (rel.Type === "ANSWER") {
-            for (const id of rel.Ids) {
+            for (const id of rel.Ids ?? []) {
               resultIdToAlias.set(id, found[1]);
             }
           }
