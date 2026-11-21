@@ -119,10 +119,10 @@ export function LiveAssistAdmin() {
                 {/* Capability summary */}
                 {p.defaultCapabilities && Object.keys(p.defaultCapabilities).length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    {p.defaultCapabilities.liveVideoSupported && <CapTag label="Video" ok />}
-                    {p.defaultCapabilities.liveAudioSupported && <CapTag label="Audio" ok />}
-                    {p.defaultCapabilities.gpsSupported && <CapTag label="GPS" ok />}
-                    {p.defaultCapabilities.remoteStreamActivationSupported && <CapTag label="Remote activate" ok />}
+                    {!!p.defaultCapabilities.liveVideoSupported && <CapTag label="Video" ok />}
+                    {!!p.defaultCapabilities.liveAudioSupported && <CapTag label="Audio" ok />}
+                    {!!p.defaultCapabilities.gpsSupported && <CapTag label="GPS" ok />}
+                    {!!p.defaultCapabilities.remoteStreamActivationSupported && <CapTag label="Remote activate" ok />}
                     {!p.defaultCapabilities.liveVideoSupported && <CapTag label="Video" ok={false} />}
                   </div>
                 )}

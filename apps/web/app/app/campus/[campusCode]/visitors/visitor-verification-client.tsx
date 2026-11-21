@@ -62,6 +62,7 @@ interface VisitorRow {
   siteId?: string | null;
   buildingCode?: string | null;
   purposeOfVisit?: string;
+  visitingStaff?: string;
   badgeToken?: string;
 }
 

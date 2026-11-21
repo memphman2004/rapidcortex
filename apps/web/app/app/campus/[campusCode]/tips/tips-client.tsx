@@ -44,6 +44,7 @@ const STATUS_BADGE: Record<CampusIncidentStatus, { label: string; color: string 
   assigned: { label: "Acknowledged", color: "bg-yellow-900/60 text-yellow-200 border-yellow-800/60" },
   responding: { label: "Responding", color: "bg-sky-900/60 text-sky-200 border-sky-800/60" },
   resolved: { label: "Closed", color: "bg-green-900/60 text-green-200 border-green-800/60" },
+  referred: { label: "Referred", color: "bg-slate-700/60 text-slate-200 border-slate-600/60" },
   escalated: { label: "Escalated", color: "bg-purple-900/60 text-purple-200 border-purple-800/60" },
 };
 
