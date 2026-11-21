@@ -98,17 +98,73 @@ export const liveAssistNoteSchema = z.object({
   note: z.string().min(1).max(2000),
 }).strict();
 
+// ─── Coaching WebRTC token query ──────────────────────────────────────────────
+
+export const liveAssistCoachingTokenQuerySchema = z.object({
+  /** Supervisors request "master" credentials; officers request "viewer" credentials */
+  role: z.enum(["master", "viewer"]).default("master"),
+}).strict();
+
+export type LiveAssistCoachingTokenQuery = z.infer<typeof liveAssistCoachingTokenQuerySchema>;
+
+// ─── Push-to-Talk event ───────────────────────────────────────────────────────
+
+export const liveAssistPttSchema = z.object({
+  /** true = supervisor is now speaking; false = stopped speaking */
+  active: z.boolean(),
+}).strict();
+
+export type LiveAssistPtt = z.infer<typeof liveAssistPttSchema>;
+
+// ─── Coaching WebRTC token response ──────────────────────────────────────────
+
+/**
+ * Returned by GET /api/live-assist/sessions/{id}/coaching/token
+ * Client uses these credentials to connect to the KVS signaling channel
+ * via the KVS WebRTC SDK.
+ */
+export interface LiveAssistCoachingTokenResponse {
+  sessionId: string;
+  channelId: string;
+  kvsChannelName: string;
+  channelArn: string;
+  region: string;
+  role: "master" | "viewer";
+  credentials: {
+    accessKeyId: string;
+    secretAccessKey: string;
+    sessionToken: string;
+    expiration: string;
+  };
+  wssEndpoint: string;
+  iceServers: Array<{ urls: string[]; username?: string; credential?: string }>;
+  expiresAt: string;
+}
+
+// ─── WebSocket event types for coaching ──────────────────────────────────────
+
+export const LIVE_ASSIST_WS_EVENT_TYPES = [
+  "live-assist.coaching.requested",
+  "live-assist.coaching.accepted",
+  "live-assist.coaching.ended",
+  "live-assist.coaching.ptt",
+  "live-assist.session.ended",
+] as const;
+export type LiveAssistWsEventType = (typeof LIVE_ASSIST_WS_EVENT_TYPES)[number];
+
 // ─── Audit event ─────────────────────────────────────────────────────────────
 
 export const LIVE_ASSIST_AUDIT_TYPES: Record<LiveAssistAuditAction, string> = {
-  LIVE_ASSIST_SESSION_CREATED:   "live_assist.session.created",
-  LIVE_ASSIST_STREAM_STARTED:    "live_assist.stream.started",
-  LIVE_ASSIST_STREAM_ENDED:      "live_assist.stream.ended",
-  LIVE_ASSIST_COACHING_STARTED:  "live_assist.coaching.started",
-  LIVE_ASSIST_COACHING_ENDED:    "live_assist.coaching.ended",
-  LIVE_ASSIST_DEVICE_REGISTERED: "live_assist.device.registered",
-  LIVE_ASSIST_PROVIDER_CONFIGURED: "live_assist.provider.configured",
-  LIVE_ASSIST_VIEWER_JOINED:     "live_assist.viewer.joined",
+  LIVE_ASSIST_SESSION_CREATED:        "live_assist.session.created",
+  LIVE_ASSIST_STREAM_STARTED:         "live_assist.stream.started",
+  LIVE_ASSIST_STREAM_ENDED:           "live_assist.stream.ended",
+  LIVE_ASSIST_COACHING_STARTED:       "live_assist.coaching.started",
+  LIVE_ASSIST_COACHING_ENDED:         "live_assist.coaching.ended",
+  LIVE_ASSIST_COACHING_PTT:           "live_assist.coaching.ptt",
+  LIVE_ASSIST_COACHING_TOKEN_ISSUED:  "live_assist.coaching.token_issued",
+  LIVE_ASSIST_DEVICE_REGISTERED:      "live_assist.device.registered",
+  LIVE_ASSIST_PROVIDER_CONFIGURED:    "live_assist.provider.configured",
+  LIVE_ASSIST_VIEWER_JOINED:          "live_assist.viewer.joined",
 };
 
 // ─── Inferred types ───────────────────────────────────────────────────────────
@@ -117,10 +173,10 @@ export type LiveAssistProviderCreate = z.infer<typeof liveAssistProviderCreateSc
 export type LiveAssistProviderUpdate = z.infer<typeof liveAssistProviderUpdateSchema>;
 export type LiveAssistDeviceCreate   = z.infer<typeof liveAssistDeviceCreateSchema>;
 export type LiveAssistDeviceUpdate   = z.infer<typeof liveAssistDeviceUpdateSchema>;
-export type LiveAssistSessionCreate  = z.infer<typeof liveAssistSessionCreateSchema>;
-export type LiveAssistStreamRequest  = z.infer<typeof liveAssistStreamRequestSchema>;
+export type LiveAssistSessionCreate   = z.infer<typeof liveAssistSessionCreateSchema>;
+export type LiveAssistStreamRequest   = z.infer<typeof liveAssistStreamRequestSchema>;
 export type LiveAssistCoachingRequest = z.infer<typeof liveAssistCoachingRequestSchema>;
-export type LiveAssistCoachingAccept = z.infer<typeof liveAssistCoachingAcceptSchema>;
-export type LiveAssistLocationUpdate = z.infer<typeof liveAssistLocationUpdateSchema>;
-export type LiveAssistEventQuery     = z.infer<typeof liveAssistEventQuerySchema>;
-export type LiveAssistNote           = z.infer<typeof liveAssistNoteSchema>;
+export type LiveAssistCoachingAccept  = z.infer<typeof liveAssistCoachingAcceptSchema>;
+export type LiveAssistLocationUpdate  = z.infer<typeof liveAssistLocationUpdateSchema>;
+export type LiveAssistEventQuery      = z.infer<typeof liveAssistEventQuerySchema>;
+export type LiveAssistNote            = z.infer<typeof liveAssistNoteSchema>;

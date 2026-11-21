@@ -11,9 +11,11 @@
  *   POST /api/live-assist/sessions
  *   GET  /api/live-assist/sessions/{id}
  *   POST /api/live-assist/sessions/{id}/stream
- *   POST /api/live-assist/sessions/{id}/coaching/request
- *   POST /api/live-assist/sessions/{id}/coaching/accept
- *   POST /api/live-assist/sessions/{id}/coaching/terminate
+ *   POST /api/live-assist/sessions/{id}/coaching/request  — creates KVS channel + notifies officer via WS
+ *   POST /api/live-assist/sessions/{id}/coaching/accept   — officer accepts; notifies supervisor via WS
+ *   GET  /api/live-assist/sessions/{id}/coaching/token    — WebRTC STS credentials (?role=master|viewer)
+ *   POST /api/live-assist/sessions/{id}/coaching/ptt      — supervisor PTT toggle (active: boolean)
+ *   POST /api/live-assist/sessions/{id}/coaching/terminate — ends channel, deletes KVS, notifies via WS
  *   POST /api/live-assist/sessions/{id}/end
  *   GET  /api/live-assist/sessions/{id}/events
  *
@@ -33,6 +35,8 @@ import {
   liveAssistStreamRequestSchema,
   liveAssistCoachingRequestSchema,
   liveAssistCoachingAcceptSchema,
+  liveAssistCoachingTokenQuerySchema,
+  liveAssistPttSchema,
   liveAssistEventQuerySchema,
   liveAssistNoteSchema,
   LIVE_ASSIST_AUDIT_TYPES,
@@ -56,8 +60,11 @@ import {
   liveAssistEventStore,
 } from "../../live-assist/store.js";
 import { resolveProvider, listAllProviders } from "../../live-assist/providers/BodyCameraProviderRegistry.js";
+import { KvsChannelService } from "../../shared/kvs-channel-service.js";
+import { broadcastToAgency, sendWebSocketMessage } from "../../lib/websocket/send-message.js";
 
 const auditRepo = new AuditRepository();
+const kvs = new KvsChannelService();
 
 function parseBody(raw: string | undefined): unknown {
   try { return JSON.parse(raw ?? "{}"); } catch { return null; }
@@ -354,6 +361,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const device = await liveAssistDeviceStore.get(tenantId, session.deviceId);
     const connector = session.manufacturer ? resolveProvider(session.manufacturer) : null;
 
+    // Provision KVS signaling channel for WebRTC coaching audio
+    let coachingKvsChannelName: string | null = null;
+    if (parsed.data.transportType === "webrtc") {
+      try {
+        coachingKvsChannelName = await kvs.createCoachingChannel(sessionId);
+      } catch (kvsErr) {
+        console.warn("[live-assist/coaching/request] KVS channel create failed — continuing", kvsErr);
+      }
+    }
+
     // Create coaching channel record
     const channel = await liveAssistCoachingStore.create({
       tenantId,
@@ -368,6 +385,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       endedAt: null,
       activeFloorSupervisorId: user.userId,
       authorizedSupervisorIds: [user.userId],
+      coachingKvsChannelName,
     });
 
     // Try to notify officer through the manufacturer connector
@@ -393,10 +411,27 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         channelId: channel.channelId,
         transportType: parsed.data.transportType,
         immediateAck,
+        coachingKvsChannelName,
       }),
       auditEvent(tenantId, user.userId, LIVE_ASSIST_AUDIT_TYPES.LIVE_ASSIST_COACHING_STARTED, sessionId, {
         channelId: channel.channelId,
       }),
+      // Push WebSocket notification to the officer so their app can show the coaching request
+      session.officerId
+        ? sendWebSocketMessage({
+            userId: session.officerId,
+            message: {
+              type: "live-assist.coaching.requested",
+              data: {
+                sessionId,
+                channelId: channel.channelId,
+                supervisorId: user.userId,
+                transportType: parsed.data.transportType,
+                coachingKvsChannelName,
+              },
+            },
+          }).catch((e) => console.warn("[live-assist/coaching/ws]", e))
+        : Promise.resolve(),
     ]);
 
     return withCorrelationHeaders(event, ok({ channel, immediateAck }));
@@ -422,6 +457,21 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }),
       liveAssistSessionStore.updateCoachingStatus(tenantId, sessionId, "active"),
       liveAssistEventStore.append(tenantId, sessionId, "COACHING_ACCEPTED", user.userId, { channelId: channel.channelId }),
+      // Push WebSocket notification to the supervisor so their browser switches to active coaching UI
+      session.supervisorId
+        ? sendWebSocketMessage({
+            userId: session.supervisorId,
+            message: {
+              type: "live-assist.coaching.accepted",
+              data: {
+                sessionId,
+                channelId: channel.channelId,
+                officerId: user.userId,
+                coachingKvsChannelName: channel.coachingKvsChannelName,
+              },
+            },
+          }).catch((e) => console.warn("[live-assist/coaching/accept/ws]", e))
+        : Promise.resolve(),
     ]);
 
     return withCorrelationHeaders(event, ok({ accepted: true, channel }));
@@ -438,14 +488,118 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       await liveAssistCoachingStore.updateState(sessionId, channel.channelId, "ended", {
         endedAt: new Date().toISOString(),
       });
+      // Clean up KVS signaling channel (best-effort)
+      if (channel.coachingKvsChannelName) {
+        kvs.deleteSessionChannel(channel.coachingKvsChannelName).catch(
+          (e) => console.warn("[live-assist/coaching/terminate] KVS delete failed", e),
+        );
+      }
     }
+
     await Promise.all([
       liveAssistSessionStore.updateCoachingStatus(tenantId, sessionId, "ended"),
       liveAssistEventStore.append(tenantId, sessionId, "COACHING_ENDED", user.userId, { channelId: channel?.channelId }),
       auditEvent(tenantId, user.userId, LIVE_ASSIST_AUDIT_TYPES.LIVE_ASSIST_COACHING_ENDED, sessionId, {}),
+      // Push WebSocket notifications to both supervisor and officer
+      broadcastToAgency({
+        agencyId: tenantId,
+        message: {
+          type: "live-assist.coaching.ended",
+          data: { sessionId, channelId: channel?.channelId ?? null, terminatedBy: user.userId },
+        },
+      }).catch((e) => console.warn("[live-assist/coaching/terminate/ws]", e)),
     ]);
 
     return withCorrelationHeaders(event, ok({ terminated: true }));
+  }
+
+  // ── GET /api/live-assist/sessions/{id}/coaching/token ─────────────────────
+  if (method === "GET" && sessionId && segs.includes("coaching") && segs.at(-1) === "token") {
+    if (!canViewLiveAssist(user, tenantId)) return withCorrelationHeaders(event, forbidden());
+
+    const tokenQuery = liveAssistCoachingTokenQuerySchema.safeParse(event.queryStringParameters ?? {});
+    const role = tokenQuery.success ? tokenQuery.data.role : "master";
+
+    // Supervisors may only request master tokens; officers may only request viewer tokens.
+    // canCoachLiveAssist is required for master (supervisor side).
+    if (role === "master" && !canCoachLiveAssist(user, tenantId)) {
+      return withCorrelationHeaders(event, forbidden());
+    }
+
+    const session = await liveAssistSessionStore.get(tenantId, sessionId);
+    if (!session) return withCorrelationHeaders(event, notFound("Session not found"));
+
+    const channel = await liveAssistCoachingStore.getForSession(sessionId);
+    if (!channel) return withCorrelationHeaders(event, notFound("No active coaching channel for this session"));
+    if (channel.channelState === "ended") {
+      return withCorrelationHeaders(event, badRequest("Coaching channel has ended"));
+    }
+    if (!channel.coachingKvsChannelName) {
+      return withCorrelationHeaders(event, badRequest("Coaching channel was not configured for WebRTC — check transportType"));
+    }
+
+    let token: Awaited<ReturnType<typeof kvs.issueChannelToken>>;
+    try {
+      token = await kvs.issueChannelToken(channel.coachingKvsChannelName, role);
+    } catch (err) {
+      console.error("[live-assist/coaching/token]", err);
+      return withCorrelationHeaders(event, serviceUnavailable("Could not issue coaching channel token — KVS unavailable"));
+    }
+
+    // Audit: token issuance is a sensitive action (access to two-way audio)
+    await auditEvent(tenantId, user.userId, LIVE_ASSIST_AUDIT_TYPES.LIVE_ASSIST_COACHING_TOKEN_ISSUED, sessionId, {
+      channelId: channel.channelId,
+      role,
+      kvsChannelName: channel.coachingKvsChannelName,
+    });
+
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 min (matches STS DurationSeconds)
+    return withCorrelationHeaders(event, ok({
+      sessionId,
+      channelId: channel.channelId,
+      kvsChannelName: token.channelName,
+      channelArn: token.channelArn,
+      region: token.region,
+      role,
+      credentials: token.credentials,
+      wssEndpoint: token.wssEndpoint,
+      iceServers: token.iceServers,
+      expiresAt,
+    }));
+  }
+
+  // ── POST /api/live-assist/sessions/{id}/coaching/ptt ─────────────────────
+  if (method === "POST" && sessionId && segs.includes("coaching") && segs.at(-1) === "ptt") {
+    if (!canCoachLiveAssist(user, tenantId)) return withCorrelationHeaders(event, forbidden());
+    const pttParsed = liveAssistPttSchema.safeParse(parseBody(event.body));
+    if (!pttParsed.success) return withCorrelationHeaders(event, badRequestFromZod(pttParsed.error));
+
+    const session = await liveAssistSessionStore.get(tenantId, sessionId);
+    if (!session) return withCorrelationHeaders(event, notFound("Session not found"));
+
+    if (session.coachingStatus !== "active") {
+      return withCorrelationHeaders(event, badRequest("No active coaching session"));
+    }
+
+    const pttActive = pttParsed.data.active;
+    const eventType = pttActive ? "COACHING_SUPERVISOR_UNMUTED" : "COACHING_SUPERVISOR_MUTED";
+
+    await Promise.all([
+      liveAssistEventStore.append(tenantId, sessionId, eventType, user.userId, { pttActive }),
+      auditEvent(tenantId, user.userId, LIVE_ASSIST_AUDIT_TYPES.LIVE_ASSIST_COACHING_PTT, sessionId, { pttActive }),
+      // Push PTT state to officer so their app can show visual feedback
+      session.officerId
+        ? sendWebSocketMessage({
+            userId: session.officerId,
+            message: {
+              type: "live-assist.coaching.ptt",
+              data: { sessionId, supervisorId: user.userId, active: pttActive },
+            },
+          }).catch((e) => console.warn("[live-assist/ptt/ws]", e))
+        : Promise.resolve(),
+    ]);
+
+    return withCorrelationHeaders(event, ok({ pttActive }));
   }
 
   // ── POST /api/live-assist/sessions/{id}/end ───────────────────────────────

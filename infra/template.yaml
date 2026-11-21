@@ -5043,7 +5043,9 @@ Resources:
         config:
           ignore_checks:
             - W3005
-    DependsOn: AppSamStackV2
+    DependsOn:
+      - AppSamStackV2
+      - AppSamRealtime2Stack
     Properties:
       TimeoutInMinutes: 60
       TemplateURL: nested/stack-app-sam-live-assist.yaml
@@ -5066,6 +5068,16 @@ Resources:
             - !GetAtt DataLayerStack.Outputs.AgenciesTable
             - !Sub "${DynamoTableNamePrefix}-agencies-${DeploymentStage}"
         ManagedPolicyNamePrefix: !Ref AWS::StackName
+        # WebRTC coaching channel WebSocket push — table name + management endpoint
+        # CoachingKvsBrowserTokenRole is created inside the nested stack (no cross-stack ref needed).
+        WebSocketConnectionsTableName:
+          Fn::If:
+            - HasDataLayerNestedStack
+            - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
+            - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
+        WebSocketApiEndpoint: !Sub
+          - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
+          - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
 
 Outputs:
   HttpApiUrl:

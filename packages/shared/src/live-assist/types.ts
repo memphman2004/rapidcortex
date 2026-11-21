@@ -203,6 +203,13 @@ export interface LiveAssistCoachingChannel {
   activeFloorSupervisorId: string | null;
   /** Supervisors who may request the floor */
   authorizedSupervisorIds: string[];
+  /**
+   * KVS SINGLE_MASTER signaling channel name for WebRTC audio coaching.
+   * Named: `la-coaching-{sessionId}`
+   * Supervisor connects as MASTER; officer connects as VIEWER.
+   * Null when transport is not webrtc, or not yet provisioned.
+   */
+  coachingKvsChannelName: string | null;
 }
 
 // ─── Live Assist Event (Continuity Log) ──────────────────────────────────────
@@ -263,6 +270,8 @@ export type LiveAssistAuditAction =
   | "LIVE_ASSIST_STREAM_ENDED"
   | "LIVE_ASSIST_COACHING_STARTED"
   | "LIVE_ASSIST_COACHING_ENDED"
+  | "LIVE_ASSIST_COACHING_PTT"
+  | "LIVE_ASSIST_COACHING_TOKEN_ISSUED"
   | "LIVE_ASSIST_DEVICE_REGISTERED"
   | "LIVE_ASSIST_PROVIDER_CONFIGURED"
   | "LIVE_ASSIST_VIEWER_JOINED";

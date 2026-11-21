@@ -360,6 +360,16 @@ export const liveAssistCoachingStore = {
     return ((result.Items ?? [])[0] as LiveAssistCoachingChannel | undefined) ?? null;
   },
 
+  async setKvsChannel(sessionId: string, channelId: string, kvsChannelName: string): Promise<void> {
+    if (!coachingTable()) return;
+    await ddb.send(new UpdateCommand({
+      TableName: coachingTable(),
+      Key: { pk: `SESSION#${sessionId}`, sk: `CHANNEL#${channelId}` },
+      UpdateExpression: "SET coachingKvsChannelName = :kvc",
+      ExpressionAttributeValues: { ":kvc": kvsChannelName },
+    }));
+  },
+
   async updateState(
     sessionId: string,
     channelId: string,

@@ -7,15 +7,24 @@
  *   - Officer / unit details
  *   - Associated incident details
  *   - GPS location (source-labeled, freshness-stamped)
- *   - Coaching channel state and PTT controls
+ *   - Coaching channel state and PTT controls (live WebRTC audio via KVS)
  *   - End session control
+ *
+ * Phase 2:
+ *   - useCoachingToken fetches KVS MASTER credentials when coaching is active
+ *   - useCoachingWebRtc manages the RTCPeerConnection as SINGLE_MASTER
+ *   - PTT button opens the microphone on pointer-down, mutes on pointer-up
+ *   - Mic permission is requested on first PTT press, never on mount
  *
  * Safety:
  *   - Coaching only shown if canCoach = true
  *   - Old location data is visually distinguished from current
  *   - Coaching not automatically activated — requires explicit action
  */
+import { useCallback, useState } from "react";
 import type { LiveAssistSession } from "rapid-cortex-shared";
+import { useCoachingToken, usePtt } from "@/lib/live-assist/hooks";
+import { useCoachingWebRtc } from "@/lib/live-assist/useCoachingWebRtc";
 
 interface OfficerAssistPanelProps {
   session: LiveAssistSession | null;
@@ -55,6 +64,46 @@ export function OfficerAssistPanel({
   incidents,
   isCoachingPending,
 }: OfficerAssistPanelProps) {
+  const isCoachingActive = session?.coachingStatus === "active";
+
+  // ── WebRTC coaching channel (supervisor = MASTER) ──────────────────────────
+  // Token is only fetched when coaching is active and the supervisor can coach.
+  const tokenQuery = useCoachingToken(
+    session?.sessionId ?? null,
+    "master",
+    isCoachingActive && canCoach,
+  );
+  const pttMutation = usePtt(session?.sessionId ?? null);
+  const [pttError, setPttError] = useState<string | null>(null);
+
+  const handlePttStateChange = useCallback(
+    (active: boolean) => {
+      // Fire backend event (best-effort; non-fatal if it fails)
+      pttMutation.mutate(active);
+    },
+    [pttMutation],
+  );
+
+  const { connectionState, isPttActive, startPtt, stopPtt, error: rtcError } =
+    useCoachingWebRtc({
+      token: isCoachingActive && canCoach ? tokenQuery.data : null,
+      onPttStateChange: handlePttStateChange,
+    });
+
+  // PTT press handlers (pointer events work for both mouse and touch)
+  const handlePttDown = useCallback(async () => {
+    setPttError(null);
+    try {
+      await startPtt();
+    } catch (err) {
+      setPttError(err instanceof Error ? err.message : "PTT error");
+    }
+  }, [startPtt]);
+
+  const handlePttUp = useCallback(() => {
+    stopPtt();
+  }, [stopPtt]);
+
   if (!session) {
     return (
       <div className="p-4 flex items-center justify-center h-full">
@@ -71,10 +120,13 @@ export function OfficerAssistPanel({
   const coachingState = COACHING_STATUS_LABEL[session.coachingStatus] ??
     { label: session.coachingStatus, cls: "text-slate-400" };
 
-  const isCoachingActive = session.coachingStatus === "active";
   const isCoachingPendingState = session.coachingStatus === "requested" || session.coachingStatus === "officer_notified";
   const canStartCoaching = canCoach && session.coachingStatus === "none" && session.streamStatus !== "ended";
   const canEndCoaching = canCoach && (isCoachingActive || isCoachingPendingState);
+
+  const rtcConnected = connectionState === "connected";
+  const rtcConnecting = connectionState === "connecting" || connectionState === "reconnecting";
+  const micBlocked = connectionState === "mic_permission_denied";
 
   return (
     <div className="p-4 flex flex-col gap-4">
@@ -161,14 +213,46 @@ export function OfficerAssistPanel({
 
             {isCoachingActive && (
               <div className="space-y-2">
-                {/* PTT button — Phase 2: connects to WebRTC audio track */}
+                {/* WebRTC channel status */}
+                {rtcConnecting && (
+                  <p className="text-[10px] text-yellow-500 animate-pulse text-center">
+                    Connecting audio channel…
+                  </p>
+                )}
+                {micBlocked && (
+                  <p className="text-[10px] text-red-400 text-center">
+                    ⚠ Microphone blocked. Enable in browser settings.
+                  </p>
+                )}
+                {rtcError && !micBlocked && (
+                  <p className="text-[10px] text-orange-400 text-center truncate" title={rtcError}>
+                    Audio: {rtcError}
+                  </p>
+                )}
+                {pttError && (
+                  <p className="text-[10px] text-orange-400 text-center">{pttError}</p>
+                )}
+
+                {/* PTT button — hold to open mic */}
                 <button
-                  className="w-full rounded bg-green-700 px-3 py-2.5 text-xs font-bold text-white hover:bg-green-600 active:scale-95 transition select-none"
+                  onPointerDown={() => void handlePttDown()}
+                  onPointerUp={handlePttUp}
+                  onPointerLeave={handlePttUp}
+                  disabled={!rtcConnected || micBlocked}
+                  className={[
+                    "w-full rounded px-3 py-2.5 text-xs font-bold text-white select-none transition",
+                    "active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed",
+                    isPttActive
+                      ? "bg-red-600 hover:bg-red-500 ring-2 ring-red-400 animate-pulse"
+                      : "bg-green-700 hover:bg-green-600",
+                  ].join(" ")}
                 >
-                  🎙 Hold to Talk (PTT)
+                  {isPttActive ? "🔴 Speaking…" : "🎙 Hold to Talk (PTT)"}
                 </button>
                 <p className="text-[10px] text-slate-600 text-center">
-                  Phase 2: WebRTC audio channel active
+                  {rtcConnected
+                    ? "Audio channel ready · hold for mic"
+                    : "Establishing secure audio channel…"}
                 </p>
               </div>
             )}

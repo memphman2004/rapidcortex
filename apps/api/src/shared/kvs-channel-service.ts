@@ -14,7 +14,7 @@ import { AssumeRoleCommand, STSClient } from "@aws-sdk/client-sts";
 const kvs = new KinesisVideoClient({ region: process.env.AWS_REGION });
 const sts = new STSClient({ region: process.env.AWS_REGION });
 
-export type ChannelPrefix = "rc-connect" | "rc-venue";
+export type ChannelPrefix = "rc-connect" | "rc-venue" | "la-coaching";
 
 export interface KvsViewerToken {
   channelName: string;
@@ -190,5 +190,139 @@ export class KvsChannelService {
     } catch (err) {
       console.warn(`[kvs] deleteSessionChannel ${channelName}:`, err);
     }
+  }
+
+  // ── Coaching Channel (Live Assist two-way WebRTC audio) ────────────────────
+
+  /** Create or return the KVS SINGLE_MASTER signaling channel for a coaching session. */
+  async createCoachingChannel(sessionId: string): Promise<string> {
+    const channelName = `la-coaching-${sessionId}`;
+    // Idempotent — reuse if already exists
+    try {
+      const described = await kvs.send(
+        new DescribeSignalingChannelCommand({ ChannelName: channelName }),
+      );
+      if (described.ChannelInfo?.ChannelARN) return channelName;
+    } catch {
+      /* create below */
+    }
+    await kvs.send(
+      new CreateSignalingChannelCommand({
+        ChannelName: channelName,
+        ChannelType: "SINGLE_MASTER",
+        SingleMasterConfiguration: { MessageTtlSeconds: 60 },
+        Tags: [
+          { Key: "sessionId", Value: sessionId },
+          { Key: "product", Value: "live-assist-coaching" },
+          { Key: "managedBy", Value: "rapid-cortex" },
+        ],
+      }),
+    );
+    return channelName;
+  }
+
+  /**
+   * Issue a short-lived STS token for a coaching KVS signaling channel.
+   *
+   * - role "master" → supervisor (ConnectAsMaster). The supervisor initiates the
+   *   peer connection and sends audio to the officer.
+   * - role "viewer" → officer (ConnectAsViewer). The officer's device or mobile
+   *   app connects as the viewer and plays the supervisor's audio.
+   */
+  async issueChannelToken(
+    channelName: string,
+    role: "master" | "viewer",
+  ): Promise<KvsViewerToken> {
+    const described = await kvs.send(
+      new DescribeSignalingChannelCommand({ ChannelName: channelName }),
+    );
+    const channelArn = described.ChannelInfo?.ChannelARN;
+    if (!channelArn) throw new Error(`Coaching channel not found: ${channelName}`);
+
+    const kvsRole = role === "master" ? "MASTER" : "VIEWER";
+    const kvsAction = role === "master" ? "kinesisvideo:ConnectAsMaster" : "kinesisvideo:ConnectAsViewer";
+
+    const endpoints = await kvs.send(
+      new GetSignalingChannelEndpointCommand({
+        ChannelARN: channelArn,
+        SingleMasterChannelEndpointConfiguration: {
+          Protocols: ["WSS", "HTTPS"],
+          Role: kvsRole,
+        },
+      }),
+    );
+
+    const wssEndpoint =
+      endpoints.ResourceEndpointList?.find((e) => e.Protocol === "WSS")?.ResourceEndpoint ?? "";
+    const httpsEndpoint =
+      endpoints.ResourceEndpointList?.find((e) => e.Protocol === "HTTPS")?.ResourceEndpoint ?? "";
+    if (!wssEndpoint || !httpsEndpoint) {
+      throw new Error(`KVS signaling endpoints missing for coaching channel ${channelName}`);
+    }
+
+    const assumed = await sts.send(
+      new AssumeRoleCommand({
+        RoleArn: required("KVS_BROWSER_TOKEN_ROLE_ARN"),
+        RoleSessionName: `coaching-${role}-${channelName.slice(-16)}`,
+        DurationSeconds: 900,
+        Policy: JSON.stringify({
+          Version: "2012-10-17",
+          Statement: [
+            {
+              Effect: "Allow",
+              Action: [
+                kvsAction,
+                "kinesisvideo:GetSignalingChannelEndpoint",
+                "kinesisvideo:DescribeSignalingChannel",
+                "kinesisvideo:GetIceServerConfig",
+              ],
+              Resource: channelArn,
+            },
+          ],
+        }),
+      }),
+    );
+
+    const creds = assumed.Credentials;
+    if (!creds?.AccessKeyId || !creds.SecretAccessKey || !creds.SessionToken || !creds.Expiration) {
+      throw new Error("Could not assume KVS coaching browser role");
+    }
+
+    const signalingClient = new KinesisVideoSignalingClient({
+      region: required("AWS_REGION"),
+      endpoint: httpsEndpoint,
+      credentials: {
+        accessKeyId: creds.AccessKeyId,
+        secretAccessKey: creds.SecretAccessKey,
+        sessionToken: creds.SessionToken,
+      },
+    });
+
+    const iceConfig = await signalingClient.send(
+      new GetIceServerConfigCommand({ ChannelARN: channelArn }),
+    );
+
+    const iceServers = [
+      { urls: [`stun:stun.kinesisvideo.${required("AWS_REGION")}.amazonaws.com:443`] },
+      ...((iceConfig.IceServerList ?? []).map((s) => ({
+        urls: s.Uris ?? [],
+        username: s.Username,
+        credential: s.Password,
+      })) as Array<{ urls: string[]; username?: string; credential?: string }>),
+    ];
+
+    return {
+      channelName,
+      channelArn,
+      region: required("AWS_REGION"),
+      credentials: {
+        accessKeyId: creds.AccessKeyId,
+        secretAccessKey: creds.SecretAccessKey,
+        sessionToken: creds.SessionToken,
+        expiration: creds.Expiration.toISOString(),
+      },
+      wssEndpoint,
+      iceServers,
+    };
   }
 }

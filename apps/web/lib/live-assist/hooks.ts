@@ -7,6 +7,7 @@ import type {
   LiveAssistEvent,
   BodyCameraManufacturer,
   LiveAssistProvider,
+  LiveAssistCoachingTokenResponse,
 } from "rapid-cortex-shared";
 
 // ─── Shared fetch ─────────────────────────────────────────────────────────────
@@ -155,5 +156,46 @@ export function useSessionEvents(sessionId: string | null) {
     queryFn: () => apiFetch(`/api/live-assist/sessions/${sessionId}/events?limit=50`),
     enabled: !!sessionId,
     refetchInterval: 8_000,
+  });
+}
+
+// ─── Coaching WebRTC token ────────────────────────────────────────────────────
+
+/**
+ * Fetches KVS signaling credentials for the coaching channel.
+ * role="master" = supervisor side (sends audio to officer)
+ * role="viewer" = officer side (receives audio from supervisor)
+ *
+ * Token is only requested when the coaching channel is active and the caller
+ * is authorised (the API enforces canCoachLiveAssist for master).
+ */
+export function useCoachingToken(
+  sessionId: string | null,
+  role: "master" | "viewer",
+  enabled = true,
+) {
+  return useQuery<LiveAssistCoachingTokenResponse>({
+    queryKey: ["live-assist", "coaching-token", sessionId, role],
+    queryFn: () =>
+      apiFetch(`/api/live-assist/sessions/${sessionId}/coaching/token?role=${role}`),
+    enabled: !!sessionId && enabled,
+    // Tokens expire in 15 min; refresh 2 min before expiry
+    staleTime: 13 * 60 * 1000,
+    gcTime:    15 * 60 * 1000,
+    retry: 2,
+  });
+}
+
+// ─── Coaching PTT event sender ────────────────────────────────────────────────
+
+/** Tells the backend the supervisor started/stopped speaking (fires WS push to officer). */
+export function usePtt(sessionId: string | null) {
+  return useMutation({
+    mutationFn: (active: boolean) =>
+      apiFetch(`/api/live-assist/sessions/${sessionId}/coaching/ptt`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ active }),
+      }),
   });
 }

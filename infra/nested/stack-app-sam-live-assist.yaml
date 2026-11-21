@@ -33,10 +33,20 @@ Parameters:
   HttpApiJwtAuthorizerId:
     Type: String
     Default: ""
+  # ── WebRTC coaching channel ──────────────────────────────────────────────────
+  WebSocketConnectionsTableName:
+    Type: String
+    Default: ""
+    Description: Physical name of the WebSocket connections table (used for coaching push events).
+  WebSocketApiEndpoint:
+    Type: String
+    Default: ""
+    Description: API Gateway Management API endpoint for WebSocket push (e.g. https://abc.execute-api.us-east-1.amazonaws.com/dev).
 
 Conditions:
   HasTablePrefix: !Not [!Equals [!Ref DynamoTableNamePrefix, ""]]
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
+  HasWebSocketConnectionsTable: !Not [!Equals [!Ref WebSocketConnectionsTableName, ""]]
 
 Globals:
   Function:
@@ -204,6 +214,43 @@ Resources:
         - AttributeName: sk
           KeyType: RANGE
 
+  # ── KVS Coaching WebRTC STS Role ─────────────────────────────────────────────
+  # LiveAssistHttpFunction assumes this role to issue short-lived KVS signaling
+  # credentials (MASTER for supervisors, VIEWER for officers) via STS.
+  # Trust is restricted to the Live Assist Lambda execution role ARN pattern.
+  # Pattern note: same-account Lambda AssumeRole omits aws:SourceAccount so
+  # we match on PrincipalArn rather than using aws:SourceAccount condition.
+
+  CoachingKvsBrowserTokenRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Condition:
+              ArnLike:
+                aws:PrincipalArn:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/*LiveAssistHttpFunction*"
+                  - !Sub "arn:aws:sts::${AWS::AccountId}:assumed-role/*LiveAssistHttpFunction*/*"
+      Policies:
+        - PolicyName: CoachingKvsWebrtcDataPlane
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: CoachingKvsDataPlane
+                Effect: Allow
+                Action:
+                  - kinesisvideo:ConnectAsMaster
+                  - kinesisvideo:ConnectAsViewer
+                  - kinesisvideo:DescribeSignalingChannel
+                  - kinesisvideo:GetSignalingChannelEndpoint
+                  - kinesisvideo:GetIceServerConfig
+                Resource: !Sub "arn:${AWS::Partition}:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/la-coaching-*"
+
   # ── IAM Role ─────────────────────────────────────────────────────────────────
 
   LiveAssistLambdaRole:
@@ -248,6 +295,38 @@ Resources:
                   - dynamodb:GetItem
                 Resource:
                   - !Ref AgenciesTable
+              # WebSocket push — notify officer/supervisor of coaching state changes
+              - !If
+                - HasWebSocketConnectionsTable
+                - Effect: Allow
+                  Action:
+                    - dynamodb:Query
+                    - dynamodb:GetItem
+                    - dynamodb:DeleteItem
+                  Resource:
+                    - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTableName}"
+                    - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WebSocketConnectionsTableName}/index/*"
+                - !Ref AWS::NoValue
+              # KVS — create/describe/delete coaching signaling channels (control plane)
+              - Effect: Allow
+                Action:
+                  - kinesisvideo:CreateSignalingChannel
+                  - kinesisvideo:DescribeSignalingChannel
+                  - kinesisvideo:DeleteSignalingChannel
+                  - kinesisvideo:GetSignalingChannelEndpoint
+                  - kinesisvideo:TagStream
+                Resource: !Sub "arn:aws:kinesisvideo:${AWS::Region}:${AWS::AccountId}:channel/la-coaching-*"
+              # STS — assume CoachingKvsBrowserTokenRole to issue WebRTC credentials
+              - Effect: Allow
+                Action:
+                  - sts:AssumeRole
+                Resource:
+                  - !GetAtt CoachingKvsBrowserTokenRole.Arn
+              # API Gateway Management — post to WebSocket connections
+              - Effect: Allow
+                Action:
+                  - execute-api:ManageConnections
+                Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/@connections/*"
 
   # ── Lambda function ───────────────────────────────────────────────────────────
 
@@ -272,6 +351,9 @@ Resources:
           COGNITO_NATIVE_CLIENT_ID: !Ref ImportedCognitoNativeClientId
           COGNITO_ISSUER: !Ref ImportedCognitoIssuer
           ENABLE_LIVE_ASSIST: "true"
+          KVS_BROWSER_TOKEN_ROLE_ARN: !GetAtt CoachingKvsBrowserTokenRole.Arn
+          WEBSOCKET_CONNECTIONS_TABLE: !Ref WebSocketConnectionsTableName
+          WEBSOCKET_API_ENDPOINT: !Ref WebSocketApiEndpoint
 
   LiveAssistHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
