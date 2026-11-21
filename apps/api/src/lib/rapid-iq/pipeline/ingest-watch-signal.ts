@@ -5,10 +5,13 @@
 
 import { randomUUID } from "node:crypto";
 import type {
+  RapidIqBidEligibilityStatus,
   RapidIqPipelineFeedTab,
   RapidIqPipelineFitLabel,
   RapidIqPipelineSignal,
   RapidIqProcurementStage,
+  RapidIqProductFitCategory,
+  RapidIqSourceVerificationStatus,
   RapidIqWatchIngestBody,
 } from "rapid-cortex-shared";
 import { normalizeWatchExternalKey, watchPayloadHash } from "rapid-cortex-shared";
@@ -123,6 +126,71 @@ function resolveContractValue(opp: RapidIqWatchIngestBody["opportunity"]): numbe
   return undefined;
 }
 
+/** Derive `officialRfpUrl` from explicit field or best evidence URL. */
+function resolveOfficialRfpUrl(
+  opp: RapidIqWatchIngestBody["opportunity"],
+  evidence: RapidIqWatchIngestBody["evidence"],
+): string | undefined {
+  if (opp.official_rfp_url?.trim()) return opp.official_rfp_url.trim();
+  // Fall back to the first official_procurement evidence URL
+  const officialEvidence = (evidence ?? []).find((e) => e.source_type === "official_procurement");
+  return officialEvidence?.url ?? undefined;
+}
+
+/**
+ * Derive source verification status.
+ * - VERIFIED: an explicit official_rfp_url was provided, or the procurement_url
+ *   is an official SAM.gov or state eProcurement domain and evidence confirms it.
+ * - PORTAL_ONLY: official_procurement evidence exists but no direct solicitation URL.
+ * - UNVERIFIED: no reliable official source yet.
+ */
+function resolveSourceVerificationStatus(
+  opp: RapidIqWatchIngestBody["opportunity"],
+  evidence: RapidIqWatchIngestBody["evidence"],
+  source: RapidIqWatchIngestBody["source"],
+): RapidIqSourceVerificationStatus {
+  if (opp.official_rfp_url?.trim()) return "VERIFIED";
+  const hasOfficialEvidence = (evidence ?? []).some(
+    (e) => e.source_type === "official_procurement",
+  );
+  if (hasOfficialEvidence) return "PORTAL_ONLY";
+  if (source === "sam_gov" || source === "civiciq") return "PORTAL_ONLY";
+  return "UNVERIFIED";
+}
+
+/** Map qualification fit → product fit category. */
+function resolveProductFitCategory(
+  fit: "high" | "medium" | "low" | undefined,
+): RapidIqProductFitCategory {
+  if (fit === "high") return "DIRECT_FIT";
+  if (fit === "low") return "LOW_FIT";
+  return "PARTNER_OPPORTUNITY";
+}
+
+/** Extract procurement contact email from contact block. */
+function resolveProcurementContactEmail(
+  contact: RapidIqWatchIngestBody["contact"],
+): string | undefined {
+  const email = contact?.email;
+  if (!email || email === "") return undefined;
+  return email;
+}
+
+/**
+ * Only allow upgrading verification status (never downgrade a confirmed VERIFIED).
+ * Priority order: VERIFIED > PORTAL_ONLY > UNVERIFIED > MISMATCH (MISMATCH is sticky).
+ */
+function upgradeVerificationStatus(
+  existing: RapidIqSourceVerificationStatus | undefined,
+  incoming: RapidIqSourceVerificationStatus,
+): RapidIqSourceVerificationStatus {
+  if (existing === "MISMATCH") return "MISMATCH"; // operator-flagged mismatch is sticky
+  if (existing === "VERIFIED") return "VERIFIED"; // never downgrade
+  if (incoming === "VERIFIED") return "VERIFIED";
+  if (existing === "PORTAL_ONLY" && incoming === "UNVERIFIED") return "PORTAL_ONLY";
+  return incoming;
+}
+
 function mergeEvidence(
   existing: RapidIqPipelineSignal["evidence"],
   incoming: RapidIqWatchIngestBody["evidence"],
@@ -199,6 +267,9 @@ function detectMaterialChanges(
   if (prior.recommendedAction !== next.recommendedAction) changes.push("next_action");
   if (prior.watchStrategy !== next.watchStrategy) changes.push("strategy");
   if ((prior.evidence?.length ?? 0) !== (next.evidence?.length ?? 0)) changes.push("evidence");
+  if (prior.officialRfpUrl !== next.officialRfpUrl) changes.push("official_rfp_url");
+  if (prior.sourceVerificationStatus !== next.sourceVerificationStatus)
+    changes.push("source_verification_status");
   if (activity) changes.push("lifecycle");
   return [...new Set(changes)];
 }
@@ -319,6 +390,18 @@ export async function ingestWatchSignal(
     }
   }
 
+  // Also resolve verification fields needed for create and update paths
+  const newOfficialRfpUrl = resolveOfficialRfpUrl(body.opportunity, body.evidence);
+  const newSourceVerificationStatus = resolveSourceVerificationStatus(
+    body.opportunity,
+    body.evidence,
+    body.source,
+  );
+  const newProductFitCategory = resolveProductFitCategory(body.qualification?.fit);
+  const newBidEligibilityStatus: RapidIqBidEligibilityStatus =
+    body.qualification?.bid_eligibility ?? "unknown";
+  const newProcurementContactEmail = resolveProcurementContactEmail(body.contact);
+
   if (existing) {
     const activities = [...(existing.activities ?? [])];
     if (activity) {
@@ -379,6 +462,23 @@ export async function ingestWatchSignal(
         existing.status === "pushed" || existing.status === "dismissed"
           ? existing.status
           : "new",
+      // Official RFP Source Verification — upgrade existing record if new info is better
+      officialRfpUrl: newOfficialRfpUrl ?? existing.officialRfpUrl,
+      officialProcurementPortalUrl:
+        existing.officialProcurementPortalUrl ?? body.opportunity.procurement_url,
+      sourceVerificationStatus: upgradeVerificationStatus(
+        existing.sourceVerificationStatus,
+        newSourceVerificationStatus,
+      ),
+      sourceVerifiedAt:
+        newOfficialRfpUrl && !existing.sourceVerifiedAt ? now : existing.sourceVerifiedAt,
+      bidEligibilityStatus:
+        newBidEligibilityStatus !== "unknown"
+          ? newBidEligibilityStatus
+          : existing.bidEligibilityStatus,
+      procurementContactEmail:
+        newProcurementContactEmail ?? existing.procurementContactEmail,
+      productFitCategory: newProductFitCategory ?? existing.productFitCategory,
       ...enrichmentPatch(existing),
     };
 
@@ -516,6 +616,14 @@ export async function ingestWatchSignal(
     submissionCount: 1,
     firstDiscoveredAt: now,
     lastMaterialChangeAt: now,
+    // Official RFP Source Verification
+    officialRfpUrl: newOfficialRfpUrl,
+    officialProcurementPortalUrl: body.opportunity.procurement_url,
+    sourceVerificationStatus: newSourceVerificationStatus,
+    sourceVerifiedAt: newOfficialRfpUrl ? now : undefined,
+    bidEligibilityStatus: newBidEligibilityStatus,
+    procurementContactEmail: newProcurementContactEmail,
+    productFitCategory: newProductFitCategory,
     ...buying,
     ...enrichmentPatch(null),
   };

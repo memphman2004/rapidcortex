@@ -9,6 +9,7 @@ import { httpDocumentUrl, solicitationLinkLabel } from "@/lib/rapid-iq/solicitat
 import { DualScoreBadge } from "./dual-score-badge";
 import { ProcurementStageBadge } from "./procurement-stage-badge";
 import { SignalEvidenceBlock } from "./signal-evidence";
+import { SignalRfpVerification } from "./signal-rfp-verification";
 
 type Props = {
   signal: RapidIqPipelineSignal;
@@ -153,23 +154,29 @@ export function IncomingSignalDetail({
 
       <div className="mt-3 flex-1 overflow-y-auto">
         <SignalEvidenceBlock signal={signal} />
+        <SignalRfpVerification signal={signal} />
       </div>
 
-      {httpDocumentUrl(signal.sourceUrl) ? (
-        <a
-          href={httpDocumentUrl(signal.sourceUrl)!}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-3 inline-flex items-center rounded-md border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-[11px] font-semibold text-sky-200 hover:bg-sky-500/20"
-        >
-          {solicitationLinkLabel(
-            `${signal.rawTitle} ${signal.summary ?? ""} ${signal.solicitationNumber ?? ""}`,
-          )}{" "}
-          ↗
-        </a>
-      ) : (
-        <p className="mt-3 text-[11px] text-amber-200/80">No RFI or RFP link was stored with this signal.</p>
-      )}
+      {/* Fallback source link — only shown when no VERIFIED/PORTAL_ONLY official link */}
+      {signal.sourceVerificationStatus !== "VERIFIED" &&
+        signal.sourceVerificationStatus !== "PORTAL_ONLY" &&
+        (httpDocumentUrl(signal.sourceUrl) ? (
+          <a
+            href={httpDocumentUrl(signal.sourceUrl)!}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center rounded-md border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-[11px] font-semibold text-sky-200 hover:bg-sky-500/20"
+          >
+            {solicitationLinkLabel(
+              `${signal.rawTitle} ${signal.summary ?? ""} ${signal.solicitationNumber ?? ""}`,
+            )}{" "}
+            ↗
+          </a>
+        ) : (
+          <p className="mt-3 text-[11px] text-amber-200/80">
+            No RFI or RFP link was stored with this signal.
+          </p>
+        ))}
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"

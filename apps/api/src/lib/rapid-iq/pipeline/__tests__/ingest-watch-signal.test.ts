@@ -224,4 +224,195 @@ describe("ingestWatchSignal", () => {
     );
     expect(result.signal.opportunityStatus).toBe("open");
   });
+
+  // ── Official RFP Source Verification ──────────────────────────────────────
+
+  describe("Source Verification", () => {
+    it("creates signal with PORTAL_ONLY when evidence has official_procurement type", async () => {
+      getSignalIdByExternalKey.mockResolvedValue(null);
+      // baseBody already has evidence with source_type: "official_procurement"
+      const result = await ingestWatchSignal(baseBody);
+      expect(result.signal.sourceVerificationStatus).toBe("PORTAL_ONLY");
+      expect(result.signal.officialProcurementPortalUrl).toBe(
+        "https://example.gov/rfp/2027-10",
+      );
+    });
+
+    it("creates signal with VERIFIED when official_rfp_url is explicitly provided", async () => {
+      getSignalIdByExternalKey.mockResolvedValue(null);
+      const body: RapidIqWatchIngestBody = {
+        ...baseBody,
+        opportunity: {
+          ...baseBody.opportunity,
+          official_rfp_url: "https://example.gov/rfp/2027-10/document.pdf",
+        },
+        evidence: [],
+      };
+      const result = await ingestWatchSignal(body);
+      expect(result.signal.sourceVerificationStatus).toBe("VERIFIED");
+      expect(result.signal.officialRfpUrl).toBe(
+        "https://example.gov/rfp/2027-10/document.pdf",
+      );
+      expect(result.signal.sourceVerifiedAt).toBeDefined();
+    });
+
+    it("creates signal with UNVERIFIED when no official source info is provided", async () => {
+      getSignalIdByExternalKey.mockResolvedValue(null);
+      const body: RapidIqWatchIngestBody = {
+        ...baseBody,
+        source: "chatgpt_watch" as const,
+        evidence: [],
+      };
+      const result = await ingestWatchSignal(body);
+      expect(result.signal.sourceVerificationStatus).toBe("UNVERIFIED");
+      expect(result.signal.officialRfpUrl).toBeUndefined();
+    });
+
+    it("sets PORTAL_ONLY for sam_gov source even without evidence", async () => {
+      getSignalIdByExternalKey.mockResolvedValue(null);
+      const body: RapidIqWatchIngestBody = {
+        ...baseBody,
+        source: "sam_gov" as const,
+        evidence: [],
+      };
+      const result = await ingestWatchSignal(body);
+      expect(result.signal.sourceVerificationStatus).toBe("PORTAL_ONLY");
+    });
+
+    it("maps fit=high → productFitCategory=DIRECT_FIT", async () => {
+      getSignalIdByExternalKey.mockResolvedValue(null);
+      const result = await ingestWatchSignal({
+        ...baseBody,
+        qualification: { fit: "high", strategy: "direct", reason: "Best fit" },
+      });
+      expect(result.signal.productFitCategory).toBe("DIRECT_FIT");
+    });
+
+    it("maps fit=medium → productFitCategory=PARTNER_OPPORTUNITY", async () => {
+      getSignalIdByExternalKey.mockResolvedValue(null);
+      const result = await ingestWatchSignal({
+        ...baseBody,
+        external_key: "TX|TestAgency|med",
+        qualification: { fit: "medium", strategy: "partner" },
+      });
+      expect(result.signal.productFitCategory).toBe("PARTNER_OPPORTUNITY");
+    });
+
+    it("maps fit=low → productFitCategory=LOW_FIT", async () => {
+      getSignalIdByExternalKey.mockResolvedValue(null);
+      const result = await ingestWatchSignal({
+        ...baseBody,
+        external_key: "TX|TestAgency|low",
+        qualification: { fit: "low", strategy: "monitor" },
+      });
+      expect(result.signal.productFitCategory).toBe("LOW_FIT");
+    });
+
+    it("sets bidEligibilityStatus from qualification.bid_eligibility", async () => {
+      getSignalIdByExternalKey.mockResolvedValue(null);
+      const body: RapidIqWatchIngestBody = {
+        ...baseBody,
+        external_key: "TX|TestAgency|elig",
+        qualification: {
+          fit: "high",
+          strategy: "direct",
+          bid_eligibility: "eligible",
+        },
+      };
+      const result = await ingestWatchSignal(body);
+      expect(result.signal.bidEligibilityStatus).toBe("eligible");
+    });
+
+    it("defaults bidEligibilityStatus to unknown when not provided", async () => {
+      getSignalIdByExternalKey.mockResolvedValue(null);
+      const result = await ingestWatchSignal({
+        ...baseBody,
+        external_key: "TX|TestAgency|noelig",
+        qualification: { fit: "medium", strategy: "monitor" },
+      });
+      expect(result.signal.bidEligibilityStatus).toBe("unknown");
+    });
+
+    it("extracts procurementContactEmail from contact.email", async () => {
+      getSignalIdByExternalKey.mockResolvedValue(null);
+      const body: RapidIqWatchIngestBody = {
+        ...baseBody,
+        external_key: "TX|TestAgency|email",
+        contact: {
+          name: "Jane Doe",
+          title: "Procurement Officer",
+          email: "jane.doe@example.gov",
+        },
+      };
+      const result = await ingestWatchSignal(body);
+      expect(result.signal.procurementContactEmail).toBe("jane.doe@example.gov");
+    });
+
+    it("does not set procurementContactEmail when contact.email is empty", async () => {
+      getSignalIdByExternalKey.mockResolvedValue(null);
+      const body: RapidIqWatchIngestBody = {
+        ...baseBody,
+        external_key: "TX|TestAgency|nomail",
+        contact: { name: "John Smith", email: "" },
+      };
+      const result = await ingestWatchSignal(body);
+      expect(result.signal.procurementContactEmail).toBeUndefined();
+    });
+
+    it("does not downgrade VERIFIED on update", async () => {
+      getSignalIdByExternalKey.mockResolvedValue("sig-1");
+      getSignal.mockResolvedValue(
+        existingSignal({
+          sourceVerificationStatus: "VERIFIED",
+          officialRfpUrl: "https://example.gov/rfp/original.pdf",
+          sourceVerifiedAt: "2026-11-20T00:00:00.000Z",
+        }),
+      );
+      const result = await ingestWatchSignal({
+        ...baseBody,
+        source: "chatgpt_watch" as const,
+        opportunity: { ...baseBody.opportunity, due_date: "2026-12-15" },
+        lifecycle: { change_type: "deadline_change", summary: "Extended" },
+        evidence: [],
+      });
+      expect(result.signal.sourceVerificationStatus).toBe("VERIFIED");
+    });
+
+    it("MISMATCH status is sticky and never overwritten by ingest", async () => {
+      getSignalIdByExternalKey.mockResolvedValue("sig-1");
+      getSignal.mockResolvedValue(
+        existingSignal({
+          sourceVerificationStatus: "MISMATCH",
+        }),
+      );
+      const result = await ingestWatchSignal({
+        ...baseBody,
+        opportunity: {
+          ...baseBody.opportunity,
+          official_rfp_url: "https://new-source.gov/rfp.pdf",
+          due_date: "2026-12-20",
+        },
+        lifecycle: { change_type: "deadline_change", summary: "Extended again" },
+      });
+      expect(result.signal.sourceVerificationStatus).toBe("MISMATCH");
+    });
+
+    it("upgradeVerificationStatus: PORTAL_ONLY does not overwrite VERIFIED on update", async () => {
+      getSignalIdByExternalKey.mockResolvedValue("sig-1");
+      getSignal.mockResolvedValue(
+        existingSignal({
+          sourceVerificationStatus: "VERIFIED",
+          officialRfpUrl: "https://example.gov/rfp/original.pdf",
+        }),
+      );
+      const result = await ingestWatchSignal({
+        ...baseBody,
+        source: "sam_gov" as const,
+        opportunity: { ...baseBody.opportunity, due_date: "2026-12-20" },
+        evidence: [],
+        lifecycle: { change_type: "deadline_change", summary: "Extended" },
+      });
+      expect(result.signal.sourceVerificationStatus).toBe("VERIFIED");
+    });
+  });
 });

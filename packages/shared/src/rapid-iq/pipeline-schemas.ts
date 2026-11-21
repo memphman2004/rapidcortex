@@ -49,6 +49,45 @@ export const RAPID_IQ_PIPELINE_SIGNAL_STATUSES = [
 ] as const;
 export type RapidIqPipelineSignalStatus = (typeof RAPID_IQ_PIPELINE_SIGNAL_STATUSES)[number];
 
+// ── Official RFP source verification ─────────────────────────────────────────
+
+/**
+ * Whether the official government procurement source has been located and
+ * confirmed for this signal.
+ *
+ * VERIFIED     – Official agency solicitation/document found and details match.
+ * PORTAL_ONLY  – Official procurement portal found; exact solicitation not confirmed.
+ * UNVERIFIED   – No reliable official source established yet.
+ * MISMATCH     – Discovered info conflicts with the official source.
+ */
+export const RAPID_IQ_SOURCE_VERIFICATION_STATUSES = [
+  "VERIFIED",
+  "PORTAL_ONLY",
+  "UNVERIFIED",
+  "MISMATCH",
+] as const;
+export type RapidIqSourceVerificationStatus =
+  (typeof RAPID_IQ_SOURCE_VERIFICATION_STATUSES)[number];
+
+export const RAPID_IQ_BID_ELIGIBILITY_STATUSES = [
+  "eligible",
+  "ineligible",
+  "requires_registration",
+  "requires_nda",
+  "unknown",
+] as const;
+export type RapidIqBidEligibilityStatus =
+  (typeof RAPID_IQ_BID_ELIGIBILITY_STATUSES)[number];
+
+/** How well the opportunity maps to the NexCort iQ product portfolio. */
+export const RAPID_IQ_PRODUCT_FIT_CATEGORIES = [
+  "DIRECT_FIT",
+  "PARTNER_OPPORTUNITY",
+  "LOW_FIT",
+] as const;
+export type RapidIqProductFitCategory =
+  (typeof RAPID_IQ_PRODUCT_FIT_CATEGORIES)[number];
+
 export const RAPID_IQ_PIPELINE_FIT_LABELS = ["high", "medium", "low"] as const;
 export type RapidIqPipelineFitLabel = (typeof RAPID_IQ_PIPELINE_FIT_LABELS)[number];
 
@@ -325,6 +364,32 @@ export const rapidIqPipelineSignalSchema = z.object({
       mandatory_registration: z.string().max(500).nullable().optional(),
     })
     .optional(),
+
+  // ── Official RFP Source Verification ───────────────────────────────────────
+  /**
+   * Direct URL to the official government solicitation document (RFP/RFQ/IFB).
+   * Only set when the source has been confirmed — never fabricate.
+   */
+  officialRfpUrl: z.string().url().max(2000).optional(),
+  /** URL of the official government procurement portal (e.g. DemandStar, BidSync). */
+  officialProcurementPortalUrl: z.string().url().max(2000).optional(),
+  /**
+   * VERIFIED     – Official solicitation confirmed.
+   * PORTAL_ONLY  – Portal found; exact solicitation not yet confirmed.
+   * UNVERIFIED   – No reliable official source yet.
+   * MISMATCH     – Discovered info conflicts with official source.
+   */
+  sourceVerificationStatus: z.enum(RAPID_IQ_SOURCE_VERIFICATION_STATUSES).optional(),
+  /** ISO timestamp when the official source was last confirmed. */
+  sourceVerifiedAt: z.string().optional(),
+  /** ISO timestamp when the deadline was confirmed against the official source. */
+  deadlineVerifiedAt: z.string().optional(),
+  /** Whether NexCort iQ can bid on or respond to this opportunity. */
+  bidEligibilityStatus: z.enum(RAPID_IQ_BID_ELIGIBILITY_STATUSES).optional(),
+  /** Primary email contact listed on the official solicitation. */
+  procurementContactEmail: z.string().email().max(320).optional(),
+  /** How the opportunity maps to the NexCort product portfolio. */
+  productFitCategory: z.enum(RAPID_IQ_PRODUCT_FIT_CATEGORIES).optional(),
 });
 export type RapidIqPipelineSignal = z.infer<typeof rapidIqPipelineSignalSchema>;
 
@@ -370,6 +435,15 @@ export const patchRapidIqPipelineSignalBodySchema = z
     watched: z.boolean().optional(),
     assignedUser: z.string().max(200).nullable().optional(),
     dismissReason: z.string().max(2000).optional(),
+    // ── Official RFP Source Verification fields (operator-editable) ──────────
+    officialRfpUrl: z.string().url().max(2000).nullable().optional(),
+    officialProcurementPortalUrl: z.string().url().max(2000).nullable().optional(),
+    sourceVerificationStatus: z.enum(RAPID_IQ_SOURCE_VERIFICATION_STATUSES).optional(),
+    sourceVerifiedAt: z.string().optional(),
+    deadlineVerifiedAt: z.string().optional(),
+    bidEligibilityStatus: z.enum(RAPID_IQ_BID_ELIGIBILITY_STATUSES).optional(),
+    procurementContactEmail: z.string().email().max(320).nullable().optional(),
+    productFitCategory: z.enum(RAPID_IQ_PRODUCT_FIT_CATEGORIES).optional(),
   })
   .refine(
     (body) =>
@@ -377,8 +451,17 @@ export const patchRapidIqPipelineSignalBodySchema = z
       body.procurementStage != null ||
       body.watched != null ||
       body.assignedUser !== undefined ||
-      body.dismissReason != null,
-    { message: "status, procurementStage, watched, assignedUser, or dismissReason is required" },
+      body.dismissReason != null ||
+      body.officialRfpUrl !== undefined ||
+      body.officialProcurementPortalUrl !== undefined ||
+      body.sourceVerificationStatus != null ||
+      body.bidEligibilityStatus != null ||
+      body.procurementContactEmail !== undefined ||
+      body.productFitCategory != null,
+    {
+      message:
+        "At least one patchable field is required: status, procurementStage, watched, assignedUser, dismissReason, or an RFP verification field",
+    },
   );
 export type PatchRapidIqPipelineSignalBody = z.infer<typeof patchRapidIqPipelineSignalBodySchema>;
 
@@ -643,6 +726,12 @@ export const rapidIqWatchIngestBodySchema = z.object({
     funding_source: z.string().max(300).nullable().optional(),
     funding_notes: z.string().max(2000).nullable().optional(),
     procurement_url: z.string().url().max(2000),
+    /**
+     * Direct URL to the official government solicitation document (RFP/RFQ/IFB).
+     * Distinct from `procurement_url` which may be a portal or general page.
+     * Only set when confirmed — never fabricate.
+     */
+    official_rfp_url: z.string().url().max(2000).nullable().optional(),
     status: z
       .enum(["open", "updated", "cancelled", "awarded", "unknown"])
       .optional()
@@ -661,6 +750,7 @@ export const rapidIqWatchIngestBodySchema = z.object({
       fit: z.enum(["high", "medium", "low"]).optional().default("medium"),
       strategy: z.enum(["direct", "partner", "monitor"]).optional().default("monitor"),
       reason: z.string().max(3000).optional(),
+      bid_eligibility: z.enum(RAPID_IQ_BID_ELIGIBILITY_STATUSES).optional(),
     })
     .optional(),
   next_action: z.string().max(3000).optional(),
