@@ -332,6 +332,8 @@ Resources:
 
   LiveAssistHttpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
     Properties:
       CodeUri: ../../apps/api/
       Handler: src/handlers/live-assist/http.handler
