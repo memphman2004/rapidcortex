@@ -213,6 +213,12 @@ export const RC_SUPERADMIN_NAV: RoleNav = {
       label: "TRAINING & SIMULATION",
       items: [
         {
+          id: "demo-center",
+          label: "Demo Center",
+          href: "/demo-link",
+          icon: "Play",
+        },
+        {
           id: "scenario-center",
           label: "Scenario Center",
           href: "/rc-admin/scenario-center",
@@ -559,6 +565,12 @@ export const RC_ADMIN_NAV: RoleNav = {
       id: "training",
       label: "TRAINING & SIMULATION",
       items: [
+        {
+          id: "demo-center",
+          label: "Demo Center",
+          href: "/demo-link",
+          icon: "Play",
+        },
         {
           id: "scenario-center",
           label: "Scenario Center",
