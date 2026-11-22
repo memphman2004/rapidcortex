@@ -537,14 +537,13 @@ Resources:
 
   ConnectCallAssistDisconnectPermission:
     Type: AWS::Lambda::Permission
+    # Condition gates both the permission and the function so CloudFormation maintains
+    # the dependency and EarlyValidation::ResourceExistenceCheck passes. When
+    # ExistingCallAssistDisconnectFunctionName is provided the existing function
+    # is assumed to already have its Connect permission.
+    Condition: CreateCallAssistDisconnectFunction
     Properties:
-      # Use !Sub in the false branch so neither branch ever resolves to an empty
-      # string (EarlyValidation rejects FunctionName: ""), and neither branch
-      # references a conditional resource that may not exist in the other branch.
-      FunctionName: !If
-        - HasExistingCallAssistDisconnectFunctionName
-        - !Ref ExistingCallAssistDisconnectFunctionName
-        - !Sub "${ManagedPolicyNamePrefix}-call-assist-disconnect-${DeploymentStage}"
+      FunctionName: !Ref CallAssistDisconnectFunction
       Action: lambda:InvokeFunction
       Principal: connect.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
@@ -750,25 +749,18 @@ Resources:
 
   ConnectNovaSessionStartPermission:
     Type: AWS::Lambda::Permission
+    Condition: CreateNovaSessionStartFunction
     Properties:
-      # Use !Sub in the false branch — avoids FunctionName: "" (empty param) and
-      # avoids !Ref on a conditional resource that may not exist in the other branch.
-      FunctionName: !If
-        - HasExistingNovaSessionStartFunctionName
-        - !Ref ExistingNovaSessionStartFunctionName
-        - !Sub "${ManagedPolicyNamePrefix}-nova-session-start-${DeploymentStage}"
+      FunctionName: !Ref NovaSessionStartFunction
       Action: lambda:InvokeFunction
       Principal: connect.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
 
   ConnectNovaSessionAwaitPermission:
     Type: AWS::Lambda::Permission
+    Condition: CreateNovaSessionAwaitFunction
     Properties:
-      # Same fix as ConnectNovaSessionStartPermission above.
-      FunctionName: !If
-        - HasExistingNovaSessionAwaitFunctionName
-        - !Ref ExistingNovaSessionAwaitFunctionName
-        - !Sub "${ManagedPolicyNamePrefix}-nova-session-await-${DeploymentStage}"
+      FunctionName: !Ref NovaSessionAwaitFunction
       Action: lambda:InvokeFunction
       Principal: connect.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
