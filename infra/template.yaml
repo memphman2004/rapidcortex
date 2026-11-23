@@ -1697,9 +1697,6 @@ Resources:
             - HasDataLayerNestedStack
             - !GetAtt DataLayerStack.Outputs.WebSocketConnectionsTable
             - !Sub "${DynamoTableNamePrefix}-websocket-connections-${DeploymentStage}"
-        WebSocketApiEndpoint: !Sub
-          - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
-          - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
         WebSocketApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
         # Retain orphans after DELETE_SKIPPED — skip CREATE when physical tables already exist.
         # Lean deploy auto-detects; root passes names so nested updates do not recreate them.
