@@ -150,6 +150,8 @@ Resources:
 
   CleryActHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -180,6 +182,8 @@ Resources:
 
   PublicCrimeLogIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -196,6 +200,8 @@ Resources:
 
   RouteCleryRecords:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/campus/clery/records"
@@ -205,6 +211,8 @@ Resources:
 
   RouteCleryRecordsProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/campus/clery/records/{proxy+}"
@@ -214,6 +222,8 @@ Resources:
 
   RouteCleryDcl:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/campus/clery/daily-crime-log"
@@ -223,6 +233,8 @@ Resources:
 
   RouteCleryDclProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/campus/clery/daily-crime-log/{proxy+}"
@@ -232,6 +244,8 @@ Resources:
 
   RouteCleryCsa:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/campus/clery/csa"
@@ -241,6 +255,8 @@ Resources:
 
   RouteCleryCsaProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/campus/clery/csa/{proxy+}"
@@ -250,6 +266,8 @@ Resources:
 
   RouteCleryZones:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/campus/clery/zones"
@@ -259,6 +277,8 @@ Resources:
 
   RouteCleryZonesProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/campus/clery/zones/{proxy+}"
@@ -268,6 +288,8 @@ Resources:
 
   RouteCleryAsr:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/campus/clery/asr"
@@ -277,6 +299,8 @@ Resources:
 
   RouteCleryAsrProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/campus/clery/asr/{proxy+}"
@@ -286,6 +310,8 @@ Resources:
 
   RouteCleryCompliance:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/campus/clery/compliance"
@@ -295,6 +321,8 @@ Resources:
 
   RouteCleryPublicSettings:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/campus/clery/public-settings"
@@ -304,6 +332,8 @@ Resources:
 
   RoutePublicCrimeLog:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/public/crime-log/{agencySlug}"

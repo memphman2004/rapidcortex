@@ -122,6 +122,8 @@ Resources:
 
   GisHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -138,6 +140,8 @@ Resources:
 
   RouteGisProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/gis/{proxy+}"
@@ -147,6 +151,8 @@ Resources:
 
   RouteGisRoot:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/gis"

@@ -448,6 +448,8 @@ Resources:
   # without depending on the stale o43nw9r integration ID.
   RapidIqHttpIntegrationV2:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -464,6 +466,8 @@ Resources:
 
   RouteNexiQOpportunities:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/opportunities"
@@ -473,6 +477,8 @@ Resources:
 
   RouteNexiQOpportunityGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/opportunities/{opportunityId}"
@@ -482,6 +488,8 @@ Resources:
 
   RouteNexiQOpportunityPatch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/rapid-iq/opportunities/{opportunityId}"
@@ -491,6 +499,8 @@ Resources:
 
   RouteNexiQSignals:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/opportunities/{opportunityId}/signals"
@@ -500,6 +510,8 @@ Resources:
 
   RouteNexiQContacts:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/opportunities/{opportunityId}/contacts"
@@ -509,6 +521,8 @@ Resources:
 
   RouteNexiQSources:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/opportunities/{opportunityId}/sources"
@@ -518,6 +532,8 @@ Resources:
 
   RouteNexiQRefresh:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/refresh"
@@ -527,6 +543,8 @@ Resources:
 
   RouteNexiQRefreshStatus:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/refresh/status"
@@ -536,6 +554,8 @@ Resources:
 
   RouteNexiQTalkingPoints:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/talking-points"
@@ -545,6 +565,8 @@ Resources:
 
   RouteNexiQOutreach:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/outreach"
@@ -554,6 +576,8 @@ Resources:
 
   RouteNexiQRfpOutline:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/rfp-outline"
@@ -563,6 +587,8 @@ Resources:
 
   RouteNexiQAgencyProfile:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/agency-profile"
@@ -572,6 +598,8 @@ Resources:
 
   RouteNexiQResearchAgency:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/research-agency"
@@ -581,6 +609,8 @@ Resources:
 
   RouteNexiQCompetitorIntel:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/competitor-intel"
@@ -590,6 +620,8 @@ Resources:
 
   RouteNexiQSignalChat:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/signal-chat"
@@ -599,6 +631,8 @@ Resources:
 
   RouteNexiQSearchContacts:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/search-contacts"
@@ -608,6 +642,8 @@ Resources:
 
   RouteNexiQConvert:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/convert-to-lead"
@@ -694,6 +730,8 @@ Resources:
 
   ConferencesHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -710,6 +748,8 @@ Resources:
 
   RouteRcAdminConferencesGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/conferences"
@@ -719,6 +759,8 @@ Resources:
 
   RouteRcAdminConferencesPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/conferences"
@@ -728,6 +770,8 @@ Resources:
 
   RouteRcAdminConferencesPatch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/rc-admin/conferences/{conferenceId}"

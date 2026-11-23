@@ -354,6 +354,8 @@ Resources:
 
   TransitHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -370,105 +372,173 @@ Resources:
 
   RouteTransitDashboard:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/dashboard", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitVehiclesGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/vehicles", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitVehiclesPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/vehicles", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitVehicleGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/vehicles/{vehicleId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitVehiclePut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/vehicles/{vehicleId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitVehicleGps:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/vehicles/{vehicleId}/gps", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitRoutesGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/routes", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitRoutesPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/routes", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitRoutePut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/routes/{routeId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitStationsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/stations", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitStationsPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/stations", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitStationPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/stations/{stationId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitOperatorsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/operators", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitOperatorsPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/operators", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitOperatorPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/operators/{operatorId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitIncidentsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/incidents", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitIncidentsPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/incidents", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitIncidentPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/incidents/{incidentId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitReportsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/reports", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitBroadcast:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/broadcast", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitAlertGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/alert-level", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitAlertPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/alert-level", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitCamerasGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/cameras", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitCameraRegistryGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/cameras/registry", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitCameraRegistryPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/cameras/registry", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitCameraRegistryPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/cameras/registry/{cameraId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitCameraRegistryDelete:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "DELETE /api/transit/{agencyId}/cameras/registry/{cameraId}", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitCameraViewerToken:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/cameras/viewer-token", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitCameraPtz:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/cameras/{cameraId}/ptz", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitCameraProducerConfig:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/cameras/producer-config", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitCameraDiscover:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/cameras/discover", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitCameraHeartbeat:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/transit/{agencyId}/cameras/{cameraId}/heartbeat", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitOnboardingIntakeGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/transit/{agencyId}/onboarding/intake", Target: !Sub "integrations/${TransitHttpIntegration}" }
   RouteTransitOnboardingIntakePut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/transit/{agencyId}/onboarding/intake", Target: !Sub "integrations/${TransitHttpIntegration}" }
 
 Outputs:

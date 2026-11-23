@@ -171,6 +171,8 @@ Resources:
 
   MarketingLeadIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -179,6 +181,8 @@ Resources:
 
   MarketingUnsubscribeIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -187,6 +191,8 @@ Resources:
 
   MarketingOgShareIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -219,6 +225,8 @@ Resources:
 
   RouteMarketingLeadPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/marketing/lead"
@@ -227,6 +235,8 @@ Resources:
 
   RouteMarketingLeadOptions:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "OPTIONS /api/marketing/lead"
@@ -235,6 +245,8 @@ Resources:
 
   RouteMarketingUnsubscribePost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/marketing/unsubscribe"
@@ -243,6 +255,8 @@ Resources:
 
   RouteMarketingUnsubscribeOptions:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "OPTIONS /api/marketing/unsubscribe"
@@ -251,6 +265,8 @@ Resources:
 
   RouteMarketingOgShareGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/marketing/og-share"
@@ -259,6 +275,8 @@ Resources:
 
   RouteMarketingOgShareHead:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "HEAD /api/marketing/og-share"

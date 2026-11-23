@@ -153,6 +153,8 @@ Resources:
 
   WebSocketConnectIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref WebSocketApi
       IntegrationType: AWS_PROXY
@@ -160,6 +162,8 @@ Resources:
 
   WebSocketConnectRoute:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref WebSocketApi
       RouteKey: $connect
@@ -188,6 +192,8 @@ Resources:
 
   WebSocketDisconnectIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref WebSocketApi
       IntegrationType: AWS_PROXY
@@ -195,6 +201,8 @@ Resources:
 
   WebSocketDisconnectRoute:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref WebSocketApi
       RouteKey: $disconnect
@@ -224,6 +232,8 @@ Resources:
 
   WebSocketDefaultIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref WebSocketApi
       IntegrationType: AWS_PROXY
@@ -231,6 +241,8 @@ Resources:
 
   WebSocketDefaultRoute:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref WebSocketApi
       RouteKey: $default
@@ -343,6 +355,8 @@ Resources:
 
   SupervisorListActiveCallsHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -351,6 +365,8 @@ Resources:
 
   SupervisorTransferCallHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -359,6 +375,8 @@ Resources:
 
   SupervisorTakeoverCallHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -367,6 +385,8 @@ Resources:
 
   DispatcherListActiveCallsHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -375,6 +395,8 @@ Resources:
 
   DispatcherAcceptTransferHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -383,6 +405,8 @@ Resources:
 
   DispatcherDeclineTransferHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -439,6 +463,8 @@ Resources:
 
   SupervisorListOperatorsHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -447,6 +473,8 @@ Resources:
 
   SupervisorWatchingHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -471,6 +499,8 @@ Resources:
 
   RouteSupervisorListActiveCalls:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/supervisor/active-calls"
@@ -478,6 +508,8 @@ Resources:
 
   RouteSupervisorTransferCall:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/supervisor/transfer-call"
@@ -485,6 +517,8 @@ Resources:
 
   RouteSupervisorTakeoverCall:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/supervisor/takeover-call"
@@ -492,6 +526,8 @@ Resources:
 
   RouteDispatcherListActiveCalls:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/dispatcher/active-calls"
@@ -499,6 +535,8 @@ Resources:
 
   RouteDispatcherAcceptTransfer:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/dispatcher/accept-transfer"
@@ -506,6 +544,8 @@ Resources:
 
   RouteDispatcherDeclineTransfer:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/dispatcher/decline-transfer"
@@ -513,6 +553,8 @@ Resources:
 
   RouteSupervisorListOperators:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/supervisor/operators"
@@ -520,6 +562,8 @@ Resources:
 
   RouteSupervisorWatching:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/supervisor/watching"
@@ -547,6 +591,8 @@ Resources:
 
   WebSocketResponderSubscribeIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref WebSocketApi
       IntegrationType: AWS_PROXY
@@ -554,6 +600,8 @@ Resources:
 
   WebSocketResponderSubscribeRoute:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref WebSocketApi
       RouteKey: responder-subscribe

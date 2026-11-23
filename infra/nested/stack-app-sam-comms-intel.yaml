@@ -365,6 +365,8 @@ Resources:
 
   CommsIntelHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -373,6 +375,8 @@ Resources:
 
   RouteCommsIntelProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/comms-intel/{proxy+}"
@@ -382,6 +386,8 @@ Resources:
 
   RouteContextCardsAddress:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/context-cards/address"
@@ -391,6 +397,8 @@ Resources:
 
   RouteContextCardsSafetyFlag:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PUT /api/context-cards/safety-flag"
@@ -400,6 +408,8 @@ Resources:
 
   RouteCommandProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/command/{proxy+}"
@@ -409,6 +419,8 @@ Resources:
 
   RouteVaultProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/vault/{proxy+}"

@@ -98,6 +98,8 @@ Resources:
 
   PricingCatalogIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -117,6 +119,8 @@ Resources:
   # Creating this route fails with ConflictException if the AppSam3 route is still present.
   RoutePricingCatalogGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/pricing/catalog"

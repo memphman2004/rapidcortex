@@ -1205,6 +1205,8 @@ Resources:
 
   AiGateHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -1221,6 +1223,8 @@ Resources:
 
   RouteAiGateConfig:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/agency/{agencyId}/config/ai-mode"
@@ -1230,6 +1234,8 @@ Resources:
 
   RouteAiGateConfigPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PUT /api/agency/{agencyId}/config/ai-mode"
@@ -1239,6 +1245,8 @@ Resources:
 
   RouteAiGateAudit:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/agency/{agencyId}/config/ai-mode/audit"
@@ -1248,6 +1256,8 @@ Resources:
 
   FeaturesHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -1256,6 +1266,8 @@ Resources:
 
   FeaturesRingNeighborsWebhookIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -1264,6 +1276,8 @@ Resources:
 
   FeaturesNextdoorWebhookIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -1296,6 +1310,8 @@ Resources:
 
   RouteFeaturesProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/features/{proxy+}"
@@ -1305,6 +1321,8 @@ Resources:
 
   RouteFeaturesRingNeighborsWebhook:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/webhooks/ring-neighbors"
@@ -1313,6 +1331,8 @@ Resources:
 
   RouteFeaturesNextdoorWebhook:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/webhooks/nextdoor"

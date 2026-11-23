@@ -917,6 +917,8 @@ Resources:
 
   CallAssistHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -925,6 +927,8 @@ Resources:
 
   CallAssistConnectWebhookIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -949,6 +953,8 @@ Resources:
 
   RouteCallAssistProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/call-assist/{proxy+}"
@@ -958,6 +964,8 @@ Resources:
 
   RouteCallAssistConnectWebhook:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/call-assist/connect/webhook"
@@ -966,6 +974,8 @@ Resources:
 
   RouteCallAssistConnectSchedule:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/public/call-assist/schedule"
@@ -974,6 +984,8 @@ Resources:
 
   RouteCallAssistSelfServiceGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/public/call-assist/self-service/{token}"
@@ -982,6 +994,8 @@ Resources:
 
   RouteCallAssistSelfServicePost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/call-assist/self-service/{token}"

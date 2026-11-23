@@ -451,6 +451,8 @@ Resources:
 
   C2cHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -459,6 +461,8 @@ Resources:
 
   C2cWebhookIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -483,6 +487,8 @@ Resources:
 
   RouteC2cProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/c2c/{proxy+}"
@@ -492,6 +498,8 @@ Resources:
 
   RouteC2cWebhookA:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/c2c/{agencyId}/cad-a/events"
@@ -500,6 +508,8 @@ Resources:
 
   RouteC2cWebhookB:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/c2c/{agencyId}/cad-b/events"
@@ -508,6 +518,8 @@ Resources:
 
   RouteC2cWebhookC:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/c2c/{agencyId}/cad-c/events"
@@ -516,6 +528,8 @@ Resources:
 
   RouteC2cWebhookD:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/c2c/{agencyId}/cad-d/events"
@@ -524,6 +538,8 @@ Resources:
 
   RouteC2cWebhookE:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/c2c/{agencyId}/cad-e/events"
@@ -532,6 +548,8 @@ Resources:
 
   RouteC2cWebhookF:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/c2c/{agencyId}/cad-f/events"
@@ -540,6 +558,8 @@ Resources:
 
   RouteC2cWebhookG:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/c2c/{agencyId}/cad-g/events"
@@ -548,6 +568,8 @@ Resources:
 
   RouteC2cWebhookH:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/c2c/{agencyId}/cad-h/events"
@@ -556,6 +578,8 @@ Resources:
 
   RouteC2cWebhookSlot:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/c2c/{agencyId}/{slot}/events"

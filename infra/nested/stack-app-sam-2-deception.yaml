@@ -91,6 +91,8 @@ Resources:
 
   DeceptionDecoyHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -99,6 +101,8 @@ Resources:
 
   DeceptionEventsAdminHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -123,6 +127,8 @@ Resources:
 
   RouteDecoyCadSyncGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/internal/cad-sync"
@@ -130,6 +136,8 @@ Resources:
       Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
   RouteDecoyCadSyncPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/internal/cad-sync"
@@ -137,6 +145,8 @@ Resources:
       Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
   RouteDecoyCadWritebackGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/internal/cad-writeback"
@@ -144,6 +154,8 @@ Resources:
       Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
   RouteDecoyCadWritebackPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/internal/cad-writeback"
@@ -151,6 +163,8 @@ Resources:
       Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
   RouteDecoyNcicGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/internal/ncic-gateway"
@@ -158,6 +172,8 @@ Resources:
       Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
   RouteDecoyNcicPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/internal/ncic-gateway"
@@ -165,6 +181,8 @@ Resources:
       Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
   RouteDecoyAgencyRoot:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/internal/agency-root"
@@ -172,6 +190,8 @@ Resources:
       Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
   RouteDecoyAdminBackup:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/admin-backup"
@@ -179,6 +199,8 @@ Resources:
       Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
   RouteDecoyRcLiteRoot:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-lite/root"
@@ -186,6 +208,8 @@ Resources:
       Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
   RouteDecoySystemSecrets:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/system/secrets"
@@ -193,6 +217,8 @@ Resources:
       Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
   RouteDecoyDebugEnv:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/debug/env"
@@ -200,6 +226,8 @@ Resources:
       Target: !Sub "integrations/${DeceptionDecoyHttpIntegration}"
   RouteDecoyV1CadExportTest:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/v1/cad/export-test"
@@ -208,12 +236,16 @@ Resources:
 
   RouteDeceptionEventsList:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/admin/security/deception-events"
       Target: !Sub "integrations/${DeceptionEventsAdminHttpIntegration}"
   RouteDeceptionEventsOptions:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "OPTIONS /api/admin/security/deception-events"

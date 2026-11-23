@@ -342,6 +342,8 @@ Resources:
 
   CadConnectorHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -394,72 +396,118 @@ Resources:
 
   RouteCadConnectorsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/connectors", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadConnectorsPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/connectors", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadConnectorGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/connectors/{connectorId}", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadConnectorPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/cad-connector/connectors/{connectorId}", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadConnectorDelete:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "DELETE /api/cad-connector/connectors/{connectorId}", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadConnectorEnable:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/connectors/{connectorId}/enable", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadConnectorDisable:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/connectors/{connectorId}/disable", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadConnectorHealthCheck:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/connectors/{connectorId}/health-check", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadConnectorTestFetch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/connectors/{connectorId}/test-fetch", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadMappingsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/connectors/{connectorId}/mappings", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadMappingsPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/cad-connector/connectors/{connectorId}/mappings", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadRoutingGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/routing-rules", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadRoutingPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/cad-connector/routing-rules", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadIncidentsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/incidents", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadIncidentGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/incidents/{unifiedId}", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadIncidentDuplicates:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/incidents/{unifiedId}/duplicates", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadWriteBackPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/write-back", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadWriteBackList:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/write-back", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadWriteBackGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/write-back/{writeBackId}", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadWriteBackApprove:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/write-back/{writeBackId}/approve", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadWriteBackReject:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/cad-connector/write-back/{writeBackId}/reject", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadStatusGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/status", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
   RouteCadAuditGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/cad-connector/audit", Target: !Sub "integrations/${CadConnectorHttpIntegration}" }
 
 Outputs:

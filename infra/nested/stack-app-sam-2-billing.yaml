@@ -201,6 +201,8 @@ Resources:
 
   AutomatedBillingHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -217,6 +219,8 @@ Resources:
 
   RouteAutomatedInvoicesRoot:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/billing/automated-invoices"
@@ -225,6 +229,8 @@ Resources:
 
   RouteAutomatedInvoicesProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/billing/automated-invoices/{proxy+}"
@@ -233,6 +239,8 @@ Resources:
 
   RouteAutomatedBillingConfig:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/billing/automated-config"
@@ -241,6 +249,8 @@ Resources:
 
   RouteAutomatedBillingConfigOptions:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "OPTIONS /api/billing/automated-config"

@@ -217,6 +217,8 @@ Resources:
 
   Ng911DiversionAdminHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -225,6 +227,8 @@ Resources:
 
   Ng911DiversionPublicHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -233,6 +237,8 @@ Resources:
 
   Ng911IncidentAssistHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -241,6 +247,8 @@ Resources:
 
   Ng911MetricsHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -249,6 +257,8 @@ Resources:
 
   Ng911CrisisDiversionHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -298,6 +308,8 @@ Resources:
   # --- Diversion admin (JWT) ---
   RouteNg911DiversionWorkflowsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/ng911/diversion/workflows"
@@ -306,6 +318,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911DiversionWorkflowsPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/ng911/diversion/workflows"
@@ -314,6 +328,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911DiversionWorkflowDelete:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/ng911/diversion/workflows/{workflowId}"
@@ -322,6 +338,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911DiversionConfigRotate:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/ng911/diversion/config/rotate"
@@ -330,6 +348,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911DiversionSessionsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/ng911/diversion/sessions"
@@ -340,6 +360,8 @@ Resources:
   # --- Public diversion (key header; no gateway JWT) ---
   RouteNg911PublicDiversionStart:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/diversion/{agencyId}/start"
@@ -347,6 +369,8 @@ Resources:
       AuthorizationType: NONE
   RouteNg911PublicDiversionUtterance:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/diversion/{agencyId}/utterance"
@@ -354,6 +378,8 @@ Resources:
       AuthorizationType: NONE
   RouteNg911PublicDiversionConfirm:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/diversion/{agencyId}/confirm"
@@ -363,6 +389,8 @@ Resources:
   # --- Incident EIDO / Additional Data (JWT) ---
   RouteNg911EidoImport:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/ng911/eido/import"
@@ -371,6 +399,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911IncidentEidoGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/incidents/{incidentId}/eido"
@@ -379,6 +409,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911IncidentAdditionalDataGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/incidents/{incidentId}/additional-data"
@@ -387,6 +419,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911IncidentAdditionalDataPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PUT /api/incidents/{incidentId}/additional-data"
@@ -395,6 +429,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911IncidentAdditionalDataAutoBuild:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/incidents/{incidentId}/additional-data/auto-build"
@@ -405,6 +441,8 @@ Resources:
   # --- Metrics + NG-SEC evidence (JWT) ---
   RouteNg911MetricsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/ng911/metrics"
@@ -413,6 +451,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911NgSecEvidenceGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/ng911/ng-sec-evidence"
@@ -421,6 +461,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911DataPathExportGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/ng911/datapath-export"
@@ -431,6 +473,8 @@ Resources:
   # --- Crisis diversion (JWT) ---
   RouteNg911CrisisConfigGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/ng911/crisis/config"
@@ -439,6 +483,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisConfigPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/ng911/crisis/config"
@@ -447,6 +493,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisProtocolsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/ng911/crisis/protocols"
@@ -455,6 +503,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisProtocolsPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/ng911/crisis/protocols"
@@ -463,6 +513,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisProtocolDelete:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/ng911/crisis/protocols/{protocolId}"
@@ -471,6 +523,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisDestinationsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/ng911/crisis/destinations"
@@ -479,6 +533,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisDestinationsPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/ng911/crisis/destinations"
@@ -487,6 +543,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisDestinationDelete:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/ng911/crisis/destinations/{destinationId}"
@@ -495,6 +553,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisAssessmentsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/ng911/crisis/assessments"
@@ -503,6 +563,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisAssessmentGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/ng911/crisis/assessments/{assessmentId}"
@@ -511,6 +573,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisAssessmentStart:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/ng911/crisis/assessments/start"
@@ -519,6 +583,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisAssessmentAnswer:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/ng911/crisis/assessments/answer"
@@ -527,6 +593,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisAssessmentSelectDest:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/ng911/crisis/assessments/select-destination"
@@ -535,6 +603,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisAssessmentWarmTransfer:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/ng911/crisis/assessments/warm-transfer"
@@ -543,6 +613,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisAssessmentComplete:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/ng911/crisis/assessments/complete"
@@ -551,6 +623,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisClinicianQueueGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/ng911/crisis/clinician-queue"
@@ -559,6 +633,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisClinicianConsultPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/ng911/crisis/clinician-consult"
@@ -567,6 +643,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911CrisisClinicianQueuePatch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/ng911/crisis/clinician-queue/{consultId}"
@@ -575,6 +653,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteNg911PartnerEidoHandoff:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/ng911/eido/partner-handoff"

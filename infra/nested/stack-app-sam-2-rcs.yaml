@@ -392,6 +392,8 @@ Resources:
 
   RcsCallStartIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -400,6 +402,8 @@ Resources:
 
   RcsCallsListIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -408,6 +412,8 @@ Resources:
 
   RcsCallStateIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -416,6 +422,8 @@ Resources:
 
   RcsCallCloseIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -424,6 +432,8 @@ Resources:
 
   RcsAudioAlertIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -432,6 +442,8 @@ Resources:
 
   RcsSupervisorAckIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -440,6 +452,8 @@ Resources:
 
   RcsUnitPositionIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -504,6 +518,8 @@ Resources:
 
   RouteRcsCallStart:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rcs/calls"
@@ -512,6 +528,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteRcsCallsList:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rcs/calls"
@@ -520,6 +538,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteRcsCallState:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/rcs/calls/{callId}/state"
@@ -528,6 +548,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteRcsCallClose:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rcs/calls/{callId}/close"
@@ -536,6 +558,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteRcsAudioAlert:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rcs/calls/{callId}/audio-alert"
@@ -544,6 +568,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteRcsSupervisorAck:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rcs/calls/{callId}/acknowledge"
@@ -552,6 +578,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteRcsUnitPosition:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rcs/units/position"
@@ -671,6 +699,8 @@ Resources:
 
   RcsCallSummaryIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -679,6 +709,8 @@ Resources:
 
   RcsCallHandoffIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -687,6 +719,8 @@ Resources:
 
   RcsFloorHealthIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -695,6 +729,8 @@ Resources:
 
   RcsEscalationRulesIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -735,6 +771,8 @@ Resources:
 
   RcsHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -751,6 +789,8 @@ Resources:
 
   RouteRcsHttpProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/rcs/{proxy+}"
@@ -760,6 +800,8 @@ Resources:
 
   RouteRcsCallSummaryGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rcs/calls/{callId}/summary"
@@ -768,6 +810,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteRcsCallSummaryPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rcs/calls/{callId}/summary"
@@ -776,6 +820,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteRcsCallHandoffPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rcs/calls/{callId}/handoff"
@@ -784,6 +830,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteRcsCallHandoffAccept:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rcs/calls/{callId}/handoff/accept"
@@ -792,6 +840,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteRcsCallHandoffDelete:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/rcs/calls/{callId}/handoff"
@@ -800,6 +850,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteRcsFloorHealth:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rcs/floor-health"
@@ -808,6 +860,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteRcsEscalationRulesGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rcs/escalation-rules"
@@ -816,6 +870,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteRcsEscalationRulesPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PUT /api/rcs/escalation-rules"

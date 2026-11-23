@@ -390,6 +390,8 @@ Resources:
   # Recreated after orphan u4lmw8e (same pattern as SignalHttpIntegrationV2).
   TranslateHttpIntegrationV2:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       Description: RC Translate HTTP (recreated after orphan u4lmw8e)
@@ -408,6 +410,8 @@ Resources:
   # HTTP API {proxy+} does not match the collection path. Register both.
   RouteTranslateSessions:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/translate/sessions"
@@ -416,6 +420,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteTranslateSessionsItem:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/translate/sessions/{sessionId}"
@@ -436,6 +442,8 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
   RouteTranslateProxyV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/translate/{proxy+}"
@@ -453,6 +461,8 @@ Resources:
 
   TranslateWsIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref TranslateWebSocketApi
       IntegrationType: AWS_PROXY
@@ -460,6 +470,8 @@ Resources:
 
   TranslateWsConnectRoute:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref TranslateWebSocketApi
       RouteKey: $connect
@@ -468,6 +480,8 @@ Resources:
 
   TranslateWsDisconnectRoute:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref TranslateWebSocketApi
       RouteKey: $disconnect
@@ -476,6 +490,8 @@ Resources:
 
   TranslateWsDefaultRoute:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref TranslateWebSocketApi
       RouteKey: $default

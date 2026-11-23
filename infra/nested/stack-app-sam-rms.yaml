@@ -149,6 +149,8 @@ Resources:
 
   RmsHttpIntegrationV2:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -157,6 +159,8 @@ Resources:
 
   RmsGenerateIntegrationV2:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -181,6 +185,8 @@ Resources:
 
   RouteRmsReportsGetV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rms/reports"
@@ -190,6 +196,8 @@ Resources:
 
   RouteRmsReportsGetOneV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rms/reports/{reportId}"
@@ -199,6 +207,8 @@ Resources:
 
   RouteRmsReportsPatchV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/rms/reports/{reportId}"
@@ -208,6 +218,8 @@ Resources:
 
   RouteRmsReportsFinalizeV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rms/reports/{reportId}/finalize"
@@ -217,6 +229,8 @@ Resources:
 
   RouteRmsReportsExportV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rms/reports/{reportId}/export"
@@ -226,6 +240,8 @@ Resources:
 
   RouteRmsReportsPushV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rms/reports/{reportId}/push"
@@ -235,6 +251,8 @@ Resources:
 
   RouteRmsNibrsClassifyV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rms/nibrs/classify"
@@ -244,6 +262,8 @@ Resources:
 
   RouteRmsContextV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rms/context"
@@ -256,6 +276,8 @@ Resources:
 
   RouteRmsGenerateV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rms/reports/generate"

@@ -1123,6 +1123,8 @@ Resources:
   # next sam deploy CREATEs a fresh integration instead of Update on the ghost.
   SignalHttpIntegrationV3:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       Description: NexiQ SignalHttp (recreated after ghost s3r1f5g / V2)
@@ -1152,6 +1154,8 @@ Resources:
 
   RoutePipelineSignalsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1162,6 +1166,8 @@ Resources:
 
   RoutePipelineSignalsPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1175,6 +1181,8 @@ Resources:
   # Canonical Watch Intelligence API (ChatGPT Watch → Watch Inbox)
   RouteWatchIngestPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1184,6 +1192,8 @@ Resources:
 
   RouteWatchHealthGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1193,6 +1203,8 @@ Resources:
 
   RouteWatchStatsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1203,6 +1215,8 @@ Resources:
 
   RouteWatchSignalsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1213,6 +1227,8 @@ Resources:
 
   RouteWatchSignalGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1223,6 +1239,8 @@ Resources:
 
   RouteWatchSignalPatch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1233,6 +1251,8 @@ Resources:
 
   RouteWatchSignalQualify:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1243,6 +1263,8 @@ Resources:
 
   RouteWatchSignalDismiss:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1253,6 +1275,8 @@ Resources:
 
   RouteWatchSignalMonitor:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1263,6 +1287,8 @@ Resources:
 
   RouteWatchSignalAssign:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1273,6 +1299,8 @@ Resources:
 
   RoutePipelineWatchIngestPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1282,6 +1310,8 @@ Resources:
 
   RoutePipelineSignalGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1292,6 +1322,8 @@ Resources:
 
   RoutePipelineSignalPatch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1302,6 +1334,8 @@ Resources:
 
   RoutePipelineSignalPushToCrm:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1312,6 +1346,8 @@ Resources:
 
   RoutePipelineCreditsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1322,6 +1358,8 @@ Resources:
 
   RoutePipelineResearchPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1332,6 +1370,8 @@ Resources:
 
   RoutePipelineAgenciesGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1342,6 +1382,8 @@ Resources:
 
   RoutePipelineAgencyGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1352,6 +1394,8 @@ Resources:
 
   RouteIntelOpportunitiesGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1362,6 +1406,8 @@ Resources:
 
   RouteIntelOpportunitiesPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1372,6 +1418,8 @@ Resources:
 
   RouteIntelOpportunityGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1382,6 +1430,8 @@ Resources:
 
   RouteIntelOpportunityPatch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1392,6 +1442,8 @@ Resources:
 
   RouteIntelOpportunityAnalyze:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1402,6 +1454,8 @@ Resources:
 
   RouteIntelPursuitBrief:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1412,6 +1466,8 @@ Resources:
 
   RouteIntelOutreach:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1422,6 +1478,8 @@ Resources:
 
   RouteIntelBidNoBid:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1432,6 +1490,8 @@ Resources:
 
   RouteIntelWatchesGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1442,6 +1502,8 @@ Resources:
 
   RouteIntelWatchesPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1452,6 +1514,8 @@ Resources:
 
   RouteIntelWatchGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1462,6 +1526,8 @@ Resources:
 
   RouteIntelWatchPatch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1472,6 +1538,8 @@ Resources:
 
   RouteIntelWatchRun:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1482,6 +1550,8 @@ Resources:
 
   RouteIntelRfpCountsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1492,6 +1562,8 @@ Resources:
 
   RouteSalesAutomationSequencesGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1502,6 +1574,8 @@ Resources:
 
   RouteSalesAutomationSequencesPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1512,6 +1586,8 @@ Resources:
 
   RouteSalesAutomationSequenceGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1522,6 +1598,8 @@ Resources:
 
   RouteSalesAutomationSequenceApprove:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1532,6 +1610,8 @@ Resources:
 
   RouteSalesAutomationSequenceSuppress:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1542,6 +1622,8 @@ Resources:
 
   RouteSalesAutomationDraftsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1552,6 +1634,8 @@ Resources:
 
   RouteSalesAutomationDraftApprove:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1562,6 +1646,8 @@ Resources:
 
   RouteSalesAutomationCampaignsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1572,6 +1658,8 @@ Resources:
 
   RouteSalesAutomationMetricsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId
@@ -1582,6 +1670,8 @@ Resources:
 
   RouteSalesAutomationOutlookProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: RapidIqNewHttpRoutes
     Properties:
       ApiId: !Ref HttpApiId

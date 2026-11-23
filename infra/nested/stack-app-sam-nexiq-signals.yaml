@@ -155,6 +155,8 @@ Resources:
 
   NexiqSignalsIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -173,6 +175,8 @@ Resources:
   # Bearer (Secrets Manager). Lambda also accepts IAM authorizer context when present.
   RouteNexiqSignalsPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/signals"
@@ -181,6 +185,8 @@ Resources:
 
   RouteNexiqSignalsList:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/signals"
@@ -190,6 +196,8 @@ Resources:
 
   RouteNexiqSignalsSummary:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/signals/summary"
@@ -199,6 +207,8 @@ Resources:
 
   RouteNexiqSignalsPatch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/signals/{signalId}"

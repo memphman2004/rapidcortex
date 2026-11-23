@@ -146,6 +146,8 @@ Resources:
 
   EmergencyConnectHttpIntegrationR2:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -154,6 +156,8 @@ Resources:
 
   HospitalRoutingHttpIntegrationR2:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -162,6 +166,8 @@ Resources:
 
   HospitalPortalHttpIntegrationR2:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -197,85 +203,137 @@ Resources:
   # forces CREATE of live routes on stack 2 HttpApi (t4bdwpjfs5).
   RouteEcGetPrealertsR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/prealerts", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
   RouteEcPostPrealertsR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
   RouteEcGetPrealertIdR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/prealerts/{alertId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
   RouteEcPatchPrealertIdR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "PATCH /api/hospitals/prealerts/{alertId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
   RouteEcPostPrealertSendR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts/{alertId}/send", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
   RouteEcPostPrealertAckR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts/{alertId}/acknowledge", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
   RouteEcPostPrealertCancelR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/prealerts/{alertId}/cancel", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
   RouteEcGetHospitalsR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
   RouteEcPostHospitalsR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
   RouteEcGetHospitalIdR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
   RouteEcPatchHospitalIdR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "PATCH /api/hospitals/{hospitalId}", Target: !Sub "integrations/${EmergencyConnectHttpIntegrationR2}" }
 
   # Hospital routing routes
   RouteHrGetCapacityR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/capacity", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
   RouteHrGetHospitalCapacityR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}/capacity", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
   RouteHrPutHospitalCapacityR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "PUT /api/hospitals/{hospitalId}/capacity", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
   RouteHrPostRecommendationsR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/recommendations", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
   RouteHrPostMciDistributionR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/mci/distribution", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
   RouteHrGetMciIncidentR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/mci/{incidentId}", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
   RouteHrPostMciActivateR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospitals/mci/{incidentId}/activate", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
   RouteHrGetMciStatusR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/mci/{incidentId}/status", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
   RouteHrGetAnalyticsR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}/analytics", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
   RouteHrGetAnalyticsPerfR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/{hospitalId}/analytics/performance", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
   RouteHrGetLeaderboardR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospitals/analytics/leaderboard", Target: !Sub "integrations/${HospitalRoutingHttpIntegrationR2}" }
 
   # Hospital portal routes
   RouteHpGetContextR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospital-portal/context", Target: !Sub "integrations/${HospitalPortalHttpIntegrationR2}" }
   RouteHpPostCapacityR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospital-portal/capacity", Target: !Sub "integrations/${HospitalPortalHttpIntegrationR2}" }
   RouteHpGetCapacityHistoryR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "GET /api/hospital-portal/capacity/history", Target: !Sub "integrations/${HospitalPortalHttpIntegrationR2}" }
   RouteHpPostUsersR2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties: { ApiId: !Ref HttpApiId, RouteKey: "POST /api/hospital-portal/users", Target: !Sub "integrations/${HospitalPortalHttpIntegrationR2}" }
 
 Outputs:

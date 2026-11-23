@@ -424,6 +424,8 @@ Resources:
 
   CadMeshHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -440,6 +442,8 @@ Resources:
 
   RouteCadMeshNetwork:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/agencies/{agencyId}/network"
@@ -449,6 +453,8 @@ Resources:
 
   RouteCadMeshNetworkProxy:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/agencies/{agencyId}/network/{proxy+}"

@@ -331,6 +331,8 @@ Resources:
 
   NexiQIntelHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId
@@ -349,6 +351,8 @@ Resources:
 
   RouteNexiqIntelSourcesGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId
@@ -359,6 +363,8 @@ Resources:
 
   RouteNexiqIntelSourcesPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId
@@ -369,6 +375,8 @@ Resources:
 
   RouteNexiqIntelSourceGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId
@@ -379,6 +387,8 @@ Resources:
 
   RouteNexiqIntelSourcePatch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId
@@ -389,6 +399,8 @@ Resources:
 
   RouteNexiqIntelSourceDelete:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId
@@ -399,6 +411,8 @@ Resources:
 
   RouteNexiqIntelSourceRun:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId
@@ -409,6 +423,8 @@ Resources:
 
   RouteNexiqIntelSourceRuns:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId
@@ -419,6 +435,8 @@ Resources:
 
   RouteNexiqIntelSourceDocs:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId
@@ -429,6 +447,8 @@ Resources:
 
   RouteNexiqIntelDocGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId
@@ -439,6 +459,8 @@ Resources:
 
   RouteNexiqIntelCoverage:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId
@@ -449,6 +471,8 @@ Resources:
 
   RouteNexiqIntelCoverageHistory:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId
@@ -459,6 +483,8 @@ Resources:
 
   RouteNexiqIntelGapsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId
@@ -469,6 +495,8 @@ Resources:
 
   RouteNexiqIntelGapsPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId
@@ -479,6 +507,8 @@ Resources:
 
   RouteNexiqIntelBenchmarksGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId
@@ -489,6 +519,8 @@ Resources:
 
   RouteNexiqIntelBenchmarksPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: IsIntelEnabled
     Properties:
       ApiId: !Ref HttpApiId

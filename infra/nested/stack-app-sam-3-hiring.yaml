@@ -188,6 +188,7 @@ Resources:
 
   CareersPresignIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -197,6 +198,7 @@ Resources:
 
   CareersApplyIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -206,6 +208,7 @@ Resources:
 
   ApplicationsAdminIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -239,6 +242,7 @@ Resources:
 
   RouteCareersPresignPost:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -248,6 +252,7 @@ Resources:
 
   RouteCareersPresignOptions:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -257,6 +262,7 @@ Resources:
 
   RouteCareersApplyPost:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -266,6 +272,7 @@ Resources:
 
   RouteCareersApplyOptions:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -275,6 +282,7 @@ Resources:
 
   RouteApplicationsList:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -285,6 +293,7 @@ Resources:
 
   RouteApplicationGet:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -295,6 +304,7 @@ Resources:
 
   RouteApplicationPut:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -305,6 +315,7 @@ Resources:
 
   RouteApplicationPatch:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -315,6 +326,7 @@ Resources:
 
   RouteApplicationNotes:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -325,6 +337,7 @@ Resources:
 
   RouteApplicationResumeUrl:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -368,6 +381,7 @@ Resources:
 
   CareersPostingsIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -377,6 +391,7 @@ Resources:
 
   JobPostingsAdminIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -386,6 +401,7 @@ Resources:
 
   HiringBookingsAdminIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -419,6 +435,7 @@ Resources:
 
   RouteCareersPostingsList:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -428,6 +445,7 @@ Resources:
 
   RouteCareersPostingsListOptions:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -437,6 +455,7 @@ Resources:
 
   RouteCareersPostingBySlug:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -446,6 +465,7 @@ Resources:
 
   RouteCareersPostingBySlugOptions:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -455,6 +475,7 @@ Resources:
 
   RouteJobPostingsList:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -465,6 +486,7 @@ Resources:
 
   RouteJobPostingsCreate:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -475,6 +497,7 @@ Resources:
 
   RouteJobPostingGet:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -485,6 +508,7 @@ Resources:
 
   RouteJobPostingPut:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -495,6 +519,7 @@ Resources:
 
   RouteJobPostingPatch:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -505,6 +530,7 @@ Resources:
 
   RouteHiringBookingsGet:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
@@ -515,6 +541,7 @@ Resources:
 
   RouteHiringBookingsPut:
     Type: AWS::ApiGatewayV2::Route
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId

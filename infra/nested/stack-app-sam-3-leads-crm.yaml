@@ -214,6 +214,8 @@ Resources:
 
   LeadsCrmIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -230,6 +232,8 @@ Resources:
 
   RouteLeadsFromProspectPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/leads/from-prospect"
@@ -239,6 +243,8 @@ Resources:
 
   RouteLeadsPipelineGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/leads/pipeline"
@@ -248,6 +254,8 @@ Resources:
 
   RouteSignalFeedGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/signal-feed"
@@ -257,6 +265,8 @@ Resources:
 
   RouteLeadsAttributionSummaryGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/leads/attribution-summary"
@@ -266,6 +276,8 @@ Resources:
 
   RouteLeadsMarketingOverviewGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/leads/marketing/overview"
@@ -275,6 +287,8 @@ Resources:
 
   RouteLeadsMarketingLeadIntelligenceGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/leads/marketing/lead-intelligence"
@@ -284,6 +298,8 @@ Resources:
 
   RouteLeadsMarketingSeoMetricsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/leads/marketing/seo-metrics"
@@ -293,6 +309,8 @@ Resources:
 
   RouteLeadsIntegrationsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/leads/integrations"
@@ -302,6 +320,8 @@ Resources:
 
   RouteLeadsIntegrationsHubSpotPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PUT /api/rc-admin/leads/integrations/hubspot"
@@ -311,6 +331,8 @@ Resources:
 
   RouteLeadsIntegrationsHubSpotDelete:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/rc-admin/leads/integrations/hubspot"
@@ -320,6 +342,8 @@ Resources:
 
   RouteLeadsIntegrationsNotifyPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/leads/integrations/notify"
@@ -329,6 +353,8 @@ Resources:
 
   RouteLeadsIntegrationsWebhookPut:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PUT /api/rc-admin/leads/integrations/webhook"
@@ -338,6 +364,8 @@ Resources:
 
   RouteLeadsDelete:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/rc-admin/leads/{leadId}"
@@ -347,6 +375,8 @@ Resources:
 
   RouteLeadsGetById:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/leads/{leadId}"
@@ -356,6 +386,8 @@ Resources:
 
   RouteLeadsStagePatch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/rc-admin/leads/{leadId}/stage"
@@ -365,6 +397,8 @@ Resources:
 
   RouteLeadsFieldsPatch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/rc-admin/leads/{leadId}/fields"
@@ -374,6 +408,8 @@ Resources:
 
   RouteLeadsNotesPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/leads/{leadId}/notes"
@@ -383,6 +419,8 @@ Resources:
 
   RouteLeadsActivitiesPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/leads/{leadId}/activities"
@@ -392,6 +430,8 @@ Resources:
 
   RouteLeadsNoteDelete:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/rc-admin/leads/{leadId}/notes/{noteId}"

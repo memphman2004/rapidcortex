@@ -249,6 +249,8 @@ Resources:
   # V2 replacements — fresh physical IDs with correct Lambda targets.
   BusinessCardsHttpIntegrationV2:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -257,6 +259,8 @@ Resources:
 
   BusinessCardsPublicIntegrationV2:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -371,6 +375,8 @@ Resources:
   # V2 replacements — fresh physical IDs pointing to V2 integrations.
   RouteBusinessCardsProxyV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/business-cards/{proxy+}"
@@ -380,6 +386,8 @@ Resources:
 
   RouteAdminBusinessCardsV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/admin/business-cards"
@@ -389,6 +397,8 @@ Resources:
 
   RouteAdminBusinessCardsProxyV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/admin/business-cards/{proxy+}"
@@ -398,6 +408,8 @@ Resources:
 
   RouteAdminNfcCardsV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/admin/nfc-cards"
@@ -407,6 +419,8 @@ Resources:
 
   RouteAdminNfcCardsProxyV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/admin/nfc-cards/{proxy+}"
@@ -416,6 +430,8 @@ Resources:
 
   RouteAdminBusinessCardAnalyticsV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/admin/analytics/business-cards"
@@ -425,6 +441,8 @@ Resources:
 
   RoutePublicBusinessCardsProxyV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       AuthorizationType: NONE
@@ -433,6 +451,8 @@ Resources:
 
   RoutePublicNfcV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       AuthorizationType: NONE

@@ -118,6 +118,8 @@ Resources:
   # PATCH person mzur90d, DELETE person eu7nwwp.
   ContactsIntegration:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -134,6 +136,8 @@ Resources:
 
   RouteContactsSearchGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/contacts/search"
@@ -143,6 +147,8 @@ Resources:
 
   RouteContactsCompaniesGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/contacts/companies"
@@ -152,6 +158,8 @@ Resources:
 
   RouteContactsCompaniesPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/contacts/companies"
@@ -161,6 +169,8 @@ Resources:
 
   RouteContactsCompanyGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/contacts/companies/{companyId}"
@@ -170,6 +180,8 @@ Resources:
 
   RouteContactsCompanyPatch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/contacts/companies/{companyId}"
@@ -179,6 +191,8 @@ Resources:
 
   RouteContactsCompanyDelete:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/contacts/companies/{companyId}"
@@ -188,6 +202,8 @@ Resources:
 
   RouteContactsCompanyContactsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/contacts/companies/{companyId}/contacts"
@@ -197,6 +213,8 @@ Resources:
 
   RouteContactsCompanyContactsPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/contacts/companies/{companyId}/contacts"
@@ -206,6 +224,8 @@ Resources:
 
   RouteContactsPersonPatch:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/contacts/{contactId}"
@@ -215,6 +235,8 @@ Resources:
 
   RouteContactsPersonDelete:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/contacts/{contactId}"

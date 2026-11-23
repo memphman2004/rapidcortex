@@ -209,6 +209,8 @@ Resources:
   # is retained out of the stack so CloudFormation does not call Delete on it.
   PsapProspectsIntegrationV2:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -226,6 +228,8 @@ Resources:
 
   RoutePsapListV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/psap-prospects"
@@ -235,6 +239,8 @@ Resources:
 
   RoutePsapAgencyIntelligenceList:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/psap-prospects/agency-intelligence"
@@ -244,6 +250,8 @@ Resources:
 
   RoutePsapAgencyIntelligenceExport:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/psap-prospects/agency-intelligence/export"
@@ -253,6 +261,8 @@ Resources:
 
   RoutePsapAgencyIntelligenceGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/psap-prospects/{psapId}/agency-intelligence"
@@ -262,6 +272,8 @@ Resources:
 
   RoutePsapAgencyIntelligenceEvidence:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/psap-prospects/{psapId}/agency-intelligence/evidence"
@@ -271,6 +283,8 @@ Resources:
 
   RoutePsapAgencyIntelligenceDecision:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/psap-prospects/{psapId}/agency-intelligence/decisions"
@@ -280,6 +294,8 @@ Resources:
 
   RoutePsapStatsV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/psap-prospects/stats"
@@ -289,6 +305,8 @@ Resources:
 
   RoutePsapExportV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/psap-prospects/export"
@@ -298,6 +316,8 @@ Resources:
 
   RoutePsapMapPinsV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/psap-prospects/map-pins"
@@ -308,6 +328,8 @@ Resources:
   # Dispatcher / supervisor ops map — national PSAP directory GeoJSON (not CRM).
   RouteMapPsaps:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/map/psaps"
@@ -317,6 +339,8 @@ Resources:
 
   RoutePsapGetV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/psap-prospects/{psapId}"
@@ -326,6 +350,8 @@ Resources:
 
   RoutePsapPatchV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/rc-admin/psap-prospects/{psapId}"
@@ -335,6 +361,8 @@ Resources:
 
   RoutePsapActivityV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/psap-prospects/{psapId}/activities"
@@ -344,6 +372,8 @@ Resources:
 
   RoutePsapEnrichContactsV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/psap-prospects/{psapId}/enrich-contacts"
@@ -353,6 +383,8 @@ Resources:
 
   RoutePsapEnrichAllV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rc-admin/psap-prospects/enrich-all"

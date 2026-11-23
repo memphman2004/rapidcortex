@@ -363,35 +363,36 @@ sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-nexiq-in
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-nexiq-signals.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-analytics.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-mcp-watch.yaml"
-# Section 5c: templates in root template not previously in validate loop (added 2026-11-17)
-# Using plain `sam validate` (not --lint) because these templates have W3011 warnings
-# (DeletionPolicy without UpdateReplacePolicy) that need a separate fix pass.
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-escalation.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-field.yaml"
+# Section 5c: W3011 warnings resolved — all Route/Integration resources now have both
+# DeletionPolicy and UpdateReplacePolicy: Retain (protect-apigw-resources.py 2026-11-23).
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-escalation.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-field.yaml"
 sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-live-assist.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-rapid-iq.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-rapid-iq-pipeline.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-rms.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-2-rcs.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-2-realtime.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-2-ng911.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-clery-act.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-vertical-alerts.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-rapid-iq.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-rapid-iq-pipeline.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-rms.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-2-rcs.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-2-realtime.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-2-ng911.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-clery-act.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-vertical-alerts.yaml"
 # Section 5a: standalone templates deployed via individual deploy-*.sh scripts (added 2026-11-17)
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-3-contacts.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-3-psap-crm.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-3-hiring.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-3-leads-crm.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-3-marketing.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-3-pricing-catalog.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-3-deployments-map.yaml"
-sam validate --template-file "${ROOT}/infra/nested/stack-app-sam-2-deception.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3-contacts.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3-psap-crm.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3-hiring.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3-leads-crm.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3-marketing.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3-pricing-catalog.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-3-deployments-map.yaml"
+sam validate --lint --template-file "${ROOT}/infra/nested/stack-app-sam-2-deception.yaml"
 fi
 
 echo "IAM managed policy size preflight (6,144-byte cap)..."
 python3 "${ROOT}/scripts/check-iam-managed-policy-sizes.py" --headroom 512
 echo "IAM AWS::NoValue Resource/Action preflight..."
 python3 "${ROOT}/scripts/check-iam-novalue-resources.py"
+echo "API GW Route/Integration rollback-protection preflight..."
+python3 "${ROOT}/scripts/protect-apigw-resources.py" --check
 
 ROOT_DOMAIN="${ROOT_DOMAIN:-rapidcortex.us}"
 API_SUBDOMAIN_PREFIX="${API_SUBDOMAIN_PREFIX:-api}"

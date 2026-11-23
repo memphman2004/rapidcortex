@@ -576,6 +576,8 @@ Resources:
 
   LocationResolveIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasQRLocationsTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -585,6 +587,8 @@ Resources:
 
   LocationIntakeIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasQRLocationsTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -594,6 +598,8 @@ Resources:
 
   LocationMediaUploadIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasQRLocationsTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -603,6 +609,8 @@ Resources:
 
   LocationsAdminIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasQRLocationsTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -612,6 +620,8 @@ Resources:
 
   LocationQrIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasQRLocationsTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -621,6 +631,8 @@ Resources:
 
   GetVenueIncidentsIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasVenueConfigTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -684,6 +696,8 @@ Resources:
 
   RouteQrResolveGetV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasQRLocationsTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -693,6 +707,8 @@ Resources:
 
   RouteQrIntakePostV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasQRLocationsTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -702,6 +718,8 @@ Resources:
 
   RouteQrMediaUploadGetV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasQRLocationsTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -711,6 +729,8 @@ Resources:
 
   RouteLocationsAdminListV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasQRLocationsTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -719,6 +739,8 @@ Resources:
 
   RouteLocationsAdminCreateV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasQRLocationsTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -727,6 +749,8 @@ Resources:
 
   RouteLocationsAdminUpdateV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasQRLocationsTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -735,6 +759,8 @@ Resources:
 
   RouteLocationsAdminDeleteV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasQRLocationsTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -743,6 +769,8 @@ Resources:
 
   RouteLocationsAdminBulkV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasQRLocationsTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -751,6 +779,8 @@ Resources:
 
   RouteLocationQrGetV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasQRLocationsTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -759,6 +789,8 @@ Resources:
 
   RouteVenueIncidentsGetV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Condition: HasVenueConfigTable
     Properties:
       ApiId: !Ref HttpApiId
@@ -850,6 +882,8 @@ Resources:
 
   QrNfcHttpIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -858,6 +892,8 @@ Resources:
 
   QrNfcEngageIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -866,6 +902,8 @@ Resources:
 
   PublicReportIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -874,6 +912,8 @@ Resources:
 
   PublicReportMediaUploadIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -882,6 +922,8 @@ Resources:
 
   CampusAlertsPublicIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -930,6 +972,8 @@ Resources:
 
   RouteQrNfcListV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/qr-nfc"
@@ -937,6 +981,8 @@ Resources:
 
   RouteQrNfcGlobalListV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/qr-nfc/global"
@@ -944,6 +990,8 @@ Resources:
 
   RouteQrNfcCreateV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/qr-nfc"
@@ -955,6 +1003,8 @@ Resources:
 
   RouteQrNfcGetV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/qr-nfc/{qrId}"
@@ -962,6 +1012,8 @@ Resources:
 
   RouteQrNfcPatchV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/qr-nfc/{qrId}"
@@ -969,6 +1021,8 @@ Resources:
 
   RouteQrNfcDeleteV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/qr-nfc/{qrId}"
@@ -976,6 +1030,8 @@ Resources:
 
   RouteQrNfcEngagePostV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/qr-nfc/{qrId}/engage"
@@ -984,6 +1040,8 @@ Resources:
 
   RoutePublicReportPostV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/report"
@@ -992,6 +1050,8 @@ Resources:
 
   RoutePublicReportMediaUploadGetV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/public/report/media-upload-url"
@@ -1000,6 +1060,8 @@ Resources:
 
   RouteCampusAlertsVerifyStartV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/campus-alerts/verify/start"
@@ -1008,6 +1070,8 @@ Resources:
 
   RouteCampusAlertsVerifyConfirmV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/campus-alerts/verify/confirm"
@@ -1016,6 +1080,8 @@ Resources:
 
   RouteCampusAlertsRenewV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/campus-alerts/renew"
@@ -1024,6 +1090,8 @@ Resources:
 
   RouteCampusAlertsRegisterV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/campus-alerts/register"
@@ -1111,6 +1179,8 @@ Resources:
 
   SafeSoundDevicesIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -1119,6 +1189,8 @@ Resources:
 
   SafeSoundGeofencesIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -1127,6 +1199,8 @@ Resources:
 
   SafeSoundContactsIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -1135,6 +1209,8 @@ Resources:
 
   SafeSoundSubscriptionsIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -1143,6 +1219,8 @@ Resources:
 
   GuardianEventsIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -1151,6 +1229,8 @@ Resources:
 
   MobileCodesIntegN:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -1207,6 +1287,8 @@ Resources:
 
   RouteSafeSoundDevicesListV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/safe-sound/devices"
@@ -1214,6 +1296,8 @@ Resources:
 
   RouteSafeSoundDevicesRegisterV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/safe-sound/devices/register"
@@ -1221,6 +1305,8 @@ Resources:
 
   RouteSafeSoundDeviceGetV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/safe-sound/devices/{deviceId}"
@@ -1228,6 +1314,8 @@ Resources:
 
   RouteSafeSoundDevicePatchV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/safe-sound/devices/{deviceId}"
@@ -1235,6 +1323,8 @@ Resources:
 
   RouteSafeSoundDeviceDeleteV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/safe-sound/devices/{deviceId}"
@@ -1242,6 +1332,8 @@ Resources:
 
   RouteSafeSoundDeviceLocationGetV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/safe-sound/devices/{deviceId}/location"
@@ -1249,6 +1341,8 @@ Resources:
 
   RouteSafeSoundDeviceLocationPostV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/safe-sound/devices/{deviceId}/location"
@@ -1256,6 +1350,8 @@ Resources:
 
   RouteSafeSoundDeviceHistoryV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/safe-sound/devices/{deviceId}/history"
@@ -1263,6 +1359,8 @@ Resources:
 
   RouteSafeSoundDeviceLostModeV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/safe-sound/devices/{deviceId}/lost-mode"
@@ -1270,6 +1368,8 @@ Resources:
 
   RouteSafeSoundDeviceRcCoreConsentV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PUT /api/safe-sound/devices/{deviceId}/rc-core-consent"
@@ -1277,6 +1377,8 @@ Resources:
 
   RouteSafeSoundDeviceActivationV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/safe-sound/devices/{deviceId}/activation-status"
@@ -1284,6 +1386,8 @@ Resources:
 
   RouteSafeSoundGeofencesListCreateV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/safe-sound/devices/{deviceId}/geofences"
@@ -1291,6 +1395,8 @@ Resources:
 
   RouteSafeSoundGeofencesPostV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/safe-sound/devices/{deviceId}/geofences"
@@ -1298,6 +1404,8 @@ Resources:
 
   RouteSafeSoundGeofenceDeleteV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/safe-sound/geofences/{geofenceId}"
@@ -1305,6 +1413,8 @@ Resources:
 
   RouteSafeSoundContactsPostV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/safe-sound/emergency-contacts"
@@ -1312,6 +1422,8 @@ Resources:
 
   RouteSafeSoundSubscriptionsListV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/safe-sound/subscriptions"
@@ -1319,6 +1431,8 @@ Resources:
 
   RouteSafeSoundSubscriptionsCreateV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/safe-sound/subscriptions"
@@ -1326,6 +1440,8 @@ Resources:
 
   RouteSafeSoundSubscriptionPortalV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/safe-sound/subscriptions/{subscriptionId}/portal"
@@ -1333,6 +1449,8 @@ Resources:
 
   RouteSafeSoundProfileLanguageV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/safe-sound/profile/language"
@@ -1340,6 +1458,8 @@ Resources:
 
   RouteGuardianEventGetV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/guardian/events/{eventId}"
@@ -1347,6 +1467,8 @@ Resources:
 
   RouteGuardianEventCancelV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/guardian/events/{eventId}/cancel"
@@ -1354,6 +1476,8 @@ Resources:
 
   RouteMobileCodesListV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/codes"
@@ -1361,6 +1485,8 @@ Resources:
 
   RouteMobileCodesCreateV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/codes"
@@ -1368,6 +1494,8 @@ Resources:
 
   RouteMobileCodeGetV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/codes/{codeId}"
@@ -1375,6 +1503,8 @@ Resources:
 
   RouteMobileCodePatchV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/codes/{codeId}"
@@ -1382,6 +1512,8 @@ Resources:
 
   RouteMobileCodeDeleteV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/codes/{codeId}"
@@ -1389,6 +1521,8 @@ Resources:
 
   RouteMobileCodeNfcWriteV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/codes/{codeId}/nfc-write"

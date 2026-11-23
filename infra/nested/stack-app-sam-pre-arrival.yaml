@@ -320,6 +320,8 @@ Resources:
 
   PreArrivalIncidentsInteg:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -328,6 +330,8 @@ Resources:
 
   PreArrivalPublicInteg:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -352,6 +356,8 @@ Resources:
 
   RoutePreArrivalSessionsGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/incidents/{id}/pre-arrival/sessions"
@@ -361,6 +367,8 @@ Resources:
 
   RoutePreArrivalSessionsPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/incidents/{id}/pre-arrival/sessions"
@@ -370,6 +378,8 @@ Resources:
 
   RoutePreArrivalSessionGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/incidents/{id}/pre-arrival/sessions/{sessionToken}"
@@ -379,6 +389,8 @@ Resources:
 
   RoutePreArrivalSessionEnd:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/incidents/{id}/pre-arrival/sessions/{sessionToken}/end"
@@ -388,6 +400,8 @@ Resources:
 
   RoutePreArrivalEtaPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/incidents/{id}/pre-arrival/eta"
@@ -397,6 +411,8 @@ Resources:
 
   RoutePreArrivalPublicGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/public/pre-arrival/{token}"
@@ -405,6 +421,8 @@ Resources:
 
   RoutePreArrivalPublicChannelGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/public/pre-arrival/{token}/channel"
@@ -413,6 +431,8 @@ Resources:
 
   RoutePreArrivalPublicChannelPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/pre-arrival/{token}/channel"
@@ -421,6 +441,8 @@ Resources:
 
   RoutePreArrivalPublicChannelUpload:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/pre-arrival/{token}/channel/upload-url"
@@ -429,6 +451,8 @@ Resources:
 
   RoutePreArrivalPublicChannelConfirm:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/pre-arrival/{token}/channel/confirm"
@@ -437,6 +461,8 @@ Resources:
 
   RoutePreArrivalChannelGet:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/incidents/{id}/pre-arrival/sessions/{sessionToken}/channel"
@@ -446,6 +472,8 @@ Resources:
 
   RoutePreArrivalChannelPost:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/incidents/{id}/pre-arrival/sessions/{sessionToken}/channel"
@@ -455,6 +483,8 @@ Resources:
 
   RoutePreArrivalPublicStepComplete:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/pre-arrival/{token}/steps/complete"

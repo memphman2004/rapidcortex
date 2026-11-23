@@ -135,6 +135,8 @@ Resources:
 
   EscalationHttpIntegrationV2:
     Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -151,6 +153,8 @@ Resources:
 
   RouteEscalationsGetV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/escalations"
@@ -160,6 +164,8 @@ Resources:
 
   RouteEscalationsPostV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/escalations"
@@ -169,6 +175,8 @@ Resources:
 
   RouteEscalationPatchV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/escalations/{escalationId}"
@@ -178,6 +186,8 @@ Resources:
 
   RouteEscalationExportV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/escalations/{escalationId}/export"
@@ -187,6 +197,8 @@ Resources:
 
   RouteEscalationViewerV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/escalations/viewer/{token}"
@@ -195,6 +207,8 @@ Resources:
 
   RouteEscalationRelationshipGetV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rc-admin/agencies/{agencyId}/escalation-relationship"
@@ -204,6 +218,8 @@ Resources:
 
   RouteEscalationRelationshipPutV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PUT /api/rc-admin/agencies/{agencyId}/escalation-relationship"
@@ -213,6 +229,8 @@ Resources:
 
   RouteVenuePushSubscriptionPostV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/venue/push-subscription"
@@ -222,6 +240,8 @@ Resources:
 
   RouteVenuePushSubscriptionDeleteV2:
     Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "DELETE /api/venue/push-subscription"
