@@ -12,14 +12,6 @@ Metadata:
         # default to "" (empty) intentionally — non-empty value switches to "use existing
         # function" path; empty string means this stack manages the function.
         - W1030
-        # W3005/E3005: DependsOn on Connect*Permission resources references conditional
-        # Lambda functions. CloudFormation spec: when a DependsOn target is conditional
-        # and NOT created, CloudFormation automatically removes the dependency at runtime.
-        # cfn-lint E3005 fires because it does not model that CloudFormation behavior.
-        # DependsOn is kept for ordering safety: without it the Nov-17 deploy created
-        # permissions before functions when both were added for the first time.
-        - W3005
-        - E3005
         # W2531: nodejs20.x is EOL per cfn-lint but creation is not disabled until
         # 2027-02-01. Repo-wide .cfnlintrc.yaml already suppresses this globally,
         # but template-level cfn-lint config takes precedence and must repeat it.
@@ -558,15 +550,10 @@ Resources:
 
   ConnectCallAssistDisconnectPermission:
     Type: AWS::Lambda::Permission
-    # NO Condition — adding a Condition here causes EarlyValidation to resolve the
-    # !If to its definitive branch (because the Condition makes the !If branch
-    # deterministic at changeset time), which then triggers an
-    # AWS::EarlyValidation::ResourceExistenceCheck on the !Ref. Without a Condition,
-    # EarlyValidation treats the !If as opaque and skips the existence check.
-    # DependsOn is kept for runtime ordering. CloudFormation automatically removes
-    # the DependsOn when CallAssistDisconnectFunction is not created (ExistingFunctionName
-    # provided), per CloudFormation docs on DependsOn + conditional resources.
-    DependsOn: CallAssistDisconnectFunction
+    # NO Condition, NO DependsOn. EarlyValidation treats !Ref inside !If as opaque
+    # and skips the existence check. The !Ref inside the FALSE branch of !If creates
+    # an implicit CloudFormation dependency (confirmed by cfn-lint W3005) that ensures
+    # CallAssistDisconnectFunction is created before this permission at runtime.
     Properties:
       FunctionName: !If
         - HasExistingCallAssistDisconnectFunctionName
@@ -777,12 +764,9 @@ Resources:
 
   ConnectNovaSessionStartPermission:
     Type: AWS::Lambda::Permission
-    # NO Condition — see ConnectCallAssistDisconnectPermission comment above.
-    # Adding Condition here causes EarlyValidation to resolve !If definitively
-    # and then existence-check the !Ref, failing for newly-created functions.
-    # DependsOn is kept; CloudFormation removes it automatically when the function
-    # is conditional and not created (ExistingFunctionName provided).
-    DependsOn: NovaSessionStartFunction
+    # NO Condition, NO DependsOn. The !Ref inside !If creates an implicit
+    # CloudFormation dependency that ensures NovaSessionStartFunction is created
+    # before this permission at runtime (confirmed by cfn-lint W3005).
     Properties:
       FunctionName: !If
         - HasExistingNovaSessionStartFunctionName
@@ -794,8 +778,7 @@ Resources:
 
   ConnectNovaSessionAwaitPermission:
     Type: AWS::Lambda::Permission
-    # NO Condition — same reasoning as ConnectCallAssistDisconnectPermission.
-    DependsOn: NovaSessionAwaitFunction
+    # NO Condition, NO DependsOn. Same reasoning as ConnectNovaSessionStartPermission.
     Properties:
       FunctionName: !If
         - HasExistingNovaSessionAwaitFunctionName
