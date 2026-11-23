@@ -298,12 +298,12 @@ Resources:
                   - dynamodb:GetItem
                   - dynamodb:PutItem
                 Resource:
-                  - !Ref AuditTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditTable}"
               - Effect: Allow
                 Action:
                   - dynamodb:GetItem
                 Resource:
-                  - !Ref AgenciesTable
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AgenciesTable}"
               # WebSocket push — notify officer/supervisor of coaching state changes
               - !If
                 - HasWebSocketConnectionsTable
