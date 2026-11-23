@@ -63,6 +63,7 @@ Conditions:
   HasIncidentTimelineTable: !Not [!Equals [!Ref IncidentTimelineTable, ""]]
   HasActiveCallsTable: !Not [!Equals [!Ref ActiveCallsTable, ""]]
   HasWebSocketConnectionsTable: !Not [!Equals [!Ref WebSocketConnectionsTable, ""]]
+  HasNodeDepsLayer: !Not [!Equals [!Ref NodeDepsLayerArn, ""]]
 
 Globals:
   Function:
@@ -194,6 +195,12 @@ Resources:
     Properties:
       CodeUri: ../../apps/api/
       Handler: dist/handlers/field/http.handler
+      # NodeDepsLayer provides node_modules when deployed via lean build (SAM_LEAN_BUILD=1).
+      # Omitted on full builds where node_modules is already in the CodeUri zip.
+      Layers: !If
+        - HasNodeDepsLayer
+        - - !Ref NodeDepsLayerArn
+        - !Ref AWS::NoValue
       Policies:
         - !Ref AppManagedPolicyFieldCommand
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { footerNav, isFooterLinkGroup } from "@/lib/site/footer-nav";
+import type { FooterLink } from "@/lib/site/footer-nav";
 
 /**
  * Reference implementation only — your real Footer almost certainly already
@@ -10,6 +11,27 @@ import { footerNav, isFooterLinkGroup } from "@/lib/site/footer-nav";
  * dropdown. Footers are scanned, not navigated interactively — an always-
  * visible group reads faster and needs no extra keyboard/touch handling.
  */
+
+/** Renders a single footer link, greyed-out and non-interactive when disabled. */
+function FooterLinkItem({ link }: { link: FooterLink }) {
+  if (link.disabled) {
+    return (
+      <span
+        className="cursor-default select-none text-slate-600"
+        aria-disabled="true"
+        title="Coming soon"
+      >
+        {link.label}
+      </span>
+    );
+  }
+  return (
+    <Link href={link.href} className="text-slate-400 transition-colors hover:text-white">
+      {link.label}
+    </Link>
+  );
+}
+
 export function FooterNavColumns() {
   return (
     <nav aria-label="Footer" className="flex flex-wrap gap-10 text-sm">
@@ -22,21 +44,13 @@ export function FooterNavColumns() {
             <ul className="mt-3 space-y-2">
               {item.links.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-slate-400 transition-colors hover:text-white">
-                    {link.label}
-                  </Link>
+                  <FooterLinkItem link={link} />
                 </li>
               ))}
             </ul>
           </div>
         ) : (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="text-slate-400 transition-colors hover:text-white"
-          >
-            {item.label}
-          </Link>
+          <FooterLinkItem key={item.href} link={item} />
         ),
       )}
     </nav>
