@@ -548,11 +548,14 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyCallAssistDynamo
 
-  # ConnectCallAssistDisconnectPermission: DEFERRED — added in follow-up after first deploy.
-  # EarlyValidation::ResourceExistenceCheck fires for Lambda Permissions when the
-  # referenced function does not yet exist, even when wrapped in !If. After
-  # CallAssistDisconnectFunction is first created, re-add this permission:
-  #   FunctionName: !Sub "${ManagedPolicyNamePrefix}-call-assist-disconnect-${DeploymentStage}"
+  ConnectCallAssistDisconnectPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Sub "${ManagedPolicyNamePrefix}-call-assist-disconnect-${DeploymentStage}"
+      Action: lambda:InvokeFunction
+      Principal: connect.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+  # (Originally DEFERRED — function now exists, permission re-added 2026-11-23)
   #   Action: lambda:InvokeFunction
   #   Principal: connect.amazonaws.com
   #   SourceAccount: !Ref AWS::AccountId
@@ -756,15 +759,22 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyCallAssistDynamo
 
-  # ConnectNovaSessionStartPermission: DEFERRED — same as ConnectCallAssistDisconnectPermission.
-  # Re-add after NovaSessionStartFunction is first created:
-  #   FunctionName: !Sub "${ManagedPolicyNamePrefix}-nova-session-start-${DeploymentStage}"
-  #   Action: lambda:InvokeFunction / Principal: connect.amazonaws.com / SourceAccount: !Ref AWS::AccountId
+  ConnectNovaSessionStartPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Sub "${ManagedPolicyNamePrefix}-nova-session-start-${DeploymentStage}"
+      Action: lambda:InvokeFunction
+      Principal: connect.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
 
-  # ConnectNovaSessionAwaitPermission: DEFERRED — same as above.
-  # Re-add after NovaSessionAwaitFunction is first created:
-  #   FunctionName: !Sub "${ManagedPolicyNamePrefix}-nova-session-await-${DeploymentStage}"
-  #   Action: lambda:InvokeFunction / Principal: connect.amazonaws.com / SourceAccount: !Ref AWS::AccountId
+  ConnectNovaSessionAwaitPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Sub "${ManagedPolicyNamePrefix}-nova-session-await-${DeploymentStage}"
+      Action: lambda:InvokeFunction
+      Principal: connect.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+  # (Originally DEFERRED — functions now exist, permissions re-added 2026-11-23)
 
   NovaSonicGatewayCluster:
     Type: AWS::ECS::Cluster
@@ -917,8 +927,6 @@ Resources:
 
   CallAssistHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -927,8 +935,6 @@ Resources:
 
   CallAssistConnectWebhookIntegration:
     Type: AWS::ApiGatewayV2::Integration
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -953,8 +959,6 @@ Resources:
 
   RouteCallAssistProxy:
     Type: AWS::ApiGatewayV2::Route
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/call-assist/{proxy+}"
@@ -964,8 +968,6 @@ Resources:
 
   RouteCallAssistConnectWebhook:
     Type: AWS::ApiGatewayV2::Route
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/call-assist/connect/webhook"
@@ -974,8 +976,6 @@ Resources:
 
   RouteCallAssistConnectSchedule:
     Type: AWS::ApiGatewayV2::Route
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/public/call-assist/schedule"
@@ -984,8 +984,6 @@ Resources:
 
   RouteCallAssistSelfServiceGet:
     Type: AWS::ApiGatewayV2::Route
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/public/call-assist/self-service/{token}"
@@ -994,8 +992,6 @@ Resources:
 
   RouteCallAssistSelfServicePost:
     Type: AWS::ApiGatewayV2::Route
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/public/call-assist/self-service/{token}"
