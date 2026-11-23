@@ -96,20 +96,8 @@ Parameters:
   ApprovedCorsOrigins:
     Type: String
     Default: "https://www.rapidcortex.us,https://rapidcortex.us,https://app.rapidcortex.us,https://report.rapidcortex.us"
-  # Drift-recovery parameter: when the original RapidIqHttpIntegration physical ID was
-  # deleted out-of-band by a rollback cascade, set this to the manually-created replacement
-  # integration ID so all routes bypass the stale CF-tracked resource. Leave empty on fresh
-  # environments (staging, new regions) to let CF create the integration normally.
-  ExistingRapidIqHttpIntegrationId:
-    Type: String
-    Default: ""
-    Description: >
-      If set, all API routes target this integration ID instead of RapidIqHttpIntegration.
-      Used to recover from stale integration state after rollback drift.
-
 Conditions:
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
-  HasExistingRapidIqHttpIntegration: !Not [!Equals [!Ref ExistingRapidIqHttpIntegrationId, ""]]
   HasAnthropicApiKeySecretArn: !Not [!Equals [!Ref AnthropicApiKeySecretArn, ""]]
   HasSamGovSecretArn: !Not [!Equals [!Ref RapidIqSamGovApiKeySecretArn, ""]]
   HasHunterSecretArn: !Not [!Equals [!Ref RapidIqHunterApiKeySecretArn, ""]]
@@ -451,12 +439,15 @@ Resources:
       SourceArn: !GetAtt RapidIqRampMonitor.Arn
 
   # DeletionPolicy: Retain prevents CF from calling DeleteIntegration on a potentially
-  # stale physical ID (e.g. o43nw9r deleted by a rollback cascade).
-  # Routes use ExistingRapidIqHttpIntegrationId when that parameter is set (drift recovery).
-  RapidIqHttpIntegration:
+  # RapidIqHttpIntegration is intentionally absent from this template.
+  # It had stale physical ID o43nw9r (deleted by a rollback cascade) and was
+  # replaced by RapidIqHttpIntegrationV2 below. DeletionPolicy: Retain on the old
+  # resource ensured CF did not attempt DELETE on a non-existent resource.
+  #
+  # Fresh integration — logical rename forces CF to CREATE a new physical resource
+  # without depending on the stale o43nw9r integration ID.
+  RapidIqHttpIntegrationV2:
     Type: AWS::ApiGatewayV2::Integration
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
       ApiId: !Ref HttpApiId
       IntegrationType: AWS_PROXY
@@ -476,7 +467,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/opportunities"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -485,7 +476,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/opportunities/{opportunityId}"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -494,7 +485,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "PATCH /api/rapid-iq/opportunities/{opportunityId}"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -503,7 +494,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/opportunities/{opportunityId}/signals"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -512,7 +503,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/opportunities/{opportunityId}/contacts"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -521,7 +512,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/opportunities/{opportunityId}/sources"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -530,7 +521,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/refresh"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -539,7 +530,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "GET /api/rapid-iq/refresh/status"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -548,7 +539,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/talking-points"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -557,7 +548,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/outreach"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -566,7 +557,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/rfp-outline"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -575,7 +566,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/agency-profile"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -584,7 +575,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/research-agency"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -593,7 +584,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/competitor-intel"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -602,7 +593,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/signal-chat"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -611,7 +602,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/search-contacts"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
@@ -620,7 +611,7 @@ Resources:
     Properties:
       ApiId: !Ref HttpApiId
       RouteKey: "POST /api/rapid-iq/convert-to-lead"
-      Target: !If [HasExistingRapidIqHttpIntegration, !Sub "integrations/${ExistingRapidIqHttpIntegrationId}", !Sub "integrations/${RapidIqHttpIntegration}"]
+      Target: !Sub "integrations/${RapidIqHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 

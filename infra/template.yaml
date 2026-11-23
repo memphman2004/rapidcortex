@@ -144,13 +144,6 @@ Parameters:
     Default: ""
     NoEcho: true
     Description: HMAC secret for QR Guest Assist WebSocket sessions. Empty keeps staff chat on the local mock path.
-  ExistingRapidIqHttpIntegrationId:
-    Type: String
-    Default: ""
-    Description: >-
-      Drift-recovery: integration ID on AppSam3 HttpApi to use for all RapidIQ routes.
-      Set to the manually-created replacement when the CF-tracked integration was deleted by
-      a rollback cascade. Leave empty on staging/fresh environments.
   RapidIqHunterApiKeySecretArn:
     Type: String
     Default: "arn:aws:secretsmanager:us-east-1:158961537080:secret:rapid-cortex/rapid-iq/hunter-api-key-LXEwMX"
@@ -2793,7 +2786,6 @@ Resources:
         ImportedCognitoUserPoolId: !GetAtt AppSamStackV2.Outputs.UserPoolId
         ImportedCognitoWebClientId: !GetAtt AppSamStackV2.Outputs.UserPoolClientId
         ManagedPolicyNamePrefix: !Ref AWS::StackName
-        ExistingRapidIqHttpIntegrationId: !Ref ExistingRapidIqHttpIntegrationId
 
   # NexiQ Signal Intelligence Pipeline (procurement signals → CRM)
   # Separate from AppSamRapidIqStack opportunity feed.
