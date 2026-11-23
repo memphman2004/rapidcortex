@@ -5089,6 +5089,9 @@ Resources:
         WebSocketApiEndpoint: !Sub
           - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentStage}"
           - ApiId: !GetAtt AppSamRealtime2Stack.Outputs.WebSocketApiId
+        # Shared node_modules layer — required for SAM_LEAN_BUILD so LiveAssistHttpFunction
+        # can resolve rapid-cortex-shared at runtime. Same pattern as AppSamFieldStack.
+        NodeDepsLayerArn: !Ref ExistingNodeDepsLayerArn
 
 Outputs:
   HttpApiUrl:

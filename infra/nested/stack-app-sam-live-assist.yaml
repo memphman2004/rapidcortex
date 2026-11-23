@@ -42,11 +42,20 @@ Parameters:
     Type: String
     Default: ""
     Description: API Gateway Management API endpoint for WebSocket push (e.g. https://abc.execute-api.us-east-1.amazonaws.com/dev).
+  NodeDepsLayerArn:
+    Type: String
+    Default: ""
+    Description: >
+      ARN of the shared node_modules Lambda layer (NodeDepsLayer from AppSamRapidIqStack).
+      Required when deploying with SAM_LEAN_BUILD=1 so LiveAssistHttpFunction can resolve
+      rapid-cortex-shared and other runtime dependencies. Leave empty only when deploying
+      with a full node_modules zip (SAM_LEAN_BUILD unset).
 
 Conditions:
   HasTablePrefix: !Not [!Equals [!Ref DynamoTableNamePrefix, ""]]
   HasHttpApiJwtAuthorizer: !Not [!Equals [!Ref HttpApiJwtAuthorizerId, ""]]
   HasWebSocketConnectionsTable: !Not [!Equals [!Ref WebSocketConnectionsTableName, ""]]
+  HasNodeDepsLayer: !Not [!Equals [!Ref NodeDepsLayerArn, ""]]
 
 Globals:
   Function:
@@ -337,6 +346,10 @@ Resources:
     Properties:
       CodeUri: ../../apps/api/
       Handler: src/handlers/live-assist/http.handler
+      Layers: !If
+        - HasNodeDepsLayer
+        - - !Ref NodeDepsLayerArn
+        - !Ref AWS::NoValue
       Role: !GetAtt LiveAssistLambdaRole.Arn
       Description: "Live Assist — BWC monitoring and officer coaching control plane"
       Environment:

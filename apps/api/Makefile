@@ -2,7 +2,7 @@
 # Otherwise copy from SAM_NODE_MODULES_SRC (frozen snapshot) or ./node_modules.
 # SAM_NODE_MODULES_HARDLINK=1 uses cp -al (same filesystem) — far faster than rsync for N functions.
 # Parallel rsync of a live apps/api/node_modules tree races (ENOENT / make Error 23).
-.PHONY: build-function build-GrantIngestorFunction build-GrantMatcherFunction build-FieldCommandHttpFunction
+.PHONY: build-function build-GrantIngestorFunction build-GrantMatcherFunction build-FieldCommandHttpFunction build-LiveAssistHttpFunction
 build-function:
 	mkdir -p "$(ARTIFACTS_DIR)"
 	COPYFILE_DISABLE=1 cp -R dist package.json "$(ARTIFACTS_DIR)/"
@@ -37,6 +37,18 @@ build-GrantIngestorFunction build-GrantMatcherFunction:
 # FieldCommandHttpFunction imports rapid-cortex-shared and rapid-cortex-security.
 # Always ship these packages so lean builds don't crash with ImportModuleError.
 build-FieldCommandHttpFunction:
+	$(MAKE) build-function ARTIFACTS_DIR="$(ARTIFACTS_DIR)"
+	mkdir -p "$(ARTIFACTS_DIR)/node_modules/@noble"
+	rm -rf "$(ARTIFACTS_DIR)/node_modules/rapid-cortex-shared" "$(ARTIFACTS_DIR)/node_modules/rapid-cortex-security" "$(ARTIFACTS_DIR)/node_modules/zod" "$(ARTIFACTS_DIR)/node_modules/@noble/hashes"
+	COPYFILE_DISABLE=1 cp -RL node_modules/rapid-cortex-shared "$(ARTIFACTS_DIR)/node_modules/rapid-cortex-shared"
+	COPYFILE_DISABLE=1 cp -RL node_modules/rapid-cortex-security "$(ARTIFACTS_DIR)/node_modules/rapid-cortex-security"
+	COPYFILE_DISABLE=1 cp -RL node_modules/zod "$(ARTIFACTS_DIR)/node_modules/zod"
+	COPYFILE_DISABLE=1 cp -RL node_modules/@noble/hashes "$(ARTIFACTS_DIR)/node_modules/@noble/hashes"
+
+# LiveAssistHttpFunction imports rapid-cortex-shared and rapid-cortex-security.
+# Always ship these packages so lean builds (NodeDepsLayer) have them available,
+# and as a belt-and-suspenders fallback when no layer is attached.
+build-LiveAssistHttpFunction:
 	$(MAKE) build-function ARTIFACTS_DIR="$(ARTIFACTS_DIR)"
 	mkdir -p "$(ARTIFACTS_DIR)/node_modules/@noble"
 	rm -rf "$(ARTIFACTS_DIR)/node_modules/rapid-cortex-shared" "$(ARTIFACTS_DIR)/node_modules/rapid-cortex-security" "$(ARTIFACTS_DIR)/node_modules/zod" "$(ARTIFACTS_DIR)/node_modules/@noble/hashes"
