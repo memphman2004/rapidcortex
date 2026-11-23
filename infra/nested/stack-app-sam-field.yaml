@@ -48,6 +48,14 @@ Parameters:
   ManagedPolicyNamePrefix:
     Type: String
     Default: rapid-cortex
+  NodeDepsLayerArn:
+    Type: String
+    Default: ""
+    Description: >
+      ARN of the shared node_modules Lambda layer (NodeDepsLayer from AppSamNexiQStack or
+      AppSamRapidIqStack). When set, FieldCommandHttpFunction attaches this layer so lean
+      builds (SAM_LEAN_BUILD=1) can resolve runtime dependencies. Leave empty only when
+      deploying with a full node_modules zip (SAM_LEAN_BUILD unset).
 
 Conditions:
   CreateFieldCommandTable: !Equals [!Ref ExistingFieldCommandTableName, ""]
