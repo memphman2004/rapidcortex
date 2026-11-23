@@ -548,20 +548,14 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyCallAssistDynamo
 
-  ConnectCallAssistDisconnectPermission:
-    Type: AWS::Lambda::Permission
-    # NO Condition, NO DependsOn. EarlyValidation treats !Ref inside !If as opaque
-    # and skips the existence check. The !Ref inside the FALSE branch of !If creates
-    # an implicit CloudFormation dependency (confirmed by cfn-lint W3005) that ensures
-    # CallAssistDisconnectFunction is created before this permission at runtime.
-    Properties:
-      FunctionName: !If
-        - HasExistingCallAssistDisconnectFunctionName
-        - !Ref ExistingCallAssistDisconnectFunctionName
-        - !Ref CallAssistDisconnectFunction
-      Action: lambda:InvokeFunction
-      Principal: connect.amazonaws.com
-      SourceAccount: !Ref AWS::AccountId
+  # ConnectCallAssistDisconnectPermission: DEFERRED — added in follow-up after first deploy.
+  # EarlyValidation::ResourceExistenceCheck fires for Lambda Permissions when the
+  # referenced function does not yet exist, even when wrapped in !If. After
+  # CallAssistDisconnectFunction is first created, re-add this permission:
+  #   FunctionName: !Sub "${ManagedPolicyNamePrefix}-call-assist-disconnect-${DeploymentStage}"
+  #   Action: lambda:InvokeFunction
+  #   Principal: connect.amazonaws.com
+  #   SourceAccount: !Ref AWS::AccountId
 
   CallAssistConnectWebhookFunction:
     Type: AWS::Serverless::Function
@@ -762,31 +756,15 @@ Resources:
       Policies:
         - !Ref AppManagedPolicyCallAssistDynamo
 
-  ConnectNovaSessionStartPermission:
-    Type: AWS::Lambda::Permission
-    # NO Condition, NO DependsOn. The !Ref inside !If creates an implicit
-    # CloudFormation dependency that ensures NovaSessionStartFunction is created
-    # before this permission at runtime (confirmed by cfn-lint W3005).
-    Properties:
-      FunctionName: !If
-        - HasExistingNovaSessionStartFunctionName
-        - !Ref ExistingNovaSessionStartFunctionName
-        - !Ref NovaSessionStartFunction
-      Action: lambda:InvokeFunction
-      Principal: connect.amazonaws.com
-      SourceAccount: !Ref AWS::AccountId
+  # ConnectNovaSessionStartPermission: DEFERRED — same as ConnectCallAssistDisconnectPermission.
+  # Re-add after NovaSessionStartFunction is first created:
+  #   FunctionName: !Sub "${ManagedPolicyNamePrefix}-nova-session-start-${DeploymentStage}"
+  #   Action: lambda:InvokeFunction / Principal: connect.amazonaws.com / SourceAccount: !Ref AWS::AccountId
 
-  ConnectNovaSessionAwaitPermission:
-    Type: AWS::Lambda::Permission
-    # NO Condition, NO DependsOn. Same reasoning as ConnectNovaSessionStartPermission.
-    Properties:
-      FunctionName: !If
-        - HasExistingNovaSessionAwaitFunctionName
-        - !Ref ExistingNovaSessionAwaitFunctionName
-        - !Ref NovaSessionAwaitFunction
-      Action: lambda:InvokeFunction
-      Principal: connect.amazonaws.com
-      SourceAccount: !Ref AWS::AccountId
+  # ConnectNovaSessionAwaitPermission: DEFERRED — same as above.
+  # Re-add after NovaSessionAwaitFunction is first created:
+  #   FunctionName: !Sub "${ManagedPolicyNamePrefix}-nova-session-await-${DeploymentStage}"
+  #   Action: lambda:InvokeFunction / Principal: connect.amazonaws.com / SourceAccount: !Ref AWS::AccountId
 
   NovaSonicGatewayCluster:
     Type: AWS::ECS::Cluster
