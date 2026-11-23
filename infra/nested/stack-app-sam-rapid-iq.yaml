@@ -439,6 +439,20 @@ Resources:
       Principal: events.amazonaws.com
       SourceArn: !GetAtt RapidIqRampMonitor.Arn
 
+  # RapidIqHttpIntegrationOrphan retains the stale physical ID (o43nw9r) that no longer
+  # exists in API GW but is still tracked by CloudFormation. DeletionPolicy: Retain prevents
+  # CloudFormation from calling DeleteIntegration(o43nw9r) → NotFoundException → stack failure.
+  RapidIqHttpIntegrationOrphan:
+    Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RapidIqHttpFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  # Fresh integration created after drift correction — all Route resources reference this.
   RapidIqHttpIntegration:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
