@@ -702,10 +702,6 @@ Parameters:
     Type: String
     Default: ""
     Description: Fallback Call Assist agencyId when inbound SMS DID is unmapped.
-  AwsSmsConfigurationSetName:
-    Type: String
-    Default: ""
-    Description: AWS End User Messaging SMS configuration set (stage-specific).
   EnableRapidVisionNest:
     Type: String
     Default: "true"
