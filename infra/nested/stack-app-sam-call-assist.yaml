@@ -1083,22 +1083,24 @@ Outputs:
     Value: !Sub "rapid-cortex-agency-keywords-${DeploymentStage}"
   NovaSessionStartFunctionArn:
     Description: Connect InvokeLambda ARN for Nova Sonic session start
+    # Use !Sub (not !GetAtt) to avoid EarlyValidation::ResourceExistenceCheck on first
+    # deploy — CFN resolves !If branches at changeset time and checks function existence.
     Value: !If
       - HasExistingNovaSessionStartFunctionName
       - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingNovaSessionStartFunctionName}"
-      - !GetAtt NovaSessionStartFunction.Arn
+      - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ManagedPolicyNamePrefix}-nova-session-start-${DeploymentStage}"
   NovaSessionAwaitFunctionArn:
     Description: Connect InvokeLambda ARN for Nova Sonic session await / stream
     Value: !If
       - HasExistingNovaSessionAwaitFunctionName
       - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingNovaSessionAwaitFunctionName}"
-      - !GetAtt NovaSessionAwaitFunction.Arn
+      - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ManagedPolicyNamePrefix}-nova-session-await-${DeploymentStage}"
   CallAssistDisconnectFunctionArn:
     Description: Connect InvokeLambda ARN — closes OPEN Lex/Nova sessions on disconnect
     Value: !If
       - HasExistingCallAssistDisconnectFunctionName
       - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingCallAssistDisconnectFunctionName}"
-      - !GetAtt CallAssistDisconnectFunction.Arn
+      - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ManagedPolicyNamePrefix}-call-assist-disconnect-${DeploymentStage}"
   NovaSonicGatewayClusterName:
     Condition: CreateNovaSonicGateway
     Value: !Ref NovaSonicGatewayCluster
