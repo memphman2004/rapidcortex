@@ -1,6 +1,8 @@
 export interface FooterLink {
   label: string;
   href: string;
+  /** Render greyed-out and non-interactive (e.g. page coming soon). */
+  disabled?: boolean;
 }
 
 export interface FooterLinkGroup {
@@ -31,7 +33,7 @@ export const footerNav: FooterNavItem[] = [
     ],
   },
   { label: "About", href: "/about" },
-  { label: "Careers", href: "/careers" },
+  { label: "Careers", href: "/careers", disabled: true },
   { label: "Contact", href: "/contact-sales?interest=demo" },
   { label: "Insights & Resources", href: "/blog" },
   { label: "The NexCortiQ Signal", href: "/newsletter" },

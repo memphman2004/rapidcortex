@@ -7,7 +7,9 @@ import { locationLabel } from "../fixtures/locations";
 import { usePlaybackEngine } from "../hooks/useDemoEngine";
 import type { DemoIncident } from "../types";
 import type { TranscriptSegment } from "rapid-cortex-shared";
-import { formatDemoClock, unitTone } from "./format";
+import { formatDemoClock } from "./format";
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function categoryFor(incident: DemoIncident): "medical" | "fire" | "police" {
   if (incident.discipline === "fire") return "fire";
@@ -26,85 +28,338 @@ function toSegments(incident: DemoIncident): TranscriptSegment[] {
   })) as TranscriptSegment[];
 }
 
+/** Status dot color matching real unit board colors */
+function unitDotStyle(status: string): string {
+  if (status === "available") return "var(--rc-green)";
+  if (status === "on_scene") return "var(--rc-blue)";
+  if (status === "cleared") return "var(--rc-text-muted)";
+  return "var(--rc-amber)";
+}
+
+/** Map demo unit status to dispatcher board label */
+function unitStatusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    available: "AVAILABLE",
+    dispatched: "DISPATCHED",
+    en_route: "EN ROUTE",
+    on_scene: "ON SCENE",
+    transporting: "TRANSPORT",
+    cleared: "CLEARED",
+  };
+  return labels[status] ?? status.toUpperCase().replace("_", " ");
+}
+
+/** Priority badge matching real P1/P2/P3 */
+function PriBadge({ discipline }: { discipline: string }) {
+  const isEmergency = discipline !== "admin";
+  // ems/medical and fire are P1; law is P2; admin is P3
+  const isCritical = discipline === "medical" || discipline === "fire" || discipline === "ems";
+  const label = isCritical ? "P1" : isEmergency ? "P2" : "P3";
+  const cls = isCritical ? "p1" : isEmergency ? "p2" : "p3";
+  return <span className={`ws-priority ${cls}`}>{label}</span>;
+}
+
+// ─── Section header matching dispatcher ws-panel-header ───────────────────────
+
+function PanelHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="ws-panel-header secondary shrink-0">
+      {children}
+    </div>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 export function DemoWorkspace() {
   const snapshot = usePlaybackEngine();
   const state = snapshot.state;
   const [autoScroll, setAutoScroll] = useState(true);
+
   if (!state) return null;
 
   const focus =
     state.activeIncidents[state.activeIncidents.length - 1] ??
     state.closedIncidents[state.closedIncidents.length - 1] ??
     null;
+
   const assist =
     focus?.callAssist ??
     state.callQueue.find((call) => call.callAssist)?.callAssist ??
     "Call Assist is listening. Guidance appears here when a call needs it.";
+
   const translation = focus?.translation;
-  const onShift = state.dispatchers.filter((dispatcher) => dispatcher.onShift);
+  const onShift = state.dispatchers.filter((d) => d.onShift);
 
   return (
-    <div className="min-h-[calc(100vh-2.25rem)] bg-[#0f1117] text-slate-100">
+    <div
+      className="dispatcher-shell dispatcher-workspace flex h-[calc(100vh-2.25rem)] flex-col overflow-hidden"
+      style={{ background: "var(--rc-workstation-bg)", color: "var(--rc-text)" }}
+    >
+      {/* ── Top toolbar ──────────────────────────────────────────────────── */}
       <header
         data-demo-target="dispatcher-view"
-        className="border-b border-slate-800 px-4 py-3"
+        className="ws-toolbar shrink-0 !border-b flex-col !h-auto !px-4 !py-2 gap-0"
+        style={{ borderBottom: "1px solid var(--rc-border)" }}
       >
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-400">
+        {/* Row 1: Agency + clock */}
+        <div className="flex w-full items-center justify-between gap-4">
+          <div className="min-w-0">
+            <div className="font-mono text-[10px] font-bold uppercase tracking-widest"
+              style={{ color: "var(--rc-blue)" }}>
               Maplewood County Communications Center
-            </p>
-            <h1 className="text-xl font-semibold">
-              {snapshot.displayName ?? "Demo"} · {state.clockLabel}
-            </h1>
-            <p className="text-xs text-slate-400">
+            </div>
+            <div className="flex items-baseline gap-3 mt-0.5">
+              <h1 className="text-base font-semibold leading-none" style={{ color: "var(--rc-text)" }}>
+                {snapshot.displayName ?? "Demo"}
+              </h1>
+              <span className="font-mono text-sm font-bold tabular-nums"
+                style={{ color: "var(--rc-text)" }}>
+                {state.clockLabel}
+              </span>
+              <span className="font-mono text-[10px]" style={{ color: "var(--rc-text-muted)" }}>
+                Scenario {formatDemoClock(snapshot.offsetSeconds)}
+              </span>
+            </div>
+            <p className="font-mono text-[10px] mt-0.5" style={{ color: "var(--rc-text-muted)" }}>
               Fictional combined PSAP · {state.agency.populationServed.toLocaleString()} residents ·{" "}
               {state.agency.cadDescription}
             </p>
           </div>
-          <p className="text-xs text-slate-500">Scenario clock {formatDemoClock(snapshot.offsetSeconds)}</p>
-        </div>
-        <ul className="mt-3 flex flex-wrap gap-2">
-          {onShift.map((dispatcher) => (
-            <li key={dispatcher.id} className="rounded-md border border-slate-800 bg-slate-950 px-2 py-1 text-xs">
-              <span className="text-slate-500">
-                {dispatcher.position ? `Pos ${dispatcher.position}` : "Supervisor"}
-                {dispatcher.remote ? " · remote" : ""}
+
+          {/* System status badge */}
+          <div className="flex shrink-0 items-center gap-3">
+            {state.coverageGap && (
+              <span className="font-mono text-[10px] font-bold uppercase rounded border px-2 py-0.5"
+                style={{ color: "var(--rc-red)", borderColor: "var(--rc-red)", background: "var(--rc-red-dim)" }}>
+                ⚠ Coverage Gap
               </span>
-              <span className="ml-2 text-slate-100">{dispatcher.name}</span>
-            </li>
+            )}
+            {state.activeIncidents.some((i) => i.mci || i.major) && (
+              <span className="font-mono text-[10px] font-bold uppercase rounded border px-2 py-0.5"
+                style={{ color: "var(--rc-red)", borderColor: "var(--rc-red)", background: "var(--rc-red-dim)" }}>
+                MCI / MAJOR
+              </span>
+            )}
+            <span
+              className="inline-flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase"
+              style={{
+                borderColor: "color-mix(in srgb, var(--rc-amber) 50%, transparent)",
+                color: "var(--rc-amber)",
+                background: "var(--rc-amber-dim)",
+              }}
+            >
+              <span className="h-1.5 w-1.5 rounded-full"
+                style={{ background: "var(--rc-amber)" }} />
+              Demo
+            </span>
+          </div>
+        </div>
+
+        {/* Row 2: Dispatcher position pills */}
+        <div className="flex flex-wrap gap-1.5 mt-2 w-full">
+          {onShift.map((d) => (
+            <div
+              key={d.id}
+              className="flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-[10px]"
+              style={{
+                borderColor: "var(--rc-border-strong)",
+                background: "var(--rc-panel-bg)",
+              }}
+            >
+              <span style={{ color: "var(--rc-text-muted)" }}>
+                {d.position ? `Pos ${d.position}` : "Supervisor"}
+                {d.remote ? " · remote" : ""}
+              </span>
+              <span className="font-semibold" style={{ color: "var(--rc-text)" }}>
+                {d.name}
+              </span>
+            </div>
           ))}
-        </ul>
+        </div>
       </header>
 
-      <div className="grid gap-3 p-3 lg:grid-cols-12">
-        <section data-demo-target="incoming-call" className="rounded-lg border border-slate-800 bg-slate-950 lg:col-span-3">
-          <h2 className="border-b border-slate-800 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-            Call queue · {state.metrics.queueDepth} holding
-          </h2>
-          <ul className="max-h-80 space-y-2 overflow-auto p-3">
-            {state.callQueue.length === 0 ? (
-              <li className="text-sm text-slate-500">No calls holding.</li>
+      {/* ── 3-column body ────────────────────────────────────────────────── */}
+      <div
+        className="dispatcher-cad-body min-h-0 flex-1"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "240px minmax(0,1fr) 300px",
+          gridTemplateRows: "minmax(0,1fr)",
+        }}
+      >
+        {/* ── LEFT: Unit board + Call queue ──────────────────────────────── */}
+        <div
+          className="flex min-h-0 flex-col overflow-hidden"
+          style={{
+            background: "var(--rc-panel-bg)",
+            borderRight: "1px solid var(--rc-border)",
+          }}
+        >
+          {/* Unit board */}
+          <PanelHeader>
+            <span>Unit board</span>
+            <span className="ml-auto font-mono text-[9px]">
+              {state.units.length} units
+            </span>
+          </PanelHeader>
+          <div
+            className="overflow-y-auto border-b"
+            style={{
+              maxHeight: "35%",
+              minHeight: "72px",
+              borderColor: "var(--rc-border)",
+            }}
+          >
+            {state.units.length === 0 ? (
+              <p className="px-2 py-2 font-mono text-[10px]" style={{ color: "var(--rc-text-muted)" }}>
+                No units on board.
+              </p>
             ) : (
-              state.callQueue.map((call) => (
-                <li key={call.id} className="rounded-md border border-slate-800 p-2 text-sm">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-medium text-slate-100">{call.summary}</span>
-                    <span className="text-[10px] uppercase text-slate-500">{call.status}</span>
-                  </div>
-                  <p className="mt-1 text-xs text-slate-400">{locationLabel(call.locationId)}</p>
-                  <p className="text-[11px] text-slate-500">{call.phone}</p>
-                  {call.repeatCaller ? (
-                    <p className="mt-1 text-[11px] font-semibold text-amber-300">Repeat location</p>
-                  ) : null}
-                </li>
+              state.units.map((unit) => (
+                <div
+                  key={unit.id}
+                  data-demo-target="unit-board"
+                  className="ws-unit-row"
+                >
+                  {/* col 1: unit id */}
+                  <span className="truncate font-bold">{unit.id}</span>
+                  {/* col 2: status */}
+                  <span className="flex items-center gap-1.5 truncate"
+                    style={{ color: "var(--rc-text-muted)" }}>
+                    <span
+                      className="status-dot shrink-0"
+                      style={{ background: unitDotStyle(unit.status) }}
+                    />
+                    {unitStatusLabel(unit.status)}
+                  </span>
+                  {/* col 3-5: type + agency (span remaining) */}
+                  <span className="col-span-3 truncate"
+                    style={{ color: "var(--rc-text-muted)" }}>
+                    {unit.type}
+                  </span>
+                </div>
               ))
             )}
-          </ul>
-        </section>
+          </div>
 
-        <section className="flex min-h-[420px] flex-col gap-3 lg:col-span-6">
-          <div data-demo-target="transcript" className="min-h-64 flex-1 overflow-hidden rounded-lg border border-slate-800">
+          {/* Call queue */}
+          <PanelHeader>
+            <span>Call queue</span>
+            <span className="ml-auto font-mono text-[9px]" style={{ color: "var(--rc-text-muted)" }}>
+              {state.metrics.queueDepth} holding
+            </span>
+          </PanelHeader>
+          <div
+            className="min-h-0 flex-1 overflow-y-auto"
+            data-demo-target="incoming-call"
+          >
+            {state.callQueue.length === 0 ? (
+              <p className="px-3 py-3 font-mono text-[11px]" style={{ color: "var(--rc-text-muted)" }}>
+                No calls holding.
+              </p>
+            ) : (
+              state.callQueue.map((call) => (
+                <div
+                  key={call.id}
+                  className="border-b px-3 py-2.5 cursor-pointer hover:bg-[var(--rc-panel-selected)] transition-colors"
+                  style={{ borderColor: "var(--rc-border)" }}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <PriBadge discipline={call.discipline ?? "unknown"} />
+                      <span className="font-medium text-[12px] truncate"
+                        style={{ color: "var(--rc-text)" }}>
+                        {call.summary}
+                      </span>
+                    </div>
+                    <span
+                      className="shrink-0 font-mono text-[9px] uppercase font-bold rounded px-1 py-0.5"
+                      style={{
+                        color: call.status === "queued" ? "var(--rc-red)" : "var(--rc-text-muted)",
+                        borderColor: call.status === "queued" ? "var(--rc-red-border)" : "var(--rc-border)",
+                        border: "1px solid",
+                        background: call.status === "queued" ? "var(--rc-red-dim)" : "transparent",
+                      }}
+                    >
+                      {call.status === "queued" ? "QUEUED" : call.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="font-mono text-[10px] mt-1" style={{ color: "var(--rc-text-muted)" }}>
+                    {locationLabel(call.locationId)}
+                  </p>
+                  <p className="font-mono text-[10px]" style={{ color: "var(--rc-text-muted)" }}>
+                    {call.phone}
+                  </p>
+                  {call.repeatCaller && (
+                    <p className="mt-1 font-mono text-[10px] font-semibold"
+                      style={{ color: "var(--rc-amber)" }}>
+                      ↻ Repeat location
+                    </p>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* ── CENTER: Active incident + Transcript + Assist + Translation ── */}
+        <div
+          className="flex min-h-0 flex-col overflow-hidden"
+          style={{ background: "var(--rc-workstation-bg)", borderRight: "1px solid var(--rc-border)" }}
+        >
+          {/* Active incident card */}
+          {focus && (
+            <div
+              className="shrink-0 border-b px-4 py-2.5"
+              style={{ borderColor: "var(--rc-border)", background: "var(--rc-panel-bg)" }}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 space-y-0.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <PriBadge discipline={focus.discipline} />
+                    <CategoryBadge value={categoryFor(focus)} />
+                    <span className="font-mono text-[10px] font-bold"
+                      style={{ color: "var(--rc-text-muted)" }}>
+                      INC #{focus.id}
+                    </span>
+                  </div>
+                  <p className="text-sm font-semibold leading-snug mt-1"
+                    style={{ color: "var(--rc-text)" }}>
+                    {focus.title}
+                  </p>
+                  <p className="font-mono text-[10px]" style={{ color: "var(--rc-text-muted)" }}>
+                    {locationLabel(focus.locationId)}
+                  </p>
+                  {focus.units.length > 0 && (
+                    <p className="font-mono text-[10px]" style={{ color: "var(--rc-text-muted)" }}>
+                      Units: {focus.units.join(", ")}
+                    </p>
+                  )}
+                </div>
+                <dl className="shrink-0 text-right font-mono">
+                  <dt className="text-[9px] uppercase tracking-wide" style={{ color: "var(--rc-text-muted)" }}>
+                    Elapsed
+                  </dt>
+                  <dd className="text-lg font-bold tabular-nums"
+                    style={{ color: "var(--rc-red)" }}>
+                    {formatDemoClock(snapshot.offsetSeconds)}
+                  </dd>
+                </dl>
+              </div>
+              {focus.commandNotes.length > 0 && (
+                <p className="mt-1.5 font-mono text-[11px]" style={{ color: "var(--rc-amber)" }}>
+                  ▶ {focus.commandNotes[focus.commandNotes.length - 1]}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Transcript */}
+          <div
+            className="min-h-0 flex-1 overflow-hidden"
+            data-demo-target="transcript"
+          >
             {focus ? (
               <TranscriptPanel
                 segments={toSegments(focus)}
@@ -112,135 +367,241 @@ export function DemoWorkspace() {
                 onAutoScrollChange={setAutoScroll}
                 isStreaming={snapshot.status === "playing"}
                 isLoading={false}
-                className="min-h-64"
               />
             ) : (
-              <p className="p-4 text-sm text-slate-500">Transcription starts when a call is on the board.</p>
+              <div className="flex h-full items-center justify-center">
+                <p className="font-mono text-[11px]" style={{ color: "var(--rc-text-muted)" }}>
+                  Select an incident or start a scenario to see the transcript.
+                </p>
+              </div>
             )}
           </div>
-          <div data-demo-target="call-assist" className="rounded-lg border border-sky-900/70 bg-sky-950/40 p-3">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-sky-300">Call Assist</h2>
-            <p className="mt-1 text-sm leading-6 text-sky-50">{assist}</p>
-          </div>
-          <div data-demo-target="translation" className="rounded-lg border border-slate-800 bg-slate-950 p-3">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Translation</h2>
-            <p className="mt-1 text-sm text-slate-200">
-              {translation
-                ? `${translation.language.toUpperCase()} · ${translation.note}`
-                : "No translation on the focused call. Spanish, French, Creole, and Somali appear here when a caller needs them."}
-            </p>
-          </div>
-        </section>
 
-        <div className="flex flex-col gap-3 lg:col-span-3">
-          <section data-demo-target="unit-board" className="rounded-lg border border-slate-800 bg-slate-950">
-            <h2 className="border-b border-slate-800 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-              Units
-            </h2>
-            <ul className="max-h-72 space-y-1 overflow-auto p-2">
-              {state.units.map((unit) => (
-                <li key={unit.id} className="flex items-center justify-between gap-2 rounded px-1 py-1 text-xs">
-                  <span>
-                    <span className="font-semibold text-slate-100">{unit.id}</span>
-                    <span className="ml-2 text-slate-500">{unit.agency}</span>
-                  </span>
-                  <span className={`rounded px-1.5 py-0.5 uppercase ring-1 ${unitTone(unit.status)}`}>
-                    {unit.status.replaceAll("_", " ")}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-          <section data-demo-target="continuity-log" className="rounded-lg border border-slate-800 bg-slate-950 p-3">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Continuity Log</h2>
-            <ul className="mt-2 space-y-1 text-sm text-slate-200">
-              {(focus?.continuity.length ? focus.continuity : ["The log fills itself as the incident moves."]).map(
-                (entry) => (
-                  <li key={entry}>{entry}</li>
-                ),
-              )}
-            </ul>
-          </section>
+          {/* Call Assist + Translation row */}
+          <div
+            className="shrink-0 grid grid-cols-2 gap-0 border-t"
+            style={{ borderColor: "var(--rc-border)" }}
+          >
+            {/* Call Assist */}
+            <div
+              className="border-r p-3"
+              data-demo-target="call-assist"
+              style={{
+                borderColor: "var(--rc-border)",
+                background: "var(--rc-blue-dim)",
+              }}
+            >
+              <h2 className="font-mono text-[10px] font-bold uppercase tracking-wider"
+                style={{ color: "var(--rc-blue)" }}>
+                Call Assist
+              </h2>
+              <p className="mt-1.5 text-[12px] leading-relaxed"
+                style={{ color: "var(--rc-text)" }}>
+                {assist}
+              </p>
+            </div>
+
+            {/* Translation */}
+            <div
+              className="p-3"
+              data-demo-target="translation"
+              style={{ background: "var(--rc-panel-bg)" }}
+            >
+              <h2 className="font-mono text-[10px] font-bold uppercase tracking-wider"
+                style={{ color: "var(--rc-text-muted)" }}>
+                RC Translate
+              </h2>
+              <p className="mt-1.5 text-[12px] leading-relaxed"
+                style={{ color: translation ? "var(--rc-text)" : "var(--rc-text-muted)" }}>
+                {translation
+                  ? `${translation.language.toUpperCase()} · ${translation.note}`
+                  : "No translation on focused call. Spanish, French, Creole, and Somali appear here automatically."}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <section
-          data-demo-target="supervisor-dashboard"
-          className="rounded-lg border border-slate-800 bg-slate-950 p-3 lg:col-span-8"
+        {/* ── RIGHT: Supervisor + Admin + Incident history ───────────────── */}
+        <div
+          className="flex min-h-0 flex-col overflow-hidden"
+          style={{ background: "var(--rc-panel-bg)" }}
         >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Supervisor</h2>
-            {state.coverageGap ? (
-              <span className="rounded bg-red-950 px-2 py-0.5 text-[11px] font-semibold text-red-200 ring-1 ring-red-800">
-                Coverage gap — no ambulance available
-              </span>
-            ) : null}
-            {state.activeIncidents.some((incident) => incident.mci || incident.major) ? (
-              <span className="rounded bg-red-950 px-2 py-0.5 text-[11px] font-semibold text-red-200 ring-1 ring-red-800">
-                Major incident
-              </span>
-            ) : null}
-          </div>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {/* Supervisor */}
+          <PanelHeader>
+            <span>Supervisor</span>
+            <span className="ml-auto font-mono text-[9px]"
+              style={{ color: "var(--rc-text-muted)" }}>
+              {state.activeIncidents.length} active
+            </span>
+          </PanelHeader>
+          <div
+            data-demo-target="supervisor-dashboard"
+            className="overflow-y-auto border-b p-2 space-y-1.5"
+            style={{
+              maxHeight: "38%",
+              minHeight: "80px",
+              borderColor: "var(--rc-border)",
+            }}
+          >
             {state.activeIncidents.length === 0 ? (
-              <p className="text-sm text-slate-500">No active incidents.</p>
+              <p className="font-mono text-[10px] p-1" style={{ color: "var(--rc-text-muted)" }}>
+                No active incidents.
+              </p>
             ) : (
               state.activeIncidents.map((incident) => (
-                <article key={incident.id} className="rounded-md border border-slate-800 p-2">
-                  <div className="flex items-center gap-2">
+                <article
+                  key={incident.id}
+                  className="rounded border p-2 text-[11px]"
+                  style={{
+                    borderColor: "var(--rc-border-strong)",
+                    background: "var(--rc-workstation-bg)",
+                  }}
+                >
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <CategoryBadge value={categoryFor(incident)} />
-                    <h3 className="text-sm font-medium">{incident.title}</h3>
+                    <span className="font-medium leading-snug"
+                      style={{ color: "var(--rc-text)" }}>
+                      {incident.title}
+                    </span>
                   </div>
-                  <p className="mt-1 text-xs text-slate-400">{locationLabel(incident.locationId)}</p>
-                  <p className="text-xs text-slate-500">Units {incident.units.join(", ") || "—"}</p>
-                  {incident.commandNotes.length > 0 ? (
-                    <p className="mt-1 text-xs text-amber-200">{incident.commandNotes[incident.commandNotes.length - 1]}</p>
-                  ) : null}
+                  <p className="mt-0.5 font-mono text-[10px]"
+                    style={{ color: "var(--rc-text-muted)" }}>
+                    {locationLabel(incident.locationId)}
+                  </p>
+                  {incident.units.length > 0 && (
+                    <p className="font-mono text-[10px]"
+                      style={{ color: "var(--rc-text-muted)" }}>
+                      Units {incident.units.join(", ")}
+                    </p>
+                  )}
+                  {incident.commandNotes.length > 0 && (
+                    <p className="mt-1 font-mono text-[10px] font-semibold"
+                      style={{ color: "var(--rc-amber)" }}>
+                      {incident.commandNotes[incident.commandNotes.length - 1]}
+                    </p>
+                  )}
                 </article>
               ))
             )}
+            {state.alerts.length > 0 && (
+              <p className="mt-1 font-mono text-[10px] font-semibold p-1"
+                style={{ color: "var(--rc-amber)" }}>
+                ⚠ {state.alerts[state.alerts.length - 1]?.message}
+              </p>
+            )}
+            {state.shiftSummary && (
+              <p className="font-mono text-[10px] p-1" style={{ color: "var(--rc-text)" }}>
+                {state.shiftSummary}
+              </p>
+            )}
+            {state.mutualAid.length > 0 && (
+              <p className="font-mono text-[10px] p-1" style={{ color: "var(--rc-text-muted)" }}>
+                Mutual aid: {state.mutualAid[state.mutualAid.length - 1]}
+              </p>
+            )}
           </div>
-          {state.alerts.length > 0 ? (
-            <p className="mt-3 text-sm text-amber-100">{state.alerts[state.alerts.length - 1]?.message}</p>
-          ) : null}
-          {state.shiftSummary ? <p className="mt-2 text-sm text-slate-300">{state.shiftSummary}</p> : null}
-          {state.mutualAid.length > 0 ? (
-            <p className="mt-2 text-xs text-slate-400">Mutual aid: {state.mutualAid[state.mutualAid.length - 1]}</p>
-          ) : null}
-        </section>
 
-        <section data-demo-target="admin-calls" className="rounded-lg border border-slate-800 bg-slate-950 p-3 lg:col-span-4">
-          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-            Administrative line · {state.metrics.adminRouted} handled by Call Assist
-          </h2>
-          <ul className="mt-2 space-y-1 text-sm text-slate-300">
-            {state.callQueue.filter((call) => call.discipline === "admin").length === 0 ? (
-              <li className="text-slate-500">No administrative calls in this moment.</li>
+          {/* Admin line */}
+          <PanelHeader>
+            <span>Administrative line</span>
+            <span className="ml-auto font-mono text-[9px]"
+              style={{ color: "var(--rc-text-muted)" }}>
+              {state.metrics.adminRouted} handled by Call Assist
+            </span>
+          </PanelHeader>
+          <div
+            data-demo-target="admin-calls"
+            className="overflow-y-auto border-b px-3 py-2 space-y-1"
+            style={{
+              maxHeight: "20%",
+              minHeight: "56px",
+              borderColor: "var(--rc-border)",
+            }}
+          >
+            {state.callQueue.filter((c) => c.discipline === "admin").length === 0 ? (
+              <p className="font-mono text-[10px]" style={{ color: "var(--rc-text-muted)" }}>
+                No administrative calls in this moment.
+              </p>
             ) : (
               state.callQueue
-                .filter((call) => call.discipline === "admin")
-                .map((call) => <li key={call.id}>{call.summary}</li>)
+                .filter((c) => c.discipline === "admin")
+                .map((c) => (
+                  <p key={c.id} className="font-mono text-[10px]" style={{ color: "var(--rc-text)" }}>
+                    {c.summary}
+                  </p>
+                ))
             )}
-          </ul>
-          <p className="mt-3 text-xs text-slate-500">
-            System health normal · {state.metrics.callsLast30Minutes} calls in the last 30 minutes on the opening board
-          </p>
-        </section>
+            <p className="font-mono text-[9px] pt-1" style={{ color: "var(--rc-text-muted)" }}>
+              System health normal · {state.metrics.callsLast30Minutes} calls in the last 30 minutes
+            </p>
+          </div>
 
-        <section data-demo-target="incident-history" className="rounded-lg border border-slate-800 bg-slate-950 p-3 lg:col-span-12">
-          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Incident history</h2>
-          <ul className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Incident history */}
+          <PanelHeader>
+            <span>Incident history</span>
+            <span className="ml-auto font-mono text-[9px]"
+              style={{ color: "var(--rc-text-muted)" }}>
+              {state.closedIncidents.length} closed
+            </span>
+          </PanelHeader>
+          <div
+            data-demo-target="incident-history"
+            className="min-h-0 flex-1 overflow-y-auto px-2 py-1.5 space-y-1"
+          >
             {state.closedIncidents.length === 0 ? (
-              <li className="text-sm text-slate-500">Closed incidents show up here for QA and after-action review.</li>
+              <p className="font-mono text-[10px] px-1" style={{ color: "var(--rc-text-muted)" }}>
+                Closed incidents show up here for QA and after-action review.
+              </p>
             ) : (
               state.closedIncidents.map((incident) => (
-                <li key={incident.id} className="rounded-md border border-slate-800 p-2 text-sm">
-                  <span className="font-medium">{incident.title}</span>
-                  <span className="mt-1 block text-xs text-slate-500">{locationLabel(incident.locationId)}</span>
-                </li>
+                <div
+                  key={incident.id}
+                  className="rounded border px-2 py-1.5"
+                  style={{
+                    borderColor: "var(--rc-border)",
+                    background: "var(--rc-workstation-bg)",
+                  }}
+                >
+                  <span className="font-mono text-[11px] font-medium"
+                    style={{ color: "var(--rc-text)" }}>
+                    {incident.title}
+                  </span>
+                  <p className="font-mono text-[10px] mt-0.5"
+                    style={{ color: "var(--rc-text-muted)" }}>
+                    {locationLabel(incident.locationId)}
+                  </p>
+                </div>
               ))
             )}
-          </ul>
-        </section>
+          </div>
+
+          {/* Continuity log */}
+          {focus && (
+            <>
+              <PanelHeader>
+                <span>Continuity log</span>
+              </PanelHeader>
+              <div
+                data-demo-target="continuity-log"
+                className="overflow-y-auto px-3 py-2 space-y-0.5"
+                style={{ maxHeight: "20%", minHeight: "48px" }}
+              >
+                {(focus.continuity.length
+                  ? focus.continuity
+                  : ["The log fills itself as the incident moves."]
+                ).map((entry, i) => (
+                  <p
+                    key={i}
+                    className="font-mono text-[10px]"
+                    style={{ color: "var(--rc-text)" }}
+                  >
+                    {entry}
+                  </p>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

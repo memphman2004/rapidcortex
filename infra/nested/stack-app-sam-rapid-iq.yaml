@@ -729,6 +729,9 @@ Resources:
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
 Outputs:
+  NodeDepsLayerArn:
+    Description: ARN of the shared node_modules Lambda layer for lean-build Lambdas
+    Value: !Ref NodeDepsLayer
   RapidIqHttpFunctionArn:
     Value: !GetAtt RapidIqHttpFunction.Arn
   RapidIqOrchestratorFunctionArn:

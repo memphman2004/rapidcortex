@@ -564,6 +564,14 @@ Parameters:
     Description: >-
       When set, AppSamCallAssistStack2 skips creating CallAssistDisconnectFunction
       (orphan/retained Lambda already exists — EarlyValidation AlreadyExists).
+  ExistingNodeDepsLayerArn:
+    Type: String
+    Default: ""
+    Description: >-
+      ARN of the shared node_modules Lambda layer (NodeDepsLayer from AppSamRapidIqStack).
+      Set to the latest version ARN so AppSamFieldStack FieldCommandHttpFunction can resolve
+      runtime dependencies when deployed via lean build (SAM_LEAN_BUILD=1).
+      Example: arn:aws:lambda:us-east-1:158961537080:layer:rapid-cortex-dev-rapidiq-api-deps-dev:7
   ExistingFieldCommandTableName:
     Type: String
     Default: ""
@@ -1757,6 +1765,9 @@ Resources:
         OpsAlertsTopicArn: !GetAtt AppSamStackV2.Outputs.OpsAlertsTopicArn
         ExistingFieldCommandTableName: !Ref ExistingFieldCommandTableName
         ManagedPolicyNamePrefix: !Ref AWS::StackName
+        # Pass the shared node_modules layer so lean builds can resolve runtime deps.
+        # Layer is owned by AppSamRapidIqStack; ARN is set via ExistingNodeDepsLayerArn parameter.
+        NodeDepsLayerArn: !Ref ExistingNodeDepsLayerArn
 
   AppSamGisStack:
     Condition: HasAppSamGisNestedStack

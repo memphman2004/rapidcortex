@@ -502,21 +502,21 @@ Resources:
       Timeout: 60
       Environment:
         Variables:
-          # Flip condition to HasExisting* (inverse of Create*) so the !Sub only
-          # executes when the function name is guaranteed non-empty. Both branches
-          # are reachable (cfn-lint W1028 safe; no invalid ARN in either branch).
+          # Both branches use !Sub so neither branch ever resolves to an empty string
+          # and neither branch references a conditional resource that may not exist —
+          # avoiding CloudFormation EarlyValidation rejection on both sides of !If.
           NOVA_SESSION_START_LAMBDA_ARN: !If
             - HasExistingNovaSessionStartFunctionName
             - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingNovaSessionStartFunctionName}"
-            - !GetAtt NovaSessionStartFunction.Arn
+            - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ManagedPolicyNamePrefix}-nova-session-start-${DeploymentStage}"
           NOVA_SESSION_AWAIT_LAMBDA_ARN: !If
             - HasExistingNovaSessionAwaitFunctionName
             - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingNovaSessionAwaitFunctionName}"
-            - !GetAtt NovaSessionAwaitFunction.Arn
+            - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ManagedPolicyNamePrefix}-nova-session-await-${DeploymentStage}"
           CALL_ASSIST_DISCONNECT_LAMBDA_ARN: !If
             - HasExistingCallAssistDisconnectFunctionName
             - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingCallAssistDisconnectFunctionName}"
-            - !GetAtt CallAssistDisconnectFunction.Arn
+            - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ManagedPolicyNamePrefix}-call-assist-disconnect-${DeploymentStage}"
       Policies:
         - !Ref AppManagedPolicyCallAssistDynamo
 
@@ -537,11 +537,13 @@ Resources:
 
   ConnectCallAssistDisconnectPermission:
     Type: AWS::Lambda::Permission
+    # Condition gates both the permission and the function so CloudFormation maintains
+    # the dependency and EarlyValidation::ResourceExistenceCheck passes. When
+    # ExistingCallAssistDisconnectFunctionName is provided the existing function
+    # is assumed to already have its Connect permission.
+    Condition: CreateCallAssistDisconnectFunction
     Properties:
-      FunctionName: !If
-        - HasExistingCallAssistDisconnectFunctionName
-        - !Ref ExistingCallAssistDisconnectFunctionName
-        - !Ref CallAssistDisconnectFunction
+      FunctionName: !Ref CallAssistDisconnectFunction
       Action: lambda:InvokeFunction
       Principal: connect.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
@@ -747,22 +749,18 @@ Resources:
 
   ConnectNovaSessionStartPermission:
     Type: AWS::Lambda::Permission
+    Condition: CreateNovaSessionStartFunction
     Properties:
-      FunctionName: !If
-        - HasExistingNovaSessionStartFunctionName
-        - !Ref ExistingNovaSessionStartFunctionName
-        - !Ref NovaSessionStartFunction
+      FunctionName: !Ref NovaSessionStartFunction
       Action: lambda:InvokeFunction
       Principal: connect.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
 
   ConnectNovaSessionAwaitPermission:
     Type: AWS::Lambda::Permission
+    Condition: CreateNovaSessionAwaitFunction
     Properties:
-      FunctionName: !If
-        - HasExistingNovaSessionAwaitFunctionName
-        - !Ref ExistingNovaSessionAwaitFunctionName
-        - !Ref NovaSessionAwaitFunction
+      FunctionName: !Ref NovaSessionAwaitFunction
       Action: lambda:InvokeFunction
       Principal: connect.amazonaws.com
       SourceAccount: !Ref AWS::AccountId

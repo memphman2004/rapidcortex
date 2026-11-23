@@ -886,6 +886,9 @@ fi
 if [[ -n "${EXISTING_FIELD_COMMAND_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingFieldCommandTableName=${EXISTING_FIELD_COMMAND_TABLE_NAME}"
 fi
+if [[ -n "${EXISTING_NODE_DEPS_LAYER_ARN:-}" ]]; then
+  PARAMS="${PARAMS} ExistingNodeDepsLayerArn=${EXISTING_NODE_DEPS_LAYER_ARN}"
+fi
 if [[ -n "${EXISTING_VISION_CAMERAS_TABLE_NAME:-}" ]]; then
   PARAMS="${PARAMS} ExistingVisionCamerasTableName=${EXISTING_VISION_CAMERAS_TABLE_NAME}"
 fi
