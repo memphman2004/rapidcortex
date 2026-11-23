@@ -716,6 +716,9 @@ fi
 if [[ -n "${NEXIQ_SIGNALS_INGEST_API_KEY_SECRET_ARN:-}" ]]; then
   PARAMS="${PARAMS} NexiqSignalsIngestApiKeySecretArn=${NEXIQ_SIGNALS_INGEST_API_KEY_SECRET_ARN}"
 fi
+if [[ -n "${EXISTING_RAPID_IQ_HTTP_INTEGRATION_ID:-}" ]]; then
+  PARAMS="${PARAMS} ExistingRapidIqHttpIntegrationId=${EXISTING_RAPID_IQ_HTTP_INTEGRATION_ID}"
+fi
 if [[ -n "${ENABLE_NEXIQ_INTEL:-}" ]]; then
   PARAMS="${PARAMS} EnableNexiQIntel=${ENABLE_NEXIQ_INTEL}"
 fi
