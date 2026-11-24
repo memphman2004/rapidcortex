@@ -19,6 +19,7 @@ const SECTIONS = new Set<VisionSection>([
   "alerts",
   "incident",
   "analytics",
+  "live-assist",
   "settings",
 ]);
 
