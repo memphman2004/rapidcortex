@@ -1203,7 +1203,20 @@ Resources:
                 - cloudwatch:PutMetricData
               Resource: "*"
 
+  # Retained stale physical IDs deleted by a prior rollback cascade.
+  # DeletionPolicy+UpdateReplacePolicy: Retain prevents CF calling DELETE on non-existent resources.
+  # V2 logical IDs below are the live replacements.
   AiGateHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AiGateHttpFunction.Arn}/invocations"
+      PayloadFormatVersion: "2.0"
+
+  AiGateHttpIntegrationV2:
     Type: AWS::ApiGatewayV2::Integration
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
@@ -1254,7 +1267,51 @@ Resources:
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
+  # V2 replacements — fresh physical IDs pointing to V2 integration.
+  RouteAiGateConfigV2:
+    Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/agency/{agencyId}/config/ai-mode"
+      Target: !Sub "integrations/${AiGateHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteAiGateConfigPutV2:
+    Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "PUT /api/agency/{agencyId}/config/ai-mode"
+      Target: !Sub "integrations/${AiGateHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteAiGateAuditV2:
+    Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "GET /api/agency/{agencyId}/config/ai-mode/audit"
+      Target: !Sub "integrations/${AiGateHttpIntegrationV2}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
   FeaturesHttpIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ApiId: !Ref HttpApiId
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FeaturesHttpFunction.Arn}/invocations"
+      PayloadFormatVersion: "2.0"
+
+  FeaturesHttpIntegrationV2:
     Type: AWS::ApiGatewayV2::Integration
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
@@ -1316,6 +1373,17 @@ Resources:
       ApiId: !Ref HttpApiId
       RouteKey: "ANY /api/features/{proxy+}"
       Target: !Sub "integrations/${FeaturesHttpIntegration}"
+      AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
+      AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
+
+  RouteFeaturesProxyV2:
+    Type: AWS::ApiGatewayV2::Route
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ApiId: !Ref HttpApiId
+      RouteKey: "ANY /api/features/{proxy+}"
+      Target: !Sub "integrations/${FeaturesHttpIntegrationV2}"
       AuthorizationType: !If [HasHttpApiJwtAuthorizer, JWT, NONE]
       AuthorizerId: !If [HasHttpApiJwtAuthorizer, !Ref HttpApiJwtAuthorizerId, !Ref AWS::NoValue]
 
